@@ -24,28 +24,26 @@
                 }
               };
             })();
-        
+
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FP.app.init();
               }  
             };
-        
+
           </script>
 
         <script async src="/js/app/app.js"></script>
         <script async src="/js/app/core.js"></script>
         <script async src="/js/app/utils.js"></script>
         <script async src="/js/libs/zip.js"></script>
-        
+
     </head>
     <body>
         <div id="main">
-            <span class="form-label">choose a zip file</span>
-            <input type="file" accept="application/zip" id="file-input">
         </div>
 
-        
+
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <script>
             var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
