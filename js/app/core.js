@@ -1,4 +1,23 @@
 FP.namespace('core').load = (function(){
+  function load(url, callback){
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    
+    xhr.onload = function(e) {
+      if (this.status == 200) {
+        // Note: .response instead of .responseText
+        var blob = new Blob([this.response], {type: 'application/xhtml+xml'});
+        callback(blob);
+      }
+    };
+    
+    xhr.send();
+  }
+  return load;
+})();
+
+FP.namespace('core').load2 = (function(){
     
   /*
   PDFJS.getPdf(

@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.2.min.js"><\/script>')</script>
+        <script>window.jQuery || document.write('<script src="js/libs/jquery-1.8.2.min.js"><\/script>')</script>
         <script>
             //-- Define Global   
             var FP = (function(){
@@ -36,22 +36,23 @@
         <script async src="/js/app/app.js"></script>
         <script async src="/js/app/core.js"></script>
         <script async src="/js/app/utils.js"></script>
+        <script async src="/js/app/page.js"></script>
         <script async src="/js/libs/zip.js"></script>
         
     </head>
     <body>
-        <div id="main">
-            <span class="form-label">choose a zip file</span>
-            <input type="file" accept="application/zip" id="file-input">
+        <div id="modal">
+            <h3>Load a Epub File:</h3>
+            <input type="file" accept="application/epub+zip, application/pdf" id="file-input">
         </div>
-
+        <div id="main">
+            
+        </div>
         
-        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-        <script>
-            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-            s.parentNode.insertBefore(g,s)}(document,'script'));
-        </script>
+        <div id="area"></div>
+        
+        <div id="prev"></div>
+        <div id="next"></div>
+        
     </body>
 </html>
