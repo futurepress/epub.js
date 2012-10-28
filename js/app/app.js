@@ -25,7 +25,10 @@ FP.namespace('app').init = (function($){
         //TODO: parse the rootfile to find files
         var total = 0,
             loaded = 0;
-            
+        
+        var total_img = 0,
+            loaded_img = 0;
+                
         //-- Split Entries into xhtml, images, css
         entries.forEach(function(entry) {
           
@@ -37,6 +40,7 @@ FP.namespace('app').init = (function($){
           
           if(entry.filename.search(".jpg") != -1 || entry.filename.search(".png") != -1){
             bookImages.push(entry);
+            total_img++;
           }
           
           if(entry.filename.search(".css") != -1){
@@ -51,10 +55,17 @@ FP.namespace('app').init = (function($){
           FP.core.loadZip.getEntryFile(file, "Blob", function(blobURL, revokeBlobURL) {
             
             images[name] = blobURL;
-            console.log("images[name]", images[name])
+            
+            //console.log("images[name]", images[name])
             //var img = document.createElement('img');
             //img.src = blobURL;
             //area.appendChild(img);
+            
+            loaded_img++;
+            if(loaded_img == total_img){
+              imgReady();
+            }
+            
             
                           
           }, function(current, total) {
@@ -140,7 +151,7 @@ FP.namespace('app').init = (function($){
         
         
         function allReady(){
-          FP.book.page.start($("#area"), pages, ordered, images);
+          FP.book.page.start($("#area"), pages, ordered);
           
           $("#modal").fadeOut();
           
@@ -164,6 +175,10 @@ FP.namespace('app').init = (function($){
             }
           });
           
+        }
+        
+        function imgReady(){
+          FP.book.page.setImages(images);
         }
         //console.log(bookFiles, bookImages, bookCSS)
       });
