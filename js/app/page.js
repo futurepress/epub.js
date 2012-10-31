@@ -48,7 +48,7 @@ FP.namespace('book').page = (function($){
   
   function setImages(images){
     _images = images;
-    scanImages();
+    //scanImages();
   }
   
   function scanImages(){

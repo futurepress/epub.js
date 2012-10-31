@@ -13,7 +13,7 @@ FP.namespace('app').init = (function($){
         ordered = [];
     
     //-- Tell zip where it is located
-    zip.workerScriptsPath = "/js/libs/";
+    zip.workerScriptsPath = "js/libs/";
     
     //-- Listen for the Input Change
     fileInput.addEventListener('change', function(){
@@ -32,7 +32,9 @@ FP.namespace('app').init = (function($){
         //-- Split Entries into xhtml, images, css
         entries.forEach(function(entry) {
           
-          if(entry.filename.search(".xhtml") != -1){
+          if(entry.filename.search(".xhtml") != -1 || 
+              entry.filename.search(".html") != -1 || 
+              entry.filename.search(".htm") != -1){
             //console.log("entry", entry);
             bookFiles.push(entry);
             total++;
@@ -50,7 +52,8 @@ FP.namespace('app').init = (function($){
         });
         
         bookImages.forEach(function(file) {
-          var name = file.filename.replace("OPS/", '');
+          var name = file.filename.replace("OPS/", '').replace("OEBPS/", '');
+          //console.log("name", name)
           //Blob or File
           FP.core.loadZip.getEntryFile(file, "Blob", function(blobURL, revokeBlobURL) {
             
@@ -75,9 +78,9 @@ FP.namespace('app').init = (function($){
         });
         
         bookFiles.forEach(function(file) {
-          var reg = /\/(.*).xhtml/,
+          var reg = /\/(.*)\./,
               name = reg.exec(file.filename)[1];
-              
+
           //TEMP ORDER FIX
           if(name === "cover") name = "1_"+name;
           if(name === "TOC") name = "2_"+name;
@@ -151,29 +154,32 @@ FP.namespace('app').init = (function($){
         
         
         function allReady(){
-          FP.book.page.start($("#area"), pages, ordered);
           
-          $("#modal").fadeOut();
           
-          $("#next").fadeIn();
-          $("#prev").fadeIn();
-          
-          $("#next").on("click", function(){
-            FP.book.page.next();
-          });
-          
-          $("#prev").on("click", function(){
-            FP.book.page.prev();
-          });
-          
-          $(document).keydown(function(e) {
-            if(e.keyCode == 37) { // left
-              FP.book.page.prev();
-            }
-            else if(e.keyCode == 39) { // right
-              FP.book.page.next();
-            }
-          });
+           FP.book.page.start($("#area"), pages, ordered);
+           
+           $("#modal").fadeOut();
+           
+           $("#next").fadeIn();
+           $("#prev").fadeIn();
+           
+           $("#next").on("click", function(){
+             FP.book.page.next();
+           });
+           
+           $("#prev").on("click", function(){
+             FP.book.page.prev();
+           });
+           
+           $(document).keydown(function(e) {
+             if(e.keyCode == 37) { // left
+               FP.book.page.prev();
+             }
+             else if(e.keyCode == 39) { // right
+               FP.book.page.next();
+             }
+           });
+           
           
         }
         
