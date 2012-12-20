@@ -267,6 +267,12 @@ FP.Book.prototype.formatSpread = function(end){
 	this.gap = this.gap || this.elWidth / 8;
 	
 	this.colWidth = Math.ceil((this.elWidth - this.gap) / 2);
+	
+	//-- Must be even for firefox
+	if(this.colWidth % 2 != 0){
+		this.colWidth -= 1;
+	}
+	
 	this.spreadWidth = (this.colWidth + this.gap) * 2;
 	
 	//-- Clear Margins
@@ -282,7 +288,7 @@ FP.Book.prototype.formatSpread = function(end){
 	this.bodyEl.style[FP.core.columnAxis] = "horizontal";
 	this.bodyEl.style[FP.core.columnGap] = this.gap+"px";
 	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
-	
+
 	this.calcPages();
 
 	if(end){
@@ -341,7 +347,6 @@ FP.Book.prototype.chapterEnd = function(){
 }
 
 FP.Book.prototype.getTOC = function(){
-	console.log(this.toc)
 	return this.toc;
 
 }

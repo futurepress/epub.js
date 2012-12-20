@@ -58,9 +58,8 @@ FP.core.crossBrowserColumnCss = function(){
 	FP.core.columnWidth =  Modernizr.prefixed('columnWidth') || 'columnWidth';
 
 	// we are interested in the css prefixed version
-	FP.core.columnAxis =  cssIfy(FP.core.columnAxis);
-	FP.core.columnGap =  cssIfy(FP.core.columnGap);
-	FP.core.columnWidth =  cssIfy(FP.core.columnWidth);
+	// FP.core.columnAxis =  cssIfy(FP.core.columnAxis);
+	// FP.core.columnGap =  cssIfy(FP.core.columnGap);
+	// FP.core.columnWidth =  cssIfy(FP.core.columnWidth);
+	
 }
-
-FP.core.crossBrowserColumnCss();

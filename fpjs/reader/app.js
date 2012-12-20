@@ -4,7 +4,9 @@ FP.app.init = (function($){
   
   var Book;
   
-  function init(){	
+  function init(){
+	FP.core.crossBrowserColumnCss();
+	 
 	Book = new FP.Book("area", "/moby-dick/");
 	//Book = new FP.Book("area", "/the-hound-of-the-baskervilles/");
 	
@@ -15,7 +17,7 @@ FP.app.init = (function($){
 		setTimeout(function(){
 			meta();
 			toc();
-		}, 100);
+		}, 500);
 		setTimeout(function(){
 			toc();
 		}, 1000);
