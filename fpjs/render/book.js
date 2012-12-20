@@ -6,6 +6,14 @@ FP.Book = function(elem, bookUrl){
 	} else {
 		this.el = elem;
 	}
+	
+	this.events = {};
+	this.createEvent("book:tocReady");
+	this.createEvent("book:metadataReady");
+	this.createEvent("book:spineReady");
+	this.createEvent("book:bookReady");
+	this.createEvent("book:chapterReady");
+	this.createEvent("book:resized");
 		
 	this.initialize(this.el);
 	this.listeners();
@@ -21,19 +29,21 @@ FP.Book = function(elem, bookUrl){
 //-- Build up any html needed
 FP.Book.prototype.initialize = function(el){
 	this.iframe = document.createElement('iframe');
-	this.onResized();
+	this.resizeIframe(false, this.el.clientWidth, this.el.clientHeight);
+	
+	this.listen("book:resized", this.resizeIframe, this);
+	
+	//this.listen("book:bookReady", function(){console.log("rready")});
+
 	
 	this.el.appendChild(this.iframe);
+	
 	
 }
 
 FP.Book.prototype.listeners = function(){
 	var that = this;
-	window.addEventListener("resize", function(){
-		//-- Need a better way to unbind this
-		
-		that.onResized();
-	}, false);
+	window.addEventListener("resize", that.onResized.bind(this), false);
 }
 
 
@@ -70,13 +80,30 @@ FP.Book.prototype.isContained = function(bookUrl){
 
 
 FP.Book.prototype.onResized = function(){
-	var width = this.el.clientWidth;
-	this.iframe.height = this.el.clientHeight;
+	this.tell("book:resized", {
+		width: this.el.clientWidth,
+		height: this.el.clientHeight
+	});
+}
+
+FP.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
+	var width, height;
+	
+	//-- Can be resized by the window resize event, or by passed height
+	if(!e){
+		width = cWidth;
+		height = cHeight;
+	}else{
+		width = e.msg.width;
+		height = e.msg.height;
+	}
+	
+	this.iframe.height = height;
 
 	if(width % 2 != 0){
 		width += 1;
 	}
-	
+
 	this.iframe.width = width;
 }
 
@@ -98,7 +125,7 @@ FP.Book.prototype.parseContainer = function(callback){
 		that.contentsPath = fullpath[1];
 		//-- Now that we have the path we can parse the contents
 		//-- TODO: move this
-		that.parseContents(that.contentsPath)
+		that.parseContents(that.contentsPath);
 	});
 	
 }
@@ -129,6 +156,8 @@ FP.Book.prototype.parseMetadata = function(metadata){
 											.childNodes[0].nodeValue;
 	this.metadata["creator"] = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","creator")[0]
 											.childNodes[0].nodeValue;
+											
+	this.tell("book:metadataReady");
 }
 
 FP.Book.prototype.parseManifest = function(manifest){
@@ -155,16 +184,20 @@ FP.Book.prototype.parseSpine = function(spine){
 	
 	this.spine = [];
 	
+	this.spineIndex = {}; //-- For quick reference by id, might be a better way
+	
 	//-- Turn items into an array
 	items = Array.prototype.slice.call(spine.getElementsByTagName("itemref"));
 	
 	//-- Add to array to mantain ordering and cross reference with manifest
-	items.forEach(function(item){
+	items.forEach(function(item, index){
 		var id = item.getAttribute('idref'),
 			href = that.assets[id];
 			
 		that.spine.push({"id": id, "href": href});
+		that.spineIndex[id] = index;
 	});
+	this.tell("book:spineReady");
 }
 
 FP.Book.prototype.parseTOC = function(path){
@@ -185,9 +218,16 @@ FP.Book.prototype.parseTOC = function(path){
 				href = that.assets[id],
 				navLabel = item.getElementsByTagName("navLabel")[0].childNodes[0].childNodes[0].nodeValue;
 
-			that.toc.push({"id": id, "href": href, "label": navLabel});
+			that.toc.push({
+						"id": id, 
+						"href": href, 
+						"label": navLabel, 
+						"spinePos": that.spineIndex[id]
+				});
+			
 		});
 		
+		that.tell("book:tocReady");
 		/*
 		<navPoint class="chapter" id="xtitlepage" playOrder="1">
 		  <navLabel><text>Moby-Dick</text></navLabel>
@@ -216,15 +256,18 @@ FP.Book.prototype.chapterTitle = function(){
 }
 
 FP.Book.prototype.startDisplay = function(){
-	//-- TODO: get previous saved positions?
-	var spinePos = 6;
+	//-- get previous saved positions
+	var spinePos = localStorage.getItem("spinePos") || 0;
+	
+	this.tell("book:bookReady");
 	
 	this.displayChapter(spinePos);
+	
 }
 
 FP.Book.prototype.displayChapter = function(pos, end){
 	var that = this;
-		
+	
 	if(pos >= this.spine.length){
 		console.log("Reached End of Book")
 		return false;
@@ -235,6 +278,7 @@ FP.Book.prototype.displayChapter = function(pos, end){
 		return false;
 	}
 	
+	localStorage.setItem("spinePos", pos);
 	
 	this.spinePos = pos;
 	this.chapterPos = 1;
@@ -245,23 +289,22 @@ FP.Book.prototype.displayChapter = function(pos, end){
 	this.iframe.onload = function() {
 		
 		//-- TODO: Choose between single and spread
-		that.formatSpread(end);
+		that.formatSpread();
+		if(end) that.goToChapterEnd();
 		
-		window.addEventListener("resize", function(){
-			that.formatSpread();
-			//-- need to adjust position in book
-		}, false);
+		that.listen("book:resized", that.formatSpread, that);
+				
+		that.tell("book:chapterReady");
 	}
 }
 
-FP.Book.prototype.formatSpread = function(end){
+FP.Book.prototype.formatSpread = function(){
 	
 	this.bodyEl = this.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
 	//this.bodyEl.setAttribute("style", "background: #777");
 	
 	//-- Check the width and decied on columns
 	//-- Todo: a better place for this?
-	
 	this.elWidth = this.iframe.width;
 	
 	this.gap = this.gap || this.elWidth / 8;
@@ -291,9 +334,10 @@ FP.Book.prototype.formatSpread = function(end){
 
 	this.calcPages();
 
-	if(end){
-		this.chapterEnd();
-	}
+}
+
+FP.Book.prototype.goToChapterEnd = function(){
+	this.chapterEnd();
 }
 
 FP.Book.prototype.calcPages = function(){
@@ -351,3 +395,43 @@ FP.Book.prototype.getTOC = function(){
 
 }
 
+FP.Book.prototype.createEvent = function(evt){
+	var e = new CustomEvent(evt);
+	this.events[evt] = e;
+	return e;
+}
+
+FP.Book.prototype.tell = function(evt, msg){
+	var e;
+	
+	if(!this.events[evt]){
+		console.warn("No event:", evt,  "defined yet, creating.");
+		e = this.createEvent(evt)
+	}else{
+		e = this.events[evt];
+	}
+	
+	if(msg) e.msg = msg;
+	
+	this.el.dispatchEvent(e);
+	 
+}
+
+FP.Book.prototype.listen = function(evt, func, bindto){
+	if(!this.events[evt]){
+		console.warn("No event:", evt,  "defined yet, creating.");
+		this.createEvent(evt);
+		return;
+	}
+	
+	if(bindto){
+		this.el.addEventListener(evt, func.bind(bindto), false);
+	}else{
+		this.el.addEventListener(evt, func, false);
+	}
+
+}
+
+FP.Book.prototype.deafen = function(evt, func){
+	this.el.removeEventListener(evt, func, false);
+}

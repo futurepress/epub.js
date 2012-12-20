@@ -5,22 +5,26 @@ FP.app.init = (function($){
   var Book;
   
   function init(){
+	//-- Setup the browser prefixes 
 	FP.core.crossBrowserColumnCss();
 	 
+	//-- Temp set the previos position to section 6, 
+	//   since moby-dick has lots of crap before the test
+	//   Might want to make a way to skip to first chapter
+	if (localStorage.getItem("spinePos") === null) {
+		localStorage.setItem("spinePos", 6);
+	}
+	
+
 	Book = new FP.Book("area", "/moby-dick/");
 	//Book = new FP.Book("area", "/the-hound-of-the-baskervilles/");
+	
+	Book.listen("book:metadataReady", meta);
+	Book.listen("book:tocReady", toc);
 	
 	//-- Wait for Dom ready to handle jquery
 	$(function() {
 		controls();
-		//-- Replace with event
-		setTimeout(function(){
-			meta();
-			toc();
-		}, 500);
-		setTimeout(function(){
-			toc();
-		}, 1000);
 	});
 	
 
@@ -31,7 +35,7 @@ FP.app.init = (function($){
 		  author = Book.getCreator(),
 		  $title = $("#book-title"),
 		  $author = $("#chapter-title");
-		  
+
 	  document.title = title+"–"+author;
 	  $title.html(title);
 	  $author.html(author);
@@ -41,10 +45,25 @@ FP.app.init = (function($){
   function toc(){
   	  var contents = Book.getTOC();
   		  $toc = $("#toc");
-  	
+  	  
+  	  $toc.empty();
+  	  
   	  contents.forEach(function(item){
-	  	  $toc.append("<li><a href='"+item.href+"'>"+item.label+"</a></li>");
+	  	  $wrapper = $("<li>");
+	  	  
+	  	  $item = $("<a href='#"+item.href+"' data-spinepos='"+item.spinePos+"'>"+item.label+"</a>");
+	  	  
+	  	  $item.on("click", function(e){
+		  	  $this = $(this);
+		  	  console.log(item.spinePos)
+		  	  Book.displayChapter($this.data("spinepos"));
+		  	  e.preventDefault();
+	  	  });
+	  	  
+	  	  $wrapper.append($item);
+	  	  $toc.append($wrapper);
   	  });
+  	  
   
     }
   

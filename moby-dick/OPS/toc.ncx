@@ -46,5 +46,40 @@
       <content src="chapter_003.xhtml"/>
     </navPoint>
     
+    <navPoint class="chapter" id="xchapter_004" playOrder="1">
+      <navLabel><text>Chapter 4. The Counterpane.</text></navLabel>
+      <content src="chapter_004.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_005" playOrder="1">
+      <navLabel><text>Chapter 5. Breakfast.</text></navLabel>
+      <content src="chapter_005.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_006" playOrder="1">
+      <navLabel><text>Chapter 6. The Street.</text></navLabel>
+      <content src="chapter_006.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_007" playOrder="1">
+      <navLabel><text>Chapter 7. The Chapel.</text></navLabel>
+      <content src="chapter_007.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_008" playOrder="1">
+      <navLabel><text>Chapter 8. The Pulpit.</text></navLabel>
+      <content src="chapter_008.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_009" playOrder="1">
+      <navLabel><text>Chapter 9. The Sermon.</text></navLabel>
+      <content src="chapter_009.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_010" playOrder="1">
+      <navLabel><text>Chapter 10. A Bosom Friend.</text></navLabel>
+      <content src="chapter_010.xhtml"/>
+    </navPoint>
+    
   </navMap>
 </ncx>

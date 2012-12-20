@@ -155,10 +155,23 @@ input:-moz-placeholder {
 
 #toc {
   margin-top: 50px;
+  padding-left: 25px;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 #toc li {
   margin-bottom: 10px;
+  width: 225px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  list-style: none;
+}
+
+#toc li:active,
+#toc li.current
+{
+  list-style: square;
 }
 
 #toc a {
@@ -169,3 +182,4 @@ input:-moz-placeholder {
 #toc a:hover {
   text-decoration: underline;
 }
+
