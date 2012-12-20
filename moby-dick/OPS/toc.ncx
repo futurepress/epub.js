@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="cover" content="cover"/>
+    <meta name="dtb:depth" content="-1"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>Moby-Dick</text>
+  </docTitle>
+  <navMap>
+    
+    <navPoint class="chapter" id="titlepage" playOrder="1">
+      <navLabel><text>Moby-Dick</text></navLabel>
+      <content src="titlepage.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xpreface_001" playOrder="1">
+      <navLabel><text>Original Transcriber’s Notes:</text></navLabel>
+      <content src="preface_001.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xintroduction_001" playOrder="1">
+      <navLabel><text>ETYMOLOGY.</text></navLabel>
+      <content src="introduction_001.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xepigraph_001" playOrder="1">
+      <navLabel><text>EXTRACTS</text></navLabel>
+      <content src="epigraph_001.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_001" playOrder="1">
+      <navLabel><text>Chapter 1. Loomings.</text></navLabel>
+      <content src="chapter_001.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_002" playOrder="1">
+      <navLabel><text>Chapter 2. The Carpet-Bag.</text></navLabel>
+      <content src="chapter_002.xhtml"/>
+    </navPoint>
+    
+    <navPoint class="chapter" id="xchapter_003" playOrder="1">
+      <navLabel><text>Chapter 3. The Spouter-Inn.</text></navLabel>
+      <content src="chapter_003.xhtml"/>
+    </navPoint>
+    
+  </navMap>
+</ncx>

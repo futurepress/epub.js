@@ -10,21 +10,21 @@
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/libs/jquery-1.8.2.min.js"><\/script>')</script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script src="fpjs/libs/modernizr-2.6.2.min.js"></script>
         <script>
             //-- Define Global   
-            var FP = (function(){
-              "use strict";
-              return {
-                namespace: function(name) {
-                  if(this[name] === undefined) { this[name] = {}; }
-                  if(typeof this[name] !== 'object') { throw "Namespace Error: "+name; }
-                  return this[name];
-                }
-              };
-            })();
-        
+            // var FP = (function(){
+            //   "use strict";
+            //   return {
+            //     namespace: function(name) {
+            //       if(this[name] === undefined) { this[name] = {}; }
+            //       if(typeof this[name] !== 'object') { throw "Namespace Error: "+name; }
+            //       return this[name];
+            //     }
+            //   };
+            // })();
+            var FP = {};
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FP.app.init();
@@ -32,27 +32,32 @@
             };
         
           </script>
-
-        <script async src="js/app/app.js"></script>
-        <script async src="js/app/core.js"></script>
-        <script async src="js/app/utils.js"></script>
-        <script async src="js/app/page.js"></script>
-        <script async src="js/libs/zip.js"></script>
         
+        
+        <script async src="fpjs/render/core.js"></script>
+        <script async src="fpjs/render/book.js"></script>
+        <script async src="fpjs/reader/app.js"></script>
+               
     </head>
     <body>
-        <div id="modal">
-            <h3>Load a Epub File:</h3>
-            <input type="file" accept="application/epub+zip, application/pdf" id="file-input">
-        </div>
-        <div id="main">
+        <div id="sidebar">
+          <div id="controls">
+            <input id="search" placeholder="search">
+            <img id="open" src="/img/menu-icon.png">
+          </div>
+          <ol id="toc"></ol>
             
         </div>
-        
-        <div id="area"></div>
-        
-        <div id="prev"></div>
-        <div id="next"></div>
-        
+        <div id="main">
+          <div id="titlebar">
+            <span id="book-title"></span>
+            &nbsp;&nbsp;–&nbsp;&nbsp;
+            <span id="chapter-title"> </span>
+          </div>
+          <div id="prev" class="arrow">‹</div>
+          <div id="area"></div>
+          <div id="next" class="arrow">›</div>
+          <div id="divider"></div>
+        </div>
     </body>
 </html>
