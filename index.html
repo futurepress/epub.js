@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title></title>
+        <title><?php wp_title( '|', true, 'right' ); ?></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
@@ -42,9 +42,9 @@
     <body>
         <div id="sidebar">
           <div id="controls">
+            <a id="open"><img src="img/menu-icon.png"></a>
             <input id="search" placeholder="search">
-            <img id="open" src="/img/menu-icon.png">
-            <img id="settings" src="/img/settings.png">
+            <a id="setting"><img id="settings" src="img/settings.png"></a>
             
           </div>
           <ul id="toc"></ul>

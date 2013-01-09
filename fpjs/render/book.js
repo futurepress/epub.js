@@ -148,14 +148,14 @@ FP.Book.prototype.parseContents = function(){
 }
 
 FP.Book.prototype.parseMetadata = function(metadata){
-	var that = this;
+	var that = this,
+		title = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","title")[0]
+		creator = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","creator")[0];
 
 	this.metadata = {};
 	
-	this.metadata["bookTitle"] = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","title")[0]
-											.childNodes[0].nodeValue;
-	this.metadata["creator"] = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","creator")[0]
-											.childNodes[0].nodeValue;
+	this.metadata["bookTitle"] = title ? title.childNodes[0].nodeValue : "";
+	this.metadata["creator"] = creator ? creator.childNodes[0].nodeValue : "";
 											
 	this.tell("book:metadataReady");
 }
@@ -165,7 +165,7 @@ FP.Book.prototype.parseManifest = function(manifest){
 	
 	this.assets = {};
 	//-- Turn items into an array
-	items = Array.prototype.slice.call(manifest.getElementsByTagName("item"));
+	items = Array.prototype.slice.call(manifest.querySelectorAll("item"));
 	//-- Create an object with the id as key
 	items.forEach(function(item){
 		var id = item.getAttribute('id'),
@@ -210,22 +210,45 @@ FP.Book.prototype.parseTOC = function(path){
 		var navMap = contents.getElementsByTagName("navMap")[0];
 
 		
-		//-- Turn items into an array
-		items = Array.prototype.slice.call(contents.getElementsByTagName("navPoint"));
-
-		items.forEach(function(item){
-			var id = item.getAttribute('id'),
-				href = that.assets[id],
-				navLabel = item.getElementsByTagName("navLabel")[0].childNodes[0].childNodes[0].nodeValue;
-
-			that.toc.push({
-						"id": id, 
-						"href": href, 
-						"label": navLabel, 
-						"spinePos": that.spineIndex[id]
-				});
+		
+		
+		function getTOC(nodes, parent){
+			var list = [];
 			
-		});
+			//-- Turn items into an array
+			items = Array.prototype.slice.call(nodes);
+			
+			items.forEach(function(item){
+				var id = item.getAttribute('id'),
+					href = that.assets[id],
+					navLabel = item.getElementsByTagName("navLabel")[0],
+					text = navLabel.textContent ? navLabel.textContent : "",
+					subitems = item.getElementsByTagName("navPoint") || false,
+					subs = false,
+					childof = (item.parentNode == parent);				
+				
+				
+				if(!childof) return; //-- Only get direct children, should xpath for this eventually?
+				
+				if(subitems){
+					subs = getTOC(subitems, item)
+				}
+				
+				list.push({
+							"id": id, 
+							"href": href, 
+							"label": text, 
+							"spinePos": that.spineIndex[id],
+							"subitems" : subs
+				});
+				
+			});
+			
+			return list;
+		}
+
+		that.toc = getTOC(navMap.getElementsByTagName("navPoint"), navMap);
+		
 		
 		that.tell("book:tocReady");
 		/*
@@ -284,10 +307,15 @@ FP.Book.prototype.displayChapter = function(pos, end){
 	this.chapterPos = 1;
 	this.leftPos = 0;
 
+	if(this.bodyEl) this.bodyEl.style.visibility = "hidden";
 	this.iframe.src = this.spine[this.spinePos].href;
 	
 	this.iframe.onload = function() {
+		//that.bodyEl = that.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
+		//that.bodyEl = that.iframe.contentDocument.querySelector('body, html');
+		that.bodyEl = that.iframe.contentDocument.body;
 		
+		console.log(that.bodyEl);
 		//-- TODO: Choose between single and spread
 		that.formatSpread();
 		if(end) that.goToChapterEnd();
@@ -299,29 +327,41 @@ FP.Book.prototype.displayChapter = function(pos, end){
 }
 
 FP.Book.prototype.formatSpread = function(){
-	
-	this.bodyEl = this.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
+	var divisor = 2,
+		cutoff = 800;
+		
+	if(this.colWidth){
+		this.OldcolWidth = this.colWidth;
+		this.OldspreadWidth = this.spreadWidth;
+	}
 	//this.bodyEl.setAttribute("style", "background: #777");
 	
 	//-- Check the width and decied on columns
 	//-- Todo: a better place for this?
 	this.elWidth = this.iframe.width;
-	
-	this.gap = this.gap || this.elWidth / 8;
-	
-	this.colWidth = Math.ceil((this.elWidth - this.gap) / 2);
-	
-	//-- Must be even for firefox
-	if(this.colWidth % 2 != 0){
-		this.colWidth -= 1;
+		
+	this.gap = this.gap || Math.ceil(this.elWidth / 8);
+
+	if(this.elWidth < cutoff) {
+		divisor = 1;
+		this.colWidth = Math.floor(this.elWidth / divisor);
+	}else{
+		this.colWidth = Math.floor((this.elWidth - this.gap) / divisor);
+		
+		//-- Must be even for firefox
+		if(this.colWidth % 2 != 0){
+			this.colWidth -= 1;
+		}
 	}
 	
-	this.spreadWidth = (this.colWidth + this.gap) * 2;
+	this.spreadWidth = (this.colWidth + this.gap) * divisor;
 	
 	//-- Clear Margins
 	this.bodyEl.style.visibility = "hidden";
 	this.bodyEl.style.margin = "0";
 	this.bodyEl.style.overflow = "hidden";
+	
+	this.bodyEl.style.width = this.elWidth;
 	
 	//-- Adjust height
 	this.bodyEl.style.height = this.el.clientHeight + "px";
@@ -333,7 +373,12 @@ FP.Book.prototype.formatSpread = function(){
 	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
 
 	this.calcPages();
-
+	
+	//-- Go to current page after resize
+	if(this.OldcolWidth){		
+		this.leftPos = this.chapterPos * this.spreadWidth;
+		this.bodyEl.scrollLeft = this.leftPos;
+	}
 }
 
 FP.Book.prototype.goToChapterEnd = function(){
@@ -341,11 +386,17 @@ FP.Book.prototype.goToChapterEnd = function(){
 }
 
 FP.Book.prototype.calcPages = function(){
-	this.totalWidth = this.bodyEl.scrollWidth;
+	this.totalWidth = this.iframe.contentDocument.documentElement.scrollWidth; //this.bodyEl.scrollWidth;
+	
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 	this.bodyEl.style.visibility = "visible";
+	
+	//-- I work for Chrome
+	//this.iframe.contentDocument.body.scrollLeft = 200;
+	
+	//-- I work for Firefox
+	//this.iframe.contentDocument.documentElement.scrollLeft = 200;
 
-	console.log("pages: ", this.displayedPages);
 }
 
 
@@ -354,7 +405,8 @@ FP.Book.prototype.nextPage = function(){
 		this.chapterPos++;
 		
 		this.leftPos += this.spreadWidth;
-		this.bodyEl.scrollLeft = this.leftPos;
+		//this.bodyEl.scrollLeft = this.leftPos;
+		this.bodyEl.style.marginLeft = -this.leftPos + "px";
 	}else{
 		this.nextChapter();
 	}
@@ -365,7 +417,8 @@ FP.Book.prototype.prevPage = function(){
 		this.chapterPos--;
 		
 		this.leftPos -= this.spreadWidth;
-		this.bodyEl.scrollLeft = this.leftPos;
+		//this.bodyEl.scrollLeft = this.leftPos;
+		this.bodyEl.style.marginLeft = -this.leftPos + "px";
 	}else{
 		this.prevChapter();
 	}

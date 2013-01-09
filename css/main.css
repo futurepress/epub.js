@@ -7,12 +7,15 @@ body {
   position: fixed;
   width: 100%;
   height: 100%;
-  left: 40px; 
+  /* left: 40px; */ 
+  -webkit-transform: translate(40px, 0);
+  -moz-transform: translate(40px, 0);
+    
   border-radius: 5px 0px 0px 5px;
   background: #fff;
   overflow: hidden;
-  -webkit-transition: left .5s;
-  -moz-transition: left .5s;
+  -webkit-transition: -webkit-transform .5s;
+  -moz-transition: -moz-transform .5s;
   
   -moz-box-shadow:    inset 0 0 50px rgba(0,0,0,.1);
   -webkit-box-shadow: inset 0 0 50px rgba(0,0,0,.1);
@@ -45,6 +48,7 @@ body {
   width: 80%;
   height: 80%;
   margin: 0 auto;
+  max-width: 1250px;
 }
 
 #area iframe {
@@ -56,7 +60,7 @@ body {
 }
 
 #next {  
-  right: 80px;
+  right: 40px;
 }
 
 .arrow {
@@ -81,20 +85,26 @@ body {
 #sidebar {
   background: #6b6b6b;
   position: fixed;
-  left: -260px;
+  /* left: -260px; */
+  /* -webkit-transform: translate(-260px, 0);
+  -moz-transform: translate(-260px, 0); */
   top: 0;
   width: 300px;
   height: 100%;
-  -webkit-transition: left .5s;
-  -moz-transition: left .5s;
+  -webkit-transition: -webkit-transform .5s;
+  -moz-transition: transform .5s;
 }
 
 #sidebar.open {
-  left: 0;
+ /* left: 0; */
+ -webkit-transform: translate(0, 0);
+ -moz-transform: translate(0, 0);
 }
 
 #main.closed {
-  left: 300px;
+  /* left: 300px; */
+  -webkit-transform: translate(260px, 0);
+  -moz-transform: translate(260px, 0);
 }
 
 #controls {
@@ -107,9 +117,13 @@ body {
   padding: 10px 0;
 }
 
-#controls img {
-  float: right;
-  margin-right: 14px;
+#controls #open {
+  width: 25px;
+}
+
+#controls a {
+  float: left;
+  margin-left: 12px;
   opacity: .5;
 }
 
@@ -155,7 +169,7 @@ input:-moz-placeholder {
 
 #toc {
   margin-top: 50px;
-  padding-left: 25px;
+  padding-left: 40px;
   display: block;
   width: 100%;
   height: 100%;
@@ -181,5 +195,39 @@ input:-moz-placeholder {
 
 #toc a:hover {
   text-decoration: underline;
+}
+
+@media only screen and (max-width: 1040px) {
+  #area{
+    width: 50%;
+  }
+  
+  #divider {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  #area{
+    width: 60%;
+  }
+
+  #prev {
+    left: 20px;
+  }
+  
+  #next {  
+    right: 20px;
+  }
+}
+
+@media only screen and (max-width: 550px) {
+  #area{
+    width: 80%;
+  }
+  .arrow {
+    display: none;
+  }
+  
 }
 
