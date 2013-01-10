@@ -1,0 +1,964 @@
+@charset "UTF-8";
+
+/* O'Reilly Media, 2012; version 2.6 */
+
+/* reset */
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6,
+p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del,
+dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub,
+sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form,
+label, legend, table, caption, tbody, tfoot, thead, tr, th, td { 
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent; }
+
+/* end reset */
+
+@page {
+  margin: 5px !important;
+}
+
+/* p margin */
+
+p { 
+  margin: 8px 0 0;
+}
+
+/* inlines; code and monospace in the code section below */
+
+span.bolditalic {
+  font-weight: bold;
+  font-style: italic;
+}
+
+strong, span.bold {
+  font-weight: bold;
+  font-family: serif;
+}
+
+a.ulink, a.xref, a.email {
+  text-decoration: none;
+  color: #8e0012;
+}
+
+sup {  /* bug in webkit? */
+  font-size: x-small;
+  vertical-align: super;
+} 
+
+sub {
+  font-size: smaller;
+  vertical-align: sub;
+}
+
+span.lineannotation {
+  font-style: italic;
+  color: red;
+  font-family: serif;
+}
+
+span.underline { text-decoration: underline; }
+
+span.strikethrough { text-decoration: line-through; }
+
+span.smallcaps { font-variant: small-caps; }
+
+span.cursor { background: #000; color: #FFF; } /* for Learning GNU Emacs, 3e */
+
+span.smaller { font-size: 75%; }
+
+/* added for special formatting in Regular Expressions Cookbook, 1e (9780596802783.EBOOK) */
+
+.boxedtext, .keycap {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #000;
+  padding: 1px;
+}
+
+span.gray50 {
+  color: #7F7F7F; /* 50 % gray */
+}
+
+/* added for special formatting in Bioinformatics Programming Using Python, 1e (9781449378677.EBOOK) */
+
+.gray-background, .reverse-video {
+  background: #2E2E2E;
+  color: #FFF;
+}
+
+/* added for special formatting in Working with Microsoft Visual Studio 2005, 1e (9780735649958.EBOOK) */
+
+.light-gray-background {
+  background: #A0A0A0;
+}
+
+/* preserve whitespace in non-pre elements */
+/* Used for special formatting in Using SQLite (9781449394042.EBOOK), which needs verbatim space preserved in a <dt> element, which cannot contain a pre */
+/* See EBK-2920 */
+
+.preserve-whitespace { white-space: pre-wrap; }
+
+/* headings */
+
+h1 {
+  font-size: 1.5em;
+  font-weight: bold;
+  font-family: "Free Sans Bold", sans-serif;
+  margin-top: 20px !important;
+}
+
+h2 { 
+  font-size: 1.3em;
+  font-weight: bold;
+  font-family: "Free Sans Bold", sans-serif;
+  color: #8e0012;
+  margin: 15px 0 8px 0 !important;
+}
+
+h3 {
+  font-size: 1.1em;
+  font-weight: bold;
+  font-family: "Free Sans Bold", sans-serif;
+  margin: 10px 0 8px 0 !important;
+}
+
+h4 {
+  font-size: bold;
+  font-weight: 1em;
+  font-family: "Free Sans Bold", sans-serif;
+  color: #555;
+  margin: 9px 0 !important;
+}
+
+/* Appropriate heading hyphenation suppression for different ereaders */
+h1, h2, h3, h4 { 
+  -webkit-hyphens: none;
+  hyphens: none;
+  adobe-hyphenate: none;
+  page-break-after: avoid;
+}
+
+div.titlepage {
+  page-break-inside: avoid;
+}
+
+div.chapter > div.titlepage:first-child h1.title,
+div.preface > div.titlepage:first-child h1.title,
+div.appendix > div.titlepage:first-child h1.title { /* larger chapter title */
+  font-size: 2em;
+  line-height: 1;
+  margin-bottom: 15px;
+}
+  
+/* images  */
+
+img {
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+div.figure {
+  margin: 10px 0 !important;
+  text-align: center;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #000;
+  background-color: transparent;
+  padding: 5px !important;
+  page-break-inside: avoid;
+}
+
+div.figure p.title, div.informalfigure div.caption {
+  font-size: 90%;
+  text-align: center;
+  font-weight: normal;
+  font-style: italic;
+  font-family: "Free Serif", serif;
+  color: #000;
+  padding: 5px !important;
+  page-break-before: avoid;
+  page-break-after: avoid;
+}
+
+div.informalfigure {
+  text-align: center;
+  padding: 5px 0 !important;
+}
+
+/* sidebars */
+
+div.sidebar {
+  margin: 10px 0 !important;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #000;
+  background-color: transparent;
+  font-size: 90%;
+  padding: 10px 8px !important;
+  page-break-inside: avoid;
+}
+
+div.sidebar p.title {
+  font: bold 1em;
+  font-family: "Free Sans Bold", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 4px 0 6px 0 !important;
+  page-break-inside: avoid;
+}
+
+div.sidebar ol {
+  margin-left: 15px;
+}
+
+div.sidebar div.tip, div.sidebar div.note, div.sidebar div.warning,
+div.sidebar div.caution, div.sidebar div.important {
+  margin: 10px 12.5% !important;
+  font-size: 90%;
+  padding: 10px 5px !important;
+  width: 75%;
+}
+
+div.sidebar div.tip, div.sidebar div.note {
+  background-color: #f1f6fc;
+  border: none;
+}
+
+div.sidebar div.warning, div.sidebar div.caution {
+  background-color: #fce5e8;
+}
+
+div.sidebar div.important {
+  background-color: #FBEC5D;
+}
+
+div.sidebar div.figure {
+  border: none;
+}
+
+/* code */
+
+pre {
+  white-space: pre-wrap;
+  font-family: "Ubuntu Mono", monospace;
+  margin: 10px 0 10px 20px;
+  font-size: 85%;
+  display: block;
+  -webkit-hyphens: none;
+  hyphens: none;
+  adobe-hyphenate: none;
+}
+
+code {
+  font-family: "Ubuntu Mono", monospace;
+}
+
+code strong em, code em strong, pre em strong, pre strong em,
+strong code em code, em code strong code, span.bolditalic code { /* yes, all of these variations are needed */
+  font-weight: bold;
+  font-style: italic;
+  font-family: "Ubuntu Mono BoldItal", monospace;
+}
+
+code em, em code, pre em, em.replaceable {
+  font-family: "Ubuntu Mono Ital", monospace;
+  font-style: italic;
+}
+
+code strong, strong code, pre strong, strong.userinput {
+  font-family: "Ubuntu Mono Bold", monospace;
+  font-weight: bold;
+}
+
+div.example {
+  margin: 10px 0 15px 0 !important;
+}
+
+div.example p.title {
+  font-style: italic;
+  font-weight: normal;
+  font-family: "Free Serif", serif;
+  margin: 10px 0 5px 0 !important;
+}
+
+li pre.example {
+  padding: 10px 0 !important;
+}
+
+div.example-contents pre.programlisting, div.example-contents pre.screen { margin: 0; }
+
+
+/* title and copyright page */
+
+div.book div.titlepage h1.title {
+  font-size: 3em;
+  font-family: "Free Sans Bold", sans-serif;
+  margin: 50px 0 10px 0 !important;
+  line-height: 1;
+  text-align: center;
+}
+
+div.book div.titlepage h2.subtitle {
+  text-align: center;
+  color: #000;
+  margin: 0 !important;
+  font-style: italic;
+  font-family: serif;
+  font-size: 1.5em;
+}
+
+div.book div.titlepage div.author h3 {
+  font-size: 2em;
+  font-family: "Free Sans Bold", sans-serif;
+  color: #8e0012;
+  margin: 50px 0 !important;
+  text-align: center;
+}
+
+div.book div.titlepage div.publishername {
+  margin-top: 60%;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.25em;
+}
+
+div.book div.titlepage div.locations p {
+  margin: 0;
+  text-align: center;
+}
+
+div.book div.titlepage div.locations p.cities {
+  font-size: 80%;
+  text-align: center;
+  margin-top: 5px;
+}
+
+div.preface[title="Dedication"] > div.titlepage h1.title { 
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.5em;
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+div.preface[title="Dedication"] p {
+  font-style: italic;
+  text-align: center;
+}
+
+div.colophon h1.title {
+  font-size: 1.3em;
+  margin: 0 !important;
+  font-family: "Free serif", serif;
+  font-weight: normal;
+}
+
+div.colophon h2.subtitle {
+  margin: 0 !important;
+  color: #000;
+  font-family: "Free serif", serif;
+  font-size: 1em;
+  font-weight: normal;
+}
+ 
+div.colophon div.author h3.author {
+  font-size: 1.1em;
+  font-family: "Free serif", serif;
+  margin: 10px 0 0 !important;
+  font-weight: normal;
+}
+
+div.colophon div.editor h4, div.colophon div.editor h3.editor {
+  color: #000;
+  font-size: 0.8em;
+  margin: 15px 0 0 !important;
+  font-family: "Free serif", serif;
+  font-weight: normal;
+}
+
+div.colophon div.editor h3.editor {
+  font-size: 0.8em;
+  margin: 0 !important;
+  font-family: "Free serif", serif;
+  font-weight: normal;
+}
+
+div.colophon div.publisher {
+  margin-top: 10px;
+}
+
+div.colophon div.publisher p,
+div.colophon div.publisher span.publishername {
+  margin: 0;
+  font-size: 0.8em;
+}
+
+div.legalnotice p, div.timestamp p {
+  font-size: 0.8em;
+}
+
+div.timestamp p {
+  margin-top: 10pt;
+}
+
+div.colophon[title="About the Author"] h1.title, div.colophon[title="Colophon"] h1.title {
+  font-size: 1.5em;
+  margin: 0 !important;
+  font-family: "Free Sans", sans-serif;
+  font-weight: bold;
+}
+
+/* epigraphs, blockquotes, attributions */
+
+div.attribution {
+  margin: 5px 0 0 50px !important;
+}
+
+h3.author span.orgname { display: none } /* to work around bug */
+
+div.epigraph {
+  margin: 10px 0 10px 20px !important;
+  page-break-inside: avoid;
+  font-size: 90%;
+}
+
+blockquote, div.blockquote {
+  margin: 10px 0 10px 5px !important;
+  page-break-inside: avoid;
+  font-size: 95%;
+}
+
+blockquote p, div.blockquote p {
+  font-style: italic;
+  font-family: "Free Serif", serif;
+}
+
+blockquote div.attribution {  
+  margin: 5px 0 0 30px !important;
+  text-align: right;
+  width: 80%;
+}
+
+blockquote div.attribution p {  
+  font-style: normal;
+}
+
+p.right {
+  text-align: right;
+  margin: 0;
+}
+
+/* footnotes */
+
+div.footnote {
+  font-size: 90%;
+}
+
+/* refentries */
+
+div.refnamediv h2, div.refnamediv h3, div.refsynopsisdiv h2 {
+  font-size: 1.1em;
+  color: #000;
+  margin-top: 15px !important;
+  margin-bottom: 0px !important;
+}
+
+div.refentry div.refsect1 h2 {
+  font-size: 1.1em;
+  color: #000;
+  margin-top: 15px !important;
+  margin-bottom: 0px !important;
+}
+  
+div.refsect2 h3 {
+  font-size: 1em;
+  color: #000;
+  margin-top: 10px !important;
+  margin-bottom: 0 !important;
+}
+
+div.refnamediv p {
+  margin-left: 15px !important;
+}
+
+/* lists */
+
+dt {
+  padding-top: 10px !important;
+  padding-bottom: 0 !important;
+}
+
+dd {
+  margin-left: 1.5em !important;
+}
+
+ol {
+  list-style-type: decimal;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+  margin-left: 20px !important;
+  padding-left: 25px !important;
+}
+
+ol ol {
+  list-style-type: lower-alpha;
+}
+
+ol ol ol {
+  list-style-type: lower-roman;
+}
+
+ul { 
+  list-style-type: square;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+  margin-left: 5px !important;
+  padding-left: 20px !important;
+}
+
+ul ul { 
+  list-style-type: none;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+ul ul li p:before { 
+  content: "\2014 \0020";
+}
+
+ul ul ul li p:before { 
+  content: "";
+}
+
+ul ul ul { 
+  list-style-type: square;
+  margin-left: 20px !important;
+  padding-left: 30px !important;
+}
+
+div.orderedlistalpha {
+  list-style-type: upper-alpha;
+}
+
+table.simplelist {
+  margin-left: 20px !important;
+  margin-bottom: 10px;
+}
+
+table.simplelist td {
+  border: none;
+  font-size: 90%;
+}
+
+table.simplelist tr {
+  border-bottom: none;
+}
+
+table.simplelist tr:nth-of-type(even) {
+  background-color: transparent;
+}
+
+div.calloutlist p:first-child {
+ margin-top: -25px !important;
+}
+
+div.calloutlist dd {
+  padding-left: 40px !important;
+}
+
+div.calloutlist img {
+  padding: 0;
+}
+
+a.co img {
+  padding: 0;
+}
+
+/* admonitions */
+ 
+div.tip, div.note, div.warning, div.caution, div.important {
+  margin: 10px 0 !important;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  font-size: 90%;
+  padding: 10px 8px 20px 8px !important;
+  page-break-inside: avoid;
+}
+
+div.tip, div.note {
+  border: 1px solid #6cafd0;
+  background-color: transparent;
+}
+
+div.warning, div.caution {
+  border: 1px solid #8e0012;
+  background-color: #fce5e8;
+}
+
+div.important {
+  background-color: #FFF68F;
+  border: 1px solid #615E3F;
+}
+
+div.tip h3, div.note h3, div.warning h3, div.caution h3, div.important h3 {
+  font: bold 90%;
+  font-family: "Free Sans Bold", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 4px 0 6px !important;
+  color: #000;
+}
+
+/* tables */
+
+div.table, table {
+  margin: 10px auto !important;
+  max-width: 95%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+div.table, div.informaltable {
+  page-break-inside: avoid;
+}
+
+tr {
+  border-bottom: 1px solid #c3c3c3;
+}
+
+tr th {
+  border-bottom: #9d9d9d 2px solid !important;
+  border-top: #9d9d9d 2px solid !important; 
+}
+
+tr:nth-of-type(even) {
+  background-color: #f1f6fc;
+}
+
+th {
+  font-family: "Free Sans Bold", sans-serif;
+  color: #000;
+  font-weight: bold;
+}
+
+td, th {
+  padding: 0.3em;
+  text-align: left;
+  vertical-align: baseline;
+  font-size: 80%;
+}
+
+div.informaltable table {
+  margin: 10px auto !important;
+}
+
+div.informaltable table tr {
+  border-bottom: none;
+}
+
+div.informaltable table tr:nth-of-type(even) {
+  background-color: transparent;
+}
+
+div.informaltable td, div.informaltable th {
+  border: #9d9d9d 1px solid;
+}
+
+div.table p.title {
+  font-weight: normal;
+  font-style: italic;
+  font-family: "Free Serif", serif;
+  margin: 20px 0 0 0 !important;
+  text-align: center;
+  padding: 0;
+}
+
+table code {
+  font-size: smaller;
+}
+
+/* Equations */
+
+div.equation p.title {
+  font-weight: normal;
+  font-style: italic;
+  font-family: "Free Serif", serif;
+  margin: 20px 0 10px 0 !important;
+  page-break-after: avoid;
+}
+
+div.equation-contents {
+  margin-left: 20px;
+}
+
+/* inline images and math images used fallbacks from MathML */
+
+span.inlinemediaobject { /* for iBooks, which overrides height and width on img, per the specs */
+  height: 0.85em;
+  display: inline-block;
+  margin-bottom: 0.2em;
+}
+
+span.inlinemediaobject img {
+  margin: 0;
+  height: 0.85em;
+}
+
+div.informalequation {
+  margin: 20px 0 20px 20px;
+  width: 75%;
+}
+
+div.informalequation img {
+  width: 75%;
+}
+
+/* syntax highlighting and coloring text in general */
+
+/* legacy stuff */
+code.boolean, .navy {
+  color: rgb(0,0,128); /* navy */
+}
+code.character, .olive {
+  color: rgb(128,128,0); /* olive */
+}
+code.comment, .blue {
+  color: rgb(0,0,255); /* blue */
+}
+code.conditional, .limegreen {
+  color: rgb(50,205,50); /* limegreen */
+}
+code.constant, .darkorange {
+  color: rgb(255,140,0); /* darkorange */
+}
+code.debug, .darkred {
+  color: rgb(139,0,0); /* darkred */
+}
+code.define, .darkgoldenrod, .gold {
+  color: rgb(184,134,11); /* darkgoldenrod */
+}
+code.delimiter, .dimgray {
+  color: rgb(105,105,105); /* dimgray */
+}
+code.error, .red {
+  color: rgb(255,0,0); /* red */
+}
+code.exception, .salmon {
+  color: rgb(250,128,11); /* salmon */
+}
+code.float, .steelblue {
+  color: rgb(70,130,180); /* steelblue */
+}
+code.function, .green {
+  color: rgb(0,128,0); /* green */
+}
+code.identifier, .royalblue {
+  color: rgb(65,105,225); /* royalblue */
+}
+code.ignore, .gray {
+  color: rgb(128,128,128); /* gray */
+}
+code.include, .purple {
+  color: rgb(128,0,128); /* purple */
+}
+code.keyword, .sienna {
+  color: rgb(160,82,45); /* sienna */
+}
+code.label, .deeppink {
+  color: rgb(255,20,147); /* deeppink */
+}
+code.macro, .orangered {
+  color: rgb(255,69,0); /* orangered */
+}
+code.number, .brown {
+  color: rgb(165,42,42); /* brown */
+}
+code.operator, .black {
+  color: #000; /* black */
+}
+code.preCondit, .teal {
+  color: rgb(0,128,128); /* teal */
+}
+code.preProc, .fuschia {
+  color: rgb(255,0,255); /* fuschia */
+}
+code.repeat, .indigo {
+  color: rgb(75,0,130); /* indigo */
+}
+code.special, .saddlebrown {
+  color: rgb(139,69,19); /* saddlebrown */
+}
+code.specialchar, .magenta {
+  color: rgb(255,0,255); /* magenta */
+}
+code.specialcomment, .seagreen {
+  color: rgb(46,139,87); /* seagreen */
+}
+code.statement, .forestgreen {
+  color: rgb(34,139,34); /* forestgreen */
+}
+code.storageclass, .plum {
+  color: rgb(221,160,221); /* plum */
+}
+code.string, .darkred {
+  color: rgb(139,0,0); /* darkred */
+}
+code.structure, .chocolate {
+  color: rgb(210,106,30); /* chocolate */
+}
+code.tag, .darkcyan {
+  color: rgb(0,139,139); /* darkcyan */
+}
+code.todo, .black {
+  color: #000; /* black */
+}
+code.type, .mediumslateblue {
+  color: rgb(123,104,238); /* mediumslateblue */
+}
+code.typedef, .darkgreen {
+  color: rgb(0,100,0); /* darkgreen */
+}
+code.underlined {
+  text-decoration: underline; /* guess what */
+}
+
+/* Pygments with manni theme */
+pre code.hll { background-color: #ffffcc }
+pre code.c { color: #0099FF; font-style: italic } /* Comment */
+pre code.err { color: #AA0000 } /* Error */
+pre code.k { color: #006699; font-weight: bold } /* Keyword */
+pre code.o { color: #555555 } /* Operator */
+pre code.cm { color: #35586C; font-style: italic } /* Comment.Multiline */
+pre code.cp { color: #009999 } /* Comment.Preproc */
+pre code.c1 { color: #35586C; font-style: italic } /* Comment.Single */
+pre code.cs { color: #35586C; font-weight: bold; font-style: italic } /* Comment.Special */
+pre code.gd { background-color: #FFCCCC } /* Generic.Deleted */
+pre code.ge { font-style: italic } /* Generic.Emph */
+pre code.gr { color: #FF0000 } /* Generic.Error */
+pre code.gh { color: #003300; font-weight: bold } /* Generic.Heading */
+pre code.gi { background-color: #CCFFCC } /* Generic.Inserted */
+pre code.go { color: #AAAAAA } /* Generic.Output */
+pre code.gp { color: #000099; font-weight: bold } /* Generic.Prompt */
+pre code.gs { font-weight: bold } /* Generic.Strong */
+pre code.gu { color: #003300; font-weight: bold } /* Generic.Subheading */
+pre code.gt { color: #99CC66 } /* Generic.Traceback */
+pre code.kc { color: #006699; font-weight: bold } /* Keyword.Constant */
+pre code.kd { color: #006699; font-weight: bold } /* Keyword.Declaration */
+pre code.kn { color: #006699; font-weight: bold } /* Keyword.Namespace */
+pre code.kp { color: #006699 } /* Keyword.Pseudo */
+pre code.kr { color: #006699; font-weight: bold } /* Keyword.Reserved */
+pre code.kt { color: #007788; font-weight: bold } /* Keyword.Type */
+pre code.m { color: #FF6600 } /* Literal.Number */
+pre code.s { color: #CC3300 } /* Literal.String */
+pre code.na { color: #330099 } /* Name.Attribute */
+pre code.nb { color: #336666 } /* Name.Builtin */
+pre code.nc { color: #00AA88; font-weight: bold } /* Name.Class */
+pre code.no { color: #336600 } /* Name.Constant */
+pre code.nd { color: #9999FF } /* Name.Decorator */
+pre code.ni { color: #999999; font-weight: bold } /* Name.Entity */
+pre code.ne { color: #CC0000; font-weight: bold } /* Name.Exception */
+pre code.nf { color: #CC00FF } /* Name.Function */
+pre code.nl { color: #9999FF } /* Name.Label */
+pre code.nn { color: #00CCFF; font-weight: bold } /* Name.Namespace */
+pre code.nt { color: #330099; font-weight: bold } /* Name.Tag */
+pre code.nv { color: #003333 } /* Name.Variable */
+pre code.ow { color: #000000; font-weight: bold } /* Operator.Word */
+pre code.w { color: #bbbbbb } /* Text.Whitespace */
+pre code.mf { color: #FF6600 } /* Literal.Number.Float */
+pre code.mh { color: #FF6600 } /* Literal.Number.Hex */
+pre code.mi { color: #FF6600 } /* Literal.Number.Integer */
+pre code.mo { color: #FF6600 } /* Literal.Number.Oct */
+pre code.sb { color: #CC3300 } /* Literal.String.Backtick */
+pre code.sc { color: #CC3300 } /* Literal.String.Char */
+pre code.sd { color: #CC3300; font-style: italic } /* Literal.String.Doc */
+pre code.s2 { color: #CC3300 } /* Literal.String.Double */
+pre code.se { color: #CC3300; font-weight: bold } /* Literal.String.Escape */
+pre code.sh { color: #CC3300 } /* Literal.String.Heredoc */
+pre code.si { color: #AA0000 } /* Literal.String.Interpol */
+pre code.sx { color: #CC3300 } /* Literal.String.Other */
+pre code.sr { color: #33AAAA } /* Literal.String.Regex */
+pre code.s1 { color: #CC3300 } /* Literal.String.Single */
+pre code.ss { color: #FFCC33 } /* Literal.String.Symbol */
+pre code.bp { color: #336666 } /* Name.Builtin.Pseudo */
+pre code.vc { color: #003333 } /* Name.Variable.Class */
+pre code.vg { color: #003333 } /* Name.Variable.Global */
+pre code.vi { color: #003333 } /* Name.Variable.Instance */
+pre code.il { color: #FF6600 } /* Literal.Number.Integer.Long */
+
+/* Sanders's additions to manni */
+pre code.g { color: #005500 } /* Generic */
+pre code.l { color: #CC6600 } /* Literal */
+pre code.l { color: #FF9900 } /* Literal.Date */
+pre code.n { color: #000088 } /* Name */
+pre code.nx { color: #000088 } /* Name.Other */
+pre code.py { color: #9966FF } /* Name.Property */
+pre code.p { color: #000000 } /* Punctuation */
+pre code.x { color: #FF0066 } /* Other */
+
+/* Special handling for sampler TOC entry rendering */
+
+div.blockquote_sampler_toc {
+  width: 95%;
+  margin: 5px 5px 5px 10px !important;
+}
+
+/* Placeholder for custom series CSS: DO NOT EDIT OR DELETE */
+
+/* fonts (keep at bottom); using Free Serif and Sans as a fallback for its rich set of glyphs */
+
+@font-face {
+  font-family: "Free Serif";
+  font-style: normal;
+  font-weight: normal;
+  src: url(FreeSerif.otf);
+}
+
+@font-face {
+  font-family: "Free Sans Bold";
+  font-style: normal;
+  font-weight: bold;
+  src: url(FreeSansBold.otf);
+}
+
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-weight: normal;
+  font-style: normal;
+  src: url(UbuntuMono-R.ttf);
+}
+
+@font-face {
+  font-family: "Ubuntu Mono Bold";
+  font-style: normal;
+  font-weight: bold;
+  src: url(UbuntuMono-B.ttf);
+}
+
+@font-face {
+  font-family: "Ubuntu Mono BoldItal";
+  font-weight: bold;
+  font-style: italic;
+  src: url(UbuntuMono-BI.ttf);
+}
+
+@font-face {
+  font-family: "Ubuntu Mono Ital";
+  font-weight: normal;
+  font-style: italic;
+  src: url(UbuntuMono-RI.ttf);
+}
+
+/* keep this body statement last */
+
+body {
+  font-family: "Free Serif", serif;
+}

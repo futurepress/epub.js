@@ -1,38 +1,58 @@
-FP.events = {}
-
-// -- From Monocle Events
-
-// Fire a custom event on a given target element. The attached data object will
-// be available to all listeners at evt.m.
-//
-// Internet Explorer does not permit custom events; we'll wait for a
-// version of IE that supports the W3C model.
-//
-FP.core.dispatch = function (elem, evtType, data, cancelable) {
-  if (!document.createEvent) {
-	return true;
-  }
-  var evt = document.createEvent("Events");
-  evt.initEvent(evtType, false, cancelable || false);
-  evt.m = data;
-  try {
-	return elem.dispatchEvent(evt);
-  } catch(e) {
-	console.warn("Failed to dispatch event: "+evtType);
-	return false;
-  }
+FP.Events = function(obj, el){
+	
+	this.events = {};
+	
+	if(!el){
+		this.el = document.createElement('div');
+	}else{
+		this.el = el;
+	}
+	
+	obj.createEvent = this.createEvent;
+	obj.tell = this.tell;
+	obj.listen = this.listen;
+	obj.deafen = this.deafen;
+	
+	return this;
 }
 
-
-// Register a function to be invoked when an event fires.
-FP.events.listen = function (elem, evtType, fn, useCapture) {
-  if (typeof elem == "string") { elem = document.getElementById(elem); }
-  return elem.addEventListener(evtType, fn, useCapture || false);
+FP.Events.prototype.createEvent = function(evt){
+	var e = new CustomEvent(evt);
+	this.events[evt] = e;
+	return e;
 }
 
+FP.Events.prototype.tell = function(evt, msg){
+	var e;
 
-// De-register a function from an event.
-FP.events.deafen = function (elem, evtType, fn, useCapture) {
-  if (typeof elem == "string") { elem = document.getElementById(elem); }
-  return elem.removeEventListener(evtType, fn, useCapture || false);
+	if(!this.events[evt]){
+		console.warn("No event:", evt,  "defined yet, creating.");
+		e = this.createEvent(evt)
+	}else{
+		e = this.events[evt];
+	}
+
+	if(msg) e.msg = msg;
+
+	this.el.dispatchEvent(e);
+
+}
+
+FP.Events.prototype.listen = function(evt, func, bindto){
+	if(!this.events[evt]){
+		console.warn("No event:", evt,  "defined yet, creating.");
+		this.createEvent(evt);
+		return;
+	}
+
+	if(bindto){
+		this.el.addEventListener(evt, func.bind(bindto), false);
+	}else{
+		this.el.addEventListener(evt, func, false);
+	}
+
+}
+
+FP.Events.prototype.deafen = function(evt, func){
+	this.el.removeEventListener(evt, func, false);
 }

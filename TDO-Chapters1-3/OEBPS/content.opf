@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
+  <metadata>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="bookid">_id437600</dc:identifier>
+    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">The Discipline of Organizing</dc:title>
+    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">en</dc:language>
+    <meta name="cover" content="cover-image"/>
+  </metadata>
+  <manifest>
+    <item id="ncxtoc" media-type="application/x-dtbncx+xml" href="toc.ncx"/>
+    <item media-type="text/css" id="css" href="core.css"/>
+    <item id="cover" href="cover.html" media-type="application/xhtml+xml"/>
+    <item id="epub.embedded.font.1" href="UbuntuMono-B.ttf" media-type="font/truetype"/>
+    <item id="epub.embedded.font.2" href="UbuntuMono-BI.ttf" media-type="font/truetype"/>
+    <item id="epub.embedded.font.3" href="UbuntuMono-R.ttf" media-type="font/truetype"/>
+    <item id="epub.embedded.font.4" href="UbuntuMono-RI.ttf" media-type="font/truetype"/>
+    <item id="epub.embedded.font.5" href="FreeSerif.otf" media-type="font/opentype"/>
+    <item id="epub.embedded.font.6" href="FreeSansBold.otf" media-type="font/opentype"/>
+    <item id="id437600" href="index.html" media-type="application/xhtml+xml"/>
+    <item id="cover-image" href="images/cover.png.jpg" media-type="image/jpeg"/>
+    <item id="id424866" href="ch01.html" media-type="application/xhtml+xml"/>
+    <item id="id426029" href="images/OrgSystemChapter1.png" media-type="image/png"/>
+    <item id="id424326" href="ch02.html" media-type="application/xhtml+xml"/>
+    <item id="id429739" href="images/Activities.png" media-type="image/png"/>
+    <item id="id427741" href="ch03.html" media-type="application/xhtml+xml"/>
+    <item id="id380631" href="copyright.html" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine toc="ncxtoc">
+    <itemref idref="cover" linear="yes"/>
+    <itemref idref="id437600"/>
+    <itemref idref="id424866"/>
+    <itemref idref="id424326"/>
+    <itemref idref="id427741"/>
+    <itemref idref="id380631"/>
+  </spine>
+  <guide>
+    <reference href="cover.html" type="cover" title="Cover"/>
+  </guide>
+</package>
