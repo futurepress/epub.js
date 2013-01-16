@@ -11,16 +11,6 @@ FP.app.init = (function($){
 	//-- Setup the browser prefixes 
 	FP.core.crossBrowserColumnCss();
 
-	//-- Temp set the previos position to section 6, 
-	//   since moby-dick has lots of crap before the test
-	//   Might want to make a way to skip to first chapter
-	if (localStorage.getItem("bookURL") === null || 
-		localStorage.getItem("bookURL") != bookURL) {
-
-		localStorage.setItem("bookURL", bookURL);
-		localStorage.setItem("spinePos", 0);
-	}
-
 	//-- Set up our sidebar
 	$("#main").width($(window).width()-40);
 
@@ -150,6 +140,6 @@ FP.app.init = (function($){
 
   }
 
-  return init;
+  return  init;
 
 })(jQuery);

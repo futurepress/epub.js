@@ -9,24 +9,34 @@ FP.Chapter = function(book){
 	this.chapterPos = 1;
 	this.leftPos = 0;
 
-	this.loadFromStorage();
+	this.load();
 	
 	return this;
 
 }
 
-FP.Chapter.prototype.loadFromStorage = function(){
-	var path = this.path,
-		file = FP.storage.get(path, this.postLoad.bind(this));
+FP.Chapter.prototype.load = function(){
+	var path = this.path;
+
+	if(this.book.online){
+		this.setIframeSrc(path);
+	}else{
+		this.loadFromStorage(path);
+	}
+	
 }
 
-FP.Chapter.prototype.postLoad = function(file){
+FP.Chapter.prototype.loadFromStorage = function(path){
+	var file = FP.storage.get(path, this.setIframeSrc.bind(this));
+}
+
+FP.Chapter.prototype.setIframeSrc = function(url){
 	var that = this;
 	
 	//-- Not sure if this is the best time to do this, but hide current text
 	if(this.bodyEl) this.bodyEl.style.visibility = "hidden";
 	
-	this.iframe.src = file;
+	this.iframe.src = url;
 	
 	this.iframe.onload = function() {
 		//that.bodyEl = that.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];

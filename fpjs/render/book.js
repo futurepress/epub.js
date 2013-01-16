@@ -17,11 +17,13 @@ FP.Book = function(elem, bookUrl){
 	this.createEvent("book:resized");
 
 	this.initialize(this.el);
+	
+	this.online = navigator.onLine;
 	this.listeners();
 	
 	//-- Determine storage type
 	//   options: none | ram
-	FP.storage.storageMethod("none");
+	FP.storage.storageMethod("ram");
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookUrl) {
@@ -31,24 +33,31 @@ FP.Book = function(elem, bookUrl){
 
 }
 
+
 //-- Build up any html needed
 FP.Book.prototype.initialize = function(el){
 	this.iframe = document.createElement('iframe');
 	this.resizeIframe(false, this.el.clientWidth, this.el.clientHeight);
 
 	this.listen("book:resized", this.resizeIframe, this);
-
-	//this.listen("book:bookReady", function(){console.log("rready")});
-
-
+	
 	this.el.appendChild(this.iframe);
-
-
+	
 }
 
 FP.Book.prototype.listeners = function(){
 	var that = this;
 	window.addEventListener("resize", that.onResized.bind(this), false);
+	
+	window.addEventListener("offline", function(e) {
+	  that.online = false;
+	}, false);
+	
+	window.addEventListener("online", function(e) {
+	  that.online = true;
+	}, false);
+	
+	//-- TODO: listener for offline
 }
 
 
@@ -58,18 +67,61 @@ FP.Book.prototype.loadEpub = function(bookUrl){
 	//-- TODO: Check what storage types are available
 	//-- TODO: Checks if the url is a zip file and unpack
 	if(this.isContained(bookUrl)){
-		console.log("Zipped!");
+		console.error("Zipped!");
+	}
+	
+	if(!this.isSaved()){
+		//-- Gets the root of the book and url of the opf
+		this.parseContainer(function(){
+			//-- Gets all setup of the book from xml file
+			//-- TODO: add promise for this instead of callback?
+			this.parseContents();
+		});
+
+	}else{
+		this.tell("book:tocReady");
+		this.tell("book:metadataReady");
+		this.tell("book:spineReady");
+		console.log(this.metadata)
+		//-- Info is saved, start display
+		this.startDisplay();
 	}
 
-	//-- Gets the root of the book and url of the opf
-	this.parseContainer(function(){
-		//-- Gets all setup of the book from xml file
-		//-- TODO: add promise for this instead of callback?
-		this.parseContents();
-	});
+}
 
+FP.Book.prototype.isSaved = function(force) {
 
+	if (localStorage.getItem("bookUrl") === null || 
+		localStorage.getItem("bookUrl") != this.bookUrl ||
+		force == true) {
 
+		localStorage.setItem("bookUrl", this.bookUrl);
+		localStorage.setItem("spinePos", 0);
+		localStorage.setItem("stored", 0);
+		
+		this.spinePos = 0;
+		this.stored = 0;
+		
+		return false;
+	}else{
+		//-- get previous saved positions
+		this.spinePos = parseInt(localStorage.getItem("spinePos")) || 0;
+		this.stored = parseInt(localStorage.getItem("stored")) || 0;
+		
+		//-- get previous saved paths
+		this.basePath = localStorage.getItem("basePath");
+		this.contentsPath = localStorage.getItem("contentsPath");
+		
+		//-- get previous saved content
+		this.metadata = JSON.parse(localStorage.getItem("metadata"));
+		this.assets = JSON.parse(localStorage.getItem("assets"));
+		this.spine = JSON.parse(localStorage.getItem("spine"));
+		this.toc = JSON.parse(localStorage.getItem("toc"));
+
+		return true;
+	}
+
+	
 }
 
 FP.Book.prototype.isContained = function(bookUrl){
@@ -128,6 +180,10 @@ FP.Book.prototype.parseContainer = function(callback){
 
 		that.basePath = that.bookUrl + fullpath[0] + "/";
 		that.contentsPath = fullpath[1];
+		
+		localStorage.setItem("basePath", that.basePath);
+		localStorage.setItem("contentsPath", that.contentsPath);
+		
 		//-- Now that we have the path we can parse the contents
 		//-- TODO: move this
 		that.parseContents(that.contentsPath);
@@ -143,6 +199,7 @@ FP.Book.prototype.parseContents = function(){
 		var metadata = contents.getElementsByTagName("metadata")[0],
 			manifest = contents.getElementsByTagName("manifest")[0],
 			spine = contents.getElementsByTagName("spine")[0];
+			
 		that.parseMetadata(metadata);
 		that.parseManifest(manifest);
 		that.parseSpine(spine);
@@ -160,7 +217,9 @@ FP.Book.prototype.parseMetadata = function(metadata){
 
 	this.metadata["bookTitle"] = title ? title.childNodes[0].nodeValue : "";
 	this.metadata["creator"] = creator ? creator.childNodes[0].nodeValue : "";
-
+	
+	localStorage.setItem("metadata", JSON.stringify(this.metadata));
+	
 	this.tell("book:metadataReady");
 }
 
@@ -181,6 +240,8 @@ FP.Book.prototype.parseManifest = function(manifest){
 			that.parseTOC(href);
 		}
 	});
+	
+	localStorage.setItem("assets", JSON.stringify(this.assets));
 }
 
 FP.Book.prototype.parseSpine = function(spine){
@@ -201,6 +262,9 @@ FP.Book.prototype.parseSpine = function(spine){
 		that.spine.push({"id": id, "href": href});
 		that.spineIndex[id] = index;
 	});
+	
+	localStorage.setItem("spine", JSON.stringify(this.spine));
+	
 	this.tell("book:spineReady");
 }
 
@@ -252,7 +316,8 @@ FP.Book.prototype.parseTOC = function(path){
 		}
 
 		that.toc = getTOC(navMap.getElementsByTagName("navPoint"), navMap);
-
+		
+		localStorage.setItem("toc", JSON.stringify(that.toc));
 
 		that.tell("book:tocReady");
 		/*
@@ -283,16 +348,22 @@ FP.Book.prototype.chapterTitle = function(){
 }
 
 FP.Book.prototype.startDisplay = function(){
-	//-- get previous saved positions
-	var spinePos = parseInt(localStorage.getItem("spinePos")) || 0;
-
+	
+	
 	this.tell("book:bookReady");
-
-	this.displayChapter(spinePos);
+	this.displayChapter(this.spinePos, false, function(){
+		
+		//-- What happens if the cache expires / is cleared / changed?
+		//if(!this.stored){
+			this.storeOffline();
+		//}
+		
+	}.bind(this));
+	
 
 }
 
-FP.Book.prototype.displayChapter = function(pos, end){
+FP.Book.prototype.displayChapter = function(pos, end, callback){
 	var that = this;
 
 	if(pos >= this.spine.length){
@@ -321,7 +392,12 @@ FP.Book.prototype.displayChapter = function(pos, end){
 
 		that.tell("book:chapterReady");
 		
-		that.preloadNextChapter();
+		if(callback){
+			callback();
+		}
+		//that.preloadNextChapter();
+		
+		
 	}
 }
 
@@ -365,10 +441,15 @@ FP.Book.prototype.preloadNextChapter = function(){
 	file = FP.storage.preload(path);
 }
 
-FP.Book.prototype.preloadAll = function(){
-	
+FP.Book.prototype.storeOffline = function(callback){
+	var assets = FP.core.toArray(this.assets);
+	FP.storage.batch(assets, function(){
+		this.stored = 1;
+		localStorage.setItem("stored", 1);
+		if(callback) callback();
+	}.bind(this));
 }
 
-FP.Book.prototype.preloadResources = function(){
-
+FP.Book.prototype.availableOffline = function(){
+	return this.stored > 0 ? true : false;
 }

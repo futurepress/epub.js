@@ -121,3 +121,18 @@ FP.core.crossBrowserColumnCss = function(){
 	// FP.core.columnWidth =  cssIfy(FP.core.columnWidth);
 
 }
+
+FP.core.toArray = function(obj) {
+  var arr = [];
+
+  for (member in obj) {
+	var newitm;
+	if ( obj.hasOwnProperty(member) ) {
+	  newitm = obj[member];
+	  newitm.ident = member;
+	  arr.push(newitm);
+	}
+  }
+
+  return arr;
+};
