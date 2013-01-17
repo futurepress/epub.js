@@ -23,11 +23,11 @@ FP.Book = function(elem, bookUrl){
 	
 	//-- Determine storage type
 	//   options: none | ram
-	FP.storage.storageMethod("ram");
+	FP.storage.storageMethod("indexedDB");
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookUrl) {
-		this.loadEpub(bookUrl);
+		this.start(bookUrl);
 	}
 
 
@@ -61,9 +61,14 @@ FP.Book.prototype.listeners = function(){
 }
 
 
-FP.Book.prototype.loadEpub = function(bookUrl){
+FP.Book.prototype.start = function(bookUrl){
 	this.bookUrl = bookUrl;
-
+	
+	if(this.bookUrl.search(window.location.origin) == -1){
+		//-- get full path
+		this.bookUrl = window.location.origin + "/" + this.bookUrl;
+	}
+	
 	//-- TODO: Check what storage types are available
 	//-- TODO: Checks if the url is a zip file and unpack
 	if(this.isContained(bookUrl)){
@@ -82,7 +87,7 @@ FP.Book.prototype.loadEpub = function(bookUrl){
 		this.tell("book:tocReady");
 		this.tell("book:metadataReady");
 		this.tell("book:spineReady");
-		console.log(this.metadata)
+
 		//-- Info is saved, start display
 		this.startDisplay();
 	}
@@ -353,10 +358,9 @@ FP.Book.prototype.startDisplay = function(){
 	this.tell("book:bookReady");
 	this.displayChapter(this.spinePos, false, function(){
 		
-		//-- What happens if the cache expires / is cleared / changed?
-		//if(!this.stored){
+		if(this.online){
 			this.storeOffline();
-		//}
+		}
 		
 	}.bind(this));
 	

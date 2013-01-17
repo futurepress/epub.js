@@ -14,12 +14,14 @@ FP.app.init = (function($){
 	//-- Set up our sidebar
 	$("#main").width($(window).width()-40);
 
-	Book = new FP.Book("area", bookURL + "/");
+	Book = new FP.Book("area");
 	//Book = new FP.Book("area", "/the-hound-of-the-baskervilles/");
 
 	Book.listen("book:metadataReady", meta);
 	Book.listen("book:tocReady", toc);
-
+	
+	Book.start(bookURL + "/");
+	
 	//-- Wait for Dom ready to handle jquery
 	$(function() {
 		controls();

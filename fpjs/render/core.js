@@ -1,3 +1,4 @@
+var FP = FP || {}; 
 FP.core = {}
 
 //-- Get a element for an id

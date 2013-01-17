@@ -129,7 +129,7 @@ FP.Queue.prototype.next = function(){
 	//-- listen for worker response
 	worker.onmessage = function(e){
 		var data = e.data;
-
+		//console.log("data", data)
 		task.callback(data);
 		delete that._tasks[curr]; //-- Remove task
 		
