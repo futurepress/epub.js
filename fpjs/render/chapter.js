@@ -42,7 +42,7 @@ FP.Chapter.prototype.setIframeSrc = function(url){
 		//that.bodyEl = that.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
 		//that.bodyEl = that.iframe.contentDocument.querySelector('body, html');
 		that.bodyEl = that.book.bodyEl = that.iframe.contentDocument.body;
-		
+
 		//-- TODO: Choose between single and spread
 		that.formatSpread();
 

@@ -285,23 +285,33 @@ FP.Book.prototype.parseTOC = function(path){
 	this.toc = [];
 
 	FP.core.loadXML(url, function(contents){
-		var navMap = contents.getElementsByTagName("navMap")[0];
-
-
-
-
+		var navMap = contents.querySelector("navMap"),
+			cover = contents.querySelector("meta[name='cover']"),
+			coverID;
+		
+		//-- Add cover
+		if(cover){
+			coverID = cover.getAttribute("content");
+			that.toc.push({
+						"id": coverID, 
+						"href": that.assets[coverID], 
+						"label": coverID, 
+						"spinePos": parseInt(that.spineIndex[coverID])
+			});
+		}
+		
 		function getTOC(nodes, parent){
 			var list = [];
-
+			
 			//-- Turn items into an array
 			items = Array.prototype.slice.call(nodes);
 
 			items.forEach(function(item){
 				var id = item.getAttribute('id'),
 					href = that.assets[id],
-					navLabel = item.getElementsByTagName("navLabel")[0], //-- TODO: replace with query
+					navLabel = item.querySelector("navLabel"),
 					text = navLabel.textContent ? navLabel.textContent : "",
-					subitems = item.getElementsByTagName("navPoint") || false,
+					subitems = item.querySelectorAll("navPoint") || false,
 					subs = false,
 					childof = (item.parentNode == parent);				
 
@@ -324,8 +334,10 @@ FP.Book.prototype.parseTOC = function(path){
 
 			return list;
 		}
-
-		that.toc = getTOC(navMap.getElementsByTagName("navPoint"), navMap);
+		
+		
+		that.toc = that.toc.concat( getTOC(navMap.querySelectorAll("navPoint"), navMap) );
+		
 		
 		localStorage.setItem("toc", JSON.stringify(that.toc));
 

@@ -146,7 +146,9 @@ FP.app.init = (function($){
 
 	   	$open.on("click", function(){
 		   if($sidebar.hasClass("open")){
-			   $sidebar.removeClass("open");
+			   setTimeout(function(){
+				   $sidebar.removeClass("open");
+			   }, 500);
 			   $main.removeClass("closed");
 			   $icon.attr("src", "img/menu-icon.png");
 		   }else{

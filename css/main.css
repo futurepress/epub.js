@@ -193,6 +193,7 @@ input:-moz-placeholder {
   width: 225px;
   font-family: Georgia, "Times New Roman", Times, serif;
   list-style: none;
+  text-transform: capitalize;
 }
 
 #toc li:active,
