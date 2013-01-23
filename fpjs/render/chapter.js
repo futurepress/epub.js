@@ -106,9 +106,18 @@ FP.Chapter.prototype.formatSpread = function(){
 	this.bodyEl.style[FP.core.columnAxis] = "horizontal";
 	this.bodyEl.style[FP.core.columnGap] = this.gap+"px";
 	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
-
+	
 	this.calcPages();
-
+	
+	if(!this.book.online){
+		//-- Temp place to parse Links
+		this.replaceLinks(function(){
+			this.visible(true);
+		}.bind(this));
+	}else{
+		this.visible(true);
+	}
+	
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
 		this.leftPos = (this.chapterPos - 1 ) * this.spreadWidth;
@@ -120,11 +129,21 @@ FP.Chapter.prototype.goToChapterEnd = function(){
 	this.chapterEnd();
 }
 
+FP.Chapter.prototype.visible  = function(bool){
+	if(bool){
+		this.bodyEl.style.visibility = "visible";
+	}else{
+		this.bodyEl.style.visibility = "hidden";
+	}
+}
+
 FP.Chapter.prototype.calcPages = function(){
 	this.totalWidth = this.iframe.contentDocument.documentElement.scrollWidth; //this.bodyEl.scrollWidth;
 
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
-	this.bodyEl.style.visibility = "visible";
+	
+	
+	
 
 	//-- I work for Chrome
 	//this.iframe.contentDocument.body.scrollLeft = 200;
@@ -176,6 +195,30 @@ FP.Chapter.prototype.chapterEnd = function(){
 
 FP.Chapter.prototype.setLeft = function(leftPos){
 	this.bodyEl.style.marginLeft = -leftPos + "px";
+}
+
+FP.Chapter.prototype.replaceLinks = function(callback){
+	var doc = this.iframe.contentDocument,
+		links = doc.querySelectorAll('[href], [src]'),
+		items = Array.prototype.slice.call(links),
+		count = items.length;
+		
+		items.forEach(function(link){
+			var path,
+				href = link.getAttribute("href"),
+				src = link.getAttribute("src"),
+				full = href ? this.book.basePath + href : this.book.basePath + src;
+			
+			FP.storage.get(full, function(url){
+				if(href) link.setAttribute("href", url);
+				if(src) link.setAttribute("src", url);
+				count--;
+				if(count <= 0 && callback) callback();
+			});
+			
+		}.bind(this));
+		
+		
 }
 
 

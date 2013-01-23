@@ -15,15 +15,16 @@ FP.Book = function(elem, bookUrl){
 	this.createEvent("book:bookReady");
 	this.createEvent("book:chapterReady");
 	this.createEvent("book:resized");
-
+	this.createEvent("book:stored");
+	
 	this.initialize(this.el);
 	
 	this.online = navigator.onLine;
 	this.listeners();
 	
-	//-- Determine storage type
-	//   options: none | ram
-	FP.storage.storageMethod("indexedDB");
+	//-- Determine storage method
+	//-- Override options: none | ram | websql | indexedDB | filesystem
+	this.determineStorageMethod();
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookUrl) {
@@ -412,20 +413,20 @@ FP.Book.prototype.nextPage = function(){
 	}
 }
 
-FP.Book.prototype.prevPage = function(){
+FP.Book.prototype.prevPage = function() {
 	var prev = this.currentChapter.prevPage();
 	if(!prev){
 		this.prevChapter();
 	}
 }
 
-FP.Book.prototype.nextChapter = function(){
+FP.Book.prototype.nextChapter = function() {
 	this.spinePos++;
 
 	this.displayChapter(this.spinePos);
 }
 
-FP.Book.prototype.prevChapter = function(){
+FP.Book.prototype.prevChapter = function() {
 	this.spinePos--;
 
 	this.displayChapter(this.spinePos, true);
@@ -433,27 +434,53 @@ FP.Book.prototype.prevChapter = function(){
 
 
 
-FP.Book.prototype.getTOC = function(){
+FP.Book.prototype.getTOC = function() {
 	return this.toc;
 
 }
 
-FP.Book.prototype.preloadNextChapter = function(){
+FP.Book.prototype.preloadNextChapter = function() {
 	var next = this.spinePos + 1,
 		path = this.spine[next].href;
 
 	file = FP.storage.preload(path);
 }
 
-FP.Book.prototype.storeOffline = function(callback){
+FP.Book.prototype.storeOffline = function(callback) {
 	var assets = FP.core.toArray(this.assets);
 	FP.storage.batch(assets, function(){
 		this.stored = 1;
 		localStorage.setItem("stored", 1);
+		this.tell("book:stored");
 		if(callback) callback();
 	}.bind(this));
 }
 
-FP.Book.prototype.availableOffline = function(){
+FP.Book.prototype.availableOffline = function() {
 	return this.stored > 0 ? true : false;
 }
+
+FP.Book.prototype.determineStorageMethod = function(override) {
+	var method = 'ram';
+	//   options: none | ram | websql | indexedDB | filesystem
+	if(override){
+		method = override;
+	}else{
+		if (Modernizr.websqldatabase) { method = "websql" }
+		if (Modernizr.indexeddb) { method = "indexedDB" }
+		if (Modernizr.filesystem) { method = "filesystem" }
+	}
+	
+	FP.storage.storageMethod(method);
+}
+
+Modernizr.addTest('filesystem', function(){
+
+  var prefixes = Modernizr._domPrefixes;
+
+  for ( var i = -1, len = prefixes.length; ++i < len; ){
+	if ( window[prefixes[i] + 'RequestFileSystem'] ) return true;
+  }
+  return 'requestFileSystem' in window;
+
+});
