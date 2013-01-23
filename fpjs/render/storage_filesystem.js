@@ -49,16 +49,20 @@ FP.storage.filesystem = function() {
 			var url;
 			//-- should only be checking urls? but blank on reload?
 			if(fromCache){
+				//console.log("c")
 				url = getURL(path, fromCache);
 				if(typeof(callback) != "undefined"){
 					callback(url);
 				}
 			}else{
-				_queue.add(path, function(file){
-					url = getURL(path, file);
-					if(typeof(callback) != "undefined"){
-						callback(url);
-					}
+				_queue.add(path, function(url){
+					console.log("url", url)
+					check(url, function(file){
+						url = getURL(path, file);
+						if(typeof(callback) != "undefined"){
+							callback(url);
+						}
+					});
 				}, true);
 			}
 

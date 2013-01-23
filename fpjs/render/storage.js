@@ -39,13 +39,18 @@ FP.storage = function(){
 	function _error(err){
 		console.log("error", err);	
 	}
+	
+	function getStorageType(){
+		return this.storageType;	
+	}
 
 	return {
 		"get" : get,
 		"preload" : preload,
 		"batch" : batch,
 		"storageMethod": storageMethod,
-		"getURL": getURL
+		"getURL": getURL,
+		"getStorageType" : getStorageType
 	}
 	
 }();

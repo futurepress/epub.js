@@ -13,7 +13,7 @@ self.onmessage = function(event){
 	
 	self.request(path, function(file){
 		self.save(path, file, function(){
-			self.postMessage("succeeded");
+			self.postMessage(path);
 		});
 	});
 

@@ -93,6 +93,8 @@ body {
   height: 100%;
   -webkit-transition: -webkit-transform .5s;
   -moz-transition: transform .5s;
+  
+  overflow: hidden;
 }
 
 #sidebar.open {
@@ -103,8 +105,8 @@ body {
 
 #main.closed {
   /* left: 300px; */
-  -webkit-transform: translate(260px, 0);
-  -moz-transform: translate(260px, 0);
+  -webkit-transform: translate(300px, 0);
+  -moz-transform: translate(300px, 0);
 }
 
 #controls {
@@ -167,12 +169,23 @@ input:-moz-placeholder {
   box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
 }
 
-#toc {
-  margin-top: 50px;
-  padding-left: 40px;
-  display: block;
+#toc-scroll {
+  overflow-y: auto;
   width: 100%;
   height: 100%;
+  display: none;
+}
+
+#sidebar.open #toc-scroll {
+  display: block;
+}
+
+#toc {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding-left: 40px;
+  display: block;
+  
 }
 
 #toc li {

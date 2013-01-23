@@ -16,6 +16,8 @@ FP.Book = function(elem, bookUrl){
 	this.createEvent("book:chapterReady");
 	this.createEvent("book:resized");
 	this.createEvent("book:stored");
+	this.createEvent("book:online");
+	this.createEvent("book:offline");
 	
 	this.initialize(this.el);
 	
@@ -52,10 +54,12 @@ FP.Book.prototype.listeners = function(){
 	
 	window.addEventListener("offline", function(e) {
 	  that.online = false;
+	  that.tell("book:offline");
 	}, false);
 	
 	window.addEventListener("online", function(e) {
 	  that.online = true;
+	  that.tell("book:online");
 	}, false);
 	
 	//-- TODO: listener for offline
@@ -359,9 +363,9 @@ FP.Book.prototype.startDisplay = function(){
 	this.tell("book:bookReady");
 	this.displayChapter(this.spinePos, false, function(){
 		
-		if(this.online){
-			this.storeOffline();
-		}
+	if(this.online){
+		this.storeOffline();
+	}
 		
 	}.bind(this));
 	
@@ -458,6 +462,26 @@ FP.Book.prototype.storeOffline = function(callback) {
 
 FP.Book.prototype.availableOffline = function() {
 	return this.stored > 0 ? true : false;
+}
+
+FP.Book.prototype.fromStorage = function(stored) {
+	
+	if(!stored){
+		this.online = true;
+		this.tell("book:online");
+	}else{
+		if(!this.availableOffline){
+			this.storeOffline(function(){
+				this.online = false;
+				this.tell("book:offline");
+			}.bind(this));
+		}else{
+			this.online = false;
+			console.log("gone offline")
+			this.tell("book:offline");
+		}
+	}
+	
 }
 
 FP.Book.prototype.determineStorageMethod = function(override) {

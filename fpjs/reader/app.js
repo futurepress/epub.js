@@ -2,7 +2,8 @@ FP.app = {};
 
 FP.app.init = (function($){
 
-  var Book;
+  var Book,
+  	  offline = false;
 
   function init(bookURL){
 	var search = window.location.search.match(/book=(.*)/),
@@ -19,6 +20,8 @@ FP.app.init = (function($){
 
 	Book.listen("book:metadataReady", meta);
 	Book.listen("book:tocReady", toc);
+	Book.listen("book:online", goOnline);
+	Book.listen("book:offline", goOffline);
 	
 	Book.start(bookURL + "/");
 	
@@ -78,7 +81,20 @@ FP.app.init = (function($){
 
   }
 
-
+  function goOnline(){
+  	  var $icon = $("#store");
+  	  offline = false;
+  	  $icon.attr("src", "img/save.png");
+  
+  }
+  
+  function goOffline(){
+  	  var $icon = $("#store");
+  	  offline = true;
+  	  $icon.attr("src", "img/saved.png");
+  
+  }
+    
 
   function controls(){
 	  var $next = $("#next"),
@@ -87,6 +103,7 @@ FP.app.init = (function($){
 	  	  $sidebar = $("#sidebar"),
 	  	  $open = $("#open"),
 	  	  $icon = $open.find("img"),
+	  	  $network = $("#network"),
 	  	  $window = $(window),
 	  	  sidebarWidth = 40;
 
@@ -137,6 +154,11 @@ FP.app.init = (function($){
 			   $main.addClass("closed");
 			   $icon.attr("src", "img/close.png");
 		   }
+	   	});
+	   	
+	   	$network.on("click", function(){
+		   offline = !offline;
+	   	   Book.fromStorage(offline);
 	   	});
 
 

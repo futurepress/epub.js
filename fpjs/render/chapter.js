@@ -200,20 +200,26 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 		items = Array.prototype.slice.call(links),
 		count = items.length;
 		
-		items.forEach(function(link){
-			var path,
-				href = link.getAttribute("href"),
-				src = link.getAttribute("src"),
-				full = href ? this.book.basePath + href : this.book.basePath + src;
-			
-			FP.storage.get(full, function(url){
-				if(href) link.setAttribute("href", url);
-				if(src) link.setAttribute("src", url);
-				count--;
-				if(count <= 0 && callback) callback();
-			});
-			
-		}.bind(this));
+	if(FP.storage.getStorageType() == "filesystem") {
+		//-- filesystem api links are relative, so no need to fix
+		if(callback) callback();
+		return false; 
+	}
+	
+	items.forEach(function(link){
+		var path,
+			href = link.getAttribute("href"),
+			src = link.getAttribute("src"),
+			full = href ? this.book.basePath + href : this.book.basePath + src;
+		
+		FP.storage.get(full, function(url){
+			if(href) link.setAttribute("href", url);
+			if(src) link.setAttribute("src", url);
+			count--;
+			if(count <= 0 && callback) callback();
+		});
+		
+	}.bind(this));
 			
 }
 
