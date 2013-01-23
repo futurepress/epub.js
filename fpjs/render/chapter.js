@@ -142,8 +142,6 @@ FP.Chapter.prototype.calcPages = function(){
 
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 	
-	
-	
 
 	//-- I work for Chrome
 	//this.iframe.contentDocument.body.scrollLeft = 200;
@@ -188,8 +186,7 @@ FP.Chapter.prototype.prevPage = function(){
 
 FP.Chapter.prototype.chapterEnd = function(){
 	this.chapterPos = this.displayedPages;
-	this.leftPos = this.totalWidth - this.colWidth;
-
+	this.leftPos = this.spreadWidth * (this.displayedPages - 1);//this.totalWidth - this.colWidth;
 	this.setLeft(this.leftPos);
 }
 
@@ -217,8 +214,7 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 			});
 			
 		}.bind(this));
-		
-		
+			
 }
 
 
