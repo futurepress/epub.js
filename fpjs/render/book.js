@@ -9,6 +9,7 @@ FP.Book = function(elem, bookUrl){
 
 	this.events = new FP.Events(this, this.el);
 	
+	//-- All Book events for listening
 	this.createEvent("book:tocReady");
 	this.createEvent("book:metadataReady");
 	this.createEvent("book:spineReady");
@@ -20,6 +21,7 @@ FP.Book = function(elem, bookUrl){
 	this.createEvent("book:online");
 	this.createEvent("book:offline");
 	
+	//-- All hooks to add functions (with a callback) to 
 	this.hooks = {
 		"beforeChapterDisplay" : []
 	};
@@ -53,6 +55,7 @@ FP.Book.prototype.initialize = function(el){
 	
 }
 
+//-- Listeners for browser events
 FP.Book.prototype.listeners = function(){
 	var that = this;
 	window.addEventListener("resize", that.onResized.bind(this), false);
@@ -67,22 +70,20 @@ FP.Book.prototype.listeners = function(){
 	  that.tell("book:online");
 	}, false);
 	
-	//-- TODO: listener for offline
 }
 
-
+//-- Check bookUrl and start parsing book Assets or load them from storage 
 FP.Book.prototype.start = function(bookUrl){
 	var pathname = window.location.pathname,
 		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/";
 	
-	this.bookUrl = bookUrl;
+	this.bookUrl = (bookUrl[bookUrl.length - 1] == "/") ? bookUrl : bookUrl + "/";
 	
 	if(this.bookUrl.search("://") == -1){
 		//-- get full path
 		this.bookUrl = window.location.origin + folder + this.bookUrl;
 	}
 	
-	//-- TODO: Check what storage types are available
 	//-- TODO: Checks if the url is a zip file and unpack
 	if(this.isContained(bookUrl)){
 		console.error("Zipped!");
@@ -93,10 +94,11 @@ FP.Book.prototype.start = function(bookUrl){
 		this.parseContainer(function(){
 			//-- Gets all setup of the book from xml file
 			//-- TODO: add promise for this instead of callback?
-			this.parseContents();
+			//this.parseContents();
 		});
 
 	}else{
+		//-- Events for elements loaded from storage
 		this.tell("book:tocReady");
 		this.tell("book:metadataReady");
 		this.tell("book:spineReady");
@@ -108,7 +110,7 @@ FP.Book.prototype.start = function(bookUrl){
 }
 
 FP.Book.prototype.isSaved = function(force) {
-
+	//-- If url or version has changed invalidate stored data and reset
 	if (localStorage.getItem("bookUrl") != this.bookUrl ||
 		localStorage.getItem("fpjs-version") != FP.VERSION ||
 		force == true) {
@@ -138,7 +140,8 @@ FP.Book.prototype.isSaved = function(force) {
 		this.spine = JSON.parse(localStorage.getItem("spine"));
 		this.spineIndexByURL = JSON.parse(localStorage.getItem("spineIndexByURL"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
-
+		
+		//-- Check that retrieved object aren't null 
 		if(!this.assets || !this.spine || !this.spineIndexByURL || !this.toc){
 			this.stored = 0;
 			return false;
@@ -184,7 +187,7 @@ FP.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
 	this.iframe.height = height;
 
 	if(width % 2 != 0){
-		width += 1;
+		width += 1; //-- Prevent cutting off edges of text in columns
 	}
 
 	this.iframe.width = width;
@@ -199,9 +202,6 @@ FP.Book.prototype.parseContainer = function(callback){
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
 		rootfile = container.querySelector("rootfile");
 
-		//-- Should only be one
-		//rootfile = rootfiles[0];
-
 		fullpath = rootfile.getAttribute('full-path').split("/");
 
 		that.basePath = that.bookUrl + fullpath[0] + "/";
@@ -211,7 +211,7 @@ FP.Book.prototype.parseContainer = function(callback){
 		localStorage.setItem("contentsPath", that.contentsPath);
 		
 		//-- Now that we have the path we can parse the contents
-		//-- TODO: move this
+		//-- TODO: move this and handle errors
 		that.parseContents(that.contentsPath);
 	});
 
@@ -244,6 +244,8 @@ FP.Book.prototype.parseMetadata = function(metadata){
 	this.metadata["bookTitle"] = title ? title.childNodes[0].nodeValue : "";
 	this.metadata["creator"] = creator ? creator.childNodes[0].nodeValue : "";
 	
+	//-- TODO: add more meta data items, such as ISBN
+	
 	localStorage.setItem("metadata", JSON.stringify(this.metadata));
 	
 	this.tell("book:metadataReady");
@@ -259,7 +261,7 @@ FP.Book.prototype.parseManifest = function(manifest){
 	items.forEach(function(item){
 		var id = item.getAttribute('id'),
 			href = item.getAttribute('href');
-		that.assets[id] = that.basePath + href;
+		that.assets[id] = that.basePath + href; //-- Absolute URL for loading with a web worker
 
 		//-- Find NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 		if(item.getAttribute('media-type') == "application/x-dtbncx+xml"){
@@ -328,11 +330,8 @@ FP.Book.prototype.parseTOC = function(path){
 			items.forEach(function(item){
 				var id = item.getAttribute('id'),
 					content = item.querySelector("content"),
-					src = content.getAttribute('src'), //that.assets[id],
+					src = content.getAttribute('src'),
 					split = src.split("#"),
-					//href = that.basePath + split[0],
-					//hash = split[1] || false,
-					//spinePos = parseInt(that.spineIndexByID[id] || that.spineIndexByURL[href]),
 					navLabel = item.querySelector("navLabel"),
 					text = navLabel.textContent ? navLabel.textContent : "",
 					subitems = item.querySelectorAll("navPoint") || false,
@@ -349,8 +348,6 @@ FP.Book.prototype.parseTOC = function(path){
 							"id": id, 
 							"href": src, 
 							"label": text, 
-							//"spinePos": spinePos,
-							//"section" : hash || false,
 							"subitems" : subs || false
 				});
 
@@ -395,10 +392,10 @@ FP.Book.prototype.chapterTitle = function(){
 
 FP.Book.prototype.startDisplay = function(){
 	
-	
 	this.tell("book:bookReady");
 	this.displayChapter(this.spinePos, function(chapter){
 		
+		//-- If there is network connection, store the books contents
 		if(this.online){
 			this.storeOffline();
 		}
@@ -414,18 +411,22 @@ FP.Book.prototype.show = function(url){
 		section = split[1] || false,
 		absoluteURL = (chapter.search("://") == -1) ? this.basePath + chapter : chapter,
 		spinePos = this.spineIndexByURL[absoluteURL];
-
+	
+	//-- If link fragment only stay on current chapter
 	if(!chapter){
 		spinePos = this.spinePos;
 	}
-
+	
+	//-- Check that URL is present in the index, or stop
 	if(typeof(spinePos) != "number") return false;
 	
 	if(spinePos != this.spinePos){
+		//-- Load new chapter if different than current
 		this.displayChapter(spinePos, function(chap){
 			if(section) chap.section(section);
 		});
 	}else{
+		//-- Only goto section
 		if(section) this.currentChapter.section(section);
 	}
 }
@@ -452,16 +453,12 @@ FP.Book.prototype.displayChapter = function(pos, callback){
 
 
 	this.currentChapter.afterLoaded = function(chapter) {
-		//-- TODO: Choose between single and spread
-		//that.formatSpread();
 
 		that.tell("book:chapterReady", chapter.getID());
 		
 		if(callback){
 			callback(chapter);
-		}
-		//that.preloadNextChapter();
-		
+		}		
 		
 	}
 }
@@ -501,16 +498,19 @@ FP.Book.prototype.getTOC = function() {
 
 }
 
+/* TODO: Remove, replace by batch queue
 FP.Book.prototype.preloadNextChapter = function() {
 	var next = this.spinePos + 1,
 		path = this.spine[next].href;
 
 	file = FP.storage.preload(path);
 }
+*/
 
 FP.Book.prototype.storeOffline = function(callback) {
 	var assets = FP.core.toArray(this.assets);
-
+	
+	//-- Creates a queue of all items to load
 	FP.storage.batch(assets, function(){
 		this.stored = 1;
 		localStorage.setItem("stored", 1);
@@ -530,13 +530,14 @@ FP.Book.prototype.fromStorage = function(stored) {
 		this.tell("book:online");
 	}else{
 		if(!this.availableOffline){
+			//-- If book hasn't been cached yet, store offline
 			this.storeOffline(function(){
 				this.online = false;
 				this.tell("book:offline");
 			}.bind(this));
+			
 		}else{
 			this.online = false;
-			console.log("gone offline")
 			this.tell("book:offline");
 		}
 	}
@@ -545,7 +546,7 @@ FP.Book.prototype.fromStorage = function(stored) {
 
 FP.Book.prototype.determineStorageMethod = function(override) {
 	var method = 'ram';
-	//   options: none | ram | websql | indexedDB | filesystem
+
 	if(override){
 		method = override;
 	}else{
@@ -557,24 +558,8 @@ FP.Book.prototype.determineStorageMethod = function(override) {
 	FP.storage.storageMethod(method);
 }
 
-FP.Book.prototype.triggerHooks = function(type, callback){
-	var hooks, count;
-
-	if(typeof(this.hooks[type]) == "undefined") return false;
-
-	hooks = this.hooks[type];
-	count = hooks.length;
-
-	function countdown(){
-		count--;
-		if(count <= 0 && callback) callback();
-	};
-
-	hooks.forEach(function(hook){
-		hook(countdown);
-	});
-}
-
+//-- Hooks allow for injecting async functions that must all complete before continuing 
+//   Functions must have a callback as their first argument.
 FP.Book.prototype.registerHook = function(type, toAdd){
 	var that = this;
 	
@@ -590,6 +575,25 @@ FP.Book.prototype.registerHook = function(type, toAdd){
 		
 		
 	}else{
-		this.hooks[type] = [func]; //or maybe this should error?
+		//-- Allows for undefined hooks, but maybe this should error?
+		this.hooks[type] = [func];
 	}
+}
+
+FP.Book.prototype.triggerHooks = function(type, callback){
+	var hooks, count;
+
+	if(typeof(this.hooks[type]) == "undefined") return false;
+
+	hooks = this.hooks[type];
+	count = hooks.length;
+
+	function countdown(){
+		count--;
+		if(count <= 0 && callback) callback();
+	}
+
+	hooks.forEach(function(hook){
+		hook(countdown);
+	});
 }

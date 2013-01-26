@@ -39,19 +39,15 @@ FP.Chapter.prototype.loadFromStorage = function(path){
 FP.Chapter.prototype.setIframeSrc = function(url){
 	var that = this;
 	
-	//-- Not sure if this is the best time to do this, but hide current text
-	//if(this.bodyEl) this.bodyEl.style.visibility = "hidden";
+	//-- Not sure if this is the best time to do this, but hides current text
 	this.visible(false);
 	
 	this.iframe.src = url;
 	
 	this.iframe.onload = function() {
-		//that.bodyEl = that.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
-		//that.bodyEl = that.iframe.contentDocument.querySelector('body, html');
 		that.doc = that.iframe.contentDocument;
 		that.bodyEl = that.doc.body;
-
-		//-- TODO: Choose between single and spread
+		
 		that.formatSpread();
 
 		that.afterLoaded(that);
@@ -62,7 +58,7 @@ FP.Chapter.prototype.setIframeSrc = function(url){
 }
 
 FP.Chapter.prototype.afterLoaded = function(chapter){
-	console.log("afterLoaded")
+	//-- This is overwritten by the book object
 }
 
 FP.Chapter.prototype.error = function(err){
@@ -77,7 +73,6 @@ FP.Chapter.prototype.formatSpread = function(){
 		this.OldcolWidth = this.colWidth;
 		this.OldspreadWidth = this.spreadWidth;
 	}
-	//this.bodyEl.setAttribute("style", "background: #777");
 
 	//-- Check the width and decied on columns
 	//-- Todo: a better place for this?
@@ -86,11 +81,14 @@ FP.Chapter.prototype.formatSpread = function(){
 	this.gap = this.gap || Math.ceil(this.elWidth / 8);
 
 	if(this.elWidth < cutoff) {
+		this.spread = false; //-- Single Page
+
 		divisor = 1;
 		this.colWidth = Math.floor(this.elWidth / divisor);
 	}else{
-		this.colWidth = Math.floor((this.elWidth - this.gap) / divisor);
+		this.spread = true; //-- Double Page
 
+		this.colWidth = Math.floor((this.elWidth - this.gap) / divisor);
 		//-- Must be even for firefox
 		if(this.colWidth % 2 != 0){
 			this.colWidth -= 1;
@@ -109,25 +107,14 @@ FP.Chapter.prototype.formatSpread = function(){
 	//-- Adjust height
 	this.bodyEl.style.height = this.book.el.clientHeight + "px";
 
-
-
+	//-- Add columns
 	this.bodyEl.style[FP.core.columnAxis] = "horizontal";
 	this.bodyEl.style[FP.core.columnGap] = this.gap+"px";
 	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
 	
 	this.calcPages();
 	
-	
-	
-	// if(!this.book.online){
-	// 	//-- Temp place to parse Links
-	// 	this.replaceLinks(function(){
-	// 		this.visible(true);
-	// 	}.bind(this));
-	// }else{
-	// 	this.visible(true);
-	// }
-	
+	//-- Trigger registered hooks before displaying
 	this.beforeDisplay(function(){
 		this.book.tell("book:chapterDisplayed");
 		this.visible(true);
@@ -160,12 +147,6 @@ FP.Chapter.prototype.calcPages = function(){
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 	
 	//console.log("Pages:", this.displayedPages)
-	//-- I work for Chrome
-	//this.iframe.contentDocument.body.scrollLeft = 200;
-
-	//-- I work for Firefox
-	//this.iframe.contentDocument.documentElement.scrollLeft = 200;
-
 }
 
 
@@ -174,13 +155,11 @@ FP.Chapter.prototype.nextPage = function(){
 		this.chapterPos++;
 
 		this.leftPos += this.spreadWidth;
-		//this.bodyEl.scrollLeft = this.leftPos;
-		//this.bodyEl.style.marginLeft = -this.leftPos + "px";
+
 		this.setLeft(this.leftPos);
 		
 		return this.chapterPos;
 	}else{
-		//this.nextChapter();
 		return false;
 	}
 }
@@ -190,27 +169,24 @@ FP.Chapter.prototype.prevPage = function(){
 		this.chapterPos--;
 
 		this.leftPos -= this.spreadWidth;
-		//this.bodyEl.scrollLeft = this.leftPos;
-		//this.bodyEl.style.marginLeft = -this.leftPos + "px";
+
 		this.setLeft(this.leftPos);
 		
 		return this.chapterPos;
 	}else{
-		//this.prevChapter();
 		return false;
 	}
 }
 
 FP.Chapter.prototype.chapterEnd = function(){
 	this.page(this.displayedPages);
-	//this.leftPos = this.spreadWidth * (this.displayedPages - 1);//this.totalWidth - this.colWidth;
-	//this.setLeft(this.leftPos);
 }
 
 FP.Chapter.prototype.setLeft = function(leftPos){
 	this.bodyEl.style.marginLeft = -leftPos + "px";
 }
 
+//-- Replaces the relative links within the book to use our internal page changer
 FP.Chapter.prototype.replaceLinks = function(callback){
 	var hrefs = this.doc.querySelectorAll('[href]'),
 		links = Array.prototype.slice.call(hrefs),
@@ -218,7 +194,10 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 
 	links.forEach(function(link){
 		var path,
-			href = link.getAttribute("href");
+			href = link.getAttribute("href"),
+			relative = href.search("://");
+		
+		if(relative != -1) return; //-- Only replace relative links
 		
 		link.onclick = function(){
 			that.book.show(href);
@@ -229,11 +208,13 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 	if(callback) callback();
 }
 
+//-- Replaces assets src's to point to stored version if browser is offline
 FP.Chapter.prototype.replaceResources = function(callback){
 	var srcs, resources, count;
-
+	
+	//-- No need to replace if there is network connectivity
+	//-- also Filesystem api links are relative, so no need to replace them
 	if(this.book.online || FP.storage.getStorageType() == "filesystem") {
-		//-- filesystem api links are relative, so no need to fix
 		if(callback) callback();
 		return false; 
 	}
@@ -263,19 +244,21 @@ FP.Chapter.prototype.getID = function(){
 FP.Chapter.prototype.page = function(pg){
 	if(pg >= 1 && pg <= this.displayedPages){
 		this.chapterPos = pg;
-		this.leftPos = this.spreadWidth * (pg-1);
+		this.leftPos = this.spreadWidth * (pg-1); //-- pages start at 1
 		this.setLeft(this.leftPos);
 		
 		return true;
 	}
 	
+	//-- Return false if page is greater than the total
 	return false;
 }
 
+//-- Find a section by fragement id
 FP.Chapter.prototype.section = function(fragment){
 	var el = this.doc.getElementById(fragment),
-		left = this.leftPos + el.offsetLeft,
-		pg = Math.floor(left / this.spreadWidth) + 1;
+		left = this.leftPos + el.offsetLeft, //-- Calculate left offset compaired to scrolled position
+		pg = Math.floor(left / this.spreadWidth) + 1; //-- pages start at 1
 		
 	this.page(pg);
 }

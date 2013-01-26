@@ -23,17 +23,23 @@ FPR.app.init = (function($){
 	}else{
 		$("#main").width(windowWidth);
 	}
-
+	
+	
+	//-- Create a new book object, 
+	//	 this will create an iframe in the el with the ID provided
 	Book = new FP.Book("area");
 
+	//-- Add listeners to handle book events
+	//-- Full list of event are at start of book.js
 	Book.listen("book:metadataReady", meta);
 	Book.listen("book:tocReady", toc);
 	Book.listen("book:chapterReady", chapterChange);
 	Book.listen("book:online", goOnline);
 	Book.listen("book:offline", goOffline);
 	
-	
-	Book.start(bookURL + "/");
+	//-- Start loading / parsing of the book.
+	//	 This must be done AFTER adding listeners or hooks
+	Book.start(bookURL);
 	
 	//-- Wait for Dom ready to handle jquery
 	$(function() {
@@ -47,24 +53,44 @@ FPR.app.init = (function($){
 	  var title = Book.getTitle(),
 		  author = Book.getCreator(),
 		  $title = $("#book-title"),
-		  $author = $("#chapter-title");
+		  $author = $("#chapter-title"),
+		  $dash = $("#title-seperator");
 
 	  document.title = title+" – "+author;
 	  $title.html(title);
 	  $author.html(author);
+	  $dash.show();
 
   }
 
   function toc(){
 	  var contents = Book.getTOC(),
 		  $toc = $("#toc"),
+		  $links,
 		  $items;
 
   	  $toc.empty();
+  	  
+  	  //-- Recursively generate TOC levels
   	  $items = generateTocItems(contents);
 
 	  $toc.append($items);
 	  
+	  $links = $(".toc_link");
+	  
+	  $links.on("click", function(e){
+	  	var $this = $(this),
+	  		url = $this.data("url");
+	  	
+	  	$(".openChapter").removeClass("openChapter");
+	  	$this.parent().addClass("openChapter");	
+	  	
+	  	//-- Provide the Book with the url to show
+	  	//	 The Url must be found in the books manifest
+	  	Book.show(url);
+	  	
+	  	e.preventDefault();
+	  });
 
   }
   
@@ -75,22 +101,8 @@ FPR.app.init = (function($){
 	  contents.forEach(function(item){
 		  	var $subitems,
 		  		$wrapper = $("<li id='toc-"+item.id+"'>"),
-				$item = $("<a href='#"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
-						
-			$item.on("click", function(e){
-				var $this = $(this),
-					url = $this.data("url");
-					//spinepos = $this.data("spinepos"),
-					//section = $this.data("section") || false;
-				
-				$(".openChapter").removeClass("openChapter");
-				$this.parent().addClass("openChapter");	
-				
-				Book.show(url);
-				
-				e.preventDefault();
-			});
-			
+				$item = $("<a class='toc_link' href='#"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
+
 			$wrapper.append($item);
 			
 			if(item.subitems && item.subitems.length){
@@ -150,15 +162,15 @@ FPR.app.init = (function($){
 		  }
 	  });
 
-	  $next.on("click swipeleft", function(){
+	  $next.on("click", function(){
 	  	Book.nextPage();
 	  });
 
-	  $prev.on("click swiperight", function(){
+	  $prev.on("click", function(){
 	  	Book.prevPage();
 	  });
 	  
-	  
+	  //-- TODO: This doesn't seem to work
 	  $window.bind("touchy-swipe", function(event, phase, $target, data){
 		  
 		  if(data.direction = "left"){
@@ -221,8 +233,7 @@ FPR.app.init = (function($){
 			   });
 		   }
 	   	});
-	   	
-	   	
+	   		
 	   	   	
 	   	$network.on("click", function(){
 		   offline = !offline;

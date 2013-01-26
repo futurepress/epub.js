@@ -46,6 +46,10 @@ body {
   font-weight: 600;
 }
 
+#title-seperator {
+  display: none;
+}
+
 #area {
   width: 80%;
   height: 80%;
