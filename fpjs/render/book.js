@@ -76,7 +76,7 @@ FP.Book.prototype.start = function(bookUrl){
 	
 	if(this.bookUrl.search(window.location.origin) == -1){
 		//-- get full path
-		this.bookUrl = window.location.origin + "/" + this.bookUrl;
+		this.bookUrl = window.location.origin + window.location.pathname + this.bookUrl;
 	}
 	
 	//-- TODO: Check what storage types are available
@@ -133,7 +133,7 @@ FP.Book.prototype.isSaved = function(force) {
 		this.spine = JSON.parse(localStorage.getItem("spine"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
 		
-		if(!this.assets.length || !this.spine.length){
+		if(!this.assets || !this.spine){
 			this.stored = 0;
 			return false;
 		}

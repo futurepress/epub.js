@@ -205,7 +205,7 @@ input:-moz-placeholder {
 #toc li:active,
 #toc li.currentChapter
 {
-  list-style: square;
+  list-style: none;
 }
 
 #toc a {
