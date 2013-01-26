@@ -25,7 +25,6 @@ FPR.app.init = (function($){
 	}
 
 	Book = new FP.Book("area");
-	//Book = new FP.Book("area", "/the-hound-of-the-baskervilles/");
 
 	Book.listen("book:metadataReady", meta);
 	Book.listen("book:tocReady", toc);
@@ -33,7 +32,6 @@ FPR.app.init = (function($){
 	Book.listen("book:online", goOnline);
 	Book.listen("book:offline", goOffline);
 	
-	//Book.setFootnotes(["glossterm", "footnote"]);//["glossterm", "footnote"]);
 	
 	Book.start(bookURL + "/");
 	
@@ -67,33 +65,6 @@ FPR.app.init = (function($){
 
 	  $toc.append($items);
 	  
-			//   contents.forEach(function(item){
-			// 	  $wrapper = $("<li id='toc-"+item.id+"'>");
-			// 
-			// 	  $item = $("<a href='#"+item.href+"' data-spinepos='"+item.spinePos+"'>"+item.label+"</a>");
-			// 	  
-			// 
-			// 	  $item.on("click", function(e){
-			//  	  $this = $(this);
-			//  	  Book.displayChapter($this.data("spinepos"));
-			//  	  e.preventDefault();
-			// 	  });
-			// 
-			// 	  $wrapper.append($item);
-			// 	  
-			// 	  if(item.subitems && item.subitems.length){
-			// $subitems = $("<ul>");
-			// item.subitems.forEach(function(subitem){
-			//   //console.log("subitem", subitem)
-			//   $subitem = $("<li id='toc-"+subitem.id+"'><a href='#"+subitem.href+"' data-spinepos='"+subitem.spinePos+"'>"+subitem.label+"</a></li>");
-			//   $subitems.append($subitem);
-			// });
-			// 	  	$wrapper.append($subitems);
-			// 	   }
-			// 	    	  
-			// 	  $toc.append($wrapper);
-			//   });
-
 
   }
   
@@ -104,17 +75,11 @@ FPR.app.init = (function($){
 	  contents.forEach(function(item){
 		  	var $subitems,
 		  		$wrapper = $("<li id='toc-"+item.id+"'>"),
-				$item = $("<a href='"+item.href+"'>"+item.label+"</a>");
-			
-			$item.data("spinepos", item.spinePos);
-			
-			if(item.section) {
-				$item.data("section", item.section);
-			}
-			
+				$item = $("<a href='#"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
+						
 			$item.on("click", function(e){
 				var $this = $(this),
-					url = $this.attr("href");
+					url = $this.data("url");
 					//spinepos = $this.data("spinepos"),
 					//section = $this.data("section") || false;
 				

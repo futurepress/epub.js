@@ -77,9 +77,9 @@ FP.Book.prototype.start = function(bookUrl){
 	
 	this.bookUrl = bookUrl;
 	
-	if(this.bookUrl.search(window.location.origin) == -1){
+	if(this.bookUrl.search("://") == -1){
 		//-- get full path
-		this.bookUrl = window.location.origin + window.location.pathname + this.bookUrl;
+		this.bookUrl = window.location.origin + folder + this.bookUrl;
 	}
 	
 	//-- TODO: Check what storage types are available
@@ -138,8 +138,8 @@ FP.Book.prototype.isSaved = function(force) {
 		this.spine = JSON.parse(localStorage.getItem("spine"));
 		this.spineIndexByURL = JSON.parse(localStorage.getItem("spineIndexByURL"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
-		
-		if(!this.assets || !this.spine){
+
+		if(!this.assets || !this.spine || !this.spineIndexByURL || !this.toc){
 			this.stored = 0;
 			return false;
 		}
@@ -307,15 +307,15 @@ FP.Book.prototype.parseTOC = function(path){
 		var navMap = contents.querySelector("navMap"),
 			cover = contents.querySelector("meta[name='cover']"),
 			coverID;
-		
+
 		//-- Add cover
 		if(cover){
 			coverID = cover.getAttribute("content");
 			that.toc.push({
 						"id": coverID, 
 						"href": that.assets[coverID], 
-						"label": coverID, 
-						"spinePos": parseInt(that.spineIndexByID[coverID])
+						"label": coverID 
+						
 			});
 		}
 		
@@ -330,9 +330,9 @@ FP.Book.prototype.parseTOC = function(path){
 					content = item.querySelector("content"),
 					src = content.getAttribute('src'), //that.assets[id],
 					split = src.split("#"),
-					href = that.basePath + split[0],
-					hash = split[1] || false,
-					spinePos = parseInt(that.spineIndexByID[id] || that.spineIndexByURL[href]),
+					//href = that.basePath + split[0],
+					//hash = split[1] || false,
+					//spinePos = parseInt(that.spineIndexByID[id] || that.spineIndexByURL[href]),
 					navLabel = item.querySelector("navLabel"),
 					text = navLabel.textContent ? navLabel.textContent : "",
 					subitems = item.querySelectorAll("navPoint") || false,
@@ -349,8 +349,8 @@ FP.Book.prototype.parseTOC = function(path){
 							"id": id, 
 							"href": src, 
 							"label": text, 
-							"spinePos": spinePos,
-							"section" : hash || false,
+							//"spinePos": spinePos,
+							//"section" : hash || false,
 							"subitems" : subs || false
 				});
 
@@ -390,7 +390,7 @@ FP.Book.prototype.getCreator = function(){
 }
 
 FP.Book.prototype.chapterTitle = function(){
-	return this.spine[this.spinePos].id;
+	return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
 }
 
 FP.Book.prototype.startDisplay = function(){
@@ -412,14 +412,14 @@ FP.Book.prototype.show = function(url){
 	var split = url.split("#"),
 		chapter = split[0],
 		section = split[1] || false,
-		absoluteURL = this.basePath + chapter,
-		spinePos = this.spineIndexByURL[absoluteURL] || false;
-	
+		absoluteURL = (chapter.search("://") == -1) ? this.basePath + chapter : chapter,
+		spinePos = this.spineIndexByURL[absoluteURL];
+
 	if(!chapter){
 		spinePos = this.spinePos;
 	}
-	
-	if(!spinePos) return false;
+
+	if(typeof(spinePos) != "number") return false;
 	
 	if(spinePos != this.spinePos){
 		this.displayChapter(spinePos, function(chap){
