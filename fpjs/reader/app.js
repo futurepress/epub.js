@@ -185,13 +185,27 @@ FPR.app.init = (function($){
 		  }
 	  });
 
-	  $next.on("click", function(){
+	  $next.on("click swipeleft", function(){
 	  	Book.nextPage();
 	  });
 
-	  $prev.on("click", function(){
+	  $prev.on("click swiperight", function(){
 	  	Book.prevPage();
 	  });
+	  
+	  
+	  $window.bind("touchy-swipe", function(event, phase, $target, data){
+		  
+		  if(data.direction = "left"){
+			  Book.nextPage();
+		  }
+		  
+		  if(data.direction = "right"){
+		  	  Book.prevPage();
+		  }
+	   	
+	  });
+	  
 
 	  var lock = false;
 	   	$(document).keydown(function(e){

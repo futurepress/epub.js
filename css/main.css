@@ -1,5 +1,6 @@
 body {
   background: #4e4e4e;
+  overflow: hidden;
 }
 
 #main {
@@ -173,7 +174,7 @@ input:-moz-placeholder {
 #toc {
   overflow-x: hidden;
   overflow-y: hidden;
-  width: 100%;
+  width: 300px;
   height: 100%;
   visibility: hidden;
   -webkit-transition: visibility 0 ease .5s;
@@ -256,13 +257,30 @@ input:-moz-placeholder {
   #area{
     width: 80%;
   }
+  
+  #prev {
+    left: 0;
+  }
+  
+  #next {  
+    right: 0;
+  }
+  
   .arrow {
-    display: none;
+    height: 100%;
+    top: 45px;
+    width: 10%;
+    text-indent: -10000px;
   }
   
   #main {
     -webkit-transform: translate(0, 0);
     -moz-transform: translate(0, 0);
+  }
+  
+  #main.closed {
+    -webkit-transform: translate(260px, 0);
+    -moz-transform: translate(260px, 0);
   }
   
   #titlebar {
@@ -282,9 +300,20 @@ input:-moz-placeholder {
   }
   
   #sidebar.open #open {
-    -webkit-transform: translate(300px, 0);
-    -moz-transform: translate(300px, 0);
+    -webkit-transform: translate(260px, 0);
+    -moz-transform: translate(260px, 0);
   }
   
+  #toc {
+    width: 260px;
+  }
+  
+  #toc li {
+    font-size: 12px;
+  }
+  
+  #toc > ul{
+    padding-left: 10px;
+  }
 }
 

@@ -6,7 +6,7 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
-
+        <meta name="apple-mobile-web-app-capable" content="yes">
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
@@ -18,6 +18,8 @@
             "use strict";
             
             var FP = FP || {}; 
+            FP.VERSION = 0.1;
+            
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FPR.app.init();
@@ -26,6 +28,8 @@
         
           </script>
         
+        <script async src="fpjs/libs/jquery.touchy.min.js"></script>
+
         <script async src="fpjs/reader/utils.js"></script>
         <script async src="fpjs/render/core.js"></script>
         <script async src="fpjs/render/queue.js"></script>

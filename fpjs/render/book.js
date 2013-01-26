@@ -72,6 +72,9 @@ FP.Book.prototype.listeners = function(){
 
 
 FP.Book.prototype.start = function(bookUrl){
+	var pathname = window.location.pathname,
+		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/";
+	
 	this.bookUrl = bookUrl;
 	
 	if(this.bookUrl.search(window.location.origin) == -1){
@@ -106,10 +109,12 @@ FP.Book.prototype.start = function(bookUrl){
 
 FP.Book.prototype.isSaved = function(force) {
 
-	if (localStorage.getItem("bookUrl") === null || 
-		localStorage.getItem("bookUrl") != this.bookUrl ||
+	if (localStorage.getItem("bookUrl") != this.bookUrl ||
+		localStorage.getItem("fpjs-version") != FP.VERSION ||
 		force == true) {
-
+		
+		localStorage.setItem("fpjs-version", FP.VERSION);
+		
 		localStorage.setItem("bookUrl", this.bookUrl);
 		localStorage.setItem("spinePos", 0);
 		localStorage.setItem("stored", 0);
@@ -131,6 +136,7 @@ FP.Book.prototype.isSaved = function(force) {
 		this.metadata = JSON.parse(localStorage.getItem("metadata"));
 		this.assets = JSON.parse(localStorage.getItem("assets"));
 		this.spine = JSON.parse(localStorage.getItem("spine"));
+		this.spineIndexByURL = JSON.parse(localStorage.getItem("spineIndexByURL"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
 		
 		if(!this.assets || !this.spine){
@@ -286,6 +292,7 @@ FP.Book.prototype.parseSpine = function(spine){
 	});
 	
 	localStorage.setItem("spine", JSON.stringify(this.spine));
+	localStorage.setItem("spineIndexByURL", JSON.stringify(this.spineIndexByURL));
 	
 	this.tell("book:spineReady");
 }
@@ -406,7 +413,7 @@ FP.Book.prototype.show = function(url){
 		chapter = split[0],
 		section = split[1] || false,
 		absoluteURL = this.basePath + chapter,
-		spinePos = this.spineIndexByURL[absoluteURL];
+		spinePos = this.spineIndexByURL[absoluteURL] || false;
 	
 	if(!chapter){
 		spinePos = this.spinePos;
