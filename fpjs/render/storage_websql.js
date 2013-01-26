@@ -1,6 +1,6 @@
-FP.storage = FP.storage || {}
+FP.store = FP.store || {};
 
-FP.storage.websql = function() {
+FP.store.websql = function() {
 	var _blobs = {},
 		_queue = new FP.Queue(loader, 6),
 		_db;

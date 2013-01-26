@@ -4,7 +4,7 @@ body {
 
 #main {
   /* height: 500px; */
-  position: fixed;
+  position: absolute;
   width: 100%;
   height: 100%;
   /* left: 40px; */ 
@@ -23,10 +23,11 @@ body {
 }
 
 #titlebar {
-  width: 100%;
+  
   height: 8%;
   min-height: 20px;
-  padding: 10px;
+  padding: 10px 0 10px 0;
+  margin: 0 50px 0 50px;
   text-align: center;
   color: #4f4f4f;
   font-weight: 100;
@@ -84,7 +85,7 @@ body {
 
 #sidebar {
   background: #6b6b6b;
-  position: fixed;
+  position: absolute;
   /* left: -260px; */
   /* -webkit-transform: translate(-260px, 0);
   -moz-transform: translate(-260px, 0); */
@@ -92,15 +93,15 @@ body {
   width: 300px;
   height: 100%;
   -webkit-transition: -webkit-transform .5s;
-  -moz-transition: transform .5s;
+  -moz-transition: -moz-transform .5s;
   
   overflow: hidden;
 }
 
 #sidebar.open {
  /* left: 0; */
- -webkit-transform: translate(0, 0);
- -moz-transform: translate(0, 0);
+ /* -webkit-transform: translate(0, 0);
+ -moz-transform: translate(0, 0); */
 }
 
 #main.closed {
@@ -169,23 +170,28 @@ input:-moz-placeholder {
   box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
 }
 
-#toc-scroll {
-  overflow-y: auto;
+#toc {
+  overflow-x: hidden;
+  overflow-y: hidden;
   width: 100%;
   height: 100%;
-  display: none;
+  visibility: hidden;
+  -webkit-transition: visibility 0 ease .5s;
+  -moz-transition: visibility 0 ease .5s;
 }
 
-#sidebar.open #toc-scroll {
-  display: block;
+#sidebar.open #toc {
+  overflow-y: auto;
+  visibility: visible;
+  -webkit-transition: visibility 0 ease 0;
+  -moz-transition: visibility 0 ease 0;
 }
 
-#toc {
+#toc > ul{
   margin-top: 50px;
   margin-bottom: 50px;
   padding-left: 40px;
   display: block;
-  
 }
 
 #toc li {
@@ -197,7 +203,7 @@ input:-moz-placeholder {
 }
 
 #toc li:active,
-#toc li.current
+#toc li.currentChapter
 {
   list-style: square;
 }
@@ -207,8 +213,19 @@ input:-moz-placeholder {
   text-decoration: none;
 }
 
-#toc a:hover {
-  text-decoration: underline;
+#toc li.currentChapter > a,
+#toc li a:hover {
+  color: #f1f1f1
+}
+
+#toc li ul {
+  display: none;
+}
+
+#toc li.currentChapter > ul,
+#toc li.openChapter > ul
+{
+  display: block;
 }
 
 @media only screen and (max-width: 1040px) {
@@ -241,6 +258,32 @@ input:-moz-placeholder {
   }
   .arrow {
     display: none;
+  }
+  
+  #main {
+    -webkit-transform: translate(0, 0);
+    -moz-transform: translate(0, 0);
+  }
+  
+  #titlebar {
+    font-size: 10px;
+    margin: 0 50px 0 50px;
+  }
+  
+  #open {
+    position: fixed;
+    top: 10px;
+    left: 0;
+    z-index: 110;
+    display: block;
+    
+    -webkit-transition: -webkit-transform .5s;
+    -moz-transition: -moz-transform .5s;
+  }
+  
+  #sidebar.open #open {
+    -webkit-transform: translate(300px, 0);
+    -moz-transform: translate(300px, 0);
   }
   
 }

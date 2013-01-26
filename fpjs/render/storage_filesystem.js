@@ -1,6 +1,6 @@
-FP.storage = FP.storage || {}
+FP.store = FP.store || {};
 
-FP.storage.filesystem = function() {
+FP.store.filesystem = function() {
 	var _urls = {},
 		_queue = new FP.Queue("fpjs/render/loader_filesystem.js", 6),
 		_requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem,

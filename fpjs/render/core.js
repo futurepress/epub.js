@@ -162,3 +162,4 @@ FP.core.dataURLToBlob = function(dataURL) {
 
 	return new Blob([uInt8Array], {type: contentType});
  }
+ 

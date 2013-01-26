@@ -5,14 +5,14 @@ FP.storage = function(){
 	function storageMethod(storageType){
 		console.log("storageMethod", storageType)
 		//-- Pick store type	
-		if(!storageType || typeof(FP.storage[storageType]) == "undefined"){
+		if(!storageType || typeof(FP.store[storageType]) == "undefined"){
 			this.storageType = "none";	
 		}else{
 			this.storageType = storageType;
 		}
 		
 		//-- Create a new store of that type
-		this._store = new FP.storage[this.storageType];
+		this._store = new FP.store[this.storageType];
 		
 		//-- Handle load errors
 		this._store.failed = _error;
@@ -173,7 +173,9 @@ FP.storage.ram = function() {
 }
 */
 
-FP.storage.none = function() {
+FP.store = FP.store || {};
+
+FP.store.none = function() {
 	var _store = {};
 
 	//-- Used for preloading
@@ -184,7 +186,9 @@ FP.storage.none = function() {
 			request(path);
 		}
 	}
-
+	
+	//-- need to add batch!
+	
 	//-- Fetches url
 	function get(path, callback) {
 		var fromCache = check(path),

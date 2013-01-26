@@ -15,27 +15,18 @@
         <script>window.jQuery || document.write('<script src="fpjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         <script src="fpjs/libs/modernizr-2.6.2.min.js"></script>
         <script>
-            //-- Define Global   
-            // var FP = (function(){
-            //   "use strict";
-            //   return {
-            //     namespace: function(name) {
-            //       if(this[name] === undefined) { this[name] = {}; }
-            //       if(typeof this[name] !== 'object') { throw "Namespace Error: "+name; }
-            //       return this[name];
-            //     }
-            //   };
-            // })();
-            var FP = {};
+            "use strict";
+            
+            var FP = FP || {}; 
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                FP.app.init();
+                FPR.app.init();
               }  
             };
         
           </script>
         
-        
+        <script async src="fpjs/reader/utils.js"></script>
         <script async src="fpjs/render/core.js"></script>
         <script async src="fpjs/render/queue.js"></script>
         <script async src="fpjs/render/storage.js"></script>
@@ -58,8 +49,7 @@
             <a id="setting"><img id="settings" src="img/settings.png"></a>
             
           </div>
-          <div id="toc-scroll">
-            <ul id="toc"></ul>
+          <div id="toc">
           </div>
             
         </div>

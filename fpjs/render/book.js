@@ -14,10 +14,15 @@ FP.Book = function(elem, bookUrl){
 	this.createEvent("book:spineReady");
 	this.createEvent("book:bookReady");
 	this.createEvent("book:chapterReady");
+	this.createEvent("book:chapterDisplayed");
 	this.createEvent("book:resized");
 	this.createEvent("book:stored");
 	this.createEvent("book:online");
 	this.createEvent("book:offline");
+	
+	this.hooks = {
+		"beforeChapterDisplay" : []
+	};
 	
 	this.initialize(this.el);
 	
@@ -30,7 +35,7 @@ FP.Book = function(elem, bookUrl){
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookUrl) {
-		this.start(bookUrl);
+		this.display(bookUrl);
 	}
 
 
@@ -127,7 +132,12 @@ FP.Book.prototype.isSaved = function(force) {
 		this.assets = JSON.parse(localStorage.getItem("assets"));
 		this.spine = JSON.parse(localStorage.getItem("spine"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
-
+		
+		if(!this.assets.length || !this.spine.length){
+			this.stored = 0;
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -181,10 +191,10 @@ FP.Book.prototype.parseContainer = function(callback){
 		var fullpath;
 
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-		rootfiles = container.getElementsByTagName("rootfile");
+		rootfile = container.querySelector("rootfile");
 
 		//-- Should only be one
-		rootfile = rootfiles[0];
+		//rootfile = rootfiles[0];
 
 		fullpath = rootfile.getAttribute('full-path').split("/");
 
@@ -206,9 +216,9 @@ FP.Book.prototype.parseContents = function(){
 		url = this.basePath + this.contentsPath;
 
 	FP.core.loadXML(url, function(contents){
-		var metadata = contents.getElementsByTagName("metadata")[0],
-			manifest = contents.getElementsByTagName("manifest")[0],
-			spine = contents.getElementsByTagName("spine")[0];
+		var metadata = contents.querySelector("metadata"),
+			manifest = contents.querySelector("manifest"),
+			spine = contents.querySelector("spine");
 			
 		that.parseMetadata(metadata);
 		that.parseManifest(manifest);
@@ -259,8 +269,9 @@ FP.Book.prototype.parseSpine = function(spine){
 
 	this.spine = [];
 
-	this.spineIndex = {}; //-- For quick reference by id, might be a better way
-
+	this.spineIndexByID = {}; //-- For quick reference by id and url, might be a better way
+	this.spineIndexByURL = {};
+	
 	//-- Turn items into an array
 	items = Array.prototype.slice.call(spine.getElementsByTagName("itemref"));
 
@@ -270,7 +281,8 @@ FP.Book.prototype.parseSpine = function(spine){
 			href = that.assets[id];
 
 		that.spine.push({"id": id, "href": href});
-		that.spineIndex[id] = index;
+		that.spineIndexByID[id] = index;
+		that.spineIndexByURL[href] = index;
 	});
 	
 	localStorage.setItem("spine", JSON.stringify(this.spine));
@@ -296,7 +308,7 @@ FP.Book.prototype.parseTOC = function(path){
 						"id": coverID, 
 						"href": that.assets[coverID], 
 						"label": coverID, 
-						"spinePos": parseInt(that.spineIndex[coverID])
+						"spinePos": parseInt(that.spineIndexByID[coverID])
 			});
 		}
 		
@@ -308,13 +320,17 @@ FP.Book.prototype.parseTOC = function(path){
 
 			items.forEach(function(item){
 				var id = item.getAttribute('id'),
-					href = that.assets[id],
+					content = item.querySelector("content"),
+					src = content.getAttribute('src'), //that.assets[id],
+					split = src.split("#"),
+					href = that.basePath + split[0],
+					hash = split[1] || false,
+					spinePos = parseInt(that.spineIndexByID[id] || that.spineIndexByURL[href]),
 					navLabel = item.querySelector("navLabel"),
 					text = navLabel.textContent ? navLabel.textContent : "",
 					subitems = item.querySelectorAll("navPoint") || false,
 					subs = false,
 					childof = (item.parentNode == parent);				
-
 
 				if(!childof) return; //-- Only get direct children, should xpath for this eventually?
 
@@ -324,10 +340,11 @@ FP.Book.prototype.parseTOC = function(path){
 
 				list.push({
 							"id": id, 
-							"href": href, 
+							"href": src, 
 							"label": text, 
-							"spinePos": parseInt(that.spineIndex[id]),
-							"subitems" : subs
+							"spinePos": spinePos,
+							"section" : hash || false,
+							"subitems" : subs || false
 				});
 
 			});
@@ -373,18 +390,40 @@ FP.Book.prototype.startDisplay = function(){
 	
 	
 	this.tell("book:bookReady");
-	this.displayChapter(this.spinePos, false, function(){
+	this.displayChapter(this.spinePos, function(chapter){
 		
-	if(this.online){
-		this.storeOffline();
-	}
+		if(this.online){
+			this.storeOffline();
+		}
 		
 	}.bind(this));
 	
 
 }
 
-FP.Book.prototype.displayChapter = function(pos, end, callback){
+FP.Book.prototype.show = function(url){
+	var split = url.split("#"),
+		chapter = split[0],
+		section = split[1] || false,
+		absoluteURL = this.basePath + chapter,
+		spinePos = this.spineIndexByURL[absoluteURL];
+	
+	if(!chapter){
+		spinePos = this.spinePos;
+	}
+	
+	if(!spinePos) return false;
+	
+	if(spinePos != this.spinePos){
+		this.displayChapter(spinePos, function(chap){
+			if(section) chap.section(section);
+		});
+	}else{
+		if(section) this.currentChapter.section(section);
+	}
+}
+
+FP.Book.prototype.displayChapter = function(pos, callback){
 	var that = this;
 
 	if(pos >= this.spine.length){
@@ -409,12 +448,10 @@ FP.Book.prototype.displayChapter = function(pos, end, callback){
 		//-- TODO: Choose between single and spread
 		//that.formatSpread();
 
-		if(end) chapter.goToChapterEnd();
-
-		that.tell("book:chapterReady");
+		that.tell("book:chapterReady", chapter.getID());
 		
 		if(callback){
-			callback();
+			callback(chapter);
 		}
 		//that.preloadNextChapter();
 		
@@ -445,7 +482,9 @@ FP.Book.prototype.nextChapter = function() {
 FP.Book.prototype.prevChapter = function() {
 	this.spinePos--;
 
-	this.displayChapter(this.spinePos, true);
+	this.displayChapter(this.spinePos, function(chapter){
+		chapter.goToChapterEnd();
+	});
 }
 
 
@@ -464,6 +503,7 @@ FP.Book.prototype.preloadNextChapter = function() {
 
 FP.Book.prototype.storeOffline = function(callback) {
 	var assets = FP.core.toArray(this.assets);
+
 	FP.storage.batch(assets, function(){
 		this.stored = 1;
 		localStorage.setItem("stored", 1);
@@ -510,13 +550,39 @@ FP.Book.prototype.determineStorageMethod = function(override) {
 	FP.storage.storageMethod(method);
 }
 
-Modernizr.addTest('filesystem', function(){
+FP.Book.prototype.triggerHooks = function(type, callback){
+	var hooks, count;
 
-  var prefixes = Modernizr._domPrefixes;
+	if(typeof(this.hooks[type]) == "undefined") return false;
 
-  for ( var i = -1, len = prefixes.length; ++i < len; ){
-	if ( window[prefixes[i] + 'RequestFileSystem'] ) return true;
-  }
-  return 'requestFileSystem' in window;
+	hooks = this.hooks[type];
+	count = hooks.length;
 
-});
+	function countdown(){
+		count--;
+		if(count <= 0 && callback) callback();
+	};
+
+	hooks.forEach(function(hook){
+		hook(countdown);
+	});
+}
+
+FP.Book.prototype.registerHook = function(type, toAdd){
+	var that = this;
+	
+	if(typeof(this.hooks[type]) != "undefined"){
+		
+		if(typeof(toAdd) === "function"){
+			this.hooks[type].push(toAdd);
+		}else if(Array.isArray(toAdd)){
+			toAdd.forEach(function(hook){
+				that.hooks[type].push(hook);
+			});
+		}
+		
+		
+	}else{
+		this.hooks[type] = [func]; //or maybe this should error?
+	}
+}

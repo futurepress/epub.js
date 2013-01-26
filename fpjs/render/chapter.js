@@ -1,14 +1,20 @@
-FP.Chapter = function(book){
+FP.Chapter = function(book, pos){
 
 	this.book = book;
 	this.iframe = this.book.iframe;
-
+	
+	this.chapInfo = this.book.spine[pos || this.book.spinePos];
 	//-- Get the url to the book from the spine
-	this.path = this.book.spine[this.book.spinePos].href;
-
+	this.path = this.chapInfo.href;
+	this.ID = this.chapInfo.id;
+	
 	this.chapterPos = 1;
 	this.leftPos = 0;
-
+	
+	this.book.registerHook("beforeChapterDisplay", 
+				[this.replaceLinks.bind(this), this.replaceResources.bind(this)]);
+	
+	
 	this.load();
 	
 	return this;
@@ -34,14 +40,16 @@ FP.Chapter.prototype.setIframeSrc = function(url){
 	var that = this;
 	
 	//-- Not sure if this is the best time to do this, but hide current text
-	if(this.bodyEl) this.bodyEl.style.visibility = "hidden";
+	//if(this.bodyEl) this.bodyEl.style.visibility = "hidden";
+	this.visible(false);
 	
 	this.iframe.src = url;
 	
 	this.iframe.onload = function() {
 		//that.bodyEl = that.iframe.contentDocument.documentElement.getElementsByTagName('body')[0];
 		//that.bodyEl = that.iframe.contentDocument.querySelector('body, html');
-		that.bodyEl = that.book.bodyEl = that.iframe.contentDocument.body;
+		that.doc = that.iframe.contentDocument;
+		that.bodyEl = that.doc.body;
 
 		//-- TODO: Choose between single and spread
 		that.formatSpread();
@@ -109,14 +117,21 @@ FP.Chapter.prototype.formatSpread = function(){
 	
 	this.calcPages();
 	
-	if(!this.book.online){
-		//-- Temp place to parse Links
-		this.replaceLinks(function(){
-			this.visible(true);
-		}.bind(this));
-	}else{
+	
+	
+	// if(!this.book.online){
+	// 	//-- Temp place to parse Links
+	// 	this.replaceLinks(function(){
+	// 		this.visible(true);
+	// 	}.bind(this));
+	// }else{
+	// 	this.visible(true);
+	// }
+	
+	this.beforeDisplay(function(){
+		this.book.tell("book:chapterDisplayed");
 		this.visible(true);
-	}
+	});
 	
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
@@ -130,6 +145,8 @@ FP.Chapter.prototype.goToChapterEnd = function(){
 }
 
 FP.Chapter.prototype.visible  = function(bool){
+	if(!this.bodyEl) return false;
+	
 	if(bool){
 		this.bodyEl.style.visibility = "visible";
 	}else{
@@ -142,7 +159,7 @@ FP.Chapter.prototype.calcPages = function(){
 
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 	
-
+	//console.log("Pages:", this.displayedPages)
 	//-- I work for Chrome
 	//this.iframe.contentDocument.body.scrollLeft = 200;
 
@@ -185,9 +202,9 @@ FP.Chapter.prototype.prevPage = function(){
 }
 
 FP.Chapter.prototype.chapterEnd = function(){
-	this.chapterPos = this.displayedPages;
-	this.leftPos = this.spreadWidth * (this.displayedPages - 1);//this.totalWidth - this.colWidth;
-	this.setLeft(this.leftPos);
+	this.page(this.displayedPages);
+	//this.leftPos = this.spreadWidth * (this.displayedPages - 1);//this.totalWidth - this.colWidth;
+	//this.setLeft(this.leftPos);
 }
 
 FP.Chapter.prototype.setLeft = function(leftPos){
@@ -195,26 +212,42 @@ FP.Chapter.prototype.setLeft = function(leftPos){
 }
 
 FP.Chapter.prototype.replaceLinks = function(callback){
-	var doc = this.iframe.contentDocument,
-		links = doc.querySelectorAll('[href], [src]'),
-		items = Array.prototype.slice.call(links),
-		count = items.length;
+	var hrefs = this.doc.querySelectorAll('[href]'),
+		links = Array.prototype.slice.call(hrefs),
+		that = this;
+
+	links.forEach(function(link){
+		var path,
+			href = link.getAttribute("href");
 		
-	if(FP.storage.getStorageType() == "filesystem") {
+		link.onclick = function(){
+			that.book.show(href);
+		}
+		
+	});
+	
+	if(callback) callback();
+}
+
+FP.Chapter.prototype.replaceResources = function(callback){
+	var srcs, resources, count;
+
+	if(this.book.online || FP.storage.getStorageType() == "filesystem") {
 		//-- filesystem api links are relative, so no need to fix
 		if(callback) callback();
 		return false; 
 	}
 	
-	items.forEach(function(link){
-		var path,
-			href = link.getAttribute("href"),
-			src = link.getAttribute("src"),
-			full = href ? this.book.basePath + href : this.book.basePath + src;
+	srcs = this.doc.querySelectorAll('[src]');
+	resources = Array.prototype.slice.call(srcs);
+	count = resources.length;
+	
+	resources.forEach(function(link){
+		var src = link.getAttribute("src"),
+			full = this.book.basePath + src;
 		
 		FP.storage.get(full, function(url){
-			if(href) link.setAttribute("href", url);
-			if(src) link.setAttribute("src", url);
+			link.setAttribute("src", url);
 			count--;
 			if(count <= 0 && callback) callback();
 		});
@@ -223,4 +256,31 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 			
 }
 
+FP.Chapter.prototype.getID = function(){
+	return this.ID;
+}
+
+FP.Chapter.prototype.page = function(pg){
+	if(pg >= 1 && pg <= this.displayedPages){
+		this.chapterPos = pg;
+		this.leftPos = this.spreadWidth * (pg-1);
+		this.setLeft(this.leftPos);
+		
+		return true;
+	}
+	
+	return false;
+}
+
+FP.Chapter.prototype.section = function(fragment){
+	var el = this.doc.getElementById(fragment),
+		left = this.leftPos + el.offsetLeft,
+		pg = Math.floor(left / this.spreadWidth) + 1;
+		
+	this.page(pg);
+}
+
+FP.Chapter.prototype.beforeDisplay = function(callback){
+	this.book.triggerHooks("beforeChapterDisplay", callback.bind(this));
+}
 

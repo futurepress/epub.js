@@ -1,6 +1,6 @@
-FP.storage = FP.storage || {};
+FP.store = FP.store || {};
 
-FP.storage.ram = function() {
+FP.store.ram = function() {
 	var _store = {},
 		_blobs = {},
 		_queue = new FP.Queue(loader, 6); 
