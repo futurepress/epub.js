@@ -96,7 +96,7 @@ FP.Book.prototype.start = function(bookPath){
 		}
 	}
 	
-	if(!this.isSaved()){
+	if(!this.isSaved(true)){
 		
 		if(!this.online) {
 			console.error("Not Online"); 
@@ -240,14 +240,18 @@ FP.Book.prototype.parseContainer = function(path){
 		rootfile = container.querySelector("rootfile");
 
 		fullpath = rootfile.getAttribute('full-path').split("/");
-
-		that.basePath = that.bookUrl + fullpath[0] + "/";
+		
+		if(fullpath[1]){
+			that.basePath = that.bookUrl + fullpath[0] + "/";
+			that.contentsPath = that.basePath + fullpath[1];
+		}else{
+			that.basePath = that.bookUrl;
+			that.contentsPath = that.bookUrl + fullpath;
+		}
 		
 		if(that.contained){
 			that.basePath = fullpath[0] + "/";
 		}
-		
-		that.contentsPath = that.basePath + fullpath[1];
 		
 		localStorage.setItem("basePath", that.basePath);
 		localStorage.setItem("contentsPath", that.contentsPath);
