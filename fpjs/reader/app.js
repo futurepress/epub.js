@@ -33,6 +33,7 @@ FPR.app.init = (function($){
 	//-- Full list of event are at start of book.js
 	Book.listen("book:metadataReady", meta);
 	Book.listen("book:tocReady", toc);
+	Book.listen("book:bookReady", bookReady);
 	Book.listen("book:chapterReady", chapterChange);
 	Book.listen("book:online", goOnline);
 	Book.listen("book:offline", goOffline);
@@ -114,7 +115,16 @@ FPR.app.init = (function($){
 	  });
 	  return $container;
   }
+	
+   function bookReady(){
+	  var $divider = $("#divider"),
+		  $loader = $("#loader");
+	  
+	  $loader.hide();
+	  $divider.show();
 
+  }
+  
   function goOnline(){
   	  var $icon = $("#store");
   	  offline = false;

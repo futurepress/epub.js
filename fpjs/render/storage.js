@@ -35,6 +35,10 @@ FP.storage = function(){
 		return this._store.getURL(path);
 	}
 	
+	function save(path, file, callback) {
+		return this._store.save(path, file, callback);
+	}
+	
 	
 	function _error(err){
 		console.log("error", err);	
@@ -50,6 +54,7 @@ FP.storage = function(){
 		"batch" : batch,
 		"storageMethod": storageMethod,
 		"getURL": getURL,
+		"save" : save,
 		"getStorageType" : getStorageType
 	}
 	

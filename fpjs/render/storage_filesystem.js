@@ -49,14 +49,12 @@ FP.store.filesystem = function() {
 			var url;
 			//-- should only be checking urls? but blank on reload?
 			if(fromCache){
-				//console.log("c")
 				url = getURL(path, fromCache);
 				if(typeof(callback) != "undefined"){
 					callback(url);
 				}
 			}else{
 				_queue.add(path, function(url){
-					console.log("url", url)
 					check(url, function(file){
 						url = getURL(path, file);
 						if(typeof(callback) != "undefined"){
@@ -103,24 +101,46 @@ FP.store.filesystem = function() {
 		xhr.start();
 	}
 
-	function save(path, file) {
-		var	entry = {"path" : path, "file": file},
-			request;
+	function save(path, file, callback) {
+		openFs(function(fs){
+			var base = path.split('/').slice(0,-1);
+			createDir(fs.root, base);
 
-		var transaction = _db.transaction(["files"], "readwrite");
-		var store = transaction.objectStore("files");	
-		request = store.put(entry);
-
-		request.onerror = function(event) {
-		  console.log("failed: " + event.target.errorCode);
-		};
-
-		request.onsuccess = function(event) {
-		  //-- Do nothing for now
-		  console.log("saved", path);
-		};
+			fs.root.getFile(path, {create: true}, 
+			function(fileEntry) {
+				
+				fileEntry.createWriter(function(fileWriter) {
+				
+				  fileWriter.onwriteend = function(e) {
+					if(callback) callback(e);
+				  };
+				
+				  fileWriter.onerror = function(e){
+					_error(err);
+				  };
+							
+				  fileWriter.write(file);
+				 
+				 });
+				  
+			}, _error );
+		});
 	}
-
+	
+	function createDir(rootDirEntry, folders) {
+		// Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
+		if (folders[0] == '.' || folders[0] == '') {
+			folders = folders.slice(1);
+		}
+	
+		rootDirEntry.getDirectory(folders[0], {create: true}, function(dirEntry) {
+			// Recursively add the new subfolder (if we still have another to create).
+			if (folders.length) {
+		  		createDir(dirEntry, folders.slice(1));
+			}
+		}, _error);
+	}
+	
 	//-- end worker
 
 	function getURL(path, fileEntry){
@@ -139,17 +159,44 @@ FP.store.filesystem = function() {
 
 	function _error(err){
 		if(typeof(this.failed) == "undefined"){
-			console.log("Error: ", err);
+			console.log("Error: ", errorHandler(err));
 		}else{
 			this.failed(err);
 		}
 	}
-
+	
+	function errorHandler(e) {
+	  switch (e.code) {
+		case FileError.QUOTA_EXCEEDED_ERR:
+		  return 'QUOTA_EXCEEDED_ERR';
+		  break;
+		case FileError.NOT_FOUND_ERR:
+		  return 'NOT_FOUND_ERR';
+		  break;
+		case FileError.SECURITY_ERR:
+		  return 'SECURITY_ERR';
+		  break;
+		case FileError.INVALID_MODIFICATION_ERR:
+		  return 'INVALID_MODIFICATION_ERR';
+		  break;
+		case FileError.INVALID_STATE_ERR:
+		  return 'INVALID_STATE_ERR';
+		  break;
+		case FileError.TYPE_MISMATCH_ERR:
+		  return 'TYPE_MISMATCH_ERR';
+		  break;
+		default:
+		  return 'Unknown Error:' + e.code ;
+		  break;
+	 }
+	}
 
 
 	return {
 		"get" : get,
 		"preload" : preload,
-		"batch" : batch
+		"batch" : batch,
+		"getURL" : getURL,
+		"save" : save
 	}	
 }

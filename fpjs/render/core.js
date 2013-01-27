@@ -163,3 +163,21 @@ FP.core.dataURLToBlob = function(dataURL) {
 	return new Blob([uInt8Array], {type: contentType});
  }
  
+//-- Load scripts async: http://stackoverflow.com/questions/7718935/load-scripts-asynchronously 
+FP.core.loadScript = function(src, callback) {
+   var s, r;
+   r = false;
+   s = document.createElement('script');
+   s.type = 'text/javascript';
+   s.async = true;
+   s.src = src;
+   s.onload = s.onreadystatechange = function() {
+ 	//console.log( this.readyState ); //uncomment this line to see which ready states are called.
+ 	if ( !r && (!this.readyState || this.readyState == 'complete') )
+ 	{
+ 	  r = true;
+ 	  callback();
+ 	}
+   };
+   document.body.appendChild(s);
+ }

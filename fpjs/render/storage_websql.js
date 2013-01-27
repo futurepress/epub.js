@@ -202,6 +202,7 @@ FP.store.websql = function() {
 		"get" : get,
 		"preload" : preload,
 		"batch" : batch,
-		"getURL" : getURL
+		"getURL" : getURL,
+		"save" : save
 	}	
 }

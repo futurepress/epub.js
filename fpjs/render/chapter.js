@@ -24,7 +24,7 @@ FP.Chapter = function(book, pos){
 FP.Chapter.prototype.load = function(){
 	var path = this.path;
 
-	if(this.book.online){
+	if(this.book.online && !this.book.contained){
 		this.setIframeSrc(path);
 	}else{
 		this.loadFromStorage(path);
@@ -214,7 +214,7 @@ FP.Chapter.prototype.replaceResources = function(callback){
 	
 	//-- No need to replace if there is network connectivity
 	//-- also Filesystem api links are relative, so no need to replace them
-	if(this.book.online || FP.storage.getStorageType() == "filesystem") {
+	if((this.book.online && !this.book.contained) || FP.storage.getStorageType() == "filesystem") {
 		if(callback) callback();
 		return false; 
 	}

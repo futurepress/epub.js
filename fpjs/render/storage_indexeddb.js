@@ -197,6 +197,8 @@ FP.store.indexedDB = function() {
 	return {
 		"get" : get,
 		"preload" : preload,
-		"batch" : batch
+		"batch" : batch,
+		"getURL" : getURL,
+		"save" : save
 	}	
 }

@@ -173,6 +173,15 @@ input:-moz-placeholder {
   top: 10%;
   opacity: .15;
   box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
+  display: none;
+}
+
+#loader {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  top: 50%;
+  margin: -33px 0 0 -33px;
 }
 
 #toc {

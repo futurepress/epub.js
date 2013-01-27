@@ -1,4 +1,4 @@
-FP.Book = function(elem, bookUrl){
+FP.Book = function(elem, bookPath){
 
 	//-- Takes a string or a element
 	if (typeof elem == "string") { 
@@ -36,8 +36,8 @@ FP.Book = function(elem, bookUrl){
 	this.determineStorageMethod();
 	
 	// BookUrl is optional, but if present start loading process
-	if(bookUrl) {
-		this.display(bookUrl);
+	if(bookPath) {
+		this.display(bookPath);
 	}
 
 
@@ -73,29 +73,38 @@ FP.Book.prototype.listeners = function(){
 }
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
-FP.Book.prototype.start = function(bookUrl){
+FP.Book.prototype.start = function(bookPath){
 	var pathname = window.location.pathname,
 		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/";
 	
-	this.bookUrl = (bookUrl[bookUrl.length - 1] == "/") ? bookUrl : bookUrl + "/";
+	this.bookPath = bookPath;
+
 	
-	if(this.bookUrl.search("://") == -1){
-		//-- get full path
-		this.bookUrl = window.location.origin + folder + this.bookUrl;
-	}
-	
-	//-- TODO: Checks if the url is a zip file and unpack
-	if(this.isContained(bookUrl)){
-		console.error("Zipped!");
+	//-- Checks if the url is a zip file and unpack
+	if(this.isContained(bookPath)){
+		this.bookUrl = "";
+		this.contained = true;
+		this.tell("book:offline");
+		if(this.online) this.unarchive(bookPath);
+		return;
+	}else{
+		this.bookUrl = (bookPath[bookPath.length - 1] == "/") ? bookPath : bookPath + "/";
+		
+		if(this.bookUrl.search("://") == -1){
+			//-- get full path
+			this.bookUrl = window.location.origin + folder + this.bookUrl;
+		}
 	}
 	
 	if(!this.isSaved()){
+		
+		if(!this.online) {
+			console.error("Not Online"); 
+			return;
+		}
+		
 		//-- Gets the root of the book and url of the opf
-		this.parseContainer(function(){
-			//-- Gets all setup of the book from xml file
-			//-- TODO: add promise for this instead of callback?
-			//this.parseContents();
-		});
+		this.parseContainer();		
 
 	}else{
 		//-- Events for elements loaded from storage
@@ -109,15 +118,42 @@ FP.Book.prototype.start = function(bookUrl){
 
 }
 
+FP.Book.prototype.unarchive = function(bookPath){
+	var unzipped;
+	
+	//-- TODO: make more DRY
+
+	if(!this.isSaved()){
+		
+		unzipped = new FP.Unarchiver(bookPath, function(){
+
+			FP.storage.get("META-INF/container.xml", function(url){
+				this.parseContainer(url);
+			}.bind(this));
+				
+		}.bind(this));
+	
+	}else{
+		//-- Events for elements loaded from storage
+		this.tell("book:tocReady");
+		this.tell("book:metadataReady");
+		this.tell("book:spineReady");
+	
+		//-- Info is saved, start display
+		this.startDisplay();
+	}
+
+}
+
 FP.Book.prototype.isSaved = function(force) {
 	//-- If url or version has changed invalidate stored data and reset
-	if (localStorage.getItem("bookUrl") != this.bookUrl ||
+	if (localStorage.getItem("bookPath") != this.bookPath ||
 		localStorage.getItem("fpjs-version") != FP.VERSION ||
 		force == true) {
 		
 		localStorage.setItem("fpjs-version", FP.VERSION);
 		
-		localStorage.setItem("bookUrl", this.bookUrl);
+		localStorage.setItem("bookPath", this.bookPath);
 		localStorage.setItem("spinePos", 0);
 		localStorage.setItem("stored", 0);
 		
@@ -193,9 +229,10 @@ FP.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
 	this.iframe.width = width;
 }
 
-FP.Book.prototype.parseContainer = function(callback){
+FP.Book.prototype.parseContainer = function(path){
 	var that = this,
-		url = this.bookUrl + "META-INF/container.xml";
+		url = path || this.bookUrl + "META-INF/container.xml";
+		
 	FP.core.loadXML(url, function(container){
 		var fullpath;
 
@@ -205,22 +242,36 @@ FP.Book.prototype.parseContainer = function(callback){
 		fullpath = rootfile.getAttribute('full-path').split("/");
 
 		that.basePath = that.bookUrl + fullpath[0] + "/";
-		that.contentsPath = fullpath[1];
+		
+		if(that.contained){
+			that.basePath = fullpath[0] + "/";
+		}
+		
+		that.contentsPath = that.basePath + fullpath[1];
 		
 		localStorage.setItem("basePath", that.basePath);
 		localStorage.setItem("contentsPath", that.contentsPath);
 		
 		//-- Now that we have the path we can parse the contents
 		//-- TODO: move this and handle errors
-		that.parseContents(that.contentsPath);
+		
+		if(that.contained){
+			FP.storage.get(that.contentsPath, function(url){
+				that.parseContents(url);
+			});
+		}else{
+			//-- Gets the root of the book and url of the opf
+			that.parseContents();
+		}
+		
 	});
 
 }
 
-FP.Book.prototype.parseContents = function(){
+FP.Book.prototype.parseContents = function(path){
 	var that = this,
-		url = this.basePath + this.contentsPath;
-
+		url = path || this.contentsPath;
+	
 	FP.core.loadXML(url, function(contents){
 		var metadata = contents.querySelector("metadata"),
 			manifest = contents.querySelector("manifest"),
@@ -265,7 +316,14 @@ FP.Book.prototype.parseManifest = function(manifest){
 
 		//-- Find NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 		if(item.getAttribute('media-type') == "application/x-dtbncx+xml"){
-			that.parseTOC(href);
+			if(that.contained){
+				FP.storage.get(that.basePath + href, function(url){
+					that.parseTOC(url);
+				});
+			}else{
+				that.parseTOC(that.basePath + href);
+			}
+			
 		}
 	});
 	
@@ -301,10 +359,10 @@ FP.Book.prototype.parseSpine = function(spine){
 
 FP.Book.prototype.parseTOC = function(path){
 	var that = this,
-		url = this.basePath + path;
+		url = path;
 
 	this.toc = [];
-
+	
 	FP.core.loadXML(url, function(contents){
 		var navMap = contents.querySelector("navMap"),
 			cover = contents.querySelector("meta[name='cover']"),
@@ -396,7 +454,7 @@ FP.Book.prototype.startDisplay = function(){
 	this.displayChapter(this.spinePos, function(chapter){
 		
 		//-- If there is network connection, store the books contents
-		if(this.online){
+		if(this.online && !this.contained){
 			this.storeOffline();
 		}
 		
@@ -524,6 +582,8 @@ FP.Book.prototype.availableOffline = function() {
 }
 
 FP.Book.prototype.fromStorage = function(stored) {
+	
+	if(this.contained) return;
 	
 	if(!stored){
 		this.online = true;

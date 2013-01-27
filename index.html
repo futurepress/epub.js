@@ -18,7 +18,7 @@
             "use strict";
             
             var FP = FP || {}; 
-            FP.VERSION = "0.1";
+            FP.VERSION = "0.1.2";
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
@@ -33,6 +33,7 @@
         <script async src="fpjs/reader/utils.js"></script>
         <script async src="fpjs/render/core.js"></script>
         <script async src="fpjs/render/queue.js"></script>
+        <script async src="fpjs/render/unarchiver.js"></script>
         <script async src="fpjs/render/storage.js"></script>
         <script async src="fpjs/render/storage_ram.js"></script>
         <script async src="fpjs/render/storage_websql.js"></script>
@@ -67,6 +68,7 @@
           <div id="area"></div>
           <div id="next" class="arrow">›</div>
           <div id="divider"></div>
+          <div id="loader"><img src="img/loader.gif"></div>
         </div>
     </body>
 </html>
