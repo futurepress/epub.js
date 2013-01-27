@@ -96,7 +96,7 @@ FP.Book.prototype.start = function(bookPath){
 		}
 	}
 	
-	if(!this.isSaved(true)){
+	if(!this.isSaved()){
 		
 		if(!this.online) {
 			console.error("Not Online"); 
@@ -154,8 +154,11 @@ FP.Book.prototype.isSaved = function(force) {
 		localStorage.setItem("fpjs-version", FP.VERSION);
 		
 		localStorage.setItem("bookPath", this.bookPath);
-		localStorage.setItem("spinePos", 0);
 		localStorage.setItem("stored", 0);
+		
+		localStorage.setItem("spinePos", 0);
+		localStorage.setItem("chapterPos", 0);
+		localStorage.setItem("displayedPages", 0);
 		
 		this.spinePos = 0;
 		this.stored = 0;
@@ -176,6 +179,10 @@ FP.Book.prototype.isSaved = function(force) {
 		this.spine = JSON.parse(localStorage.getItem("spine"));
 		this.spineIndexByURL = JSON.parse(localStorage.getItem("spineIndexByURL"));
 		this.toc = JSON.parse(localStorage.getItem("toc"));
+		
+		//-- Get previous page
+		this.prevChapterPos = parseInt(localStorage.getItem("chapterPos"));
+		this.prevDisplayedPages = parseInt(localStorage.getItem("displayedPages"));
 		
 		//-- Check that retrieved object aren't null 
 		if(!this.assets || !this.spine || !this.spineIndexByURL || !this.toc){
@@ -456,6 +463,11 @@ FP.Book.prototype.startDisplay = function(){
 	
 	this.tell("book:bookReady");
 	this.displayChapter(this.spinePos, function(chapter){
+		
+		//-- If there is a saved page, and the pages haven't changed go to it
+		if(this.prevChapterPos && this.prevDisplayedPages == chapter.displayedPages){
+			chapter.page(this.prevChapterPos);
+		}
 		
 		//-- If there is network connection, store the books contents
 		if(this.online && !this.contained){

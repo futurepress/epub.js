@@ -10,6 +10,8 @@ FP.Chapter = function(book, pos){
 	
 	this.chapterPos = 1;
 	this.leftPos = 0;
+	localStorage.setItem("chapterPos", this.chapterPos);
+	
 	
 	this.book.registerHook("beforeChapterDisplay", 
 				[this.replaceLinks.bind(this), this.replaceResources.bind(this)]);
@@ -146,6 +148,8 @@ FP.Chapter.prototype.calcPages = function(){
 
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 	
+
+	localStorage.setItem("displayedPages", this.displayedPages);
 	//console.log("Pages:", this.displayedPages)
 }
 
@@ -157,6 +161,8 @@ FP.Chapter.prototype.nextPage = function(){
 		this.leftPos += this.spreadWidth;
 
 		this.setLeft(this.leftPos);
+		
+		localStorage.setItem("chapterPos", this.chapterPos);
 		
 		return this.chapterPos;
 	}else{
@@ -171,6 +177,8 @@ FP.Chapter.prototype.prevPage = function(){
 		this.leftPos -= this.spreadWidth;
 
 		this.setLeft(this.leftPos);
+		
+		localStorage.setItem("chapterPos", this.chapterPos);
 		
 		return this.chapterPos;
 	}else{
@@ -247,6 +255,7 @@ FP.Chapter.prototype.page = function(pg){
 		this.leftPos = this.spreadWidth * (pg-1); //-- pages start at 1
 		this.setLeft(this.leftPos);
 		
+		localStorage.setItem("chapterPos", pg);
 		return true;
 	}
 	
