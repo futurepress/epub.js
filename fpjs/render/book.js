@@ -464,34 +464,38 @@ FP.Book.prototype.chapterTitle = function(){
 	return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
 }
 
-FP.Book.prototype.startDisplay = function(){
+FP.Book.prototype.startDisplay = function(chapter){
+	var routed,
+		loaded = function(chapter){
+
+			//-- If there is a saved page, and the pages haven't changed go to it
+			if(this.prevChapterPos && this.prevDisplayedPages == chapter.displayedPages){
+				chapter.page(this.prevChapterPos);
+			}
+			
+			//-- If there is network connection, store the books contents
+			if(this.online && !this.contained){
+				this.storeOffline();
+			}
+
+		}.bind(this);
 	
 	this.tell("book:bookReady");
 	
+	//-- Go to hashed page if present
+	if(this.useHash){
+		routed = this.route(loaded);
+	}
 	
-	this.displayChapter(this.spinePos, function(chapter){
-		
-		//-- If there is a saved page, and the pages haven't changed go to it
-		if(this.prevChapterPos && this.prevDisplayedPages == chapter.displayedPages){
-			chapter.page(this.prevChapterPos);
-		}
-		
-		//-- If there is network connection, store the books contents
-		if(this.online && !this.contained){
-			this.storeOffline();
-		}
-		
-		//-- Go to hashed page if present
-		if(this.useHash){
-			this.route();
-		}
-		
-	}.bind(this));
+	if(!this.useHash || !routed){
+		this.displayChapter(this.spinePos, loaded);
+	}
+	
 	
 	
 }
 
-FP.Book.prototype.show = function(url){
+FP.Book.prototype.show = function(url, callback){
 	var split = url.split("#"),
 		chapter = split[0],
 		section = split[1] || false,
@@ -506,14 +510,16 @@ FP.Book.prototype.show = function(url){
 	//-- Check that URL is present in the index, or stop
 	if(typeof(spinePos) != "number") return false;
 	
-	if(spinePos != this.spinePos){
+	if(spinePos != this.spinePos || !this.currentChapter){
 		//-- Load new chapter if different than current
 		this.displayChapter(spinePos, function(chap){
 			if(section) chap.section(section);
+			if(callback) callback(chap);
 		});
 	}else{
 		//-- Only goto section
 		if(section) this.currentChapter.section(section);
+		if(callback) callback(this.currentChapter);
 	}
 }
 
@@ -646,12 +652,14 @@ FP.Book.prototype.determineStorageMethod = function(override) {
 	FP.storage.storageMethod(method);
 }
 
-FP.Book.prototype.route = function(){
+FP.Book.prototype.route = function(callback){
 	var location = window.location.hash.replace('#/', '');
 	if(this.useHash && location.length && location != this.prevLocation){
-		this.show(location);
+		this.show(location, callback);
 		this.prevLocation = location;
+		return true;
 	}
+	return false;
 }
 
 FP.Book.prototype.hideHashChanges = function(){
