@@ -124,7 +124,7 @@ FPR.app.init = (function($){
 		  $loader = $("#loader");
 	  
 	  $loader.hide();
-	  $divider.show();
+	  $divider.addClass("show");
 
   }
   

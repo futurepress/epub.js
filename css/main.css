@@ -176,6 +176,10 @@ input:-moz-placeholder {
   display: none;
 }
 
+#divider.show {
+  display: block;
+}
+
 #loader {
   position: absolute;
   z-index: 10;
@@ -247,7 +251,8 @@ input:-moz-placeholder {
     width: 50%;
   }
   
-  #divider {
+  #divider,
+  #divider.show {
     display: none;
   }
 }
