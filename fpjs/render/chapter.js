@@ -3,7 +3,8 @@ FP.Chapter = function(book, pos){
 	this.book = book;
 	this.iframe = this.book.iframe;
 	
-	this.chapInfo = this.book.spine[pos || this.book.spinePos];
+	this.pos = pos || this.book.spinePos
+	this.chapInfo = this.book.spine[this.pos];
 	//-- Get the url to the book from the spine
 	this.path = this.chapInfo.href;
 	this.ID = this.chapInfo.id;

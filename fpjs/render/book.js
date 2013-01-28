@@ -466,10 +466,13 @@ FP.Book.prototype.chapterTitle = function(){
 
 FP.Book.prototype.startDisplay = function(chapter){
 	var routed,
+		prevChapter = this.spinePos,
 		loaded = function(chapter){
 
 			//-- If there is a saved page, and the pages haven't changed go to it
-			if(this.prevChapterPos && this.prevDisplayedPages == chapter.displayedPages){
+			if(	this.prevChapterPos 
+					&& prevChapter  == chapter.pos
+					&& this.prevDisplayedPages == chapter.displayedPages) {
 				chapter.page(this.prevChapterPos);
 			}
 			
