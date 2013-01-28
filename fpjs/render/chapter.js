@@ -203,12 +203,17 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 	links.forEach(function(link){
 		var path,
 			href = link.getAttribute("href"),
-			relative = href.search("://");
+			relative = href.search("://"),
+			fragment = href[0] == "#";
 		
 		if(relative != -1) return; //-- Only replace relative links
-		
+				
 		link.onclick = function(){
-			that.book.show(href);
+			if(that.book.useHash){
+				window.location.hash = "#/"+href;
+			}else{
+				that.book.show(href);
+			}
 		}
 		
 	});
@@ -266,10 +271,16 @@ FP.Chapter.prototype.page = function(pg){
 //-- Find a section by fragement id
 FP.Chapter.prototype.section = function(fragment){
 	var el = this.doc.getElementById(fragment),
+		left, pg;
+	
+	
+	if(el){
 		left = this.leftPos + el.offsetLeft, //-- Calculate left offset compaired to scrolled position
 		pg = Math.floor(left / this.spreadWidth) + 1; //-- pages start at 1
-		
-	this.page(pg);
+			
+		this.page(pg);
+	}	
+
 }
 
 FP.Chapter.prototype.beforeDisplay = function(callback){

@@ -26,11 +26,13 @@ FP.Book = function(elem, bookPath){
 		"beforeChapterDisplay" : []
 	};
 	
+	this.useHash = true;
+	
 	this.initialize(this.el);
 	
 	this.online = navigator.onLine;
 	this.listeners();
-	
+		
 	//-- Determine storage method
 	//-- Override options: none | ram | websql | indexedDB | filesystem
 	this.determineStorageMethod();
@@ -69,6 +71,9 @@ FP.Book.prototype.listeners = function(){
 	  that.online = true;
 	  that.tell("book:online");
 	}, false);
+	
+	
+	window.addEventListener("hashchange", that.route.bind(this), false);
 	
 }
 
@@ -462,6 +467,8 @@ FP.Book.prototype.chapterTitle = function(){
 FP.Book.prototype.startDisplay = function(){
 	
 	this.tell("book:bookReady");
+	
+	
 	this.displayChapter(this.spinePos, function(chapter){
 		
 		//-- If there is a saved page, and the pages haven't changed go to it
@@ -474,9 +481,14 @@ FP.Book.prototype.startDisplay = function(){
 			this.storeOffline();
 		}
 		
+		//-- Go to hashed page if present
+		if(this.useHash){
+			this.route();
+		}
+		
 	}.bind(this));
 	
-
+	
 }
 
 FP.Book.prototype.show = function(url){
@@ -632,6 +644,18 @@ FP.Book.prototype.determineStorageMethod = function(override) {
 	}
 	
 	FP.storage.storageMethod(method);
+}
+
+FP.Book.prototype.route = function(){
+	var location = window.location.hash.replace('#/', '');
+	if(this.useHash && location.length && location != this.prevLocation){
+		this.show(location);
+		this.prevLocation = location;
+	}
+}
+
+FP.Book.prototype.hideHashChanges = function(){
+	this.useHash = false;
 }
 
 //-- Hooks allow for injecting async functions that must all complete before continuing 

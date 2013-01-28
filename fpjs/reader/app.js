@@ -88,9 +88,12 @@ FPR.app.init = (function($){
 	  	
 	  	//-- Provide the Book with the url to show
 	  	//	 The Url must be found in the books manifest
-	  	Book.show(url);
 	  	
-	  	e.preventDefault();
+	  	if(!Book.useHash){
+		  	Book.show(url);
+		  	e.preventDefault();
+	  	}
+
 	  });
 
   }
@@ -102,7 +105,7 @@ FPR.app.init = (function($){
 	  contents.forEach(function(item){
 		  	var $subitems,
 		  		$wrapper = $("<li id='toc-"+item.id+"'>"),
-				$item = $("<a class='toc_link' href='#"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
+				$item = $("<a class='toc_link' href='#/"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
 
 			$wrapper.append($item);
 			
