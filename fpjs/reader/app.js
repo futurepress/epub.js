@@ -222,7 +222,7 @@ FPR.app.init = (function($){
 	   	});
 		
 		function showSidebar(){
-			$book.css("pointer-events", "none"); //-- Avoid capture by ifrmae
+			//$book.css("pointer-events", "none"); //-- Avoid capture by ifrmae
 			$sidebar.addClass("open");
 			$main.addClass("closed");
 			$icon.attr("src", "img/close.png");
@@ -241,9 +241,9 @@ FPR.app.init = (function($){
 		   }else{
 			   showSidebar();
 			   
-			   $open.clickOutside(function(){
-			     hideSidebar();
-			   });
+			   // $open.clickOutside(function(){
+			   //   hideSidebar();
+			   // });
 		   }
 	   	});
 	   		

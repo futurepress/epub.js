@@ -207,15 +207,21 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 			relative = href.search("://"),
 			fragment = href[0] == "#";
 		
-		if(relative != -1) return; //-- Only replace relative links
-				
-		link.onclick = function(){
-			if(that.book.useHash){
-				window.location.hash = "#/"+href;
-			}else{
-				that.book.show(href);
+		if(relative != -1){
+			
+			link.setAttribute("target", "_blank");
+			
+		}else{
+			
+			link.onclick = function(){
+				if(that.book.useHash){
+					window.location.hash = "#/"+href;
+				}else{
+					that.book.show(href);
+				}
 			}
-		}
+		}				
+		
 		
 	});
 	

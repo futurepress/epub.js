@@ -468,7 +468,6 @@ FP.Book.prototype.startDisplay = function(chapter){
 	var routed,
 		prevChapter = this.spinePos,
 		loaded = function(chapter){
-
 			//-- If there is a saved page, and the pages haven't changed go to it
 			if(	this.prevChapterPos 
 					&& prevChapter  == chapter.pos
@@ -487,7 +486,7 @@ FP.Book.prototype.startDisplay = function(chapter){
 	
 	//-- Go to hashed page if present
 	if(this.useHash){
-		routed = this.route(loaded);
+		routed = this.route(false, loaded);
 	}
 	
 	if(!this.useHash || !routed){
@@ -655,7 +654,7 @@ FP.Book.prototype.determineStorageMethod = function(override) {
 	FP.storage.storageMethod(method);
 }
 
-FP.Book.prototype.route = function(callback){
+FP.Book.prototype.route = function(hash, callback){
 	var location = window.location.hash.replace('#/', '');
 	if(this.useHash && location.length && location != this.prevLocation){
 		this.show(location, callback);
