@@ -73,7 +73,7 @@ FPR.app.init = (function($){
   	  $toc.empty();
   	  
   	  //-- Recursively generate TOC levels
-  	  $items = generateTocItems(contents);
+  	  $items = generateTocItems(contents, 1);
 
 	  $toc.append($items);
 	  
@@ -83,8 +83,10 @@ FPR.app.init = (function($){
 	  	var $this = $(this),
 	  		url = $this.data("url");
 	  	
-	  	$(".openChapter").removeClass("openChapter");
-	  	$this.parent().addClass("openChapter");	
+
+	 	$(".openChapter").removeClass("openChapter");
+	  	$this.parents('li').addClass("openChapter");	
+
 	  	
 	  	//-- Provide the Book with the url to show
 	  	//	 The Url must be found in the books manifest
@@ -98,19 +100,20 @@ FPR.app.init = (function($){
 
   }
   
-  function generateTocItems(contents){
+  function generateTocItems(contents, level){
 	  var $container = $("<ul>");
-	  	  
+	  var type = (level == 1) ? "chapter" : "section";
 	  	  
 	  contents.forEach(function(item){
 		  	var $subitems,
 		  		$wrapper = $("<li id='toc-"+item.id+"'>"),
-				$item = $("<a class='toc_link' href='#/"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
+				$item = $("<a class='toc_link " + type + "' href='#/"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
 
 			$wrapper.append($item);
 			
 			if(item.subitems && item.subitems.length){
-				$subitems = generateTocItems(item.subitems);
+				level++;
+				$subitems = generateTocItems(item.subitems, level);
 				$wrapper.append($subitems);
 			}
 			

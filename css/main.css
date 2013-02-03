@@ -208,12 +208,12 @@ input:-moz-placeholder {
 #toc > ul{
   margin-top: 50px;
   margin-bottom: 50px;
-  padding-left: 40px;
+  padding-left: 20px;
   display: block;
 }
 
 #toc li {
-  margin-bottom: 10px;
+  margin-bottom:10px;
   width: 225px;
   font-family: Georgia, "Times New Roman", Times, serif;
   list-style: none;
@@ -231,12 +231,27 @@ input:-moz-placeholder {
   text-decoration: none;
 }
 
+#toc a.chapter {
+  font-size: 1em;
+}
+
+#toc a.section {
+  font-size: .8em;
+}
+
 #toc li.currentChapter > a,
 #toc li a:hover {
   color: #f1f1f1
 }
 
+#toc li.openChapter > a,
+#toc li a:hover {
+  color: #E2E2E2;
+}
+
 #toc li ul {
+  padding-left:10px;
+  margin-top: 8px;
   display: none;
 }
 
@@ -332,6 +347,7 @@ input:-moz-placeholder {
   
   #toc > ul{
     padding-left: 10px;
+    webkit-padding-start:;
   }
 }
 
