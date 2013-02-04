@@ -11,6 +11,7 @@ FP.core.getEls = function(classes) {
   return document.getElementsByClassName(classes);
 }
 
+
 FP.core.loadXML = function(url, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', url, true);

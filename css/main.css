@@ -261,6 +261,32 @@ input:-moz-placeholder {
   display: block;
 }
 
+#settingsPanel {
+  display:none;
+}
+
+#settingsPanel h3 {
+  color:#f1f1f1;
+  font-family:Georgia, "Times New Roman", Times, serif;
+  margin-bottom:10px;
+}
+
+#settingsPanel ul {
+  margin-top:60px;
+  list-style-type:none;
+}
+
+#settingsPanel li {
+  font-size:1em;
+  color:#f1f1f1;
+}
+
+#settingsPanel .xsmall {  font-size:x-small; }
+#settingsPanel .small {  font-size:small; }
+#settingsPanel .medium {  font-size:medium; }
+#settingsPanel .large {  font-size:large; }
+#settingsPanel .xlarge {  font-size:x-large; }
+
 @media only screen and (max-width: 1040px) {
   #area{
     width: 50%;

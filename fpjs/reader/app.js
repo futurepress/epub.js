@@ -24,7 +24,7 @@ FPR.app.init = (function($){
 		$("#main").width(windowWidth);
 	}
 	
-	
+	loadSettings();
 	//-- Create a new book object, 
 	//	 this will create an iframe in the el with the ID provided
 	Book = new FP.Book("area");
@@ -99,6 +99,47 @@ FPR.app.init = (function($){
 	  });
 
   }
+
+  function loadSettings() {
+
+  	var userFont = "";
+
+  	if (!localStorage.getItem("fontSize")) {
+  	 	userFont = "medium";
+  		localStorage.setItem("fontSize", userFont);
+  	} else {
+  		userFont = localStorage.getItem("fontSize");
+  	}
+
+  	var $settings = $("#settingsPanel");
+  	$settings.append("<ul></ul>");
+
+  	var $settingsItem = $("<li><h3></h3></li>");
+		
+  	var $fontSizes = $("<input type='radio' name='fontSize' value='x-small'><span class='font-size xsmall'>Extra Small</span><br>" +
+  				"<input type='radio' name='fontSize' value='small'><span class='font-size small'>Small</span><br>" +
+  				"<input type='radio' name='fontSize' value='medium'><span class='font-size medium'>Medium</span><br>" +
+  				"<input type='radio' name='fontSize' value='large'><span class='font-size large'>Large</span><br>" +
+  				"<input type='radio' name='fontSize' value='large'><span class='font-size xlarge'>Extra Large</span>");
+
+  	$settingsItem.find("h3").text('Font Size').after($fontSizes);
+	$settings.find("ul").append($settingsItem);
+
+	var $fontSizeButtons = $('input[name="fontSize"]');
+
+	$fontSizeButtons.each(function() {
+
+		if ($(this).attr("value") == userFont) {
+			$(this).attr("checked", "checked");
+		}
+		$(this).on("click", function() {
+			localStorage.setItem("fontSize", $(this).attr("value"));
+		});
+	});
+
+  }
+
+
   
   function generateTocItems(contents, level){
 	  var $container = $("<ul>");
@@ -166,6 +207,9 @@ FPR.app.init = (function($){
 	  	  $open = $("#open"),
 	  	  $icon = $open.find("img"),
 	  	  $network = $("#network"),
+	  	  $settingLink = $("#setting"),
+	  	  $settings = $("#settingsPanel"),
+	  	  $toc = $("#toc"),
 	  	  $window = $(window);
 
 
@@ -184,6 +228,15 @@ FPR.app.init = (function($){
 
 	  $prev.on("click", function(){
 	  	Book.prevPage();
+	  });
+
+	  $settingLink.on("click", function() {
+	  	if (!$settings.is(":visible")) {
+	  		showSettings();
+	  	} else {
+	  		hideSettings();
+	  	}
+
 	  });
 	  
 	  //-- TODO: This doesn't seem to work
@@ -238,6 +291,16 @@ FPR.app.init = (function($){
 			$icon.attr("src", "img/menu-icon.png");
 		}
 		
+		function showSettings(){
+			$toc.hide();
+	  		$settings.show();
+		}
+
+		function hideSettings(){
+			$settings.hide();
+			$toc.show();
+		}
+
 	   	$open.on("click", function(){
 		   if($sidebar.hasClass("open")){
 			   hideSidebar();
