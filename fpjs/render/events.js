@@ -12,6 +12,7 @@ FP.Events = function(obj, el){
 	obj.tell = this.tell;
 	obj.listen = this.listen;
 	obj.deafen = this.deafen;
+	obj.listenUntil = this.listenUntil;
 	
 	return this;
 }
@@ -55,4 +56,15 @@ FP.Events.prototype.listen = function(evt, func, bindto){
 
 FP.Events.prototype.deafen = function(evt, func){
 	this.el.removeEventListener(evt, func, false);
+}
+
+FP.Events.prototype.listenUntil = function(OnEvt, OffEvt, func, bindto){
+	this.listen(OnEvt, func, bindto);
+	
+	function unlisten(){
+		this.deafen(OnEvt, func);
+		this.deafen(OffEvt, unlisten);
+	}
+	
+	this.listen(OffEvt, unlisten);
 }

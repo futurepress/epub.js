@@ -38,6 +38,8 @@ FPR.app.init = (function($){
 	Book.listen("book:online", goOnline);
 	Book.listen("book:offline", goOffline);
 	
+	//Book.registerHook("beforeChapterDisplay", FP.Hooks.transculsions.insert);
+	
 	//-- Start loading / parsing of the book.
 	//	 This must be done AFTER adding listeners or hooks
 	Book.start(bookURL);

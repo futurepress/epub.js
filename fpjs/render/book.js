@@ -16,6 +16,7 @@ FP.Book = function(elem, bookPath){
 	this.createEvent("book:bookReady");
 	this.createEvent("book:chapterReady");
 	this.createEvent("book:chapterDisplayed");
+	this.createEvent("book:chapterDestroy");
 	this.createEvent("book:resized");
 	this.createEvent("book:stored");
 	this.createEvent("book:online");
@@ -25,6 +26,9 @@ FP.Book = function(elem, bookPath){
 	this.hooks = {
 		"beforeChapterDisplay" : []
 	};
+	
+	//-- Get pre-registered hooks
+	this.getHooks();
 	
 	this.useHash = true;
 	
@@ -79,8 +83,10 @@ FP.Book.prototype.listeners = function(){
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
 FP.Book.prototype.start = function(bookPath){
-	var pathname = window.location.pathname,
-		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/";
+	var location = window.location,
+		pathname = location.pathname,
+		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/",
+		origin;
 	
 	this.bookPath = bookPath;
 
@@ -94,10 +100,11 @@ FP.Book.prototype.start = function(bookPath){
 		return;
 	}else{
 		this.bookUrl = (bookPath[bookPath.length - 1] == "/") ? bookPath : bookPath + "/";
-		
+
 		if(this.bookUrl.search("://") == -1){
 			//-- get full path
-			this.bookUrl = window.location.origin + folder + this.bookUrl;
+			origin = location.origin || location.protocol + "//" + location.host;
+			this.bookUrl =  origin + folder + this.bookUrl;
 		}
 	}
 	
@@ -541,7 +548,12 @@ FP.Book.prototype.displayChapter = function(pos, callback){
 	localStorage.setItem("spinePos", pos);
 
 	this.spinePos = pos;
-
+	
+	//-- Destroy previous
+	if(this.currentChapter) {
+		this.tell("book:chapterDestroy", this.currentChapter.getID());
+	}
+	
 	//-- Create a new chapter	
 	this.currentChapter = new FP.Chapter(this);
 
@@ -668,6 +680,21 @@ FP.Book.prototype.hideHashChanges = function(){
 	this.useHash = false;
 }
 
+//-- Get pre-registered hooks
+FP.Book.prototype.getHooks = function(){
+	var that = this;
+	
+	plugTypes = FP.core.toArray(this.hooks);
+		
+	plugTypes.forEach(function(plug){
+		var type = plug.ident;
+		plugs = FP.core.toArray(FP.Hooks[type]);
+		plugs.forEach(function(hook){
+			that.registerHook(type, hook);
+		});
+	});
+}
+
 //-- Hooks allow for injecting async functions that must all complete before continuing 
 //   Functions must have a callback as their first argument.
 FP.Book.prototype.registerHook = function(type, toAdd){
@@ -690,12 +717,13 @@ FP.Book.prototype.registerHook = function(type, toAdd){
 	}
 }
 
-FP.Book.prototype.triggerHooks = function(type, callback){
+FP.Book.prototype.triggerHooks = function(type, callback, passed){
 	var hooks, count;
 
 	if(typeof(this.hooks[type]) == "undefined") return false;
 
 	hooks = this.hooks[type];
+	
 	count = hooks.length;
 
 	function countdown(){
@@ -704,6 +732,6 @@ FP.Book.prototype.triggerHooks = function(type, callback){
 	}
 
 	hooks.forEach(function(hook){
-		hook(countdown);
+		hook(countdown, passed);
 	});
 }

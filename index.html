@@ -17,9 +17,6 @@
         <script>
             "use strict";
             
-            var FP = FP || {}; 
-            FP.VERSION = "0.1.4";
-            
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FPR.app.init();
@@ -28,22 +25,30 @@
         
           </script>
         
-        <script async src="fpjs/libs/jquery.touchy.min.js"></script>
-
+        <!--<script async src="fpjs/libs/jquery.touchy.min.js"></script>-->
+        
+        <!-- Render -->
+        <script src="fpjs/render/base.js"></script>
+        <script src="fpjs/render/core.js"></script>
+        <script src="fpjs/render/queue.js"></script>
+        <script src="fpjs/render/unarchiver.js"></script>
+        <script src="fpjs/render/storage.js"></script>
+        <script src="fpjs/render/storage_ram.js"></script>
+        <script src="fpjs/render/storage_websql.js"></script>
+        <script src="fpjs/render/storage_indexeddb.js"></script>
+        <script src="fpjs/render/storage_filesystem.js"></script>
+        <script src="fpjs/render/events.js"></script>
+        <script src="fpjs/render/hooks.js"></script>
+        <script src="fpjs/render/book.js"></script>
+        <script src="fpjs/render/chapter.js"></script>
+        
+        <!-- Plugins -->
+        <script async src="fpjs/render/transculsions.js"></script>
+        
+        <!-- Reader -->
         <script async src="fpjs/reader/utils.js"></script>
-        <script async src="fpjs/render/core.js"></script>
-        <script async src="fpjs/render/queue.js"></script>
-        <script async src="fpjs/render/unarchiver.js"></script>
-        <script async src="fpjs/render/storage.js"></script>
-        <script async src="fpjs/render/storage_ram.js"></script>
-        <script async src="fpjs/render/storage_websql.js"></script>
-        <script async src="fpjs/render/storage_indexeddb.js"></script>
-        <script async src="fpjs/render/storage_filesystem.js"></script>
-        <script async src="fpjs/render/events.js"></script>
-        <script async src="fpjs/render/book.js"></script>
-        <script async src="fpjs/render/chapter.js"></script>
         <script async src="fpjs/reader/app.js"></script>
-               
+        
     </head>
     <body>
         <div id="sidebar">

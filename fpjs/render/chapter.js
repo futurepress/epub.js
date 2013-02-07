@@ -291,6 +291,6 @@ FP.Chapter.prototype.section = function(fragment){
 }
 
 FP.Chapter.prototype.beforeDisplay = function(callback){
-	this.book.triggerHooks("beforeChapterDisplay", callback.bind(this));
+	this.book.triggerHooks("beforeChapterDisplay", callback.bind(this), this);
 }
 
