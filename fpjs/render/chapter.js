@@ -69,6 +69,7 @@ FP.Chapter.prototype.error = function(err){
 }
 
 FP.Chapter.prototype.formatSpread = function(){
+
 	var divisor = 2,
 		cutoff = 800;
 
@@ -100,6 +101,7 @@ FP.Chapter.prototype.formatSpread = function(){
 
 	this.spreadWidth = (this.colWidth + this.gap) * divisor;
 
+	this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	//-- Clear Margins
 	this.bodyEl.style.visibility = "hidden";
 	this.bodyEl.style.margin = "0";
