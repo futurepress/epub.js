@@ -66,5 +66,5 @@ FP.Events.prototype.listenUntil = function(OnEvt, OffEvt, func, bindto){
 		this.deafen(OffEvt, unlisten);
 	}
 	
-	this.listen(OffEvt, unlisten);
+	this.listen(OffEvt, unlisten, this);
 }
