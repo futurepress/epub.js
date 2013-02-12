@@ -6,7 +6,7 @@ FPR.app.init = (function($){
   "use strict";
   var Book,
   	  offline = false,
-  	  sidebarWidth = 40,
+  	  sidebarWidth = 0,
   	  windowWidth;
 
   function init(bookURL){

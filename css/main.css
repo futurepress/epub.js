@@ -9,10 +9,11 @@ body {
   width: 100%;
   height: 100%;
   /* left: 40px; */ 
-  -webkit-transform: translate(40px, 0);
-  -moz-transform: translate(40px, 0);
+/*   -webkit-transform: translate(40px, 0);
+  -moz-transform: translate(40px, 0); */
     
-  border-radius: 5px 0px 0px 5px;
+  /* border-radius: 5px 0px 0px 5px; */
+  border-radius: 5px;
   background: #fff;
   overflow: hidden;
   -webkit-transition: -webkit-transform .5s;
@@ -22,6 +23,7 @@ body {
   -webkit-box-shadow: inset 0 0 50px rgba(0,0,0,.1);
   box-shadow:         inset 0 0 50px rgba(0,0,0,.1);
 }
+
 
 #titlebar {
   
@@ -125,7 +127,12 @@ body {
   padding: 10px 0;
 }
 
-#controls #open {
+#opener {
+  padding: 10px 10px;
+  float: left;
+}
+
+#opener #open {
   width: 25px;
 }
 
@@ -335,6 +342,8 @@ input:-moz-placeholder {
   #main {
     -webkit-transform: translate(0, 0);
     -moz-transform: translate(0, 0);
+    -webkit-transition: -webkit-transform .3s;
+    -moz-transition: -moz-transform .3s;
   }
   
   #main.closed {
@@ -347,21 +356,6 @@ input:-moz-placeholder {
     margin: 0 50px 0 50px;
   }
   
-  #open {
-    position: fixed;
-    top: 10px;
-    left: 0;
-    z-index: 110;
-    display: block;
-    
-    -webkit-transition: -webkit-transform .5s;
-    -moz-transition: -moz-transform .5s;
-  }
-  
-  #sidebar.open #open {
-    -webkit-transform: translate(260px, 0);
-    -moz-transform: translate(260px, 0);
-  }
   
   #toc {
     width: 260px;
