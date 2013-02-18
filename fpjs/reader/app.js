@@ -138,7 +138,7 @@ FPR.app.init = (function($){
 		$(this).on("click", function() {
 			localStorage.setItem("fontSize", $(this).attr("value"));
 			//reload the page after selecting a new font
-			$("#area iframe")[0].contentDocument.location.reload(true);
+			Book.iframe.contentDocument.location.reload(true);
 
 		});
 	});
