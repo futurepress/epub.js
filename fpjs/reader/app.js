@@ -122,7 +122,7 @@ FPR.app.init = (function($){
   				"<input type='radio' name='fontSize' value='small'><span class='small'>Small</span><br>" +
   				"<input type='radio' name='fontSize' value='medium'><span class='medium'>Medium</span><br>" +
   				"<input type='radio' name='fontSize' value='large'><span class='large'>Large</span><br>" +
-  				"<input type='radio' name='fontSize' value='large'><span class='xlarge'>Extra Large</span>");
+  				"<input type='radio' name='fontSize' value='x-large'><span class='xlarge'>Extra Large</span>");
 
   	$settingsItem.find("h3").text('Font Size').after($fontSizes);
 	$settings.find("ul").append($settingsItem);
