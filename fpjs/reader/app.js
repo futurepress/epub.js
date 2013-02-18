@@ -118,11 +118,11 @@ FPR.app.init = (function($){
 
   	var $settingsItem = $("<li><h3></h3></li>");
 		
-  	var $fontSizes = $("<input type='radio' name='fontSize' value='x-small'><span class='font-size xsmall'>Extra Small</span><br>" +
-  				"<input type='radio' name='fontSize' value='small'><span class='font-size small'>Small</span><br>" +
-  				"<input type='radio' name='fontSize' value='medium'><span class='font-size medium'>Medium</span><br>" +
-  				"<input type='radio' name='fontSize' value='large'><span class='font-size large'>Large</span><br>" +
-  				"<input type='radio' name='fontSize' value='large'><span class='font-size xlarge'>Extra Large</span>");
+  	var $fontSizes = $("<input type='radio' name='fontSize' value='x-small'><span class='xsmall'>Extra Small</span><br>" +
+  				"<input type='radio' name='fontSize' value='small'><span class='small'>Small</span><br>" +
+  				"<input type='radio' name='fontSize' value='medium'><span class='medium'>Medium</span><br>" +
+  				"<input type='radio' name='fontSize' value='large'><span class='large'>Large</span><br>" +
+  				"<input type='radio' name='fontSize' value='large'><span class='xlarge'>Extra Large</span>");
 
   	$settingsItem.find("h3").text('Font Size').after($fontSizes);
 	$settings.find("ul").append($settingsItem);
@@ -134,8 +134,12 @@ FPR.app.init = (function($){
 		if ($(this).attr("value") == userFont) {
 			$(this).attr("checked", "checked");
 		}
+
 		$(this).on("click", function() {
 			localStorage.setItem("fontSize", $(this).attr("value"));
+			//reload the page after selecting a new font
+			$("#area iframe")[0].contentDocument.location.reload(true);
+
 		});
 	});
 
