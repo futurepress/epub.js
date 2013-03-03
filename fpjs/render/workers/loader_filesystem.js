@@ -1,5 +1,3 @@
-importScripts('core.js');
-
 var _requestFileSystem  = self.requestFileSystem || self.webkitRequestFileSystem;
 
 const DBSIZE = 5*1024*1024;
@@ -34,7 +32,7 @@ self.openFs = function(callback){
 }
 
 self.request = function(path, callback) {
-	var xhr = new FP.core.loadFile(path);
+	var xhr = new self.loadFile(path);
 
 	xhr.succeeded = function(file) {
 		if(callback) callback(file);
@@ -113,5 +111,46 @@ self.errorHandler = function(e) {
 	  break;
  }
 }
+
+self.loadFile = function(url, callback){
+	var xhr = new XMLHttpRequest();
+
+	this.succeeded = function(response){
+		if(callback){
+			callback(response);
+		}
+	}
+
+	this.failed = function(err){
+		console.log("Error:", err);
+	}
+
+	this.start = function(){
+		var that = this;
+
+		xhr.open('GET', url, true);
+		xhr.responseType = 'blob';
+
+		xhr.onload = function(e) {
+			if (this.status == 200) {
+				that.succeeded(this.response);
+			}
+		};
+
+		xhr.onerror = function(e) {
+			that.failed(this.status); //-- TODO: better error message
+		};
+
+		xhr.send();
+	}
+
+	return {
+		"start": this.start,
+		"succeeded" : this.succeeded,
+		"failed" : this.failed
+	}
+}
   
 self.openFs();
+
+
