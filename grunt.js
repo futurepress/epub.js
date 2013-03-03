@@ -8,12 +8,18 @@ module.exports = function(grunt) {
 		  '<%= grunt.template.today("yyyy-mm-dd") %> */'
 	  },
 	  min: {
-		dist: {
-		  src: ['<banner>', 'fpjs/render/*.js'],
-		  dest: 'dist/built.min.js'
-		}
+		'dist/render.min.js': ['<banner>', 'fpjs/render/*.js'],
+		'dist/workers/loader_filesystem.js': ['<banner>', 'fpjs/render/workers/loader_filesystem.js'],
+		'dist/reader.min.js': ['<banner>', 'fpjs/reader/*.js'],
+		'dist/hooks/transculsions.min.js': ['<banner>', 'fpjs/hooks/transculsions.js'],
+		'dist/libs/zip.js': ['fpjs/libs/zip.js'],
+		'dist/libs/deflate.js': ['fpjs/libs/deflate.js'],
+		'dist/libs/inflate.js': ['fpjs/libs/inflate.js'],
+		'dist/libs/mime-types.js': ['fpjs/libs/mime-types.js']
 	  }
 	});
+	
+	
 	
 	// Default task(s).
 	grunt.registerTask('default', ['min']);
