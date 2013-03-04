@@ -7,39 +7,62 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
-
+    
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
-
-        <script src="dist/libs/jquery-1.9.0.min.js"></script>
-        <script src="dist/libs/modernizr-2.6.2.min.js"></script>
+        
+        <link rel="stylesheet" href="css/annotator.css">    
+        
+        <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
+        <script>window.jQuery || document.write('<script src="fpjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
+        -->
+        <script src="fpjs/libs/jquery-1.9.0.js"></script>
+        
+        <script src="fpjs/libs/modernizr-2.6.2.min.js"></script>
         <script>
             "use strict";
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                FP.filePath = "/dist/"
                 FPR.app.init();
               }  
             };
+            
         
           </script>
-                
-        <!-- Render -->
-        <script src="dist/render.min.js"></script>
         
-        <!-- Hooks -->
-        <script async src="dist/hooks/transculsions.min.js"></script>
+        <!--<script async src="fpjs/libs/jquery.touchy.min.js"></script>-->
+        
+        <!-- Render -->
+        <script src="fpjs/render/base.js"></script>
+        <script src="fpjs/render/core.js"></script>
+        <script src="fpjs/render/queue.js"></script>
+        <script src="fpjs/render/unarchiver.js"></script>
+        <script src="fpjs/render/storage.js"></script>
+        <script src="fpjs/render/storage_ram.js"></script>
+        <script src="fpjs/render/storage_websql.js"></script>
+        <script src="fpjs/render/storage_indexeddb.js"></script>
+        <script src="fpjs/render/storage_filesystem.js"></script>
+        <script src="fpjs/render/events.js"></script>
+        <script src="fpjs/render/hooks.js"></script>
+        <script src="fpjs/render/book.js"></script>
+        <script src="fpjs/render/chapter.js"></script>
+        
+        <!-- Plugins -->
+        <script async src="fpjs/hooks/transculsions.js"></script>
+        <script async src="fpjs/hooks/annotate.js"></script>
         
         <!-- Reader -->
-        <script src="dist/reader.min.js"></script>
+        <script async src="fpjs/reader/utils.js"></script>
+        <script async src="fpjs/reader/app.js"></script>
+        
         
     </head>
     <body>
         <div id="sidebar">
           <div id="controls">
             
-            <!-- <input id="search" placeholder="search"> -->
+            <input id="search" placeholder="search">
             <a id="network"><img id="store" src="img/save.png"></a>
             <a id="setting"><img id="settings" src="img/settings.png"></a>
             <a id="bookmark"><img id="bookmarks" src="img/star.png"></a>

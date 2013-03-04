@@ -2,7 +2,7 @@ FP.store = FP.store || {};
 
 FP.store.filesystem = function() {
 	var _urls = {},
-		_queue = new FP.Queue("fpjs/render/workers/loader_filesystem.js", 6),
+		_queue = new FP.Queue(FP.filePath + "workers/loader_filesystem.js", 6),
 		_requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem,
 		_fs;
 

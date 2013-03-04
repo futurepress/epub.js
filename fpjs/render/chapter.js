@@ -52,7 +52,13 @@ FP.Chapter.prototype.setIframeSrc = function(url){
 		that.bodyEl = that.doc.body;
 		
 		that.formatSpread();
-
+		
+		//-- Trigger registered hooks before displaying
+		that.beforeDisplay(function(){
+			that.book.tell("book:chapterDisplayed");
+			that.visible(true);
+		});
+		
 		that.afterLoaded(that);
 
 		that.book.listen("book:resized", that.formatSpread, that);
@@ -119,16 +125,12 @@ FP.Chapter.prototype.formatSpread = function(){
 	
 	this.calcPages();
 	
-	//-- Trigger registered hooks before displaying
-	this.beforeDisplay(function(){
-		this.book.tell("book:chapterDisplayed");
-		this.visible(true);
-	});
 	
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
 		this.leftPos = (this.chapterPos - 1 ) * this.spreadWidth;
 		this.bodyEl.scrollLeft = this.leftPos;
+		this.visible(true);
 	}
 }
 

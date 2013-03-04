@@ -165,20 +165,58 @@ FP.core.dataURLToBlob = function(dataURL) {
  }
  
 //-- Load scripts async: http://stackoverflow.com/questions/7718935/load-scripts-asynchronously 
-FP.core.loadScript = function(src, callback) {
+FP.core.loadScript = function(src, callback, target) {
    var s, r;
    r = false;
    s = document.createElement('script');
    s.type = 'text/javascript';
-   s.async = true;
+   s.async = false;
    s.src = src;
    s.onload = s.onreadystatechange = function() {
  	//console.log( this.readyState ); //uncomment this line to see which ready states are called.
  	if ( !r && (!this.readyState || this.readyState == 'complete') )
  	{
  	  r = true;
- 	  callback();
+ 	  if(callback) callback();
  	}
-   };
-   document.body.appendChild(s);
+   },
+   target = target || document.body;
+   target.appendChild(s);
  }
+ 
+ FP.core.loadScripts = function(srcArr, callback, target) {
+	var total = srcArr.length,
+		curr = 0,
+		cb = function(){
+			curr++;
+			if(total == curr){
+				if(callback) callback();
+			}else{
+				FP.core.loadScript(srcArr[curr], cb, target);
+			}
+		};
+		
+    // srcArr.forEach(function(src){
+    // FP.core.loadScript(src, cb, target);
+    // });
+    FP.core.loadScript(srcArr[curr], cb, target);
+    
+ }
+ 
+ FP.core.addCss = function(src, callback, target) {
+    var s, r;
+    r = false;
+    s = document.createElement('link');
+    s.type = 'text/css';
+    s.rel = "stylesheet";
+    s.href = src;
+    s.onload = s.onreadystatechange = function() {
+  	if ( !r && (!this.readyState || this.readyState == 'complete') )
+  	{
+  	  r = true;
+  	  if(callback) callback();
+  	}
+    },
+    target = target || document.body;
+    target.appendChild(s);
+  }

@@ -175,7 +175,7 @@ FPR.app.init = (function($){
 	  
 	  $loader.hide();
 	  $divider.addClass("show");
-
+	  
   }
   
   function goOnline(){
@@ -306,7 +306,7 @@ FPR.app.init = (function($){
 			$settings.hide();
 			$toc.show();
 		}
-
+		
 	   	$open.on("click", function(){
 		   if($sidebar.hasClass("open")){
 			   hideSidebar();
@@ -325,9 +325,10 @@ FPR.app.init = (function($){
 	   	   Book.fromStorage(offline);
 	   	});
 
-
+		
   }
-
+  
+	
   return  init;
 
 })(jQuery);

@@ -1,5 +1,5 @@
 FP.Unarchiver = function(url, callback){
-	this.libPath = (this.fpjsPath || "fpjs/" ) + "/libs/";
+	this.libPath = FP.filePath  + "libs/";
 	this.zipUrl = url;
 	this.callback = callback;
 	this.loadLib(function(){
