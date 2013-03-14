@@ -6,7 +6,7 @@
 ** Dual licensed under the MIT and GPLv3 licenses.
 ** https://github.com/okfn/annotator/blob/master/LICENSE
 **
-** Built at: 2013-03-04 19:18:55Z
+** Built at: 2013-03-06 19:56:56Z
 */
 
 (function() {
@@ -273,11 +273,12 @@
   Range.nodeFromXPath = function(xpath, root) {
     var customResolver, evaluateXPath, namespace, node, segment;
     if (root == null) root = document;
+    this.document = root.ownerDocument || document;
     evaluateXPath = function(xp, nsResolver) {
       if (nsResolver == null) nsResolver = null;
-      return document.evaluate('.' + xp, root, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      return this.document.evaluate('.' + xp, root, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
     };
-    if (!$.isXMLDoc(document.documentElement)) {
+    if (!$.isXMLDoc(this.document.documentElement)) {
       return evaluateXPath(xpath);
     } else {
       customResolver = document.createNSResolver(document.ownerDocument === null ? document.documentElement : document.ownerDocument.documentElement);
@@ -653,6 +654,7 @@
       this.onEditorHide = __bind(this.onEditorHide, this);
       this.showEditor = __bind(this.showEditor, this);      Annotator.__super__.constructor.apply(this, arguments);
       this.plugins = {};
+      this.document = element.ownerDocument;
       if (!Annotator.supported()) return this;
       if (!this.options.readOnly) this._setupDocumentEvents();
       this._setupWrapper()._setupViewer()._setupEditor();
@@ -706,7 +708,7 @@
     };
 
     Annotator.prototype._setupDocumentEvents = function() {
-      $(document).bind({
+      $(this.document).bind({
         "mouseup": this.checkForEndSelection,
         "mousedown": this.checkForStartSelection
       });
@@ -717,7 +719,7 @@
       var max, sel, style, x;
       style = $('#annotator-dynamic-style');
       if (!style.length) {
-        style = $('<style id="annotator-dynamic-style"></style>').appendTo(document.head);
+        style = $('<style id="annotator-dynamic-style"></style>').appendTo(this.document.head);
       }
       sel = '*' + ((function() {
         var _k, _len3, _ref2, _results;
@@ -729,7 +731,7 @@
         }
         return _results;
       })()).join('');
-      max = util.maxZIndex($(document.body).find(sel));
+      max = util.maxZIndex($(this.document.body).find(sel));
       max = Math.max(max, 1000);
       style.text([".annotator-adder, .annotator-outer, .annotator-notice {", "  z-index: " + (max + 20) + ";", "}", ".annotator-filter {", "  z-index: " + (max + 10) + ";", "}"].join("\n"));
       return this;
@@ -737,7 +739,7 @@
 
     Annotator.prototype.getSelectedRanges = function() {
       var browserRange, i, normedRange, r, ranges, rangesToIgnore, selection, _k, _len3;
-      selection = util.getGlobal().getSelection();
+      selection = this.document.getSelection();
       ranges = [];
       rangesToIgnore = [];
       if (!selection.isCollapsed) {
