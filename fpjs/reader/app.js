@@ -28,7 +28,8 @@ FPR.app.init = (function($){
 	//-- Create a new book object, 
 	//	 this will create an iframe in the el with the ID provided
 	Book = new FP.Book("area");
-
+	
+	//Book.single = true;
 	//-- Add listeners to handle book events
 	//-- Full list of event are at start of book.js
 	Book.listen("book:metadataReady", meta);
@@ -174,7 +175,10 @@ FPR.app.init = (function($){
 		  $loader = $("#loader");
 	  
 	  $loader.hide();
-	  $divider.addClass("show");
+	  
+	  if(!Book.single) {
+	  	$divider.addClass("show");
+	  }
 	  
   }
   

@@ -34,7 +34,6 @@ FP.Events.prototype.tell = function(evt, msg){
 	}
 
 	if(msg) e.msg = msg;
-
 	this.el.dispatchEvent(e);
 
 }

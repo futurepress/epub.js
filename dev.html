@@ -20,6 +20,7 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
+                FP.filePath = "/fpjs/";
                 FPR.app.init();
               }  
             };
@@ -45,6 +46,7 @@
         
         <!-- Plugins -->
         <script async src="fpjs/hooks/transculsions.js"></script>
+        <script async src="fpjs/hooks/music.js"></script>
         
         <!-- Reader -->
         <script async src="fpjs/reader/utils.js"></script>

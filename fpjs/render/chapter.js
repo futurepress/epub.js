@@ -90,7 +90,7 @@ FP.Chapter.prototype.formatSpread = function(){
 
 	this.gap = this.gap || Math.ceil(this.elWidth / 8);
 
-	if(this.elWidth < cutoff) {
+	if(this.elWidth < cutoff || this.book.single) {
 		this.spread = false; //-- Single Page
 
 		divisor = 1;
@@ -168,6 +168,7 @@ FP.Chapter.prototype.nextPage = function(){
 		this.setLeft(this.leftPos);
 		
 		localStorage.setItem("chapterPos", this.chapterPos);
+		this.book.tell("book:pageChanged", this.chapterPos);
 		
 		return this.chapterPos;
 	}else{
@@ -184,6 +185,7 @@ FP.Chapter.prototype.prevPage = function(){
 		this.setLeft(this.leftPos);
 		
 		localStorage.setItem("chapterPos", this.chapterPos);
+		this.book.tell("book:pageChanged", this.chapterPos);
 		
 		return this.chapterPos;
 	}else{
@@ -197,6 +199,17 @@ FP.Chapter.prototype.chapterEnd = function(){
 
 FP.Chapter.prototype.setLeft = function(leftPos){
 	this.bodyEl.style.marginLeft = -leftPos + "px";
+	
+	/*
+	var left = "transform: " + (-leftPos) + "px";
+	//-- Need to stardize this
+	
+	this.bodyEl.style.webkitTransform = left;   //Chrome and Safari
+	this.bodyEl.style.MozTransform = left;      //Firefox
+	this.bodyEl.style.msTransform = left;       //IE
+	this.bodyEl.style.OTransform = left;        //Opera
+	this.bodyEl.style.transform = left; 
+	*/
 }
 
 //-- Replaces the relative links within the book to use our internal page changer

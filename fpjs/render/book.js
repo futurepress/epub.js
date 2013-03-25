@@ -21,6 +21,7 @@ FP.Book = function(elem, bookPath){
 	this.createEvent("book:stored");
 	this.createEvent("book:online");
 	this.createEvent("book:offline");
+	this.createEvent("book:pageChanged");
 	
 	//-- All hooks to add functions (with a callback) to 
 	this.hooks = {
@@ -82,31 +83,60 @@ FP.Book.prototype.listeners = function(){
 }
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
+
 FP.Book.prototype.start = function(bookPath){
 	var location = window.location,
 		pathname = location.pathname,
-		folder = (pathname[pathname.length - 1] == "/") ? pathname : "/",
-		origin;
-	
-	this.bookPath = bookPath;
+		absolute = this.bookUrl.search("://") != -1,
+		fromRoot = pathname[0] == "/",
+		cleaned = [],
+		folder = "/",
+		origin,
+		split;
+		
+	//folder = (pathname[pathname.length - 1] == "/") ? pathname : "/",
 
+	
 	
 	//-- Checks if the url is a zip file and unpack
 	if(this.isContained(bookPath)){
+		this.bookPath = bookPath;
 		this.bookUrl = "";
 		this.contained = true;
 		this.tell("book:offline");
 		if(this.online) this.unarchive(bookPath);
 		return;
-	}else{
-		this.bookUrl = (bookPath[bookPath.length - 1] == "/") ? bookPath : bookPath + "/";
-
-		if(this.bookUrl.search("://") == -1){
-			//-- get full path
-			origin = location.origin || location.protocol + "//" + location.host;
-			this.bookUrl =  origin + folder + this.bookUrl;
-		}
 	}
+	
+	this.bookPath = bookPath;
+	
+	//-- Get URL orgin, try for native or combine 
+	origin = location.origin || location.protocol + "//" + location.host;
+	
+	//-- 1. Check if url is absolute
+	if(absolute){
+		this.bookUrl = bookPath;
+	}
+	
+	//-- 2. Check if url starts with /, add base url
+	if(!absolute && fromRoot){
+		this.bookUrl = origin + bookPath; 
+	}
+	
+	//-- 3. Or find full path to url and add that
+	if(!absolute && !fromRoot){
+		
+		pathname.split('/').forEach(function(part){
+			if(part.indexOf(".") == -1){
+				cleaned.push(part);
+			}
+		});
+		
+		folder = cleaned.join("/") + "/";
+		
+		this.bookUrl =  origin + folder + bookPath;
+	}
+	
 	
 	if(!this.isSaved()){
 		

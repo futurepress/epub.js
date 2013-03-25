@@ -23,13 +23,16 @@
         <script>
             "use strict";
             
+            jQuery.migrateTrace = false;
+            
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
+                FP.filePath = "/fpjs/";
                 FPR.app.init();
               }  
             };
             
-            jQuery.migrateTrace = false;
+            
         
           </script>
         
