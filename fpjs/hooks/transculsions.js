@@ -1,7 +1,7 @@
 FP.Hooks.register("beforeChapterDisplay").transculsions = function(callback, chapter){
 
 		var trans = chapter.doc.querySelectorAll('[transclusion]'),
-			items = Array.prototype.slice.call(trans);;
+			items = Array.prototype.slice.call(trans);
 
 		items.forEach(function(item){
 			var src = item.getAttribute("ref"),

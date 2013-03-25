@@ -3,6 +3,11 @@ FuturePress
 
 ![FuturePress Views](http://fchasen.com/futurepress/fp.png)
 
+FuturePress is a javascript library for rendering ePUB's in the browser, across many devices.
+
+FPJS provides common ebook functions (such as persistence and pagination) without the need to develop a dedicated application or plugin.
+
+Unlike an application, our HTML / Javascript reader can be hosted anywhere and can be easily customized using javascript, such as changing the interface or adding annotation functionality.
 
 Why EPUB
 -------------------------
@@ -83,3 +88,31 @@ Currently, there is not a great cross browser solution for dynamic file storage.
 The reader detects the storage capabilities of the browser and picks the best available option. When internet is available, the entire book is loaded into storage. When possible, Web Workers is used to handle loading and saving the files in a different thread, so as not to interfere with the reading experience.
 
 The browser tells the reader when there is Internet connectivity, and by listening to those events, it automatically switches to using the stored files. Users can also manually switch to offline mode in the interface.
+
+Hooks
+-------------------------
+
+Similar to a plugins, FPJS implements events that can be "hooked" into.
+
+Examples of this functionality is loading videos from youtube links before displaying a chapters contents.
+
+Hooks require a event to latch onto and a callback for when they are finished.
+
+Example hook:
+
+```javascript
+FP.Hooks.register("beforeChapterDisplay").example = function(callback, chapter){
+    
+    var elements = chapter.doc.querySelectorAll('[video]'),
+        items = Array.prototype.slice.call(elements);
+    
+    items.forEach(function(item){
+      //-- do something with the video item
+    }
+    
+    if(callback) callback();
+		
+		
+}
+```
+
