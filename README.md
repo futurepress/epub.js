@@ -9,6 +9,8 @@ FPJS provides common ebook functions (such as persistence and pagination) withou
 
 Unlike an application, our HTML / Javascript reader can be hosted anywhere and can be easily customized using javascript, such as changing the interface or adding annotation functionality.
 
+[Try it while reading Moby Dick](http://fchasen.github.com/fpjs/)
+
 Why EPUB
 -------------------------
 
