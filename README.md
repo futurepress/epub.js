@@ -35,23 +35,9 @@ then you can run the reader locally with the command
 http-server
 ```
 
-this will start the reader on 
+* http://localhost:8080/dev.html will pull from the source files and should be used during development.
 
-http://localhost:8080/
-
-Dev.html
--------------------------
-
-http://localhost:8080/dev.html
-
-This page will pull from the source files and should be used during development.
-
-Index.html
--------------------------
-
-http://localhost:8080/index.html
-
-This page will use the minified production libraries in the dist/ folder.
+* http://localhost:8080/index.html will use the minified production libraries in the dist/ folder.
 
 Building for Distribution
 -------------------------
