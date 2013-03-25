@@ -35,9 +35,9 @@ then you can run the reader locally with the command
 http-server
 ```
 
-* http://localhost:8080/dev.html will pull from the source files and should be used during development.
-
-* http://localhost:8080/index.html will use the minified production libraries in the dist/ folder.
+* [dev.html](http://localhost:8080/dev.html) will pull from the source files and should be used during development.
+* [index.html](http://localhost:8080/index.html) will use the minified production libraries in the dist/ folder.
+* [annotator.html](http://localhost:8080/annotator.html) is a dev branch for annotation development.
 
 Building for Distribution
 -------------------------
