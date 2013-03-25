@@ -1,13 +1,13 @@
 FuturePress
 ================================
 
-[![FuturePress Views](http://fchasen.com/futurepress/fp.png)]
+![FuturePress Views](http://fchasen.com/futurepress/fp.png)
 
 
 Why EPUB
 -------------------------
 
-[![Why EPUB](http://fchasen.com/futurepress/whyepub.png)]
+![Why EPUB](http://fchasen.com/futurepress/whyepub.png)
 
 ePUB is a widely used and easily convertible format.  Many books are currently in this format and it is used as the base for many proprietary formats (such as Mobi and iBooks). We have chosen the ePUB standard because it brings us as close as possible to our “Books on the Web” vision, while enforcing a standard which enables the development of more advanced reader functionality.  
 
@@ -18,7 +18,7 @@ More specifically, the ePUB schema standardizes the table of contents, provides 
 Running Locally
 -------------------------
 
-install (http-server)[https://github.com/nodeapps/http-server]
+install [http-server](https://github.com/nodeapps/http-server)
 
 ```javascript
 npm install http-server -g
@@ -32,26 +32,26 @@ http-server
 
 this will start the reader on 
 
-(http://localhost:8080/)[http://localhost:8080/]
+http://localhost:8080/
 
 Dev.html
 -------------------------
 
-(http://localhost:8080/dev.html)[http://localhost:8080/dev.html]
+http://localhost:8080/dev.html
 
 This page will pull from the source files and should be used during development.
 
 Index.html
 -------------------------
 
-(http://localhost:8080/index.html)[http://localhost:8080/index.html]
+http://localhost:8080/index.html
 
 This page will use the minified production libraries in the dist/ folder.
 
 Building for Distribution
 -------------------------
 
-install (gruntjs)[http://gruntjs.com/getting-started]
+install [gruntjs](http://gruntjs.com/getting-started)
 
 ```javascript
 npm install -g grunt-cli
