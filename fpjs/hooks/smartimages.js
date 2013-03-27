@@ -8,8 +8,9 @@ FP.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapt
 		items.forEach(function(item){
 			
 			function size() {
-				var height = item.offsetHeight,
-					top = item.offsetTop;
+				var itemRect = item.getBoundingClientRect(),
+					height = itemRect.height,
+					top = itemRect.top;
 				
 				iheight = chapter.iframe.height;
 				

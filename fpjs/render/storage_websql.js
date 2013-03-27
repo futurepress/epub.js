@@ -3,7 +3,8 @@ FP.store = FP.store || {};
 FP.store.websql = function() {
 	var _blobs = {},
 		_queue = new FP.Queue(loader, 6),
-		_db;
+		_db,
+		_URL = window.URL;
 
 	const DBNAME = "fpjs_db";
 	const DBVERSION = "1";
@@ -176,7 +177,7 @@ FP.store.websql = function() {
 		}
 		
 		blob = FP.core.dataURLToBlob(file); //go from data url to blob
-		url = this._URL.createObjectURL(blob);
+		url = _URL.createObjectURL(blob);
 
 		//-- need to revokeObjectURL previous urls, but only when cleaning cache
 		// this.createdURLs.forEach(function(url){

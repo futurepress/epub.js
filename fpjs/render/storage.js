@@ -1,42 +1,67 @@
 FP.storage = function(){
 
-	this._URL = window.URL;
+	
+	var _supported = {},
+		_storageType,
+		_store;
+	
 	
 	function storageMethod(storageType){
-		console.log("storageMethod", storageType)
+		console.log("storageMethod", storageType)		
+		
 		//-- Pick store type	
-		if(!storageType || typeof(FP.store[storageType]) == "undefined"){
-			this.storageType = "none";	
+		if( !storageType || typeof(FP.store[storageType]) == "undefined"){
+			_storageType = "none";	
 		}else{
-			this.storageType = storageType;
+			_storageType = storageType;
 		}
 		
 		//-- Create a new store of that type
-		this._store = new FP.store[this.storageType];
+		_store = new FP.store[_storageType];
 		
 		//-- Handle load errors
-		this._store.failed = _error;
+		_store.failed = _error;
 		
+	}
+	
+	function determineStorageMethod(override) {
+		var methods = ["filesystem", "indexeddb", "websqldatabase", "ram"],
+			method = 'none';
+		
+		checkSupport();
+		
+		if(override && (override == "none" || _supported[override])){
+			method = override;
+		}else{
+			for ( var i = -1, len = methods.length; ++i < len; ){
+				if ( _supported[methods[i]] ) {
+					method = methods[i];
+					break;
+				}
+			}
+		}	
+		
+		storageMethod(method);
 	}
 	
 	function get(path, callback) {
-		return this._store.get(path, callback);
+		return _store.get(path, callback);
 	}
 	
 	function preload(path, callback) {
-		return this._store.preload(path, callback);
+		return _store.preload(path, callback);
 	}
 	
 	function batch(group, callback) {
-		return this._store.batch(group, callback);
+		return _store.batch(group, callback);
 	}
 	
 	function getURL(path) {
-		return this._store.getURL(path);
+		return _store.getURL(path);
 	}
 	
 	function save(path, file, callback) {
-		return this._store.save(path, file, callback);
+		return _store.save(path, file, callback);
 	}
 	
 	
@@ -45,7 +70,32 @@ FP.storage = function(){
 	}
 	
 	function getStorageType(){
-		return this.storageType;	
+		return _storageType;	
+	}
+	
+	function checkSupport() {
+		var support = "filesystem indexeddb websqldatabase ram".split(' '),
+			toTest = "RequestFileSystem IndexedDB openDatabase URL".split(' ');
+		
+		for ( var t = -1, len = support.length; ++t < len; ){
+			
+			var test = support[t],
+				method = toTest[t];
+				
+			_supported[test] = testSupport(method);
+			
+		}
+
+	}
+	
+	function testSupport(method) {
+			prefixes = ['webkit', 'moz', 'o', 'ms'];
+			
+			for ( var i = -1, len = prefixes.length; ++i < len; ){
+				if ( window[prefixes[i] + method] ) return true;
+			}
+			return method in window;	
+		
 	}
 
 	return {
@@ -55,7 +105,8 @@ FP.storage = function(){
 		"storageMethod": storageMethod,
 		"getURL": getURL,
 		"save" : save,
-		"getStorageType" : getStorageType
+		"getStorageType" : getStorageType,
+		"determineStorageMethod": determineStorageMethod
 	}
 	
 }();

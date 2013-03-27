@@ -1,5 +1,5 @@
 var FP = FP || {}; 
-FP.VERSION = "0.1.4";
+FP.VERSION = "0.1.5";
 
 FP.plugins = FP.plugins || {};
 

@@ -39,8 +39,10 @@ FP.Book = function(elem, bookPath){
 	this.listeners();
 		
 	//-- Determine storage method
-	//-- Override options: none | ram | websql | indexedDB | filesystem
-	this.determineStorageMethod();
+	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
+	//FP.storageOverride = "none"
+	
+	FP.storage.determineStorageMethod(FP.storageOverride);
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookPath) {
@@ -680,20 +682,6 @@ FP.Book.prototype.fromStorage = function(stored) {
 		}
 	}
 	
-}
-
-FP.Book.prototype.determineStorageMethod = function(override) {
-	var method = 'ram';
-
-	if(override){
-		method = override;
-	}else{
-		if (Modernizr.websqldatabase) { method = "websql" }
-		if (Modernizr.indexeddb) { method = "indexedDB" }
-		if (Modernizr.filesystem) { method = "filesystem" }
-	}
-	
-	FP.storage.storageMethod(method);
 }
 
 FP.Book.prototype.route = function(hash, callback){

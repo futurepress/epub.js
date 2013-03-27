@@ -19,15 +19,3 @@ jQuery.fn.extend({
 	  return this;
   }
 });
-
-Modernizr.addTest('filesystem', function(){
-
-	var prefixes = Modernizr._domPrefixes;
-	
-	for ( var i = -1, len = prefixes.length; ++i < len; ){
-	if ( window[prefixes[i] + 'RequestFileSystem'] ) return true;
-	}
-	return 'requestFileSystem' in window;
-
-});
- 

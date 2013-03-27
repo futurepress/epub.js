@@ -72,7 +72,7 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 				
 				
 				//-- get location of item
-				pos = item.getBoundingClientRect();
+				itemRect = item.getBoundingClientRect();
 				left = pos.left;
 				top = pos.top;
 				
@@ -80,11 +80,11 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 				pop.classList.add("show");
 
 				//-- position the popup
-				pop.style.left = left - pop.offsetWidth / 2 + "px";
+				pop.style.left = left - itemRect.width / 2 + "px";
 				pop.style.top = top + "px";
 				
 				//-- checking to keep within current column
-				poppos = pop.getBoundingClientRect();
+				popRect = pop.getBoundingClientRect();
 				
 				//-- Adjust max height
 				if(maxHeight > iheight / 2.5) {
@@ -94,14 +94,14 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 								
 				//-- switch above / below
 				if(poppos.height + top >= iheight - 25) {
-					pop.style.top = top - poppos.height  + "px";
+					pop.style.top = top - popRect.height  + "px";
 					pop.classList.add("above");
 				}else{
 					pop.classList.remove("above");
 				}
 				
 				//-- switch left
-				if(left - poppos.width <= 0) {
+				if(left - popRect.width <= 0) {
 					pop.style.left = left + "px";
 					pop.classList.add("left");
 				}else{
@@ -109,16 +109,15 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 				}
 				
 				//-- switch right
-				if(left + poppos.width / 2 >= iwidth) {
-					console.log("right")
+				if(left + popRect.width / 2 >= iwidth) {
 					//-- TEMP MOVE: 300
 					pop.style.left = left - 300 + "px";
 					
-					poppos = pop.getBoundingClientRect();
-					pop.style.left = left - poppos.width + "px";
+					popRect = pop.getBoundingClientRect();
+					pop.style.left = left - popRect.width + "px";
 					//-- switch above / below again
-					if(poppos.height + top >= iheight - 25) { 
-						pop.style.top = top - poppos.height  + "px";
+					if(popRect.height + top >= iheight - 25) { 
+						pop.style.top = top - popRect.height  + "px";
 						pop.classList.add("above");
 					}else{
 						pop.classList.remove("above");

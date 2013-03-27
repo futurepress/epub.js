@@ -21,6 +21,7 @@
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FP.filePath = "/fpjs/";
+                FP.VERSION = "0.1.5";
                 FPR.app.init();
               }  
             };
@@ -35,6 +36,7 @@
         <script src="fpjs/render/queue.js"></script>
         <script src="fpjs/render/unarchiver.js"></script>
         <script src="fpjs/render/storage.js"></script>
+        <script src="fpjs/render/storage_none.js"></script>
         <script src="fpjs/render/storage_ram.js"></script>
         <script src="fpjs/render/storage_websql.js"></script>
         <script src="fpjs/render/storage_indexeddb.js"></script>
@@ -46,10 +48,11 @@
         
         <!-- Plugins -->
         <script async src="fpjs/hooks/transculsions.js"></script>
-        <script async src="fpjs/hooks/music.js"></script>
         <script async src="fpjs/hooks/endnotes.js"></script>
         <script async src="fpjs/hooks/smartimages.js"></script>
         
+        <!-- <script async src="fpjs/hooks/extras/music.js"></script> -->
+
         <!-- Reader -->
         <script async src="fpjs/reader/utils.js"></script>
         <script async src="fpjs/reader/app.js"></script>

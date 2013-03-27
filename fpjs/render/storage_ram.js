@@ -3,10 +3,11 @@ FP.store = FP.store || {};
 FP.store.ram = function() {
 	var _store = {},
 		_blobs = {},
-		_queue = new FP.Queue(loader, 6); 
+		_queue = new FP.Queue(loader, 6),
+		_URL = window.URL; 
 		//-- max of 6 concurrent requests: http://www.browserscope.org/?category=network
 
-
+	
 	function loader(msg, callback){
 		var e = {"data":null},
 			fromCache = check(msg);
@@ -94,7 +95,7 @@ FP.store.ram = function() {
 			return _blobs[path];
 		}
 
-		url = this._URL.createObjectURL(file);
+		url = _URL.createObjectURL(file);
 
 		//-- need to revokeObjectURL previous urls, but only when cleaning cache
 		// this.createdURLs.forEach(function(url){

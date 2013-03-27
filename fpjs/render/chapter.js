@@ -303,11 +303,9 @@ FP.Chapter.prototype.section = function(fragment){
 	var el = this.doc.getElementById(fragment),
 		left, pg;
 	
-	
 	if(el){
-		left = this.leftPos + el.offsetLeft, //-- Calculate left offset compaired to scrolled position
+		left = this.leftPos + el.getBoundingClientRect().left, //-- Calculate left offset compaired to scrolled position
 		pg = Math.floor(left / this.spreadWidth) + 1; //-- pages start at 1
-			
 		this.page(pg);
 	}	
 
