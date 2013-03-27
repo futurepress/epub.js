@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 		'dist/render.min.js': ['<banner>', 'fpjs/render/*.js'],
 		'dist/workers/loader_filesystem.js': ['<banner>', 'fpjs/render/workers/loader_filesystem.js'],
 		'dist/reader.min.js': ['<banner>', 'fpjs/reader/*.js'],
-		'dist/hooks/transculsions.min.js': ['<banner>', 'fpjs/hooks/transculsions.js'],
+		'dist/hooks/hooks.min.js': ['<banner>', 'fpjs/hooks/*.js'],
 		'dist/libs/zip.js': ['fpjs/libs/zip.js'],
 		'dist/libs/deflate.js': ['fpjs/libs/deflate.js'],
 		'dist/libs/inflate.js': ['fpjs/libs/inflate.js'],

@@ -42,21 +42,27 @@ FP.Chapter.prototype.loadFromStorage = function(path){
 FP.Chapter.prototype.setIframeSrc = function(url){
 	var that = this;
 	
-	//-- Not sure if this is the best time to do this, but hides current text
 	this.visible(false);
 	
 	this.iframe.src = url;
+	
 	
 	this.iframe.onload = function() {
 		that.doc = that.iframe.contentDocument;
 		that.bodyEl = that.doc.body;
 		
+		
 		that.formatSpread();
 		
 		//-- Trigger registered hooks before displaying
 		that.beforeDisplay(function(){
+			
+			that.calcPages();
+			
 			that.book.tell("book:chapterDisplayed");
+			
 			that.visible(true);
+
 		});
 		
 		that.afterLoaded(that);
@@ -109,7 +115,7 @@ FP.Chapter.prototype.formatSpread = function(){
 
 	this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	//-- Clear Margins
-	this.bodyEl.style.visibility = "hidden";
+	//this.bodyEl.style.visibility = "hidden";
 	this.bodyEl.style.margin = "0";
 	this.bodyEl.style.overflow = "hidden";
 
@@ -123,14 +129,12 @@ FP.Chapter.prototype.formatSpread = function(){
 	this.bodyEl.style[FP.core.columnGap] = this.gap+"px";
 	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
 	
-	this.calcPages();
-	
 	
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
 		this.leftPos = (this.chapterPos - 1 ) * this.spreadWidth;
 		this.bodyEl.scrollLeft = this.leftPos;
-		this.visible(true);
+		//this.visible(true);
 	}
 }
 
@@ -138,13 +142,15 @@ FP.Chapter.prototype.goToChapterEnd = function(){
 	this.chapterEnd();
 }
 
-FP.Chapter.prototype.visible  = function(bool){
-	if(!this.bodyEl) return false;
+FP.Chapter.prototype.visible = function(bool){
+	if(typeof(bool) == "undefined") {
+		return this.iframe.style.visibility;
+	}
 	
-	if(bool){
-		this.bodyEl.style.visibility = "visible";
-	}else{
-		this.bodyEl.style.visibility = "hidden";
+	if(bool == true){
+		this.iframe.style.visibility = "visible";
+	}else if(bool == false){
+		this.iframe.style.visibility = "hidden";
 	}
 }
 

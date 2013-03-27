@@ -87,14 +87,14 @@ FP.Book.prototype.listeners = function(){
 FP.Book.prototype.start = function(bookPath){
 	var location = window.location,
 		pathname = location.pathname,
-		absolute = this.bookUrl.search("://") != -1,
+		absolute = bookPath.search("://") != -1,
 		fromRoot = pathname[0] == "/",
 		cleaned = [],
 		folder = "/",
 		origin,
 		split;
 		
-	//folder = (pathname[pathname.length - 1] == "/") ? pathname : "/",
+	if(bookPath[bookPath.length - 1] != "/") bookPath += "/";
 
 	
 	
@@ -120,7 +120,7 @@ FP.Book.prototype.start = function(bookPath){
 	
 	//-- 2. Check if url starts with /, add base url
 	if(!absolute && fromRoot){
-		this.bookUrl = origin + bookPath; 
+		this.bookUrl = origin + "/" + bookPath; 
 	}
 	
 	//-- 3. Or find full path to url and add that

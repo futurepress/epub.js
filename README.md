@@ -100,7 +100,6 @@ FP.Hooks.register("beforeChapterDisplay").example = function(callback, chapter){
     
     if(callback) callback();
 		
-		
 }
 ```
 
