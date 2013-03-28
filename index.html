@@ -19,6 +19,8 @@
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FP.filePath = "/dist/";
+                fileStorage.filePath = FP.filePath + "libs/";
+
                 FPR.app.init();
               }  
             };
@@ -33,6 +35,9 @@
         
         <!-- Reader -->
         <script src="dist/reader.min.js"></script>
+        
+        <!-- fileStorage -->
+        <script src="dist/libs/fileStorage.min.js"></script>
         
     </head>
     <body>

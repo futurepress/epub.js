@@ -41,8 +41,7 @@ FP.Book = function(elem, bookPath){
 	//-- Determine storage method
 	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
 	//FP.storageOverride = "none"
-	
-	FP.storage.determineStorageMethod(FP.storageOverride);
+	FP.storage = new fileStorage.storage(FP.storageOverride);
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookPath) {

@@ -105,10 +105,13 @@ FP.Chapter.prototype.formatSpread = function(){
 		this.spread = true; //-- Double Page
 
 		this.colWidth = Math.floor((this.elWidth - this.gap) / divisor);
+		
+		/* - Was causing jumps, doesn't seem to be needed anymore
 		//-- Must be even for firefox
 		if(this.colWidth % 2 != 0){
 			this.colWidth -= 1;
 		}
+		*/
 	}
 
 	this.spreadWidth = (this.colWidth + this.gap) * divisor;
@@ -132,9 +135,7 @@ FP.Chapter.prototype.formatSpread = function(){
 	
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
-		this.leftPos = (this.chapterPos - 1 ) * this.spreadWidth;
-		this.bodyEl.scrollLeft = this.leftPos;
-		//this.visible(true);
+		this.setLeft((this.chapterPos - 1 ) * this.spreadWidth);
 	}
 }
 

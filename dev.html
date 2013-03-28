@@ -21,6 +21,8 @@
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 FP.filePath = "/fpjs/";
+                fileStorage.filePath = FP.filePath + "libs/";
+                
                 FP.VERSION = "0.1.5";
                 FPR.app.init();
               }  
@@ -33,14 +35,9 @@
         <!-- Render -->
         <script src="fpjs/render/base.js"></script>
         <script src="fpjs/render/core.js"></script>
-        <script src="fpjs/render/queue.js"></script>
         <script src="fpjs/render/unarchiver.js"></script>
-        <script src="fpjs/render/storage.js"></script>
-        <script src="fpjs/render/storage_none.js"></script>
-        <script src="fpjs/render/storage_ram.js"></script>
-        <script src="fpjs/render/storage_websql.js"></script>
-        <script src="fpjs/render/storage_indexeddb.js"></script>
-        <script src="fpjs/render/storage_filesystem.js"></script>
+        <script src="fpjs/libs/fileStorage.min.js"></script>
+
         <script src="fpjs/render/events.js"></script>
         <script src="fpjs/render/hooks.js"></script>
         <script src="fpjs/render/book.js"></script>
