@@ -136,7 +136,6 @@ FP.Chapter.prototype.formatSpread = function(){
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
 		this.setLeft((this.chapterPos - 1 ) * this.spreadWidth);
-		this.fixedLayout();
 	}
 }
 
