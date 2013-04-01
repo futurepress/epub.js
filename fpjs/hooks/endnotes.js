@@ -1,7 +1,7 @@
 FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
 
 		var notes = chapter.doc.querySelectorAll('a[href]'),
-			items = Array.prototype.slice.call(notes),
+			items = Array.prototype.slice.call(notes), //[].slice.call()
 			attr = "epub:type",
 			type = "noteref",
 			popups = {};
@@ -73,18 +73,19 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 				
 				//-- get location of item
 				itemRect = item.getBoundingClientRect();
-				left = pos.left;
-				top = pos.top;
+				left = itemRect.left;
+				top = itemRect.top;
 				
 				//-- show the popup
 				pop.classList.add("show");
-
-				//-- position the popup
-				pop.style.left = left - itemRect.width / 2 + "px";
-				pop.style.top = top + "px";
 				
-				//-- checking to keep within current column
+				//-- locations of popup
 				popRect = pop.getBoundingClientRect();
+				
+				//-- position the popup
+				pop.style.left = left - popRect.width / 2 + "px";
+				pop.style.top = top + "px";
+								
 				
 				//-- Adjust max height
 				if(maxHeight > iheight / 2.5) {
@@ -93,7 +94,7 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 				}
 								
 				//-- switch above / below
-				if(poppos.height + top >= iheight - 25) {
+				if(popRect.height + top >= iheight - 25) {
 					pop.style.top = top - popRect.height  + "px";
 					pop.classList.add("above");
 				}else{

@@ -165,7 +165,7 @@ FP.core.dataURLToBlob = function(dataURL) {
  }
  
 //-- Load scripts async: http://stackoverflow.com/questions/7718935/load-scripts-asynchronously 
-FP.core.loadScript = function(src, callback, target) {
+FP.core.addScript = function(src, callback, target) {
    var s, r;
    r = false;
    s = document.createElement('script');
@@ -184,7 +184,7 @@ FP.core.loadScript = function(src, callback, target) {
    target.appendChild(s);
  }
  
- FP.core.loadScripts = function(srcArr, callback, target) {
+ FP.core.addScripts = function(srcArr, callback, target) {
 	var total = srcArr.length,
 		curr = 0,
 		cb = function(){
@@ -199,7 +199,7 @@ FP.core.loadScript = function(src, callback, target) {
     // srcArr.forEach(function(src){
     // FP.core.loadScript(src, cb, target);
     // });
-    FP.core.loadScript(srcArr[curr], cb, target);
+    FP.core.addScript(srcArr[curr], cb, target);
     
  }
  

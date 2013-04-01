@@ -136,7 +136,27 @@ FP.Chapter.prototype.formatSpread = function(){
 	//-- Go to current page after resize
 	if(this.OldcolWidth){		
 		this.setLeft((this.chapterPos - 1 ) * this.spreadWidth);
+		this.fixedLayout();
 	}
+}
+
+FP.Chapter.prototype.fixedLayout = function(){
+	this.paginated = false;
+	console.log("off")
+	this.setLeft(0);
+	
+	this.bodyEl.style.width = this.elWidth;
+	
+	//-- Adjust height
+	this.bodyEl.style.height = "auto";
+	
+	//-- Remove columns
+	this.bodyEl.style[FP.core.columnWidth] = "auto";
+	
+	//-- Scroll
+	this.bodyEl.style.overflow = "auto";
+	
+	this.displayedPages = 1;
 }
 
 FP.Chapter.prototype.goToChapterEnd = function(){
