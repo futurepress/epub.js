@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<package xmlns="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/" version="3.0" xml:lang="en" unique-identifier="pub-identifier">
+  <metadata>
+    <dc:identifier id="pub-identifier">Z666.5.D57 2013</dc:identifier>
+    <meta id="meta-identifier" property="dcterms:identifier">Z666.5.D57 2013</meta>
+    <dc:title id="pub-title">The Discipline of Organizing</dc:title>
+    <meta property="dcterms:title" id="meta-title">The Discipline of Organizing</meta>
+    <dc:language id="pub-language">en</dc:language>
+    <meta property="dcterms:language" id="meta-language">en</meta>
+    <meta property="dcterms:modified">2013-02-20T15:09:16Z</meta>
+    <!--The preceding date value is actually local time (not UTC) in UTC format because there is no function in XSLT 1.0 to generate a correct UTC time-->
+    <meta property="dcterms:description">Abstract: We organize things, we organize information, we organize information about things, and we organize information about information. But even though “organizing” is a fundamental and ubiquitous challenge, when we compare these activities their contrasts are more apparent than their commonalities. We propose to unify many perspectives about organizing with the concept of an Organizing System, defined as an intentionally arranged collection of resources and the interactions they support. Every Organizing System involves a collection of resources, a choice of properties or principles used to describe and arrange resources, and ways of supporting interactions with resources. By comparing and contrasting how these activities take place in different contexts and domains, we can identify patterns of organizing. We can create a discipline of organizing in a disciplined way.</meta>
+    <dc:description>Abstract: We organize things, we organize information, we organize information about things, and we organize information about information. But even though “organizing” is a fundamental and ubiquitous challenge, when we compare these activities their contrasts are more apparent than their commonalities. We propose to unify many perspectives about organizing with the concept of an Organizing System, defined as an intentionally arranged collection of resources and the interactions they support. Every Organizing System involves a collection of resources, a choice of properties or principles used to describe and arrange resources, and ways of supporting interactions with resources. By comparing and contrasting how these activities take place in different contexts and domains, we can identify patterns of organizing. We can create a discipline of organizing in a disciplined way.</dc:description>
+    <meta property="dcterms:coverage">2013</meta>
+    <dc:coverage>2013</dc:coverage>
+    <meta property="dcterms:relation">http://www.docbook.org/xml/4.5/docbookx.dtd</meta>
+    <dc:relation>http://www.docbook.org/xml/4.5/docbookx.dtd</dc:relation>
+    <meta property="dcterms:source">http://www.disciplineoforganizing.org</meta>
+    <dc:source>http://www.disciplineoforganizing.org</dc:source>
+    <meta property="dcterms:contributor">RobertJ.Glushko</meta>
+    <dc:contributor>RobertJ.Glushko</dc:contributor>
+    <meta id="meta-creator1" property="dcterms:creator">Robert J. Glushko</meta>
+    <dc:creator id="pub-creator1">Robert J. Glushko, Jess Hemerly, Murray Maloney, Kimra McPherson, Vivien Petras, Ryan Shaw, and Erik Wilde</dc:creator>
+    <meta id="meta-creator2" property="dcterms:creator">Jess Hemerly</meta>
+    <meta id="meta-creator3" property="dcterms:creator">Murray Maloney</meta>
+    <meta id="meta-creator4" property="dcterms:creator">Kimra McPherson</meta>
+    <meta id="meta-creator5" property="dcterms:creator">Vivien Petras</meta>
+    <meta id="meta-creator6" property="dcterms:creator">Ryan Shaw</meta>
+    <meta id="meta-creator7" property="dcterms:creator">Erik Wilde</meta>
+    <meta id="meta-creator1" property="dcterms:creator">Rachelle Annechino</meta>
+    <dc:creator id="pub-creator1">Rachelle Annechino, J.J.M. Ekaterin, Ryan Greenberg, Michael Manoochehri, Sean Marimpietri, Matthew Mayernik, Karen Joy Nomorosa, Hyunwoo Park, Alberto Pepe, Daniel D. Turner, and Longhao Wang</dc:creator>
+    <meta id="meta-creator2" property="dcterms:creator">J.J.M. Ekaterin</meta>
+    <meta id="meta-creator3" property="dcterms:creator">Ryan Greenberg</meta>
+    <meta id="meta-creator4" property="dcterms:creator">Michael Manoochehri</meta>
+    <meta id="meta-creator5" property="dcterms:creator">Sean Marimpietri</meta>
+    <meta id="meta-creator6" property="dcterms:creator">Matthew Mayernik</meta>
+    <meta id="meta-creator7" property="dcterms:creator">Karen Joy Nomorosa</meta>
+    <meta id="meta-creator8" property="dcterms:creator">Hyunwoo Park</meta>
+    <meta id="meta-creator9" property="dcterms:creator">Alberto Pepe</meta>
+    <meta id="meta-creator10" property="dcterms:creator">Daniel D. Turner</meta>
+    <meta id="meta-creator11" property="dcterms:creator">Longhao Wang</meta>
+    <meta property="dcterms:contributor">Acquisitions EditorMarguerite B.Avery</meta>
+    <dc:contributor>Acquisitions EditorMarguerite B.Avery</dc:contributor>
+    <meta property="dcterms:contributor">Copy and Markup EditorMurray Maloney</meta>
+    <dc:contributor>Copy and Markup EditorMurray Maloney</dc:contributor>
+    <meta property="dcterms:contributor">Cover DesignJenWang</meta>
+    <dc:contributor>Cover DesignJenWang</dc:contributor>
+    <meta property="dcterms:contributor">Interior DesignNellieMcKesson</meta>
+    <dc:contributor>Interior DesignNellieMcKesson</dc:contributor>
+    <meta property="dcterms:contributor">IllustratorDivyaAnand</meta>
+    <dc:contributor>IllustratorDivyaAnand</dc:contributor>
+    <meta property="dcterms:contributor">AjeetaDhole</meta>
+    <dc:contributor>AjeetaDhole</dc:contributor>
+    <meta property="dcterms:contributor">ChristinaPham</meta>
+    <dc:contributor>ChristinaPham</dc:contributor>
+    <meta property="dcterms:contributor">RaymonSutedjo-The</meta>
+    <dc:contributor>RaymonSutedjo-The</dc:contributor>
+    <meta property="dcterms:contributor">Bibliography EditorLisa Jervis</meta>
+    <dc:contributor>Bibliography EditorLisa Jervis</dc:contributor>
+    <meta property="dcterms:contributor">Bibliography EditorShohei Narron</meta>
+    <dc:contributor>Bibliography EditorShohei Narron</dc:contributor>
+    <meta property="dcterms:contributor">Bibliography EditorAnne Wootton</meta>
+    <dc:contributor>Bibliography EditorAnne Wootton</dc:contributor>
+    <meta property="dcterms:contributor">Glossary and Index EditorMurray Maloney</meta>
+    <dc:contributor>Glossary and Index EditorMurray Maloney</dc:contributor>
+    <meta property="dcterms:contributor">CSS Print ConsultantAdamWitwer</meta>
+    <dc:contributor>CSS Print ConsultantAdamWitwer</dc:contributor>
+    <meta property="dcterms:contributor">DocBook ConsultantBob StaytonSagehill Enterprises</meta>
+    <dc:contributor>DocBook ConsultantBob StaytonSagehill Enterprises</dc:contributor>
+    <meta property="dcterms:date">2013</meta>
+    <dc:date>2013</dc:date>
+    <meta property="dcterms:rights">Copyright © 2013 Robert J. Glushko</meta>
+    <dc:rights>Copyright © 2013 Robert J. Glushko</dc:rights>
+    <meta property="dcterms:rightsHolder">Robert J. Glushko</meta>
+    <meta property="dcterms:publisher">The MIT Press</meta>
+    <dc:publisher>The MIT Press</dc:publisher>
+    <meta property="dcterms:date">2013-04-20</meta>
+    <dc:date>2013-04-20</dc:date>
+    <meta property="dcterms:subject">1. Information organization.</meta>
+    <dc:subject>1. Information organization.</dc:subject>
+    <meta property="dcterms:subject">2. Information resources management.</meta>
+    <dc:subject>2. Information resources management.</dc:subject>
+    <meta property="dcterms:subject">3. Metadata.</meta>
+    <dc:subject>3. Metadata.</dc:subject>
+    <meta property="dcterms:subject">I. Glushko, Robert J., editor of compilation.</meta>
+    <dc:subject>I. Glushko, Robert J., editor of compilation.</dc:subject>
+    <meta property="dcterms:subject">organizing</meta>
+    <dc:subject>organizing</dc:subject>
+    <meta property="dcterms:subject">information</meta>
+    <dc:subject>information</dc:subject>
+    <meta property="dcterms:subject">resources</meta>
+    <dc:subject>resources</dc:subject>
+    <meta property="dcterms:subject">metadata</meta>
+    <dc:subject>metadata</dc:subject>
+    <meta property="dcterms:subject">resource description</meta>
+    <dc:subject>resource description</dc:subject>
+    <meta name="cover" content="cover-image"/>
+    <meta property="ibooks:specified-fonts">true</meta>
+  </metadata>
+  <manifest>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="epub.embedded.font.1" href="DejaVuSerif.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="epub.embedded.font.2" href="DejaVuSans-Bold.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="epub.embedded.font.3" href="UbuntuMono-Regular.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="epub.embedded.font.4" href="UbuntuMono-Bold.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="epub.embedded.font.5" href="UbuntuMono-BoldItalic.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="epub.embedded.font.6" href="UbuntuMono-Italic.otf" media-type="application/vnd.ms-opentype"/>
+    <item id="htmltoc" properties="nav" media-type="application/xhtml+xml" href="bk01-toc.html"/>
+    <item media-type="text/css" id="html-css" href="core.css"/>
+    <item id="cover" href="cover.html" media-type="application/xhtml+xml"/>
+    <item id="cover-image" properties="cover-image" href="images/cover.png.jpg" media-type="image/jpeg"/>
+    <item id="id375964" href="index.html" media-type="application/xhtml+xml"/>
+    <item id="id413474" href="dedication.html" media-type="application/xhtml+xml"/>
+    <item id="id580108" href="pr02.html" media-type="application/xhtml+xml"/>
+    <item id="id580314" href="pr03.html" media-type="application/xhtml+xml"/>
+    <item id="id580413" href="ch01.html" media-type="application/xhtml+xml"/>
+    <item id="id589909" href="ch02.html" media-type="application/xhtml+xml"/>
+    <item id="id600782" href="ch03.html" media-type="application/xhtml+xml"/>
+    <item id="id611321" href="ch04.html" media-type="application/xhtml+xml"/>
+    <item id="id621664" href="ch05.html" media-type="application/xhtml+xml"/>
+    <item id="id633972" href="ch06.html" media-type="application/xhtml+xml"/>
+    <item id="id640965" href="ch07.html" media-type="application/xhtml+xml"/>
+    <item id="id651381" href="ch08.html" media-type="application/xhtml+xml"/>
+    <item id="id661464" href="ch09.html" media-type="application/xhtml+xml"/>
+    <item id="id669786" href="ch10.html" media-type="application/xhtml+xml"/>
+    <item id="id674730" href="pr04.html" media-type="application/xhtml+xml"/>
+    <item id="id675864" href="bi01.html" media-type="application/xhtml+xml"/>
+    <item id="id676106" href="go01.html" media-type="application/xhtml+xml"/>
+    <item id="id719283" href="ix01.html" media-type="application/xhtml+xml"/>
+    <item id="id700216" href="co01.html" media-type="application/xhtml+xml"/>
+    <item id="id700217" href="copyright.html" media-type="application/xhtml+xml"/>
+    <item id="id710840" href="figs/print/ch1.1-350dpi.png" media-type="image/png"/>
+    <item id="id1246987" href="figs/print/ucb-tdo-chapter1.3.2-color.png" media-type="image/png"/>
+    <item id="id1231479" href="figs/print/ch2.1-350dpi.jpg" media-type="image/jpeg"/>
+    <item id="id1229325" href="figs/print/ch3.1-350dpi.png" media-type="image/png"/>
+    <item id="id1255197" href="figs/print/Figure3-2-Replacement.png" media-type="image/png"/>
+    <item id="id1247062" href="figs/print/chapter-3-figure-3.2.2.png.jpg" media-type="image/jpeg"/>
+    <item id="id1259042" href="figs/print/ch3.4-350dpi.png" media-type="image/png"/>
+    <item id="id1254485" href="figs/print/ucb-tdo-chapter3.3.2-color.png" media-type="image/png"/>
+    <item id="id1130515" href="figs/print/ch3.6-350dpi.png" media-type="image/png"/>
+    <item id="id1233419" href="figs/print/Chapter4-4.2.2.4.png" media-type="image/png"/>
+    <item id="id1265976" href="figs/print/ch4.2-350dpi.png" media-type="image/png"/>
+    <item id="id1245466" href="figs/print/ch4.3-350dpi.png" media-type="image/png"/>
+    <item id="id1211022" href="figs/print/ch4.4-350dpi.png" media-type="image/png"/>
+    <item id="id1230373" href="figs/print/ch4.5-350dpi.png.jpg" media-type="image/jpeg"/>
+    <item id="id1231898" href="figs/print/ch5.1-350dpi.png" media-type="image/png"/>
+    <item id="id1265720" href="figs/print/ucb-tdo-chapter5.3.3-ontology-color.png" media-type="image/png"/>
+    <item id="id1249558" href="figs/print/ch5.3-350dpi.png" media-type="image/png"/>
+    <item id="id1247144" href="figs/print/ucb-tdo-chapter7.2.1.2-color.png" media-type="image/png"/>
+    <item id="id1247145" href="figs/print/ucb-tdo-chapter7.4.1a-color.png" media-type="image/png"/>
+    <item id="id1211113" href="figs/print/ucb-tdo-chapter7.4.1b-color.png" media-type="image/png"/>
+    <item id="id1229994" href="figs/print/ucb-tdo-chapter7.4.1c-color.png" media-type="image/png"/>
+    <item id="id1265977" href="figs/print/ch7.7-350dpi.png" media-type="image/png"/>
+    <item id="id1131476" href="figs/print/ch8.1-350dpi.png" media-type="image/png"/>
+    <item id="id1232457" href="figs/print/ch8.2-350dpi.png" media-type="image/png"/>
+    <item id="id1249037" href="figs/print/ch8.3-350dpi.png" media-type="image/png"/>
+    <item id="id1249022" href="figs/print/ch8.4-350dpi.png" media-type="image/png"/>
+    <item id="id1047043" href="figs/print/ch8.5-350dpi.png" media-type="image/png"/>
+    <item id="id1250477" href="figs/print/ch8.6-350dpi.png" media-type="image/png"/>
+    <item id="id1232104" href="figs/print/ch8.7-350dpi.png" media-type="image/png"/>
+    <item id="id1250476" href="figs/print/ch9-1.png" media-type="image/png"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="cover" linear="yes"/>
+    <itemref idref="id375964"/>
+    <itemref idref="id413474"/>
+    <itemref idref="id580108"/>
+    <itemref idref="id580314"/>
+    <itemref idref="id580413"/>
+    <itemref idref="id589909"/>
+    <itemref idref="id600782"/>
+    <itemref idref="id611321"/>
+    <itemref idref="id621664"/>
+    <itemref idref="id633972"/>
+    <itemref idref="id640965"/>
+    <itemref idref="id651381"/>
+    <itemref idref="id661464"/>
+    <itemref idref="id669786"/>
+    <itemref idref="id674730"/>
+    <itemref idref="id675864"/>
+    <itemref idref="id676106"/>
+    <itemref idref="id719283"/>
+    <itemref idref="id700216"/>
+    <itemref idref="id700217"/>
+  </spine>
+  <guide>
+    <reference href="cover.html" type="cover" title="Cover"/>
+    <reference href="bk01-toc.html" type="toc" title="Table of Contents"/>
+    <reference href="index.html" type="text"/>
+  </guide>
+</package>

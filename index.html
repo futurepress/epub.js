@@ -18,6 +18,8 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
+                FP.VERSION = "0.1.6";
+                
                 FP.filePath = "/fpjs/dist/";
                 fileStorage.filePath = FP.filePath + "libs/";
 

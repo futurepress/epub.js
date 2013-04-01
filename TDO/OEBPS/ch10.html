@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:pls="http://www.w3.org/2005/01/pronunciation-lexicon" xmlns:ssml="http://www.w3.org/2001/10/synthesis" xmlns:svg="http://www.w3.org/2000/svg"><head><title>Chapter 10. The Organizing System Roadmap</title><link rel="stylesheet" type="text/css" href="core.css"/><meta name="generator" content="DocBook XSL Stylesheets V1.76.1"/><meta name="keywords" content="organizing, information, resources, metadata, resource description"/><link rel="up" href="index.html" title="The Discipline of Organizing"/><link rel="prev" href="ch09.html" title="Chapter 9. Interactions with Resources"/><link rel="next" href="pr04.html" title="Acknowledgments"/></head><body><section class="chapter" title="Chapter 10. The Organizing System Roadmap" epub:type="chapter" id="chapter-10"><div class="titlepage"><div><div><h2 class="title">Chapter 10. The Organizing System Roadmap</h2></div><div><div class="author"><h3 class="author"><span class="firstname">Robert</span> <span class="othername">J.</span> <span class="surname">Glushko</span></h3></div></div></div></div><div class="sect1" title="Introduction"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.1">Introduction</h2></div></div></div><p><a id="id669853" class="indexterm"/><a class="xref" href="ch01.html" title="Chapter 1. Foundations for Organizing Systems">Chapter 1</a> defined an organizing system as <span class="quote">“<span class="quote"><span class="italic">an
+                    intentionally arranged collection of resources and the interactions they
+                    support.</span></span>”</span> An organizing system emerges as the result of
+            decisions about <span class="bold"><strong>what</strong></span> is organized, <span class="bold"><strong>why</strong></span> it is organized, <span class="bold"><strong>how
+                much</strong></span> it is organized, <span class="bold"><strong>when</strong></span> it is
+            organized, and <span class="bold"><strong>how or by whom</strong></span> it is organized. These
+            decisions and the tradeoffs they embody are manifested in the four common activities of
+            organizing systems<span class="symbol">—</span>selecting resources, organizing them,
+            designing and supporting interactions with them, 
+            and maintaining them<span class="symbol">—</span>which we described in <a class="xref" href="ch02.html" title="Chapter 2. Activities in Organizing Systems">Chapter 2</a>. Chapters 3-9 progressively explained each of the parts of the
+            organizing system: resources, resource descriptions, resource categories and
+            collections, and interactions with resources<span class="symbol">—</span>introducing
+            additional concepts and methods associated with each of these parts.</p><p>Along the way we described many types of organizing systems. Sometimes we discussed
+            broad categories of organizing systems like those for libraries, museums, business
+            information systems, and compositions of web-based services. At other times we described
+            specific instances of organizing systems like those in the <span class="application">Seed
+                Library</span>, the <span class="application">Flickr photo sharing site</span>,
+                <span class="application">Amazon.com’s drop shipment store</span>, and your home kitchen
+            or closet.</p><p>We can now build on the foundation created by Chapters 1-9 to create a “roadmap” that
+            organizes and summarizes the design issues and choices that emerge during an organizing
+            system’s lifecycle. These design choices follow patterns that help us understand
+            existing organizing systems better while also suggesting how to invent new ones by
+            making a different set of design choices.</p><p>The roadmap is extensively annotated with references to the preceding chapters where
+            the issues and choices mentioned in the roadmap were introduced and discussed in detail.
+            We use this roadmap to analyze a variety of case study examples and to explore the
+            “design neighborhood” around each of them. The five design questions from <a class="xref" href="ch01.html" title="Chapter 1. Foundations for Organizing Systems">Chapter 1</a> serve as a template to give each case study
+            the same structure, which we hope enables instructors, students, and others who read
+            this book to add to this collection of case studies by contributing their own at <a class="ulink" href="http://DisciplineOfOrganizing.org" target="_top"><code class="uri">DisciplineOfOrganizing.org</code></a>.</p></div><div class="sect1" title="The Organizing System Lifecycle"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.2">The Organizing System Lifecycle</h2></div></div></div><p>System lifecycle models exhibit great variety; for our purposes it suffices to use a
+            generic four-phase model that distinguishes a domain definition and scoping phase, a
+            requirements phase, a design and implementation phase, and an operational and
+            maintenance phase. These phases are brief and mostly inseparable for some simple
+            organizing systems, more sequential for others, and more systematic and iterative for
+            complex organizing systems.</p><p>Most of the specific decisions that must be made for an organizing system are strongly
+            shaped by the initial decisions about its domain, scope (the breadth or variety of the
+            resources), and scale (the number of resource instances). In organizing systems with
+            limited scope and scale most of these decisions are made in an informal, unanalyzed, and
+            holistic manner. For example, when we arrange our bookshelves or closets it is not
+            necessary to think explicitly about scoping, requirements, design, implementation and
+            operational phases. For complex organizing systems, however, especially those in
+            information-intensive domains, it is important to follow a more systematic methodology.
+            More careful attention to scope and requirements during the design and implementation
+            phases is essential because the initial decisions can create lasting technology and
+            process legacies that impact operational efficiency and flexibility.</p><p>The technical, social, business, and legal contexts in which the organizing system
+            must operate (<a class="xref" href="ch09.html#section-9.2.3" title="Socio-Political and Organizational Constraints">Socio-Political and Organizational Constraints</a>) also shape these
+            decisions, as does the context created by other organizing systems in the same or
+            related domains.</p></div><div class="sect1" title="Defining and Scoping the Organizing System Domain"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.3">Defining and Scoping the Organizing System Domain</h2></div></div></div><p>The most fundamental decision for an organizing system is defining its domain, the set
+            or type of resources that are being organized. This is why “What is Being Organized?”
+                (<a class="xref" href="ch01.html#section-1.3.2" title="What Is Being Organized?">What Is Being Organized?</a>) was the first of the five design
+            decisions we introduced in <a class="xref" href="ch01.html" title="Chapter 1. Foundations for Organizing Systems">Chapter 1</a>.</p><p>We refine how we think about an organizing system domain by breaking it
+            down into five interrelated aspects: (1) the scope and scale of the collection, (2) the
+            number and nature of users, (3) the time span or lifetime over which the organizing
+            system will operate, (4) the physical or technological environment in which the
+            organizing system is situated, and (5) the relationship of the organizing system to
+            other ones that overlap with it in domain or scope. Answering these questions is a
+            prerequisite for prioritizing requirements for the organizing system, proposing the
+            principles of its design, and implementing the organizing system.</p><div class="sect2" title="Scope and Scale of the Collection"><div class="titlepage"><div><div><h3 class="title" id="section-10.3.1">Scope and Scale of the Collection</h3></div></div></div><p>The scope of a collection is the dominant factor in the design of an organizing
+                system because it largely determines the extent and complexity of the resource
+                descriptions needed by organizing principles and interactions (<a class="xref" href="ch04.html#section-4.3.1.3" title="Scope, Scale, and Resource Description">Scope, Scale, and Resource Description</a>). The impact of broad scope arises
+                more from the heterogeneity of the resources in a collection rather than from its
+                absolute scale. It takes more effort to manage a broad and large collection than a
+                narrow and small one. However, it takes less effort to manage a large collection if
+                it has a narrow scope.</p><p>Consider a business information system being designed to contain millions of
+                highly structured and similar instances of a small number of related resource types,
+                like orders and their corresponding invoices.<sup>[<a id="chapter-10-endnote-1" href="#ftn.chapter-10-endnote-1" epub:type="noteref" class="footnote">543</a>]</sup> The analysis to determine the appropriate properties and principles for
+                resource description and organization is straightforward, and any order or invoice
+                is an equally good instance to study.<sup>[<a id="chapter-10-endnote-2" href="#ftn.chapter-10-endnote-2" epub:type="noteref" class="footnote">544</a>]</sup></p><p>Contrast this large but very narrow collection with a small but very broad one
+                that contains a thousand highly variable instances of dozens of different resource
+                types. This heterogeneity makes it difficult to determine if an instance is
+                representative of its resource type, and every resource might need to be analyzed.
+                This variability implies a large and diverse set of resource descriptions where
+                individual resource instances might not be described with much precision because it
+                costs too much to do it manually (<a class="xref" href="ch04.html#section-4.3.6.1" title="Resource Description by Professionals">Resource Description by Professionals</a>). We can extrapolate to understand why organizing systems whose resource
+                collections are both broad and deep, like those of
+                    <span class="application">Amazon.com</span> or <span class="application">eBay</span>, have
+                come to rely on machine learning techniques to identify description properties and
+                construct resource taxonomies (<a class="xref" href="ch04.html#section-4.3.6.4" title="Computational and Automated Resource Description">Computational and Automated Resource Description</a>,
+                    <a class="xref" href="ch06.html#section-6.5.2" title="Implementing Categories That Do Not Conform to the Classical Theory">Implementing Categories That Do Not Conform to the Classical Theory</a>).<sup>[<a id="chapter-10-endnote-3" href="#ftn.chapter-10-endnote-3" epub:type="noteref" class="footnote">545</a>]</sup></p><p><a id="id670295" class="indexterm"/>A partial remedy or compromise when the resource instances are highly dissimilar
+                is to define resource types more broadly or abstractly, reducing the overall number
+                of types. We illustrated this approach in <a class="xref" href="ch07.html#section-7.2.2.1" title="Principles Embodied in the Classification Scheme">Principles Embodied in the Classification Scheme</a> when we contrasted how kitchen goods might be categorized
+                broadly in a department store but much more precisely in a wholesale kitchen supply
+                store. <a id="id670323" class="indexterm"/>The broader categories in the department store blur many of the differences
+                between instances but in doing so yield a small set of common properties that can be
+                used to describe them. Because these common properties will be at a higher level of
+                abstraction, using them to describe resources will require less expertise and
+                probably less effort (<a class="xref" href="ch04.html#section-4.3.1.3" title="Scope, Scale, and Resource Description">Scope, Scale, and Resource Description</a>, <a class="xref" href="ch06.html#section-6.4.1" title="Category Abstraction and Granularity">Category Abstraction and Granularity</a>). However, this comes at a cost:
+                Poets, painters, composers, sculptors, technical writers, and programmers all create
+                resources, but describing all of them with a “creator” property as the Dublin Core
+                requires loses a great deal of precision.</p><p><a id="id670380" class="indexterm"/>Challenges caused by the scale of a collection are often related to constraints
+                imposed by the physical or technological environment in which the collection exists
+                that limit how large the collection can be or how it can be organized (<a class="xref" href="ch02.html#section-2.3.1" title="Organizing Physical Resources">Organizing Physical Resources</a>). Only a few dozen books can fit on
+                a small bookshelf but thousands of books can fit in your two-car garage, which is a
+                typical size because most people and families don’t have more than two cars. On the
+                other hand, if you are a Hollywood mogul, superstar athlete, or sultan with a
+                collection of hundreds of cars, a two-car garage is orders of magnitudes too small
+                to store your collection.<sup>[<a id="chapter-10-endnote-4" href="#ftn.chapter-10-endnote-4" class="footnote">546</a>]</sup> Even collections of digital things can be limited in size by their
+                technological environment, which you might have discovered when you ran out of space
+                for your songs and photos on your portable media player.</p><p>Estimating the ultimate size of a collection at the beginning of an organizing
+                system’s lifecycle can reduce scaling issues related to storage space for the
+                resources or for their descriptions. Other problems of scale are more fundamental.
+                Larger collections need more people to organize and maintain them, creating
+                communication and coordination problems that grow much faster than the collection,
+                especially when the collection is distributed in different locations.</p><p><a id="id670394" class="indexterm"/>The best way to prevent problems of scope and scale is through
+                standardization. Standardization of resources can take place if they are created by
+                automated means so that every instance conforms to a schema or model (<a class="xref" href="ch06.html#section-6.5.1" title="Implementing Classical Categories">Implementing Classical Categories</a>).<sup>[<a id="chapter-10-endnote-5" href="#ftn.chapter-10-endnote-5" epub:type="noteref" class="footnote">547</a>]</sup> Standards for describing bibliographic resources enable libraries to
+                centralize and share much resource description, and using the same standards for
+                resources of diverse types helps address the challenge of broad scope by reducing
+                the need for close monitoring and coordination. Analogous standards for describing
+                information resources, services, or economic activities business, governmental, or
+                scientific information systems to systematically manage hundreds of millions or even
+                billions of transactional records or pieces of data (<a class="xref" href="ch04.html#section-4.3.1.3" title="Scope, Scale, and Resource Description">Scope, Scale, and Resource Description</a>).</p></div><div class="sect2" title="Number and Nature of Users"><div class="titlepage"><div><div><h3 class="title" id="section-10.3.2">Number and Nature of Users</h3></div></div></div><p>An organizing system might have only one user, as when an individual creates and
+                operates an organizing system for a clothes closet, a home bookcase or file cabinet,
+                or for digital files and applications on a personal computer or smart phone.
+                Collections of personal resources are often organized for highly individualized
+                interactions using <span class="foreignphrase"><em class="foreignphrase">ad hoc</em></span> categories that are hard to
+                understand for any other user (<a class="xref" href="ch06.html#section-6.2.2" title="Individual Categories">Individual Categories</a>).
+                Personal collections or collections used by only a small number of people typically
+                contain resources that they themselves selected, which makes the most typical
+                interaction with the organizing system searching for a familiar known resource
+                    (<a class="xref" href="ch09.html#section-9.2.1" title="User Requirements">User Requirements</a>).</p><p>At the other extreme, an organizing system can have national or even global scope
+                and have millions or more users like the Library of Congress classification system,
+                the United Nations Standard Products and Services Code, or the Internet Domain Name
+                System. These organizing systems employ systems of institutional categories (<a class="xref" href="ch06.html#section-6.2.3" title="Institutional Categories">Institutional Categories</a>) that are designed to support
+                systematically specified and purposeful interactions, often to search for previously
+                unknown resources. In between these extremes are the many kinds of organizing
+                systems created by informal and formal groups, by firms of every size, and by sets
+                of cooperating enterprises like those that carry out supply chains and other
+                information-intensive business processes.</p><p>The nature and number of users strongly shapes the contents of an organizing
+                system and the interactions it must be designed to support (<a class="xref" href="ch09.html#section-9.2.1" title="User Requirements">User Requirements</a>). Some generic categories of users that apply in many
+                domains are customers, clients, visitors, operators, and managers. We can adapt the
+                generic interactions supported by most organizing systems (<a class="xref" href="ch04.html#section-4.3.2" title="Determining the Purposes">Determining the Purposes</a>) to satisfy these generic user types. For example,
+                while most organizing systems allow any type of user to browse or search the
+                collection to discover its content, only operators or managers are likely to have
+                access to information about the browsing and searching activities of customers,
+                clients, or visitors.</p><p>Once we have identified the organizing system’s domain more precisely we can
+                refine these generic user categories, classifying users and interactions with more
+                precision. For example, the customers of university libraries are mostly professors
+                and students, while the customers of online stores are mostly shoppers seeking to
+                find something to purchase.</p><p>Just as it is with collection scope, the heterogeneity of the user base is more
+                critical than its absolute size. An airport bookstore typically has a narrowly
+                focused collection and treats its customers as generic travelers browsing
+                imprecisely for something to fill their time in the terminal or on the airplane. In
+                contrast, the local public library will have a much broader collection because it
+                has to meet the needs of a more diverse user base than the airport bookstore, and it
+                will support a range of interactions and services targeted to children learning to
+                read, school students, local businesses, retirees, and other categories of users. A
+                company library will focus its collection on its industry segment, making it
+                narrower in coverage than a local or university research library, but it might
+                provide specialized services for marketing, engineering, research, legal, or other
+                departments of the firm.</p><p><a id="id670548" class="indexterm"/><a id="id670552" class="indexterm"/>Each category of users, and indeed each individual user, brings
+                different experiences, goals, and biases into interactions with the organizing
+                system. As a result, organizing systems in the same domain and with nominally the
+                same scope can differ substantially in the resources they contain and the
+                interactions they support if they have different categories of users. The library
+                for the <span class="orgname">Centers for Disease Control</span> and the
+                    <span class="application">WebMD</span> website both contain information about diseases
+                and symptoms, but the former is primarily organized to support research in public
+                health and the latter is organized for consumers trying to figure out why they are
+                sick and how to get well. These contrasting purposes and targeted users are
+                manifested in different classification systems and descriptive
+                    vocabularies.<sup>[<a id="chapter-10-endnote-6" href="#ftn.chapter-10-endnote-6" class="footnote">548</a>]</sup></p></div><div class="sect2" title="Expected Lifetime of the Resources and of the Organizing System"><div class="titlepage"><div><div><h3 class="title" id="section-10.3.3">Expected Lifetime of the Resources and of the Organizing System</h3></div></div></div><p>The scope and scale of a collection and the size of its user population are often
+                correlated with the expected lifetime of its organizing system. Because small
+                personal organizing systems are often created in response to a specific situation or
+                to accomplish a specific task, they generally have short lifetimes (<a class="xref" href="ch06.html#section-6.2.2" title="Individual Categories">Individual Categories</a>).</p><p>The expected lifetime of the organizing system is not the same as the expected
+                lifetime of the resources it contains because motivations for maintaining resources
+                differ a great deal (<a class="xref" href="ch02.html#section-2.5.1" title="Motivations for Maintaining Resources">Motivations for Maintaining Resources</a>). As we have
+                just noted, some organizing systems created by individuals are tied to specific
+                short-term tasks, and when the task is completed or changes, the organizing system
+                is no longer needed or must be superseded by a new one. At the other extreme are
+                libraries, museums, archives, and other memory institutions designed to last
+                indefinitely because they exist to preserve valuable and often irreplaceable
+                resources.</p><p>However, most business organizing systems contain relatively short-lived resources
+                that arise from and support day-to-day operations, in which case the organizing
+                system has a long expected lifetime with impermanent resources. Finally, just to
+                complete our 2 x 2 matrix, the auction catalog that organizes valuable paintings or
+                other collectibles is a short-lived single-purpose organizing system whose contents
+                are descriptions of resources with long expected lifetimes.</p></div><div class="sect2" title="Physical or Technological Environment"><div class="titlepage"><div><div><h3 class="title" id="section-10.3.4">Physical or Technological Environment</h3></div></div></div><p><a id="id670700" class="indexterm"/><span>An organizing system is often tied to a particular physical or
+                    technological environment.</span> A kitchen, closet, card cabinet, airplane
+                cockpit, handheld computer or smartphone, and any other physical environment in
+                which resources are organized provides affordances to be taken advantage of and
+                constraints that must be accommodated by an organizing system (<a class="xref" href="ch02.html#section-2.4.1" title="Affordance and Capability">Affordance and Capability</a>).<sup>[<a id="chapter-10-endnote-7" href="#ftn.chapter-10-endnote-7" epub:type="noteref" class="footnote">549</a>]</sup></p><p><a id="id670841" class="indexterm"/>The extent of these physical and technological constraints affects the lifetime of
+                an organizing system because they make it more difficult to adapt to changes in the
+                set of resources being organized or the reasons for their organization. A desk or
+                cabinet with fixed “pigeon holes” or drawers affords less flexible organization than
+                a file cabinet or open shelves. A building with hard-walled offices constrains how
+                people interact and collaborate more than an open floor plan with modular cubicles
+                does. Business processes implemented in a monolithic enterprise software application
+                are tightly coupled; those implemented as a choreography of loosely-coupled web
+                services can often transparently substitute one service provider for another.</p></div><div class="sect2" title="Relationship to Other Organizing Systems"><div class="titlepage"><div><div><h3 class="title" id="section-10.3.5">Relationship to Other Organizing Systems</h3></div></div></div><p>The same domain or set of resources can have more than one organizing system, and
+                one organizing system can contain multiple others. The organizing system for books
+                in a library arranges books about cooking according to the Library of Congress or
+                Dewey Decimal classifications and bookstores use the <abbr class="abbrev">BISAC</abbr> ones,
+                mostly using cuisine as the primary factor (<a class="xref" href="ch07.html#section-7.3" title="Bibliographic Classification">Bibliographic Classification</a>). In turn, cookbooks employ an organizing system for
+                their recipes that arranges them by type of dish, main ingredient, or method of
+                preparation. Within a cookbook, recipes might follow an organizing system that
+                standardizes the order of their component parts like the description, ingredients,
+                and preparation steps.</p><p><a id="id670911" class="indexterm"/>Sometimes these multiple organizing systems can be designed in coordination so
+                they can function as a single hierarchical, or nested, organizing system in which it
+                is possible to emphasize different levels depending on the user’s task or
+                application. Most books and many documents have an internal structure with chapters
+                and hierarchical headings that enable readers to understand smaller units of content
+                in the context of larger ones (<a class="xref" href="ch05.html#section-5.5.2" title="Structural Relationships within a Resource">Structural Relationships within a Resource</a>).
+                Similarly, a collection of songs can be treated as an album and organized using that
+                level of abstraction for the item, but each of those songs can also be treated as
+                the unit of organization, especially when they are embodied in separate digital
+                files.</p><p><a id="id671024" class="indexterm"/><a id="id671029" class="indexterm"/>Organizing systems overlap and intersect. People and enterprises
+                routinely interact with many different organizing systems because what they do
+                requires them to use resources in ways that cut across context, device, or
+                application boundaries. Just consider how many different organizing systems we use
+                as individuals for managing personal information like contacts, appointments, and
+                messages. As company employees we create and organize information in email, document
+                repositories, spreadsheets, and <abbr class="abbrev">CRM</abbr> and <abbr class="abbrev">ERP</abbr>
+                systems. Now consider this at an institutional scale in the inter-enterprise
+                interactions among the organizing systems of physicians, hospitals, medical labs,
+                insurance companies, government agencies, and other parties involved in healthcare.
+                Finally, think about web “mash-ups” and composite services.</p><p>We have come to expect that the boundaries between organizing systems are often
+                arbitrary and that we should be able to merge or combine them when that would create
+                additional value. It is surely impossible to anticipate all of these
+                    <span class="foreignphrase"><em class="foreignphrase">ad hoc</em></span> or dynamic intersections of organizing
+                systems, but it is surely necessary to recognize their inevitability, especially
+                when the organizing systems contain digital information and are implemented using
+                web architectures.</p></div></div><div class="sect1" title="Identifying Requirements for an Organizing System"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.4">Identifying Requirements for an Organizing System</h2></div></div></div><p>The two parts of the definition of an organizing system explicitly suggest two
+            categories of requirements, those that specify the intentional arrangement of the
+            resources and those that specify the interactions with the resources. These categories
+            of requirements both depend on resource descriptions, which are implied by but not
+            explicitly called out in the definition of an organizing system.</p><p>Because <span>description, arrangement, and interaction are interrelated</span> it
+            is impossible to describe them separately without some redundancy. Nevertheless, in this
+            book we have done that on purpose because taking different perspectives on organizing
+            systems in Chapters 2-9 has enabled us to introduce a broad range of concepts, issues,
+            and methods:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem"><p>Every organizing system must enable users to interact with its collection of
+                    resources (Chapters 2 and 9);</p></li><li class="listitem"><p>The possible interactions depend primarily on the nature and extent of the
+                    descriptions associated with the resources (Chapters 3, 4 and 5);</p></li><li class="listitem"><p>Intentional arrangement emerges when one or more resource descriptions are
+                    used by organizing principles (Chapters 6 and 7);</p></li><li class="listitem"><p>Different implementations of the same organizing principle can determine the
+                    efficiency or effectiveness of the interactions it enables 
+                    (Chapter 9).</p></li></ul></div><p><a id="id671122" class="indexterm"/><a id="id671139" class="indexterm"/><a id="id671075" class="indexterm"/><a id="id671080" class="indexterm"/>If you are creating a personal organizing system or otherwise small-scale
+            one with only a small number of users, you might think there is little reason to think
+            explicitly about requirements. However, any project benefits from the discipline of
+            being more systematic about its purposes and their priorities. In addition, being
+            explicit about requirements enables traceability and impact analysis. Traceability means
+            being able to relate an interaction or feature of a system to the requirement it
+            satisfies; impact analysis runs the causal link between requirements and features in the
+            opposite direction to assess what or who will be affected if requirements
+                change.<sup>[<a id="chapter-10-endnote-8" href="#ftn.chapter-10-endnote-8" epub:type="noteref" class="footnote">550</a>]</sup></p><div class="sect2" title="Requirements for Interactions in Organizing Systems"><div class="titlepage"><div><div><h3 class="title" id="section-10.4.1">Requirements for Interactions in Organizing Systems</h3></div></div></div><p>When we describe interactions in a generic or broad way as we did in <a class="xref" href="ch02.html" title="Chapter 2. Activities in Organizing Systems">Chapter 2</a> we
+                see that all organizing systems have some common interactions, but most of the time
+                we want to pay attention to the more specific interactions that are designed to
+                create value in a particular organizing system because of the kind of resources it
+                contains (<a class="xref" href="ch02.html#section-2.4.2" title="Interaction and Value Creation">Interaction and Value Creation</a>). The domain, scope, and
+                scale of the organizing system determines which interactions are possible and which
+                ones must be explicitly supported, but the priorities of different interactions are
+                more often determined by decisions about intended users (<a class="xref" href="ch10.html#section-10.3.2" title="Number and Nature of Users">Number and Nature of Users</a>).</p><p><a id="id671228" class="indexterm"/><span class="Business">For most organizing systems other than personal
+                    ones, the set of interactions that are implemented in an organizing system is
+                    strongly determined by business model considerations, funding levels, or other
+                    economic factors. For-profit firms often differentiate themselves by the number
+                    and quality of the interactions they support with their resources, some by
+                    supporting many of them and some by supporting a minimal number. This
+                    differentiation is strongly shaped by and also shapes user preferences; some
+                    people prefer self-service or unmediated interactions, while others prefer full
+                    service and mediated interactions.</span><sup>[<a id="chapter-10-endnote-9" href="#ftn.chapter-10-endnote-9" epub:type="noteref" class="footnote">551</a>]</sup>
+                <a id="id671250" class="indexterm"/><span class="LIS">Non-profit institutions like public libraries and
+                    museums are also subject to these constraints, but unfortunately they have fewer
+                    options for adjusting service levels or changing their targeted user populations
+                    when their funding is reduced.</span><sup>[<a id="chapter-10-endnote-10" href="#ftn.chapter-10-endnote-10" epub:type="noteref" class="footnote">552</a>]</sup></p><p>Some requirements for interactions come along with technology requirements, to
+                have resources in a particular format, to conform to a particular specification or
+                standard in order to operate in some technology environment, or to interoperate with
+                other parties or their organizing systems.</p><p><a id="id671413" class="indexterm"/><a id="id671420" class="indexterm"/>An essential requirement in every organizing system is ensuring that the
+                supported interactions can be discovered and invoked by their intended users. In
+                organizing systems with physical resources, good designers enhance the inherent
+                affordances of resources with navigation and orientation aids that direct users to
+                points of interactions (<a class="xref" href="ch02.html#section-2.4.1" title="Affordance and Capability">Affordance and Capability</a>). With
+                digital resources and information-intensive organizing systems, interactions are not
+                immediately perceivable, and poor design can create overly complicated user
+                interfaces in which many interactions are never discovered and thus never
+                used.</p><p>It is tricky to compare the overall capabilities of organizing systems in terms of
+                the number of variety of their interactions because what matters more is how much
+                value they create. Organizing systems with active resources can create value on
+                their own without an explicit user interaction (<a class="xref" href="ch03.html#section-3.2.3.2" title="Active or Operant Resources">Active or Operant Resources</a>). Other organizing systems exploit stored, computed, or
+                contextual information to create value by eliminating the need for user interactions
+                    (<a class="xref" href="ch02.html#section-2.4.1" title="Affordance and Capability">Affordance and Capability</a>).<sup>[<a id="chapter-10-endnote-11" href="#ftn.chapter-10-endnote-11" epub:type="noteref" class="footnote">553</a>]</sup></p></div><div class="sect2" title="Requirements about the Nature and Extent of Resource Description"><div class="titlepage"><div><div><h3 class="title" id="section-10.4.2">Requirements about the Nature and Extent of Resource Description</h3></div></div></div><p>Interactions with resources within an organizing system often depend on
+                descriptions of individual resources or descriptions of the collections that contain
+                them. In the bibliographic domain, generic or common interactions make use of
+                descriptions that can be associated with almost any type of resource, such as the
+                name, creator, and creation date.<sup>[<a id="chapter-10-endnote-12" href="#ftn.chapter-10-endnote-12" epub:type="noteref" class="footnote">554</a>]</sup> <a id="id671585" class="indexterm"/><a id="id671589" class="indexterm"/>For example, any resource with a sortable name or identifier can be
+                arranged alphabetically to enable it to be easily found, and any resource with a
+                creation date can be discovered by a “what’s new” query to a resource
+                collection.</p><p>Different types of resources must have differentiating properties, otherwise there
+                would be no reason to distinguish them as different types. These resource properties
+                can be recorded in the terms of a description language to support one or more
+                interactions or to answer one or more questions. Simply put, choices about the
+                nature and extent of resource description depend on which interactions or questions
+                are most frequent or important (<a class="xref" href="ch04.html#section-4.3.1.1" title="Describing Instances or Describing Collections">Describing Instances or Describing Collections</a>). If a particular property of a resource has no interactions that depend on it,
+                there is no need to describe it. However, if an interaction depends on a description
+                of a particular resource property, a missing description or one of inadequate
+                precision and granularity means that the interaction will be impossible or
+                inefficient to carry out because the resource will need to be further analyzed to
+                create or extract the required description. <a id="id671551" class="indexterm"/>An <abbr class="abbrev">ISBN</abbr> is a sufficient description to find a book in a
+                directory, but if the <abbr class="abbrev">ISBN</abbr> is the only description associated with
+                the book you will not be able to tell who wrote it. <a id="id671654" class="indexterm"/> The tradeoffs imposed by the extent and timing of resource description
+                have been a recurring theme in this book, with the tradeoff between recall and
+                precision being the most salient (<a class="xref" href="ch01.html#section-1.3.5" title="When Is It Being Organized?">When Is It Being Organized?</a>,
+                    <a class="xref" href="ch02.html#section-2.4.1" title="Affordance and Capability">Affordance and Capability</a>, <a class="xref" href="ch06.html#section-6.4.1" title="Category Abstraction and Granularity">Category Abstraction and Granularity</a>, <a class="xref" href="ch06.html#section-6.4.3" title="The Recall and Precision Tradeoff">The Recall and Precision Tradeoff</a>).</p><p>The properties of resources that are easiest to describe are not always the most
+                useful ones, especially for information resources where the property of aboutness is
+                critical but challenging to describe. For non-text information resources this
+                problem is magnified because the content is often in a semantically opaque format
+                that cannot usefully be analyzed by people.</p><p>Business strategy and economics strongly influence the extent of resource
+                description. In many museums and archives there are not enough trained people and
+                time to describe every pottery fragment or document, and many resources are
+                described only at an aggregate level. In contrast, some people argue that the
+                explosion of content in physical and digital form mandates significant investment in
+                descriptions that facilitate resource discovery in a crowded marketplace.<sup>[<a id="chapter-10-endnote-13" href="#ftn.chapter-10-endnote-13" class="footnote">555</a>]</sup></p><p>Automated and computerized processes can create the resource descriptions in an
+                organizing system and their use is primarily driven by scale (<a class="xref" href="ch04.html#section-4.3.6.4" title="Computational and Automated Resource Description">Computational and Automated Resource Description</a>). Search engines index web pages
+                and analyze their link structures because it would be impossible to treat the web as
+                a traditional library and organize it by human effort. The benefits of digital
+                cameras, video recorders, and similar devices would be far fewer if people had to
+                manually identify and describe each resource when creating it. Instead, these
+                devices can automatically assign some contextual metadata. Similarly, competitive
+                pressures on vendors to provide real-time and context-sensitive information services
+                mandate automated collection of contextual information like location from mobile
+                phones, portable book readers and tablet computers.</p><p>We might seek some optimal degree of description given some set of requirements or
+                purposes for an organizing system and some estimate of the organizing effort that
+                could be applied; in practice this is elusive for two reasons, both relating to
+                scope and scale. First, as the number of users of an organizing system increases, it
+                becomes more difficult to identify and anticipate all its possible purposes and
+                constraints it must satisfy. Even if most users share the goals for the organizing
+                system, any particular user might have some additional specialized use for some
+                attributes or relationships that would require more description to satisfy.<sup>[<a id="chapter-10-endnote-14" href="#ftn.chapter-10-endnote-14" epub:type="noteref" class="footnote">556</a>]</sup></p><p>Second, even if it were possible to implement some optimal degree of description
+                in a particular organizing system, we would still encounter problems when multiple
+                organizing systems exist in the same domain or in domains that intersect across
+                context, device, or application boundaries. Since organizing systems are designed
+                and evolve to satisfy the specific requirements of their particular context,
+                companies will often describe the same resources differently, which creates
+                integration and interoperability problems when companies need to exchange and
+                combine information resources(<a class="xref" href="ch09.html#section-9.3.2" title="Transforming Resources for Interactions">Transforming Resources for Interactions</a>).</p></div><div class="sect2" title="Requirements about Intentional Arrangement"><div class="titlepage"><div><div><h3 class="title" id="section-10.4.3">Requirements about Intentional Arrangement</h3></div></div></div><p>Organizing principles depend on resource descriptions, so requirements for the
+                former are always intertwined with those for the latter. Specifying requirements for
+                the intentional arrangement of resources is analogous to specifying why and how
+                resource categories can be created (<a class="xref" href="ch06.html#section-6.3" title="Principles for Creating Categories">Principles for Creating Categories</a>). In turn, the creation of resource categories often becomes a question about the
+                number and kind of resource properties that might be analyzed and exploited by
+                organizing principles.</p><p><a id="id671788" class="indexterm"/><a id="id671690" class="indexterm"/><a id="id671742" class="indexterm"/><a id="id671772" class="indexterm"/>We noted that there is a continuum of category formation that ranges
+                from minimal use of resource properties to more rigorous use of multiple properties,
+                and finally to statistical or composite use of multiple properties, some of which
+                are induced or inferred rather than explicit. The simplest principle for defining a
+                category is by enumeration, just putting the resources into a set without any
+                specification of any properties they might share. The enumerated resources might
+                very well have common properties, but the principle of enumeration ignores them; the
+                only property that matters for that principle is that the resources are in the same
+                set. This corresponds to the simplest principle of intentional arrangement, that of
+                collocation, just putting the resources in the same location without any additional
+                organization.</p><p>Collocated resources often acquire some additional arrangement as a result of
+                their use; consider how the books, papers, or other resources gathered for some
+                writing project often end up in piles in your office or on your desk close to your
+                work area. For a small collection, this proximity-to-use organizing principle is the
+                easiest way to satisfy a requirement to minimize the time to find frequently used
+                resources.</p><p>As we’ve often seen, the scope and scale of the organizing system is a dominant
+                design consideration and it applies to principles of resource arrangement too. The
+                collocation principle of arrangement is sufficient for small resource collections
+                because it is not necessary to define the optimal organization if the time to find
+                any particular resource is short even for an inefficient search method of scanning
+                the entire collection. Using the extrinsic property of frequency of use makes search
+                slightly more efficient, but only in organizing systems where the user population is
+                small or interacts with the resources in similar ways. Otherwise, arranging
+                resources to facilitate their frequent access for some users would hinder other
+                users who never use them. Imagine if you shared your office desk with someone who
+                works all night on other writing projects and leaves his frequently used resources
+                in piles close to his work area – which becomes your work area in the
+                morning.</p><p>Larger resource collections usually require multiple organizing principles to
+                manage the complexity that emerges when more users and more varied interactions must
+                be supported. It is essential to establish the priority of users and interactions
+                because these requirements determine the order in which the principles are applied
+                to arrange the resources. This ordering creates a logical resource hierarchy that
+                affects the efficiency of interactions and the maintenance of the organizing system
+                over time.</p><p>Information resources are invariably challenging to arrange because their
+                aboutness is not an easily perceived property and because of the open-ended purposes
+                they can serve. Information collections with broad scope most often use a standard
+                system of bibliographic classification (<a class="xref" href="ch07.html#section-7.3" title="Bibliographic Classification">Bibliographic Classification</a>). In contrast, special libraries have narrower
+                collections that need to support domain-specific interactions for a relatively small
+                set of users, and as a result they require more specialized organizational
+                    schemes.<sup>[<a id="chapter-10-endnote-15" href="#ftn.chapter-10-endnote-15" epub:type="noteref" class="footnote">557</a>]</sup> The principles for resource arrangement in large firms of every type are
+                often required to conform with laws and regulations for accounting, taxes, human
+                resources, data retention and non retention, access control, and other functions
+                    (<a class="xref" href="ch02.html#section-2.5.4.1" title="Governance in Business Organizing Systems">Governance in Business Organizing Systems</a>, <a class="xref" href="ch07.html#section-7.1.5.4" title="Mandated Classifications">Mandated Classifications</a>).</p></div><div class="sect2" title="Dealing with Conflicting Requirements"><div class="titlepage"><div><div><h3 class="title" id="section-10.4.4">Dealing with Conflicting Requirements</h3></div></div></div><p>Any individual, group, or enterprise can create an organizing system that meets
+                their specific requirements, but once this organizing system involves two or more
+                parties with different requirements, there is a potential for conflict. Roommates or
+                spouses sometimes argue about how to organize items in the kitchen, in the
+                refrigerator, or in some other shared space. To a person who arranges spices
+                alphabetically and condiment jars by size, arranging them according to cuisine or
+                frequency of use makes no sense. Similarly, if you are the sole user of a Dropbox or
+                other cloud storage account, you can organize it any way you want. You can use any
+                number of folders that need only make sense to you, or you can leave everything
+                unorganized in a single folder. However, if you share the Dropbox account with
+                another person, they are likely to have different organizational needs or
+                preferences. Perhaps you tend to organize resources by file type, while they prefer
+                to organize resources by topic or project.</p><p>A small number of people can often agree on an organizing system that meets the
+                needs of each participant through informal negotiations. The potential for conflict
+                increases when more people are involved, and “bottom-up” <span class="foreignphrase"><em class="foreignphrase">ad
+                    hoc</em></span> negotiations to resolve every disagreement between every
+                pair of participants just aren’t feasible. In many domains conflicts are avoided or
+                suppressed because the parties have developed or agreed to conform to standards
+                    (<a class="xref" href="ch07.html#section-7.1.5" title="Classification and Standardization">Classification and Standardization</a>). Nevertheless, conflicts in
+                organizing principles for large-scale organizing systems are often resolved by
+                parties with the legal authority or economic power to impose a solution on all the
+                participants in a “top-down” manner.<sup>[<a id="chapter-10-endnote-16" href="#ftn.chapter-10-endnote-16" epub:type="noteref" class="footnote">558</a>]</sup></p></div></div><div class="sect1" title="Designing and Implementing an Organizing System"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.5">Designing and Implementing an Organizing System</h2></div></div></div><p>Requirements define what must be done but NOT how to do it; that’s the role of the
+            design and implementation phases. Being explicit about requirements and the intended
+            scope and scale of an organizing system before moving onto these phases in an organizing
+            system’s lifecycle avoids two problems. The first is taking a narrow and short-term
+            focus on the initial resources in a collection, which might not be representative of the
+            collection when it reaches its planned scope and scale. This can result in overly
+            customized and inflexible resource descriptions or arrangements that cannot easily
+            accommodate the future growth of the collection. A second problem, often a corollary of
+            the first, is not separating design principles from their implementation in some
+            specific environment or technology.</p><div class="sect2" title="Choosing Scope- and Scale-Appropriate Technology"><div class="titlepage"><div><div><h3 class="title" id="section-10.5.1">Choosing Scope- and Scale-Appropriate Technology</h3></div></div></div><p><a id="id672192" class="indexterm"/>A simple organizing system to satisfy personal record keeping or some short-lived
+                information management requirements can be implemented using folders and files on a
+                personal computer or by using “off the shelf” generic software such as web forms,
+                spreadsheets, databases, and wikis. Other simple organizing systems run as
+                applications on smart phones. Some small amount of configuration, scripting,
+                structuring or programming might be involved, but in many cases this work can be
+                done in an <span class="foreignphrase"><em class="foreignphrase">ad hoc</em></span> manner. The low initial cost to get
+                started with these kinds of applications must be weighed against the possible cost
+                of having to redo a lot of the work later because the resources and the resource
+                descriptions might not be easily exported to new ones.</p><p>More capable organizing systems that enable the persistent storage and efficient
+                retrieval of large amounts of structured information resources generally require
+                additional design and implementation efforts. Flat word processing files and
+                spreadsheets are not adequate. Instead, XML document models and database schemas
+                often must be developed to ensure more control of and validation of the information
+                content and its descriptions. Software for version and configuration management,
+                security and access control, query and transformation, and for other functions and
+                services must also be developed to implement the organizing system.</p><p><a id="id672208" class="indexterm"/><a id="id672214" class="indexterm"/>Technology for organizing systems will always evolve to enable new
+                capabilities. For example, cloud computing and storage are radically changing the
+                scale of organizing systems and the accessibility of the information they contain.
+                It might be possible to implement these capabilities and services to an organizing
+                system in an incremental fashion with informal design and implementation methods. If
+                information models, processing logic, business rules and other constraints are
+                encoded in the software without explicit traceability to requirements and design
+                decisions the organizing system will be difficult to maintain if the context, scope
+                or requirements change. This is why we have repeatedly emphasized the importance of
+                architectural thinking about organizing systems, beginning in <a class="xref" href="ch01.html#section-1.2.3.1" title="The Concept of “Organizing Principle”">The Concept of <span class="quote">“<span class="quote">Organizing Principle</span>”</span></a> where we proposed that organizing
+                principles should ideally be expressed in a way that did not assume how they would
+                be implemented (See also <a class="xref" href="ch02.html#section-2.3.2.2" title="“Information Architecture” and Organizing Systems"><span class="quote">“<span class="quote">Information Architecture</span>”</span> and Organizing Systems</a>, <a class="xref" href="ch07.html#section-7.1.3" title="Classification vs. Physical Arrangement">Classification vs. Physical Arrangement</a>, and <a class="xref" href="ch08.html#section-8.1" title="Introduction">Introduction</a>).</p></div><div class="sect2" title="Architectural Thinking"><div class="titlepage"><div><div><h3 class="title" id="section-10.5.2">Architectural Thinking</h3></div></div></div><p><a id="id672295" class="indexterm"/>Architectural thinking 
+                leads to more modularity and abstraction in design, making
+                it easier to change an implementation to satisfy new requirements or to take
+                advantage of new technologies or procedures. It is also important to think
+                architecturally about the design of the vocabularies and schemas for resource
+                description and of classification systems to leave room for expansion to accommodate
+                new resource types (<a class="xref" href="ch06.html#section-6.5" title="Implementing Categories">Implementing Categories</a> and <a class="xref" href="ch07.html#section-7.2.2.3" title="Principles for Maintaining the Classification over Time">Principles for Maintaining the Classification over Time</a>). Doing so is easier if the
+                descriptions are logically and physically distinct from the resources they
+                describe.</p><p><a id="id672334" class="indexterm"/></p><p>Nevertheless, architectural thinking requires more careful analysis of resources
+                and implementation alternatives, and most people don’t think this way, especially
+                for personal and informal organizing systems. You can imagine that someone might
+                arrange a collection of paperback books in a small bookcase whose shelf height and
+                width were perfectly suited for the paperbacks they currently own. However, this
+                organizing system would not work at all for large format books, and a paperback
+                could not be added to the collection unless one was purged from the collection. It
+                would be more sensible to start with a bigger bookcase with adjustable shelves so
+                that the organizing system would have a longer lifetime.</p><p><a id="id672313" class="indexterm"/></p><p>You might think that large institutional organizing systems would avoid these
+                problems caused by tying a collection too tightly to the physical environment in
+                which it is initially organized, but sometimes they don’t. A famous example involves
+                the art collection of the Barnes Foundation, which had to keep its paintings in the
+                exact same crowded arrangements when the museum made a controversial move from a
+                small building to a larger one because the donor had mandated that the paintings
+                never be moved from their original settings. (See the Sidebar, <a class="xref" href="ch10.html#sidebar_Barnes_Collection" title="The Barnes Collection">The Barnes Collection</a>).</p><p><a id="id672348" class="indexterm"/></p><p><a id="id672357" class="indexterm"/><a id="id672368" class="indexterm"/><span><a id="def_big_data"/>For digital resources, inexpensive storage and
+                high bandwidth have largely eliminated capacity as a constraint for organizing
+                systems, with an exception for <a class="glossterm" href="go01.html#gloss_big_data"><em class="glossterm">big
+                    data</em></a>, which is defined as a collection of data that is too big
+                to be managed by typical database software and hardware
+                architectures.</span><sup>[<a id="chapter-10-endnote-18" href="#ftn.chapter-10-endnote-18" epub:type="noteref" class="footnote">559</a>]</sup> Even so, big data collections are often large but homogeneous, so their
+                scale is not their most important challenge from an organizing system perspective
+                (<a class="xref" href="ch10.html#section-10.3.1" title="Scope and Scale of the Collection">Scope and Scale of the Collection</a>).</p><p><a id="id672124" class="indexterm"/></p><div class="sidebar"><a id="sidebar_Barnes_Collection"/><div class="sidebar-title">The Barnes Collection</div><p><span class="personname"><span class="firstname">Albert</span> <span class="surname">Barnes</span></span> was a chemist who made a fortune inventing a preventive treatment
+                    for gonorrhea and who then amassed perhaps the greatest private art collection
+                    ever, one that contained over 800 paintings by artists like <span class="personname"><span class="surname">Picasso</span></span>, <span class="personname"><span class="surname">Renoir</span></span>, <span class="personname"><span class="surname">Matisse</span></span>, <span class="personname"><span class="surname">van Gogh</span></span>, and <span class="personname"><span class="surname">Cezanne</span></span>. In 1922 Barnes built a museum for his collection in his
+                    residential neighborhood in Merion, PA, a suburb of Philadelphia. Barnes did not
+                    open his collection to the public and in his will mandated that the collection
+                    never be moved, loaned, or sold.</p><p>In the decades after Barnes died in 1951 the Merion museum needed extensive
+                    repairs and security upgrades, and some people suggested that its remote
+                    location and access restrictions jeopardized its financial viability. However, a
+                    proposal to relocate the collection to Philadelphia seemingly violated the terms
+                    of the Barnes will.</p><p>A legal fight dragged on for decades. Finally in 2004 a judge ruled that the
+                    collection could be moved to Philadelphia, but only if the new museum contained
+                    exact copies of the gallery rooms of the original museum and arranged the
+                    paintings exactly as they were in Merion. The new museum building, opened in
+                    2012, is ten times larger than thae old one, but the collection takes up the
+                    same space as it did in Merion. The other 90% of the building is occupied by an
+                    auditorium, offices, classrooms, a gift shop, and other space that contains none
+                    of the collection.<sup>[<a id="chapter-10-endnote-17" href="#ftn.chapter-10-endnote-17" epub:type="noteref" class="footnote">560</a>]</sup></p></div></div><div class="sect2" title="Distinguishing Access to Resources from Resource Control"><div class="titlepage"><div><div><h3 class="title" id="section-10.5.3">Distinguishing Access to Resources from Resource Control</h3></div></div></div><p><a id="id672529" class="indexterm"/><a id="id672573" class="indexterm"/>Because large resource collections are often used for multiple purposes by many
+                different people or projects, they illustrate another important architectural issue
+                for collections of digital resources. A requirement for access to resources does not
+                imply a need to directly own or control them, and information-intensive and
+                web-based businesses have increasingly adopted organizing system designs that
+                involve storage of digital resources in the cloud, licensing of globally distributed
+                resources, and outsourcing of information services. Designs that use these
+                architectural concepts can realize functional and quality improvements because the
+                location and identity of the service provider is hidden by an abstraction layer
+                    (<a class="xref" href="ch02.html#section-2.4.2.1" title="Value Creation with Physical Resources">Value Creation with Physical Resources</a>, <a class="xref" href="ch03.html#section-3.4.3.5" title="Distinguish Identifying and Resolving">Distinguish Identifying and Resolving</a>). However, separating access from ownership has been
+                a cultural challenge for some libraries and museums whose institutional identities
+                emphasize the resources they directly control and the physical buildings in which
+                they control them.<sup>[<a id="chapter-10-endnote-19" href="#ftn.chapter-10-endnote-19" epub:type="noteref" class="footnote">561</a>]</sup></p></div><div class="sect2" title="Standardization and Legacy Considerations"><div class="titlepage"><div><div><h3 class="title" id="section-10.5.4">Standardization and Legacy Considerations</h3></div></div></div><p>As we noted with the Barnes Collection, a building becomes old and outdated over
+                time. The technology used in digital organizing systems becomes obsolete faster than
+                physical buildings do. The best way to slow the inevitable transformation of today’s
+                cutting edge technology to tomorrow’s legacy technology is to design with standard
+                data formats, description vocabularies and schemas, and classification systems
+                unless you have specific requirements that preclude these choices.</p><p><a id="id672658" class="indexterm"/>Even a requirement to interoperate with an organizing system that uses
+                proprietary or non-standard specifications can usually be satisfied by transforming
+                from a standard format (<a class="xref" href="ch07.html#section-7.1.5.2" title="Institutional Semantics">Institutional Semantics</a>, <a class="xref" href="ch09.html#section-9.2.3" title="Socio-Political and Organizational Constraints">Socio-Political and Organizational Constraints</a>). Similarly, it is better to design
+                the <abbr class="abbrev">API</abbr>s and data feeds of an organizing system in a generic or
+                standard way that abstracts from their hidden implementation. This design principle
+                makes it easier for external users to understand the supported interactions, and
+                also prevents disclosure of any aspects of resource description or organization that
+                provide competitive advantage. For example, the way in which a business classifies
+                products, suppliers, customers, or employees can be competitively important.</p><p><a id="id672719" class="indexterm"/>Two important design questions that arise with data transformation or conversion,
+                whether it is required by a technology upgrade or an interoperability requirement,
+                are when to do it and where to do it. The job of converting all the resources in a
+                collection can typically be outsourced to a firm that specializes in format
+                conversion or resource description, and a batch or pre-emptive conversion of an
+                entire collection enables an upgraded or new organizing system to operate more
+                efficiently when it is not distracted by ongoing conversion activity. On the other
+                hand, if resources vary greatly in their frequency of use, a “do-it-yourself
+                on-demand” method is probably more cost effective as long as the conversion does not
+                impact the interactions that need to be supported.</p></div></div><div class="sect1" title="Operating and Maintaining an Organizing System"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.6">Operating and Maintaining an Organizing System</h2></div></div></div><p>After the organizing system has been designed and implemented it can be put into its
+            operation and maintenance phases. We will look at these from two perspectives, first
+            from the point of view of individual resources, and then from the point of view of the
+            organizing system’s design and implementation. These two perspectives are not always
+            clearly distinguished. Curation, for example, is often used to describe actions taken to
+            maintain individual resources as well as those that result in new arrangements of
+            them.</p><div class="sect2" title="Maintaining an Organizing System: Resource Perspective"><div class="titlepage"><div><div><h3 class="title" id="section-10.6.1">Maintaining an Organizing System: Resource Perspective</h3></div></div></div><p>Sometimes an organizing system is implemented with its organizing structures and
+                relationships waiting to be populated by resources as they are acquired and
+                described. The scope and scale of the organizing system shapes how the descriptions
+                are created and how the descriptions are then used to assign resources to the
+                logical or physical containers of the organizing system. The most important
+                decisions to be made at this point involve determining an appropriate mix of methods
+                for creating the resource descriptions, because their cost, quality, consistency,
+                completeness, and semantic richness depends on which human or computational agents
+                do the work (<a class="xref" href="ch04.html#section-4.3.6" title="Creating Resource Descriptions">Creating Resource Descriptions</a>).</p><p>For web-based and consumer-focused organizing systems, it is tempting to rely on
+                users to assign descriptions, tags, or ratings to resources (<a class="xref" href="ch04.html#section-4.2.2.3" title="Tagging of Web-Based Resources">Tagging of Web-Based Resources</a>). Some of these systems attempt to
+                improve the quality and precision of these descriptions by providing forms,
+                controlled vocabularies, or suggestions. Finding a balance is tricky; too much
+                direction and control is demotivating to uncompensated volunteer describers, and too
+                little of it results in the proverbial <span class="quote">“<span class="quote">tag soup.</span>”</span></p><p>An essential operational and maintenance activity is evaluation of resource
+                descriptions, first with respect to the time and process by which they are created,
+                and second with respect to how when they support the designed interactions (<a class="xref" href="ch04.html#section-4.3.7" title="Evaluating Resource Descriptions">Evaluating Resource Descriptions</a>).</p><p>Some organizing systems are initiated with a fixed set of resources that will not
+                change in any way. For example, in an archive as most narrowly defined, neither the
+                individual resources nor the organization of the collection as a whole will change.
+                If an archive of Abraham Lincoln letters is established, we know that Lincoln will
+                never revise any letters or write any new ones, and any new classifications or
+                descriptions devised by people studying the archive will not be used to rearrange
+                the letters.</p><p>Most organizing systems, however, need to support ongoing interactions with a
+                collection that changes over time as new resources enter the collection and old ones
+                leave. These selection and collection management processes are explicit in
+                libraries, museums and similar institutions that maintain collections to satisfy the
+                changing needs and preferences of their user communities (<a class="xref" href="ch02.html#section-2.2.2" title="Selection Principles">Selection Principles</a>).</p><p><a id="id672811" class="indexterm"/></p></div><div class="sect2" title="Maintaining an Organizing System: Properties, Principles and Technology Perspective"><div class="titlepage"><div><div><h3 class="title" id="section-10.6.2">Maintaining an Organizing System: Properties, Principles and Technology
+                Perspective</h3></div></div></div><p>It is useful to consider how an organizing system as a whole is operated and
+                maintained over time. We can analyze how the system’s organizing properties,
+                principles and technology might change, and we can roughly order different types of
+                change according to their overall impact.</p><p>The most predictable maintenance activities for an organizing system with an
+                expected long lifetime (<a class="xref" href="ch10.html#section-10.3.3" title="Expected Lifetime of the Resources and of the Organizing System">Expected Lifetime of the Resources and of the Organizing System</a>) are
+                incremental changes in description vocabularies and classification schemes (<a class="xref" href="ch07.html#section-7.2.2.3" title="Principles for Maintaining the Classification over Time">Principles for Maintaining the Classification over Time</a>). These need to evolve when new
+                instances or contexts require additional properties to maintain the distinctions
+                between types of resources, but the basic principles embodied in the organizing
+                systems are not affected.</p><p>Incremental category maintenance takes place even in personal organizing systems
+                where the categories are not always explicit. The collection of clothes in a college
+                student’s closet and the categories and properties for arranging them will change
+                somewhat when he graduates and takes a job in a downtown office building where he
+                needs to dress more formally than he did as a student. He will learn that despite
+                the common term in the category name, “student casual” and “business casual” do not
+                contain the same sets of resources.</p><p>Category maintenance is an ongoing activity in institutional organizing systems.
+                The most commonly used bibliographic classification systems all have numbering and
+                naming schemes that allow for subdivision and extension to create new subcategories
+                to accommodate resources about new fields of knowledge and technology.</p><p><a id="id672832" class="indexterm"/><a id="id672976" class="indexterm"/>As another example, the <span class="citerefentry"><span class="refentrytitle"><span class="orgname">Association for Computing
+                        Machinery</span></span>(ACM)</span> professional society created a keyword classification in 1964 to
+                organize articles in its many publications, but relentless change in the computing
+                field driven by Moore’s Law has required the <abbr class="abbrev">ACM</abbr> to significantly
+                revise the system almost every decade.<sup>[<a id="chapter-10-endnote-20" href="#ftn.chapter-10-endnote-20" epub:type="noteref" class="footnote">562</a>]</sup></p><p>In contrast, changes in business organizing systems are more likely to be driven
+                by economic factors. Resource properties for managing collections of resource and
+                the information that describes them often change over time as a result of new
+                products and services, mergers and acquisitions, or refined customer segmentation.
+                More substantial changes in business organizing systems reflect the need to comply
+                with laws and regulations that impose new requirements for tracing money flows or
+                transactions. These mandated classifications and processes might require new
+                organizing principles, not just incremental properties (<a class="xref" href="ch07.html#section-7.1.5.4" title="Mandated Classifications">Mandated Classifications</a>).</p><p><a id="id673050" class="indexterm"/>The choice of implementation technology influences how easy it is to
+                handle these types of changes in organizing systems. In databases this problem is
+                known as <span class="quote">“<span class="quote">schema migration.</span>”</span> With XML implementations, schemas can be designed with
+                <span class="quote">“<span class="quote">extension</span>”</span> or <span class="quote">“<span class="quote">codelist</span>”</span> elements to enable changes that will not invalidate
+                existing information. Business processes that are driven by <span class="quote">“<span class="quote">executable
+                specifications</span>”</span> like the <span class="citerefentry"><span class="refentrytitle">Business Process Execution Language</span>(BPEL)</span> can be easily modified because the <abbr class="abbrev">BPEL</abbr>
+                <abbr class="abbrev">XML</abbr> instance is used to configure the software that carries out the
+                process it describes.<sup>[<a id="chapter-10-endnote-21" href="#ftn.chapter-10-endnote-21" class="footnote">563</a>]</sup></p><p>Another very predictable type of activity over time with organizing systems is a
+                technology upgrade that improves its quality or capabilities without affecting the
+                organizing principles. A student might replace his handwritten lecture notes with
+                typed notes on a laptop or tablet computer but not significantly change the way the
+                notes are organized.</p><p><a id="id673101" class="indexterm"/>Institutional organizing systems are adopting tiered storage systems that
+                automatically move resources between different types of storage media to meet
+                performance, availability and recovery requirements. For example, firms with high
+                financial impact of downtime like banks run critical organizing systems with copies
+                in “failsafe” or “hot” modes that are synchronized with the production environments
+                to prevent any interruptions in information access if the latter are disrupted. All
+                the relevant resources are immediately available. On the other hand, resources
+                needed for regulatory compliance can be kept on lower cost disk storage.</p><p>The most challenging kinds of maintenance activities for organizing systems
+                involve changes to the principles for arranging resources along with changes in the
+                implementing technology. An example is the ambitious effort to introduce semantic
+                web and linked data concepts in bibliographic organizing systems (<a class="xref" href="ch05.html#section-5.8.2" title="Bibliographic Organizing Systems">Bibliographic Organizing Systems</a>, <a class="xref" href="ch08.html#section-8.4.3" title="The Semantic Web World">The Semantic Web World</a>). And change comes faster to businesses than to
+                libraries and museums. New technologies can have a disruptive impact on business
+                organizing system, forcing major changes to enable strategy changes that involve
+                faster finding, retrieval, or delivery of informational or physical goods.<sup>[<a id="chapter-10-endnote-22" href="#ftn.chapter-10-endnote-22" epub:type="noteref" class="footnote">564</a>]</sup></p><p>Sometimes these major changes to organizing principles and technologies can be
+                introduced incrementally, with changes “rolled out” to different sets of resources
+                or user groups during a transition period. However, sometimes the changes are
+                inherently ‘”all or none” because it is impossible to have two conflicting
+                organizing systems operating in the same context. An easy to understand example of
+                an organizing system that changed radically is the system governing which side of
+                the road you drive on, which was changed in Samoa in 2009. 
+                
+                (See the Sidebar, <a class="xref" href="ch10.html#sidebar_Driving_Samoa" title="Driving in Samoa">Driving in Samoa</a>).</p><p><a id="id673149" class="indexterm"/></p><div class="sidebar"><a id="sidebar_Driving_Samoa"/><div class="sidebar-title">Driving in Samoa</div><p>Whether you travel by bus, car, or bicycle, you always keep to one side of the
+                    road. The convention of driving on either the right side or the left side is a
+                    legal standard that you, and others who share the road, take for granted.
+                    However, you must follow it to ensure safe driving and avoid running into other
+                    vehicles and pedestrians.</p><p>This standard of which side of the road you drive on, simple as it seems, was
+                    not decided arbitrarily, but rather, it was adopted as a result of history,
+                    convention, and the need for organization. If you were the only person in your
+                    country to use the road, you could choose to travel on any side you wanted, even
+                    travel right down the middle. As soon as more than one person needs to use the
+                    same road, the risk of collisions compels the creation of a coordinating
+                    standard.</p><p>In 2009, the government of Samoa took the rare step of changing the side of
+                    the road standard from driving on the right to driving on the left. The original
+                    standard reflected the influence of German colonization in the early 1900s.
+                    However, Samoa is both geographically close to and economically intertwined with
+                    Australia and New Zealand, former British colonies that follow the British
+                    convention of driving on the left side. This proximity gives Samoa access to a
+                    nearby source of used cars that would be attractive to Samoa’s relatively poor
+                    population. So, the Samoan government decided to use its authority to change the
+                    driving standard so that more of its people could afford to buy cars.</p><p>As one could imagine, this decision was not implemented without controversy
+                    and opposition. While the decision benefited people currently without cars, it
+                    negatively affected those who already owned them. After a switch like this, what
+                    happens to the current market value of the thousands of cars designed to drive
+                    on the right? Opponents also claimed that the switch would cause unprecedented
+                    safety hazards. If even a small fraction of drivers were not able to immediately
+                    get the hang of driving on the other side, the accident rate could increase
+                    tremendously. Imagine the current pool of buses designed with doors that open on
+                    the right hand side<span class="symbol">—</span>would they now let passengers out in
+                    the middle of the street? Who would pay to have the buses modified to put doors
+                    on the left hand side?<sup>[<a id="chapter-10-endnote-23" href="#ftn.chapter-10-endnote-23" epub:type="noteref" class="footnote">565</a>]</sup></p></div><p><a id="id673311" class="indexterm"/></p></div></div><div class="sect1" title="Applying the Roadmap: Organizing Systems Case Studies"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.7">Applying the Roadmap: Organizing Systems Case Studies</h2></div></div></div><p>We now fulfill the promise of this chapter, and this book, with a set of case study
+            examples that apply the concepts and phases of the roadmap. The five design questions
+            from <a class="xref" href="ch01.html" title="Chapter 1. Foundations for Organizing Systems">Chapter 1</a> serve as a template to ensure consistency.</p><div class="sect2" title="A Multigenerational Photo Collection"><div class="titlepage"><div><div><h3 class="title" id="section-10.7.1">A Multigenerational Photo Collection</h3></div></div></div><p><span class="bold"><strong>OVERVIEW. </strong></span> Your grandfather has died, at age 91,
+                and under his bed is a suitcase containing several photo albums with a few hundred
+                photos. Some of them have captions, but many don’t. What do you do with them?</p><p>Your first thought was to create a digital photo archive of Grandpa’s collection
+                so that you and all your relatives could see them, and you would also want to
+                generate accurate captions where none exist. Since you have an extensive digital
+                photo collection of your own in a web-based application perhaps you can combine the
+                two collections to create a multigenerational photo organizing system.</p><p>This project involves digitization, archiving, social media issues, and
+                negotiations with and collecting information from other family members who might
+                have different views about what to do.</p><p><span class="bold"><strong>WHAT RESOURCES ARE BEING ORGANIZED?</strong></span> It is easy to
+                find advice about how to digitize old photos, but there are more choices than you
+                might think. What resolution and format should you use? Should you do the work
+                yourself or send Grandpa’s precious photos to a service and take the risk that they
+                might get lost? Should you do any restoration or enhancement of the photos as part
+                of the digitization process?<sup>[<a id="chapter-10-endnote-24" href="#ftn.chapter-10-endnote-24" epub:type="noteref" class="footnote">566</a>]</sup></p><p>More fundamental design questions concern the scope and scale of the organizing
+                system. If you’re digitizing Grandpa’s photos and combining them with yours, you’re
+                skipping a generation. Shouldn’t you also include photos from your parents and the
+                rest of Grandpa’s children? That generation has both printed photos and digital
+                ones, but it is not as comfortable with computers as you are, and their digital
+                photos are stored less systematically on a variety of CD-ROM, DVDs, flash memory
+                sticks, and SD photo cards, making the digitizing and organizing work more
+                complicated. Do these differences in storage media reflect an intentional
+                arrangement that needs to be preserved? And what about that box full of Super 8
+                cartridges and VHS tapes with family videos on them, and the audio cassettes with
+                recordings made at long-ago family gatherings? </p><p>A family history management system that includes many different resource types is
+                a much bigger project than the one you contemplated when you first opened Grandpa’s
+                suitcase. It is easier to consider using separate but related organizing systems for
+                each media type, because there are many web-based applications you could use. In
+                fact, there are far too many choices of web applications for you to consider. You
+                might compare some for their functionality and usability, but given that the long
+                expected lifetime of your organizing system there are more critical considerations:
+                whether the site is likely to last as long as your collection and if it doesn’t, how
+                easily you can export your resources and resource descriptions.<sup>[<a id="chapter-10-endnote-25" href="#ftn.chapter-10-endnote-25" class="footnote">567</a>]</sup></p><p><span class="bold"><strong>WHY ARE THE RESOURCES ORGANIZED?</strong></span> The overall goal
+                of preserving Grandpa’s photos needs no justification, but is preservation the
+                primary goal? Or is to enable access to the images for far-flung family members? Or
+                is it to create a repository for family photos as they continue to be produced?
+                Alternatively, is it less about the images themselves and perhaps more about
+                collecting family-history information contained in the photos, thus making the
+                collection of metadata (accurate information about when and where the photo was
+                taken, who is in it, etc.) most important?</p><p>These decisions determine requirements for the interactions that the photo
+                organizing system must support, but the repertoire of interactions is mostly
+                determined by the choice of photo storage and sharing application. Some applications
+                combine photo storage in a cloud-based repository tied to a very powerful set of
+                digital photography tools, but this functionality comes with complexity that would
+                overwhelm your less technology-savvy relatives. They would be happy just to be able
+                to browse and search for photos.</p><p><span class="bold"><strong>HOW MUCH ARE THE RESOURCES ORGANIZED?</strong></span> Because you
+                realize that a carefully designed set of categories and a controlled tagging
+                vocabulary will enable precise browsing and search, you chose an application that
+                supports grouping and tagging. But not everyone should be allowed to group or tag
+                photos, and maybe some of the more distant relatives can view photos but not add
+                any.</p><p>Will your categories and tags include all of those that Grandpa used when he
+                arranged pictures in albums and made notes on the back of many of them? Do you want
+                to allow annotations? Maybe this is a picture from a vacation; if you go back to the
+                same place, do you want to create an association between the pictures?</p><p>Don’t forget to keep Grandpa’s original albums in a safe place, not under a bed
+                somewhere.</p><p><span class="bold"><strong>WHEN ARE THE RESOURCES ORGANIZED?</strong></span> Once you create
+                your categories and tags, you can require people to use them when they add new
+                photos to the collection. Perhaps the existing resource descriptions can be
+                completed or enhanced as a collective activity at a family reunion. Don’t put this
+                off too long<span class="symbol">—</span>the people who can identify Grandpa’s sister
+                Gladys, her second husband, and his sister in an uncaptioned photo are getting on in
+                years.</p><p><span class="bold"><strong>WHO DOES THE ORGANIZING?</strong></span> You have taken on the
+                role of the editor and curator, but you can’t do everything and having a group of
+                people involved will probably result in more robust organizing. A group can also
+                better handle sticky situations like what to do if people get divorced or have a
+                falling out with other family members; do pictures taken of or by them get
+                deleted?</p><p><span class="bold"><strong>OTHER CONSIDERATIONS.</strong></span> Maintenance of this
+                collection for an indefinite time raises the important issue or a succession plan
+                for the curator. If only one name is on the account and only that person knows the
+                password, you run the risk of losing access to the photos if that person dies. One
+                of Grandpa’s mistakes was dying without clearly specifying his intentions for his
+                photo collection, so whatever you decide you should document carefully and include a
+                continuity plan when you are no longer the curator.<sup>[<a id="chapter-10-endnote-26" href="#ftn.chapter-10-endnote-26" epub:type="noteref" class="footnote">568</a>]</sup></p></div><div class="sect2" title="Knowledge Management for a Small Consulting Firm"><div class="titlepage"><div><div><h3 class="title" id="section-10.7.2">Knowledge Management for a Small Consulting Firm</h3></div></div></div><p><span class="bold"><strong>OVERVIEW. </strong></span> A senior professor who has done
+                part-time consulting for many years is very pleased when his latest book becomes a
+                best-seller and he is inundated with new consulting opportunities. He decides to
+                take a two-year leave of absence from his university to start a small consulting
+                firm with several of his current and former graduate students as his junior
+                consulting partners.</p><p>An organizing system for knowledge management is required, but what gets designed
+                will depend on the scoping decision. Is the goal of the system to support the
+                consulting business, or also to support ongoing and future research projects that
+                sooner or later will generate the consulting opportunities? </p><p><span class="bold"><strong>WHAT RESOURCES ARE BEING ORGANIZED?</strong></span> The professor
+                concludes that since his consulting is based on his research, he needs to include in
+                the new knowledge management system his research articles and the raw and analyzed
+                data that is discussed in the articles. These resources are already organized to a
+                great extent according to the research project that led to their creation. These
+                have been kept in the professor’s university office.</p><p>The professor also has a separate collection of consulting proposals, client
+                reports, and presentations that he has made at client firms. Because of restrictive
+                university rules about faculty consulting, the professor has always kept these
+                resources in his home office rather than on campus.<sup>[<a id="chapter-10-endnote-27" href="#ftn.chapter-10-endnote-27" class="footnote">569</a>]</sup></p><p>In addition to these existing resource types, it will be necessary to create new
+                ones that make systematic and explicit information that the professor has managed in
+                an informal and largely tacit manner. This includes consulting inquiries,
+                information about prospects, and information about specific people in client
+                firms.</p><p><span class="bold"><strong>WHY ARE THE RESOURCES ORGANIZED?</strong></span> The professor
+                has usually just done one consulting project at a time, very opportunistically. He
+                has often turned down projects that involved more work than he could do himself. He
+                now sees the opportunity to do much more consulting and to take on more significant
+                projects if he can leverage his expertise in a more efficient way.</p><p>The professor can take on the “rainmaker” role to secure new consulting
+                engagements and make the important decisions, and he is confident that he can train
+                and support his new staff of current and former students to do much of the actual
+                consulting work.</p><p>The knowledge management system must enable everyone in the firm to access and
+                contribute to project repositories that contain proposals, plans, work in progress,
+                and project deliverables. Much of this work can be reused from one project to
+                another, increasing the productivity of the firm and the quality of its
+                    deliverables.<sup>[<a id="chapter-10-endnote-28" href="#ftn.chapter-10-endnote-28" epub:type="noteref" class="footnote">570</a>]</sup></p><p>Just as it is essential that the professor’s knowledge is systematized and made
+                available via a knowledge management system, so must the knowledge created by the
+                new staff of consultants. The professor cannot expect that all of the students will
+                work for him forever, so any knowledge that they acquire and create in the course of
+                their work will be lost to the firm unless it is captured along with the
+                professor’s.</p><p>The consulting firm probably won’t have an indefinite lifetime. After his leave of
+                absence, the professor might return to his university duties, perhaps on a part-time
+                basis. The knowledge management system will enable him to leave the firm in someone
+                else’s hands while enabling him to keep tabs on and possibly contribute to ongoing
+                projects. Alternatively, if the firm is doing very well, perhaps the professor will
+                resign his university position and take on the role of growing the firm. A larger
+                consultancy might want to acquire the professor’s firm, and the firm’s valuation
+                will in part be determined be the extent to which the firm’s capabilities and
+                resources are documented in the knowledge management system.</p><p><span class="bold"><strong>HOW MUCH ARE THE RESOURCES ORGANIZED?</strong></span> A small
+                firm has neither the money nor the people to invest in complex technology and a
+                rigorous process for knowledge management, but appropriate technology is readily
+                available and affordable. Decisions about organizing principles must be made that
+                reflect the mix of consulting projects; resources might be organized in a shared
+                file system by customer type, project type, by the lead consultant – or in all of
+                these ways using a faceted classification approach.</p><p>Standard document templates and style sheets for the resource types created by
+                consultants can be integrated into word processors and spreadsheets. Contact and
+                customer management functionality can be licensed as a hosted application.</p><p>Many small teams make good use of wikis for knowledge management because they are
+                very flexible in the amount of structure they impose.<sup>[<a id="chapter-10-endnote-29" href="#ftn.chapter-10-endnote-29" epub:type="noteref" class="footnote">571</a>]</sup></p><p><span class="bold"><strong>WHEN ARE THE RESOURCES ORGANIZED?</strong></span> The professor’s
+                decision to take a leave of absence reflects his belief that getting the firm
+                started quickly is essential if he is to capitalize on his recent bestselling book
+                to generate consulting business. This makes managing the prospect pipeline and the
+                proposal-writing process the highest priority targets for knowledge
+                management.</p><p>Much of the other organizing work can emerge as adjuncts to consulting projects if
+                some effort is made to coordinate the organizing across projects.</p><p><span class="bold"><strong>WHO DOES THE ORGANIZING?</strong></span> Because many of the
+                early organizing decisions have implications for the types of customers and projects
+                that the firm can take on, only the professor is capable of making most of them. The
+                principal goal of the knowledge management system is to enable the professor to
+                delegate work to his consulting staff, so he needs to enlist them in the design of
+                the organizing system to ensure it is effective.</p><p><span class="bold"><strong>OTHER CONSIDERATIONS.</strong></span> As the consulting firm
+                grows, it is inevitable that some consultants will be better than others at creating
+                and using knowledge to create customer value, and they will expect to be compensated
+                accordingly. It is essential for the ongoing success of the firm not to let this
+                create disincentives for knowledge capture and sharing between consultants. The
+                solution is to develop a company culture that promotes and rewards them.<sup>[<a id="chapter-10-endnote-30" href="#ftn.chapter-10-endnote-30" epub:type="noteref" class="footnote">572</a>]</sup></p></div><div class="sect2" title="Japanese Farms Look to the Cloud"><div class="titlepage"><div><div><h3 class="title" id="section-10.7.3">Japanese Farms Look to the Cloud</h3></div></div></div><p><span class="bold"><strong>OVERVIEW. </strong></span> Unlike the first two case studies,
+                this is an actual case rather than a hypothetical or composite one. It shares with
+                the first two cases a focus on preserving valuable resources but in the radically
+                different domain of farming.</p><p>This case concerns an initiative by Fujitsu, a Japanese technology firm, to apply
+                “smart computing” and lean manufacturing techniques to the agricultural sector,
+                which lags in technology use. Fujitsu is testing a “farm work management system” at
+                six Japanese farms. In this case study we will focus on the farm highlighted in a
+                2011 <em class="citetitle">Wall Street Journal</em> story.<sup>[<a id="chapter-10-endnote-31" href="#ftn.chapter-10-endnote-31" epub:type="noteref" class="footnote">573</a>]</sup></p><p>This test farm is located in southern Japan. It has 60 different crops spread over
+                100 hectares (about 250 acres), an area slightly larger than the central campus of
+                the University of California at Berkeley.</p><p><span class="bold"><strong>WHAT RESOURCES ARE BEING ORGANIZED?</strong></span> Sensors are
+                deployed in each of 300 different farm plots to collect readings on temperature,
+                soil and moisture levels. Video cameras also monitor each plot.</p><p><a id="id673812" class="indexterm"/>The 72 relatively unskilled workers on the farm are also managed
+                resources. Each of them carries a mobile phone for communication, for transmission
+                of pictures, and for <abbr class="abbrev">GPS</abbr> tracking of their location.</p><p><span class="bold"><strong>WHY ARE THE RESOURCES ORGANIZED?</strong></span> The highest
+                level goal for Fujitsu is to expand its reach as a technology firm by applying the
+                concepts of lean manufacturing, statistical process control, and continual
+                improvement to new domains. Farming is an obvious choice in Japan because it is a
+                relatively unproductive sector where the average age is over 60. It is essential
+                that farms use more computing capability to increase efficiency and to capture and
+                reuse the scarce knowledge possessed by aging workers.</p><p>The Fujitsu farm work management system supports numerous types of interactions to
+                achieve these goals. For example, workers can send pictures of infected crops for
+                diagnosis by an expert farmer in the farm’s office, who can then investigate further
+                by studying recorded video from the affected plot.</p><p>As more farms deploy the Fujitsu system, the aggregated knowledge and sensor
+                information can be analyzed to enable economies of scale that will allow separate
+                and widely distributed farms to function as if they were all part of a single large
+                firm with centralized management.<sup>[<a id="chapter-10-endnote-32" href="#ftn.chapter-10-endnote-32" epub:type="noteref" class="footnote">574</a>]</sup></p><p><span class="bold"><strong>HOW MUCH ARE THE RESOURCES ORGANIZED?</strong></span> The current
+                design of the system treats farm workers as relatively passive resources that are
+                managed very closely. The system generates a daily schedule of planting,
+                maintenance, harvesting, and other activities for each worker. At a daily wrap-up
+                meeting the farm manager reviews each worker’s performance based on
+                    <abbr class="abbrev">GPS</abbr> and sensor readings.</p><p>The sensor data is analyzed and organized extensively by Fujitsu computers to make
+                recommendations, both agricultural ones (such as what crop grows best in each plot
+                and the work schedule that optimizes quality and yield), and business ones (what is
+                the profitability of growing this crop on this plot of land).</p><p><span class="bold"><strong>WHEN ARE THE RESOURCES ORGANIZED?</strong></span> The farm work
+                management system is continually organizing and reorganizing what it knows about the
+                farm as it analyzes sensor and production information. In contrast, the information
+                created by the workers is captured but its analysis is deferred to an expert.</p><p><a id="id674040" class="indexterm"/>It is conceivable that as the farm workers become more expert as a
+                result of the guidance and instruction they receive from the system that they can be
+                more autonomous and do more analysis and interpretation on their own. It is also
+                likely that the inexorable forces of Moore’s Law will enable more data collection
+                and more processing of the sensor data at its time of collection, which might result
+                in increased real-time information exchange with the workers.</p><p><a id="id674056" class="indexterm"/><span class="bold"><strong>WHO DOES THE ORGANIZING?</strong></span> The physical
+                organization of the farm, with 300 small plots of land with 60 different fruits and
+                vegetables is the legacy arrangement of the farm before the Fujitsu trial began.
+                Because of the sizable investment that Fujitsu has made in the farm to deploy the
+                system, it is likely that the farm manager defers to recommendations made by the
+                system to change crop arrangements. So it is reasonable to conclude that most of the
+                decisions about the organizing system are made by computational processes rather
+                than by people.</p><p><span class="bold"><strong>OTHER CONSIDERATIONS.</strong></span> Fujitsu built this system
+                for managing farms, but there are several other resource domains with similar
+                challenges about capturing and reusing operational knowledge: vineyards, forests,
+                and fish farms come to mind.<sup>[<a id="chapter-10-endnote-33" href="#ftn.chapter-10-endnote-33" epub:type="noteref" class="footnote">575</a>]</sup> It will be interesting to see if the farm work management system can be
+                made more abstract and configurable so that the same system can be used in all of
+                these domains.</p><p>Farm crops, vineyards, trees, and fish pens don’t move around, so a more
+                challenging application of sensor technologies arises with cattle herd management.
+                Nevertheless, sensors inserted in the genitals of a female dairy cow can trigger a
+                text message to a herd manager’s cell phone when the cow is in heat, preventing the
+                economic loss of missing a reproductive cycle.<sup>[<a id="chapter-10-endnote-34" href="#ftn.chapter-10-endnote-34" epub:type="noteref" class="footnote">576</a>]</sup></p><p>Somewhat more remote domains for potential application of systems that combine
+                sensor networks with workforce management include sales, field support, and
+                logistics.</p></div><div class="sect2" title="Single-Source Textbook Publishing"><div class="titlepage"><div><div><h3 class="title" id="section-10.7.4">Single-Source Textbook Publishing</h3></div></div></div><p><span class="bold"><strong>OVERVIEW. </strong></span> The fourth case is also an actual case
+                – a self-referential one. It is a case study about the organizing system involved in
+                the creation, production, and distribution of <em class="citetitle">The Discipline of
+                    Organizing</em>.</p><p>We have known since the beginning of this project that this book should not just
+                be a conventional text. A printed book is an intellectual snapshot that is already
+                dated in many respects the day it is published. In addition, the pedagogical goal of
+                    <em class="citetitle">TDO</em> as a textbook for information schools and similar
+                programs is made more difficult by the relentless growth of computing capability and
+                the resulting technology innovation in our information-intensive economy and
+                culture. We think that the emergence of ebook publishing opens up innovative
+                possibilities as long as we can use a single set of source files to produce and
+                update the print and digital versions of this book.</p><p><span class="bold"><strong>WHAT RESOURCES ARE BEING ORGANIZED?</strong></span> The content
+                of this book began in early 2010 as more than 1000 slides and associated instructor
+                notes for a graduate course on “Information Organizing and Retrieval” that Robert J.
+                Glushko, the primary author and editor of <em class="citetitle">TDO</em>, was teaching
+                at the University of California at Berkeley. These slides and notes were created in
+                XML and transformed to HTML for presentation in a web browser.<sup>[<a id="chapter-10-endnote-35" href="#ftn.chapter-10-endnote-35" epub:type="noteref" class="footnote">577</a>]</sup></p><p>The first decision to be made about resource organization led to the iterative
+                sorting of the slides from 26 lectures into the 10 chapters in the initial outline
+                for the book. The second decision concerned the granularity of the new content
+                resources being created for the book. The team of authors was organized by chapters,
+                which made chapters the natural granularity for file management and version control.
+                Because authors were widely dispersed we relied on the Dropbox cloud storage service
+                to synchronize work. Nevertheless, the broad and deep topical coverage of the book
+                meant that chapters had substantial internal structure (four levels of headings in
+                some places), and many of these subsections became separately identified resources
+                that moved from chapter to chapter until they found their natural home.</p><p>In addition to the text content and illustrations that make up the printed text,
+                we needed to organize short videos, interactive examples, and other applications to
+                incorporate in digital versions of the book.</p><p>Finally, it has been essential to view the software that transforms, assembles,
+                formats, and assigns styles when turning source files into deliverable artifacts as
+                resources that must be managed. We have been fortunate to get much of the required
+                software from O’Reilly and Associates, an innovative technology publisher that has
+                been developing an XML-based single-source publishing system called Atlas.</p><p><a id="id674374" class="indexterm"/><span class="bold"><strong>WHY ARE THE RESOURCES ORGANIZED?</strong></span> Publishing print
+                and ebook versions of a text from the same source files is the only way to produce
+                both in a cost-effective and maintainable fashion. Approaches that require any
+                “hand-crafting” would make it impossible to revise the book on a timely schedule.
+                Furthermore, a survey of Berkeley students in the summer of 2012 revealed a great
+                diversity of preferred platforms for reading digital books that included laptop
+                computers, Apple and Android tablets, and seven different dedicated ebook readers.
+                Only an automated single-source publishing strategy could produce all these outputs.</p><p>The highly granular structure for the content resources that comprise this book
+                makes cross-referencing vastly more precise, making it easier to use the book as a
+                textbook and job aid. It will also make it easier to maintain and adapt the text for
+                use in online courses. (The emerging best practice for online courses is to break up
+                lectures and study content into smaller units than used in traditional classroom
+                lectures.) </p><p><span class="bold"><strong>HOW MUCH ARE THE RESOURCES ORGANIZED?</strong></span> The nature
+                and extent of resource organization for this book reflects its purpose of bringing
+                together multiple disciplines that recognize organizing as a fundamental issue but
+                from different perspectives. The book contains many specialized topics and
+                domain-specific examples that might overwhelm the shared concepts. Our solution was
+                to write a lean core text and to move much of the disciplinary and domain-specific
+                content into tagged endnotes. These categories of endnotes are somewhat arbitrary,
+                but the authoring task of identifying content to go into endnotes is a non-trivial
+                one.</p><p>The extent of resource organization is also affected by the choice of XML
+                vocabulary, and we carefully considered whether to choose DITA or DocBook. DITA has
+                the benefit of having more native support for modular authoring and transparent
+                customization and updating, but DocBook is much older and hence has better tool
+                kits. We eventually chose DocBook.<sup>[<a id="chapter-10-endnote-36" href="#ftn.chapter-10-endnote-36" epub:type="noteref" class="footnote">578</a>]</sup></p><p><a id="id674408" class="indexterm"/><span class="bold"><strong>WHEN ARE THE RESOURCES ORGANIZED?</strong></span>
+                Despite the fact that the lecture notes with which the book began were in XML, we
+                decided to author the book using Microsoft Word. Many of the authors had little
+                experience with XML editors, and the highly-developed commenting and revision
+                management facilities in Word proved very useful. This tradeoff imposed the burden
+                of converting files to XML during the production process but only two of the authors
+                were still working on the book at that stage, and both have decades of experience
+                with XML.</p><p><span class="bold"><strong>WHO DOES THE ORGANIZING?</strong></span> The chapter authors used
+                Word style sheets in a careful manner, tagging text with styles rather than using
+                formatting overrides. This enabled a conversion vendor to convert most of the book
+                from Word to XML semi-automatically. Some cleanup of the markup is inevitable
+                because of the ambiguity created when the source markup with Word styles is less
+                granular than the target markup in XML. We do not know whether the amount of work
+                left for us was atypical.</p><p>Nevertheless, waiting until the book was substantially finished to convert to XML
+                meant that we were also deferring the effort to mark up the text with cross
+                references, glossary terms, and index entries, because these types of content were
+                not included in the Word authoring templates and style sheets. As a result, a
+                substantial amount of effort has been required of our copy and markup editor that
+                could have been done by chapter editors if they had authored natively in XML.
+                However, having a single markup editor has given this book a more consistent and
+                complete glossary and index than would be have possible with multiple
+                authors.</p><p><span class="bold"><strong>OTHER CONSIDERATIONS.</strong></span> Our ambitious effort to use
+                tagged endnotes to create a book that could meet the needs of different courses and
+                academic programs is a bit ahead of its time, because the current generation of
+                ebook readers cannot do it justice. We are working on a next-generation ebook
+                application that can create a vastly more engaging and integrated reader experience
+                with the tagged endnotes. Instead of requiring the reader to follow a hypertext
+                link, our ebook application will present selectable icons that dynamically
+                transclude the endnote text into the core text. Furthermore, we are making the set
+                of endnote types completely extensible. In addition to the six types that occur in
+                the book as first published, any instructor or institution will be able to can
+                create other endnote types to meet new requirements for customization.</p><p>This design for a book challenges conventional definitions of book editions and
+                forces us to imagine new ways to acknowledge collaborative authorship. But asking
+                “What is <em class="citetitle">The Discipline of Organizing</em> given these new
+                authoring and publishing models is a similar question to the one asked in 
+                <a class="xref" href="ch03.html" title="Chapter 3. Resources in Organizing Systems">Chapter 3</a>,
+                “What is <em class="citetitle">Macbeth</em>?” </p></div><div class="sect2" title="Your Own Case Study Goes Here"><div class="titlepage"><div><div><h3 class="title" id="section-10.7.5">Your Own Case Study Goes Here</h3></div></div></div><p>We have reached the end of this book, but we are just at the beginning of
+                    <em class="citetitle">The Discipline Of Organizing</em>. We hope that we have
+                demonstrated why thinking of the art and science of organizing in a more abstract
+                way can enable communication and cooperation across the numerous disciplines that
+                are concerned with organizing, especially library and information science, computer
+                science, informatics, law, economics, and business. Instead of just appropriating
+                concepts and methods from these fields, we have tried to unify them, filling in the
+                gaps between their complementary perspectives to yield a more comprehensive and
+                generative understanding of how they fit together.</p><p>Now it is your turn. Perhaps you have a job in one of the fields we have brought
+                together that involves organizing resources of one type or another. After reading
+                this book, you surely won’t approach that work the same way you did before. You will
+                be able to apply the design patterns and principles of <em class="citetitle">The Discipline of
+                    Organizing</em> to make your existing organizing systems more capable,
+                and will be able to create entirely new ones that fill the white space between the
+                traditional categories.</p><p>If you’re reading this book in its printed edition, this is <a class="xref" href="ch10.html#section-10.7.5" title="Your Own Case Study Goes Here">Your Own Case Study Goes Here</a>, which follows four case studies that were in the
+                book when it was first published. If you’re reading this as an ebook, it might be
+                section 10.7.7 or even 10.7.70. We encourage people who read this book to contribute
+                their own case studies at <a class="ulink" href="http://DisciplineOfOrganizing.org" target="_top"><code class="uri">DisciplineOfOrganizing.org</code></a>, and we expect to incorporate
+                the most interesting and entertaining ones into this collection.</p></div></div><div class="sect1" title="Key Points in Chapter Ten"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-10.8">Key Points in Chapter Ten</h2></div></div></div><div class="highlights"><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem"><p>Most of the specific decisions that must be made for an organizing system
+                        are strongly shaped by the initial decisions about its domain, scope, and
+                        scale.</p></li><li class="listitem"><p>The impact of broad scope arises more from the heterogeneity of the
+                        resources and users in a collection rather than from their absolute
+                        number.</p></li><li class="listitem"><p>Larger collections need more people to organize and maintain them,
+                        creating communication and coordination problems that grow much faster than
+                        the collection.</p></li><li class="listitem"><p>The best way to prevent problems of scope and scale is through
+                        standardization.</p></li><li class="listitem"><p>Organizing systems in the same domain and with nominally the same scope
+                        can differ substantially in the resources they contain and the interactions
+                        they support if they have different categories of users.</p></li><li class="listitem"><p>For most organizing systems other than personal ones, the set of
+                        interactions that are implemented in an organizing system is strongly
+                        determined by economic factors.</p></li><li class="listitem"><p>An essential requirement in every organizing system is ensuring that the
+                        supported interactions can be discovered and invoked by their intended
+                        users.</p></li><li class="listitem"><p>Automated and computerized processes can create the resource descriptions
+                        in an organizing system and their use is primarily driven by scale.</p></li><li class="listitem"><p>Organizing principles depend on resource descriptions, so requirements for
+                        the former are always intertwined with those for the latter.</p></li><li class="listitem"><p>Larger resource collections usually require multiple organizing principles
+                        to manage the complexity that emerges when more users and more varied
+                        interactions must be supported.</p></li><li class="listitem"><p>Overly customized and inflexible resource descriptions or arrangements
+                        cannot easily accommodate the future growth of the collection.</p></li><li class="listitem"><p>Architectural thinking leads to more modularity and abstraction in design,
+                        making it easier to change an implementation to satisfy new requirements or
+                        to take advantage of new technologies or procedures.</p></li><li class="listitem"><p>The cost, quality, consistency, completeness, and semantic richness of
+                        resource descriptions depends on the mix of human or computational agents
+                        that create them.</p></li><li class="listitem"><p>The most predictable maintenance activities for an organizing system with
+                        an expected long lifetime are incremental changes in description
+                        vocabularies and classification schemes.</p></li><li class="listitem"><p>Another very predictable type of activity over time with organizing
+                        systems is a technology upgrade that improves its quality or capabilities
+                        without affecting the organizing principles.</p></li><li class="listitem"><p>The most challenging kinds of maintenance activities for organizing
+                        systems involve changes to the principles for arranging resources along with
+                        changes in the implementing technology.</p></li><li class="listitem"><p>Now it is your turn to put <em class="citetitle">The Discipline of
+                            Organizing</em> into practice; maybe develop your own case
+                        study.</p></li><li class="listitem"><p>There is much more... at <a class="ulink" href="http://DisciplineOfOrganizing.org" target="_top"><code class="uri">DisciplineOfOrganizing.org</code></a></p></li></ul></div></div></div><div class="footnotes" epub:type="footnotes"><br/><hr style="width: 100; align: left;"/><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-1"><p><sup>[<a href="#chapter-10-endnote-1" class="para">543</a>] </sup>[Computing] <a id="id670104" class="indexterm"/>For some kinds of resources with highly regular structure, the
+                        distinction between the resource and its description is a bit arbitrary. A
+                        transactional document like a payment contains at its core a specification
+                        of the amount paid, which we could consider the payment resource.
+                        Information about the payer, the payee, the reason for the payment, and
+                        other essential information might be viewed as descriptions of the payment
+                        resource. In a payment or financial management system, the entire document
+                        might be treated as the resource.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-2"><p><sup>[<a href="#chapter-10-endnote-2" class="para">544</a>] </sup>[Computing] <a id="id670214" class="indexterm"/><a id="id670091" class="indexterm"/>The results of this analysis can be represented in a conceptual
+                        model or document /database schema that can guide the automated creation of
+                        the resource instances and their descriptions (<a class="xref" href="ch04.html#section-4.3.1.2" title="Abstraction in Resource Description">Abstraction in Resource Description</a>). Furthermore, these
+                        models or schemas can also be used in “model-based” or “model-driven”
+                        architectures to generate much of the software that implements the
+                        functionality to store the instances and interchange them with other
+                        information systems; “imagine if the construction worker could take his
+                        blueprint, crank it through a machine, and have the foundation for the
+                        building simply appear.” Quote comes from <a class="link" href="bi01.html#Miller2003" title="MDA Guide Version 1.0.1"><a id="cite_Miller2003"/>(Miller and Mukerji 2003)</a>. See also <a class="link" href="bi01.html#Kleppe2003" title="MDA Explained: The Model Driven Architecture: Practice and Promise"><a id="cite_Kleppe2003"/>(Kleppe, Warmer, and Bast
+                            2003)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-3"><p><sup>[<a href="#chapter-10-endnote-3" class="para">545</a>] </sup>[Computing] See <a class="link" href="bi01.html#Chen2010" title="“Research on the Theory of Customer-Oriented E-Catalog Ontology Automatic Construction”"><a id="cite_Chen2010"/>(Chen, Li,
+                            Liang, and Zhang 2010)</a>, <a class="link" href="bi01.html#Pohs2013" title="“Building a taxonomy for auto-classification”"><a id="cite_Pohs2013"/>(Pohs 2013)</a>.</p></div><div class="footnote" id="ftn.chapter-10-endnote-4"><p><sup>[<a href="#chapter-10-endnote-4" class="para">546</a>] </sup>[Citation] See
+                        <a class="ulink" href="http://autos.ca.msn.com/editors-picks/the-worlds-biggest-car-collectors" target="_top"><code class="uri">http://autos.ca.msn.com/editors-picks/the-worlds-biggest-car-collectors</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-5"><p><sup>[<a href="#chapter-10-endnote-5" class="para">547</a>] </sup>[Computing] <a id="id670429" class="indexterm"/><a id="id670436" class="indexterm"/>Model-driven software generation can be simple – an XFORM
+                        specification that creates an input form on a web page. Or it can be
+                        complex, a detailed architectural specification in UML sufficient to
+                        generate a complete application.</p></div><div class="footnote" id="ftn.chapter-10-endnote-6"><p><sup>[<a href="#chapter-10-endnote-6" class="para">548</a>] </sup>[Citation] Compare <a class="ulink" href="http://www.cdc.gov/philc" target="_top">www.cdc.gov/philc</a> and <a class="ulink" href="http://www.webmd.com" target="_top">www.webmd.com</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-7"><p><sup>[<a href="#chapter-10-endnote-7" class="para">549</a>] </sup>[Citation] <a id="id670726" class="indexterm"/>Service design, architecture, and user interaction design are
+                        the primary disciplines that care about the influence of layout and spatial
+                        arrangement on user interaction behavior and satisfaction. One type of
+                        physical framework is the “Servicescape” <a class="link" href="bi01.html#Bitner1992" title="“Servicescapes: The impact of physical surroundings on customers and employees”"><a id="cite_Bitner1992"/>(Bitner 1992)</a>, defined as the description of
+                        the man-made physical context in which services are delivered. For example,
+                        the arrangement of waiting lines in banks, supermarkets, and post offices or
+                        the use of centrally-visible “take a number” systems strongly influence the
+                        encounters in service systems <a class="link" href="bi01.html#Zhou2003" title="“Looking Back : Exploring the Psychology of Queuing and the Effect of the Number of People Behind”"><a id="cite_Zhou2003"/>(Zhou and Soman 2003)</a>. Related concepts for describing the use
+                        of features and orienting mechanisms in “the built environment” come from
+                        the “Wayfinding” <a class="link" href="bi01.html#Arthur1992" title="Wayfinding: People, Signs and Architecture"><a id="cite_Arthur1992"/>(Arthur and
+                            Passini 1992)</a> literature in urban planning and
+                        architecture.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-8"><p><sup>[<a href="#chapter-10-endnote-8" class="para">550</a>] </sup>[Citation] <a id="id671155" class="indexterm"/>An easy to remember framework for prioritizing requirements is
+                    MoSCoW, which classifies them as Must, Should, Could, and Won’t <a class="link" href="bi01.html#Desoky2010" title="MoSCoW Prioritisation"><a id="cite_Desoky2010"/>(Desoky 2010)</a>. <a class="link" href="bi01.html#Winkler2010" title="“A survey of traceability in requirements engineering and model-driven development”"><a id="cite_Winkler2010"/>(Winkler and Pilgrim
+                        2010)</a> is a comprehensive review of academic research and best
+                    practices for requirements traceability.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-9"><p><sup>[<a href="#chapter-10-endnote-9" class="para">551</a>] </sup>[Business] <a id="id671291" class="indexterm"/><a id="id671297" class="indexterm"/>“Customer segments” or “customer models” are well-established
+                        constructs in product and service marketing and operations <a class="link" href="bi01.html#Batt2000" title="“Strategic Segmentation in Frontline Services: Matching Customers, Employees, and Human Resource Systems”"><a id="cite_Batt2000"/>(Batt 2000)</a>
+                        <a class="link" href="bi01.html#Zeithami2001" title="“Customer Pyramid: Creating and Serving Profitable Customers”"><a id="cite_Zeithami2001"/>(Zeithami, Rust, and
+                            Lemon 2001)</a>. They are key parts of strategies for acquiring
+                        customers, increasing market share, and retaining customers. Customer
+                        segments can be identified using numerous overlapping criteria, including
+                        demographic variables, product or behavior choices, and preferred
+                        interaction locations or channels. For example, an airline might segment its
+                        customers according to their age, gender, home airport, ticketing class, and
+                        travel frequency.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-10"><p><sup>[<a href="#chapter-10-endnote-10" class="para">552</a>] </sup>[LIS] <a id="id671328" class="indexterm"/><a id="id671333" class="indexterm"/>Funding cuts for public libraries lead to reduced staffing,
+                        reduced hours, and reduced acquisitions and many of them serve populations
+                        facing economic challenges of their own. <a class="link" href="bi01.html#Johnson2010" title="“U.S. public libraries: We lose them at our peril”"><a id="cite_Johnson2010"/>(Johnson 2010)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-11"><p><sup>[<a href="#chapter-10-endnote-11" class="para">553</a>] </sup>[Business] <a id="id671466" class="indexterm"/><a id="id671396" class="indexterm"/>Organizing systems differ in the extent they can initiate
+                        interactions or use information to make them unnecessary. In libraries the
+                        organizing systems are typically designed not to preserve user activity
+                        records longer than absolutely necessary; in commercial organizing systems,
+                        user activity records are the basis of business processes that create highly
+                        detailed user models (called <span class="quote">“<span class="quote">microsegments</span>”</span> or <span class="quote">“<span class="quote">microcategories</span>”</span>) that
+                        enable personalized catalogs and ad placement with targeted product and
+                        service offerings. See <a class="link" href="bi01.html#Taylor2007" title="Smart (Enough) Systems: How to Deliver Competitive Advantage by Automating Hidden Decisions"><a id="cite_Taylor2007"/>(Taylor and Raden 2007)</a>, <a class="link" href="bi01.html#Rosen2012" title="“Who Do Online Advertisers Think You Are?”"><a id="cite_Rosen2012"/>(Rosen 2012)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-12"><p><sup>[<a href="#chapter-10-endnote-12" class="para">554</a>] </sup>[LIS] <a id="id671519" class="indexterm"/>The Dublin Core was proposed in 1995 as a small vocabulary with
+                        15 common elements that could be broadly applied. The emergence of many
+                        specialized derivatives of the Dublin Core since then illustrates the
+                        inherent tension between the simplicity of using a small set of common
+                        descriptive elements and the precision enabled by a large or more domain
+                        specific vocabulary.</p></div><div class="footnote" id="ftn.chapter-10-endnote-13"><p><sup>[<a href="#chapter-10-endnote-13" class="para">555</a>] </sup>[LIS] <a class="link" href="bi01.html#Register2012" title="The Metadata Handbook: A Book Publisher’s Guide to Creating and Distributing Metadata for Print and Ebooks"><a id="cite_Register2012"/>(Register and
+                        McIlroy 2012)</a> <a class="ulink" href="http://themetadatahandbook.com/" target="_top"><code class="uri">http://themetadatahandbook.com/</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-14"><p><sup>[<a href="#chapter-10-endnote-14" class="para">556</a>] </sup>[Business] For example, we have often used a home kitchen as a setting for
+                        organizing systems. Suppose the home kitchen is to be used as the set for a
+                        cooking show and the designers want to arrange cookbooks to make the
+                        background visually pleasing. It seems unreasonable to expect that they
+                        could search a catalog of cookbooks on the basis of size and spine color
+                        because these additional descriptive elements are of little value to users
+                        who are not designers of sets for cooking shows.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-15"><p><sup>[<a href="#chapter-10-endnote-15" class="para">557</a>] </sup>[LIS] <a id="id671968" class="indexterm"/><a id="id671843" class="indexterm"/><a id="id671975" class="indexterm"/><a id="id671980" class="indexterm"/><a id="id671984" class="indexterm"/><a id="id671860" class="indexterm"/><a id="id671864" class="indexterm"/><a id="id671878" class="indexterm"/><a id="id671882" class="indexterm"/><a id="id671887" class="indexterm"/><a id="id671892" class="indexterm"/><a id="id671902" class="indexterm"/>The category of special libraries includes law libraries,
+                        corporate libraries – both those that support the head office and the
+                        research organization, medical libraries, military libraries, museum
+                        libraries, prison libraries, and might even be stretched to include
+                        libraries of software components.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-16"><p><sup>[<a href="#chapter-10-endnote-16" class="para">558</a>] </sup>[Business] <a id="id672045" class="indexterm"/><a id="id672052" class="indexterm"/>Some people call this the “Walmart” approach to standardization.
+                        A firm with dominant market power does not need to negotiate standards
+                        because it can impose whatever standards it chooses on its partners as a
+                        condition of doing business with them. When there are conflicting
+                        requirements, different relationships within the set of participants trying
+                        to reach agreement, and different extents to which they are subject to the
+                        authority behind the desired agreement, it is not surprising that approaches
+                        “that require perfect coordination and altruism are of no practical
+                        interest” <a class="link" href="bi01.html#Rosenthal2004" title="“From semantic integration to semantics management: case studies and a way forward”"><a id="cite_Rosenthal2004-10.4.4"/> (Rosenthal et al. 2004, p 47)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-18"><p><sup>[<a href="#chapter-10-endnote-18" class="para">559</a>] </sup>[Computing] <a id="id672395" class="indexterm"/><a id="id672380" class="indexterm"/>Note that this definition doesn’t include any specific size
+                        threshold, such as some number of terabytes (thousands of gigabytes). This
+                        allows the threshold size that makes a collection a big data one to increase
+                        as storage technology advances. It also recognizes that different industries
+                        or domains have different thresholds <a class="link" href="bi01.html#Manyika2011" title="“Big data: The next frontier for innovation, competition, and productivity”"><a id="cite_Manyika_10.5.2"/> (Manyika et al 2011)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-17"><p><sup>[<a href="#chapter-10-endnote-17" class="para">560</a>] </sup>[Citation] The history of the collection and the legal battle are
+                            described in <a class="link" href="bi01.html#Anderson2003" title="Art Held Hostage: The Battle over the Barnes Collection"><a id="cite_Anderson2003"/>(Anderson 2003)</a>. A documentary film with a conspiracy
+                            perspective is <a class="link" href="bi01.html#Argott2009" title="The Art of the Steal"><a id="cite_Argott2009"/>(Argott
+                                2009)</a>. See also BarnesFoundation.org.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-19"><p><sup>[<a href="#chapter-10-endnote-19" class="para">561</a>] </sup>[LIS] See <a class="link" href="bi01.html#Sandler2006" title="“Collection Development in the Age Day of Google”"><a id="cite_Sandler2006-10.1"/>(Sandler
+                            2006)</a>, <a class="link" href="bi01.html#Freeman2005" title="Library as Place: Rethinking Roles, Rethinking Space"><a id="cite_Freeman2005"/>(Freeman
+                            et al. 2005)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-20"><p><sup>[<a href="#chapter-10-endnote-20" class="para">562</a>] </sup>[Computing] <a id="id673012" class="indexterm"/>No classification scheme ever devised is as unstable as the
+                            <abbr class="abbrev">ACM</abbr>’s because new computing concepts, technologies, and
+                        application areas are constantly emerging. Even the society’s name seems
+                        outdated.</p></div><div class="footnote" id="ftn.chapter-10-endnote-21"><p><sup>[<a href="#chapter-10-endnote-21" class="para">563</a>] </sup>[Computing] <a id="id673079" class="indexterm"/><a id="id673084" class="indexterm"/>For a formal computer science treatment of BPEL see <a class="link" href="bi01.html#Fu2004" title="“Analysis of interacting BPEL web services”"><a id="cite_Fu2004"/>(Fu, Bultan, and Su 2004)</a>; for
+                        a commercial perspective see
+                        <a class="ulink" href="http://www.oracle.com/technetwork/middleware/bpel/overview/index.html" target="_top"><code class="uri">http://www.oracle.com/technetwork/middleware/bpel/overview/index.html</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-22"><p><sup>[<a href="#chapter-10-endnote-22" class="para">564</a>] </sup>[Computing] <a id="id673201" class="indexterm"/><a id="id673142" class="indexterm"/>This means that the organizing systems used by business
+                        applications more often employ configuration management, version control,
+                        model-based code generation, and other computing techniques that robustly
+                        support the need for qualitative changes in the organizing systems.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-23"><p><sup>[<a href="#chapter-10-endnote-23" class="para">565</a>] </sup>[Citation] <a class="link" href="bi01.html#Barta2009" title="“Shifting the Right of Way to the Left Leaves Some Samoans Feeling Wronged”"><a id="cite_Barta2009"/>(Barta
+                                2009)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-24"><p><sup>[<a href="#chapter-10-endnote-24" class="para">566</a>] </sup>[Citation] <a class="link" href="bi01.html#Ctein2010" title="Digital Restoration from Start to Finish: How to Repair Old and Damaged Photographs"><a id="cite_Ctein2010"/>(Ctein
+                            2010)</a> and <a class="link" href="bi01.html#Taylor2010" title="Preserving Your Family Photographs"><a id="cite_Taylor2010"/>(Taylor
+                            2010)</a> are popular guides for photo digitization and
+                        restoration.</p></div><div class="footnote" id="ftn.chapter-10-endnote-25"><p><sup>[<a href="#chapter-10-endnote-25" class="para">567</a>] </sup>[Citation] For example, <a class="ulink" href="http://web.appstorm.net/roundups/media-roundups/top-20-photo-storage-and-sharing-sites/" target="_top"><code class="uri">http://web.appstorm.net/roundups/media-roundups/top-20-photo-storage-and-sharing-sites/</code></a>
+                        reviews 20 photo storage and sharing sites and <a class="ulink" href="http://photo-book-review.toptenreviews.com/" target="_top"><code class="uri">http://photo-book-review.toptenreviews.com/</code></a>
+                        compares 10 sites for creating printed albums from digital photos in case
+                        you want to “round trip” from Grandpa’s photos and print photo books for
+                        family members.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-26"><p><sup>[<a href="#chapter-10-endnote-26" class="para">568</a>] </sup>[Law] <a id="id673609" class="indexterm"/><a class="link" href="bi01.html#Herbst2009" title="“Death in cyberspace”"><a id="cite_Herbst2009"/>(Herbst
+                            2009)</a> is a thoughtful legal primer on the novel property,
+                        jurisdiction, and terms of service complexities in gaining access to
+                        accounts of deceased people. A popular treatment about what has come to be
+                        called the “digital afterlife” is <a class="link" href="bi01.html#Carroll2010" title="Your Digital Afterlife: When Facebook, Flickr, and Twitter Are Your Estate, What’s Your Legacy?"><a id="cite_Carroll2010"/>(Carroll and Romano 2011)</a>.</p></div><div class="footnote" id="ftn.chapter-10-endnote-27"><p><sup>[<a href="#chapter-10-endnote-27" class="para">569</a>] </sup>[Citation] <a class="ulink" href="http://www.spo.berkeley.edu/guide/consultquick.html" target="_top"><code class="uri">http://www.spo.berkeley.edu/guide/consultquick.html</code></a>
+                        is an example of such a policy. Indeed, it is because of rules like these
+                        that the professor determined he needed to take a leave of absence from the
+                        university.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-28"><p><sup>[<a href="#chapter-10-endnote-28" class="para">570</a>] </sup>[Business] <a id="id673769" class="indexterm"/><a id="id673781" class="indexterm"/>For a high-level theoretical framework about capturing value
+                        from knowledge assets see <a class="link" href="bi01.html#Teece1998" title="“Capturing Value from Knowledge Assets: The New Economy, Markets for Know-how, and Intangible Assets”"><a id="cite_Teece1998"/>(Teece 1998)</a>; for a detailed case study see <a class="link" href="bi01.html#Goodwin2012" title="“Effective Content Reuse for Business Consulting Practices”"><a id="cite_Goodwin2012"/>(Goodwin et al.
+                        2012)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-29"><p><sup>[<a href="#chapter-10-endnote-29" class="para">571</a>] </sup>[Citation] <a class="link" href="bi01.html#Poole2010" title="“A taxonomy of Wiki genres in enterprise settings”"><a id="cite_Poole2010"/>(Poole and Grudin
+                            2010)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-30"><p><sup>[<a href="#chapter-10-endnote-30" class="para">572</a>] </sup>[Citation] <a id="id673929" class="indexterm"/>
+                        <a class="link" href="bi01.html#Hansen2009" title="Collaboration: How leaders avoid the traps, build common ground, and reap big results."><a id="cite_Hansen2009"/>(Hansen 2009)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-31"><p><sup>[<a href="#chapter-10-endnote-31" class="para">573</a>] </sup>[Citation] <a class="link" href="bi01.html#Wakabayashi2011" title="“Japanese Farms Look to the ‘Cloud’”"><a id="cite_Wakabayashi2011"/>(Wakabayashi 2011)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-32"><p><sup>[<a href="#chapter-10-endnote-32" class="para">574</a>] </sup>[Business] <a id="id674030" class="indexterm"/><a class="link" href="bi01.html#Hori2010" title="“Application of Cloud Computing to Agriculture and Prospects in Other Fields”"><a id="cite_Hori2010"/>(Hori, Kawashima,
+                            and Yamazaki 2010)</a>. Fujitsu expects that the system will
+                        eventually integrate business management functions, production history, and
+                        operational support for best practices.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-33"><p><sup>[<a href="#chapter-10-endnote-33" class="para">575</a>] </sup>[Citation] <a id="id674171" class="indexterm"/>
+                        <a id="id674178" class="indexterm"/>See<a class="link" href="bi01.html#Burrell2004" title="“Vineyard Computing: Sensor Networks in Agricultural Production”"><a id="cite_Burrell2004"/> (Burrell,
+                            Brooke, and Beckwith 2004)</a> for a study of the use of sensor
+                        networks in Oregon vineyards.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-34"><p><sup>[<a href="#chapter-10-endnote-34" class="para">576</a>] </sup>[Citation] <a class="link" href="bi01.html#Tagliabue2012" title="“Swiss Cows Send Texts to Announce They’re in Heat”"><a id="cite_Tagliabue2012"/>(Tagliabue 2012)</a>. 
+                        We cannot resist describing this as <span class="quote">“<span class="quote">sexting</span>”</span>
+                        by cows.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-35"><p><sup>[<a href="#chapter-10-endnote-35" class="para">577</a>] </sup>[Citation] ] <a class="link" href="bi01.html#Wilde2007" title="“Presenting in HTML”"><a id="cite_Wilde2007"/>(Wilde and
+                            Catin 2007)</a>. Looking back it seems ironic to start with a
+                        single-source XML publishing system, abandon it to author the book in Word,
+                        and then convert the files Word back to XML to enable single-source
+                        publishing.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-10-endnote-36"><p><sup>[<a href="#chapter-10-endnote-36" class="para">578</a>] </sup>[Citation] ] <a id="id674388" class="indexterm"/><a id="id674393" class="indexterm"/><a class="link" href="bi01.html#Kimber2012" title="DITA for Practitioners Volume 1: Architecture and Technology"><a id="cite_Kimber2012"/>(Kimber
+                            2012)</a> seems destined to become the definitive resource for
+                        DITA-based publishing. The definitive source for DocBook has long been <a class="link" href="bi01.html#Walsh2010" title="DocBook 5: The Definitive Guide"><a id="cite_Walsh2010-10.1"/>(Walsh 2010)</a>.</p></div></div></section></body></html>

@@ -1,0 +1,1262 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:pls="http://www.w3.org/2005/01/pronunciation-lexicon" xmlns:ssml="http://www.w3.org/2001/10/synthesis" xmlns:svg="http://www.w3.org/2000/svg"><head><title>Chapter 9. Interactions with Resources</title><link rel="stylesheet" type="text/css" href="core.css"/><meta name="generator" content="DocBook XSL Stylesheets V1.76.1"/><meta name="keywords" content="interactions, effectivity, precision, accuracy, text processing, vocabulary problem, machine learning, term frequency, precision, recall"/><meta name="keywords" content="organizing, information, resources, metadata, resource description"/><link rel="up" href="index.html" title="The Discipline of Organizing"/><link rel="prev" href="ch08.html" title="Chapter 8. The Forms of Resource Descriptions"/><link rel="next" href="ch10.html" title="Chapter 10. The Organizing System Roadmap"/></head><body><section class="chapter" title="Chapter 9. Interactions with Resources" epub:type="chapter" id="chapter-9"><div class="titlepage"><div><div><h2 class="title">Chapter 9. Interactions with Resources</h2></div><div><div class="author"><h3 class="author"><span class="firstname">Vivien</span> <span class="surname">Petras</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">Robert</span> <span class="othername">J.</span> <span class="surname">Glushko</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">Karen</span> <span class="othername">Joy</span> <span class="surname">Nomorosa</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">J.J.M.</span> <span class="surname">Ekaterin</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">Hyunwoo</span> <span class="surname">Park</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">Sean</span> <span class="surname">Marimpietri</span></h3></div></div></div></div><div class="sect1" title="Introduction"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.1">Introduction</h2></div></div></div><p>Once our resources have been described and are suitably organized, we can focus our
+            attention on the third main activity we outlined in <a class="xref" href="ch02.html" title="Chapter 2. Activities in Organizing Systems">Chapter 2</a>:
+            designing resource-based interactions. What kinds of interactions do we encounter and
+            what interactions are needed in <a class="glossterm" href="go01.html#gloss_organizing_system"><em class="glossterm">Organizing
+                Systems</em></a>?</p><p>The interactions necessary to select, describe, and organize resources were discussed
+            in <a class="xref" href="ch02.html" title="Chapter 2. Activities in Organizing Systems">Chapter 2</a>, <a class="xref" href="ch04.html" title="Chapter 4. Resource Description and Metadata">Chapter 4</a>, and <a class="xref" href="ch06.html" title="Chapter 6. Categorization: Describing Resource Classes and Types">Chapter 6</a> and we do not
+            need to consider them again in this chapter. Furthermore, while it is crucial to
+            understand all interactions that are possible within an organizing system context, this
+            chapter will concentrate on interactions that are purposefully designed into them rather
+            than those that arise naturally from the affordances of the resources (<a class="xref" href="ch02.html#section-2.4.1" title="Affordance and Capability">Affordance and Capability</a>).</p><p>Implementing designed interactions depends on a careful analysis of requirements and
+            resource properties. More interactions might make a system more capable, but not always,
+            and they might make it more complicated to maintain. For example, if a library provides
+            an access interaction for users by giving them direct access to the stacks, it is not
+            necessary to provide personnel to retrieve the books for users, but books might get lost
+            or misplaced. <a id="id661752" class="indexterm"/> In other words, it is important to consider the tradeoffs that arise from
+            any interaction you might implement.</p><p>Initially, we will look at several organizing system environments and some of their
+            main designed interactions. Although resources and their descriptions might be
+            different, it turns out that similar interactions occur 
+            in every organizing system<span class="symbol">—</span>just in different implementations.</p><div class="sect2" title="Interactions in Libraries"><div class="titlepage"><div><div><h3 class="title" id="section-9.1.1">Interactions in Libraries</h3></div></div></div><p><span>The main interaction supported by most libraries is
+                        <span class="action">borrowing</span>.</span> Library resources are checked out by
+                their users; i.e., books are accessed and taken from the library by patrons.
+                Libraries buy and describe books so that they can be found by patrons and borrowed.
+                When you need to find a book on a certain topic, by a certain author, or with a
+                certain title, you access the resource descriptions in the library catalog to search
+                for resources that satisfy your requirement. You then access the resource directly,
+                or ask a librarian to retrieve the resource for you. A <span class="action">check-out</span>
+                interaction leaves a record of the resource identifier, the borrower identifier, and
+                the <a class="glossterm" href="go01.html#gloss_effectivity"><em class="glossterm">effectivity</em></a> dates of the loan.</p><p>Library catalogs offer a <span class="action">search</span> interaction to enable queries
+                about particular fields in resource descriptions like <span class="quote">“<span class="quote">author</span>”</span> or
+                    <span class="quote">“<span class="quote">title.</span>”</span> Finding a description record for a book in a library
+                catalog usually means that the book is owned by the library and that it can be
+                borrowed.</p><p><a id="id661803" class="indexterm"/>A much more powerful search interaction is enabled by a union catalog
+                (e.g., <abbr class="abbrev">OCLC’s</abbr>
+                <span class="application">Worldcat</span>), where resource descriptions from multiple
+                libraries are merged before they are offered for search. Union catalogs allow
+                patrons to find out with a single search whether a resource is available from any
+                library that is accessible to them.<sup>[<a id="chapter-9-endnote-01" href="#ftn.chapter-9-endnote-01" class="footnote">495</a>]</sup></p></div><div class="sect2" title="Interactions in Museums"><div class="titlepage"><div><div><h3 class="title" id="section-9.1.2">Interactions in Museums</h3></div></div></div><p>In contrast to libraries, visitors to museums interact with resources mostly
+                    <span class="emphasis"><em>to look</em></span> at them rather than by borrowing them. Museums
+                enable people to discover or experience resources by <span class="emphasis"><em>exhibiting</em></span>
+                artifacts in creative contexts. When museums implement this interaction in a
+                website, visitors are not only able to discover what is presented to them by the
+                museum curators; they can also interact with resources in new ways. Virtual
+                collections enable patrons who are unable to visit remote museums to search and view
+                their resources. Patrons who intend to visit museums can direct their searches to
+                locate resources that are not currently on view.</p><p><a id="id661913" class="indexterm"/>The digitization of museum resources also allows visitors to experience
+                them from a perspective that might not be possible in a physical museum. For
+                example, in Google’s Art Project users can zoom in to view fine details of digitized
+                    paintings.<sup>[<a id="chapter-9-endnote-02" href="#ftn.chapter-9-endnote-02" epub:type="noteref" class="footnote">496</a>]</sup> Museums are starting to leverage technology and the popularity of Web
+                2.0 features such as tagging and social networking in order to attract new
+                    audiences.<sup>[<a id="chapter-9-endnote-03" href="#ftn.chapter-9-endnote-03" epub:type="noteref" class="footnote">497</a>]</sup> Implemented in 2004, the <span class="orgname">MuseumFinland</span> project aims
+                to provide a portal for publishing heterogeneous museum collections on the semantic
+                    web.<sup>[<a id="chapter-9-endnote-04" href="#ftn.chapter-9-endnote-04" epub:type="noteref" class="footnote">498</a>]</sup> Institutions such as the <a id="id662024" class="indexterm"/><span class="orgname">Getty Information Institute</span> and the
+                    <span class="orgname">International Committee for Documentation of the International Council
+                    of Museums</span> have worked on standards that ensure worldwide consistency
+                in how museums manage information about their collections.<sup>[<a id="chapter-9-endnote-05" href="#ftn.chapter-9-endnote-05" epub:type="noteref" class="footnote">499</a>]</sup></p></div><div class="sect2" title="Interactions in Retail Supply Chains"><div class="titlepage"><div><div><h3 class="title" id="section-9.1.3">Interactions in Retail Supply Chains</h3></div></div></div><p><a id="id662107" class="indexterm"/><a id="id662114" class="indexterm"/><a id="id662118" class="indexterm"/><span class="orgname">Walmart</span> is the largest retailer in the US. It works
+                to streamline its operations and maximize business intelligence in order to have a
+                supply chain that brings products that customers want to the store when it is
+                needed. The most important interactions in the <span class="orgname">Walmart</span> organizing
+                system are those that manage the access and movement of physical goods efficiently
+                and effectively. This lowers costs in terms of distribution and inventory management
+                and serves to meet customer expectations at the same time.
+                    <span class="orgname">Walmart</span> pushed for the use of technology such as the bar code
+                and <abbr class="abbrev">RFID</abbr> and required suppliers to comply with company-set
+                standards, which allows them to keep track of the products that they sell,
+                regardless of which manufacturer or supplier the product comes from. All information
+                exchanges use an <em class="firstterm"><a id="first_EDI"/><span class="citerefentry"><span class="refentrytitle">Electronic Data Interchange</span>(EDI)</span></em> format employing a data model that
+                    <span class="orgname">Walmart</span> specifies and requires, which then enables the
+                company to push information from individual stores to warehouses and suppliers,
+                enabling efficient stocking and ordering processes.<sup>[<a id="chapter-9-endnote-06" href="#ftn.chapter-9-endnote-06" class="footnote">500</a>]</sup></p></div><div class="sect2" title="Interactions in Online Retail Stores"><div class="titlepage"><div><div><h3 class="title" id="section-9.1.4">Interactions in Online Retail Stores</h3></div></div></div><p><a id="id662270" class="indexterm"/>Buying a coat from the online retail store
+                    <span class="application">Shopstyle.com</span> requires the shopper to choose the
+                appropriate shopping category from the homepage (<span class="quote">“<span class="quote">clothing,</span>”</span>
+                subcategory <span class="quote">“<span class="quote">outerwear</span>”</span>) and then select a coat from hundreds of
+                choices that are offered in the category. Once a desired coat is selected,
+                    <span class="orgname">Shopstyle</span> redirects the shopper to another online shopping
+                site<span class="symbol">—</span><span class="orgname">Nordstrom</span>, <span class="orgname">Neiman Marcus</span>, <span class="orgname">Lord &amp;
+                    Taylor</span>, and so on<span class="symbol">—</span>where the actual sale
+                happens. <span class="application">Shopstyle.com</span> aggregates different catalogs from
+                over 250 online stores providing a seamless access interaction for shoppers, as if
+                they were searching only one organizing system. So rather than moving physical
+                resources like <span class="orgname">Walmart</span>, <span class="application">Shopstyle</span>’s
+                most important interactions involve moving and combining digital resource
+                descriptions.</p><p>As we have seen in these four examples (and others), accessing and merging
+                resources or resource descriptions<span class="symbol">—</span>whether physically or
+                digitally<span class="symbol">—</span>are fundamental interactions that occur in almost
+                every organizing system. Combining resources or resource descriptions poses numerous
+                strategy, design and implementation challenges as producers often use different
+                identifiers, descriptions or cataloging formats and practices for similar resources.
+                Different service providers use different technologies, have different information
+                policies, and follow different processes developed in their organizing systems. Some
+                partners can exert power and determine description standards (e.g.
+                    <span class="orgname">Walmart</span>), others have to adapt to whatever their counterparts
+                develop (e.g. <span class="orgname">Shopstyle</span>), and still others choose to abide by
+                what a standard-setting body decides.<sup>[<a id="chapter-9-endnote-07" href="#ftn.chapter-9-endnote-07" class="footnote">501</a>]</sup> Elsewhere, a laborious democratic process has to be started in order to
+                align organizing practices and interactions (e.g. museums and libraries).</p><p>How can these differences be handled in order to provide seamless interactions
+                within and across organizing systems? Which requirements have to be met in order to
+                provide the interactions that are desired? How are different interaction types
+                implemented? Finally, how can the quality of interactions be evaluated with respect
+                to their requirements? These are the main questions for interactions that we will
+                try to answer.</p><p>This chapter concentrates on the processes that develop interactions based on
+                leveraging the resources of organizing systems in order to provide valuable services
+                to their users (human or computational agents). It will discuss the determination of
+                the appropriate interactions, the organization of resources for interactions, the
+                implementation of interactions, and their evaluation and adaptation. Although the
+                fundamental questions pertain to all types of organizing systems, this chapter
+                focuses on systems that use computers to satisfy their goals.</p></div></div><div class="sect1" title="Determining Interactions"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.2">Determining Interactions</h2></div></div></div><p><a id="id662522" class="indexterm"/>Creating a strategy for successfully implementing interactions involves an intricate
+            balance between the resources, the organizing system that arranges and manages them, its
+            producers, and its intended users or consumers. The design of interactions is driven by
+            user requirements and their impact on the choices made in the implementation process. It
+            is constrained by resource and technical system properties and by social and legal
+            requirements. Determining the scope and scale of interactions needs a careful analysis
+            of these individual factors, their combination, and the consequences thereof. It is
+            useful to distinguish decisions that involve choices, where multiple feasible
+            alternatives exist, from decisions that involve constraints, where design choices have
+            been eliminated or rendered infeasible by previous ones. The goal when creating an
+            organizing system is to make design decisions that preserve subsequent choices or that
+            create constraints that impose design decisions that would have been preferred
+            anyway.</p><p><a id="id662535" class="indexterm"/><abbr class="abbrev">FRBR</abbr> and <span class="personname"><span class="surname">Svenonius</span></span> define five universal purposes for organizing systems:
+                <span class="action">find</span>, <span class="action">navigate</span>, <span class="action">identify</span>,
+                <span class="action">select</span>, and <span class="action">obtain</span> (<a class="xref" href="ch04.html#section-4.3" title="The Process of Describing Resources">The Process of Describing Resources</a>). The associated interactions for these purposes
+                <span class="emphasis"><em><span class="action">retrieve</span></em></span> resources according to various
+            criteria (e.g., a stated information need in a query, predetermined categories, a
+            distinguishing criterion or other formal criteria such as licensing). To increase the
+            scope or precision of access, a frequent prerequisite interaction step is the
+                <span class="action">integration</span>, <span class="action">joining</span>, <span class="action">clustering</span>
+            or <span class="action">merging</span> of resources to provide a wider range of resources and more
+            homogeneous descriptions to search.</p><p><a id="id662534" class="indexterm"/>Interactions can be distinguished by user requirements, which layer of resource
+            properties is used, and the legal, social, and organizational environment. All impose
+            constraints on the type of interactions that can be offered by an organizing
+            system.</p><div class="sect2" title="User Requirements"><div class="titlepage"><div><div><h3 class="title" id="section-9.2.1">User Requirements</h3></div></div></div><p>Users (<span class="hardware">human</span> or computational agents) <span class="action">search</span>
+                or <span class="action">navigate</span> resources in organizing systems not just to
+                    <span class="action">identify</span> them, but also to <span class="action">obtain</span> and further
+                    <span class="action">use the selected resources</span> (e.g. <span class="action">read</span>,
+                    <span class="action">cluster</span>, <span class="action">annotate</span>, <span class="action">buy</span>,
+                    <span class="action">copy</span>, <span class="action">distribute</span>, <span class="action">adapt</span>,
+                etc.). How resources are used and by whom affects how much of the resource or its
+                description is exposed, across which channels it is offered, and the <a class="glossterm" href="go01.html#gloss_precision"><em class="glossterm">precision</em></a> and
+                    <a class="glossterm" href="go01.html#gloss_accuracy"><em class="glossterm">accuracy</em></a> of
+                the interaction.</p><p><span>An organizing system should <span class="action">enable interactions</span> that
+                        <span class="action">allow</span> users to achieve their goals.</span> User
+                requirements can be stated or implied, depending on the sophistication and
+                functional capabilities of the system.</p><p>In a closet, which is a personal organizing system for <span class="hardware">physical
+                    resources</span>, the person searching with an intent to find a particular
+                shirt might think, <span class="quote">“<span class="quote">Where’s my yellow <span class="hardware">Hawaiian
+                    shirt</span>?</span>”</span> but does not need to communicate the search criteria
+                to anyone else in an explicit way. In a business or institutional organizing system,
+                however, the user needs to describe the desired resource and interact with the
+                system to select from candidate resources. This interaction might involve a
+                    <span class="hardware">human intermediary</span> like a <span class="hardware">sales person</span>
+                or a <span class="hardware">reference librarian</span>, or a computational one like a
+                    <span class="application">search engine</span>.</p><p>The more abstract and intermediated the interaction between a user and an
+                organizing system becomes<span class="symbol">—</span>from a person
+                    <span class="action">accessing</span> their self-described organizing system to
+                    <span class="hardware">human users </span>interacting with human or machine
+                intermediaries to computational agents interacting with 
+                other computational agents<span class="symbol">—</span>the more precisely the requirements must be
+                expressed.</p><p>A user’s information need usually determines the kind and content of resources
+                required. User information needs are most often expressed in search queries
+                (whatever is typed into a search box) or manifest themselves in the selection of one
+                or more of the system categories that are offered for browsing. Queries can be as
+                simple as a few keywords or very complex and specialized, employing different search
+                fields or operators; they may even be expressed in a query language by expert users.
+                Techniques like <span class="action">spelling correction</span>, <span class="action">query
+                    expansion</span> and <span class="action">suggestion</span> assist users in
+                    <span class="action">formulating queries</span>. Techniques like <span class="action">breadcrumb
+                    navigation</span> and <span class="action">faceted filtering</span> assist users in
+                browsing an organizing system’s category system. Some systems allow the query to be
+                expressed in natural language and then transform it into a description that is
+                easier for the system to process. Queries for non-textual information like photos or
+                videos are typically expressed as text, but some systems compute descriptions from
+                non-textual queries such as images or audio files. For example, a user can hum a
+                tune and the system will <span class="action">transform</span> it to locate the desired audio
+                    recording.<sup>[<a id="chapter-9-endnote-08" href="#ftn.chapter-9-endnote-08" epub:type="noteref" class="footnote">502</a>]</sup></p><p><a id="id662876" class="indexterm"/>While search queries are explicitly stated user information needs, organizing
+                systems increasingly attempt to solicit the user’s context or larger work task in
+                order to provide more suitable or precise interactions. Factors such as level of
+                education, physical disabilities, location, time, or deadline pressure often specify
+                and constrain the types of resources needed as well as the types of interactions the
+                user is willing or able to engage in. Using mostly implicit information collected
+                from user behavior<span class="symbol">—</span>for example, search or buying history,
+                current user location or language, and social or collaborative behavior (other
+                people with the same context) <span class="symbol">—</span>interactions are targeted
+                toward individual user situations. Information needs of computational agents are
+                determined by rules and criteria set by the creators of the agents, i.e., the
+                function or goal of the agent.</p><p><span>Organizing systems should plan for interactions based on non-purposeful
+                    user behavior.</span>
+                <span>A user who does not have a particular resource need in mind might interact
+                    with an organizing system to see what it contains or to be entertained or
+                    educated.</span> Imagine a user going to a museum to avoid the heat outside.
+                Their requirement is to be out of the heat 
+                and<span class="symbol">—</span>possibly<span class="symbol">—</span>to see interesting things. 
+                <a id="id662996" class="indexterm"/>A visitor to a zoo might go there to view a specific animal, but most of
+                the time, visitors follow a more or less random path along the zoo’s resources.
+                Similarly, <span class="quote">“<span class="quote">web surfing</span>”</span> is random, non-information-need-driven
+                behavior. This type of requirement cannot be satisfied by providing search
+                capabilities alone; other interaction types (e.g. browsing, suggestions) must be
+                provided as well.</p><p><a id="id663008" class="indexterm"/>Lastly, not all users are human beings, <span class="action">typing in search
+                    queries</span> or <span class="action">browsing through catalogs</span>. An organizing
+                system should plan for interaction scenarios where computational agents access the
+                system via <abbr class="abbrev">API</abbr>s (<span>application programming
+                    interfaces</span>), which require heavily standardized access procedures and
+                resource descriptions in order to enable interactions.</p></div><div class="sect2" title="Resource Property Layers"><div class="titlepage"><div><div><h3 class="title" id="section-9.2.2">Resource Property Layers</h3></div></div></div><p><a id="id663088" class="indexterm"/><a class="xref" href="ch02.html" title="Chapter 2. Activities in Organizing Systems">Chapter 2</a>, introduced the concept of <span class="emphasis"><em><a class="glossterm" href="go01.html#gloss_affordance"><em class="glossterm">affordance</em></a></em></span> or
+                    <span>behavioral repertoire</span><span class="symbol">—</span>the inherent actionable properties that determine what can
+                be done with resources. We will now look at affordances (and constraints) that
+                resource properties pose for interaction design. The interactions that an individual
+                resource can support depend on the nature and extent of its inherent and described
+                properties and internal structure. However, the interactions that can be designed
+                into an organizing system can be extended by utilizing collection properties,
+                derived properties, and any combination thereof. These three types of resource
+                properties can be thought of as creating layers because they build on each
+                other.</p><p>The further an organizing system moves up the layers, the more functional
+                capabilities are enabled and more interactions can be designed. The degree of
+                possible interactions is determined by the extent of the properties that are
+                organized, described and created in an organizing system. This marks a correlation
+                between the extent of organization and the range of possible interactions:
+                        <span class="emphasis"><em><span>the more extensive the organization and the number of
+                        identifiable resource properties, the larger the universe of
+                            <span class="quote">“<span class="quote">affordable</span>”</span> interactions.</span></em></span></p><p>Resource properties can be distinguished by three layers:</p><div class="variablelist"><dl><dt><span class="term">Organization based on properties of individual resources</span></dt><dd><p>Resource properties have been described extensively in <a class="xref" href="ch03.html" title="Chapter 3. Resources in Organizing Systems">Chapter 3</a> and <a class="xref" href="ch04.html" title="Chapter 4. Resource Description and Metadata">Chapter 4</a>. Any information or property
+                            that describes the resource itself can be used to design an interaction.
+                            If a property is not described in an organizing system or does not
+                            pertain to certain resources, an interaction that needs this information
+                            cannot be implemented. For example, a retail site like
+                                <span class="application">Shopstyle</span> cannot offer to reliably search
+                            by color of clothing if this property is not contained in the resource
+                            description.</p></dd><dt><span class="term">Organization based on collection properties</span></dt><dd><p>Collection-based properties are created when resources are aggregated
+                            (see <a class="xref" href="ch01.html" title="Chapter 1. Foundations for Organizing Systems">Chapter 1</a>). An interaction that
+                            compares individual resources to a collection average (e.g., average age
+                            of publications in a library or average price of goods in a retail
+                            store) can only be implemented if the collection average is
+                            calculated.</p></dd><dt><span class="term">Organization based on derived or computed properties</span></dt><dd><p>Derived or computed properties are not inherent in the resources or
+                            collections but need to be computed with the help of external
+                            information or tools. The popularity of a digital resource can be
+                            computed based on the frequency of its use, for example. This computed
+                            property could then be used to design an access interaction that
+                            searches resources based on their popularity. An important use case for
+                            derived properties is the analysis of non-textual resources like images
+                            or audio files. For these content-based interactions, intrinsic
+                            properties of the resources like color distributions are computationally
+                            derived and stored as resource properties. A search can then be
+                            performed on color distributions (e.g. a search for outdoor nature
+                            images could return resources that have a high concentration of blue in
+                            the upper half and a high concentration of green on the bottom: a meadow
+                            on a sunny day).</p></dd></dl></div></div><div class="sect2" title="Socio-Political and Organizational Constraints"><div class="titlepage"><div><div><h3 class="title" id="section-9.2.3">Socio-Political and Organizational Constraints</h3></div></div></div><p>An important constraint for interaction design choices is the access policies
+                imposed by the producers of organizing systems, as already described in <a class="xref" href="ch02.html#section-2.4.3" title="Access Policies">Access Policies</a>. If resources or their descriptions are restricted,
+                interactions may not be able to use certain properties and therefore cannot be
+                supported.</p><p><a id="id663410" class="indexterm"/><a id="id663379" class="indexterm"/><a id="id663386" class="indexterm"/><a id="id663393" class="indexterm"/>Socio-political constraints are imposed when certain parties in an interaction or
+                even producers of an organizing system can exert power over other parties and
+                therefore control the nature of the interaction (or even the nature of the resource
+                descriptions). We can distinguish different socio-political aspects:</p><div class="variablelist"><dl><dt><span class="term">Information and Economic Power Asymmetry</span></dt><dd><p><a id="id663433" class="indexterm"/>Some modern organizations are able to impose their
+                            requirements for interactions and their resource description formats
+                            upon their clients. For example, in 2012, <span class="orgname">Google</span> and
+                                <span class="orgname">Apple</span> each have the power to control the extent
+                            of interoperability attainable in products, services, or applications
+                            that utilize their numerous platforms through mandated
+                                <abbr class="abbrev">API</abbr>s and the process by which third-party
+                            applications are approved. The asymmetry between these dominant players
+                            and the myriad of smaller entities providing peripheral support,
+                            services, or components can result in de facto standards that may pose
+                            significant burden for small businesses and reduce overall
+                            competition.</p></dd><dt><span class="term">Standards</span></dt><dd><p>To enable interoperability between systems, applications, and devices,
+                            the establishment and publication of industry and user-community
+                            standards are essential. A standard interface describes the data formats
+                            and protocols to which systems should conform such that they can achieve
+                            interoperability through adherence to generic requirements.<sup>[<a id="chapter-9-endnote-09" href="#ftn.chapter-9-endnote-09" epub:type="noteref" class="footnote">503</a>]</sup> <a id="id663545" class="indexterm"/>Not adhering to standards complicates the merging of
+                            resources from different organizing systems. Challenges to
+                            standardization include organizational inertia, closed policies,
+                            processes, or development groups, intellectual property, credentialing,
+                            lack of specifications, competing standards, high implementation costs,
+                            lack of conformance metrics, lack of clarity or awareness, and abuse of
+                            standards as trade barriers.</p></dd><dt><span class="term">Public Policy</span></dt><dd><p>Beyond businesses and standards-setting organizations, the government
+                            sector wields substantial influence over the implementation and success
+                            of possible interactions in organizing systems. As institutions with
+                            large and inalienable constituents, governments and governmental
+                            entities have similar influences as large businesses due to their size
+                            and substantial impact over society at large. Different forms of
+                            government around the world, ranging from centrally planned autocracy to
+                            loosely organized nation states, can have far-reaching consequences in
+                            terms of how resource description policies are designed. Laws and
+                            regulations regarding data privacy prevent organizing systems from
+                            recording certain user data, therefore prohibiting interactions based on
+                            this information.<sup>[<a id="chapter-9-endnote-10" href="#ftn.chapter-9-endnote-10" epub:type="noteref" class="footnote">504</a>]</sup></p></dd></dl></div><p><a id="id663757" class="indexterm"/>Organizational constraints may manifest in multiple contradictory policies for
+                organizing systems or even cause the implementation of separate, disjoint systems
+                that cannot be integrated without additional investment. Siloed business functions
+                may be resistant to the merging of resources or resource descriptions in order to
+                gain competitive advantage or command resources over other business
+                functions.</p><p>Often characterized by different kinds of value contribution, different policies,
+                processes, and practices, organizational units must clearly define and prioritize
+                different interaction goals, align and coordinate processes, and build collaboration
+                capabilities to achieve a high level of interoperability within the organizing
+                system or between different organizing systems in the organization.</p><p>In addition to information exchange, organizational interoperability also aims to
+                provide services that are widely available, easily identifiable, and accessible
+                across the enterprise.</p><p><a id="id663774" class="indexterm"/>Nevertheless, organizational constraints are less deterministic than
+                socio-political constraints, because they can be changed internally once it is
+                decided that an interaction is important enough to warrant the change of
+                institutional policies or formats or even category systems (see <a class="xref" href="ch06.html#section-6.2.3" title="Institutional Categories">Institutional Categories</a>).</p><p>Once the scope and range of interactions is defined according to requirements and
+                constraints, the resources and the technology of the organizing system have to be
+                arranged to enable the implementation of the desired interactions.</p></div></div><div class="sect1" title="Organizing Resources for Interactions"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.3">Organizing Resources for Interactions</h2></div></div></div><p>Commonly, resource descriptions (which properties of a resource are documented in an
+            organizing system) are determined at the beginning of a development process of the
+            organizing system. It follows that most required interactions need to be clarified at
+            the beginning of the development process as well; that is, resource descriptions are
+            determined based on the desired interactions that an organizing system should support.
+            Most of these processes have been described in detail in <a class="xref" href="ch04.html" title="Chapter 4. Resource Description and Metadata">Chapter 4</a>, <a class="xref" href="ch05.html" title="Chapter 5. Describing Relationships and Structures">Chapter 5</a> and <a class="xref" href="ch08.html" title="Chapter 8. The Forms of Resource Descriptions">Chapter 8</a>.</p><p>Resources from different organizing systems are often aggregated to be accessed within
+            one larger organizing system (warehouses, portals, search engines, union catalogs,
+            cross-brand retailers), which requires resources and resource descriptions to be
+            transformed in order to adapt to the new organizing system with its extended interaction
+                requirements.<sup>[<a id="chapter-9-endnote-11" href="#ftn.chapter-9-endnote-11" class="footnote">505</a>]</sup> Elsewhere, legacy systems often need to be updated to accommodate new
+            standards, technologies and interactions (e.g, mobile interfaces for digital libraries).
+            That means that the necessary resources and resource descriptions for an interaction
+            need to be identified, and, if necessary, changes have to be made in the description of
+            the resources. Sometimes, resources get merged or transformed in order to perform new
+            interactions.</p><div class="sect2" title="Identifying and Describing Resources for Interactions"><div class="titlepage"><div><div><h3 class="title" id="section-9.3.1">Identifying and Describing Resources for Interactions</h3></div></div></div><p>Determining which resources or resource descriptions will be used in an
+                interaction is simple when all resources are included (for example, in a simple
+                search interaction). However, sometimes resources need to be identified according to
+                more selective criteria: for example, all resources belonging to a collection or all
+                resources exhibiting a certain property.</p><p>Individual and collection resource descriptions need to be carefully considered in
+                order to record the necessary information for the designed interactions (see <a class="xref" href="ch08.html" title="Chapter 8. The Forms of Resource Descriptions">Chapter 8</a>). The type of interaction determines
+                whether new properties need to be derived or computed with the help of external
+                factors and whether these properties will be represented permanently in the
+                organizing system (e.g., an extended topical description added due to a user
+                comment) or created on the fly whenever a transaction is transformed (e.g., a
+                frequency count).</p></div><div class="sect2" title="Transforming Resources for Interactions"><div class="titlepage"><div><div><h3 class="title" id="section-9.3.2">Transforming Resources for Interactions</h3></div></div></div><p>Sometimes it becomes necessary to transform resources to enable the desired
+                interactions. The processing and transformation steps required to produce the
+                expected modification can be applied at different resource property layers:</p><div class="variablelist"><dl><dt><span class="term">Infrastructure or notation transformation</span></dt><dd><p>When resources are aggregated, the organizing systems must have a
+                            common basic infrastructure to communicate with one another and speak
+                            the same language. This means that participating systems must have a
+                            common set of communication protocols and an agreed upon way of
+                            representing information in digital formats, i.e., a notation (<a class="xref" href="ch08.html#section-8.3.1" title="Notations">Notations</a>), for example, the
+                            Unicode encoding scheme.<sup>[<a id="chapter-9-endnote-12" href="#ftn.chapter-9-endnote-12" epub:type="noteref" class="footnote">506</a>]</sup></p></dd><dt><span class="term">Writing system transformation</span></dt><dd><p>During a writing system transformation (<a class="xref" href="ch08.html" title="Chapter 8. The Forms of Resource Descriptions">Chapter 8</a>), the syntax or vocabulary<span class="symbol">—</span>also called 
+                            the data exchange format<span class="symbol">—</span>of the resource description will be changed
+                            to conform to another model, e.g., when library records are mapped from
+                            the <abbr class="abbrev">MARC21</abbr> standard to the <span class="citerefentry"><span class="refentrytitle">Dublin Core</span></span> format in order to be aggregated, or when information in
+                            a business information system is transformed into an
+                                <abbr class="abbrev">EDI</abbr> or <abbr class="abbrev">XML</abbr> format so that it can
+                            be sent to another firm.<sup>[<a id="chapter-9-endnote-13" href="#ftn.chapter-9-endnote-13" class="footnote">507</a>]</sup> There are instances when customized vocabularies are used to
+                            represent certain types of properties. These vocabularies were probably
+                            introduced to reduce errors or ambiguity or abbreviate common
+                            organizational resource properties. These customized vocabularies need
+                            to be explained and agreed upon by organizations combining resources to
+                            prevent interoperability problems.</p></dd><dt><span class="term">Semantic transformation</span></dt><dd><p>Agreeing on a category or classification system (<a class="xref" href="ch06.html" title="Chapter 6. Categorization: Describing Resource Classes and Types">Chapter 6</a> &amp; <a class="xref" href="ch07.html" title="Chapter 7. Classification: Assigning Resources to Categories">Chapter 7</a>) is crucial so that
+                            organizing systems agree semantically<span class="symbol">—</span>that is.
+                            so that resource properties and descriptions not only share technology
+                            but also meaning. For example, because the US Census has often changed
+                            its system of race categories, it is difficult to compare data from
+                            different censuses without some semantic transformation to align the
+                                categories.<sup>[<a id="chapter-9-endnote-14" href="#ftn.chapter-9-endnote-14" epub:type="noteref" class="footnote">508</a>]</sup></p></dd><dt><span class="term">Resource or resource description transformation</span></dt><dd><p>Resources or resource descriptions are often directly transformed, as when
+                            they are converted to another file format. In computer-based interactions like search engines, text resources
+                            are often pre-processed to remove some of the ambiguity inherent in natural
+                            language. These steps, collectively called text processing, 
+                            include decoding, filtering, normalization, stopword elimination, and stemming. 
+                            (See the Sidebar, <a class="xref" href="ch09.html#chapter-9-sidebar-1" title="Text Processing">Text Processing</a>).</p></dd></dl></div><p><a id="id664630" class="indexterm"/></p><div class="sidebar"><a id="chapter-9-sidebar-1"/><div class="sidebar-title">Text Processing</div><div class="glosslist"><dl><dt><span class="action">Decoding</span></dt><dd><p><span><a id="def_decoding"/>A digital resource is first a sequence
+                                    of bits. Decoding transforms those bits into characters according to the encoding scheme used, extracting the text from its stored form (see <a class="xref" href="ch08.html#section-8.3.1" title="Notations">Notations</a>). </span></p></dd><dt><span class="action">Filtering</span></dt><dd><p><span><a id="def_filtering"/>If a text is encapsulated by formatting
+                                    or non-semantic mark-up, these characters are removed because this information is rarely used as the basis of
+                                    further interactions.</span></p></dd><dt><span class="action">Tokenization</span></dt><dd><p><span><a id="def_tokenization"/>Segments the stream
+                                    of characters (in an encoding scheme, a space is also a
+                                    character) into textual components, usually words. In English, a
+                                    simple rule-based system can separate words using spaces.
+                                    However, punctuation makes things more complicated. For
+                                    example, periods at the end of sentences should be removed, but
+                                    periods in numbers should not. Other languages introduce other
+                                    problems for tokenization; in Chinese, a space does
+                                    not mark the divisions between individual
+                                concepts.</span></p></dd><dt><span class="action">Normalization</span></dt><dd><p><span><a id="def_normalization"/><a id="id664858" class="indexterm"/>Normalization removes superficial differences in
+                                    character sequences, for example, by transforming all
+                                    capitalized characters into lower-case. More complicated
+                                    normalization operations include the removal of accents, hyphens
+                                    or diacritics and merging different
+                                    forms of acronyms (e.g., <abbr class="abbrev">U.N.</abbr> and
+                                        <abbr class="abbrev">UN</abbr> are both normalized to
+                                        <abbr class="abbrev">UN</abbr>).</span></p></dd><dt><span class="action">Stopword
+                                elimination</span></dt><dd><p><span><a id="def_stopword_elimination"/>Stopwords are those words in
+                                    a language that occur very frequently and are not very
+                                    semantically expressive. Stopwords are usually articles,
+                                    pronouns, prepositions or conjunctions. Since they occur in
+                                    every text, they can be removed because they cannot distinguish them. Of course, in some cases, removing
+                                    stopwords might remove semantically important phrases (e.g.,
+                                            <span class="quote">“<span class="quote"><span>To be or not to
+                                    be</span></span>”</span>).</span></p></dd><dt><span class="action">Stemming</span></dt><dd><p><a id="id664909" class="indexterm"/><a id="id664921" class="indexterm"/><span><a id="def_stemming"/>These processing steps normalize 
+                                    inflectional and derivational variations in
+                                    terms, e.g., by removing the <span class="quote">“<span class="quote">-ed</span>”</span> from verbs in
+                                    the past tense. This homogenization can be done by following
+                                    rules (stemming) or by using dictionaries (lemmatization).
+                                    Rule-based stemming algorithms are easy to implement, but can
+                                    result in wrongly normalized word groups, for example when
+                                        <span class="quote">“<span class="quote">university</span>”</span> and <span class="quote">“<span class="quote">universe</span>”</span> are
+                                    both stemmed to <span class="quote">“<span class="quote">univers.</span>”</span></span></p></dd></dl></div></div><p><a id="id664982" class="indexterm"/></p><div class="sect3" title="Granularity and Abstraction"><div class="titlepage"><div><div><h4 class="title" id="section-9.3.2.1">Granularity and Abstraction</h4></div></div></div><p>Within writing system and semantic transformations, issues of granularity and
+                    level of abstraction (<a class="xref" href="ch04.html#section-4.3.1" title="Determining the Scope and Focus">Determining the Scope and Focus</a> and <a class="xref" href="ch06.html#section-6.4.1" title="Category Abstraction and Granularity">Category Abstraction and Granularity</a>) pose the most challenges to cross-organizing
+                    system interoperability.<sup>[<a id="chapter-9-endnote-15" href="#ftn.chapter-9-endnote-15" epub:type="noteref" class="footnote">509</a>]</sup><span><a id="def_granularity"/><span class="bold"><strong><em class="glossterm">
+                                Granularity</em></strong></span> refers to the level of detail or
+                        precision for a specific information resource property. For instance, the
+                        postal address of a particular location might be represented as several
+                        different data items, including the number, street name, city, state,
+                        country and postal code (a high granularity model). It might also be
+                        represented in one single line including all of the information above (a low
+                        granularity model).</span> While it is easy to create the complete address
+                    by aggregating the different information components from the high granularity
+                    model, it is not as easy to decompose the low granularity model into more
+                    specific information components.</p><p><a id="id665195" class="indexterm"/><a id="id665257" class="indexterm"/>This does not mean, however, that a high granularity model is always
+                    the best choice, especially if the context of use does not require it, as there
+                    are corresponding tradeoffs in terms of efficiency and speed in assembling and
+                    processing the resource information. For example, requests for
+                        <span class="orgname">AccuWeather</span> data have exploded in the last years, due to
+                    automated requests from mobile devices to keep weather apps updated. The company
+                    has dealt with this challenge by truncating the <abbr class="abbrev">GPS</abbr> coordinates
+                    sent by the mobile device when it requests weather data (a transformation to
+                    lower granularity). If the request with the truncated coordinates is identical
+                    to one recently made, a cached version of the content is served, resulting in
+                    300 million to 500 million fewer requests a day.<sup>[<a id="chapter-9-endnote-16" href="#ftn.chapter-9-endnote-16" epub:type="noteref" class="footnote">510</a>]</sup></p><p>The level of abstraction is the degree to which a resource description is
+                    abstracted from the concrete use case in order to fit a wider range of
+                    resources. For example, many countries have an address field called state, but
+                    in some countries, a similar regional division is called province. In order to
+                    accommodate both concepts, we can abstract from the original concrete concepts
+                    and establish a more abstract description of administrative region. Granularity
+                    and abstraction differences can occur at every resource property layer when
+                    resources need to be transformed; therefore, they need to be recognized and
+                    analyzed at every layer.</p></div><div class="sect3" title="Transforming Resources from Multiple Organizing Systems"><div class="titlepage"><div><div><h4 class="title" id="section-9.3.2.2">Transforming Resources from Multiple Organizing Systems</h4></div></div></div><p><a id="id665323" class="indexterm"/>The traditional approach to enabling heterogeneous organizing systems to be
+                    accessed together has been to fully integrate them, which has allowed the
+                        <span class="quote">“<span class="quote">unrestricted sharing of data and business processes among any
+                        connected applications and data sources</span>”</span> in the
+                        organization.<sup>[<a id="chapter-9-endnote-17" href="#ftn.chapter-9-endnote-17" epub:type="noteref" class="footnote">511</a>]</sup> This can be a strategic approach to improving the management of
+                    resources, resource descriptions and organizing systems as a whole, especially
+                    when organizations have disparate systems and redundant information spread
+                    across different groups and departments. However, it can also be a costly
+                    approach as integration points may be numerous, with vastly different
+                    technologies needed to get one system to integrate with another. Maintenance
+                    also becomes an issue, as changes in one system may entail changes in all
+                    systems integrating with it.<sup>[<a id="chapter-9-endnote-18" href="#ftn.chapter-9-endnote-18" epub:type="noteref" class="footnote">512</a>]</sup></p><p>Planning the transformation of resources from different organizing systems to
+                    be merged in an aggregation is called <span class="emphasis"><em>data mapping</em></span> or
+                    alignment. In this process, aspects of the description layers (most often
+                    writing system or semantics) are compared and matched between two or more
+                    organizing systems. The relationship between each component may be
+                    unidirectional or bidirectional.<sup>[<a id="chapter-9-endnote-19" href="#ftn.chapter-9-endnote-19" class="footnote">513</a>]</sup> In addition, resource properties and values that are semantically
+                    equivalent might have different names (the <a class="glossterm" href="go01.html#gloss_vocabulary_problem"><em class="glossterm">vocabulary problem</em></a> of <a class="xref" href="ch03.html#section-3.4.2.1" title="The Vocabulary Problem">The Vocabulary Problem</a>). The purpose of mapping may
+                    vary from allowing simple exchanges of resource descriptions, to enabling access
+                    to longitudinal data, to facilitating standardized reporting.<sup>[<a id="chapter-9-endnote-20" href="#ftn.chapter-9-endnote-20" epub:type="noteref" class="footnote">514</a>]</sup> The preservation of version histories of resource description
+                    elements and relations in both systems is vital for verifying the validity of
+                    the data map.</p><p><a id="id665668" class="indexterm"/><span><a id="def_crosswalk"/>Similar to <span class="action">mapping</span>, a
+                        straightforward approach to <span class="action">transformation</span> is the use of
+                            <span class="strong"><strong><a class="glossterm" href="go01.html#gloss_crosswalk"><em class="glossterm">crosswalks</em></a></strong></span>, which are equivalence tables
+                        that relate resource description elements, semantics, and writing systems
+                        from one organizing system to those of another.</span><sup>[<a id="chapter-9-endnote-21" href="#ftn.chapter-9-endnote-21" epub:type="noteref" class="footnote">515</a>]</sup> Crosswalks not only enable systems with different resource
+                    descriptions to interchange information in real-time but are also used by
+                    third-party systems such as harvesters and search engines to generate union
+                    catalogs and perform queries on multiple systems as if they were one
+                    consolidated system.<sup>[<a id="chapter-9-endnote-22" href="#ftn.chapter-9-endnote-22" class="footnote">516</a>]</sup></p><p><a id="id665743" class="indexterm"/><a id="id665755" class="indexterm"/><a id="id665766" class="indexterm"/>In the digital library space, <span class="application">WorldCat</span>
+                    allows users to access many library databases to locate items in their community
+                    libraries and, depending on patron privileges, to request items through their
+                    local libraries from libraries all over the world. For this powerful tool to
+                    accurately locate holdings in each library, two resource description standards
+                    are involved. At the book publisher, wholesaler, and retailer end, the
+                    international standard <span class="citerefentry"><span class="refentrytitle">Online Information Exchange</span></span> (<abbr class="abbrev">ONIX</abbr>) is used to standardize books and serials
+                    metadata throughout the supply chain.<sup>[<a id="chapter-9-endnote-23" href="#ftn.chapter-9-endnote-23" epub:type="noteref" class="footnote">517</a>]</sup>
+                    <abbr class="abbrev">ONIX</abbr> is implemented in book suppliers’ internal and
+                    customer-facing information systems to track products and to facilitate the
+                    generation of advance information sheets and supplier catalogs.<sup>[<a id="chapter-9-endnote-24" href="#ftn.chapter-9-endnote-24" epub:type="noteref" class="footnote">518</a>]</sup> At the library end, the <span><a id="ref_MARC"/><span class="citerefentry"><span class="refentrytitle">Machine-Readable Cataloging</span>(MARC)</span></span> formats manage and communicate bibliographic and related
+                    information.<sup>[<a id="chapter-9-endnote-25" href="#ftn.chapter-9-endnote-25" class="footnote">519</a>]</sup> <a id="id665861" class="indexterm"/>When a member library acquires a title, information in
+                        <abbr class="abbrev">ONIX</abbr> format is sent from the supplier to the <span class="citerefentry"><span class="refentrytitle"><span class="orgname">Online Computer Library
+                            Center</span></span>(OCLC)</span> where it is matched with a corresponding <abbr class="abbrev">MARC</abbr>
+                    record in the <span class="application">WorldCat</span> database by using an <abbr class="abbrev">ONIX</abbr> to <abbr class="abbrev">MARC</abbr>
+                    <a class="glossterm" href="go01.html#gloss_crosswalk"><em class="glossterm">crosswalk</em></a>.<sup>[<a id="chapter-9-endnote-26" href="#ftn.chapter-9-endnote-26" epub:type="noteref" class="footnote">520</a>]</sup> This enables
+                        <span class="application">WorldCat</span> to provide accurate real-time holdings
+                    information of its member libraries.</p></div><div class="sect3" title="Modes of Transformation"><div class="titlepage"><div><div><h4 class="title" id="section-9.3.2.3">Modes of Transformation</h4></div></div></div><p>As the number of organizing systems increases, <span class="action">crosswalks</span> and
+                        <span class="action">mappings</span> become increasingly impractical if each pair of
+                    organizing systems requires a separate crosswalk. A more efficient approach
+                    would be the use of one vocabulary or format as a switching mechanism (also
+                    called a pivot or <span class="emphasis"><em><span>hub language</span></em></span>) for all
+                    other vocabularies to map towards.<sup>[<a id="chapter-9-endnote-27" href="#ftn.chapter-9-endnote-27" epub:type="noteref" class="footnote">521</a>]</sup> Another possibility, which is often used in asymmetric power
+                    relationships between organizing systems, is to force all systems to adhere to
+                    the format that is used by the most powerful party.</p><p>The conceptual relationships between different descriptions can be mapped out
+                    manually when creating simple maps. This, however, becomes more difficult as
+                    maps become more complex, due to the number of properties being mapped or when
+                    there are more structural or granularity issues to consider. The use of
+                    automatic tools to create these alignments become vital in ensuring their
+                    accuracy and robustness. Graphical mapping tools provide users with a graphical
+                    user interface to connect description elements from source to target by drawing
+                    a line from one to the other.<sup>[<a id="chapter-9-endnote-28" href="#ftn.chapter-9-endnote-28" epub:type="noteref" class="footnote">522</a>]</sup> Other tools perform automatic mappings based on predetermined rules
+                    and criteria.<sup>[<a id="chapter-9-endnote-29" href="#ftn.chapter-9-endnote-29" epub:type="noteref" class="footnote">523</a>]</sup></p><p>The time of the transformation<span class="symbol">—</span>at design time when
+                    organizing system resources are merged or at run time when a certain interaction
+                    is performed<span class="symbol">—</span>can have a profound impact on the
+                    structure of the new system.</p><p>We often perform manual run-time transformations for decisions that require
+                    consulting more than one organizing system in our daily lives. For example, when
+                    planning a vacation, we use a variety of systems to negotiate a wide set of
+                        <span xml:lang="latin" class="foreignphrase"><em xml:lang="latin" class="foreignphrase">ad hoc</em></span> requirements such as our
+                    resources and time, our fellow travelers and their availability, and the
+                    bookings for hotel and transportation, as well as desirable destinations and
+                    their various offerings. We somehow reconcile the different descriptions used in
+                    each of the systems and match these against each other so that the relevant
+                    information can be combined and compared. Even though the systems use different
+                    formats, vocabularies and structures, they are targeted toward human users and
+                    are relatively easy to interpret. For automatic run-time transformations, which
+                    need to be handled computationally, designers face the challenge of creating
+                    more structured processes for merging information from different
+                        systems.<sup>[<a id="chapter-9-endnote-30" href="#ftn.chapter-9-endnote-30" epub:type="noteref" class="footnote">524</a>]</sup></p><p>Design-time transformations depend on highly cooperative environments where
+                    specific design requirements (like mapping rules and criteria) can be negotiated
+                    ahead of the system implementation. In cases where high-flexibility,
+                        <span xml:lang="latin" class="foreignphrase"><em xml:lang="latin" class="foreignphrase">ad hoc</em></span> or real-time
+                    transformations would not be possible due to a lack of cooperation (such as the
+                        <span class="application">ShopStyle.com</span>), run-time transformation processes
+                    may provide appropriate alternatives. Some low-level incompatibilities between
+                    organizing systems, such as the presence of syntactical, encoding, and
+                    particular structural and content issues, can also be rectified by implementing
+                    run-time transformation techniques, creating more loosely-coupled interoperating
+                    systems.</p></div><div class="sect3" title="Accuracy of Transformations"><div class="titlepage"><div><div><h4 class="title" id="section-9.3.2.4">Accuracy of Transformations</h4></div></div></div><p><a id="id666409" class="indexterm"/><span><a id="def_accuracy"/>Automatic <span class="action">mapping</span> tools can only be
+                        as accurate as the specifications and criteria that are included in the
+                        mapping guidelines. Intellectual checks and tests performed by humans are
+                        almost always necessary to validate the <a class="glossterm" href="go01.html#gloss_accuracy"><em class="glossterm">accuracy</em></a> of the transformation. </span>Because
+                    description systems vary in expressive power and complexity, challenges to
+                    transformations may arise from differences in semantic definitions, in rules
+                    regarding whether an element is required or requires multiple values, in
+                    hierarchical or value constraints, and in controlled vocabularies.<sup>[<a id="chapter-9-endnote-31" href="#ftn.chapter-9-endnote-31" epub:type="noteref" class="footnote">525</a>]</sup> As a result of these complexities, absolute transformations that
+                    ensure exact mappings will result in a loss of precision if the source
+                    description system is substantially richer than the target system.</p><p>In practice, relative crosswalks where all elements in a source description
+                    are mapped to at least one target regardless of semantic equivalence are often
+                    implemented. This lowers the quality and <a class="glossterm" href="go01.html#gloss_accuracy"><em class="glossterm">accuracy</em></a> of the mapping and can result in <span class="quote">“<span class="quote">down
+                        translation</span>”</span> or <span class="quote">“<span class="quote">dumbing down</span>”</span> of the system for
+                    resource description. As a result of mapping compromises due to different
+                    granularity or abstraction levels, transformations from different organizing
+                    systems usually result in less granular or specific resource descriptions.
+                    Consequently, whereas some interactions are now enabled (e.g. cross-organizing
+                    system search), others that were once possible can no longer be
+                    supported.</p></div></div></div><div class="sect1" title="Implementing Interactions"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.4">Implementing Interactions</h2></div></div></div><p>Whether a desired interaction can be implemented depends on the layers of resource
+            properties that have been incorporated into the organizing system. How an interaction is
+            implemented (especially in digital organizing systems) depends also on the algorithms
+            and technologies available to access the resources or resource descriptions. Most
+            implementations of resource-based interactions depend on three basic actions:</p><div class="variablelist"><dl><dt><span class="term"><span class="action">Comparing resources</span></span></dt><dd><p>A core step in any interaction is to compare a user requirement
+                            (usually a stated or implied information need) or a given resource with
+                            the descriptions of other available resources, resulting in exact
+                            matches or some measurable similarity. Resources whose descriptions are
+                            similar to the description of an information need can be the output of a
+                            search interaction; similar resources to a given resource can be the
+                            output of a clustering or a classification interaction.</p></dd><dt><span class="term"><span class="action">Ranking</span> or <span class="action">sorting resources</span></span></dt><dd><p>Determining the similarity of resources is often not enough to satisfy
+                            the goal of an interaction. Another important step is therefore to rank
+                            or sort the selected resources according to particular criteria
+                            determined in the interaction. Ranking resources according to their
+                            relevance for a query is a typical interaction step in a ranking-based
+                            search system. Sorting resources by update frequency is a typical step
+                            for a push-based recommender system.</p></dd><dt><span class="term"><span class="action">Locating resources</span></span></dt><dd><p>Sometimes only resource descriptions are compared or ranked, so
+                            another step is then required to locate or retrieve the resource from
+                            its storage location. This could mean retrieving the Hawaiian shirt that
+                            you want to wear from your closet or locating the address of a retailer
+                            that sells a resource. In a digital library context, the full text of a
+                            textual resource or the complete digital representation of an image
+                            might be located in a local or remote repository.</p></dd></dl></div><p>Understanding resource-based interactions as combinations of comparing, ranking and
+            locating steps provides us with a unifying framework, in which we can easily see what
+            different interactions have in common, while also making it easier to see how they
+            differ.</p><p>Some might find it useful to distinguish primary interactions from ancillary
+            interactions, that is, interactions that follow another interaction. For example, one
+            can only annotate a resource after it has been retrieved (searched and located) from an
+            organizing system. However, in the context of this book, we will consider all
+            interactions similarly as a combination of actions. Ancillary interactions can then be
+            interpreted as interactions based on a series of grouped actions that by themselves
+            represent more basic interactions.</p><p>The next sections describe some common interactions in digital organizing systems. One
+            way to distinguish among them is to consider the source of the algorithms that are used
+            in order to perform them. We can mostly distinguish <span>information retrieval
+                interactions</span> (e.g., search and browse), <a class="glossterm" href="go01.html#gloss_machine_learning"><em class="glossterm">machine learning</em></a> interactions (e.g.,
+            cluster, classify, extract) or <span>natural language processing interactions</span>
+            (e.g., named entity recognition, summarization, sentiment analysis, anaphoric
+            resolution). Another way to distinguish among interactions is to note whether resources
+            are changed during the interaction (e.g., annotate, tag, rate, comment) or unchanged
+            (search, cluster). Yet another way would be to distinguish interactions based on their
+            absolute and relative complexity, i.e., on the progression of actions or steps that are
+            needed to complete the interaction. Here, we will distinguish interactions based on the
+            different resource description layers they act upon.</p><p>Retrieval interactions can be found in any organizing system. Search is probably the
+            most common form of access in an organizing system. When looking through your closet to
+            find a particular Hawaiian shirt, you perform a retrieval interaction, albeit without
+            computational tools to support the interaction. Information retrieval interactions
+            perform a combination of comparing, ranking and locating steps (often in this order, but
+            not always). Any information retrieval interaction must contain a compare interaction to
+            enable the selection of resources that will match a requirement in the
+                interaction.<sup>[<a id="chapter-9-endnote-32" href="#ftn.chapter-9-endnote-32" epub:type="noteref" class="footnote">526</a>]</sup> Information retrieval algorithms and systems can be compared using an
+            abstraction called the Information Retrieval Model (See Sidebar).</p><div class="sidebar"><a id="chapter-9-sidebar-2"/><div class="sidebar-title">Information Retrieval Models</div><p>In information retrieval interactions, we distinguish several models that
+                determine how a search operation is performed. Information retrieval interactions
+                assume that every interaction starts with an information need that is formulated as
+                a query and submitted to search a collection of resources, of which some may satisfy
+                the information need.<sup>[<a id="chapter-9-endnote-33" href="#ftn.chapter-9-endnote-33" epub:type="noteref" class="footnote">527</a>]</sup></p><p>Different information retrieval models can be distinguished by:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem"><p>the way queries and resources are represented,</p></li><li class="listitem"><p>the way the comparison between resources and queries are performed,
+                        and</p></li><li class="listitem"><p>the type of calculations performed or features used to rank resources
+                        according to their relevance with respect to the information need.</p></li></ul></div></div><p>In our examples, we write primarily about textual resources or resource descriptions.
+            Information retrieval of physical goods (e.g. finding a favorite cookie brand in the
+            supermarket) or non-textual multimedia digital resources (e.g. finding images of the
+                <span class="orgname">UC Berkeley</span> logo) also involves the same actions of comparing,
+            ranking and locating, but with different algorithms and different resource properties
+            that are used for comparisons.</p><div class="sect2" title="Interactions Based on Instance Properties"><div class="titlepage"><div><div><h3 class="title" id="section-9.4.1">Interactions Based on Instance Properties</h3></div></div></div><p>Interactions in this category depend only on the properties of individual resource
+                instances. Often, using resource properties on this lower layer coincides with basic
+                action combinations in the interaction.</p><div class="sect3" title="Boolean Search / Retrieval Model"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.1.1">Boolean Search / Retrieval Model</h4></div></div></div><p>In a <span class="action">Boolean search</span>, a query is specified by stating the
+                    information need and using operators from Boolean logic (AND, OR, NOT) to
+                    combine the components. The query is compared to individual resource properties
+                    (most often terms), where the result of the comparison is either TRUE or FALSE.
+                    The TRUE results are returned as a result of the query, and all other results
+                    are ignored. A Boolean search does not compare or rank resources so every
+                    returned resource is considered equally relevant. The advantage of the Boolean
+                    search is that the results are predictable and easy to explain. However, because
+                    the results of the Boolean model are not ranked by relevance, users have to sift
+                    through all the returned resource descriptions in order to find the most useful
+                        results.<sup>[<a id="chapter-9-endnote-34" href="#ftn.chapter-9-endnote-34" epub:type="noteref" class="footnote">528</a>]</sup></p></div><div class="sect3" title="Tag / Annotate"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.1.2">Tag / Annotate</h4></div></div></div><p>A <span class="action">tagging</span> or <span class="action">annotation</span> interaction allows a
+                    user (either a human or a computational agent) to add information to the
+                    resource itself or the resource descriptions. A typical tagging or annotation
+                    interaction locates a resource or resource description and lets the user add,
+                    edit, change or <a id="id667208" class="indexterm"/> substitute their chosen resource property. The resulting changes
+                    are stored in the organizing system and can be made available for other
+                    interactions, for example, when additional tags are used to improve the
+                    search.</p><p>A change in the resource properties might result in a change of an organizing
+                    system’s vocabulary or semantics when all layers of the properties are made
+                    available for changes. That is one of the reasons why some changes in resource
+                    properties are typically made only by professionals (see <a class="xref" href="ch04.html#section-4.3.6" title="Creating Resource Descriptions">Creating Resource Descriptions</a>). On the other hand, an interaction that adds
+                    information from users can also enhance the quality of the system and improve
+                    its usability.<sup>[<a id="chapter-9-endnote-35" href="#ftn.chapter-9-endnote-35" epub:type="noteref" class="footnote">529</a>]</sup></p></div></div><div class="sect2" title="Interactions Based on Collection Properties"><div class="titlepage"><div><div><h3 class="title" id="section-9.4.2">Interactions Based on Collection Properties</h3></div></div></div><p>Interactions in this category utilize collection-level properties in order to
+                improve the interaction, for example to improve the ranking in a search or to enable
+                comparison to collection averages.</p><div class="sect3" title="Vector Space Retrieval"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.2.1">Vector Space Retrieval</h4></div></div></div><a id="id667340" class="indexterm"/><p>The simplicity of the Boolean model makes it easy to understand and implement,
+                    but its binary notion of relevance does not fit our intuition that terms differ
+                    in how much they suggest what a document is about. <span class="personname"><span class="firstname">Gerard</span> <span class="surname">Salton</span></span> invented the
+                    vector space model of information retrieval to enable a continuous measure of
+                        relevance.<sup>[<a id="chapter-9-endnote-35a" href="#ftn.chapter-9-endnote-35a" epub:type="noteref" class="footnote">530</a>]</sup> In the vector space model, each resource and query in an organizing
+                    system is represented as a vector of terms (see <a class="xref" href="ch09.html#chapter-9-figure-1" title="Figure 9-1. Three Resources and a Query in a Three-Dimensional Vector Space.">Figure 9-1</a>). Resources and queries are compared by
+                    comparing the directions of vectors in an n-dimensional space (as many
+                    dimensions as terms in the collection), with the assumption is that <span class="quote">“<span class="quote">closeness
+                        in space</span>”</span> means <span class="quote">“<span class="quote">closeness in meaning.</span>”</span> A <span class="action">vector space ranking</span>
+                    utilizes an intrinsic resource property called the <span class="strong"><strong><a class="glossterm" href="go01.html#gloss_term_frequency"><em class="glossterm">term frequency
+                        (tf)</em></a></strong></span>. For each term, term frequency (tf) measures how
+                    many times the term appears in a resource.</p><div class="figure"><a id="chapter-9-figure-1"/><div class="figure-contents"><div class="mediaobject"><a id="chapter-9-figure-1a"/><img src="figs/print/ch9-1.png" alt="In a three-dimensional depiction of a vector space, &#10;                            the terms of the vectors are the axes and individual resources and queries &#10;                            are depicted as vectors pointing in some direction."/></div></div><div class="figure-title">Figure 9-1. Three Resources and a Query in a Three-Dimensional Vector Space.</div></div><p>It is intuitive that <span class="italic">term frequency</span> itself
+                    has an ability to summarize a resource. If a term such as <span class="quote">“<span class="quote">apple</span>”</span>
+                    appears frequently in a resource, we can assume that one of the content topics
+                    of the resource is apples and that a query for <span class="quote">“<span class="quote">apple</span>”</span> should
+                    retrieve this resource. However, only relying on term frequency to determine the
+                    relevance of a resource for a query has a drawback: if the term occurs in every
+                    resource in the repository, it has no distinguishing power between resources.
+                    For example, if an organizing system contains only resources about apples, all
+                    resources are potentially relevant for an <span class="quote">“<span class="quote">apple</span>”</span> query. Hence,
+                    there should be an additional mechanism to penalize the term appearing in too
+                    many resources. This is done with inverse document frequency, which signals how
+                    often a term or property occurs in a collection.</p><p><a id="id667472" class="indexterm"/><a id="id667481" class="indexterm"/><a id="id667529" class="indexterm"/><span><a id="def_document_frequency"/><span class="strong"><strong><a class="glossterm" id="term_inverse_document_frequency" href="go01.html#gloss_inverse_document_frequency"><em class="glossterm">Inverse document frequency
+                                (idf)</em></a></strong></span> is a collection-level property. The
+                            <span class="strong"><strong><a class="glossterm" id="term_document_frequency" href="go01.html#gloss_document_frequency"><em class="glossterm">document
+                                frequency</em></a></strong></span> (df) is the number of resources
+                        containing a particular term. The inverse document frequency (idf) for a
+                        term is defined as idf<sub>t</sub> =
+                            log(N/df<sub>t</sub>), where N is the total number of
+                        documents. The inverse document frequency of a term decreases the more
+                        documents contain the term, providing a discriminating factor for the
+                        importance of terms in a query.</span> For example, in an apple resource
+                    collection, an information retrieval interaction can handle a query for
+                        <span class="quote">“<span class="quote">apples oranges</span>”</span> by lowering the importance of
+                        <span class="quote">“<span class="quote">apples</span>”</span> and increasing the importance of
+                        <span class="quote">“<span class="quote">oranges</span>”</span> in the resources that are selected as result
+                    set.</p><p>Another problem with the term frequency measure occurs when resource
+                    descriptions have different lengths (a very common occurrence in organizing
+                    systems). Let’s say a resource description contains 20 terms and apple appears 4
+                    times. Another resource description contains 200 terms and apple occurs 10
+                    times. According to the term-frequency-based relevance, the second resource is
+                    more relevant because it contains apple more often. However, the first resource
+                    has a much higher concentration of apple: 20% of its content is apple, whereas
+                    apple occurs only in a 5% concentration in the second resource. In order to
+                    compensate for different resource description lengths that would bias the term
+                    frequency count and the calculated relevance towards longer documents, the
+                    length of the term vectors are normalized.</p><p>In a first step of a vector space search, resource descriptions are compared
+                    with the terms in the query. Then, a metric combining the term frequency and the
+                    inverse document frequency is used to rank resources according to their
+                    relevance with respect to the query.<sup>[<a id="chapter-9-endnote-36" href="#ftn.chapter-9-endnote-36" epub:type="noteref" class="footnote">531</a>]</sup></p></div><div class="sect3" title="Latent Semantic Indexing"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.2.2">Latent Semantic Indexing</h4></div></div></div><a id="id667667" class="indexterm"/><p><span class="action">Latent semantic indexing</span> is a variation of the vector space
+                    model where a mathematical technique known as singular value decomposition is
+                    used to group similar term vectors into larger vectors.<sup>[<a id="chapter-9-endnote-37" href="#ftn.chapter-9-endnote-37" epub:type="noteref" class="footnote">532</a>]</sup> This method is based mostly on collection-level properties like
+                    co-occurrence of terms in a collection. Based on the terms that occur in all
+                    resources in a collection, the method calculates which terms might be synonyms
+                    of each other or otherwise related. Put another way, latent semantic indexing
+                    groups terms into topics. Let’s say the terms <span class="quote">“<span class="quote">roses</span>”</span> and
+                        <span class="quote">“<span class="quote">flowers</span>”</span> often occur together in the resources of a particular
+                    collection. The latent semantic indexing methodology recognizes statistically
+                    that these terms are related. Now queries for <span class="quote">“<span class="quote">flower</span>”</span> will also
+                    retrieve resources that mention <span class="quote">“<span class="quote">roses.</span>”</span> This increases the chance
+                    of a resource being found relevant to a query even if the query terms do not
+                    match the resource description terms exactly; the technique can therefore
+                    improve the quality of search.</p><p><a id="id667708" class="indexterm"/>Latent semantic indexing has been shown to be a practical technique
+                    for estimating the substitutability or semantic equivalence of words in larger
+                    text segments, which makes it effective in information retrieval, text
+                    categorization, and other <abbr class="abbrev">NLP</abbr> applications like question
+                    answering. In addition, some people view it as a model of the computational
+                    processes and representations underlying substantial portions of how knowledge
+                    is acquired and used, because latent semantic analysis techniques produces
+                    measures of word-word, word-passage, and passage-passage relations that
+                    correlate well with human cognitive judgments and phenomena involving
+                    association or semantic similarity. These situations include vocabulary tests,
+                    rate of vocabulary learning, essay tests, prose recall, and analogical
+                        reasoning.<sup>[<a id="chapter-9-endnote-37a" href="#ftn.chapter-9-endnote-37a" epub:type="noteref" class="footnote">533</a>]</sup></p><p>Another approach for increasing the quality of search is to add similar terms
+                    or properties to a query from a controlled vocabulary or classification system.
+                    When a query can be mapped to terms in the controlled vocabulary or classes in
+                    the classification, the inherent semantic structure of the vocabulary or
+                    classification can suggest additional terms (broader, narrower, synonymous)
+                    whose occurrence in resources can signal their relevance for a query.</p></div><div class="sect3" title="Probabilistic Retrieval"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.2.3"><span class="action">Probabilistic Retrieval</span></h4></div></div></div><p>In contrast to the vector space model, the underlying idea of the
+                    probabilistic model is that given a query and a resource or resource description
+                    (most often a text), probability theory is used to estimate how likely it is
+                    that a resource is relevant to an information need. A probabilistic mode returns
+                    a list of resources that are ranked by their estimated
+                            <span class="emphasis"><em><span>probability of relevance</span></em></span> with
+                    respect to the information need: P(R=1 | d, q) where R is relevance, d is the
+                    document and q is the query so that the resource with the highest probability to
+                    be relevant is ranked highest. In the vector space model, by comparison, the
+                    resource, whose term vector is most similar to a query term vector (based on
+                    frequency counts) is ranked highest.<sup>[<a id="chapter-9-endnote-38" href="#ftn.chapter-9-endnote-38" epub:type="noteref" class="footnote">534</a>]</sup></p><p><a id="id667854" class="indexterm"/><a id="id667871" class="indexterm"/>The probability ranking principle is mathematically and
+                    theoretically better motivated than the vector space ranking principle. However,
+                    multiple methods have been proposed to estimate the probability of relevance.
+                    Well-known probabilistic retrieval methods are Okapi BM25, <span>language
+                        models (<abbr class="abbrev">LM</abbr>)</span> and <span>divergence from randomness
+                        models (<abbr class="abbrev">DFR</abbr>)</span>.<sup>[<a id="chapter-9-endnote-40" href="#ftn.chapter-9-endnote-40" epub:type="noteref" class="footnote">535</a>]</sup> Although these models vary in their estimations of the probability
+                    of relevance for a given resource and differ in their mathematical complexity,
+                    intrinsic properties of resources like term frequency and collection-level
+                    properties like inverse document frequency and others are used for these
+                    calculations.</p></div><div class="sect3" title="Structure-based Retrieval"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.2.4"><span class="action">Structure-based Retrieval</span></h4></div></div></div><p>When the internal structure of a resource is represented in its resource
+                    description a search interaction can use the structure to retrieve more specific
+                    parts of a resource. This enables parametric or zone searching,<sup>[<a id="chapter-9-endnote-41" href="#ftn.chapter-9-endnote-41" epub:type="noteref" class="footnote">536</a>]</sup> where a particular component or resource property can be searched
+                    while all other properties are disregarded. For example, a search for
+                    Shakespeare in the title field in a bibliographic organizing system will only
+                    retrieve books with Shakespeare in the title, not as an author.</p><p><a id="id668033" class="indexterm"/>A common structure-based retrieval technique is the search in
+                    relational databases with <span class="citerefentry"><span class="refentrytitle">Structured Query Language</span>(SQL)</span>. With the help of tools to facilitate selection and
+                    transformation, particular tables and fields in tables and in many combination
+                    or with various constraints can be applied to yield highly precise
+                    results.</p><p>A format like <abbr class="abbrev">XML</abbr> enables structured resource descriptions
+                    and is therefore very suitable for search and for structured navigation and
+                    retrieval. XPath (see <a class="xref" href="ch05.html#section-5.5.2" title="Structural Relationships within a Resource">Structural Relationships within a Resource</a>)
+                    describes how individual parts of <abbr class="abbrev">XML</abbr> documents can be reached
+                    within the internal structure. <em class="firstterm"><a id="first_XQuery"/><span class="citerefentry"><span class="refentrytitle">XML Query Language</span>(XQuery)</span></em>, a structure-based retrieval language for
+                        <abbr class="abbrev">XML</abbr>, executes queries that can fulfill both topical and
+                    structural constraints in <abbr class="abbrev">XML</abbr> documents. For example, a query
+                    can be expressed for documents containing the word <span class="quote">“<span class="quote">apple</span>”</span> in text,
+                    and where <span class="quote">“<span class="quote">apple</span>”</span> is also mentioned in a title or subtitle, or in a
+                    glossary of terms.</p></div><div class="sect3" title="Clustering / Classification"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.2.5">Clustering / Classification</h4></div></div></div><p><a id="id668179" class="indexterm"/><span class="action">Clustering</span> (<a class="xref" href="ch06.html#section-6.5.2" title="Implementing Categories That Do Not Conform to the Classical Theory">Implementing Categories That Do Not Conform to the Classical Theory</a>) and <span class="action">computational classification</span> (<a class="xref" href="ch07.html#section-7.7" title="Key Points in Chapter Seven">Key Points in Chapter Seven</a>) are both interactions that use
+                    intrinsic and collection-level resource properties to execute their operation.
+                    During clustering (unsupervised learning), all resources are compared and ranked
+                    with respect to their similarity to each other. During computational
+                    classification (supervised learning), an individual resource or a group of
+                    resources is compared to a given classification or <a class="glossterm" href="go01.html#gloss_controlled_vocabulary"><em class="glossterm">controlled vocabulary</em></a> in
+                    an organizing system and the resource is assigned to the most similar class or
+                    descriptor. Another example for a classification interaction is spam detection
+                    (see <a class="xref" href="ch07.html#section-7.7" title="Key Points in Chapter Seven">Key Points in Chapter Seven</a>). Author identification or
+                    characterization algorithms attempt to determine the author of a given work (a
+                    classification interaction) or to characterize the type of author that has or
+                    should write a work (a clustering interaction).</p></div></div><div class="sect2" title="Interactions Based on Derived Properties"><div class="titlepage"><div><div><h3 class="title" id="section-9.4.3">Interactions Based on Derived Properties</h3></div></div></div><p>Interactions in this category <span class="action">derive or compute properties or
+                    features</span> that are not inherent to the resources themselves or the
+                collection. External data sources, services and tools are employed to support these
+                interactions. Building interactions with conditionality based on externally derived
+                properties usually increases the quality of the interactions by increasing the
+                system’s context-awareness.</p><div class="sect3" title="Popularity-Based Ranking"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.3.1">Popularity-Based Ranking</h4></div></div></div><p><a id="id668354" class="indexterm"/><span class="orgname">Google</span>’s <span class="application">PageRank</span> (see
+                    section 5.5.4) is the most well-known popularity measure for websites.<sup>[<a id="chapter-9-endnote-42" href="#ftn.chapter-9-endnote-42" epub:type="noteref" class="footnote">537</a>]</sup> The basic idea of <span class="application">PageRank</span> is that a
+                    website is as popular as the number of links referencing the website. The actual
+                    calculation of a website’s PageRank involves more sophisticated mathematics than
+                    counting the number of in-links, because the source of links is also important.
+                    Links that come from quality websites contribute more to a website’s PageRank
+                    than other links and links to qualitatively low websites will hurt a website’s
+                    PageRank.</p><p>An information retrieval model for web pages can now use
+                        <span class="application">PageRank</span> to determine the value of a web page
+                    with respect to a query. <span class="orgname">Google</span> and other web search engines
+                    use many different ranking features to determine the final rank of a web page
+                    for any search, PageRank as a popularity measure is only one of them.</p><p>Other popularity measures, for example the frequency of use, buying frequency
+                    for retail goods, the number of laundry cycles a particular piece of clothing
+                    has gone through, and even whether it is due for a laundry cycle right now<span class="symbol">—</span>all of these can be used to rank resources.</p></div><div class="sect3" title="Citation-Based Search"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.3.2">Citation-Based Search</h4></div></div></div><p><span class="action">Citation-based search</span> is a sophisticated and highly effective
+                    information retrieval technique employed within bibliographic information
+                    systems. Bibliographic resources are linked to each other by citations, that is,
+                    when one publication cites another. When a bibliographic resource is referenced
+                    by another resource, those two resources are probably thematically related. The
+                    idea of citation-based search is to use a known resource as the information need
+                    and retrieve other resources that are related by citation.</p><p>Citation-based search can be implemented by directly following citations from
+                    the original resource or to find resources that cite the original resource.
+                    Another comparison technique is the principle of bibliographic coupling, where
+                    the information retrieval system looks for other resources that cite the same
+                    resources as the original resource. Citation-based search results can also be
+                    ranked, for example by the number of in-citations a publication has received
+                    (the PageRank popularity measure actually derives from this principle).</p></div><div class="sect3" title="Translation"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.3.3">Translation</h4></div></div></div><p>During <span class="action">translation</span>, resources are transformed into another
+                    language with varying degrees of success. In contrast to the transformations
+                    that are performed in order to merge resources from different organizing systems
+                    to prepare them for further interactions, a translation transforms the resource
+                    after it has been retrieved or located. Dictionaries or parallel corpora are
+                    external resources that drive a translation.</p><p>During a dictionary-based translation, every individual term (sometimes
+                    phrases) in a resource description is looked up in a dictionary and replaced
+                    with the most likely translation. This is a simple translation, as it cannot
+                    take grammatical sentence structures or context into account. Context can have
+                    an important impact on the most likely translation: the French word
+                        <span xml:lang="fr" class="foreignphrase"><em xml:lang="fr" class="foreignphrase">avocat</em></span> should be translated into
+                    lawyer in most organizing systems, but probably not in a cookbook collection, in
+                    which it is the avocado fruit.</p><p><a id="id668600" class="indexterm"/>Parallel corpora are a way to overcome many of these challenges.
+                    Parallel corpora are the same or similar texts in different languages. The Bible
+                    or the protocols of <span><a id="ref_UN"/><span class="citerefentry"><span class="refentrytitle"><span class="orgname">United Nations</span></span>(UN)</span></span> meetings are popular examples because they exist in
+                    parallel in many different languages. A machine learning algorithm can learn
+                    from these corpora to determine in which contexts which phrases and other
+                    grammatical structures can be translated. This knowledge that then be applied to
+                    further resource translation interactions.</p></div></div><div class="sect2" title="Interactions Based on Combining Resources"><div class="titlepage"><div><div><h3 class="title" id="section-9.4.4">Interactions Based on Combining Resources</h3></div></div></div><p>Interactions in this category combine resources mostly from different organizing
+                systems to provide services that a single organizing system could not enable.
+                Sometimes different organizing systems with related resources are created on purpose
+                in order to protect the privacy of personal information or to protect business
+                interests. Releasing organizing systems to the public can have unwanted consequences
+                when clever developers detect the potential of connecting previously unrelated data
+                sources.</p><div class="sect3" title="Mash-Ups"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.4.1">Mash-Ups</h4></div></div></div><p>A <span class="action">mash-up</span> combines data from several resources, which enables
+                    an interaction to present new information that arises from the
+                        combination.<sup>[<a id="chapter-9-endnote-43" href="#ftn.chapter-9-endnote-43" epub:type="noteref" class="footnote">538</a>]</sup> For example, housing advertisements have been combined with crime
+                    statistics on maps to graphically identify rentals that are available in
+                    relatively safe neighborhoods.</p><p>Mash-ups are usually <span xml:lang="latin" class="foreignphrase"><em xml:lang="latin" class="foreignphrase">ad-hoc</em></span>
+                    combinations at the resource level and therefore do not impact the
+                        <span class="quote">“<span class="quote">mashed-up</span>”</span> organizing systems’ internal structures or
+                    vocabularies; they can be an efficient instrument for rapid prototyping on the
+                    web. On the other hand, that makes them not very reliable or robust because a
+                    mash-up can fail in its operation as soon as the underlying organizing systems
+                    change.</p></div><div class="sect3" title="Linked Data Retrieval and Resource Discovery"><div class="titlepage"><div><div><h4 class="title" id="section-9.4.4.2">Linked Data Retrieval and Resource Discovery</h4></div></div></div><p><a id="id668881" class="indexterm"/>In <a class="xref" href="ch08.html#section-8.4.3" title="The Semantic Web World">The Semantic Web World</a>, linked data relates resources
+                    among different organizing system technologies via standardized and unique
+                    identifiers (<abbr class="abbrev">URI</abbr>s). This simple approach connects resources
+                    from different systems with each other so that a cross-system search is
+                        possible.<sup>[<a id="chapter-9-endnote-44" href="#ftn.chapter-9-endnote-44" epub:type="noteref" class="footnote">539</a>]</sup>
+                    <a id="id668908" class="indexterm"/>For example, two different online retailers selling a
+                        <span class="orgname">Martha Stewart</span> bedspread can link to a website describing
+                    the bedspread on the <span class="application">Martha Stewart</span> website. Both
+                    retailers use the same unique identifier for the bedspread, which leads back to
+                    the <span class="application">Martha Stewart</span> site.</p><p><span class="action">Resource discovery</span> or <span class="action">linked data retrieval</span>
+                    are search interactions that traverse the network (or semantic web graph) via
+                    connecting links in order to discover semantically related resources. A
+                        <span class="action">search</span> interaction could therefore use the link from one
+                    retailer to the <span class="application">Martha Stewart</span> website to discover
+                    the other retailer, which might have a cheaper or more convenient offer.</p></div></div></div><div class="sect1" title="Evaluating Interactions"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.5">Evaluating Interactions</h2></div></div></div><p>Managing the quality of an interaction with respect to its intent or goal is a crucial
+            part of every step from design through implementation and especially during operation.
+            Evaluating the quality of interactions at different times in the design process (design
+            concept, prototype, implementation, and operation) reveals both strengths and weaknesses
+            to the designers or operators of the organizing system.</p><p><a id="id669009" class="indexterm"/>During the design and implementation stages, interactions need to be tested against
+            the original goals of the interaction and the constraints that are imposed by the
+            organizing system, its resources and external conditions. It is very common for
+            processes in interactions to be tweaked or tuned to better comply with the original
+            goals and intentions for the interaction. Evaluation during these stages often attempts
+            to provide a calculable way to measure this compliance and supports the fine-tuning
+            process. It should be an integral part of an iterative design process.</p><p><a id="id669020" class="indexterm"/>During the later implementation and operation stages, interactions are evaluated with
+            respect to the dynamically changing conditions of the organizing system and its
+            environment. User expectations as well as environmental conditions or constraints can
+            change and need to be checked periodically. A systematic evaluation of interactions
+            ensures that changes that affect an interaction are observed early and can be integrated
+            in order to adjust and even improve the interaction. At these stages, more subjective
+            evaluation aspects like satisfaction, experience, reputation or <span class="quote">“<span class="quote">feel</span>”</span> also
+            play a role in fine-tuning the interactions. This subjective part of the evaluation
+            process is as important as the quantitative, objective part. Many factors during the
+            design and implementation processes need to be considered and made to work together.
+            Ongoing quality evaluation and feedback ensures that interactions work as
+            intended.</p><p>Let’s assume that <span class="application">Shopstyle.com</span> develops a new interaction
+            that lets you compare coat lengths from the offerings of their various retailers. Once
+            the interaction is designed, an evaluation takes place in order to determine whether all
+            coats and their lengths are integrated in the interaction and whether the coat lengths
+            are measured and compared correctly. The designers would not only want to know whether
+            the coat lengths are represented correctly but also whether the interaction performs
+            efficiently. When the interaction is ready to be released (usually first in beta or test
+            status), users and retailers will be asked whether the interaction improves their
+            shopping experience, whether the comparison performs as they expected, and what they
+            would change. These evaluation styles work hand in hand in order to improve the
+            interaction.</p><div class="sect2" title="Interaction Aspects for Evaluation"><div class="titlepage"><div><div><h3 class="title" id="section-9.5.1">Interaction Aspects for Evaluation</h3></div></div></div><p>Evaluation aspects can be distinguished in numerous ways: by the effort and time
+                to perform them (both data collection and analysis); by how quantifiable they are or
+                how comparable they are with measures in other organization systems; by what
+                component of the interaction or organizing system they focus on; or by the
+                discipline, expertise or methodologies that are used for the evaluation.</p><p>A common and important distinction is the difference between efficiency,
+                effectiveness and satisfaction. An interaction is efficient when it performs its
+                actions in a timely and economical manner. An interaction is effective when it
+                performs its actions correctly and completely. An interaction is satisfactory when
+                it performs as expected. Satisfaction is the least quantifiable of the evaluation
+                aspects because it is highly dependent on individual tastes and experiences.</p><p>Efficiency measures are usually related to engineering aspects such as the time to
+                perform an action, number of steps to perform an interaction, or amount of computing
+                resources used. Effectiveness measures are often developed in the fields that
+                developed the algorithm for the interaction, information retrieval or machine
+                learning. Satisfaction measures arise out of the user’s experience with the
+                interaction<span class="symbol">—</span>they are mostly aspects of user interfaces,
+                usability, or subjective and aesthetic impressions.</p><p><a id="id669128" class="indexterm"/>Although efficiency, effectiveness and satisfaction are measured
+                differently and affect different components of the interaction, they are equally
+                important for the success of an interaction. Even if an interaction is fast, it is
+                not very useful if it arrives at incorrect results. Even if an interaction works
+                correctly, user satisfaction is not guaranteed. One of the challenges in designing
+                interactions is that these factors invariably involve tradeoffs. A fast system
+                cannot be as precise as one prioritizes the use of contextual information. An
+                effective interaction might require a lot of effort from the user, which does not
+                make it very easy to use, so the user satisfaction might decrease. The priorities of
+                the organizing system and its designers will determine which properties to
+                optimize.</p><p>Let’s continue our <span class="orgname">Shopstyle</span> coat-length comparison interaction
+                example. When the coat length calculation is performed in an acceptable amount of
+                time and does not consume a lot of the organizing systems resources, the interaction
+                is efficient. When all coat lengths are correctly measured and compared, the
+                interaction is effective. When the interaction is seamlessly integrated into the
+                shopping process, is visually supported in the interface and is not cognitively
+                exhausting, is it probably satisfactory for a user as it provides a useful service
+                (especially for someone with irregular body dimensions). What aspect should
+                Shopstyle prioritize? It will probably weigh the consequences of effectiveness
+                versus efficiency and satisfaction. For a retail- and consumer-oriented organizing
+                system, satisfaction is probably one of the more important aspects, so it’s highly
+                likely that efficiency and effectiveness might be sacrificed (in moderation) in
+                favor of satisfaction.</p><p>For a lot of organizing system interactions, however, effectiveness is the more
+                important aspect, particularly for those interactions that we have looked at so far.
+                If search results are not correct, then users will not be satisfied by even the most
+                usable interface. Many interactions are evaluated with respect to their ability to
+                return relevant resources. Why and how this is evaluated is the focus of the
+                remainder of this section.</p></div><div class="sect2" title="Relevance"><div class="titlepage"><div><div><h3 class="title" id="section-9.5.2">Relevance</h3></div></div></div><p><span><a id="def_relevance"/>The concept of <span class="bold"><strong><a class="glossterm" href="go01.html#gloss_relevance"><em class="glossterm">relevance</em></a></strong></span> is pivotal in information retrieval and
+                    machine learning interactions. Relevance is widely regarded as the fundamental
+                    concept of information retrieval, and by extension, all of information science.
+                    Despite being one of the more intuitive concepts in human communication,
+                    relevance is notoriously difficult to define and has been the subject of much
+                    debate over the past century.</span></p><p>Historically, relevance has been addressed in logic and philosophy since the
+                notion of inference was codified (to infer B from A, A must be relevant to B). Other
+                fields have attempted to deal with relevance as well: sociology, linguistics, and
+                psychology in particular. The subject knowledge view, subject literature view,
+                logical view, system’s view, destination’s view, pertinence view, pragmatic view and
+                the utility-theoretic interpretation are different perspectives on the question of
+                when something is relevant.<sup>[<a id="chapter-9-endnote-45" href="#ftn.chapter-9-endnote-45" epub:type="noteref" class="footnote">540</a>]</sup> In 1997, Mizzaro surveyed 160 research articles on the topic of
+                relevance and arrived at this definition: <span class="quote">“<span class="quote">relevance can be seen as a point in
+                    a four-dimensional space, the values of each of the four dimensions being:
+                        (<span class="emphasis"><em>i</em></span>) Surrogate, document, information;
+                        (<span class="emphasis"><em>ii</em></span>) query, request, information need, problem;
+                        (<span class="emphasis"><em>iii</em></span>) topic, context, and each combination of them; and
+                        (<span class="emphasis"><em>iv</em></span>) the various time instants from the arising of
+                    problem until its solution.</span>”</span><sup>[<a id="chapter-9-endnote-46" href="#ftn.chapter-9-endnote-46" epub:type="noteref" class="footnote">541</a>]</sup> This rather abstract definition points to the terminological ambiguity
+                surrounding the concept.</p><p>For the purpose of organizing systems, relevance is a concept for evaluating
+                effectiveness that describes whether a stated or implicit information need is
+                satisfied in a particular user context and at a particular time. One of the
+                challenges for the evaluation of relevance in organizing systems is the gap between
+                a user’s information need (often not directly stated), and an expression of that
+                information need (a query). This gap might result in ambiguous results in the
+                interaction. For example, suppose somebody speaks the word <span class="quote">“<span class="quote">Paris</span>”</span>
+                (query) into a smart phone application seeking advice on how to travel to Paris,
+                France. The response includes offers for the <span class="orgname">Paris Hotel</span> in Las
+                Vegas. Does the result satisfy the information need? What if the searcher receives
+                advice on Paris but has already seen every one of the resources the organizing
+                system offers? What is the correct decision on relevance here?</p><p>The key to calculating effectiveness is to be aware of what is being measured. If
+                the information need as expressed in the query is measured, the topical relevance or
+                topicality<span class="symbol">—</span>a system-side perspective is analyzed. If the
+                information need as in a person’s mind is measured, the pertinence, utility or
+                situational relevance<span class="symbol">—</span>a subjective personal perspective is
+                analyzed. This juxtaposition is the point of much research and contention in the
+                field of information retrieval, because topical relevance is objectively measurable,
+                but subjective relevance is the real goal. In order to evaluate relevance in any
+                interaction, an essential prerequisite is deciding which of these notions of
+                relevance to consider.</p></div><div class="sect2" title="The Recall / Precision Trade-Off"><div class="titlepage"><div><div><h3 class="title" id="section-9.5.3">The Recall / Precision Trade-Off</h3></div></div></div><p>Another decision is whether recall or precision are preferred in an
+                interaction.</p><p><span><a class="glossterm" href="go01.html#gloss_precision"><em class="glossterm">Precision</em></a> and <a class="glossterm" href="go01.html#gloss_recall"><em class="glossterm">recall</em></a> are the fundamental measures of
+                        <a class="glossterm" href="go01.html#gloss_relevance"><em class="glossterm">relevance</em></a> or effectiveness
+                    in information retrieval or machine learning interactions.</span>
+                <a id="id669463" class="indexterm"/><a id="id669479" class="indexterm"/><span><a id="def_precision"/><span class="bold"><strong><a class="glossterm" id="term_precision" href="go01.html#gloss_precision"><em class="glossterm">Precision</em></a></strong></span> measures the <a class="glossterm" href="go01.html#gloss_accuracy"><em class="glossterm">accuracy</em></a> of a result set, that is, how
+                    many of the retrieved resources for a query are relevant.</span>
+                <a id="id669517" class="indexterm"/><span><a id="def_recall"/><span class="bold"><strong><a class="glossterm" id="term_recall" href="go01.html#gloss_recall"><em class="glossterm">Recall</em></a></strong></span>
+                    measures the completeness of the result set, that is, how many of the relevant
+                    resources in a collection were retrieved.</span> Let’s assume that a
+                collection contains 20 relevant resources for a query. A retrieval interaction
+                retrieves 10 resources in a result set, 5 of the retrieved resources are relevant.
+                The precision of this interaction is 50% (5 out of 10 retrieved resources are
+                relevant); the recall is 25% (5 out of 20 relevant resources were
+                    retrieved).<sup>[<a id="chapter-9-endnote-47" href="#ftn.chapter-9-endnote-47" epub:type="noteref" class="footnote">542</a>]</sup></p><p>It is in the nature of information retrieval interactions that recall and
+                precision trade off with each other. To find all relevant resources in a collection,
+                the interaction has to cast a wide net and will not be very precise. In order to be
+                very precise and return only relevant resources to the searcher, an interaction has
+                to be very discriminating and will probably not find all relevant resources. When a
+                collection is very large and contains many relevant resources for any given query,
+                the priority is usually to increase precision. However, when a collection is small
+                or the information need also requires finding all relevant documents (e.g., in case
+                law, patent searches, or medical diagnosis support), then the priority is put on
+                increasing recall.</p><p>The completeness and granularity of the organizing principles in an organizing
+                system have a large impact on the trade-off between recall and precision (<a class="xref" href="ch03.html" title="Chapter 3. Resources in Organizing Systems">Chapter 3</a>). When resources are organized in
+                fine-grained category systems and many different resource properties are described,
+                high-precision searches are possible because a desired resource can be searched as
+                precisely as the description or organization of the system allows. However, very
+                specialized description and organization may preclude certain resources from being
+                found; consequently, recall might be sacrificed. If the organization 
+                is superficial<span class="symbol">—</span>like your sock drawer, 
+                for example<span class="symbol">—</span>you can find all the socks you want (high recall) but
+                you have to sort through a lot of socks to find the right pair (low precision). The
+                trade-off between recall and precision is closely associated with the extent of the
+                organization.</p></div></div><div class="sect1" title="Key Points in Chapter Nine"><div class="titlepage"><div><div><h2 class="title" style="clear: both" id="section-9.6">Key Points in Chapter Nine</h2></div></div></div><div class="highlights"><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem"><p>Interactions arise naturally from the affordances of resources or are
+                        purposefully designed into organizing systems.</p></li><li class="listitem"><p>Accessing and merging resources are fundamental interactions that occur in
+                        almost every organizing system.</p></li><li class="listitem"><p>The design of interactions is driven by choices and constraints that
+                        expand and limit the design space.</p></li><li class="listitem"><p>User requirements, which layer of resource properties is used, and the
+                        legal, social and organizational environment can distinguish
+                        interactions.</p></li><li class="listitem"><p>Resource property layers build on each other: interactions based on
+                        individual resource properties, interactions based on collection-level
+                        properties, and interactions based on externally derived or computed
+                        properties.</p></li><li class="listitem"><p>In order to enable interactions, it is necessary to identify, describe,
+                        and sometimes transform the resources in an organizing system.</p></li><li class="listitem"><p>Resource transformations happen within the infrastructure or notation, the
+                        writing system, the organizing system’s semantics or the resources
+                        themselves.</p></li><li class="listitem"><p>Merging transformations can be distinguished by type (mapping or
+                        crosswalk), time (design time or run time) and mode (manual or
+                        automatic).</p></li><li class="listitem"><p>Most implementations of resource-based interactions depend on three basic
+                        actions: comparing, ranking and locating resources.</p></li><li class="listitem"><p>Implementations can be distinguished by the source of the algorithm
+                        (information retrieval, machine learning, natural language processing), by
+                        their complexity (number of actions needed), by whether resources are
+                        changed, or by the resource description layers they are based on.</p></li><li class="listitem"><p>An information retrieval model describes the components of an information
+                        retrieval interaction: the way queries and resources are represented, the
+                        way the comparison between resources and queries is performed, and the type
+                        of calculations performed or features used to rank resources according to
+                        their relevance.</p></li><li class="listitem"><p>Important aspects for the evaluation of interactions are efficiency
+                        (timeliness and cost-effectiveness), effectiveness (accuracy and relevance)
+                        and satisfaction (positive attitude of the user).</p></li><li class="listitem"><p>The trade-off between recall and precision decides whether a search finds
+                        all relevant documents (high recall) or only relevant documents (high
+                        precision).</p></li><li class="listitem"><p>The extent of the organization principles also impacts recall and
+                        precision: more fine-grained organization allows for more precise
+                        interactions.</p></li></ul></div></div></div><div class="footnotes" epub:type="footnotes"><br/><hr style="width: 100; align: left;"/><div class="footnote" id="ftn.chapter-9-endnote-01"><p><sup>[<a href="#chapter-9-endnote-01" class="para">495</a>] </sup>[Citation] <a id="id661836" class="indexterm"/><a class="ulink" href="http://www.worldcat.org/" target="_top"><code class="uri">http://www.worldcat.org/</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-02"><p><sup>[<a href="#chapter-9-endnote-02" class="para">496</a>] </sup>[Citation] <a class="link" href="bi01.html#Proctor2011" title="“The Google Art Project: A New Generation of Museums on the Web?”"><a id="cite_Proctor2011-9.1"/>(Proctor
+                            2011)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-03"><p><sup>[<a href="#chapter-9-endnote-03" class="para">497</a>] </sup>[Citation] <a class="link" href="bi01.html#Srinivasan2009" title="“Digital museums and diverse cultural knowledges: Moving past the traditional catalog”"><a id="cite_Srinivasan2009"/>(Srinivasan, Boast, Furner, Becvar 2009)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-04"><p><sup>[<a href="#chapter-9-endnote-04" class="para">498</a>] </sup>[Citation] <a id="id661970" class="indexterm"/><a class="link" href="bi01.html#Hyvönen2004" title="“Finnish Museums on the Semantic Web: The User’s Perspective on MuseumFinland”"><a id="cite_Hyvönen2004"/>(Hyvönen et
+                            al. 2004)</a>. Museum visitors are presented with intelligent,
+                        content-based search and browsing services that offer a consolidated view
+                        across Finnish museums from the <span class="orgname">National Museum</span> to the
+                            <span class="orgname">Lahti City Museum</span>. To enable these goals,
+                            <span class="orgname">MuseumFinland</span> mapped the variety of existing terms
+                        used by different museums onto shared ontologies, which now enable
+                        aggregated searching and browsing.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-05"><p><sup>[<a href="#chapter-9-endnote-05" class="para">499</a>] </sup>[Citation] <a class="link" href="bi01.html#Bower2001" title="“Developments in International Museum and Cultural Heritage Information Standards”"><a id="cite_Bower2001"/>(Bower and
+                            Roberts 2001)</a>.</p></div><div class="footnote" id="ftn.chapter-9-endnote-06"><p><sup>[<a href="#chapter-9-endnote-06" class="para">500</a>] </sup>[Business] <a id="id662194" class="indexterm"/>Walmart uses its market power to impose technology and process
+                        decisions on its suppliers and partners. See <a class="link" href="bi01.html#Fishman2003" title="“The Wal-Mart You Don’t Know”"><a id="cite_Fishman2003"/>(Fishman 2003)</a>, <a class="link" href="bi01.html#Grean2005" title="“Supply-Chain Integration through Information Sharing: Channel Partnership between Wal-Mart and Procter &amp; Gamble”"><a id="cite_Grean2005"/>(Grean and Shaw 2005)</a>, <a class="link" href="bi01.html#Wilbert2006" title="How Wal-Mart Works"><a id="cite_Wilbert2006"/>(Wilbert 2006)</a>.
+                        Walmart’s website for suppliers is
+                            <a class="ulink" href="http://walmartstores.com/Suppliers/248.aspx/" target="_top"><code class="uri">http://walmartstores.com/Suppliers/248.aspx/</code></a>.</p></div><div class="footnote" id="ftn.chapter-9-endnote-07"><p><sup>[<a href="#chapter-9-endnote-07" class="para">501</a>] </sup>[Business] <a id="id662337" class="indexterm"/><a id="id662331" class="indexterm"/><a id="id662371" class="indexterm"/><a id="id662374" class="indexterm"/>In order to more easily use and reuse content, as well as have
+                        the ability to integrate different learning tools into a single
+                            <span class="application">learning management system, the
+                            <abbr class="abbrev">LMS</abbr></span>, <span class="orgname">Global Learning
+                            Consortium</span>, an organization composed of 140 members from
+                        leading educational institutions and education-related companies, has
+                        released specifications to make this possible. Called <em class="citetitle">Common
+                            Cartridge and Learning Tools Interoperability</em>
+                            (<a class="ulink" href="http://www.imsglobal.org/commoncartridge.html" target="_top"><code class="uri">http://www.imsglobal.org/commoncartridge.html</code></a>), the
+                        specifications provide a common format and guidelines to construct tools and
+                        create content that can be easily imported into learning management systems. <span class="citerefentry"><span class="refentrytitle">Common Cartridge</span>(CC)</span> specifications give detailed descriptions of the directory
+                        structure, metadata and information models associated with a particular
+                        learning object. For example, a learning package from a provider from
+                            <span class="orgname">McGraw-Hill</span> may contain content from a book, some
+                        interactive quizzes, and some multimedia to support the text. CC specifies
+                        how files would be organized within a directory, how links would be
+                        represented, how the package would communicate with a backend server, how to
+                        describe each of the components, and the like. This would enable a professor
+                        or a student using any capable learning management system to import a
+                            <span class="quote">“<span class="quote">cartridge</span>”</span> or learning material and have it appear in a
+                        consistent manner with all other learning materials within the
+                            <abbr class="abbrev">LMS</abbr>. This means that content providers need not
+                        maintain multiple versions of the same content just to conform to the
+                        formats of different systems, allowing them to focus their resources on
+                        creating more content as opposed to maintaining the ones they already have.
+                        Looking at this in the context of the interoperability framework, we see
+                        that while information from providers are in a structured digital form, the
+                        main problem was that users were consuming the content using competing
+                        systems that had their own data formats by which to accept content. Huge
+                        publishers, wanting to increase distribution of their product, offered their
+                        content in all these different formats. While the specifications that the
+                            <abbr class="abbrev">LMS</abbr> created refer to the technical considerations in
+                        creating content and tools, the process of getting to that point involved a
+                        lot of organizational and political discussions. Internally, content and
+                            <abbr class="abbrev">LMS</abbr> providers needed to set aside the necessary
+                        resources to refactor their products to conform to the standards.
+                        Externally, competing providers had to collaborate with one another to
+                        create the specifications.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-08"><p><sup>[<a href="#chapter-9-endnote-08" class="para">502</a>] </sup>[Citation] <a class="link" href="bi01.html#Fidel2012" title="Human Information Interaction: An Ecological Approach to Information Behavior"><a id="cite_Fidel2012"/>(Fidel
+                            2012)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-09"><p><sup>[<a href="#chapter-9-endnote-09" class="para">503</a>] </sup>[Citation] <a class="link" href="bi01.html#vonRiegen2006" title="How Standards Address Interoperability Needs: An Industry View"><a id="cite_vonRiegen2006"/>(von Riegen 2006)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-10"><p><sup>[<a href="#chapter-9-endnote-10" class="para">504</a>] </sup>[Business] <a id="id663512" class="indexterm"/><a id="id663520" class="indexterm"/><a id="id663525" class="indexterm"/>A good example for the importance of standards and
+                                    interoperability rules is E-government. E-government refers to
+                                    the ability to deliver government services through electronic
+                                    means. These services can range from government-to-citizen,
+                                    government-to-business, government-to-employees,
+                                    government-to-government, and vice-versa 
+                                    <a class="link" href="bi01.html#Guijarro2007" title="“Interoperability frameworks and enterprise architectures in e-government initiatives in Europe and the United States”"><a id="cite_Guijarro2007"/>(Guijarro 2007</a>, 
+                                    <a class="link" href="bi01.html#Scholl2007" title="“International Journal of Public E-Government Integration and Interoperability: Framing the Research Agenda”"><a id="cite_Scholl2007"/>Scholl 2007)</a>. 
+                                    This could range from a government unit providing a
+                                    portal where citizens can apply for a driver’s license or file
+                                    their taxes, to more complex implementations such as allowing
+                                    different government agencies to share certain pertinent
+                                    information with one another, such as providing information on
+                                    driver’s license holders to the police. Because the government
+                                    interacts with heterogeneous entities and their various systems,
+                                    e-government planners must consider how to integrate and
+                                    interoperate with different systems and data models. Countries
+                                    belonging to the <em class="firstterm"><a id="first_OECD"/><span class="citerefentry"><span class="refentrytitle"><span class="orgname">Organization for Economic
+                                                  Cooperation and
+                                                Development</span></span>(OECD)</span></em> have continuously refined their
+                                    strategies for e-government.</p><p><a id="id663739" class="indexterm"/><span><a id="ref_UBL"/><a id="id663621" class="indexterm"/>An example of a highly successful implementation
+                                        of a business-to-government implementation is the use of the <span class="citerefentry"><span class="refentrytitle">Universal Business
+                                                Language</span>(UBL)</span> by the <span class="orgname">Government of
+                                            Denmark</span>. <abbr class="abbrev">UBL</abbr> is a
+                                            <span class="quote">“<span class="quote">royalty-free library of standard electronic
+                                                <abbr class="abbrev">XML</abbr> business documents such as
+                                            purchase orders and invoices</span>”</span> [oasis-open.org].
+                                        The <span class="orgname">Government of Denmark</span> localized these
+                                        standards, and mandated all organizations wanting to do
+                                        business with the government to use these formats for
+                                        invoicing. By automating the matching process between an
+                                        electronic order and an electronic invoice, the government
+                                        expects total potential savings of about 160 million Euros
+                                        per year [<abbr class="abbrev">UBL</abbr> case study], thus
+                                        highlighting the need for a standard format by which
+                                        businesses can send in orders and invoices electronically.
+                                    </span></p><p>Recognizing that its position as government entails that all
+                                    types of suppliers, big or small, must have equal opportunity to
+                                    sell its products and services, the <span class="orgname">Government of
+                                        Denmark</span> not only set data format standards, it
+                                    also gave several options by which information can be exchanged.
+                                    Paper-based invoices would be sent to scanning agencies that
+                                    would scan and create electronic versions to be submitted to the
+                                    government. This highlights the different organizational and
+                                    consumption issues that the government of Denmark had to
+                                    consider when designing the system.</p></div><div class="footnote" id="ftn.chapter-9-endnote-11"><p><sup>[<a href="#chapter-9-endnote-11" class="para">505</a>] </sup>[LIS] <a id="id663832" class="indexterm"/>Major library system vendors now market so-called discovery portals
+                    to their customers, which allow libraries to integrate their local catalogs with
+                    central indexes of journal and other full-text databases. The advantages of
+                    discovery portals are the seamless access for patrons to all the library’s
+                    electronic materials (including externally licensed databases) while maintaining
+                    a local and customized look and feel. By providing out-of-the-box solutions,
+                    vendors on the other hand bind libraries more closely to their products.</p><p><a id="id663843" class="indexterm"/><a id="id663846" class="indexterm"/>See for an example <span class="application">Exlibris Primo</span>
+                        (<a class="ulink" href="http://www.exlibrisgroup.com/category/PrimoOverview/" target="_top"><code class="uri">http://www.exlibrisgroup.com/category/PrimoOverview/</code></a>) or
+                        <abbr class="abbrev">OCLC</abbr>
+                    <span class="application">WorldCat Local</span>
+                        (<a class="ulink" href="http://www.oclc.org/worldcatlocal/default.htm" target="_top"><code class="uri">http://www.oclc.org/worldcatlocal/default.htm</code></a>).</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-12"><p><sup>[<a href="#chapter-9-endnote-12" class="para">506</a>] </sup>[Computing] <a id="id664158" class="indexterm"/><a id="id664173" class="indexterm"/><a id="id664179" class="indexterm"/><a id="id664185" class="indexterm"/><a id="id664190" class="indexterm"/>While data encoding describes how information is
+                                    represented, and data exchange formats describe how information
+                                    is structured, communication protocols refer to how information
+                                    is exchanged between systems. These protocols dictate how these
+                                    documents are enclosed within messages, and how these messages
+                                    are transmitted across the network. Things such as message
+                                    format, error detection and reporting, security and encryption
+                                    are described and considered. Nowadays, there are a number of
+                                    communication protocols that are used over networks, including
+                                            <em class="firstterm"><span class="citerefentry"><a id="ref_FTP"/><span class="refentrytitle">File Transfer Protocol</span>(FTP)</span></em>, <span class="citerefentry"><span class="refentrytitle">Hypertext Transfer Protocol</span>(HTTP)</span> commonly used in the Internet, <em class="firstterm"><a id="first_POP"/><span class="citerefentry"><span class="refentrytitle">Post Office Protocol</span>(POP)</span></em> commonly used for e-mail, and
+                                    other protocols under the <em class="firstterm"><a id="first_TCP-IP"/><span class="citerefentry"><span class="refentrytitle">Transmission Control Protocol/Internet
+                                                Protocol</span>(TCP/IP)</span></em> suite. Different product
+                                    manufacturers normally also have more proprietary protocols that
+                                    they employ, including <span class="citerefentry"><span class="refentrytitle">Apple Computer Protocols
+                                            Suite</span></span> and <span class="citerefentry"><span class="refentrytitle">Cisco Protocols</span></span>. In addition, different types of networks would
+                                    also have corresponding protocols, including Mobile Wireless
+                                    Protocols and such.</p></div><div class="footnote" id="ftn.chapter-9-endnote-13"><p><sup>[<a href="#chapter-9-endnote-13" class="para">507</a>] </sup>[Business] <a id="id664334" class="indexterm"/><a id="id664362" class="indexterm"/><a id="id664366" class="indexterm"/><span><span class="citerefentry"><a id="ref_EDI"/><span class="refentrytitle">Electronic Data
+                                                Interchange</span>(EDI)</span></span>, is used to exchange formatted
+                                    messages between computers or systems. Organizations use this
+                                    format to conduct business transactions electronically without
+                                    human intervention, such as in sending and receiving purchase
+                                    orders or exchange invoice information and such. There are four
+                                    main standards that have been developed for
+                                    <abbr class="abbrev">EDI</abbr>, including the <em class="firstterm"><a id="first_EDIFACT"/><span class="citerefentry"><span class="refentrytitle">UN/EDIFACT</span></span></em> standard recommended by the
+                                        <em class="firstterm"><a id="first_UN"/><span class="citerefentry"><span class="refentrytitle"><span class="orgname">United
+                                                Nations</span></span>(UN)</span></em>, <a id="id664378" class="indexterm"/><a id="id664432" class="indexterm"/><em class="firstterm"><a id="first_ANSIASCX12"/><span class="citerefentry"><span class="refentrytitle">ANSI ASC X12</span></span></em> standard widely used in the US, <span class="citerefentry"><span class="refentrytitle">TRADACOMS</span></span> standard that is widely used in the
+                                        <abbr class="abbrev">UK</abbr>, and the <span class="citerefentry"><span class="refentrytitle">ODETTE</span></span> standard used in the European automotive
+                                    industry. These standards include formats for a wide range of
+                                    business activities, such as shipping notices, fund transfers,
+                                    and the like. <abbr class="abbrev">EDI</abbr> messages are highly
+                                    formatted, with the meaning of the information being transmitted
+                                    being highly dependent on its position in the document. For
+                                    instance, a line in an <abbr class="abbrev">EDI</abbr> document with
+                                        <code class="literal">BEG*00*NE*MOG009364501**950910*CSW11096^</code>
+                                    corresponds to a line in the <span class="citerefentry"><span class="refentrytitle">X12</span></span> standard for Purchase Orders (standard 850).
+                                        <span class="quote">“<span class="quote">BEG</span>”</span> specifies the start of a Purchase Order
+                                    Transaction Set. The asterisk (*) symbol delineates between
+                                    items in the line, with each value corresponding to a particular
+                                    field or information component described in the standard.
+                                        <span class="quote">“<span class="quote">NE,</span>”</span> for example, corresponds to the Purchase
+                                    Order Type Code, which in this instance is <span class="quote">“<span class="quote">New
+                                        Order.</span>”</span> As can be seen in the example, the
+                                    description of the information being transmitted is not readily
+                                    available within the document. Instead, parties exchanging the
+                                    information must agree on these formats beforehand, and need to
+                                    ensure that the information instance is at the right position
+                                    within the document so that the receiving party can correctly
+                                    interpret it.</p><p>*<span class="citerefentry"><span class="refentrytitle">EDI</span></span> samples come from
+                                        <a class="ulink" href="http://miscouncil.org" target="_top"><code class="uri">http://miscouncil.org</code></a></p><p><a id="id664499" class="indexterm"/><em class="firstterm"><a id="first_ANSI"/><span class="citerefentry"><a id="ref_ANSI"/><span class="refentrytitle">American National Standards
+                                                Association</span>(ANSI)</span></em> can be found at
+                                        <a class="ulink" href="http://www.ansi.org" target="_top"><code class="uri">http://www.ansi.org</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-14"><p><sup>[<a href="#chapter-9-endnote-14" class="para">508</a>] </sup>[Citation] This and more examples for difficult
+                                    categorizations can be found in: <a class="link" href="bi01.html#Bowker2000" title="Sorting Things Out: Classification and Its Consequences"><a id="cite_Bowker2000-9.1"/>(Bowker and Star 2000)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-15"><p><sup>[<a href="#chapter-9-endnote-15" class="para">509</a>] </sup>[Citation] For an in-depth discussion of interoperability challenges,
+                            see Chapter 6 of <a class="link" href="bi01.html#Glushko2005" title="Document Engineering: Analyzing and Designing Documents for Business Informatics and Web Services"><a id="cite_Glushko2005-9.1"/>(Glushko and McGrath 2005)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-16"><p><sup>[<a href="#chapter-9-endnote-16" class="para">510</a>] </sup>[Citation] <a class="link" href="bi01.html#ATT2011" title="“An AccuWeather Cloudlet Answers a Hail of Data Requests”"><a id="cite_ATT2011"/>(AT&amp;T
+                                2011)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-17"><p><sup>[<a href="#chapter-9-endnote-17" class="para">511</a>] </sup>[Citation] <a class="link" href="bi01.html#Linthicum1999" title="Enterprise Application Integration"><a id="cite_Linthicum1999"/>(Linthicum 1999)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-18"><p><sup>[<a href="#chapter-9-endnote-18" class="para">512</a>] </sup>[Business] <a id="id665340" class="indexterm"/><a id="id665346" class="indexterm"/><a id="id665352" class="indexterm"/>Allowing unrestricted access to data and business processes
+                            also becomes a problem when working across organizations. Fully
+                            integrating systems between two companies, for instance, may entail the
+                            exposure of business intelligence and information that should be kept
+                            private. This type of exposure is too much for most businesses,
+                            regardless of whether the relationship with the other business is
+                            collaborative rather than competitive. There are security issues to be
+                            considered, as collaborating organizations would need to access private
+                            networks and secure servers. The heterogeneity in supporting organizing
+                            systems along with the need to quickly evolve with the rapid changes in
+                            an organization’s competitive and collaborative environment has pushed
+                            organizations to shift from more vertical, isolated structures to a more
+                            loosely coupled, ecosystem paradigm This has led to more componentized
+                            and modularized systems that need only to exchange information or
+                            transform resources when an interaction requires it.</p><p><a id="id665460" class="indexterm"/><a id="id665466" class="indexterm"/>The emerging paradigm then is to enable independent systems
+                            to interoperate, or to have <span class="quote">“<span class="quote">the ability of two or more systems or
+                                components to exchange information and to use the information that
+                                has been exchanged.</span>”</span> Because the focus is in the exchange of
+                            resources or resource descriptions, independent systems need not
+                            necessarily know other systems’ underlying logic or implementation, for
+                            example, how they store resources. What is important is knowing what
+                            kind of resource is expected and in what format (notation, writing
+                            system, semantics), and what kind of information is returned for a
+                            particular. This is a strategic approach to exchanging resources, as
+                            systems can remain highly independent of each other. Changes in one
+                            system need not necessarily affect how other systems work as long as the
+                            information that is sent and received through an interface stays the
+                            same. This allows greater adaptability, as changes to system logic or
+                            business processes can be done in self-contained modules without
+                            necessarily affecting others. The transformation then happens in an
+                            intermediate space where the agreements on resource descriptions are
+                            fixed.</p></div><div class="footnote" id="ftn.chapter-9-endnote-19"><p><sup>[<a href="#chapter-9-endnote-19" class="para">513</a>] </sup>[LIS] <a id="id665474" class="indexterm"/><a id="id665449" class="indexterm"/><a id="id665454" class="indexterm"/><a id="id665410" class="indexterm"/><a id="id665414" class="indexterm"/><a id="id665419" class="indexterm"/>To illustrate the difference between a unidirectional and
+                            bidirectional map, consider two systems, the <em class="firstterm"><a id="first_SNOMED-CT"/><span class="citerefentry"><span class="refentrytitle"><em class="citetitle">Systematized Nomenclature of Medicine
+                                       <span class="symbol">—</span> Clinical Terms</em></span>(SNOMED-CT)</span></em> and the <span class="citerefentry"><span class="refentrytitle"><em class="citetitle">International Classification of Diseases,
+                                        Tenth Revision, Clinical
+                                    Modification</em></span>(ICD-10-CM)</span>.</p><p><abbr class="abbrev">SNOMED-CT</abbr> is a medical language system for clinical
+                            terminology maintained by the <span class="citerefentry"><span class="refentrytitle"><span class="orgname">International Health Terminology Standards
+                                        Development Organization</span></span>(IHTSDO)</span> and a designated electronic exchange standard for
+                            clinical health information for <span class="orgname">US Federal Government</span>
+                            systems
+                                (<a class="ulink" href="http://www.nlm.nih.gov/research/umls/Snomed/snomed_main.html" target="_top"><code class="uri">http://www.nlm.nih.gov/research/umls/Snomed/snomed_main.html</code></a>).</p><p>The ICD-10-CM, on the other hand, is an international diagnostic
+                            classification system for general epidemiological, health management,
+                            and clinical use maintained by the <em class="firstterm"><a id="first_WHO"/><span class="citerefentry"><span class="refentrytitle"><span class="orgname">World Health
+                                        Organization</span></span>(WHO)</span></em> and used for coding and classifying
+                            morbidity data from inpatient/outpatient records, physicians offices,
+                            and most <span class="citerefentry"><span class="refentrytitle"><span class="orgname">National Center for Health
+                                        Statistics</span></span>(NCHS)</span> surveys
+                                (<a class="ulink" href="http://www.who.int/classifications/icd/en/" target="_top"><code class="uri">http://www.who.int/classifications/icd/en/</code></a>).</p><p>Because many different <abbr class="abbrev">SNOMED-CT</abbr> concepts can be
+                            mapped to a single <abbr class="abbrev">ICD-9-CM</abbr> code, a map in this
+                            direction cannot be used in reverse without introducing confusion and
+                            ambiguity.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-20"><p><sup>[<a href="#chapter-9-endnote-20" class="para">514</a>] </sup>[Citation] <a class="link" href="bi01.html#McBride2006" title="“Data Mapping”"><a id="cite_McBride2006"/>(McBride
+                                et al. 2006)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-21"><p><sup>[<a href="#chapter-9-endnote-21" class="para">515</a>] </sup>[Citation] <a class="link" href="bi01.html#NISO2004" title="Understanding Metadata"><a id="cite_NISO2004"/>(NISO
+                                2004)</a>.</p></div><div class="footnote" id="ftn.chapter-9-endnote-22"><p><sup>[<a href="#chapter-9-endnote-22" class="para">516</a>] </sup>[Citation] <a class="ulink" href="http://journal.code4lib.org/articles/54" target="_top"><code class="uri">http://journal.code4lib.org/articles/54</code></a> (Section
+                            1.), <a class="ulink" href="http://www.dlib.org/dlib/june06/chan/06chan.html" target="_top"><code class="uri">http://www.dlib.org/dlib/june06/chan/06chan.html</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-23"><p><sup>[<a href="#chapter-9-endnote-23" class="para">517</a>] </sup>[Citation] (EDItEUR 2009a).</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-24"><p><sup>[<a href="#chapter-9-endnote-24" class="para">518</a>] </sup>[Citation] (EDiTEUR 2009b).</p></div><div class="footnote" id="ftn.chapter-9-endnote-25"><p><sup>[<a href="#chapter-9-endnote-25" class="para">519</a>] </sup>[Citation] <a class="ulink" href="http://www.loc.gov/marc/" target="_top"><code class="uri">http://www.loc.gov/marc/</code></a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-26"><p><sup>[<a href="#chapter-9-endnote-26" class="para">520</a>] </sup>[Citation] <a class="link" href="bi01.html#Godby2008" title="“Toward element-level interoperability in bibliographic metadata”"><a id="cite_Godby2008-9.1"/>(Godby, Smith, and Childress 2008)</a>, Sections 1 and 2.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-27"><p><sup>[<a href="#chapter-9-endnote-27" class="para">521</a>] </sup>[Citation] <a id="id666002" class="indexterm"/><a id="id666022" class="indexterm"/><a id="id666027" class="indexterm"/><a id="id666031" class="indexterm"/><a id="id666038" class="indexterm"/>“<span class="citetitle">Toward element-level interoperability in
+                                bibliographic metadata</span>” 
+                            <a class="link" href="bi01.html#Godby2008" title="“Toward element-level interoperability in bibliographic metadata”"><a id="cite_Godby2008-9.2"/>(Godby, Smith, and Childress 2008)</a>, 
+                            Sec. 4.4, <span class="quote">“<span class="quote">Switching-Across.</span>”</span> Consider how the Getty has created a
+                            crosswalk called <span class="citerefentry"><span class="refentrytitle"><em class="citetitle">Categories for the Description of Works of
+                                        Art</em></span>(CDWA)</span> to switch between eleven metadata standards, including <span class="citerefentry"><span class="refentrytitle"><em class="citetitle">Machine-Readable Cataloging/Anglo-American
+                                        Cataloging Rules</em></span>(MARC)</span> and <span class="citerefentry"><span class="refentrytitle"><em class="citetitle">Dublin Core</em></span>(DC)</span>. In this instance, the <span class="quote">“<span class="quote">Creation Date</span>”</span>
+                            element in <abbr class="abbrev">CDWA</abbr> is mapped to <span class="quote">“<span class="quote">260c Imprint
+                                    <span class="symbol">—</span> Date of Publication, Distribution,
+                                etc.</span>”</span> in <abbr class="abbrev">MARC/AACR</abbr> and to
+                                <span class="quote">“<span class="quote">Date.Created</span>”</span> in <abbr class="abbrev">DC</abbr>. Although this
+                            creates a two-step look-up in real-time, a direct mapping of this
+                            element from <abbr class="abbrev">MARC/AACR</abbr> to <abbr class="abbrev">DC</abbr> is no
+                            longer necessary for systems to interoperate.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-28"><p><sup>[<a href="#chapter-9-endnote-28" class="para">522</a>] </sup>[Computing] <a id="id666173" class="indexterm"/><a id="id666142" class="indexterm"/>More commonly, graphical data mapping tools are included in
+                            an <span class="action">extract, transform, and load</span> (<abbr class="abbrev">ETL</abbr>)
+                            database suite that provides additional powerful data transformation
+                            capabilities. Whereas data <span class="action">mapping</span> is the first step in
+                            capturing the relationships between different systems, data
+                                <span class="action">transformation</span> entails code generation that uses
+                            the resulting maps to produce an executable transformational program
+                            that converts the source data into target format. ETL databases
+                                <span class="emphasis"><em>extract</em></span> the information needed from the outside
+                            sources, <span class="emphasis"><em>transform</em></span> these into information that can
+                            be used by the target system using the necessary data mappings, and then
+                                <span class="emphasis"><em>loads</em></span> it into the end system.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-29"><p><sup>[<a href="#chapter-9-endnote-29" class="para">523</a>] </sup>[Computing] <a id="id666208" class="indexterm"/><a id="id666188" class="indexterm"/><a id="id666193" class="indexterm"/><a id="id666233" class="indexterm"/>Languages such as <abbr class="abbrev">XSLT</abbr> and
+                                <abbr class="abbrev">TXL</abbr> facilitate the ease of data transformation
+                            while various commercial data warehousing tools provide varying
+                            functionalities such as single/multiple source acquisition, data
+                            cleansing, and statistical and analytical capabilities. <span><a id="ref_XSLT"/>Based on <abbr class="abbrev">XML</abbr>, <abbr class="abbrev">XSLT</abbr>
+                                is a declarative language designed for transforming
+                                    <abbr class="abbrev">XML</abbr> documents into other documents. For
+                                example, <abbr class="abbrev">XSLT</abbr> can be used to convert
+                                    <abbr class="abbrev">XML</abbr> data into <abbr class="abbrev">HTML</abbr> documents
+                                for web display or <abbr class="abbrev">PDF</abbr> for print or screen display.
+                                    <abbr class="abbrev">XSLT</abbr> processing entails taking an input
+                                document in <abbr class="abbrev">XML</abbr> format and one or more
+                                    <abbr class="abbrev">XSLT</abbr> style sheets through a template-processing
+                                engine to produce a new document.</span></p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-30"><p><sup>[<a href="#chapter-9-endnote-30" class="para">524</a>] </sup>[Citation] <a class="link" href="bi01.html#Carney2005" title="Some Current Approaches to Interoperability"><a id="cite_Carney2005"/>(Carney et
+                                al. 2005)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-31"><p><sup>[<a href="#chapter-9-endnote-31" class="para">525</a>] </sup>[Citation] <a class="link" href="bi01.html#Chan2006" title="“Metadata Interoperability and Standardization: A Study of Methodology Part I”"><a id="cite_Chan2006"/>(Chan and Zeng
+                                2006)</a>. Section 4.3.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-32"><p class="Computing"><sup>[<a href="#chapter-9-endnote-32" class="para">526</a>] </sup>[Computing] <a id="id666915" class="indexterm"/>Each of the four information retrieval models discussed in the
+                    chapter has different combinations of the comparing, ranking, and location
+                    activities. Boolean and vector space models compare the description of the
+                    information need with the description of the information resource. Vector space
+                    and probabilistic models rank the information resource in the order that the
+                    resource can satisfy the user’s query. Structure-based search locates
+                    information using internal or external structure of the information
+                    resource.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-33"><p><sup>[<a href="#chapter-9-endnote-33" class="para">527</a>] </sup>[Citation] Our discussion of information retrieval models in this chapter
+                        does not attempt to address information retrieval at the level of
+                        theoretical and technical detail that informs work and research in this
+                        field (See <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-1"/>Manning et
+                            al. 2008)</a>, <a class="link" href="bi01.html#Croft2009" title="Search Engines: Information Retrieval in Practice"><a id="cite_Croft2009"/>(Croft
+                            et al. 2009)</a>. Instead, our goal is to introduce
+                            <abbr class="abbrev">IR</abbr> from a more conceptual perspective, highlighting its
+                        core topics and problems using the vocabulary and principles of
+                            <abbr class="abbrev">IO</abbr> as much as possible.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-34"><p><sup>[<a href="#chapter-9-endnote-34" class="para">528</a>] </sup>[Citation] <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-2"/>(Manning et al. 2008)</a>, Ch. 1.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-35"><p><sup>[<a href="#chapter-9-endnote-35" class="para">529</a>] </sup>[Citation] A good discussion of the advantages and disadvantages of
+                            tagging in the library field can be found in <a class="link" href="bi01.html#Furner2007" title="“User tagging of library resources: Toward a framework for system evaluation”"><a id="cite_Furner2007"/>(Furner 2007)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-35a"><p><sup>[<a href="#chapter-9-endnote-35a" class="para">530</a>] </sup>[Citation] Salton was generally viewed as the leading researcher in
+                            information retrieval for the last part of the 20th century until he
+                            died in 1995. The vector model was first described in 
+                            <a class="link" href="bi01.html#Salton1975" title="“A Vector Space Model for Automatic Indexing”"><a id="cite_Salton1975"/>(Salton, Wong, and Yang 1975)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-36"><p><sup>[<a href="#chapter-9-endnote-36" class="para">531</a>] </sup>[Citation] See <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-3"/>(Manning et al. 2008)</a>, Ch. 6 for more explanations and
+                            references on the vector space model.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-37"><p><sup>[<a href="#chapter-9-endnote-37" class="para">532</a>] </sup>[Citation] <a class="link" href="bi01.html#Deerwester1990" title="“Indexing by Latent Semantic Analysis”"><a id="cite_Deerwester1990"/>(Deerwester, Dumais et al. 1990)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-37a"><p><sup>[<a href="#chapter-9-endnote-37a" class="para">533</a>] </sup>[Citation] See <a class="link" href="bi01.html#Dumais2003" title="“Data-driven approaches to information access”"><a id="cite_Dumais2003"/>(Dumais
+                                2003)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-38"><p><sup>[<a href="#chapter-9-endnote-38" class="para">534</a>] </sup>[Citation] <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-4"/>(Manning et al. 2008)</a>, p.221.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-40"><p><sup>[<a href="#chapter-9-endnote-40" class="para">535</a>] </sup>[Citation] See <a class="link" href="bi01.html#Robertson2005" title="“How Okapi came to TREC”"><a id="cite_Robertson2005"/>(Robertson 2005)</a>, <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-5"/>(Manning et al. 2008)</a>, Ch. 12 for more
+                            explanations and references.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-41"><p><sup>[<a href="#chapter-9-endnote-41" class="para">536</a>] </sup>[Citation] <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-6"/>(Manning et al. 2008)</a>, Section 6.1.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-42"><p><sup>[<a href="#chapter-9-endnote-42" class="para">537</a>] </sup>[Citation] <a class="link" href="bi01.html#Page1999" title="“The PageRank Citation Ranking: Bringing Order to the Web”"><a id="cite_Page1999-9.1"/>(Page et al.
+                                1999)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-43"><p><sup>[<a href="#chapter-9-endnote-43" class="para">538</a>] </sup>[Citation] <a class="link" href="bi01.html#Yee2008" title="Pro Web 2.0 Mashups: Remixing Data and Web Services"><a id="cite_Yee2008"/>(Yee
+                            2008)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-44"><p><sup>[<a href="#chapter-9-endnote-44" class="para">539</a>] </sup>[Citation] <a class="link" href="bi01.html#Bizer2009b" title="“Linked Data—The Story So Far”"><a id="cite_Bizer2009b-9.1"/>(Bizer, Heath, and Berners-Lee 2009)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-45"><p><sup>[<a href="#chapter-9-endnote-45" class="para">540</a>] </sup>[Citation] Space does not permit significant discussion of these views
+                        here, see <a class="link" href="bi01.html#Saracevic1975" title="“Relevance: A Review of the Literature and a Framework for Thinking on the Notion in Information Science”"><a id="cite_Saracevic1975"/>(Saracevic
+                            1975)</a>, and <a class="link" href="bi01.html#Schamber1990" title="“A re-examination of relevance: toward a dynamic, situational definition”"><a id="cite_Schamber1990"/>(Schamber et al. 1990)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-46"><p><sup>[<a href="#chapter-9-endnote-46" class="para">541</a>] </sup>[Citation] <a class="link" href="bi01.html#Mizzaro1997" title="“Relevance: The Whole History”"><a id="cite_Mizzaro1997"/>(Mizzaro
+                            1997)</a>.</p></div><div class="footnote" epub:type="footnote" id="ftn.chapter-9-endnote-47"><p><sup>[<a href="#chapter-9-endnote-47" class="para">542</a>] </sup>[Computing] <a id="id669555" class="indexterm"/><a id="id669561" class="indexterm"/>Recall and precision are only the foundation of measures that
+                        have been developed in information retrieval to evaluate the effectiveness
+                        of search algorithms. See <a class="link" href="bi01.html#Baeza-Yates2011" title="Modern Information Retrieval: The Concepts and Technology behind Search"><a id="cite_Baeza-Yates2011"/>(Baeza-Yates and Ribeiro 2011)</a>, <a class="link" href="bi01.html#Manning2008" title="Introduction to Information Retrieval"><a id="cite_Manning2008-7"/>(Manning et al.
+                            2008)</a> Ch. 8; <a class="link" href="bi01.html#Demartini2006" title="“A Classification of IR Effectiveness Metrics IR Metrics: A Survey and a Classification”"><a id="cite_Demartini2006"/>(Demartini and Mizzaro 2006)</a>.</p></div></div></section></body></html>
