@@ -65,6 +65,11 @@ body {
   border: none;
 }
 
+#area.wideScreen {
+  left: 50%;
+  margin-left: -625px; /* change this if max-width changes */
+}
+
 #prev {
   left: 40px;
 }

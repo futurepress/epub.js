@@ -230,6 +230,7 @@ FPR.app.init = (function($){
 		  }else{
 		  	$main.width(windowWidth);
 		  }
+      centerBook();
 	  });
 
 	  $next.on("click", function(){
@@ -286,6 +287,7 @@ FPR.app.init = (function($){
 	   		   return false;
 	   		}
 	   	});
+
 		
 		function showSidebar(){
 			//$book.css("pointer-events", "none"); //-- Avoid capture by ifrmae
@@ -328,6 +330,18 @@ FPR.app.init = (function($){
 		   offline = !offline;
 	   	   Book.fromStorage(offline);
 	   	});
+
+    function centerBook() {
+      var bookMaxWidth = parseInt($book.css('maxWidth'), 10);
+      windowWidth = $window.width();
+
+      if(windowWidth*0.8 > bookMaxWidth) {
+        $book.addClass('wideScreen');
+      } else {
+        $book.removeClass('wideScreen');
+      }
+    }
+    centerBook();
 
 		
   }
