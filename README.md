@@ -41,6 +41,16 @@ http-server
 * [index.html](http://localhost:8080/index.html) will use the minified production libraries in the dist/ folder.
 * [annotator.html](http://localhost:8080/annotator.html) is a dev branch for annotation development.
 
+Running With Apache
+-------------------------
+
+To serve up books on the web, you may need to edit your .htaccess file with the following:
+
+```
+AddType application/oebps-package+xml .opf
+AddType application/x-dtbncx+xml .ncx
+```
+
 Building for Distribution
 -------------------------
 
