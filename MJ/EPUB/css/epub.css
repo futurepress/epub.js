@@ -1,0 +1,19 @@
+body {
+    margin: 5em 5em 5em 5em;
+    background-color: rgb(255,253,249);
+    font-family: arial, verdana, sans-serif;
+    color:black;
+}
+
+nav#toc ol {
+    list-style-type: none;
+}
+
+nav#toc ol li a {
+    text-decoration : none;
+    color:black;
+}
+
+body#titlepage {
+    text-align : center;
+}

@@ -1,0 +1,1451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<html xml:lang="en-us" lang="en-us" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta charset="utf-8"/> 
+        <link rel="stylesheet" type="text/css" href="../css/commonltr.css"/>
+        <title>Re-visiting MathML torture tests</title>
+        <link type="text/css" rel="stylesheet" href="../css/epub.css"/>
+        <script type="text/x-mathjax-config">
+	    MathJax.Hub.Config({
+	      jax: ["input/TeX","input/MathML","output/SVG"],
+	      extensions: ["tex2jax.js","mml2jax.js","MathEvents.js"],
+	      TeX: {
+		extensions: ["noErrors.js","noUndefined.js","autoload-all.js"]
+	      },
+	      MathMenu: {
+		showRenderer: false
+	      },
+	      menuSettings: {
+		zoom: "Click"
+	      },
+	      messageStyle: "none"
+	    });
+        </script>
+       <script type="text/javascript" src="../mathjax/MathJax.js"></script>
+</head>
+<body>
+<p> Derived from <a href="https://eyeasme.com/Joe/MathML/MathML_browser_test">easyasme.com/Joe</a> </p>
+
+     
+      
+        
+<h3>           <a class="smaller_font" href="http://en.wikipedia.org/wiki/Axiom_of_power_set">            Axiom of power set          </a> </h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mo rspace="0">&#x2200;</mo>
+    <mi>A</mi>
+    <mo lspace="mediummathspace" rspace="0">&#x2203;</mo>
+    <mi>P</mi>
+    <mo lspace="mediummathspace" rspace="0">&#x2200;</mo>
+    <mi>B</mi>
+    <mspace width="thinmathspace" />
+    <mfenced open="[" close="]">
+      <mrow>
+        <mi>B</mi>
+        <mo>&#x2208;</mo>
+        <mi>P</mi>
+        <mo lspace="veryverythickmathspace" rspace="veryverythickmathspace">&#x27FA;</mo>
+        <mo rspace="0">&#x2200;</mo>
+        <mi>C</mi>
+        <mspace width="thinmathspace" />
+        <mfenced>
+          <mrow>
+            <mi>C</mi>
+            <mo>&#x2208;</mo>
+            <mi>B</mi>
+            <mo>&#x21D2;</mo>
+            <mi>C</mi>
+            <mo>&#x2208;</mo>
+            <mi>A</mi>
+          </mrow>
+        </mfenced>
+      </mrow>
+    </mfenced>
+  </mrow>
+</math>
+      
+
+      
+        
+         <h3> <a class="smaller_font" href="http://en.wikipedia.org/wiki/Demorgans_law">
+            De Morgan's law
+          </a></h3>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mtext>Logic:&#xA0;</mtext>
+    <mo>&#xAC;</mo>
+    <mfenced>
+      <mrow>
+        <mi>p</mi>
+        <mo>&#x2227;</mo>
+        <mi>q</mi>
+      </mrow>
+    </mfenced>
+    <mo lspace="veryverythickmathspace" rspace="veryverythickmathspace">&#x27FA;</mo>
+    <mfenced>
+      <mrow>
+        <mo>&#xAC;</mo>
+        <mi>p</mi>
+      </mrow>
+    </mfenced>
+    <mo>&#x2228;</mo>
+    <mfenced>
+      <mrow>
+        <mo>&#xAC;</mo>
+        <mi>q</mi>
+      </mrow>
+    </mfenced>
+  </mrow>
+</math>
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mtext>Boolean algebra:&#xA0;</mtext>
+    <mover>
+      <mrow>
+        <munderover>
+          <mo>&#x22C3;</mo>
+          <mrow>
+            <mi>i</mi>
+            <mo>=</mo>
+            <mn>1</mn>
+          </mrow>
+          <mi>n</mi>
+        </munderover>
+        <msub>
+          <mi>A</mi>
+          <mi>i</mi>
+        </msub>
+      </mrow>
+      <mo>&#x203E;</mo>
+    </mover>
+    <mo>=</mo>
+    <munderover>
+      <mo>&#x22C2;</mo>
+      <mrow>
+        <mi>i</mi>
+        <mo>=</mo>
+        <mn>1</mn>
+      </mrow>
+      <mi>n</mi>
+    </munderover>
+    <mover accent="true">
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo>&#x203E;</mo>
+    </mover>
+  </mrow>
+</math>        
+      
+
+      
+        
+          <h3> <a class="smaller_font" href="http://en.wikipedia.org/wiki/Quadratic_equation">
+            Quadratic Formula          </a> </h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mi>x</mi>
+    <mo>=</mo>
+    <mfrac>
+      <mrow>
+        <mo form="prefix">&#x2212;</mo>
+        <mi>b</mi>
+        <mo>&#xB1;</mo>
+        <msqrt>
+          <msup>
+            <mi>b</mi>
+            <mn>2</mn>
+          </msup>
+          <mo>&#x2212;</mo>
+          <mn>4</mn>
+          <mo>&#x2062;</mo>
+          <mi>a</mi>
+          <mo>&#x2062;</mo>
+          <mi>c</mi>
+        </msqrt>
+      </mrow>
+      <mrow>
+        <mn>2</mn>
+        <mo>&#x2062;</mo>
+        <mi>a</mi>
+      </mrow>
+    </mfrac>
+  </mrow>
+</math>        
+      
+
+      
+        
+<h3>           <a class="smaller_font" href="http://en.wikipedia.org/wiki/Combination">
+            Binomial Coefficient          </a></h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mi>C</mi>
+    <mfenced>
+      <mi>n</mi>
+      <mi>k</mi>
+    </mfenced>
+    <mo>=</mo>
+    <msubsup>
+      <mi>C</mi>
+      <mi>k</mi>
+      <mi>n</mi>
+    </msubsup>
+    <mo>=</mo>
+    <mmultiscripts>
+      <mi>C</mi>
+      <mi>k</mi>
+      <none />
+      <mprescripts />
+      <mi>n</mi>
+      <none />
+    </mmultiscripts>
+    <mo>=</mo>
+    <mfenced>
+      <mfrac linethickness="0">
+        <mi>n</mi>
+        <mi>k</mi>
+      </mfrac>
+    </mfenced>
+    <mo>=</mo>
+    <mfrac>
+      <mrow>
+        <mi>n</mi>
+        <mo lspace="0">!</mo>
+      </mrow>
+      <mrow>
+        <mi>k</mi>
+        <mo lspace="0">!</mo>
+        <mo rspace="mediummathspace">&#x2062;</mo>
+        <mfenced>
+          <mrow>
+            <mi>n</mi>
+            <mo>&#x2212;</mo>
+            <mi>k</mi>
+          </mrow>
+        </mfenced>
+        <mo lspace="0">!</mo>
+      </mrow>
+    </mfrac>
+  </mrow>
+</math>        
+      
+
+      
+        
+         <h3>  <a class="smaller_font" href="http://en.wikipedia.org/wiki/Sophomore's_dream">             Sophomore's dream           </a></h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <msubsup>
+      <mo>&#x222B;</mo>
+      <mn>0</mn>
+      <mn>1</mn>
+    </msubsup>
+    <msup>
+      <mi>x</mi>
+      <mi>x</mi>
+    </msup>
+    <mo rspace="mediummathspace">&#x2062;</mo>
+    <mo rspace="0">&#x2146;</mo>
+    <mi>x</mi>
+    <mo>=</mo>
+    <munderover>
+      <mo>&#x2211;</mo>
+      <mrow>
+        <mi>n</mi>
+        <mo>=</mo>
+        <mn>1</mn>
+      </mrow>
+      <mn>&#x221E;</mn>
+    </munderover>
+    <msup>
+      <mfenced>
+        <mrow>
+          <mo form="prefix">&#x2212;</mo>
+          <mn>1</mn>
+        </mrow>
+      </mfenced>
+      <mrow>
+        <mi>n</mi>
+        <mo>+</mo>
+        <mn>1</mn>
+      </mrow>
+    </msup>
+    <mo>&#x2062;</mo>
+    <msup>
+      <mi>n</mi>
+      <mrow>
+        <mo form="prefix">&#x2212;</mo>
+        <mi>n</mi>
+      </mrow>
+    </msup>
+  </mrow>
+</math>        
+      
+
+      
+        
+<h3>           <a class="smaller_font" href="http://en.wikipedia.org/wiki/Divergence">Divergence</a></h3> 
+
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mo>&#x2207;</mo>
+    <mo>&#xB7;</mo>
+    <mover accent="true">
+      <mi>v</mi>
+      <mo class="smaller_font">&#x2192;</mo>
+    </mover>
+    <mo>=</mo>
+    <mfrac>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <msub>
+          <mi>v</mi>
+          <mi>x</mi>
+        </msub>
+      </mrow>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <mi>x</mi>
+      </mrow>
+    </mfrac>
+    <mo>+</mo>
+    <mfrac>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <msub>
+          <mi>v</mi>
+          <mi>y</mi>
+        </msub>
+      </mrow>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <mi>y</mi>
+      </mrow>
+    </mfrac>
+    <mo>+</mo>
+    <mfrac>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <msub>
+          <mi>v</mi>
+          <mi>z</mi>
+        </msub>
+      </mrow>
+      <mrow>
+        <mo rspace="0">&#x2202;</mo>
+        <mi>z</mi>
+      </mrow>
+    </mfrac>
+  </mrow>
+</math>         
+        
+      
+
+      
+        
+            <h3> Complex number</h3>
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mi>c</mi>
+    <mo>=</mo>
+    <mover>
+      <mover>
+        <mrow>
+          <munder>
+            <munder>
+              <mrow>
+                <mspace width="1.1em" />
+                <mi>a</mi>
+                <mspace width="1.1em" />
+              </mrow>
+              <mo>&#x23DF;</mo>
+            </munder>
+            <mtext>real</mtext>
+          </munder>
+          <mo>+</mo>
+          <munder>
+            <munder>
+              <mrow>
+                <mspace width="1em" />
+                <mi>b</mi>
+                <mo lspace="0">&#x2062;</mo>
+                <mi>&#x2148;</mi>
+                <mspace width="1em" />
+              </mrow>
+              <mo>&#x23DF;</mo>
+            </munder>
+            <mtext>imaginary</mtext>
+          </munder>
+        </mrow>
+        <mo>&#x23DE;</mo>
+      </mover>
+      <mtext>complex number</mtext>
+    </mover>
+  </mrow>
+</math>
+        
+      
+
+      
+        
+            <h3> Moore determinant</h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mi>M</mi>
+    <mo>=</mo>
+    <mfenced open="[" close="]">
+      <mtable>
+        <mtr>
+          <mtd>
+            <msub>
+              <mi>&#x3B1;</mi>
+              <mn>1</mn>
+            </msub>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mn>1</mn>
+              <mi>q</mi>
+            </msubsup>
+          </mtd>
+          <mtd>
+            <mi>&#x2026;</mi>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mn>1</mn>
+              <mrow>
+                <msup>
+                  <mi>q</mi>
+                  <mrow>
+                    <mi>n</mi>
+                    <mo>&#x2212;</mo>
+                    <mn>1</mn>
+                  </mrow>
+                </msup>
+              </mrow>
+            </msubsup>
+          </mtd>
+        </mtr>
+        <mtr>
+          <mtd>
+            <msub>
+              <mi>&#x3B1;</mi>
+              <mn>2</mn>
+            </msub>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mn>2</mn>
+              <mi>q</mi>
+            </msubsup>
+          </mtd>
+          <mtd>
+            <mi>&#x2026;</mi>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mn>2</mn>
+              <mrow>
+                <msup>
+                  <mi>q</mi>
+                  <mrow>
+                    <mi>n</mi>
+                    <mo>&#x2212;</mo>
+                    <mn>1</mn>
+                  </mrow>
+                </msup>
+              </mrow>
+            </msubsup>
+          </mtd>
+        </mtr>
+        <mtr>
+          <mtd>
+            <mi>&#x22EE;</mi>
+          </mtd>
+          <mtd>
+            <mi>&#x22EE;</mi>
+          </mtd>
+          <mtd>
+            <mi>&#x22F1;</mi>
+          </mtd>
+          <mtd>
+            <mi>&#x22EE;</mi>
+          </mtd>
+        </mtr>
+        <mtr>
+          <mtd>
+            <msub>
+              <mi>&#x3B1;</mi>
+              <mi>m</mi>
+            </msub>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mi>m</mi>
+              <mi>q</mi>
+            </msubsup>
+          </mtd>
+          <mtd>
+            <mi>&#x2026;</mi>
+          </mtd>
+          <mtd>
+            <msubsup>
+              <mi>&#x3B1;</mi>
+              <mi>m</mi>
+              <mrow>
+                <msup>
+                  <mi>q</mi>
+                  <mrow>
+                    <mi>n</mi>
+                    <mo>&#x2212;</mo>
+                    <mn>1</mn>
+                  </mrow>
+                </msup>
+              </mrow>
+            </msubsup>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mfenced>
+  </mrow>
+</math>        
+      
+
+      
+        
+          <h3> Sphere volume</h3> 
+        <p> Spherical coordinates derivation of the volume of a sphere
+                <math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: xx-small">
+  <mfenced>
+    <mrow>
+      <mfrac>
+        <mn>4</mn>
+        <mn>3</mn>
+      </mfrac>
+      <mo>&#x2062;</mo>
+      <mi>&#x3C0;</mi>
+      <msup>
+        <mi>R</mi>
+        <mn>3</mn>
+      </msup>
+    </mrow>
+  </mfenced>
+</math>                .
+                <br />
+                The formula
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mi>S</mi>
+                </math>
+                for a sphere of radius
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                  <mi>R</mi>
+                </math>
+                in spherical coordinates is:
+                <br />
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow>
+    <mi>S</mi>
+    <mo>=</mo>
+    <mfenced open="{" close="}">
+      <mrow>
+        <mn>0</mn>
+        <mo>&#x2264;</mo>
+        <mi>&#x3D5;</mi>
+        <mo>&#x2264;</mo>
+        <mn>2</mn>
+        <mo>&#x2062;</mo>
+        <mi>&#x3C0;</mi>
+      </mrow>
+      <mrow>
+        <mn>0</mn>
+        <mo>&#x2264;</mo>
+        <mi>&#x3B8;</mi>
+        <mo>&#x2264;</mo>
+        <mi>&#x3C0;</mi>
+      </mrow>
+      <mrow>
+        <mn>0</mn>
+        <mo>&#x2264;</mo>
+        <mi>&#x3C1;</mi>
+        <mo>&#x2264;</mo>
+        <mi>R</mi>
+      </mrow>
+    </mfenced>
+  </mrow>
+</math>
+              <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mtable class="thin_column_padding" columnalign="right left">
+    <mtr>
+      <mtd style="text-align: right;">
+        <mrow>
+          <mtext>Volume</mtext>
+        </mrow>
+      </mtd>
+      <mtd style="text-align: left">
+        <mrow>
+          <mo>=</mo>
+          <munder>
+            <mo>&#x222D;</mo>
+            <mi>S</mi>
+          </munder>
+          <msup>
+            <mi>&#x3C1;</mi>
+            <mn>2</mn>
+          </msup>
+          <mo>&#x2062;</mo>
+          <mo>sin</mo>
+          <mo rspace="thinmathspace">&#x2061;</mo>
+          <mi>&#x3B8;</mi>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3C1;</mi>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3B8;</mi>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3D5;</mi>
+        </mrow>
+      </mtd>
+    </mtr>
+    <mtr>
+      <mtd />
+      <mtd style="text-align: left">
+        <mrow>
+          <mo>=</mo>
+          <msubsup>
+            <mo>&#x222B;</mo>
+            <mn>0</mn>
+            <mrow>
+              <mn>2</mn>
+              <mo>&#x2062;</mo>
+              <mi>&#x3C0;</mi>
+            </mrow>
+          </msubsup>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3D5;</mi>
+          <mo lspace="thickmathspace">&#x2062;</mo>
+          <msubsup>
+            <mo>&#x222B;</mo>
+            <mn>0</mn>
+            <mi>&#x3C0;</mi>
+          </msubsup>
+          <mo>sin</mo>
+          <mo rspace="thinmathspace">&#x2061;</mo>
+          <mi>&#x3B8;</mi>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3B8;</mi>
+          <mo lspace="thickmathspace">&#x2062;</mo>
+          <msubsup>
+            <mo>&#x222B;</mo>
+            <mn>0</mn>
+            <mi>R</mi>
+          </msubsup>
+          <msup>
+            <mi>&#x3C1;</mi>
+            <mn>2</mn>
+          </msup>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mo rspace="0">&#x2146;</mo>
+          <mi>&#x3C1;</mi>
+        </mrow>
+      </mtd>
+    </mtr>
+    <mtr>
+      <mtd />
+      <mtd style="text-align: left">
+        <mrow>
+          <mo>=</mo>
+          <mspace width="mediummathspace" />
+          <mi>&#x3D5;</mi>
+          <mspace width="verythinmathspace" />
+          <msubsup>
+            <mo maxsize="2.5" minsize="2.5">|</mo>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mn>0</mn>
+            </mrow>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mn>2</mn>
+              <mo>&#x2062;</mo>
+              <mi>&#x3C0;</mi>
+            </mrow>
+          </msubsup>
+          <mo rspace="mediummathspace">&#x2062;</mo>
+          <mfenced>
+            <mrow>
+              <mo form="prefix">&#x2212;</mo>
+              <mi>cos</mi>
+              <mo rspace="thinmathspace">&#x2061;</mo>
+              <mi>&#x3B8;</mi>
+            </mrow>
+          </mfenced>
+          <mspace width="verythinmathspace" />
+          <msubsup>
+            <mo maxsize="2.5" minsize="2.5">|</mo>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mn>0</mn>
+            </mrow>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mi>&#x3C0;</mi>
+            </mrow>
+          </msubsup>
+          <mspace width="veryverythickmathspace" />
+          <mo>&#x2062;</mo>
+          <mfrac>
+            <mn>1</mn>
+            <mn>3</mn>
+          </mfrac>
+          <mo>&#x2062;</mo>
+          <msup>
+            <mi>&#x3C1;</mi>
+            <mn>3</mn>
+          </msup>
+          <mspace width="verythinmathspace" />
+          <msubsup>
+            <mo maxsize="2.5" minsize="2.5">|</mo>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mn>0</mn>
+            </mrow>
+            <mrow>
+              <mspace width="verythinmathspace" />
+              <mi>R</mi>
+            </mrow>
+          </msubsup>
+        </mrow>
+      </mtd>
+    </mtr>
+    <mtr>
+      <mtd />
+      <mtd style="text-align: left">
+        <mrow>
+          <mo>=</mo>
+          <mspace width="mediummathspace" />
+          <mn>2</mn>
+          <mo>&#x2062;</mo>
+          <mi>&#x3C0;</mi>
+          <mo lspace="thickmathspace" rspace="thickmathspace">&#xD7;</mo>
+          <mn>2</mn>
+          <mo lspace="thickmathspace" rspace="thickmathspace">&#xD7;</mo>
+          <mfrac>
+            <mn>1</mn>
+            <mn>3</mn>
+          </mfrac>
+          <mo>&#x2062;</mo>
+          <msup>
+            <mi>R</mi>
+            <mn>3</mn>
+          </msup>
+        </mrow>
+      </mtd>
+    </mtr>
+    <mtr>
+      <mtd />
+      <mtd style="text-align: left">
+        <mrow>
+          <mo>=</mo>
+          <mspace width="mediummathspace" />
+          <mfrac>
+            <mn>4</mn>
+            <mn>3</mn>
+          </mfrac>
+          <mo>&#x2062;</mo>
+          <mi>&#x3C0;</mi>
+          <msup>
+            <mi>R</mi>
+            <mn>3</mn>
+          </msup>
+        </mrow>
+      </mtd>
+    </mtr>
+  </mtable>
+</math>            
+</p>        
+      
+
+      
+        
+            <h3> Schwinger-Dyson equation</h3> 
+            <math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: 9pt" display="block">
+  <mrow>
+    <mfenced open="&#x27E8;" close="&#x27E9;">
+      <mrow>
+        <mi>&#x3C8;</mi>
+        <mspace width="thinmathspace" />
+        <mfenced open="|" close="|">
+          <mrow>
+            <mspace width="thinmathspace" />
+            <mi>&#x1D4AF;</mi>
+            <mfenced open="{" close="}">
+              <mrow>
+                <mfrac>
+                  <mi>&#x3B4;</mi>
+                  <mrow>
+                    <mi>&#x3B4;</mi>
+                    <mi>&#x3D5;</mi>
+                  </mrow>
+                </mfrac>
+                <mi>F</mi>
+                <mo>&#x2061;</mo>
+                <mfenced open="[" close="]">
+                  <mi>&#x3D5;</mi>
+                </mfenced>
+              </mrow>
+            </mfenced>
+          </mrow>
+        </mfenced>
+        <mspace width="thinmathspace" />
+        <mi>&#x3C8;</mi>
+      </mrow>
+    </mfenced>
+    <mo>=</mo>
+    <mo form="prefix">&#x2212;</mo>
+    <mi>&#x2148;</mi>
+    <mo>&#x2062;</mo>
+    <mfenced open="&#x27E8;" close="&#x27E9;">
+      <mrow>
+        <mi>&#x3C8;</mi>
+        <mspace width="thinmathspace" />
+        <mfenced open="|" close="|">
+          <mrow>
+            <mspace width="thinmathspace" />
+            <mi>&#x1D4AF;</mi>
+            <mfenced open="{" close="}">
+              <mrow>
+                <mi>F</mi>
+                <mo>&#x2061;</mo>
+                <mfenced open="[" close="]">
+                  <mi>&#x3D5;</mi>
+                </mfenced>
+                <mo>&#x2062;</mo>
+                <mfrac>
+                  <mi>&#x3B4;</mi>
+                  <mrow>
+                    <mi>&#x3B4;</mi>
+                    <mi>&#x3D5;</mi>
+                  </mrow>
+                </mfrac>
+                <mi>S</mi>
+                <mo>&#x2061;</mo>
+                <mfenced open="[" close="]">
+                  <mi>&#x3D5;</mi>
+                </mfenced>
+              </mrow>
+            </mfenced>
+          </mrow>
+        </mfenced>
+        <mspace width="thinmathspace" />
+        <mi>&#x3C8;</mi>
+      </mrow>
+    </mfenced>
+  </mrow>
+</math>
+        
+      
+
+      
+        
+         <h3>    Differentiable Manifold  (tangent vector)</h3> 
+
+            <math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: 9pt" display="block">
+  <mrow>
+    <msub>
+      <mi>&#x3B3;</mi>
+      <mn>1</mn>
+    </msub>
+    <mo>&#x2261;</mo>
+    <msub>
+      <mi>&#x3B3;</mi>
+      <mn>2</mn>
+    </msub>
+    <mo lspace="veryverythickmathspace" rspace="veryverythickmathspace">&#x27FA;</mo>
+    <mfenced open="{" close="">
+      <mtable class="thin_column_padding" columnalign="left">
+        <mtr>
+          <mtd style="text-align: left">
+            <msub>
+              <mi>&#x3B3;</mi>
+              <mn>1</mn>
+            </msub>
+            <mo>&#x2061;</mo>
+            <mfenced>
+              <mn>0</mn>
+            </mfenced>
+            <mo>=</mo>
+            <msub>
+              <mi>&#x3B3;</mi>
+              <mn>2</mn>
+            </msub>
+            <mo>&#x2061;</mo>
+            <mfenced>
+              <mn>0</mn>
+            </mfenced>
+            <mo>=</mo>
+            <mi>p</mi>
+            <mtext>, and</mtext>
+          </mtd>
+        </mtr>
+        <mtr>
+          <mtd style="text-align: left">
+            <msub>
+              <mfenced open="" close="|">
+                <mrow>
+                  <mfrac>
+                    <mo>&#x2146;</mo>
+                    <mrow>
+                      <mo rspace="0">&#x2146;</mo>
+                      <mi>t</mi>
+                    </mrow>
+                  </mfrac>
+                  <mo>&#x2061;</mo>
+                  <mi>&#x3D5;</mi>
+                  <mo style="font-size:larger">&#x2218;</mo>
+                  <msub>
+                    <mi>&#x3B3;</mi>
+                    <mn>1</mn>
+                  </msub>
+                  <mo>&#x2061;</mo>
+                  <mfenced>
+                    <mi>t</mi>
+                  </mfenced>
+                  <mspace width="verythinmathspace" />
+                </mrow>
+              </mfenced>
+              <mrow>
+                <mspace width="verythinmathspace" />
+                <mi>t</mi>
+                <mo>=</mo>
+                <mn>0</mn>
+              </mrow>
+            </msub>
+            <mo>=</mo>
+            <msub>
+              <mfenced open="" close="|">
+                <mrow>
+                  <mfrac>
+                    <mo>&#x2146;</mo>
+                    <mrow>
+                      <mo rspace="0">&#x2146;</mo>
+                      <mi>t</mi>
+                    </mrow>
+                  </mfrac>
+                  <mo>&#x2061;</mo>
+                  <mi>&#x3D5;</mi>
+                  <mo style="font-size:larger">&#x2218;</mo>
+                  <msub>
+                    <mi>&#x3B3;</mi>
+                    <mn>2</mn>
+                  </msub>
+                  <mo>&#x2061;</mo>
+                  <mfenced>
+                    <mi>t</mi>
+                  </mfenced>
+                  <mspace width="verythinmathspace" />
+                </mrow>
+              </mfenced>
+              <mrow>
+                <mspace width="verythinmathspace" />
+                <mi>t</mi>
+                <mo>=</mo>
+                <mn>0</mn>
+              </mrow>
+            </msub>
+          </mtd>
+        </mtr>
+      </mtable>
+    </mfenced>
+  </mrow>
+</math>        
+      
+
+      
+        
+          
+            <h3> Cicho&#x0144;<!-- &nacute; -->'s Diagram</h3> 
+          
+     <math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: 7pt;" display="block">
+  <mrow>
+    <mtable class="thin_column_padding center_column_content">
+      <mtr>
+        <mtd columnspan="2" />
+        <mtd>
+          <mo>cov</mo>
+          <mfenced>
+            <mi>&#x2112;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>non</mo>
+          <mfenced>
+            <mi>&#x1D4A6;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>cof</mo>
+          <mfenced>
+            <mi>&#x1D4A6;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>cof</mo>
+          <mfenced>
+            <mi>&#x2112;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <msup>
+            <mn>2</mn>
+            <msub>
+              <mi>&#x2135;</mi>
+              <mn>0</mn>
+            </msub>
+          </msup>
+        </mtd>
+      </mtr>
+      <mtr>
+        <mtd columnspan="2" />
+        <mtd rowspan="3">
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd />
+        <mtd>
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd />
+        <mtd>
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd />
+        <mtd rowspan="3">
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd columnspan="2" />
+      </mtr>
+      <mtr>
+        <mtd columnspan="4" />
+        <mtd>
+          <mi>&#x1D51F;</mi>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mi>&#x1D521;</mi>
+        </mtd>
+        <mtd columnspan="5" />
+      </mtr>
+      <mtr>
+        <mtd columnspan="4" />
+        <mtd>
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd />
+        <mtd>
+          <mo>&#x2191;</mo>
+        </mtd>
+        <mtd columnspan="5" />
+      </mtr>
+      <mtr>
+        <mtd>
+          <msub>
+            <mi>&#x2135;</mi>
+            <mn>1</mn>
+          </msub>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>add</mo>
+          <mfenced>
+            <mi>&#x2112;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>add</mo>
+          <mfenced>
+            <mi>&#x1D4A6;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>cov</mo>
+          <mfenced>
+            <mi>&#x1D4A6;</mi>
+          </mfenced>
+        </mtd>
+        <mtd>
+          <mo>&#x27F6;</mo>
+        </mtd>
+        <mtd>
+          <mo>non</mo>
+          <mfenced>
+            <mi>&#x2112;</mi>
+          </mfenced>
+        </mtd>
+        <mtd columnspan="2" />
+      </mtr>
+    </mtable>
+  </mrow>
+</math>
+     
+
+      
+<h3>Multiscripts &amp; greek alphabet</h3> 
+<math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: 24pt;" display="block">
+              <mrow>
+                <munderover>
+                  <mmultiscripts>
+                    <mo>∏</mo>
+                    <mmultiscripts>
+                      <mi>𝔈</mi>
+                      <mi>υ</mi>
+                      <mi>τ</mi>
+                      <mprescripts />
+                      <mi>ρ</mi>
+                      <mi>σ</mi>
+                    </mmultiscripts>
+                    <mmultiscripts>
+                      <mi>𝔇</mi>
+                      <mi>π</mi>
+                      <mi>ο</mi>
+                      <mprescripts />
+                      <mi>ν</mi>
+                      <mi>ξ</mi>
+                    </mmultiscripts>
+                    <mprescripts />
+                    <mmultiscripts>
+                      <mi>𝔄</mi>
+                      <mi>δ</mi>
+                      <mi>γ</mi>
+                      <mprescripts />
+                      <mi>α</mi>
+                      <mi>β</mi>
+                    </mmultiscripts>
+                    <mmultiscripts>
+                      <mi>𝔅</mi>
+                      <mi>θ</mi>
+                      <mi>η</mi>
+                      <mprescripts />
+                      <mi>ε</mi>
+                      <mi>ζ</mi>
+                    </mmultiscripts>
+                  </mmultiscripts>
+                  <mmultiscripts>
+                    <mi>𝔉</mi>
+                    <mi>ω</mi>
+                    <mi>ψ</mi>
+                    <mprescripts />
+                    <mi>ϕ</mi>
+                    <mi>χ</mi>
+                  </mmultiscripts>
+                  <mmultiscripts>
+                    <mi>ℭ</mi>
+                    <mi>μ</mi>
+                    <mi>λ</mi>
+                    <mprescripts />
+                    <mi>ι</mi>
+                    <mi>κ</mi>
+                  </mmultiscripts>
+                </munderover>
+              </mrow>
+            </math>        
+      
+
+      
+ <h3>         nested roots</h3>
+   
+            <math xmlns="http://www.w3.org/1998/Math/MathML" style="font-size: 8pt;" display="block">
+              <mrow>
+                <mfrac>
+                  <msqrt>
+                    <mn>1</mn>
+                    <mo>+</mo>
+                    <mroot>
+                      <mrow>
+                        <mn>2</mn>
+                        <mo>+</mo>
+                        <mroot>
+                          <mrow>
+                            <mn>3</mn>
+                            <mo>+</mo>
+                            <mroot>
+                              <mrow>
+                                <mn>4</mn>
+                                <mo>+</mo>
+                                <mroot>
+                                  <mrow>
+                                    <mn>5</mn>
+                                    <mo>+</mo>
+                                    <mroot>
+                                      <mrow>
+                                        <mn>6</mn>
+                                        <mo>+</mo>
+                                        <mroot>
+                                          <mrow>
+                                            <mn>7</mn>
+                                            <mo>+</mo>
+                                            <mroot>
+                                              <mi>A</mi>
+                                              <mn>19</mn>
+                                            </mroot>
+                                          </mrow>
+                                          <mn>17</mn>
+                                        </mroot>
+                                      </mrow>
+                                      <mn>13</mn>
+                                    </mroot>
+                                  </mrow>
+                                  <mn>11</mn>
+                                </mroot>
+                              </mrow>
+                              <mn>7</mn>
+                            </mroot>
+                          </mrow>
+                          <mn>5</mn>
+                        </mroot>
+                      </mrow>
+                      <mn>3</mn>
+                    </mroot>
+                  </msqrt>
+                  <msup>
+                    <mi>ⅇ</mi>
+                    <mi>π</mi>
+                  </msup>
+                </mfrac>
+                <mo>=</mo>
+                <msup>
+                  <mi>x</mi>
+                  <mo style="font-size: larger;">‴</mo>
+                </msup>
+              </mrow>
+            </math>
+        
+      
+
+      
+      <h3>    nested           matrices </h3>
+        
+        
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+              <mrow>
+                <mfenced>
+                  <mtable class="no_column_padding center_column_content">
+                    <mtr>
+                      <mtd>
+                        <mfenced>
+                          <mtable>
+                            <mtr>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>1</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>2</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>3</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>4</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                            <mtr>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>5</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>6</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>7</mn>
+                                </msub>
+                              </mtd>
+                              <mtd>
+                                <msub>
+                                  <mi>a</mi>
+                                  <mn>8</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                          </mtable>
+                        </mfenced>
+                      </mtd>
+                      <mtd rowspan="2">
+                        <mfenced>
+                          <mtable class="thin_column_padding">
+                            <mtr>
+                              <mtd>
+                                <msub>
+                                  <mi>b</mi>
+                                  <mn>1</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                            <mtr>
+                              <mtd>
+                                <msub>
+                                  <mi>b</mi>
+                                  <mn>2</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                            <mtr>
+                              <mtd>
+                                <mspace height="1.4em" />
+                                <msub>
+                                  <mi>b</mi>
+                                  <mn>3</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                            <mtr>
+                              <mtd>
+                                <msub>
+                                  <mi>b</mi>
+                                  <mn>4</mn>
+                                </msub>
+                              </mtd>
+                            </mtr>
+                          </mtable>
+                        </mfenced>
+                      </mtd>
+                    </mtr>
+                    <mtr>
+                      <mtd>
+                        <mtable class="center_column_content">
+                          <mtr>
+                            <mtd>
+                              <mi> </mi>
+                              <mi> </mi>
+                              <mn style="font-size: 150%;">0</mn>
+                              <mi> </mi>
+                            </mtd>
+                            <mtd>
+                              <mfenced>
+                                <mtable>
+                                  <mtr>
+                                    <mtd>
+                                      <msub>
+                                        <mi>c</mi>
+                                        <mn>1</mn>
+                                      </msub>
+                                    </mtd>
+                                    <mtd>
+                                      <msub>
+                                        <mi>c</mi>
+                                        <mn>2</mn>
+                                      </msub>
+                                    </mtd>
+                                  </mtr>
+                                  <mtr>
+                                    <mtd>
+                                      <msub>
+                                        <mi>c</mi>
+                                        <mn>3</mn>
+                                      </msub>
+                                    </mtd>
+                                    <mtd>
+                                      <msub>
+                                        <mi>c</mi>
+                                        <mn>4</mn>
+                                      </msub>
+                                    </mtd>
+                                  </mtr>
+                                </mtable>
+                              </mfenced>
+                            </mtd>
+                          </mtr>
+                        </mtable>
+                      </mtd>
+                      <mtd />
+                    </mtr>
+                  </mtable>
+                </mfenced>
+              </mrow>
+            </math>
+        
+      
+      
+         
+<h3> font sizes</h3>
+        
+   
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+              <mrow>
+                <mtext>scriptlevel : </mtext>
+                <mfenced open="" close="">
+                  <mstyle scriptlevel="-3">
+                    <mo form="prefix">−</mo>
+                    <mn>3</mn>
+                  </mstyle>
+                  <mstyle scriptlevel="-2">
+                    <mo form="prefix">−</mo>
+                    <mn>2</mn>
+                  </mstyle>
+                  <mstyle scriptlevel="-1">
+                    <mo form="prefix">−</mo>
+                    <mn>1</mn>
+                  </mstyle>
+                  <mstyle scriptlevel="0">
+                    <mn>0</mn>
+                  </mstyle>
+                  <mstyle scriptlevel="1">
+                    <mn>1</mn>
+                  </mstyle>
+                </mfenced>
+              </mrow>
+            </math>
+  
+
+</body>
+</html>

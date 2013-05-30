@@ -1,0 +1,2907 @@
+<?xml version="1.0"?>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:epub="http://www.idpf.org/2007/ops" 
+      xmlns:m="http://www.w3.org/1998/Math/MathML">
+<!--<?xml version="1.0" encoding="utf-8"?>
+<html xml:lang="en-us" lang="en-us" xmlns="http://www.w3.org/1999/xhtml">-->
+<head>
+<!--         <meta charset="utf-8"/>  -->
+        <link rel="stylesheet" type="text/css" href="../css/commonltr.css"/>
+        <title>Re-visiting MathML torture tests</title>
+        <link type="text/css" rel="stylesheet" href="../css/epub.css"/>
+        <script type="text/x-mathjax-config">
+	    MathJax.Hub.Config({
+	      jax: ["input/TeX","input/MathML","output/SVG"],
+	      extensions: ["tex2jax.js","mml2jax.js","MathEvents.js"],
+	      TeX: {
+		extensions: ["noErrors.js","noUndefined.js","autoload-all.js"]
+	      },
+	      MathMenu: {
+		showRenderer: false
+	      },
+	      menuSettings: {
+		zoom: "Click"
+	      },
+	      messageStyle: "none"
+	    });
+        </script>
+       <script type="text/javascript" src="../mathjax/MathJax.js"></script>
+</head>
+<body>
+<p> Derived from <a href="http://lykt.info/mathml/prince/test-suite-with-css.xml">lykt.info</a> </p>
+<h2>menclose-01.xml</h2>
+<p>All digits below should be striked through</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<menclose notation="horizontalstrike">
+<mn>123456789</mn>
+</menclose>
+</math>
+<h2>menclose-02.xml</h2>
+<p>Overline should cover all digits below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<menclose notation="top">
+<mn>123456789</mn>
+</menclose>
+</math>
+<h2>menclose-03.xml</h2>
+<p>All digits below should be underlined</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<menclose notation="bottom">
+<mn>123456789</mn>
+</menclose>
+</math>
+<h2>menclose-04.xml</h2>
+<p>Number below should be enclosed in rectangular frame</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<menclose notation="box">
+<mn>123456789</mn>
+</menclose>
+</math>
+<h2>merror-01.xml</h2>
+<p>You should see error message below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<merror>
+<mrow><mi>A</mi><mo>/</mo><mn>0</mn></mrow>
+</merror>
+</math>
+<h2>mfenced-01.xml</h2>
+<p>Brackets should be resized to match matrix height</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="[" close="]">
+<mrow>
+<mtable>
+<mtr>
+<mtd><mi>A</mi></mtd>
+<mtd><mi>B</mi></mtd>
+<mtd><mi>C</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>D</mi></mtd>
+<mtd><mi>E</mi></mtd>
+<mtd><mi>F</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>G</mi></mtd>
+<mtd><mi>H</mi></mtd>
+<mtd><mi>I</mi></mtd>
+</mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-02.xml</h2>
+<p>Braces should be resized to match matrix height</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="{" close="}">
+<mrow>
+<mtable>
+<mtr>
+<mtd><mi>A</mi></mtd>
+<mtd><mi>B</mi></mtd>
+<mtd><mi>C</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>D</mi></mtd>
+<mtd><mi>E</mi></mtd>
+<mtd><mi>F</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>G</mi></mtd>
+<mtd><mi>H</mi></mtd>
+<mtd><mi>I</mi></mtd>
+</mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-03.xml</h2>
+<p>Parenthesis should be resized to match matrix height</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced>
+<mrow>
+<mtable>
+<mtr>
+<mtd><mi>A</mi></mtd>
+<mtd><mi>B</mi></mtd>
+<mtd><mi>C</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>D</mi></mtd>
+<mtd><mi>E</mi></mtd>
+<mtd><mi>F</mi></mtd>
+</mtr>
+<mtr>
+<mtd><mi>G</mi></mtd>
+<mtd><mi>H</mi></mtd>
+<mtd><mi>I</mi></mtd>
+</mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-04.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="&#x2308;" close="&#x230B;">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+<mo>=</mo>
+<mfenced open="&#x230A;" close="&#x2309;">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-05.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="{" close="|">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+<mo>=</mo>
+<mfenced open="|" close="}">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-06.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="[" close="|">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+<mo>=</mo>
+<mfenced open="|" close="]">
+<mrow>
+<mtable>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="(" close=")">
+<mrow>
+<mtable>
+<mtr><mtd><mi>U</mi></mtd></mtr>
+<mtr><mtd><mi>V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+<mo>=</mo>
+<mfenced>
+<mrow>
+<mtable>
+<mtr><mtd><mi>U</mi></mtd></mtr>
+<mtr><mtd><mi>V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfenced-08.xml</h2>
+<p>Single and double bar fences should have the same height</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfenced open="|" close="|">
+<mrow>
+<mtable>
+<mtr><mtd><mi>U</mi></mtd></mtr>
+<mtr><mtd><mi>V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+<mo>=</mo>
+<mfenced open="&#x2016;" close="&#x2016;">
+<mrow>
+<mtable>
+<mtr><mtd><mi>U</mi></mtd></mtr>
+<mtr><mtd><mi>V</mi></mtd></mtr>
+</mtable>
+</mrow>
+</mfenced>
+</math>
+<h2>mfrac-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mn>1</mn>
+<mn>8</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mn>1</mn>
+<mrow><munder><mn>8</mn><mphantom><mn>0</mn></mphantom></munder></mrow>
+</mfrac>
+</math>
+<h2>mfrac-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mn>1</mn>
+<mrow><mn>2</mn><mi>π</mi></mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mrow><mover><mn>1</mn><mphantom><mn>0</mn></mphantom></mover></mrow>
+<mrow><mn>2</mn><mi>π</mi></mrow>
+</mfrac>
+</math>
+<h2>mfrac-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+	<mi>A</mi>
+	<mrow>
+		<mi>B</mi>
+		<mo>+</mo>
+		<mfrac>
+			<mi>C</mi>
+			<mrow>
+				<mi>D</mi>
+				<mo>+</mo>
+				<mfrac>
+					<mi>E</mi>
+					<mi>F</mi>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+	<mrow><mover><mi>A</mi><mphantom><mn>0</mn></mphantom></mover></mrow>
+	<mrow>
+		<mi>B</mi>
+		<mo>+</mo>
+		<mfrac>
+			<mi>C</mi>
+			<mrow>
+				<mi>D</mi>
+				<mo>+</mo>
+				<mfrac>
+					<mi>E</mi>
+					<mrow><munder><mi>F</mi><mphantom><mn>0</mn></mphantom></munder></mrow>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+</math>
+<h2>mfrac-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac linethickness="medium">
+<mn>854513</mn>
+<mn>138</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac linethickness="1">
+<mn>854513</mn>
+<mn>138</mn>
+</mfrac>
+</math>
+<h2>mfrac-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mn>1</mn>
+<mn>42</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac linethickness="1">
+<mn>1</mn>
+<mn>42</mn>
+</mfrac>
+</math>
+<h2>mfrac-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac linethickness="thick">
+	<mrow>
+		<mfrac>
+			<mrow><mi>a</mi></mrow>
+			<mrow><mi>b</mi></mrow>
+		</mfrac>
+	</mrow>
+	<mrow>
+		<mfrac>
+			<mrow><mi>c</mi></mrow>
+			<mrow><mi>d</mi></mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac linethickness="thick">
+<mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow>
+<mrow><mfrac><mi>c</mi><mi>d</mi></mfrac></mrow>
+</mfrac>
+</math>
+<h2>mfrac-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac linethickness="2">
+<mrow><mfrac><mrow><mover><mi>a</mi><mphantom><mtext>!</mtext></mphantom></mover></mrow><mi>b</mi></mfrac></mrow>
+<mrow><mfrac><mi>c</mi><mi>d</mi></mfrac></mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac linethickness="thick">
+<mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow>
+<mrow><mfrac><mi>c</mi><mrow><munder><mi>d</mi><mphantom><mtext>!</mtext></mphantom></munder></mrow></mfrac></mrow>
+</mfrac>
+</math>
+<h2>mfrac-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mrow><mphantom><mi>a</mi></mphantom><mn>12</mn><mphantom><mi>a</mi></mphantom></mrow>
+<mn>13</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mn>12</mn>
+<mrow><mphantom><mi>a</mi></mphantom><mn>13</mn><mphantom><mi>a</mi></mphantom></mrow>
+</mfrac>
+</math>
+<h2>mfrac-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mn>9</mn>
+<mn>14</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mn>9</mn>
+<mn>14</mn>
+</mfrac>
+<mfrac linethickness="0">
+<mphantom><mfrac linethickness="0">
+<mphantom><mn>1</mn></mphantom>
+<mphantom><mn>2</mn></mphantom>
+</mfrac>
+</mphantom>
+<mphantom><mfrac linethickness="0">
+<mphantom><mn>1</mn></mphantom>
+<mphantom><mn>2</mn></mphantom>
+</mfrac>
+</mphantom>
+</mfrac>
+</math>
+<h2>mfrac-10.xml</h2>
+<p>Two fractions below should share the same baseline</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+	<mn>4</mn>
+	<mrow>
+		<mn>2</mn>
+		<mo>+</mo>
+		<mfrac>
+			<mn>3</mn>
+			<mrow>
+				<mn>1</mn>
+				<mo>+</mo>
+				<mfrac>
+					<mn>1</mn>
+					<mn>2</mn>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+	<mrow>
+		<mn>1</mn>
+		<mo>+</mo>
+		<mfrac>
+			<mn>9</mn>
+			<mrow>
+				<mn>2</mn>
+				<mo>+</mo>
+				<mfrac>
+					<mn>1</mn>
+					<mn>4</mn>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+	<mn>5</mn>
+</mfrac>
+</math>
+<h2>mfrac-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+	<mi>A</mi>
+	<mrow>
+		<mi>B</mi>
+		<mo>+</mo>
+		<mfrac>
+			<mi>C</mi>
+			<mrow>
+				<mi>D</mi>
+				<mo>+</mo>
+				<mfrac>
+					<mi>E</mi>
+					<mi>F</mi>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+	<mrow><mphantom><mn>1</mn></mphantom><mspace linebreak="newline"/><mi>A</mi></mrow>
+	<mrow>
+		<mi>B</mi>
+		<mo>+</mo>
+		<mfrac>
+			<mi>C</mi>
+			<mrow>
+				<mi>D</mi>
+				<mo>+</mo>
+				<mfrac>
+					<mi>E</mi>
+					<mrow><mi>F</mi><mspace linebreak="newline"/><mphantom><mn>1</mn></mphantom></mrow>
+				</mfrac>
+			</mrow>
+		</mfrac>
+	</mrow>
+</mfrac>
+</math>
+<h2>mfrac-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mn>1</mn>
+<mn>2</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mrow><mphantom><mn>1</mn></mphantom><mspace linebreak="newline"/><mn>1</mn></mrow>
+<mrow><mn>2</mn><mspace linebreak="newline"/><mphantom><mn>1</mn></mphantom></mrow>
+</mfrac>
+</math>
+<h2>mover-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over</mi>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">over</mi></mphantom>
+</mover>
+</math>
+<h2>mover-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over script</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow>
+<mover>
+<mrow>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over script</mi>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">over</mi></mphantom>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">over</mi></mphantom>
+</mover>
+</math>
+<h2>mover-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mrow>
+<mfrac linethickness="0">
+<mi mathvariant="normal">first</mi>
+<mi mathvariant="normal">second</mi>
+</mfrac>
+</mrow>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mrow>
+<mfrac linethickness="0">
+<mi mathvariant="normal">first</mi>
+<mi mathvariant="normal">second</mi>
+</mfrac>
+</mrow>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">over</mi></mphantom>
+</mover>
+</math>
+<h2>mover-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">middle</mi>
+<mi mathvariant="normal">top</mi>
+</mover>
+<mo>=</mo>
+<munderover>
+<mi mathvariant="normal">middle</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+<mi mathvariant="normal">top</mi>
+</munderover>
+</math>
+<h2>mover-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mi mathvariant="normal">_ baseline _</mi>
+<mo>=</mo>
+<mover>
+<mi mathvariant="normal">_ baseline _</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</math>
+<h2>mover-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mi mathvariant="normal">- middle -</mi>
+<mo>=</mo>
+<mover>
+<mrow>
+<mover>
+<mi mathvariant="normal">- middle -</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</math>
+<h2>mover-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">mover baseline</mi>
+<mi mathvariant="normal">mover over script</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow>
+<mover>
+<mi mathvariant="normal">mover baseline</mi>
+<mi mathvariant="normal">mover over script</mi>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</math>
+<h2>mover-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">_ baseline _</mi>
+<mi mathvariant="normal">over script</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">_ baseline _</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</mrow>
+<mi mathvariant="normal">over script</mi>
+</mover>
+</math>
+<h2>mover-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mrow>
+<mover>
+<mi mathvariant="normal">- middle -</mi>
+<mi mathvariant="normal">top</mi>
+</mover>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">- middle -</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</mrow>
+<mi mathvariant="normal">top</mi>
+</mover>
+</math>
+<h2>mover-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">long over script</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow><mi mathvariant="normal">B</mi></mrow>
+<mrow><mi mathvariant="normal">long over script</mi></mrow>
+</mover>
+</math>
+<h2>mover-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">x</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">x</mi><mphantom><mn>1</mn></mphantom></mrow>
+</mover>
+</math>
+<h2>mover-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">overscript</mi>
+</mover>
+<mo>=</mo>
+<mover>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">B</mi><mphantom><mn>1</mn></mphantom></mrow>
+<mi mathvariant="normal">overscript</mi>
+</mover>
+</math>
+<h2>mprescripts-01.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-02.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<none/>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">X</mi>
+</msup>
+</math>
+<h2>mprescripts-03.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<none/>
+</mmultiscripts>
+<mo>=</mo>
+<msub>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+</msub>
+</math>
+<h2>mprescripts-04.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">Y</mi>
+<mprescripts/>
+<mi mathvariant="normal">T</mi>
+<mi mathvariant="normal">H</mi>
+</mmultiscripts>
+</mrow>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">X</mi>
+<mprescripts/>
+<mi mathvariant="normal">V</mi>
+<mi mathvariant="normal">U</mi>
+</mmultiscripts>
+</mrow>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mrow>
+<msubsup>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">T</mi>
+<mi mathvariant="normal">H</mi>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi mathvariant="normal">X</mi>
+<mi mathvariant="normal">V</mi>
+<mi mathvariant="normal">U</mi>
+</msubsup>
+</mrow>
+</msubsup>
+</math>
+<h2>mprescripts-05.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">Y</mi>
+<mprescripts/>
+<mi mathvariant="normal">T</mi>
+<none/>
+</mmultiscripts>
+</mrow>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">X</mi>
+<mprescripts/>
+<none/>
+<mi mathvariant="normal">U</mi>
+</mmultiscripts>
+</mrow>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mrow>
+<msub>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">T</mi>
+</msub>
+</mrow>
+<mrow>
+<msup>
+<mi mathvariant="normal">X</mi>
+<mi mathvariant="normal">U</mi>
+</msup>
+</mrow>
+</msubsup>
+</math>
+<h2>mprescripts-06.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">Y</mi>
+<mprescripts/>
+<none/>
+<mi mathvariant="normal">H</mi>
+</mmultiscripts>
+</mrow>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">X</mi>
+<mprescripts/>
+<mi mathvariant="normal">V</mi>
+<none/>
+</mmultiscripts>
+</mrow>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mrow>
+<msup>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">H</mi>
+</msup>
+</mrow>
+<mrow>
+<msub>
+<mi mathvariant="normal">X</mi>
+<mi mathvariant="normal">V</mi>
+</msub>
+</mrow>
+</msubsup>
+</math>
+<h2>mprescripts-07.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">Y</mi>
+<mprescripts/>
+<mi mathvariant="normal">T</mi>
+<none/>
+</mmultiscripts>
+</mrow>
+<none/>
+</mmultiscripts>
+<mo>=</mo>
+<msub>
+<mi mathvariant="normal">A</mi>
+<mrow>
+<msub>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">T</mi>
+</msub>
+</mrow>
+</msub>
+</math>
+<h2>mprescripts-08.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<none/>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">X</mi>
+<mprescripts/>
+<none/>
+<mi mathvariant="normal">U</mi>
+</mmultiscripts>
+</mrow>
+</mmultiscripts>
+<mo>=</mo>
+<msup>
+<mi mathvariant="normal">A</mi>
+<mrow>
+<msup>
+<mi mathvariant="normal">X</mi>
+<mi mathvariant="normal">U</mi>
+</msup>
+</mrow>
+</msup>
+</math>
+<h2>mprescripts-09.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mrow><mphantom><mi>fail</mi></mphantom><mi mathvariant="normal">Y</mi></mrow>
+<mrow><mphantom><mi>fail</mi></mphantom><mi mathvariant="normal">X</mi></mrow>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-10.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+</mrow>
+<mphantom><mtext>fail</mtext></mphantom>
+</munder>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-11.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+</mrow>
+<mphantom><mtext>fail</mtext></mphantom>
+</mover>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-12.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mrow>
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+</mrow>
+<mphantom><mtext>fail</mtext></mphantom>
+<mphantom><mtext>fail</mtext></mphantom>
+</munderover>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-13.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" style="font-size:2em;">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-14.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" style="font-family:sans-serif;">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-15.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" style="font-family:monospace">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mprescripts-16.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" style="font-weight:bold">
+<mmultiscripts>
+<mi mathvariant="normal">A</mi>
+<mprescripts/>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</mmultiscripts>
+<mo>=</mo>
+<msubsup>
+<mi mathvariant="normal">A</mi>
+<mi mathvariant="normal">Y</mi>
+<mi mathvariant="normal">X</mi>
+</msubsup>
+</math>
+<h2>mrow-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mfrac>
+<mi>x</mi>
+<mn>4</mn>
+</mfrac>
+<mo>=</mo>
+<mfrac>
+<mrow><mi>x</mi></mrow>
+<mrow><mn>4</mn></mrow>
+</mfrac>
+</math>
+<h2>mrow-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>x</mi>
+<mn>2</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mrow><mrow><mi>x</mi></mrow></mrow>
+<mrow><mrow><mn>2</mn></mrow></mrow>
+</msup>
+</math>
+<h2>ms-11.xml</h2>
+<p>You should see word PASS below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote="PA" rquote="">SS</ms>
+</math>
+<h2>ms-12.xml</h2>
+<p>You should see word PASS below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote="" rquote="SS">PA</ms>
+</math>
+<h2>ms-13.xml</h2>
+<p>You should see word PASS below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote="P" rquote="SS">A</ms>
+</math>
+<h2>ms-14.xml</h2>
+<p>There should be no quotes below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote="" rquote=""> </ms>
+</math>
+<h2>ms-15.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote='"'>string</ms><mo>=</mo><ms rquote='"'>string</ms>
+</math>
+<h2>ms-16.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<ms lquote='"' rquote='"'>string</ms><mo>=</mo><ms>string</ms>
+</math>
+<h2>mspace-01.xml</h2>
+<p>You should see two lines of text below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtext>First line</mtext><mspace linebreak="newline"/><mtext>Second line</mtext>
+</math>
+<h2>mspace-02.xml</h2>
+<p>Resize window to ensure that expression below is splitted into several lines. Line breaks should occur after even numbers.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mrow>
+<mn>1</mn>
+<mn>2</mn><mspace linebreak="goodbreak"/>
+<mn>3</mn>
+<mn>4</mn><mspace linebreak="goodbreak"/>
+<mn>5</mn>
+<mn>6</mn><mspace linebreak="goodbreak"/>
+<mn>7</mn>
+<mn>8</mn><mspace linebreak="goodbreak"/>
+<mn>9</mn>
+<mn>10</mn><mspace linebreak="goodbreak"/>
+<mn>11</mn>
+<mn>12</mn></mrow>
+<mrow>
+<mn>11</mn>
+<mn>12</mn><mspace linebreak="goodbreak"/>
+<mn>13</mn>
+<mn>14</mn><mspace linebreak="goodbreak"/>
+<mn>15</mn>
+<mn>16</mn><mspace linebreak="goodbreak"/>
+<mn>17</mn>
+<mn>18</mn><mspace linebreak="goodbreak"/>
+<mn>19</mn>
+<mn>20</mn><mspace linebreak="goodbreak"/>
+<mn>21</mn>
+<mn>22</mn><mspace linebreak="goodbreak"/>
+<mn>21</mn>
+<mn>22</mn><mspace linebreak="goodbreak"/>
+<mn>23</mn>
+<mn>24</mn></mrow>
+<mrow>
+<mn>25</mn>
+<mn>26</mn><mspace linebreak="goodbreak"/>
+<mn>27</mn>
+<mn>28</mn><mspace linebreak="goodbreak"/>
+<mn>29</mn>
+<mn>30</mn><mspace linebreak="goodbreak"/>
+<mn>31</mn>
+<mn>32</mn></mrow>
+<mrow>
+<mn>31</mn>
+<mn>32</mn><mspace linebreak="goodbreak"/>
+<mn>33</mn>
+<mn>34</mn><mspace linebreak="goodbreak"/>
+<mn>35</mn>
+<mn>36</mn><mspace linebreak="goodbreak"/>
+<mn>37</mn>
+<mn>38</mn><mspace linebreak="goodbreak"/>
+<mn>39</mn>
+<mn>40</mn><mspace linebreak="goodbreak"/>
+<mn>41</mn>
+<mn>42</mn><mspace linebreak="goodbreak"/>
+<mn>41</mn>
+<mn>42</mn><mspace linebreak="goodbreak"/>
+<mn>43</mn>
+<mn>44</mn><mspace linebreak="goodbreak"/>
+<mn>45</mn>
+<mn>46</mn><mspace linebreak="goodbreak"/>
+<mn>47</mn>
+<mn>48</mn><mspace linebreak="goodbreak"/>
+<mn>49</mn>
+<mn>50</mn><mspace linebreak="goodbreak"/>
+<mn>51</mn>
+<mn>52</mn><mspace linebreak="goodbreak"/>
+<mn>51</mn>
+<mn>52</mn><mspace linebreak="goodbreak"/>
+<mn>53</mn>
+<mn>54</mn><mspace linebreak="goodbreak"/>
+<mn>55</mn>
+<mn>56</mn><mspace linebreak="goodbreak"/>
+<mn>57</mn>
+<mn>58</mn><mspace linebreak="goodbreak"/>
+<mn>59</mn>
+<mn>60</mn><mspace linebreak="goodbreak"/>
+<mn>61</mn>
+<mn>62</mn><mspace linebreak="goodbreak"/>
+<mn>61</mn>
+<mn>62</mn><mspace linebreak="goodbreak"/>
+<mn>63</mn>
+<mn>64</mn></mrow>
+</math>
+<h2>mspace-03.xml</h2>
+<p>There should be no line break between 1 and 2</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mn>1</mn><mspace linebreak="newline" width="thinmathspace"/><mn>2</mn>
+</math>
+<h2>mspace-04.xml</h2>
+<p>Spacing between numbers should gradually increase (from minimal spacing between 0 and 1 to largest between 5 and 6).</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<menclose notation="box"><mn>0</mn></menclose><menclose notation="box"><mn>1</mn></menclose><mspace width="verythinmathspace"/><menclose notation="box"><mn>2</mn></menclose><mspace width="thinmathspace"/><menclose notation="box"><mn>3</mn></menclose><mspace width="mediummathspace"/><menclose notation="box"><mn>4</mn></menclose><mspace width="thickmathspace"/><menclose notation="box"><mn>5</mn></menclose><mspace width="verythickmathspace"/><menclose notation="box"><mn>6</mn></menclose>
+</math>
+<h2>msqrt-01.xml</h2>
+<p>Rectangle should be placed under radical</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mtable frame="solid">
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+</mtable>
+</msqrt>
+</math>
+<h2>msqrt-02.xml</h2>
+<p>Rectangle should be placed under radical</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mtable frame="solid">
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+</mtable>
+</msqrt>
+</math>
+<h2>msqrt-03.xml</h2>
+<p>Rectangle should be placed under radical</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mtable frame="solid">
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+<mtr>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+<mtd><mphantom><mi>A</mi></mphantom></mtd>
+</mtr>
+</mtable>
+</msqrt>
+</math>
+<h2>msqrt-04.xml</h2>
+<p>Rectangle should be placed under radical</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mtable frame="solid">
+<mtr><mtd><mphantom><mi>A</mi></mphantom></mtd></mtr>
+<mtr><mtd><mphantom><mi>A</mi></mphantom></mtd></mtr>
+<mtr><mtd><mphantom><mi>A</mi></mphantom></mtd></mtr>
+</mtable>
+</msqrt>
+</math>
+<h2>msqrt-05.xml</h2>
+<p>Rectangle should be placed under radical</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mtable frame="solid">
+<mtr><mtd><mphantom><mi>ABCD</mi></mphantom></mtd></mtr>
+<mtr><mtd><mphantom><mi>ABCD</mi></mphantom></mtd></mtr>
+<mtr><mtd><mphantom><mi>ABCD</mi></mphantom></mtd></mtr>
+</mtable>
+</msqrt>
+</math>
+<h2>msqrt-06.xml</h2>
+<p>Right hand side expression should be equal to the left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<msqrt>
+<msqrt>
+<msqrt>
+<mn>65536</mn>
+</msqrt>
+</msqrt>
+</msqrt>
+</msqrt>
+<mo>=</mo>
+<mn>2</mn>
+</math>
+<h2>msqrt-07.xml</h2>
+<p>Radicals below might have different shapes, but their content must share the same baseline</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mi>content</mi>
+</msqrt>
+<mo>=</mo>
+<msqrt>
+<munder>
+<mi>content</mi>
+<mphantom><mi>fail</mi></mphantom>
+</munder>
+</msqrt>
+<mo>=</mo>
+<msqrt>
+<mover>
+<mi>content</mi>
+<mphantom><mi>fail</mi></mphantom>
+</mover>
+</msqrt>
+</math>
+<h2>msqrt-08.xml</h2>
+<p>Radicals below might have different shapes, but their content must share the same baseline</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msqrt>
+<mi>content</mi>
+</msqrt>
+<mo>=</mo>
+<msqrt>
+<msub>
+<mi>content</mi>
+<mphantom><mi>fail</mi></mphantom>
+</msub>
+</msqrt>
+<mo>=</mo>
+<msqrt>
+<msup>
+<mi>content</mi>
+<mphantom><mi>fail</mi></mphantom>
+</msup>
+</msqrt>
+</math>
+<h2>msub-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>L</mi>
+<mi>x</mi>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>L</mi>
+<mrow><mi>x</mi><mphantom><mi>fail</mi></mphantom></mrow>
+</msub>
+</math>
+<h2>msub-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mrow><mphantom><mi>fail</mi></mphantom><mi>X</mi></mrow>
+<mn>0</mn>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>X</mi>
+<mn>0</mn>
+</msub>
+</math>
+<h2>msub-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>V</mi>
+<mo>+</mo>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>V</mi>
+<mrow>
+<msub>
+<mo>+</mo>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</msub>
+</mrow>
+</msub>
+</math>
+<h2>msub-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>L</mi>
+<mrow>
+<msub>
+<mi>X</mi>
+<mi>h</mi>
+</msub>
+</mrow>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>L</mi>
+<mrow>
+<msub>
+<mi>X</mi>
+<mrow>
+<msub>
+<mi>h</mi>
+<mphantom><mi>fail</mi></mphantom>
+</msub>
+</mrow>
+</msub>
+</mrow>
+</msub>
+</math>
+<h2>msub-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>A</mi>
+<mi>B</mi>
+</msub>
+<mo>=</mo>
+<msub>
+<mrow><mi>A</mi></mrow>
+<mrow><mi>B</mi></mrow>
+</msub>
+</math>
+<h2>msub-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>U</mi>
+<mi>t</mi>
+</msub>
+<mo>=</mo>
+<msub>
+<mrow><mi>U</mi></mrow>
+<mrow><mi>t</mi></mrow>
+</msub>
+<mphantom>
+<mfrac><mi>test</mi><mi>failed</mi></mfrac>
+</mphantom>
+</math>
+<h2>msub-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>D</mi>
+<mi>y</mi>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>D</mi>
+<mrow><munder><mi>y</mi><mphantom><mi>s</mi></mphantom></munder></mrow>
+</msub>
+</math>
+<h2>msub-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>A</mi>
+<mrow>
+<msub>
+<mi>B</mi>
+<mi>C</mi>
+</msub>
+</mrow>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>A</mi>
+<mrow>
+<msub>
+<mi>B</mi>
+<mrow><munder><mi>C</mi><mphantom><mi>D</mi></mphantom></munder></mrow>
+</msub>
+</mrow>
+</msub>
+</math>
+<h2>msub-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>A</mi>
+<mrow>
+<msub>
+<mi>B</mi>
+<mrow>
+<msub>
+<mi>C</mi>
+<mi>D</mi>
+</msub>
+</mrow>
+</msub>
+</mrow>
+</msub>
+<mo>=</mo>
+<msub>
+<mi>A</mi>
+<mrow>
+<msub>
+<mi>B</mi>
+<mrow>
+<msub>
+<mi>C</mi>
+<mrow>
+<msub><mi>D</mi><mphantom><mi>E</mi></mphantom></msub>
+</mrow>
+</msub>
+</mrow>
+</msub>
+</mrow>
+</msub>
+</math>
+<h2>msub-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>S</mi>
+<mn>5</mn>
+</msub>
+<mo>=</mo>
+<munder>
+<mrow>
+<msub>
+<mi>S</mi>
+<mn>5</mn>
+</msub>
+</mrow>
+<mphantom><mi>t</mi></mphantom>
+</munder>
+</math>
+<h2>msub-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi mathvariant="normal">H</mi>
+<mo>2</mo>
+</msub>
+<mo>=</mo>
+<mover>
+<mrow>
+<msub>
+<mi mathvariant="normal">H</mi>
+<mo>2</mo>
+</msub>
+</mrow>
+<mphantom><mi>x</mi></mphantom>
+</mover>
+</math>
+<h2>msub-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msub>
+<mi>P</mi>
+<mn>0</mn>
+</msub>
+<mo>=</mo>
+<munderover>
+<mrow>
+<msub>
+<mi>P</mi>
+<mn>0</mn>
+</msub>
+</mrow>
+<mphantom><mi>x</mi></mphantom>
+<mphantom><mi>x</mi></mphantom>
+</munderover>
+</math>
+<h2>msubsup-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>R</mi>
+<mn>0</mn>
+<mn>4</mn>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>R</mi>
+<mrow><mn>0</mn><mphantom><mi>fail</mi></mphantom></mrow>
+<mrow><mn>4</mn><mphantom><mi>fail</mi></mphantom></mrow>
+</msubsup>
+</math>
+<h2>msubsup-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mrow><mphantom><mi>z</mi></mphantom><mi>S</mi></mrow>
+<mi>t</mi>
+<mn>7</mn>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>S</mi>
+<mi>t</mi>
+<mn>7</mn>
+</msubsup>
+</math>
+<h2>msubsup-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>L</mi>
+<mi>x</mi>
+<mn>2</mn>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>L</mi>
+<mrow><msub>
+<mi>x</mi>
+<mphantom><mi>z</mi></mphantom>
+</msub>
+</mrow>
+<mrow>
+<msup>
+<mn>2</mn>
+<mphantom><mi>z</mi></mphantom>
+</msup>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>A</mi>
+<mrow>
+<msubsup>
+<mi>C</mi>
+<mn>4</mn>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>B</mi>
+<mn>2</mn>
+<mn>1</mn>
+</msubsup>
+</mrow>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>A</mi>
+<mrow>
+<msubsup>
+<mi>C</mi>
+<mrow><msub><mn>4</mn><mphantom><mtext>l</mtext></mphantom></msub></mrow>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>B</mi>
+<mn>2</mn>
+<mrow><msup><mn>1</mn><mphantom><mtext>s</mtext></mphantom></msup></mrow>
+</msubsup>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>S</mi>
+<mrow>
+<msubsup>
+<mi>Q</mi>
+<mn>4</mn>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>P</mi>
+<mn>2</mn>
+<mn>1</mn>
+</msubsup>
+</mrow>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>S</mi>
+<mrow>
+<msubsup>
+<mi>Q</mi>
+<mrow><mn>4</mn><mphantom><mtext>z</mtext></mphantom></mrow>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>P</mi>
+<mn>2</mn>
+<mrow><mn>1</mn><mphantom><mtext>z</mtext></mphantom></mrow>
+</msubsup>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>X</mi>
+<mrow>
+<msubsup>
+<mi>Z</mi>
+<mn>4</mn>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>Y</mi>
+<mn>2</mn>
+<mn>1</mn>
+</msubsup>
+</mrow>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mrow><mi>X</mi></mrow>
+<mrow>
+<msubsup>
+<mrow><mi>Z</mi></mrow>
+<mrow><mn>4</mn></mrow>
+<mrow><mn>3</mn></mrow>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mrow><mi>Y</mi></mrow>
+<mrow><mn>2</mn></mrow>
+<mrow><mn>1</mn></mrow>
+</msubsup>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>D</mi>
+<mi>x</mi>
+<mn>2</mn>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>D</mi>
+<mrow>
+<munder>
+<mi>x</mi>
+<mphantom><mn>0</mn></mphantom>
+</munder>
+</mrow>
+<mrow>
+<mover>
+<mn>2</mn>
+<mphantom><mn>0</mn></mphantom>
+</mover>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>A</mi>
+<mi>B</mi>
+<mi>C</mi>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>A</mi>
+<mi>B</mi>
+<mi>C</mi>
+</msubsup>
+<mphantom>
+<mfrac><mi>test</mi><mi>failed</mi></mfrac>
+</mphantom>
+</math>
+<h2>msubsup-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>M</mi>
+<mrow>
+<msubsup>
+<mi>B</mi>
+<mn>4</mn>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>T</mi>
+<mn>2</mn>
+<mn>1</mn>
+</msubsup>
+</mrow>
+</msubsup>
+<mo>=</mo>
+<msubsup>
+<mi>M</mi>
+<mrow>
+<msubsup>
+<mi>B</mi>
+<mrow><munder><mn>4</mn><mphantom><mtext>0</mtext></mphantom></munder></mrow>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mrow>
+<msubsup>
+<mi>T</mi>
+<mn>2</mn>
+<mrow><mover><mn>1</mn><mphantom><mtext>0</mtext></mphantom></mover></mrow>
+</msubsup>
+</mrow>
+</msubsup>
+</math>
+<h2>msubsup-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>p</mi>
+<mi>x</mi>
+<mn>3</mn>
+</msubsup>
+<mo>=</mo>
+<munder>
+<mrow>
+<msubsup>
+<mi>p</mi>
+<mi>x</mi>
+<mn>3</mn>
+</msubsup>
+</mrow>
+<mphantom><mtext>l</mtext></mphantom>
+</munder>
+</math>
+<h2>msubsup-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>T</mi>
+<mi>m</mi>
+<mi>n</mi>
+</msubsup>
+<mo>=</mo>
+<mover>
+<mrow>
+<msubsup>
+<mi>T</mi>
+<mi>m</mi>
+<mi>n</mi>
+</msubsup>
+</mrow>
+<mphantom><mtext>x</mtext></mphantom>
+</mover>
+</math>
+<h2>msubsup-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msubsup>
+<mi>V</mi>
+<mi>m</mi>
+<mi>n</mi>
+</msubsup>
+<mo>=</mo>
+<munderover>
+<mrow>
+<msubsup>
+<mi>V</mi>
+<mi>m</mi>
+<mi>n</mi>
+</msubsup>
+</mrow>
+<mphantom><mtext>d</mtext></mphantom>
+<mphantom><mtext>d</mtext></mphantom>
+</munderover>
+</math>
+<h2>msup-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>c</mi>
+<mn>4</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mi>c</mi>
+<mrow><mn>4</mn><mphantom><mi>fail</mi></mphantom></mrow>
+</msup>
+</math>
+<h2>msup-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mrow><mphantom><mi>fail</mi></mphantom><mi mathvariant="normal">k</mi></mrow>
+<mn>2</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mi mathvariant="normal">k</mi>
+<mn>2</mn>
+</msup>
+</math>
+<h2>msup-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mn>2</mn>
+<mn>3</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mphantom><mi>fail</mi></mphantom>
+</msup>
+</mrow>
+</msup>
+</math>
+<h2>msup-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mn>4</mn>
+</msup>
+</mrow>
+</msup>
+<mo>=</mo>
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mrow>
+<msup>
+<mn>4</mn>
+<mphantom><mi>fail</mi></mphantom>
+</msup>
+</mrow>
+</msup>
+</mrow>
+</msup>
+</math>
+<h2>msup-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>x</mi>
+<mn>3</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mrow><mi>x</mi></mrow>
+<mrow><mn>3</mn></mrow>
+</msup>
+</math>
+<h2>msup-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>S</mi>
+<mn>3</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mrow><mi>S</mi></mrow>
+<mrow><mn>3</mn></mrow>
+</msup>
+<mphantom>
+<mfrac><mi>test</mi><mi>failed</mi></mfrac>
+</mphantom>
+</math>
+<h2>msup-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>a</mi>
+<mn>2</mn>
+</msup>
+<mo>=</mo>
+<msup>
+<mi>a</mi>
+<mrow><mover><mn>2</mn><mphantom><mi>x</mi></mphantom></mover></mrow>
+</msup>
+</math>
+<h2>msup-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mn>4</mn>
+</msup>
+</mrow>
+</msup>
+<mo>=</mo>
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mrow><mover><mn>4</mn><mphantom><mn>5</mn></mphantom></mover></mrow>
+</msup>
+</mrow>
+</msup>
+</math>
+<h2>msup-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mrow>
+<msup>
+<mn>4</mn>
+<mn>5</mn>
+</msup>
+</mrow>
+</msup>
+</mrow>
+</msup>
+<mo>=</mo>
+<msup>
+<mn>2</mn>
+<mrow>
+<msup>
+<mn>3</mn>
+<mrow>
+<msup>
+<mn>4</mn>
+<mrow><msup><mn>5</mn><mphantom><mn>6</mn></mphantom></msup></mrow>
+</msup>
+</mrow>
+</msup>
+</mrow>
+</msup>
+</math>
+<h2>msup-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>S</mi>
+<mn>2</mn>
+</msup>
+<mo>=</mo>
+<munder>
+<mrow>
+<msup>
+<mi>S</mi>
+<mn>2</mn>
+</msup>
+</mrow>
+<mphantom><mi>fail</mi></mphantom>
+</munder>
+</math>
+<h2>msup-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>e</mi>
+<mi>x</mi>
+</msup>
+<mo>=</mo>
+<mover>
+<mrow>
+<msup>
+<mi>e</mi>
+<mi>x</mi>
+</msup>
+</mrow>
+<mphantom><mi>z</mi></mphantom>
+</mover>
+</math>
+<h2>msup-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<msup>
+<mi>a</mi>
+<mo>+</mo>
+</msup>
+<mo>=</mo>
+<munderover>
+<mrow>
+<msup>
+<mi>a</mi>
+<mo>+</mo>
+</msup>
+</mrow>
+<mphantom><mi>x</mi></mphantom>
+<mphantom><mi>x</mi></mphantom>
+</munderover>
+</math>
+<h2>mtable-01.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-03.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd><mtd><mi mathvariant="normal">A</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd><mtd><mi mathvariant="normal">I</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd><mtd><mi mathvariant="normal">Y</mi></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid">
+<mtr><mtd><mi mathvariant="normal">A</mi></mtd><mtd><mi mathvariant="normal">H</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">I</mi></mtd><mtd><mi mathvariant="normal">T</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">Y</mi></mtd><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-04.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd><mtd><mi mathvariant="normal">A</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd><mtd><mi mathvariant="normal">I</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd><mtd><mi mathvariant="normal">Y</mi></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid">
+<mtr><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">H</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">T</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">U</mi></mrow></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-05.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid" rowlines="solid" columnlines="solid">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd><mtd><mi mathvariant="normal">A</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd><mtd><mi mathvariant="normal">I</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd><mtd><mi mathvariant="normal">Y</mi></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid" rowlines="solid" columnlines="solid">
+<mtr><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">H</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">T</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">U</mi></mrow></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-06.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid" rowlines="solid" columnlines="solid" columnalign="right">
+<mtr><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">H</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">T</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd></mtr>
+<mtr><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">U</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid" rowlines="solid" columnlines="solid" columnalign="left">
+<mtr><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">H</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">T</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">U</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-07.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid" rowlines="solid" columnlines="solid">
+<mtr columnalign="right"><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">H</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd></mtr>
+<mtr columnalign="right"><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">T</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd></mtr>
+<mtr columnalign="right"><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">U</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid" rowlines="solid" columnlines="solid" columnalign="left">
+<mtr><mtd><mrow><mi mathvariant="normal">A</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">H</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">I</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">T</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+<mtr><mtd><mrow><mi mathvariant="normal">Y</mi></mrow></mtd><mtd><mrow><mi mathvariant="normal">U</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-08.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid" columnalign="center">
+<mtr><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">H</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">U</mi></mtd></mtr>
+</mtable>
+<mo>=</mo>
+<mtable frame="solid" columnalign="center">
+<mtr><mtd><mi mathvariant="normal">H</mi></mtd></mtr>
+<mtr><mtd><mi mathvariant="normal">T</mi></mtd></mtr>
+<mtr><mtd><mrow><mphantom><mtext>fail</mtext></mphantom><mi mathvariant="normal">U</mi><mphantom><mtext>fail</mtext></mphantom></mrow></mtd></mtr>
+</mtable>
+</math>
+<h2>mtable-09.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr>
+<mtd>
+<mphantom><mtext>fail</mtext></mphantom>
+<munder>
+<mi mathvariant="normal">HT</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</munder>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mover>
+<mi mathvariant="normal">TH</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</mover>
+<mphantom><mtext>fail</mtext></mphantom>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-10.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable rowalign="top">
+<mtr>
+<mtd>
+<munder>
+<mi mathvariant="normal">HT</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</munder>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-11.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable rowalign="bottom">
+<mtr>
+<mtd>
+<mover>
+<mi mathvariant="normal">HT</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</mover>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-12.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable>
+<mtr rowalign="bottom">
+<mtd>
+<mover>
+<mi mathvariant="normal">HT</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</mover>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-13.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable>
+<mtr rowalign="top">
+<mtd>
+<munder>
+<mi mathvariant="normal">HT</mi>
+<mphantom><mtext>fail</mtext></mphantom>
+</munder>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-14.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr rowalign="center">
+<mtd>
+<mphantom><mtext>F</mtext></mphantom><mspace linebreak="newline"/>
+<mi mathvariant="normal">HT</mi>
+<mspace linebreak="newline"/><mphantom><mtext>F</mtext></mphantom>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-15.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid"  rowalign="center">
+<mtr>
+<mtd>
+<mphantom><mtext>F</mtext></mphantom><mspace linebreak="newline"/>
+<mi mathvariant="normal">HT</mi>
+<mspace linebreak="newline"/><mphantom><mtext>F</mtext></mphantom>
+</mtd>
+<mtd>
+<mo>=</mo>
+</mtd>
+<mtd>
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>mtable-16.xml</h2>
+<p>Right hand side of equation should look like mirrored copy of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mtable frame="solid">
+<mtr>
+<mtd rowalign="center">
+<mphantom><mtext>F</mtext></mphantom><mspace linebreak="newline"/>
+<mi mathvariant="normal">HT</mi>
+<mspace linebreak="newline"/><mphantom><mtext>F</mtext></mphantom>
+</mtd>
+<mtd rowalign="center">
+<mo>=</mo>
+</mtd>
+<mtd rowalign="center">
+<mi mathvariant="normal">TH</mi>
+</mtd>
+</mtr>
+</mtable>
+</math>
+<h2>munder-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under</mi>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">under</mi></mphantom>
+</munder>
+</math>
+<h2>munder-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under script</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow>
+<munder>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under script</mi>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</math>
+<h2>munder-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mrow>
+<mfrac linethickness="0">
+<mi mathvariant="normal">first under script</mi>
+<mi mathvariant="normal">second one</mi>
+</mfrac>
+</mrow>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mrow>
+<mfrac linethickness="0">
+<mi mathvariant="normal">first under script</mi>
+<mi mathvariant="normal">second one</mi>
+</mfrac>
+</mrow>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</math>
+<h2>munder-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">middle</mi>
+<mi mathvariant="normal">bottom</mi>
+</munder>
+<mo>=</mo>
+<munderover>
+<mi mathvariant="normal">middle</mi>
+<mi mathvariant="normal">bottom</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munderover>
+</math>
+<h2>munder-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mi mathvariant="normal">_ baseline _</mi>
+<mo>=</mo>
+<munder>
+<mi mathvariant="normal">_ baseline _</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</math>
+<h2>munder-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mi mathvariant="normal">- middle -</mi>
+<mo>=</mo>
+<munder>
+<mrow>
+<munder>
+<mi mathvariant="normal">- middle -</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munder>
+</math>
+<h2>munder-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">munder baseline</mi>
+<mi mathvariant="normal">munder under script</mi>
+</munder>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">munder baseline</mi>
+<mi mathvariant="normal">munder under script</mi>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</math>
+<h2>munder-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">_ baseline _</mi>
+<mi mathvariant="normal">under script</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow>
+<mover>
+<mi mathvariant="normal">_ baseline _</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</mrow>
+<mi mathvariant="normal">under script</mi>
+</munder>
+</math>
+<h2>munder-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">- middle -</mi>
+<mi mathvariant="normal">bottom</mi>
+</munder>
+</mrow>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+<mo>=</mo>
+<munder>
+<mrow>
+<mover>
+<mi mathvariant="normal">- middle -</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</mover>
+</mrow>
+<mi mathvariant="normal">bottom</mi>
+</munder>
+</math>
+<h2>munder-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">long under script</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow><mphantom><mtext>x</mtext></mphantom><mi mathvariant="normal">B</mi><mphantom><mtext>x</mtext></mphantom></mrow>
+<mrow><mi mathvariant="normal">long under script</mi></mrow>
+</munder>
+</math>
+<h2>munder-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">x</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">x</mi><mphantom><mn>1</mn></mphantom></mrow>
+</munder>
+</math>
+<h2>munder-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munder>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">underscript</mi>
+</munder>
+<mo>=</mo>
+<munder>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">B</mi><mphantom><mn>1</mn></mphantom></mrow>
+<mi mathvariant="normal">underscript</mi>
+</munder>
+</math>
+<h2>munderover-01.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under</mi>
+<mi mathvariant="normal">over</mi>
+</munderover>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">over</mi>
+</mover>
+</math>
+<h2>munderover-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under script</mi>
+<mi mathvariant="normal">over script</mi>
+</munderover>
+<mo>=</mo>
+<munder>
+<mrow>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over script</mi>
+</mover>
+</mrow>
+<mi mathvariant="normal">under script</mi>
+</munder>
+</math>
+<h2>munderover-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">_ baseline _</mi>
+<mi mathvariant="normal">under script</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munderover>
+<mo>=</mo>
+<munder>
+<mi mathvariant="normal">_ baseline _</mi>
+<mi mathvariant="normal">under script</mi>
+</munder>
+</math>
+<h2>munderover-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">- middle -</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+<mi mathvariant="normal">top</mi>
+</munderover>
+<mo>=</mo>
+<mover>
+<mi mathvariant="normal">- middle -</mi>
+<mi mathvariant="normal">top</mi>
+</mover>
+</math>
+<h2>munderover-05.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">_ baseline _</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munderover>
+<mo>=</mo>
+<mi mathvariant="normal">_ baseline _</mi>
+</math>
+<h2>munderover-06.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mrow>
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">first under script</mi>
+<mi mathvariant="normal">second overscript</mi>
+</munderover>
+</mrow>
+<mi mathvariant="normal">second one</mi>
+<mi mathvariant="normal">first overscript</mi>
+</munderover>
+<mo>=</mo>
+<munderover>
+<mrow>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">first under script</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">second overscript</mi>
+</mover>
+</mrow>
+<mi mathvariant="normal">second one</mi>
+<mi mathvariant="normal">first overscript</mi>
+</munderover>
+</math>
+<h2>munderover-07.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mrow>
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under-1</mi>
+<mi mathvariant="normal">over-2</mi>
+</munderover>
+</mrow>
+<mi mathvariant="normal">under-2</mi>
+<mi mathvariant="normal">over-1</mi>
+</munderover>
+<mo>=</mo>
+<munderover>
+<mrow>
+<munder>
+<mrow>
+<mover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">over-2</mi>
+</mover>
+</mrow>
+<mi mathvariant="normal">under-1</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">under-2</mi>
+<mi mathvariant="normal">over-1</mi>
+</munderover>
+</math>
+<h2>munderover-08.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mrow>
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under-1</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munderover>
+</mrow>
+<mi mathvariant="normal">under-2</mi>
+<mphantom><mi mathvariant="normal">fail</mi></mphantom>
+</munderover>
+<mo>=</mo>
+<munder>
+<mrow>
+<munder>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under-1</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">under-2</mi>
+</munder>
+</math>
+<h2>munderover-09.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">under</mi>
+<mi mathvariant="normal">over</mi>
+</munderover>
+<mo>=</mo>
+<munderover>
+<mrow><mi mathvariant="normal">BASE</mi></mrow>
+<mrow><mi mathvariant="normal">under</mi></mrow>
+<mrow><mi mathvariant="normal">over</mi></mrow>
+</munderover>
+</math>
+<h2>munderover-10.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">under</mi>
+<mi mathvariant="normal">over</mi>
+</munderover>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">under</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">over</mi>
+</mover>
+</math>
+<h2>munderover-11.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mi mathvariant="normal">s</mi>
+<mi mathvariant="normal">t</mi>
+</munderover>
+<mo>=</mo>
+<munderover>
+<mi mathvariant="normal">BASE</mi>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">s</mi><mphantom><mn>1</mn></mphantom></mrow>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">t</mi><mphantom><mn>1</mn></mphantom></mrow>
+</munderover>
+</math>
+<h2>munderover-12.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<munderover>
+<mi mathvariant="normal">B</mi>
+<mi mathvariant="normal">underscript</mi>
+<mi mathvariant="normal">overscript</mi>
+</munderover>
+<mo>=</mo>
+<mover>
+<mrow>
+<munder>
+<mrow><mphantom><mn>1</mn></mphantom><mi mathvariant="normal">B</mi><mphantom><mn>1</mn></mphantom></mrow>
+<mi mathvariant="normal">underscript</mi>
+</munder>
+</mrow>
+<mi mathvariant="normal">overscript</mi>
+</mover>
+</math>
+<h2>semantics-01.xml</h2>
+<p>You should see one three digit number below</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<semantics>
+ <mn>123</mn>
+<annotation-xml encoding="MathML-Content">
+ <cn>123</cn>
+</annotation-xml>
+</semantics>
+</math>
+<h2>semantics-02.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<semantics>
+ <mn>1.0</mn>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+</semantics>
+<mo>=</mo>
+<mn>1.0</mn>
+</math>
+<h2>semantics-03.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<semantics>
+<semantics>
+ <mn>1.0</mn>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+</semantics>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+</semantics>
+<mo>=</mo>
+<semantics>
+ <mn>1.0</mn>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+</semantics>
+</math>
+<h2>semantics-04.xml</h2>
+<p>Formatting of right hand side of equation should be identical to formatting of left hand side</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<semantics>
+<semantics>
+ <mn>1.0</mn>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+<annotation encoding="TeX">1</annotation>
+</semantics>
+<annotation-xml encoding="MathML-Content">
+ <cn>1</cn>
+</annotation-xml>
+</semantics>
+<mo>=</mo>
+ <mn>1.0</mn>
+</math>
+</body>
+</html>
