@@ -111,9 +111,10 @@ Follow us on twitter: @Epubjs
 + http://twitter.com/#!/Epubjs
 
 Similar projects:
-http://readium.org/
-https://github.com/readium/readium-viewer-demo1
-https://github.com/readium/Readium-Web-Components
+
++ https://github.com/readium/readium-viewer-demo1
+
++ https://github.com/readium/Readium-Web-Components
 
 #Other
 
