@@ -19,10 +19,12 @@ FP.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapt
 
 					if(top < iheight/2) {
 						item.style.maxHeight = iheight - top + "px";
+						item.style.width= "auto";
 					}else{
 						
 						item.style.maxHeight = (height < iheight ? height : iheight) + "px";
 						item.style.marginTop = iheight - top + "px";
+						item.style.width= "auto";
 					}
 					
 				}else{
