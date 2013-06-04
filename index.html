@@ -18,10 +18,12 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                FP.filePath = "/dist/";
+                FP.VERSION = "0.1.6";
+                
+                FP.filePath = "/fpjs/dist/";
                 fileStorage.filePath = FP.filePath + "libs/";
 
-                FPR.app.init();
+                FPR.app.init("moby-dick");
               }  
             };
         
@@ -67,10 +69,10 @@
             <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
             <span id="chapter-title"> </span>
           </div>
+          <div id="divider"></div>
           <div id="prev" class="arrow">‹</div>
           <div id="area"></div>
           <div id="next" class="arrow">›</div>
-          <div id="divider"></div>
           <div id="loader"><img src="img/loader.gif"></div>
         </div>
     </body>

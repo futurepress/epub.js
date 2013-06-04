@@ -55,10 +55,11 @@ body {
 #area {
   width: 80%;
   height: 80%;
-  margin-left: 10%;
+  /* margin-left: 10%; */
+  margin: 0 auto;
   max-width: 1250px;
-  z-index: 2;
-  position: absolute;
+  /* z-index: 2;
+  position: absolute; */
 }
 
 #area iframe {
