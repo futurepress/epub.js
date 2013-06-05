@@ -18,12 +18,12 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                FP.VERSION = "0.1.6";
+                EPUBJS.VERSION = "0.1.6";
                 
-                FP.filePath = "/fpjs/dist/";
-                fileStorage.filePath = FP.filePath + "libs/";
+                EPUBJS.filePath = "/epubjs/dist/";
+                fileStorage.filePath = EPUBJS.filePath + "libs/";
 
-                FPR.app.init("moby-dick");
+                EPUBJSR.app.init("moby-dick");
               }  
             };
         
@@ -39,10 +39,7 @@
         <script src="dist/reader.min.js"></script>
         
         <!-- fileStorage -->
-        <script src="dist/libs/fileStorage.min.js"></script>
-
-        <!--Hypothes.is -->
-        <script async src="fpjs/hooks/embedh.js"></script>
+        <script src="dist/libs/fileStorage.min.js"></script>a
         
     </head>
     <body>
