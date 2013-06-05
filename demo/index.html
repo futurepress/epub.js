@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="js/libs/jquery-1.9.0.min.js"></script>
+        <script src="js/libs/modernizr-2.6.2.min.js"></script>
+        <script>
+            "use strict";
+            
+            document.onreadystatechange = function () {  
+              if (document.readyState == "complete") {
+                EPUBJS.VERSION = "0.1.6";
+                
+                EPUBJS.filePath = "js/";
+                fileStorage.filePath = EPUBJS.filePath + "libs/";
+
+                EPUBJSR.app.init("demo/moby-dick");
+              }  
+            };
+        
+          </script>
+                
+        <!-- Render -->
+        <script src="js/epub.min.js"></script>
+        
+        <!-- Hooks -->
+        <script async src="js/hooks.min.js"></script>
+        
+        <!-- Reader -->
+        <script src="js/reader.min.js"></script>
+        
+        <!-- fileStorage -->
+        <script src="js/libs/fileStorage.min.js"></script>
+        
+    </head>
+    <body>
+        <div id="sidebar">
+          <div id="controls">
+            
+            <!-- <input id="search" placeholder="search"> -->
+            <a id="network"><img id="store" src="img/save.png"></a>
+            <a id="setting"><img id="settings" src="img/settings.png"></a>
+            <a id="bookmark"><img id="bookmarks" src="img/star.png"></a>
+          </div>
+          <div id="toc">
+          </div>
+          <div id="settingsPanel">
+          </div>
+            
+        </div>
+        <div id="main">
+          <div id="opener">
+            <a id="open"><img src="img/menu-icon.png"></a>
+          </div>
+          <div id="titlebar">
+            <span id="book-title"></span>
+            <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+            <span id="chapter-title"> </span>
+          </div>
+          <div id="divider"></div>
+          <div id="prev" class="arrow">‹</div>
+          <div id="area"></div>
+          <div id="next" class="arrow">›</div>
+          <div id="loader"><img src="img/loader.gif"></div>
+        </div>
+    </body>
+</html>
