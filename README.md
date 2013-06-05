@@ -11,6 +11,38 @@ Unlike an application, our HTML / Javascript reader can be hosted anywhere and c
 
 [Try it while reading Moby Dick](http://fchasen.github.com/epub.js/)
 
+Upcoming Changes
+-------------------------
+We've got a lot in store for the next few weeks (Till June 16th). We will be implementing major and awesome changes that will 
+bring us closer to an Alpha release. Basically, if you're planning building something based off this... wait. It will be
+worth it. 
+
+Some things to look forward to:
++ Separate rendering of the book out from the loading / parsing / control code
+Based on pdf.js using the library will work something like this (the reverse of how it works now):
+
+```javascript
+var book = new EPUBJS.book("url/to/book")
+book.render("div-id")
+```
+
++ New way of listening to book events and promises (shouldn't change much usage wise)
+
++ Improve the epub parsing code, with some help from [Readium](http://readium.github.io/Readium-Web-Components/)
+
++ A very simplified example version of the reader to test new features on
+
++ A framework (backbone / angular / ?) to use for our reader demo (which we suspect is going to start expanding quickly)
+
++ A generic way to handle settings
+
++ Plugin encapsulation stuff
+
+We suggest forking the code AFTER these major changes.
+
+Questions: email Jake.Hartnell@berkeley.edu
+
+
 Why EPUB
 -------------------------
 
