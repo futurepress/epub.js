@@ -11,11 +11,11 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
         <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
-        <script>window.jQuery || document.write('<script src="fpjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
+        <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
-        <script src="fpjs/libs/jquery-1.9.0.js"></script>
-        <script src="fpjs/libs/jquery-migrate-1.1.1.js"></script>
-        <script src="fpjs/libs/modernizr-2.6.2.min.js"></script>
+        <script src="epubjs/libs/jquery-1.9.0.js"></script>
+        <script src="epubjs/libs/jquery-migrate-1.1.1.js"></script>
+        <script src="epubjs/libs/modernizr-2.6.2.min.js"></script>
         <script>
             "use strict";
             
@@ -23,43 +23,43 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                FP.filePath = "/fpjs/";
-                fileStorage.filePath = FP.filePath + "libs/";
+                EPUBJS.filePath = "/epubjs/";
+                fileStorage.filePath = EPUBJS.filePath + "libs/";
 
-                FP.VERSION = "0.1.5";
-                FPR.app.init();
+                EPUBJS.VERSION = "0.1.5";
+                EPUBJSR.app.init();
               }  
             };
 
           </script>
 
-        <!--<script async src="fpjs/libs/jquery.touchy.min.js"></script>-->
+        <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
 
         <!-- Render -->
-        <script src="fpjs/render/base.js"></script>
-        <script src="fpjs/render/core.js"></script>
-        <script src="fpjs/render/unarchiver.js"></script>
-        <script src="fpjs/libs/fileStorage.min.js"></script>
+        <script src="epubjs/render/base.js"></script>
+        <script src="epubjs/render/core.js"></script>
+        <script src="epubjs/render/unarchiver.js"></script>
+        <script src="epubjs/libs/fileStorage.min.js"></script>
 
-        <script src="fpjs/render/events.js"></script>
-        <script src="fpjs/render/hooks.js"></script>
-        <script src="fpjs/render/book.js"></script>
-        <script src="fpjs/render/chapter.js"></script>
+        <script src="epubjs/render/events.js"></script>
+        <script src="epubjs/render/hooks.js"></script>
+        <script src="epubjs/render/book.js"></script>
+        <script src="epubjs/render/chapter.js"></script>
 
         <!-- Plugins -->
-        <script async src="fpjs/hooks/transculsions.js"></script>
-        <script async src="fpjs/hooks/endnotes.js"></script>
-        <script async src="fpjs/hooks/smartimages.js"></script>
+        <script async src="epubjs/hooks/transculsions.js"></script>
+        <script async src="epubjs/hooks/endnotes.js"></script>
+        <script async src="epubjs/hooks/smartimages.js"></script>
 
-        <!-- <script async src="fpjs/hooks/extras/music.js"></script> -->
-        <script async src="fpjs/hooks/extras/annotate.js"></script>
+        <!-- <script async src="epubjs/hooks/extras/music.js"></script> -->
+        <script async src="epubjs/hooks/extras/annotate.js"></script>
         
         <!-- Annotator -->
-        <script async src="fpjs/libs/annotator-full.js"></script>
+        <script async src="epubjs/libs/annotator-full.js"></script>
         
         <!-- Reader -->
-        <script async src="fpjs/reader/utils.js"></script>
-        <script async src="fpjs/reader/app.js"></script>
+        <script async src="epubjs/reader/utils.js"></script>
+        <script async src="epubjs/reader/app.js"></script>
 
     </head>
     <body>

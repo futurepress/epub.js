@@ -1,5 +1,5 @@
-FP.Unarchiver = function(url, callback){
-	this.libPath = FP.filePath  + "libs/";
+EPUBJS.Unarchiver = function(url, callback){
+	this.libPath = EPUBJS.filePath  + "libs/";
 	this.zipUrl = url;
 	this.callback = callback;
 	this.loadLib(function(){
@@ -7,18 +7,18 @@ FP.Unarchiver = function(url, callback){
 	}.bind(this));
 }
 
-FP.Unarchiver.prototype.loadLib = function(callback){
+EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 	if(typeof(zip) != "undefined") callback();
 	//-- load script
-	FP.core.loadScript(this.libPath+"zip.js", function(){
+	EPUBJS.core.loadScript(this.libPath+"zip.js", function(){
 		//-- Tell zip where it is located
 		zip.workerScriptsPath = this.libPath;
 		callback();
 	}.bind(this));
 }
 
-FP.Unarchiver.prototype.getZip = function(zipUrl){ 
-	var xhr = new FP.core.loadFile(zipUrl);
+EPUBJS.Unarchiver.prototype.getZip = function(zipUrl){ 
+	var xhr = new EPUBJS.core.loadFile(zipUrl);
 	
 	xhr.succeeded = function(file) {
 		this.getEntries(file, this.toStorage.bind(this));
@@ -30,21 +30,21 @@ FP.Unarchiver.prototype.getZip = function(zipUrl){
 	
 }
 
-FP.Unarchiver.prototype.getEntries = function(file, callback){
+EPUBJS.Unarchiver.prototype.getEntries = function(file, callback){
 	zip.createReader(new zip.BlobReader(file), function(zipReader) {
 		zipReader.getEntries(callback);
 	}, this.failed);
 }
 
-FP.Unarchiver.prototype.failed = function(error){ 
+EPUBJS.Unarchiver.prototype.failed = function(error){ 
 	console.log("Error:", error);
 }
 
-FP.Unarchiver.prototype.afterSaved = function(error){ 
+EPUBJS.Unarchiver.prototype.afterSaved = function(error){ 
 	this.callback();
 }
 
-FP.Unarchiver.prototype.toStorage = function(entries){
+EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 	var timeout = 0,
 		delay = 20,
 		that = this,
@@ -69,9 +69,9 @@ FP.Unarchiver.prototype.toStorage = function(entries){
 	//entries.forEach(this.saveEntryFileToStorage.bind(this));
 }
 
-FP.Unarchiver.prototype.saveEntryFileToStorage = function(entry, callback){
+EPUBJS.Unarchiver.prototype.saveEntryFileToStorage = function(entry, callback){
 	var that = this;
 	entry.getData(new zip.BlobWriter(), function(blob) {
-		FP.storage.save(entry.filename, blob, callback);
+		EPUBJS.storage.save(entry.filename, blob, callback);
 	});
 }

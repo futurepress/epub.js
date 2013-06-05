@@ -1,13 +1,13 @@
-FP.Book = function(elem, bookPath){
+EPUBJS.Book = function(elem, bookPath){
 
 	//-- Takes a string or a element
 	if (typeof elem == "string") { 
-		this.el = FP.core.getEl(elem);
+		this.el = EPUBJS.core.getEl(elem);
 	} else {
 		this.el = elem;
 	}
 
-	this.events = new FP.Events(this, this.el);
+	this.events = new EPUBJS.Events(this, this.el);
 	
 	//-- All Book events for listening
 	this.createEvent("book:tocReady");
@@ -40,8 +40,8 @@ FP.Book = function(elem, bookPath){
 		
 	//-- Determine storage method
 	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
-	//FP.storageOverride = "none"
-	FP.storage = new fileStorage.storage(FP.storageOverride);
+	EPUBJS.storageOverride = "none"
+	EPUBJS.storage = new fileStorage.storage(EPUBJS.storageOverride);
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookPath) {
@@ -53,8 +53,9 @@ FP.Book = function(elem, bookPath){
 
 
 //-- Build up any html needed
-FP.Book.prototype.initialize = function(el){
+EPUBJS.Book.prototype.initialize = function(el){
 	this.iframe = document.createElement('iframe');
+	this.iframe.id = "epubjsiframe";
 	this.resizeIframe(false, this.el.clientWidth, this.el.clientHeight);
 
 	this.listen("book:resized", this.resizeIframe, this);
@@ -64,7 +65,7 @@ FP.Book.prototype.initialize = function(el){
 }
 
 //-- Listeners for browser events
-FP.Book.prototype.listeners = function(){
+EPUBJS.Book.prototype.listeners = function(){
 	var that = this;
 	window.addEventListener("resize", that.onResized.bind(this), false);
 	
@@ -85,7 +86,7 @@ FP.Book.prototype.listeners = function(){
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
 
-FP.Book.prototype.start = function(bookPath){
+EPUBJS.Book.prototype.start = function(bookPath){
 	var location = window.location,
 		pathname = location.pathname,
 		absolute = bookPath.search("://") != -1,
@@ -161,16 +162,16 @@ FP.Book.prototype.start = function(bookPath){
 
 }
 
-FP.Book.prototype.unarchive = function(bookPath){
+EPUBJS.Book.prototype.unarchive = function(bookPath){
 	var unzipped;
 	
 	//-- TODO: make more DRY
 
 	if(!this.isSaved()){
 		
-		unzipped = new FP.Unarchiver(bookPath, function(){
+		unzipped = new EPUBJS.Unarchiver(bookPath, function(){
 
-			FP.storage.get("META-INF/container.xml", function(url){
+			EPUBJS.storage.get("META-INF/container.xml", function(url){
 				this.parseContainer(url);
 			}.bind(this));
 				
@@ -188,13 +189,13 @@ FP.Book.prototype.unarchive = function(bookPath){
 
 }
 
-FP.Book.prototype.isSaved = function(force) {
+EPUBJS.Book.prototype.isSaved = function(force) {
 	//-- If url or version has changed invalidate stored data and reset
 	if (localStorage.getItem("bookPath") != this.bookPath ||
-		localStorage.getItem("fpjs-version") != FP.VERSION ||
+		localStorage.getItem("fpjs-version") != EPUBJS.VERSION ||
 		force == true) {
 		
-		localStorage.setItem("fpjs-version", FP.VERSION);
+		localStorage.setItem("fpjs-version", EPUBJS.VERSION);
 		
 		localStorage.setItem("bookPath", this.bookPath);
 		localStorage.setItem("stored", 0);
@@ -239,7 +240,7 @@ FP.Book.prototype.isSaved = function(force) {
 	
 }
 
-FP.Book.prototype.isContained = function(bookUrl){
+EPUBJS.Book.prototype.isContained = function(bookUrl){
 	var tester=/\.[0-9a-z]+$/i,
 		ext = tester.exec(bookUrl);
 
@@ -251,14 +252,14 @@ FP.Book.prototype.isContained = function(bookUrl){
 }
 
 
-FP.Book.prototype.onResized = function(){
+EPUBJS.Book.prototype.onResized = function(){
 	this.tell("book:resized", {
 		width: this.el.clientWidth,
 		height: this.el.clientHeight
 	});
 }
 
-FP.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
+EPUBJS.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
 	var width, height;
 
 	//-- Can be resized by the window resize event, or by passed height
@@ -279,11 +280,11 @@ FP.Book.prototype.resizeIframe = function(e, cWidth, cHeight){
 	this.iframe.width = width;
 }
 
-FP.Book.prototype.parseContainer = function(path){
+EPUBJS.Book.prototype.parseContainer = function(path){
 	var that = this,
 		url = path || this.bookUrl + "META-INF/container.xml";
 		
-	FP.core.loadXML(url, function(container){
+	EPUBJS.core.loadXML(url, function(container){
 		var fullpath;
 
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
@@ -310,7 +311,7 @@ FP.Book.prototype.parseContainer = function(path){
 		//-- TODO: move this and handle errors
 		
 		if(that.contained){
-			FP.storage.get(that.contentsPath, function(url){
+			EPUBJS.storage.get(that.contentsPath, function(url){
 				that.parseContents(url);
 			});
 		}else{
@@ -322,11 +323,11 @@ FP.Book.prototype.parseContainer = function(path){
 
 }
 
-FP.Book.prototype.parseContents = function(path){
+EPUBJS.Book.prototype.parseContents = function(path){
 	var that = this,
 		url = path || this.contentsPath;
 	
-	FP.core.loadXML(url, function(contents){
+	EPUBJS.core.loadXML(url, function(contents){
 		var metadata = contents.querySelector("metadata"),
 			manifest = contents.querySelector("manifest"),
 			spine = contents.querySelector("spine");
@@ -339,7 +340,7 @@ FP.Book.prototype.parseContents = function(path){
 	});
 }
 
-FP.Book.prototype.parseMetadata = function(metadata){
+EPUBJS.Book.prototype.parseMetadata = function(metadata){
 	var that = this,
 		title = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","title")[0]
 		creator = metadata.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","creator")[0];
@@ -356,7 +357,7 @@ FP.Book.prototype.parseMetadata = function(metadata){
 	this.tell("book:metadataReady");
 }
 
-FP.Book.prototype.parseManifest = function(manifest){
+EPUBJS.Book.prototype.parseManifest = function(manifest){
 	var that = this;
 
 	this.assets = {};
@@ -371,7 +372,7 @@ FP.Book.prototype.parseManifest = function(manifest){
 		//-- Find NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 		if(item.getAttribute('media-type') == "application/x-dtbncx+xml"){
 			if(that.contained){
-				FP.storage.get(that.basePath + href, function(url){
+				EPUBJS.storage.get(that.basePath + href, function(url){
 					that.parseTOC(url);
 				});
 			}else{
@@ -384,7 +385,7 @@ FP.Book.prototype.parseManifest = function(manifest){
 	localStorage.setItem("assets", JSON.stringify(this.assets));
 }
 
-FP.Book.prototype.parseSpine = function(spine){
+EPUBJS.Book.prototype.parseSpine = function(spine){
 	var that = this;
 
 	this.spine = [];
@@ -411,13 +412,13 @@ FP.Book.prototype.parseSpine = function(spine){
 	this.tell("book:spineReady");
 }
 
-FP.Book.prototype.parseTOC = function(path){
+EPUBJS.Book.prototype.parseTOC = function(path){
 	var that = this,
 		url = path;
 
 	this.toc = [];
 	
-	FP.core.loadXML(url, function(contents){
+	EPUBJS.core.loadXML(url, function(contents){
 		var navMap = contents.querySelector("navMap"),
 			cover = contents.querySelector("meta[name='cover']"),
 			coverID;
@@ -486,23 +487,23 @@ FP.Book.prototype.parseTOC = function(path){
 
 }
 
-FP.Book.prototype.destroy = function(){
+EPUBJS.Book.prototype.destroy = function(){
 	window.removeEventListener("resize", this.onResized, false);
 }
 
-FP.Book.prototype.getTitle = function(){
+EPUBJS.Book.prototype.getTitle = function(){
 	return this.metadata.bookTitle;
 }
 
-FP.Book.prototype.getCreator = function(){
+EPUBJS.Book.prototype.getCreator = function(){
 	return this.metadata.creator;
 }
 
-FP.Book.prototype.chapterTitle = function(){
+EPUBJS.Book.prototype.chapterTitle = function(){
 	return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
 }
 
-FP.Book.prototype.startDisplay = function(chapter){
+EPUBJS.Book.prototype.startDisplay = function(chapter){
 	var routed,
 		prevChapter = this.spinePos,
 		loaded = function(chapter){
@@ -535,7 +536,7 @@ FP.Book.prototype.startDisplay = function(chapter){
 	
 }
 
-FP.Book.prototype.show = function(url, callback){
+EPUBJS.Book.prototype.show = function(url, callback){
 	var split = url.split("#"),
 		chapter = split[0],
 		section = split[1] || false,
@@ -563,7 +564,7 @@ FP.Book.prototype.show = function(url, callback){
 	}
 }
 
-FP.Book.prototype.displayChapter = function(pos, callback){
+EPUBJS.Book.prototype.displayChapter = function(pos, callback){
 	var that = this;
 
 	if(pos >= this.spine.length){
@@ -586,7 +587,7 @@ FP.Book.prototype.displayChapter = function(pos, callback){
 	}
 	
 	//-- Create a new chapter	
-	this.currentChapter = new FP.Chapter(this);
+	this.currentChapter = new EPUBJS.Chapter(this);
 
 
 	this.currentChapter.afterLoaded = function(chapter) {
@@ -600,27 +601,27 @@ FP.Book.prototype.displayChapter = function(pos, callback){
 	}
 }
 
-FP.Book.prototype.nextPage = function(){
+EPUBJS.Book.prototype.nextPage = function(){
 	var next = this.currentChapter.nextPage();
 	if(!next){
 		this.nextChapter();
 	}
 }
 
-FP.Book.prototype.prevPage = function() {
+EPUBJS.Book.prototype.prevPage = function() {
 	var prev = this.currentChapter.prevPage();
 	if(!prev){
 		this.prevChapter();
 	}
 }
 
-FP.Book.prototype.nextChapter = function() {
+EPUBJS.Book.prototype.nextChapter = function() {
 	this.spinePos++;
 
 	this.displayChapter(this.spinePos);
 }
 
-FP.Book.prototype.prevChapter = function() {
+EPUBJS.Book.prototype.prevChapter = function() {
 	this.spinePos--;
 
 	this.displayChapter(this.spinePos, function(chapter){
@@ -630,25 +631,25 @@ FP.Book.prototype.prevChapter = function() {
 
 
 
-FP.Book.prototype.getTOC = function() {
+EPUBJS.Book.prototype.getTOC = function() {
 	return this.toc;
 
 }
 
 /* TODO: Remove, replace by batch queue
-FP.Book.prototype.preloadNextChapter = function() {
+EPUBJS.Book.prototype.preloadNextChapter = function() {
 	var next = this.spinePos + 1,
 		path = this.spine[next].href;
 
-	file = FP.storage.preload(path);
+	file = EPUBJS.storage.preload(path);
 }
 */
 
-FP.Book.prototype.storeOffline = function(callback) {
-	var assets = FP.core.toArray(this.assets);
+EPUBJS.Book.prototype.storeOffline = function(callback) {
+	var assets = EPUBJS.core.toArray(this.assets);
 	
 	//-- Creates a queue of all items to load
-	FP.storage.batch(assets, function(){
+	EPUBJS.storage.batch(assets, function(){
 		this.stored = 1;
 		localStorage.setItem("stored", 1);
 		this.tell("book:stored");
@@ -656,11 +657,11 @@ FP.Book.prototype.storeOffline = function(callback) {
 	}.bind(this));
 }
 
-FP.Book.prototype.availableOffline = function() {
+EPUBJS.Book.prototype.availableOffline = function() {
 	return this.stored > 0 ? true : false;
 }
 
-FP.Book.prototype.fromStorage = function(stored) {
+EPUBJS.Book.prototype.fromStorage = function(stored) {
 	
 	if(this.contained) return;
 	
@@ -683,7 +684,7 @@ FP.Book.prototype.fromStorage = function(stored) {
 	
 }
 
-FP.Book.prototype.route = function(hash, callback){
+EPUBJS.Book.prototype.route = function(hash, callback){
 	var location = window.location.hash.replace('#/', '');
 	if(this.useHash && location.length && location != this.prevLocation){
 		this.show(location, callback);
@@ -693,19 +694,19 @@ FP.Book.prototype.route = function(hash, callback){
 	return false;
 }
 
-FP.Book.prototype.hideHashChanges = function(){
+EPUBJS.Book.prototype.hideHashChanges = function(){
 	this.useHash = false;
 }
 
 //-- Get pre-registered hooks
-FP.Book.prototype.getHooks = function(){
+EPUBJS.Book.prototype.getHooks = function(){
 	var that = this;
 	
-	plugTypes = FP.core.toArray(this.hooks);
+	plugTypes = EPUBJS.core.toArray(this.hooks);
 		
 	plugTypes.forEach(function(plug){
 		var type = plug.ident;
-		plugs = FP.core.toArray(FP.Hooks[type]);
+		plugs = EPUBJS.core.toArray(EPUBJS.Hooks[type]);
 		plugs.forEach(function(hook){
 			that.registerHook(type, hook);
 		});
@@ -714,7 +715,7 @@ FP.Book.prototype.getHooks = function(){
 
 //-- Hooks allow for injecting async functions that must all complete before continuing 
 //   Functions must have a callback as their first argument.
-FP.Book.prototype.registerHook = function(type, toAdd){
+EPUBJS.Book.prototype.registerHook = function(type, toAdd){
 	var that = this;
 	
 	if(typeof(this.hooks[type]) != "undefined"){
@@ -734,7 +735,7 @@ FP.Book.prototype.registerHook = function(type, toAdd){
 	}
 }
 
-FP.Book.prototype.triggerHooks = function(type, callback, passed){
+EPUBJS.Book.prototype.triggerHooks = function(type, callback, passed){
 	var hooks, count;
 
 	if(typeof(this.hooks[type]) == "undefined") return false;

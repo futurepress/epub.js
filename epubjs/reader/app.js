@@ -1,8 +1,8 @@
-var FPR = FPR || {};
+var EPUBJSR = EPUBJSR || {};
 
-FPR.app = {};
+EPUBJSR.app = {};
 
-FPR.app.init = (function($){
+EPUBJSR.app.init = (function($){
   "use strict";
   var Book,
   	  offline = false,
@@ -14,7 +14,7 @@ FPR.app.init = (function($){
 		bookURL = bookURL || (search ? search[1] : "moby-dick");
 
 	//-- Setup the browser prefixes 
-	FP.core.crossBrowserColumnCss();
+	EPUBJS.core.crossBrowserColumnCss();
 
 	//-- Set up our sidebar
 	windowWidth = $(window).width();
@@ -27,9 +27,9 @@ FPR.app.init = (function($){
 	loadSettings();
 	//-- Create a new book object, 
 	//	 this will create an iframe in the el with the ID provided
-	Book = new FP.Book("area");
+	Book = new EPUBJS.Book("area");
 	
-	//Book.single = true;
+	Book.single = true;
 	//-- Add listeners to handle book events
 	//-- Full list of event are at start of book.js
 	Book.listen("book:metadataReady", meta);
@@ -39,7 +39,7 @@ FPR.app.init = (function($){
 	Book.listen("book:online", goOnline);
 	Book.listen("book:offline", goOffline);
 	
-	//Book.registerHook("beforeChapterDisplay", FP.Hooks.transculsions.insert);
+	//Book.registerHook("beforeChapterDisplay", EPUBJS.Hooks.transculsions.insert);
 	
 	//-- Start loading / parsing of the book.
 	//	 This must be done AFTER adding listeners or hooks
@@ -143,6 +143,48 @@ FPR.app.init = (function($){
 
 		});
 	});
+	//Single or double column
+  	var userLayout = "";
+  	if (!localStorage.getItem("layout")) {
+  	 	userLayout = "medium";
+  		localStorage.setItem("layout", userLayout);
+  	} else {
+  		userLayout = localStorage.getItem("layout");
+  	}
+
+  	var $settings = $("#settingsPanel");
+  	$settings.append("<ul></ul>");
+
+  	var $settingsItem = $("<li><h3></h3></li>");
+		
+  	var $layout = $("<input type='radio' name='layout' value='singleColumn'><span class=''>Single Column</span><br>" +
+  				"<input type='radio' name='layout' value='doubleColumn'><span class=''>Double Column</span><br>");
+
+  	$settingsItem.find("h3").text('Font Size').after($layout);
+	$settings.find("ul").append($settingsItem);
+
+	var $layoutButtons = $('input[name="layout"]');
+
+	$layoutButtons.each(function() {
+
+		if ($(this).attr("value") == userLayout) {
+			$(this).attr("checked", "checked");
+		}
+
+		$(this).on("click", function() {
+			localStorage.setItem("layout", $(this).attr("value"));
+			//reload the page after selecting a new font
+			Book.iframe.contentDocument.location.reload(true);
+
+		});
+	});
+
+  	//LineSpacing
+  	var userLineSpacing = "";
+  	//Contrast
+  	var userContrast = "";
+  	//Font Type
+  	var userFontType = "";
 
   }
 

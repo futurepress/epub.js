@@ -1,4 +1,4 @@
-FP.Hooks.register("beforeChapterDisplay").transculsions = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, chapter){
 		/*
 		<aside ref="http://www.youtube.com/embed/DUL6MBVKVLI?html5=1" transclusion="video" width="560" height="315">
 			<a href="http://www.youtube.com/embed/DUL6MBVKVLI"> Watch the National Geographic: The Last Roll of Kodachrome</a>

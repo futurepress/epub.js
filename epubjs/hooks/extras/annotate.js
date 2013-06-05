@@ -1,16 +1,16 @@
-FP.Hooks.register("beforeChapterDisplay").annotate = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").annotate = function(callback, chapter){
 
 		
 		var chap = chapter.bodyEl,
 			server = 'http://127.0.0.1:5000/';
 			files = [
-						FP.filePath + "libs/jquery-1.9.0.js",
-						FP.filePath + "libs/jquery-migrate-1.1.1.js",
-						FP.filePath + "libs/annotator-full.js"
+						EPUBJS.filePath + "libs/jquery-1.9.0.js",
+						EPUBJS.filePath + "libs/jquery-migrate-1.1.1.js",
+						EPUBJS.filePath + "libs/annotator-full.js"
 					 ];
 			
 		
-		//FP.core.loadScripts(files, annotate, chapter.doc.head);
+		//EPUBJS.core.loadScripts(files, annotate, chapter.doc.head);
 		$(chapter.doc.body).annotator().annotator('setupPlugins', {}, {
 			
 			Filter:false,
@@ -25,11 +25,11 @@ FP.Hooks.register("beforeChapterDisplay").annotate = function(callback, chapter)
 			}
 			
 			});
-		FP.core.addCss("css/annotator.css", false, chapter.doc.head);
+		EPUBJS.core.addCss("css/annotator.css", false, chapter.doc.head);
 		if(callback) callback();
 		
 		function annotate(){
-			FP.core.addCss("css/annotator.css", false, chapter.doc.head);
+			EPUBJS.core.addCss("css/annotator.css", false, chapter.doc.head);
 			
 			var s = document.createElement("script");
 			s.type = 'text/javascript';

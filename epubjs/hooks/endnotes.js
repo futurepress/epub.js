@@ -1,4 +1,4 @@
-FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
 
 		var notes = chapter.doc.querySelectorAll('a[href]'),
 			items = Array.prototype.slice.call(notes), //[].slice.call()
@@ -7,7 +7,7 @@ FP.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter)
 			popups = {};
 			
 		
-		FP.core.addCss("css/popup.css", false, chapter.doc.head);
+		EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
 		
 		//console.log("notes", items)
 		items.forEach(function(item){
