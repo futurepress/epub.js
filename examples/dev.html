@@ -8,20 +8,21 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="../demo/css/normalize.css">
+        <link rel="stylesheet" href="../demo/css/main.css">
+        <link rel="stylesheet" href="../demo/css/popup.css">
         <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
         <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
-        <script src="epubjs/libs/jquery-1.9.0.js"></script>
-        <script src="epubjs/libs/modernizr-2.6.2.min.js"></script>
+        <script src="../libs/jquery/jquery-1.9.0.js"></script>
+        <script src="../libs/modernizr/modernizr-2.6.2.min.js"></script>
         <script>
             "use strict";
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.filePath = "/epubjs/";
-                fileStorage.filePath = EPUBJS.filePath + "libs/";
+                EPUBJS.filePath = "../src/";
+                fileStorage.filePath = "../libs/fileStorage/workers/";
                 
                 EPUBJS.VERSION = "0.1.5";
                 EPUBJSR.app.init();
@@ -33,26 +34,24 @@
         <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
         
         <!-- Render -->
-        <script src="epubjs/render/base.js"></script>
-        <script src="epubjs/render/core.js"></script>
-        <script src="epubjs/render/unarchiver.js"></script>
-        <script src="epubjs/libs/fileStorage.min.js"></script>
+        <script src="../src/base.js"></script>
+        <script src="../src/core.js"></script>
+        <script src="../src/unarchiver.js"></script>
+        <script src="../libs/fileStorage/fileStorage.min.js"></script>
 
-        <script src="epubjs/render/events.js"></script>
-        <script src="epubjs/render/hooks.js"></script>
-        <script src="epubjs/render/book.js"></script>
-        <script src="epubjs/render/chapter.js"></script>
+        <script src="../src/events.js"></script>
+        <script src="../src/hooks.js"></script>
+        <script src="../src/book.js"></script>
+        <script src="../src/chapter.js"></script>
         
         <!-- Plugins -->
-        <script async src="epubjs/hooks/transculsions.js"></script>
-        <script async src="epubjs/hooks/endnotes.js"></script>
-        <script async src="epubjs/hooks/smartimages.js"></script>
+        <script async src="../hooks/default/transculsions.js"></script>
+        <script async src="../hooks/default/endnotes.js"></script>
+        <script async src="../hooks/default/smartimages.js"></script>
         
-        <!-- <script async src="epubjs/hooks/extras/music.js"></script> -->
-
         <!-- Reader -->
-        <script async src="epubjs/reader/utils.js"></script>
-        <script async src="epubjs/reader/app.js"></script>
+        <script async src="../reader/utils.js"></script>
+        <script async src="../reader/app.js"></script>
         
     </head>
     <body>
@@ -60,9 +59,9 @@
           <div id="controls">
             
             <input id="search" placeholder="search">
-            <a id="network"><img id="store" src="img/save.png"></a>
-            <a id="setting"><img id="settings" src="img/settings.png"></a>
-            <a id="bookmark"><img id="bookmarks" src="img/star.png"></a>
+            <a id="network"><img id="store" src="../demo/img/save.png"></a>
+            <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
+            <a id="bookmark"><img id="bookmarks" src="../demo/img/star.png"></a>
           </div>
           <div id="toc">
           </div>
@@ -72,7 +71,7 @@
         </div>
         <div id="main">
           <div id="opener">
-            <a id="open"><img src="img/menu-icon.png"></a>
+            <a id="open"><img src="../demo/img/menu-icon.png"></a>
           </div>
           <div id="titlebar">
             <span id="book-title"></span>
@@ -84,7 +83,7 @@
           <div id="area"></div>
           <div id="next" class="arrow">›</div>
           
-          <div id="loader"><img src="img/loader.gif"></div>
+          <div id="loader"><img src="../demo/img/loader.gif"></div>
         </div>
     </body>
 </html>

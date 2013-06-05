@@ -29,7 +29,8 @@ EPUBJSR.app.init = (function($){
 	//	 this will create an iframe in the el with the ID provided
 	Book = new EPUBJS.Book("area");
 	
-	Book.single = true;
+	//Book.single = true;
+	
 	//-- Add listeners to handle book events
 	//-- Full list of event are at start of book.js
 	Book.listen("book:metadataReady", meta);
@@ -144,6 +145,7 @@ EPUBJSR.app.init = (function($){
 		});
 	});
 	//Single or double column
+  	/*
   	var userLayout = "";
   	if (!localStorage.getItem("layout")) {
   	 	userLayout = "medium";
@@ -185,7 +187,7 @@ EPUBJSR.app.init = (function($){
   	var userContrast = "";
   	//Font Type
   	var userFontType = "";
-
+	*/
   }
 
 

@@ -7,24 +7,27 @@ module.exports = function(grunt) {
 		banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
 		  '<%= grunt.template.today("yyyy-mm-dd") %> */'
 	  },
+	  concat : {
+		'build/epub.js': ['<banner>', 'src/*.js'],
+		'build/reader.js': ['<banner>', 'reader/*.js'],
+		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
+		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
+		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
+		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
+		'demo/js/libs/modernizr-2.6.2.min.js': 'libs/modernizr/modernizr-2.6.2.min.js'
+	  },
 	  min: {
-		'dist/render.min.js': ['<banner>', 'fpjs/render/*.js'],
-		//'dist/workers/loader_filesystem.js': ['<banner>', 'fpjs/render/workers/loader_filesystem.js'],
-		'dist/reader.min.js': ['<banner>', 'fpjs/reader/*.js'],
-		'dist/hooks/hooks.min.js': ['<banner>', 'fpjs/hooks/*.js'],
-		'dist/libs/zip.js': ['fpjs/libs/zip.js'],
-		'dist/libs/deflate.js': ['fpjs/libs/deflate.js'],
-		'dist/libs/inflate.js': ['fpjs/libs/inflate.js'],
-		'dist/libs/mime-types.js': ['fpjs/libs/mime-types.js'],
-		'dist/libs/fileStorage.min.js': ['fpjs/libs/fileStorage.min.js'],
-		'dist/libs/loader_filesystem.js': ['fpjs/libs/loader_filesystem.js']
+		'demo/js/epub.min.js': 'build/epub.js',
+		'demo/js/reader.min.js': 'build/reader.js',
+		'demo/js/hooks.min.js': 'build/hooks.js',
+		'demo/js/libs/zip.min.js': ['libs/zip/*.js']
 	  }
 	});
 	
 	
 	
 	// Default task(s).
-	grunt.registerTask('default', ['min']);
+	grunt.registerTask('default', ['concat', 'min']);
 	
 };
 

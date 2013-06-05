@@ -37,9 +37,8 @@ then you can run the reader locally with the command
 http-server
 ```
 
-* [dev.html](http://localhost:8080/dev.html) will pull from the source files and should be used during development.
-* [index.html](http://localhost:8080/index.html) will use the minified production libraries in the dist/ folder.
-* [annotator.html](http://localhost:8080/annotator.html) is a dev branch for annotation development.
+* [dev.html](http://localhost:8080/examples/dev.html) will pull from the source files and should be used during development.
+* [index.html](http://localhost:8080/demo/index.html) will use the minified production libraries in the dist/ folder.
 
 Building for Distribution
 -------------------------
@@ -110,13 +109,8 @@ Follow us on twitter: @Epubjs
 
 + http://twitter.com/#!/Epubjs
 
-Similar projects:
+Other
+-------------------------
 
-+ https://github.com/readium/readium-viewer-demo1
-
-+ https://github.com/readium/Readium-Web-Components
-
-#Other
-
-EPUB is a registered trademark of the IDPF. 
+EPUB is a registered trademark of the [IDPF](http://idpf.org/). 
 

@@ -11,8 +11,8 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
 
-        <script src="dist/libs/jquery-1.9.0.min.js"></script>
-        <script src="dist/libs/modernizr-2.6.2.min.js"></script>
+        <script src="js/libs/jquery-1.9.0.min.js"></script>
+        <script src="js/libs/modernizr-2.6.2.min.js"></script>
         <script>
             "use strict";
             
@@ -20,26 +20,26 @@
               if (document.readyState == "complete") {
                 EPUBJS.VERSION = "0.1.6";
                 
-                EPUBJS.filePath = "/epubjs/dist/";
+                EPUBJS.filePath = "js/";
                 fileStorage.filePath = EPUBJS.filePath + "libs/";
 
-                EPUBJSR.app.init("moby-dick");
+                EPUBJSR.app.init("demo/moby-dick");
               }  
             };
         
           </script>
                 
         <!-- Render -->
-        <script src="dist/render.min.js"></script>
+        <script src="js/epub.min.js"></script>
         
         <!-- Hooks -->
-        <script async src="dist/hooks/hooks.min.js"></script>
+        <script async src="js/hooks.min.js"></script>
         
         <!-- Reader -->
-        <script src="dist/reader.min.js"></script>
+        <script src="js/reader.min.js"></script>
         
         <!-- fileStorage -->
-        <script src="dist/libs/fileStorage.min.js"></script>
+        <script src="js/libs/fileStorage.min.js"></script>
         
     </head>
     <body>
