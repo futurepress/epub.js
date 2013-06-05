@@ -79,7 +79,7 @@ The browser tells the reader when there is Internet connectivity, and by listeni
 Hooks
 -------------------------
 
-Similar to a plugins, FPJS implements events that can be "hooked" into. Thus you can interact with and manipulate the contents of the book.
+Similar to a plugins, Epub.js implements events that can be "hooked" into. Thus you can interact with and manipulate the contents of the book.
 
 Examples of this functionality is loading videos from youtube links before displaying a chapters contents or implementing annotation.
 
