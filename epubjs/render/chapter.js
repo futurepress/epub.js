@@ -1,4 +1,4 @@
-FP.Chapter = function(book, pos){
+EPUBJS.Chapter = function(book, pos){
 
 	this.book = book;
 	this.iframe = this.book.iframe;
@@ -24,7 +24,7 @@ FP.Chapter = function(book, pos){
 
 }
 
-FP.Chapter.prototype.load = function(){
+EPUBJS.Chapter.prototype.load = function(){
 	var path = this.path;
 
 	if(this.book.online && !this.book.contained){
@@ -35,11 +35,11 @@ FP.Chapter.prototype.load = function(){
 	
 }
 
-FP.Chapter.prototype.loadFromStorage = function(path){
-	var file = FP.storage.get(path, this.setIframeSrc.bind(this));
+EPUBJS.Chapter.prototype.loadFromStorage = function(path){
+	var file = EPUBJS.storage.get(path, this.setIframeSrc.bind(this));
 }
 
-FP.Chapter.prototype.setIframeSrc = function(url){
+EPUBJS.Chapter.prototype.setIframeSrc = function(url){
 	var that = this;
 	
 	this.visible(false);
@@ -72,15 +72,15 @@ FP.Chapter.prototype.setIframeSrc = function(url){
 	}
 }
 
-FP.Chapter.prototype.afterLoaded = function(chapter){
+EPUBJS.Chapter.prototype.afterLoaded = function(chapter){
 	//-- This is overwritten by the book object
 }
 
-FP.Chapter.prototype.error = function(err){
+EPUBJS.Chapter.prototype.error = function(err){
 	console.log("error", error)
 }
 
-FP.Chapter.prototype.formatSpread = function(){
+EPUBJS.Chapter.prototype.formatSpread = function(){
 
 	var divisor = 2,
 		cutoff = 800;
@@ -128,9 +128,9 @@ FP.Chapter.prototype.formatSpread = function(){
 	this.bodyEl.style.height = this.book.el.clientHeight + "px";
 
 	//-- Add columns
-	this.bodyEl.style[FP.core.columnAxis] = "horizontal";
-	this.bodyEl.style[FP.core.columnGap] = this.gap+"px";
-	this.bodyEl.style[FP.core.columnWidth] = this.colWidth+"px";
+	this.bodyEl.style[EPUBJS.core.columnAxis] = "horizontal";
+	this.bodyEl.style[EPUBJS.core.columnGap] = this.gap+"px";
+	this.bodyEl.style[EPUBJS.core.columnWidth] = this.colWidth+"px";
 	
 	
 	//-- Go to current page after resize
@@ -139,7 +139,7 @@ FP.Chapter.prototype.formatSpread = function(){
 	}
 }
 
-FP.Chapter.prototype.fixedLayout = function(){
+EPUBJS.Chapter.prototype.fixedLayout = function(){
 	this.paginated = false;
 	console.log("off")
 	this.setLeft(0);
@@ -150,7 +150,7 @@ FP.Chapter.prototype.fixedLayout = function(){
 	this.bodyEl.style.height = "auto";
 	
 	//-- Remove columns
-	this.bodyEl.style[FP.core.columnWidth] = "auto";
+	this.bodyEl.style[EPUBJS.core.columnWidth] = "auto";
 	
 	//-- Scroll
 	this.bodyEl.style.overflow = "auto";
@@ -158,11 +158,11 @@ FP.Chapter.prototype.fixedLayout = function(){
 	this.displayedPages = 1;
 }
 
-FP.Chapter.prototype.goToChapterEnd = function(){
+EPUBJS.Chapter.prototype.goToChapterEnd = function(){
 	this.chapterEnd();
 }
 
-FP.Chapter.prototype.visible = function(bool){
+EPUBJS.Chapter.prototype.visible = function(bool){
 	if(typeof(bool) == "undefined") {
 		return this.iframe.style.visibility;
 	}
@@ -174,7 +174,7 @@ FP.Chapter.prototype.visible = function(bool){
 	}
 }
 
-FP.Chapter.prototype.calcPages = function(){
+EPUBJS.Chapter.prototype.calcPages = function(){
 	this.totalWidth = this.iframe.contentDocument.documentElement.scrollWidth; //this.bodyEl.scrollWidth;
 
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
@@ -185,7 +185,7 @@ FP.Chapter.prototype.calcPages = function(){
 }
 
 
-FP.Chapter.prototype.nextPage = function(){
+EPUBJS.Chapter.prototype.nextPage = function(){
 	if(this.chapterPos < this.displayedPages){
 		this.chapterPos++;
 
@@ -202,7 +202,7 @@ FP.Chapter.prototype.nextPage = function(){
 	}
 }
 
-FP.Chapter.prototype.prevPage = function(){
+EPUBJS.Chapter.prototype.prevPage = function(){
 	if(this.chapterPos > 1){
 		this.chapterPos--;
 
@@ -219,11 +219,11 @@ FP.Chapter.prototype.prevPage = function(){
 	}
 }
 
-FP.Chapter.prototype.chapterEnd = function(){
+EPUBJS.Chapter.prototype.chapterEnd = function(){
 	this.page(this.displayedPages);
 }
 
-FP.Chapter.prototype.setLeft = function(leftPos){
+EPUBJS.Chapter.prototype.setLeft = function(leftPos){
 	this.bodyEl.style.marginLeft = -leftPos + "px";
 	
 	/*
@@ -239,7 +239,7 @@ FP.Chapter.prototype.setLeft = function(leftPos){
 }
 
 //-- Replaces the relative links within the book to use our internal page changer
-FP.Chapter.prototype.replaceLinks = function(callback){
+EPUBJS.Chapter.prototype.replaceLinks = function(callback){
 	var hrefs = this.doc.querySelectorAll('[href]'),
 		links = Array.prototype.slice.call(hrefs),
 		that = this;
@@ -272,12 +272,12 @@ FP.Chapter.prototype.replaceLinks = function(callback){
 }
 
 //-- Replaces assets src's to point to stored version if browser is offline
-FP.Chapter.prototype.replaceResources = function(callback){
+EPUBJS.Chapter.prototype.replaceResources = function(callback){
 	var srcs, resources, count;
 	
 	//-- No need to replace if there is network connectivity
 	//-- also Filesystem api links are relative, so no need to replace them
-	if((this.book.online && !this.book.contained) || FP.storage.getStorageType() == "filesystem") {
+	if((this.book.online && !this.book.contained) || EPUBJS.storage.getStorageType() == "filesystem") {
 		if(callback) callback();
 		return false; 
 	}
@@ -290,7 +290,7 @@ FP.Chapter.prototype.replaceResources = function(callback){
 		var src = link.getAttribute("src"),
 			full = this.book.basePath + src;
 		
-		FP.storage.get(full, function(url){
+		EPUBJS.storage.get(full, function(url){
 			link.setAttribute("src", url);
 			count--;
 			if(count <= 0 && callback) callback();
@@ -300,11 +300,11 @@ FP.Chapter.prototype.replaceResources = function(callback){
 			
 }
 
-FP.Chapter.prototype.getID = function(){
+EPUBJS.Chapter.prototype.getID = function(){
 	return this.ID;
 }
 
-FP.Chapter.prototype.page = function(pg){
+EPUBJS.Chapter.prototype.page = function(pg){
 	if(pg >= 1 && pg <= this.displayedPages){
 		this.chapterPos = pg;
 		this.leftPos = this.spreadWidth * (pg-1); //-- pages start at 1
@@ -319,7 +319,7 @@ FP.Chapter.prototype.page = function(pg){
 }
 
 //-- Find a section by fragement id
-FP.Chapter.prototype.section = function(fragment){
+EPUBJS.Chapter.prototype.section = function(fragment){
 	var el = this.doc.getElementById(fragment),
 		left, pg;
 	
@@ -331,7 +331,7 @@ FP.Chapter.prototype.section = function(fragment){
 
 }
 
-FP.Chapter.prototype.beforeDisplay = function(callback){
+EPUBJS.Chapter.prototype.beforeDisplay = function(callback){
 	this.book.triggerHooks("beforeChapterDisplay", callback.bind(this), this);
 }
 

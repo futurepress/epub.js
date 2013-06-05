@@ -1,4 +1,4 @@
-FP.Hooks.register("beforeChapterDisplay").music = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").music = function(callback, chapter){
 
 		var trans = chapter.doc.querySelectorAll('audio'),
 			items = Array.prototype.slice.call(trans),

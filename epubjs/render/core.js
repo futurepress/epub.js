@@ -1,18 +1,18 @@
-var FP = FP || {}; 
-FP.core = {}
+var EPUBJS = EPUBJS || {}; 
+EPUBJS.core = {}
 
 //-- Get a element for an id
-FP.core.getEl = function(elem) {
+EPUBJS.core.getEl = function(elem) {
   return document.getElementById(elem);
 }
 
 //-- Get all elements for a class
-FP.core.getEls = function(classes) {
+EPUBJS.core.getEls = function(classes) {
   return document.getElementsByClassName(classes);
 }
 
 
-FP.core.loadXML = function(url, callback){
+EPUBJS.core.loadXML = function(url, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', url, true);
 	xhr.overrideMimeType('text/xml');
@@ -26,7 +26,7 @@ FP.core.loadXML = function(url, callback){
 	xhr.send();
 }
 
-// FP.core.loadFile = function(url){
+// EPUBJS.core.loadFile = function(url){
 // 	var xhr = new XMLHttpRequest(),
 // 		succeeded,
 // 		failed;
@@ -64,7 +64,7 @@ FP.core.loadXML = function(url, callback){
 // 	}
 // }
 
-FP.core.loadFile = function(url, callback){
+EPUBJS.core.loadFile = function(url, callback){
 	var xhr = new XMLHttpRequest();
 	
 	this.succeeded = function(response){
@@ -103,7 +103,7 @@ FP.core.loadFile = function(url, callback){
 	}
 }
 
-FP.core.crossBrowserColumnCss = function(){
+EPUBJS.core.crossBrowserColumnCss = function(){
 	//-- From Readium: reflowable_pagination_view.js
 
 	var cssIfy = function(str) {
@@ -113,18 +113,18 @@ FP.core.crossBrowserColumnCss = function(){
 	};
 
 	// ask modernizr for the vendor prefixed version
-	FP.core.columnAxis =  Modernizr.prefixed('columnAxis') || 'columnAxis';
-	FP.core.columnGap =  Modernizr.prefixed('columnGap') || 'columnGap';
-	FP.core.columnWidth =  Modernizr.prefixed('columnWidth') || 'columnWidth';
+	EPUBJS.core.columnAxis =  Modernizr.prefixed('columnAxis') || 'columnAxis';
+	EPUBJS.core.columnGap =  Modernizr.prefixed('columnGap') || 'columnGap';
+	EPUBJS.core.columnWidth =  Modernizr.prefixed('columnWidth') || 'columnWidth';
 
 	// we are interested in the css prefixed version
-	// FP.core.columnAxis =  cssIfy(FP.core.columnAxis);
-	// FP.core.columnGap =  cssIfy(FP.core.columnGap);
-	// FP.core.columnWidth =  cssIfy(FP.core.columnWidth);
+	// EPUBJS.core.columnAxis =  cssIfy(EPUBJS.core.columnAxis);
+	// EPUBJS.core.columnGap =  cssIfy(EPUBJS.core.columnGap);
+	// EPUBJS.core.columnWidth =  cssIfy(EPUBJS.core.columnWidth);
 
 }
 
-FP.core.toArray = function(obj) {
+EPUBJS.core.toArray = function(obj) {
   var arr = [];
 
   for (member in obj) {
@@ -140,7 +140,7 @@ FP.core.toArray = function(obj) {
 };
 
 //-- https://github.com/ebidel/filer.js/blob/master/src/filer.js#L128
-FP.core.dataURLToBlob = function(dataURL) {
+EPUBJS.core.dataURLToBlob = function(dataURL) {
 	var BASE64_MARKER = ';base64,';
 	if (dataURL.indexOf(BASE64_MARKER) == -1) {
 	  var parts = dataURL.split(',');
@@ -165,7 +165,7 @@ FP.core.dataURLToBlob = function(dataURL) {
  }
  
 //-- Load scripts async: http://stackoverflow.com/questions/7718935/load-scripts-asynchronously 
-FP.core.addScript = function(src, callback, target) {
+EPUBJS.core.addScript = function(src, callback, target) {
    var s, r;
    r = false;
    s = document.createElement('script');
@@ -184,7 +184,7 @@ FP.core.addScript = function(src, callback, target) {
    target.appendChild(s);
  }
  
- FP.core.addScripts = function(srcArr, callback, target) {
+ EPUBJS.core.addScripts = function(srcArr, callback, target) {
 	var total = srcArr.length,
 		curr = 0,
 		cb = function(){
@@ -192,18 +192,18 @@ FP.core.addScript = function(src, callback, target) {
 			if(total == curr){
 				if(callback) callback();
 			}else{
-				FP.core.loadScript(srcArr[curr], cb, target);
+				EPUBJS.core.loadScript(srcArr[curr], cb, target);
 			}
 		};
 		
     // srcArr.forEach(function(src){
-    // FP.core.loadScript(src, cb, target);
+    // EPUBJS.core.loadScript(src, cb, target);
     // });
-    FP.core.addScript(srcArr[curr], cb, target);
+    EPUBJS.core.addScript(srcArr[curr], cb, target);
     
  }
  
- FP.core.addCss = function(src, callback, target) {
+ EPUBJS.core.addCss = function(src, callback, target) {
     var s, r;
     r = false;
     s = document.createElement('link');

@@ -1,4 +1,4 @@
-FP.Events = function(obj, el){
+EPUBJS.Events = function(obj, el){
 	
 	this.events = {};
 	
@@ -17,13 +17,13 @@ FP.Events = function(obj, el){
 	return this;
 }
 
-FP.Events.prototype.createEvent = function(evt){
+EPUBJS.Events.prototype.createEvent = function(evt){
 	var e = new CustomEvent(evt);
 	this.events[evt] = e;
 	return e;
 }
 
-FP.Events.prototype.tell = function(evt, msg){
+EPUBJS.Events.prototype.tell = function(evt, msg){
 	var e;
 
 	if(!this.events[evt]){
@@ -38,7 +38,7 @@ FP.Events.prototype.tell = function(evt, msg){
 
 }
 
-FP.Events.prototype.listen = function(evt, func, bindto){
+EPUBJS.Events.prototype.listen = function(evt, func, bindto){
 	if(!this.events[evt]){
 		console.warn("No event:", evt,  "defined yet, creating.");
 		this.createEvent(evt);
@@ -53,11 +53,11 @@ FP.Events.prototype.listen = function(evt, func, bindto){
 
 }
 
-FP.Events.prototype.deafen = function(evt, func){
+EPUBJS.Events.prototype.deafen = function(evt, func){
 	this.el.removeEventListener(evt, func, false);
 }
 
-FP.Events.prototype.listenUntil = function(OnEvt, OffEvt, func, bindto){
+EPUBJS.Events.prototype.listenUntil = function(OnEvt, OffEvt, func, bindto){
 	this.listen(OnEvt, func, bindto);
 	
 	function unlisten(){

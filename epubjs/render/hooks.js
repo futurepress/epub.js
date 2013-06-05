@@ -1,4 +1,4 @@
-FP.Hooks = (function(){
+EPUBJS.Hooks = (function(){
 
   "use strict";
   return {

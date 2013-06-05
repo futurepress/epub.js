@@ -1,4 +1,4 @@
-FP.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
 
 		var image = chapter.doc.querySelectorAll('img'),
 			items = Array.prototype.slice.call(image),
