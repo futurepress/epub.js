@@ -1,0 +1,68 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: -webkit-box;
+  display:    -moz-box;
+  display:         box;
+  -webkit-box-orient: vertical;
+     -moz-box-orient: vertical;
+          box-orient: vertical;
+}
+
+#github {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+  width: 149px;
+  height: 149px;
+  background-image: url(forkme.png);
+}
+
+* html #github { /* IE6 */
+  background-image: url(forkme.gif);
+}
+
+#github span {
+  display: none;
+}
+
+#test {
+  margin: 2em;
+}
+
+#test div {
+  max-width: 600px;
+  margin: 1em auto;
+  padding: 0 1em;
+  border: 1px dashed black;
+}
+
+#l10n, #json {
+  margin: 0;
+  padding: 0;
+  -webkit-box-orient: vertical;
+     -moz-box-orient: vertical;
+          box-orient: vertical;
+}
+
+#l10n, #json, textarea, #data {
+  display: -webkit-box;
+  display:    -moz-box;
+  display:         box;
+  -webkit-box-flex: 1;
+     -moz-box-flex: 1;
+          box-flex: 1;
+}
+
+#data p {
+  height: 1em;
+  margin: 0;
+}
+
+textarea[readonly] {
+  background-color: #eee;
+}
+
