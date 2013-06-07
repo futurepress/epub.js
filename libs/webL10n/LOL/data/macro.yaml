@@ -1,0 +1,9 @@
+# vim: ft=yaml:ts=4:sw=4
+# Warning: this file uses a YAML-like syntax but is *NOT* YAML-compliant
+
+# macros
+plural(n): { n == 1 ? 'one' : 'many' }
+download[plural(count)]:
+    one: one download
+    many: {{count}} downloads
+

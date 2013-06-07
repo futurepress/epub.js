@@ -1,0 +1,57 @@
+# vim: ft=yaml:ts=4:sw=4
+
+brandName: Mozilla Firefox
+brandShortName: Firefox
+
+!lang[en]:
+    locale: English
+
+    # strings
+    newFile: New File
+    close: Close
+
+    # parameters
+    luckyNum: Your lucky number is: {{num}}
+    signedIn: You’re signed in as {{login}}
+
+    # attributes
+    buttonClick: Click me
+    buttonClick.title: Ctrl+{{buttonClick.accesskey}}
+    buttonClick.accesskey: c
+
+    # macros & indexes
+    plural(n): { n == 1 ? 'one' : 'many' }
+    download[plural(count)]:
+        one: one download
+        many: {{count}} downloads
+
+!lang[fr]:
+    locale: français
+
+    # strings
+    newFile: Nouveau Fichier
+    close: Fermer
+
+    # parameters
+    luckyNum: Votre numéro porte-bonheur est : {{num}}
+    signedIn: Vous êtes connecté en tant que : {{login}}
+
+    # attributes
+    buttonClick: Cliquez-moi
+    buttonClick.title: Ctrl+{{buttonClick.accesskey}}
+    buttonClick.accesskey: c
+
+    # macros & indexes
+    plural(n): { n <= 1 ? 'one' : 'many' }
+    download[plural(count)]:
+        one: {{count}} téléchargement
+        many: {{count}} téléchargements
+
+!lang[de]:
+    !import url(../locales/de/strings.intl)
+    !import url(../locales/de/data.intl)
+
+!lang[pl]:
+    !import url(../locales/pl/strings.intl)
+    !import url(../locales/pl/data.intl)
+

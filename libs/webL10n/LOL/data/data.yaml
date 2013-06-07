@@ -1,0 +1,23 @@
+# vim: ft=yaml:ts=4:sw=4
+# Warning: this file uses a YAML-like syntax but is *NOT* YAML-compliant
+
+# arrays
+drinks[num]:
+    - Coca Cola
+    - Gatorade
+    - Water
+
+# lists
+cookie[form]:
+    one: Cookie
+    many: Cookies
+
+# nested lists
+moreDrinks[type,num]:
+    cup:
+        one: Cup
+        many: Cups
+    pot:
+        one: Pot
+        many: Pots
+
