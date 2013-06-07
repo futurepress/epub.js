@@ -13,6 +13,11 @@
 
         <script src="js/libs/jquery-1.9.0.min.js"></script>
         <script src="js/libs/modernizr-2.6.2.min.js"></script>
+
+        <!--Internationalization-->
+        <link rel="resource" type="application/l10n" href="locale/locale.properties"/>
+        <script type="text/javascript" src="libs/webL10n/l10n.js"></script>
+
         <script>
             "use strict";
             
@@ -43,13 +48,13 @@
         
     </head>
     <body>
-        <div id="sidebar">
+        <div data-l10n-id="sidebar" id="sidebar">
           <div id="controls">
             
             <!-- <input id="search" placeholder="search"> -->
-            <a id="network"><img id="store" src="img/save.png"></a>
-            <a id="setting"><img id="settings" src="img/settings.png"></a>
-            <a id="bookmark"><img id="bookmarks" src="img/star.png"></a>
+            <a data-l10n-id="network" id="network"><img id="store" src="img/save.png"></a>
+            <a data-l10n-id="setting" id="setting"><img id="settings" src="img/settings.png"></a>
+            <a data-l10n-id="bookmark" id="bookmark"><img id="bookmarks" src="img/star.png"></a>
           </div>
           <div id="toc">
           </div>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> webL10n test page </title>
+  <meta charset="utf-8" />
+
+  <link rel="prefetch" type="application/l10n" href="l10n/locales.ini" />
+  <script type="text/javascript" src="l10n.js"></script>
+  <script type="text/javascript">
+    function onLocalized() {
+      var l10n = document.webL10n,
+          textProp = document.body.textContent ? 'textContent' : 'innerText',
+          ui = {
+            l10n: document.getElementById('l10n').getElementsByTagName('textarea')[0],
+            json: document.getElementById('json').getElementsByTagName('textarea')[0],
+            lang: document.getElementsByTagName('select')[0]
+          };
+      ui.lang.value = l10n.getLanguage(); // not working with IE<9
+      ui.lang.onchange = function() {
+        l10n.setLanguage(this.value || this.options[this.selectedIndex].text);
+      };
+      ui.l10n[textProp] = l10n.getText();
+      ui.json[textProp] =
+        window.JSON ? JSON.stringify(l10n.getData(), undefined, 2) : 'no JSON support';
+    }
+    document.webL10n.ready(onLocalized);
+  </script>
+
+  <link rel="stylesheet" type="text/css" href="css/layout.css" />
+  <!--[if lte IE 9]>
+    <style type="text/css">
+      /* IE<10 doesn't support CSS flex-box... */
+      #l10n { width: 50%; position: absolute; left: 0.5%; }
+      #json { width: 50%; position: absolute; right: 0; }
+    </style>
+  <![endif]-->
+</head>
+<body>
+  <a href="https://github.com/fabi1cazenave/webL10n"
+    id="github"><span>Fork me on GitHub</span></a>
+
+  <div id="test">
+    <div>
+      <p data-l10n-id="about">This page has been translated dynamically.</p>
+      <p style="text-align: center;">
+        <span data-l10n-id="Phone" title="phone">Phone</span>
+        <span data-l10n-id="Calculator">Calculator</span>
+        <span data-l10n-id="Music">Music</span>
+        <span data-l10n-id="Books">Books</span>
+        <span data-l10n-id="Calendar" title="calendar">Calendar</span>
+        <br />
+        <button data-l10n-id="hello" accesskey="h" title="click"
+            onclick="alert(_('sayHello'));">Hello!</button>
+      </p>
+      <p data-l10n-id="Children">
+        Translate a node with children.
+        <span data-l10n-id="Child">I'm his child</span>
+      </p>
+      <p style="text-align: right;">
+        <span data-l10n-id="langSelection">Language selection</span>
+        <select>
+          <option disabled selected> </option>
+          <option>en</option>
+          <option>es</option>
+          <option>fr</option>
+          <option>de</option>
+          <option>sq</option>
+        </select>
+      </p>
+    </div>
+  </div>
+
+  <div id="data">
+    <div id="l10n">
+      <p> l10n resources: </p>
+      <textarea readonly rows="24" cols="80"></textarea>
+    </div>
+    <div id="json">
+      <p> parsed data: </p>
+      <textarea readonly rows="24" cols="80"></textarea>
+    </div>
+  </div>
+</body>
+</html>
+

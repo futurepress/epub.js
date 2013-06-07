@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title> l20n parser </title>
+  <script type="text/javascript" src="parser.js"></script>
+  <script type="text/javascript">//<![CDATA[
+    'use strict';
+    function parse() {
+      try {
+        var text = document.querySelector('textarea').value;
+        var expr = document.getElementById('expr').checked;
+        var data = JSON.stringify(parseL20n(text, expr), undefined, 2);
+      } catch(e) { data = e; }
+      document.querySelector('textarea[readonly]').innerHTML = data;
+    }
+    // load preselected l20n files with XHR
+    window.addEventListener('DOMContentLoaded', function() {
+      var buttons = document.querySelectorAll('button');
+      for (var i in buttons)
+        if (buttons[i].className != 'filePicker')
+          buttons[i].onclick = function() {
+            var href = 'data/' + this.textContent;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', href, true);
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState == 4 && xhr.status == 200) {
+                var textarea = document.querySelector('textarea');
+                textarea.value = xhr.responseText;
+                textarea.oninput();
+              }
+            };
+            xhr.send(null);
+          };
+    }, false);
+    // allows to load a local text file into the input <textarea>
+    window.addEventListener('DOMContentLoaded', function() {
+      var menu = document.querySelector('menu#filePicker');
+      var textarea = document.querySelector('textarea');
+      if (!textarea)
+        throw 'expecting a <textarea>';
+
+      // create a dummy <input type="file"> element to fire a file picker.
+      var filePicker = function(callback) {
+        // Note: it has to be displayed and attached to <body> for Chromium.
+        var inputElement = document.createElement('input');
+        inputElement.type = 'file';
+        inputElement.style.position = 'absolute';
+        inputElement.style.left = 0;
+        inputElement.style.top = '-10em';
+        //inputElement.style.opacity = 0;
+        document.body.appendChild(inputElement);
+
+        inputElement.addEventListener('change', function() {
+          callback(this.files[0]);
+        }, false);
+
+        return function() { inputElement.click(); };
+      };
+      var fp = new filePicker(readAsText);
+
+      // attach a file picker to all elements with the 'filePicker' class
+      var pickers = document.querySelectorAll('.filePicker');
+      for (var i in pickers)
+        pickers[i].onclick = fp;
+
+      // we can also use the drag'n'drop API when supported
+      var fileDropper = function(dropElement, callback) {
+        function doNothing(e) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        dropElement.addEventListener("dragenter", doNothing, false);
+        dropElement.addEventListener("dragover", doNothing, false);
+        dropElement.addEventListener("drop", function(e) {
+          doNothing(e);
+          callback(e.dataTransfer.files[0]);  
+        }, false);
+      };
+      var fd = new fileDropper(textarea, readAsText);
+
+      // fileHandler
+      function readAsText(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          textarea.value = e.target.result;
+          textarea.oninput();
+        };
+        reader.readAsText(file);
+      }
+
+      // startup
+      textarea.oninput();
+    }, false);
+  //]]></script>
+  <style type="text/css">
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      display: -webkit-box;
+      display:    -moz-box;
+      display:         box;
+      -webkit-box-orient: horizontal;
+         -moz-box-orient: horizontal;
+              box-orient: horizontal;
+    }
+    textarea {
+      margin: 0;
+      min-height: 99%; /* required by Chromium */
+      padding: 0.2em;
+      resize: none;
+      display: -webkit-box;
+      display:    -moz-box;
+      display:         box;
+      -webkit-box-flex: 1;
+         -moz-box-flex: 1;
+              box-flex: 1;
+    }
+    textarea[readonly] {
+      background-color: #eee;
+    }
+    /* floating navigation menu */
+    nav {
+      display: block;
+      position: absolute;
+      top: 0;
+      right: 50%;
+      opacity: 0.3;
+      margin: 15px 30px;
+      padding: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #eee;
+      -webkit-transition: opacity 0.5s;
+         -moz-transition: opacity 0.5s;
+           -o-transition: opacity 0.5s;
+    }
+    nav:hover {
+      opacity: 1;
+    }
+    nav p {
+      margin: 0;
+      padding: 0;
+    }
+    nav button {
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      display: block;
+    }
+    nav button:hover {
+      text-decoration: underline;
+    }
+    nav button.filePicker {
+      margin: 0.5em 0;
+      font-style: italic;
+    }
+    nav label {
+      font-size: smaller;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <p>
+      <button>attrs.json</button>
+      <button>attrs.lol</button>
+      <button>data.json</button>
+      <button>data.lol</button>
+      <button>macro.json</button>
+      <button>macro.lol</button>
+      <button>test.json</button>
+      <button>test.lol</button>
+      <button class="filePicker">local file…</button>
+    </p>
+    <p>
+      <input id="expr" onclick="parse()" type="checkbox" />
+      <label for="expr">expressions</label>
+    </p>
+  </nav>
+  <textarea oninput="parse()"
+    title="l20n input: LOL file or JSON-like variant
+    — you can also drop a local file here">
+
+name: "Name"
+phone: "Phone"
+address: "Address"
+
+name_input: {
+    .placeholder: "Write your name"
+    .title: "You can give us your nickname if you prefer"
+}
+
+phone_input: {
+    .placeholder: "(501) 650 231 800"
+}
+
+address_input: {
+    .placeholder: "650 Castro St., Suite 300, MtV, CA"
+}
+
+test: {  ~: "hello, world!"
+    .style: "color: red;"
+    .value: "passed"
+    .title: "color should be green"
+}
+
+  </textarea>
+  <textarea readonly title="AST output"></textarea>
+</body>
+</html>
