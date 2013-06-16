@@ -13,7 +13,7 @@ Unlike an application, our HTML / Javascript reader can be hosted anywhere and c
 
 Upcoming Changes
 -------------------------
-We've got a lot in store for the next few weeks (Till June 16th). We will be implementing major and awesome changes that will 
+We've got a lot in store for the next few weeks (Till June 20th). We will be implementing major and awesome changes that will 
 bring us closer to an Alpha release. Basically, if you're planning building something based off this... wait. It will be
 worth it. 
 
