@@ -9,38 +9,19 @@ Epub.js provides common ebook functions (such as persistence and pagination) wit
 
 Unlike an application, our HTML / Javascript reader can be hosted anywhere and can be easily customized using javascript, such as changing the interface or adding annotation functionality.
 
-[Try it while reading Moby Dick](http://fchasen.github.com/epub.js/)
+[Try it while reading Moby Dick](http://fchasen.github.com/epub.js/demo/)
 
-Upcoming Changes
+Upcoming Updates
 -------------------------
-We've got a lot in store for the next few weeks (Till June 20th). We will be implementing major and awesome changes that will 
-bring us closer to an Alpha release. Basically, if you're planning building something based off this... wait. It will be
-worth it. 
++ Update documentation with the new API
 
-Some things to look forward to:
-+ Separate rendering of the book out from the loading / parsing / control code
-Based on pdf.js using the library will work something like this (the reverse of how it works now):
++ Offline storage is being update to work with the new api.
 
-```javascript
-var book = new EPUBJS.book("url/to/book")
-book.render("div-id")
-```
-
-+ New way of listening to book events and promises (shouldn't change much usage wise)
-
-+ Improve the epub parsing code, with some help from [Readium](http://readium.github.io/Readium-Web-Components/)
-
-+ A very simplified example version of the reader to test new features on
++ Tests
 
 + A framework (backbone / angular / ?) to use for our reader demo (which we suspect is going to start expanding quickly)
 
-+ A generic way to handle settings
-
-+ Plugin encapsulation stuff
-
-We suggest forking the code AFTER these major changes.
-
-Questions: email Jake.Hartnell@berkeley.edu
++ A generic way to handle changing / overriding styles in the epub
 
 
 Why EPUB
@@ -92,9 +73,18 @@ grunt
 Getting Started
 -------------------------
 
+With the reader (which will create a new EPUBJS):
+
 ```javascript
 FP.filePath = "/path/to/js/"; //-- For web workers
 FPR.app.init("/path/to/epub/"); //-- Starts the reader, with path to a book
+```
+
+Or just get use EPUBJS with your own UI:
+
+```javascript
+var book = new EPUBJS.book("url/to/book");
+book.renderTo("div-id");
 ```
 
 Persistence / Offline Storage
