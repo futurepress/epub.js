@@ -15,7 +15,6 @@
         <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
         <script src="../libs/jquery/jquery-1.9.0.js"></script>
-        <script src="../libs/modernizr/modernizr-2.6.2.min.js"></script>
         <script>
             "use strict";
             
@@ -25,7 +24,7 @@
                 fileStorage.filePath = "../libs/fileStorage/workers/";
                 
                 EPUBJS.VERSION = "0.1.5";
-                EPUBJSR.app.init();
+                EPUBJSR.app.init('/demo/moby-dick');
               }  
             };
         
@@ -34,15 +33,19 @@
         <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
         
         <!-- Render -->
+        <script src="../libs/underscore/underscore.js"></script>
+        <script src="../libs/rsvp/rsvp.js"></script>
+        <script src="../libs/fileStorage/fileStorage.min.js"></script>
+
         <script src="../src/base.js"></script>
         <script src="../src/core.js"></script>
         <script src="../src/unarchiver.js"></script>
-        <script src="../libs/fileStorage/fileStorage.min.js"></script>
-
-        <script src="../src/events.js"></script>
+        <script src="../src/parser.js"></script>
         <script src="../src/hooks.js"></script>
         <script src="../src/book.js"></script>
         <script src="../src/chapter.js"></script>
+        <script src="../src/renderer.js"></script>
+        <script src="../src/epubcfi.js"></script>
         
         <!-- Plugins -->
         <script async src="../hooks/default/transculsions.js"></script>
@@ -59,7 +62,7 @@
           <div id="controls">
             
             <input id="search" placeholder="search">
-            <a id="network"><img id="store" src="../demo/img/save.png"></a>
+            <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
             <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
             <a id="bookmark"><img id="bookmarks" src="../demo/img/star.png"></a>
           </div>
@@ -71,7 +74,7 @@
         </div>
         <div id="main">
           <div id="opener">
-            <a id="open"><img src="../demo/img/menu-icon.png"></a>
+            <a id="open"><img src="../demo/img/menu-icon.png" data-close="../demo/img/close.png" data-open="../demo/img/menu-icon.png"></a>
           </div>
           <div id="titlebar">
             <span id="book-title"></span>

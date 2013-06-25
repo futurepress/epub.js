@@ -12,19 +12,65 @@ EPUBJS.core.getEls = function(classes) {
 }
 
 
-EPUBJS.core.loadXML = function(url, callback){
+EPUBJS.core.request = function(url, type) {
+	var promise = new RSVP.Promise();
+	
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', url, true);
-	xhr.overrideMimeType('text/xml');
-
-	xhr.onload = function(e) {
-		if (this.status == 200) {
-			callback(this.responseXML);
-		}
-	};
-
+	
+	xhr.open("GET", url);
+	xhr.onreadystatechange = handler;
+	
+	if(type == 'blob'){
+		xhr.responseType = type;
+	}
+	
+	if(type == "json") {
+		xhr.setRequestHeader("Accept", "application/json");
+	}
+	
+	if(type == 'xml') {
+		xhr.overrideMimeType('text/xml');
+	}
+	
 	xhr.send();
-}
+	
+	function handler() {
+	  if (this.readyState === this.DONE) {
+		if (this.status === 200) { 
+			var r;
+			
+			if(type == 'xml'){
+				r = this.responseXML;
+			}else 
+			if(type == 'json'){
+				r = JSON.parse(this.response);
+			}else{
+				r = this.response;
+			}
+			
+			promise.resolve(r);			
+		}
+		else { promise.reject(this); }
+	  }
+	};
+  
+
+  return promise;
+};
+
+// EPUBJS.core.loadXML = function(url, callback){
+// 	var xhr = new XMLHttpRequest();
+// 	xhr.open('GET', url, true);
+// 	xhr.overrideMimeType('text/xml');
+// 
+// 	xhr.onload = function(e) {
+// 		if (this.status == 200) {
+// 			callback(this.responseXML);
+// 		}
+// 	};
+// 
+// 	xhr.send();
+// }
 
 // EPUBJS.core.loadFile = function(url){
 // 	var xhr = new XMLHttpRequest(),
@@ -63,66 +109,47 @@ EPUBJS.core.loadXML = function(url, callback){
 // 		"error" : failed
 // 	}
 // }
+// 
+// EPUBJS.core.loadFile = function(url, callback){
+// 	var xhr = new XMLHttpRequest();
+// 	
+// 	this.succeeded = function(response){
+// 		if(callback){
+// 			callback(response);
+// 		}
+// 	}
+// 
+// 	this.failed = function(err){
+// 		console.log("Error:", err);
+// 	}
+// 
+// 	this.start = function(){
+// 		var that = this;
+// 		
+// 		xhr.open('GET', url, true);
+// 		xhr.responseType = 'blob';
+// 
+// 		xhr.onload = function(e) {
+// 			if (this.status == 200) {
+// 				that.succeeded(this.response);
+// 			}
+// 		};
+// 
+// 		xhr.onerror = function(e) {
+// 			that.failed(this.status); //-- TODO: better error message
+// 		};
+// 
+// 		xhr.send();
+// 	}
+// 
+// 	return {
+// 		"start": this.start,
+// 		"succeeded" : this.succeeded,
+// 		"failed" : this.failed
+// 	}
+// }
 
-EPUBJS.core.loadFile = function(url, callback){
-	var xhr = new XMLHttpRequest();
-	
-	this.succeeded = function(response){
-		if(callback){
-			callback(response);
-		}
-	}
 
-	this.failed = function(err){
-		console.log("Error:", err);
-	}
-
-	this.start = function(){
-		var that = this;
-		
-		xhr.open('GET', url, true);
-		xhr.responseType = 'blob';
-
-		xhr.onload = function(e) {
-			if (this.status == 200) {
-				that.succeeded(this.response);
-			}
-		};
-
-		xhr.onerror = function(e) {
-			that.failed(this.status); //-- TODO: better error message
-		};
-
-		xhr.send();
-	}
-
-	return {
-		"start": this.start,
-		"succeeded" : this.succeeded,
-		"failed" : this.failed
-	}
-}
-
-EPUBJS.core.crossBrowserColumnCss = function(){
-	//-- From Readium: reflowable_pagination_view.js
-
-	var cssIfy = function(str) {
-		return str.replace(/([A-Z])/g, function(str,m1){ 
-			return '-' + m1.toLowerCase(); 
-		}).replace(/^ms-/,'-ms-');
-	};
-
-	// ask modernizr for the vendor prefixed version
-	EPUBJS.core.columnAxis =  Modernizr.prefixed('columnAxis') || 'columnAxis';
-	EPUBJS.core.columnGap =  Modernizr.prefixed('columnGap') || 'columnGap';
-	EPUBJS.core.columnWidth =  Modernizr.prefixed('columnWidth') || 'columnWidth';
-
-	// we are interested in the css prefixed version
-	// EPUBJS.core.columnAxis =  cssIfy(EPUBJS.core.columnAxis);
-	// EPUBJS.core.columnGap =  cssIfy(EPUBJS.core.columnGap);
-	// EPUBJS.core.columnWidth =  cssIfy(EPUBJS.core.columnWidth);
-
-}
 
 EPUBJS.core.toArray = function(obj) {
   var arr = [];
@@ -137,6 +164,16 @@ EPUBJS.core.toArray = function(obj) {
   }
 
   return arr;
+};
+
+//-- Parse out the folder
+EPUBJS.core.folder = function(url){
+	
+	var slash = url.lastIndexOf('/'),
+		folder = url.slice(0, slash + 1);
+
+	return folder;
+
 };
 
 //-- https://github.com/ebidel/filer.js/blob/master/src/filer.js#L128
@@ -220,3 +257,25 @@ EPUBJS.core.addScript = function(src, callback, target) {
     target = target || document.body;
     target.appendChild(s);
   }
+  
+ EPUBJS.core.prefixed = function(unprefixed) {
+ 	var vendors = ["Webkit", "Moz", "O", "ms" ],
+ 		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
+ 		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
+ 		length = vendors.length,
+ 		i = 0;
+
+ 	if (typeof(document.body.style[unprefixed]) != 'undefined') {
+ 		return unprefixed;
+ 	}
+ 
+ 	for ( ; i < length; i++ ) {
+ 		if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
+ 			return vendors[i] + upper;
+ 		}		
+ 	}
+
+ 	return false;
+ 
+ 
+ }

@@ -9482,6 +9482,7 @@ jQuery.each( {scrollLeft: "pageXOffset", scrollTop: "pageYOffset"}, function( me
 });
 
 function getWindow( elem ) {
+	console.log(elem.nodeType);
 	return jQuery.isWindow( elem ) ?
 		elem :
 		elem.nodeType === 9 ?

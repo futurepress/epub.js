@@ -1,4 +1,4 @@
-/*! FuturePress - v0.1.0 - 2013-06-04 */
+/*! FuturePress - v0.1.0 - 2013-06-25 */
 
 EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
 

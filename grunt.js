@@ -13,11 +13,10 @@ module.exports = function(grunt) {
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
-		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
-		'demo/js/libs/modernizr-2.6.2.min.js': 'libs/modernizr/modernizr-2.6.2.min.js'
+		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js'
 	  },
 	  min: {
-		'demo/js/epub.min.js': 'build/epub.js',
+		'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.min.js', 'build/epub.js'],
 		'demo/js/reader.min.js': 'build/reader.js',
 		'demo/js/hooks.min.js': 'build/hooks.js',
 		'demo/js/libs/zip.min.js': ['libs/zip/*.js']

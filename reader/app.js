@@ -14,7 +14,7 @@ EPUBJSR.app.init = (function($){
 		bookURL = bookURL || (search ? search[1] : "moby-dick");
 
 	//-- Setup the browser prefixes 
-	EPUBJS.core.crossBrowserColumnCss();
+	// EPUBJS.core.crossBrowserColumnCss();
 
 	//-- Set up our sidebar
 	windowWidth = $(window).width();
@@ -24,27 +24,38 @@ EPUBJSR.app.init = (function($){
 		$("#main").width(windowWidth);
 	}
 	
-	loadSettings();
 	//-- Create a new book object, 
 	//	 this will create an iframe in the el with the ID provided
-	Book = new EPUBJS.Book("area");
+	Book = new EPUBJS.Book(bookURL);
+	
 	
 	//Book.single = true;
 	
 	//-- Add listeners to handle book events
 	//-- Full list of event are at start of book.js
-	Book.listen("book:metadataReady", meta);
-	Book.listen("book:tocReady", toc);
-	Book.listen("book:bookReady", bookReady);
-	Book.listen("book:chapterReady", chapterChange);
-	Book.listen("book:online", goOnline);
-	Book.listen("book:offline", goOffline);
+	
+	
+	// Book.listen("book:metadataReady", meta);
+	// Book.listen("book:tocReady", toc);
+	// Book.listen("book:bookReady", bookReady);
+	// Book.listen("book:chapterReady", chapterChange);
+	Book.on("book:online", goOnline);
+	Book.on("book:offline", goOffline);
+	
+	Book.getMetadata().then(meta);
+	Book.getToc().then(toc);
+		
+	Book.ready.all.then(bookReady);
+	
+	Book.renderTo("area");
+
+	
 	
 	//Book.registerHook("beforeChapterDisplay", EPUBJS.Hooks.transculsions.insert);
 	
 	//-- Start loading / parsing of the book.
 	//	 This must be done AFTER adding listeners or hooks
-	Book.start(bookURL);
+	//Book.renderTo("area");
 	
 	//-- Wait for Dom ready to handle jquery
 	$(function() {
@@ -54,9 +65,9 @@ EPUBJSR.app.init = (function($){
 
   }
 
-  function meta(){
-	  var title = Book.getTitle(),
-		  author = Book.getCreator(),
+  function meta(meta){
+	  var title = meta.bookTitle,//Book.getTitle(),
+		  author = meta.creator, //Book.getCreator(),
 		  $title = $("#book-title"),
 		  $author = $("#chapter-title"),
 		  $dash = $("#title-seperator");
@@ -68,17 +79,16 @@ EPUBJSR.app.init = (function($){
 
   }
 
-  function toc(){
-	  var contents = Book.getTOC(),
-		  $toc = $("#toc"),
+  function toc(contents){
+	  var $toc = $("#toc"),
 		  $links,
 		  $items;
 
   	  $toc.empty();
-  	  
   	  //-- Recursively generate TOC levels
   	  $items = generateTocItems(contents, 1);
-
+	 
+		
 	  $toc.append($items);
 	  
 	  $links = $(".toc_link");
@@ -94,15 +104,14 @@ EPUBJSR.app.init = (function($){
 	  	
 	  	//-- Provide the Book with the url to show
 	  	//	 The Url must be found in the books manifest
+
+		Book.goto(url);
+		e.preventDefault();
 	  	
-	  	if(!Book.useHash){
-		  	Book.show(url);
-		  	e.preventDefault();
-	  	}
 
 	  });
 
-  }
+   }
 
   function loadSettings() {
 
@@ -195,14 +204,13 @@ EPUBJSR.app.init = (function($){
   function generateTocItems(contents, level){
 	  var $container = $("<ul>");
 	  var type = (level == 1) ? "chapter" : "section";
-	  	  
+
 	  contents.forEach(function(item){
 		  	var $subitems,
 		  		$wrapper = $("<li id='toc-"+item.id+"'>"),
 				$item = $("<a class='toc_link " + type + "' href='#/"+item.href+"' data-url='"+item.href+"'>"+item.label+"</a>");
 
 			$wrapper.append($item);
-			
 			if(item.subitems && item.subitems.length){
 				level++;
 				$subitems = generateTocItems(item.subitems, level);
@@ -229,14 +237,14 @@ EPUBJSR.app.init = (function($){
   function goOnline(){
   	  var $icon = $("#store");
   	  offline = false;
-  	  $icon.attr("src", "img/save.png");
+  	  $icon.attr("src", $icon.data("save"));
   
   }
   
   function goOffline(){
   	  var $icon = $("#store");
   	  offline = true;
-  	  $icon.attr("src", "img/saved.png");
+  	  $icon.attr("src", $icon.data("saved"));
   
   }
   
@@ -292,19 +300,7 @@ EPUBJSR.app.init = (function($){
 	  	}
 
 	  });
-	  
-	  //-- TODO: This doesn't seem to work
-	  $window.bind("touchy-swipe", function(event, phase, $target, data){
-		  
-		  if(data.direction = "left"){
-			  Book.nextPage();
-		  }
-		  
-		  if(data.direction = "right"){
-		  	  Book.prevPage();
-		  }
-	   	
-	  });
+	 
 	  
 
 	  var lock = false;
@@ -335,14 +331,14 @@ EPUBJSR.app.init = (function($){
 			//$book.css("pointer-events", "none"); //-- Avoid capture by ifrmae
 			$sidebar.addClass("open");
 			$main.addClass("closed");
-			$icon.attr("src", "img/close.png");
+			$icon.attr("src", $icon.data("close"));
 		}
 		
 		function hideSidebar(){
 			$book.css("pointer-events", "visible");
 			$sidebar.removeClass("open");
 			$main.removeClass("closed");
-			$icon.attr("src", "img/menu-icon.png");
+			$icon.attr("src",$icon.data("open"));
 		}
 		
 		function showSettings(){
