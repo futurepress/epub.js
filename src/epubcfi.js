@@ -92,7 +92,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	
 	cfi.fragment = this.getFragment(cfiStr);
 
-	cfi.spinePos = (parseInt(cfi.chapter.split("/")[2]) / 2 - 1 ) || false;
+	cfi.spinePos = (parseInt(cfi.chapter.split("/")[2]) / 2 - 1 ) || 0;
 	
 	chapId = cfi.chapter.match(/\[(.*)\]/);
 	

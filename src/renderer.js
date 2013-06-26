@@ -52,6 +52,10 @@ EPUBJS.Renderer.prototype.chapter = function(chapter){
 	var renderer = this,
 		store = this.settings.stored ? this.store : false;
 	
+	if(this.currentChapter) {
+		this.trigger("book:chapterDestroyed");
+	}
+	
 	this.currentChapter = chapter;
 	this.chapterPos = 1;
 	this.pageIds = {};

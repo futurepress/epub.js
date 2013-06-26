@@ -14,10 +14,6 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 			'packagePath' : fullpath,
 			'basePath' : folder
 		};
-
-		// localStorage.setItem("basePath", that.basePath);
-		// localStorage.setItem("contentsPath", that.contentsPath);
-
 }
 
 EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
@@ -65,40 +61,52 @@ EPUBJS.Parser.prototype.findCoverPath = function(manifestNode){
 	return node.getAttribute('href');
 }
 
-// EPUBJS.Parser.prototype.findCover = function(manifest){
-// 	var leng = manifest.length,
-// 		i = 0
-// 		tocPath = false;
-// 
-// 	while(found == false & i < leng) {
-// 	  if(manifest[i].type == "application/x-dtbncx+xml"){
-// 	   tocPath = manifest[i].href;
-// 	   found = true;   
-// 	  }
-// 	  i++;
-// 	}
-// 
-// 	return tocPath;
-// }
 
+//-- Expanded to match Readium web components
+EPUBJS.Parser.prototype.metadata = function(xml){
+	var metadata = {},
+		p = this;
+	
+	
+	metadata.bookTitle = p.getElement(xml, 'title');
+	metadata.creator = p.getElement(xml, 'creator'); 
+	metadata.description = p.getElement(xml, 'description');
+	
+	metadata.pubdate = p.getElement(xml, 'date');
+	
+	metadata.publisher = p.getElement(xml, 'publisher');
+	
+	metadata.identifier = p.getElement(xml, "identifier");
+	metadata.language = p.getElement(xml, "language"); 
+	metadata.rights = p.getElement(xml, "rights"); 
 
+	
+	metadata.modified_date = p.querySelector(xml, "meta[property='dcterms:modified']");
+	metadata.layout = p.querySelector(xml, "meta[property='rendition:orientation']");
+	metadata.orientation = p.querySelector(xml, "meta[property='rendition:orientation']");
+	metadata.spread = p.querySelector(xml, "meta[property='rendition:spread']");
 
-
-EPUBJS.Parser.prototype.metadata = function(metadataXml){
-	var metadata = {};
-
-	var title = metadataXml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","title")[0]
-		creator = metadataXml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/","creator")[0];
-
-	metadata["bookTitle"] = title ? title.childNodes[0].nodeValue : "";
-	metadata["creator"] = creator ? creator.childNodes[0].nodeValue : "";
-
-	//-- TODO: add more meta data items, such as ISBN
-
-	// localStorage.setItem("metadata", JSON.stringify(this.metadata));
+	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 	
 	return metadata;
 }
+
+EPUBJS.Parser.prototype.getElement = function(xml, tag){
+	var find = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
+		el;
+		
+	if(!find) return '';
+	
+	el = find[0]; 
+
+	return el ? el.childNodes[0].nodeValue : '';
+}
+
+EPUBJS.Parser.prototype.querySelector = function(xml, q){
+	var el = xml.querySelector(q);
+	return el ? el.childNodes[0].nodeValue : '';
+}
+
 
 EPUBJS.Parser.prototype.manifest = function(manifestXml){
 	var baseUrl = this.baseUrl,
@@ -123,7 +131,6 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 	
 	return manifest;
 
-	// localStorage.setItem("assets", JSON.stringify(this.assets));
 }
 
 EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
@@ -147,9 +154,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	
 		spine.push(vert);
 	});
-	// localStorage.setItem("spine", JSON.stringify(this.spine));
-	// localStorage.setItem("spineIndexByURL", JSON.stringify(this.spineIndexByURL));
-
+	
 	return spine;
 }
 
@@ -157,21 +162,6 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 	var toc = [];
 
 	var navMap = tocXml.querySelector("navMap");
-		//cover = contents.querySelector("meta[name='cover']"),
-		//coverID;
-
-	//-- Add cover
-	/*
-	if(cover){
-		coverID = cover.getAttribute("content");
-		that.toc.push({
-					"id": coverID, 
-					"href": that.assets[coverID], 
-					"label": coverID 
-
-		});
-	}
-	*/
 	
 	function getTOC(nodes, parent, list){
 		var list = list || [];
@@ -186,15 +176,6 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 				navLabel = item.querySelector("navLabel"),
 				text = navLabel.textContent ? navLabel.textContent : "",
 				subitems =  item.querySelectorAll("navPoint");
-				// subs = false,
-				// childof = (item.parentNode == parent);				
-			
-			//if(!childof) return; //-- Only get direct children, should xpath for this eventually?
-			
-			
-			// if(item.hasChildNodes()){
-			// 	subs = getTOC(subitems, item)
-			// }
 
 			
 			list.push({
@@ -211,18 +192,6 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 
 
 	return getTOC(navMap.querySelectorAll("navPoint"), navMap);
-
-
-	// localStorage.setItem("toc", JSON.stringify(that.toc));
-
-	// that.tell("book:tocReady");
-	/*
-	<navPoint class="chapter" id="xtitlepage" playOrder="1">
-	  <navLabel><text>Moby-Dick</text></navLabel>
-	  <content src="titlepage.xhtml"/>
-	</navPoint>
-	*/
-
 
 
 }

@@ -13,7 +13,7 @@ EPUBJS.Book = function(bookPath, options){
 	  spreads: true,
 	  responsive: true,
 	  version: 1,
-	  restore: true
+	  restore: false
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -321,33 +321,7 @@ EPUBJS.Book.prototype.applySavedSettings = function() {
 		
 		if(EPUBJS.VERSION != stored.EPUBJSVERSION) return false;
 		
-		this.settings = _.defaults(this.settings, stored); 
-				
-		// if(this.settings.prevSpinePos) {
-		// 	this.spinePos = this.settings.prevSpinePos;
-		// 	this.settings = this.settings.prevChapterPos;
-		// }
-
-
-		//-- get previous saved positions
-		// this.spinePos = parseInt(localStorage.getItem("spinePos")) || 0;
-		// this.stored = parseInt(localStorage.getItem("stored")) || 0;
-		
-		//-- get previous saved paths
-		// this.basePath = localStorage.getItem("basePath");
-		// this.contentsPath = localStorage.getItem("contentsPath");
-		
-		//-- get previous saved content
-		// this.metadata = JSON.parse(localStorage.getItem("metadata"));
-		// this.assets = JSON.parse(localStorage.getItem("assets"));
-		// this.spine = JSON.parse(localStorage.getItem("spine"));
-		// this.spineIndexByURL = JSON.parse(localStorage.getItem("spineIndexByURL"));
-		// this.toc = JSON.parse(localStorage.getItem("toc"));
-		
-		//-- Get previous page
-		// this.prevChapterPos = parseInt(localStorage.getItem("chapterPos"));
-		// this.prevDisplayedPages = parseInt(localStorage.getItem("displayedPages"));
-		
+		this.settings = _.defaults(this.settings, stored); 		
 }
 
 EPUBJS.Book.prototype.saveSettings = function(){
@@ -390,7 +364,7 @@ EPUBJS.Book.prototype.renderTo = function(el){
 EPUBJS.Book.prototype.startDisplay = function(){
 	var display;
 	if( this.settings.previousLocationCfi) {
-		
+
 		display = this.displayChapter(this.settings.previousLocationCfi);
 		
 	}else{
@@ -612,17 +586,18 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
-	var that = this;
+	var book = this,
+		plugs;
 	
 	plugTypes = _.values(this.hooks);
-		
-	plugTypes.forEach(function(plug){
-		var type = plug.ident;
-		plugs = _.values(EPUBJS.Hooks[type]);
+
+	for (plugType in this.hooks) {
+		plugs = _.values(EPUBJS.Hooks[plugType]);
+
 		plugs.forEach(function(hook){
-			that.registerHook(type, hook);
+			book.registerHook(plugType, hook);
 		});
-	});
+	}
 }
 
 //-- Hooks allow for injecting async functions that must all complete before continuing 

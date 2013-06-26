@@ -7,7 +7,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			popups = {};
 			
 		
-		EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
+		// EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
 		
 		//console.log("notes", items)
 		items.forEach(function(item){

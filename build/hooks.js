@@ -9,7 +9,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			popups = {};
 			
 		
-		EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
+		// EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
 		
 		//console.log("notes", items)
 		items.forEach(function(item){
@@ -159,7 +159,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 
 		var image = chapter.doc.querySelectorAll('img'),
 			items = Array.prototype.slice.call(image),
-			iheight = chapter.iframe.height,
+			iheight = chapter.doc.body.getBoundingClientRect().height,
 			oheight;
 
 		items.forEach(function(item){
@@ -191,7 +191,11 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 			}
 			
 			
-			chapter.book.listenUntil("book:resized", "book:chapterDestroy", size);
+			chapter.on("book:resized", size);
+			
+			chapter.on("book:chapterDestroyed", function(){
+				chapter.off("book:resized", size);
+			});
 			
 			size();
 
