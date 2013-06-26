@@ -591,6 +591,17 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 }
 */
 
+EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
+	this.renderer.style(style, val, prefixed);
+	
+	this.settings.styles[style] = val;
+}
+
+EPUBJS.Book.prototype.applyStyles = function() {
+	for (style in this.settings.styles) {
+		this.setStyle(style, this.settings.styles[style]);
+	}
+}
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
@@ -971,7 +982,7 @@ EPUBJS.core.addScript = function(src, callback, target) {
  		}		
  	}
 
- 	return false;
+ 	return unprefixed;
  
  
  }
@@ -1586,9 +1597,9 @@ EPUBJS.Renderer.prototype.resizeIframe = function(e, cWidth, cHeight){
 EPUBJS.Renderer.prototype.crossBrowserColumnCss = function(){
 	
 	
-	EPUBJS.Renderer.columnAxis =   EPUBJS.core.prefixed('columnAxis') || 'columnAxis';
-	EPUBJS.Renderer.columnGap =    EPUBJS.core.prefixed('columnGap') || 'columnGap';
-	EPUBJS.Renderer.columnWidth =  EPUBJS.core.prefixed('columnWidth') || 'columnWidth';
+	EPUBJS.Renderer.columnAxis  =  EPUBJS.core.prefixed('columnAxis');
+	EPUBJS.Renderer.columnGap   =  EPUBJS.core.prefixed('columnGap');
+	EPUBJS.Renderer.columnWidth =  EPUBJS.core.prefixed('columnWidth');
 
 
 }
@@ -1712,6 +1723,14 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 	this.docEl.style.overflow = "auto";
 
 	this.displayedPages = 1;
+}
+
+EPUBJS.Renderer.prototype.style = function(style, val, prefixed){
+	if(prefixed) {
+		style = EPUBJS.core.prefixed(style);
+	}
+	
+	this.bodyEl.style[style] = val;
 }
 
 EPUBJS.Renderer.prototype.gotoChapterEnd = function(){
@@ -1991,6 +2010,8 @@ EPUBJS.Renderer.prototype.isElementVisible = function(el){
 	
 	return false;
 }
+
+
 
 
 

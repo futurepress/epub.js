@@ -275,7 +275,7 @@ EPUBJS.core.addScript = function(src, callback, target) {
  		}		
  	}
 
- 	return false;
+ 	return unprefixed;
  
  
  }

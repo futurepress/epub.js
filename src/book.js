@@ -583,6 +583,17 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 }
 */
 
+EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
+	this.renderer.style(style, val, prefixed);
+	
+	this.settings.styles[style] = val;
+}
+
+EPUBJS.Book.prototype.applyStyles = function() {
+	for (style in this.settings.styles) {
+		this.setStyle(style, this.settings.styles[style]);
+	}
+}
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
