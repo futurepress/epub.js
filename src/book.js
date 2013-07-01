@@ -584,16 +584,18 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 */
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
-	this.renderer.style(style, val, prefixed);
+	this.renderer.setStyle(style, val, prefixed);
 	
 	this.settings.styles[style] = val;
 }
 
-EPUBJS.Book.prototype.applyStyles = function() {
-	for (style in this.settings.styles) {
-		this.setStyle(style, this.settings.styles[style]);
-	}
+EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
+	this.renderer.removeStyle(style);
+
+	delete this.settings.styles[style] = '';
 }
+
+removeStyle
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){

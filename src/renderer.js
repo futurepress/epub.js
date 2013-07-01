@@ -166,8 +166,6 @@ EPUBJS.Renderer.prototype.crossBrowserColumnCss = function(){
 }
 
 
-
-
 EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 	var renderer = this,
 		promise = new RSVP.Promise();
@@ -181,6 +179,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
 		renderer.bodyEl = renderer.doc.body;
+		
+		renderer.applyStyles();
 		
 		renderer.formatSpread();
 
@@ -286,12 +286,25 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 	this.displayedPages = 1;
 }
 
-EPUBJS.Renderer.prototype.style = function(style, val, prefixed){
+EPUBJS.Renderer.prototype.setStyle = function(style, val, prefixed){
 	if(prefixed) {
 		style = EPUBJS.core.prefixed(style);
 	}
 	
-	this.bodyEl.style[style] = val;
+	if(this.bodyEl) this.bodyEl.style[style] = val;
+}
+
+EPUBJS.Renderer.prototype.removeStyle = function(style){
+	
+	if(this.bodyEl) this.bodyEl.style[style] = '';
+		
+}
+
+EPUBJS.Renderer.prototype.applyStyles = function() {
+	var style = this.book.settings.styles;
+	for (style in styles) {
+		this.setStyle(style, styles[style]);
+	}
 }
 
 EPUBJS.Renderer.prototype.gotoChapterEnd = function(){
