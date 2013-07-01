@@ -301,7 +301,7 @@ EPUBJS.Renderer.prototype.removeStyle = function(style){
 }
 
 EPUBJS.Renderer.prototype.applyStyles = function() {
-	var style = this.book.settings.styles;
+	var styles = this.book.settings.styles;
 	for (style in styles) {
 		this.setStyle(style, styles[style]);
 	}

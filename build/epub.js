@@ -1,4 +1,4 @@
-/*! FuturePress - v0.1.0 - 2013-06-25 */
+/*! FuturePress - v0.1.0 - 2013-06-30 */
 
 var EPUBJS = EPUBJS || {}; 
 EPUBJS.VERSION = "0.1.5";
@@ -592,16 +592,17 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 */
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
-	this.renderer.style(style, val, prefixed);
+	this.renderer.setStyle(style, val, prefixed);
 	
 	this.settings.styles[style] = val;
 }
 
-EPUBJS.Book.prototype.applyStyles = function() {
-	for (style in this.settings.styles) {
-		this.setStyle(style, this.settings.styles[style]);
-	}
+EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
+	this.renderer.removeStyle(style);
+
+	delete this.settings.styles[style] = '';
 }
+
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
@@ -1605,8 +1606,6 @@ EPUBJS.Renderer.prototype.crossBrowserColumnCss = function(){
 }
 
 
-
-
 EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 	var renderer = this,
 		promise = new RSVP.Promise();
@@ -1620,6 +1619,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
 		renderer.bodyEl = renderer.doc.body;
+		
+		renderer.applyStyles();
 		
 		renderer.formatSpread();
 
@@ -1725,12 +1726,25 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 	this.displayedPages = 1;
 }
 
-EPUBJS.Renderer.prototype.style = function(style, val, prefixed){
+EPUBJS.Renderer.prototype.setStyle = function(style, val, prefixed){
 	if(prefixed) {
 		style = EPUBJS.core.prefixed(style);
 	}
 	
-	this.bodyEl.style[style] = val;
+	if(this.bodyEl) this.bodyEl.style[style] = val;
+}
+
+EPUBJS.Renderer.prototype.removeStyle = function(style){
+	
+	if(this.bodyEl) this.bodyEl.style[style] = '';
+		
+}
+
+EPUBJS.Renderer.prototype.applyStyles = function() {
+	var styles = this.book.settings.styles;
+	for (style in styles) {
+		this.setStyle(style, styles[style]);
+	}
 }
 
 EPUBJS.Renderer.prototype.gotoChapterEnd = function(){

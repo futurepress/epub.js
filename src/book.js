@@ -595,7 +595,6 @@ EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
 	delete this.settings.styles[style] = '';
 }
 
-removeStyle
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
