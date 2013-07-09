@@ -1,7 +1,12 @@
 {
-  "name": "FuturePress",
+  "name": "EpubJS",
   "version": "0.1.0",
   "devDependencies": {
-    "grunt": "0.3.17"
+    "grunt": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0",
+    "connect": "~2.8.4",
+    "colors": "~0.6.0-1",
+    "optimist": "~0.6.0",
+    "portfinder": "~0.2.1"
   }
 }

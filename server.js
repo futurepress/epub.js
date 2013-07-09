@@ -1,13 +1,10 @@
-#!/usr/bin/env node
-
 var connect = require('connect'),
 	colors = require('colors'),
 	argv = require('optimist').argv,
 	portfinder = require('portfinder');
 
 var port = argv.p,
-	logger = argv.l || "dev",
-	silent = argv.s,
+	logger = argv.l,
 	log = console.log;
 
 if (!argv.p) {
@@ -26,7 +23,7 @@ function listen(port) {
   var server = connect();
 	  server.use(connect.static(__dirname))
 	  
-	  if(!silent) server.use(connect.logger(logger))
+	  if(!logger) server.use(connect.logger(logger))
 	  
 	  server.listen(port);
 	
