@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2012 Gildas Lormeau. All rights reserved.
+ Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -50,9 +50,6 @@
 			0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff ];
 
 	var MANY = 1440;
-
-	var MAX_WBITS = 15; // 32K LZ77 window
-	var DEF_WBITS = MAX_WBITS;
 
 	// JZlib version : "1.0.2"
 	var Z_NO_FLUSH = 0;
@@ -432,8 +429,7 @@
 	InfTree.inflate_trees_fixed = function(bl, // literal desired/actual bit depth
 	bd, // distance desired/actual bit depth
 	tl,// literal/length tree result
-	td,// distance tree result
-	z // for memory allocation
+	td// distance tree result
 	) {
 		bl[0] = fixed_bl;
 		bd[0] = fixed_bd;
@@ -735,7 +731,7 @@
 			return Z_OK;
 		}
 
-		that.init = function(bl, bd, tl, tl_index, td, td_index, z) {
+		that.init = function(bl, bd, tl, tl_index, td, td_index) {
 			mode = START;
 			lbits = /* (byte) */bl;
 			dbits = /* (byte) */bd;
@@ -748,7 +744,6 @@
 
 		that.proc = function(s, z, r) {
 			var j; // temporary storage
-			var t; // temporary pointer
 			var tindex; // temporary pointer
 			var e; // extra bits or operation
 			var b = 0; // bit buffer
@@ -1102,7 +1097,7 @@
 			}
 		};
 
-		that.free = function(z) {
+		that.free = function() {
 			// ZFREE(z, c);
 		};
 
@@ -1298,8 +1293,8 @@
 						var tl = [ [] ]; // new Array(1);
 						var td = [ [] ]; // new Array(1);
 
-						InfTree.inflate_trees_fixed(bl, bd, tl, td, z);
-						codes.init(bl[0], bd[0], tl[0], 0, td[0], 0, z);
+						InfTree.inflate_trees_fixed(bl, bd, tl, td);
+						codes.init(bl[0], bd[0], tl[0], 0, td[0], 0);
 						// }
 
 						// {
@@ -1533,7 +1528,6 @@
 							break;
 						}
 
-						var h;
 						var j, c;
 
 						t = bb[0];
@@ -1647,7 +1641,7 @@
 						that.write = q;
 						return that.inflate_flush(z, r);
 					}
-					codes.init(bl_[0], bd_[0], hufts, tl_[0], hufts, td_[0], z);
+					codes.init(bl_[0], bd_[0], hufts, tl_[0], hufts, td_[0]);
 					// }
 					mode = CODES;
 				case CODES:
@@ -2113,7 +2107,7 @@
 					return -1;
 				if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_out == data.length))
+				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)

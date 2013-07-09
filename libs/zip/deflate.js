@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2012 Gildas Lormeau. All rights reserved.
+ Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -89,8 +89,6 @@
 	// Tree
 
 	// see definition of array dist_code below
-	var DIST_CODE_LEN = 512;
-
 	var _dist_code = [ 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 			10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
 			12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
@@ -464,11 +462,6 @@
 	var STATIC_TREES = 1;
 	var DYN_TREES = 2;
 
-	// The three kinds of block type
-	var Z_BINARY = 0;
-	var Z_ASCII = 1;
-	var Z_UNKNOWN = 2;
-
 	var MIN_MATCH = 3;
 	var MAX_MATCH = 258;
 	var MIN_LOOKAHEAD = (MAX_MATCH + MIN_MATCH + 1);
@@ -488,7 +481,6 @@
 		var pending_buf_size; // size of pending_buf
 		// pending_out; // next pending byte to output to the stream
 		// pending; // nb of bytes in the pending buffer
-		// data_type; // UNKNOWN, BINARY or ASCII
 		var method; // STORED (for zip only) or DEFLATED
 		var last_flush; // value of flush param for previous deflate call
 
@@ -1035,29 +1027,6 @@
 			last_eob_len = ltree[END_BLOCK * 2 + 1];
 		}
 
-		// Set the data type to ASCII or BINARY, using a crude approximation:
-		// binary if more than 20% of the bytes are <= 6 or >= 128, ascii otherwise.
-		// IN assertion: the fields freq of dyn_ltree are set and the total of all
-		// frequencies does not exceed 64K (to fit in an int on 16 bit machines).
-		function set_data_type() {
-			var n = 0;
-			var ascii_freq = 0;
-			var bin_freq = 0;
-			while (n < 7) {
-				bin_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			while (n < 128) {
-				ascii_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			while (n < LITERALS) {
-				bin_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			that.data_type = (bin_freq > (ascii_freq >>> 2) ? Z_BINARY : Z_ASCII) & 0xff;
-		}
-
 		// Flush the bit buffer and align the output on a byte boundary
 		function bi_windup() {
 			if (bi_valid > 8) {
@@ -1075,7 +1044,6 @@
 		len, // its length
 		header // true if block header must be written
 		) {
-			var index = 0;
 			bi_windup(); // align on byte boundary
 			last_eob_len = 8; // enough lookahead for inflate
 
@@ -1108,10 +1076,6 @@
 
 			// Build the Huffman trees unless a stored block is forced
 			if (level > 0) {
-				// Check if the file is ascii or binary
-				if (that.data_type == Z_UNKNOWN)
-					set_data_type();
-
 				// Construct the literal and distance trees
 				l_desc.build_tree(that);
 
@@ -1643,8 +1607,7 @@
 		function deflateReset(strm) {
 			strm.total_in = strm.total_out = 0;
 			strm.msg = null; //
-			strm.data_type = Z_UNKNOWN;
-
+			
 			that.pending = 0;
 			that.pending_out = 0;
 
@@ -1928,8 +1891,6 @@
 		that.total_out = 0; // total nb of bytes output so far
 		// that.msg;
 		// that.dstate;
-		// that.data_type; // best guess about the data type: ascii or binary
-
 	}
 
 	ZStream.prototype = {
@@ -2071,7 +2032,7 @@
 			return array;
 		};
 		that.flush = function() {
-			var err, ab, buffers = [], bufferIndex = 0, bufferSize = 0, array;
+			var err, buffers = [], bufferIndex = 0, bufferSize = 0, array;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;

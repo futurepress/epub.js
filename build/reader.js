@@ -1,4 +1,4 @@
-/*! FuturePress - v0.1.0 - 2013-06-30 */
+/*! FuturePress - v0.1.0 - 2013-07-08 */
 
 var EPUBJSR = EPUBJSR || {};
 

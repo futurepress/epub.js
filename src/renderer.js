@@ -15,13 +15,15 @@ EPUBJS.Renderer = function(book) {
 	}
 	
 	book.registerHook("beforeChapterDisplay", 
-		[this.replaceLinks.bind(this), this.replaceResources.bind(this)]);
+		[this.replaceLinks.bind(this), 
+		 this.replaceResources.bind(this),
+		 this.replaceHead.bind(this)], true);
 
 	
 	this.crossBrowserColumnCss();
 	
 	this.epubcfi = new EPUBJS.EpubCFI();
-	
+		
 	this.initialize();
 	this.listeners();
 }
@@ -50,9 +52,13 @@ EPUBJS.Renderer.prototype.listeners = function(){
 
 EPUBJS.Renderer.prototype.chapter = function(chapter){
 	var renderer = this,
-		store = this.settings.stored ? this.store : false;
+		store = false;
+		
+	if(this.book.settings.contained) store = this.book.zip;
+	// if(this.settings.stored) store = this.storage;
 	
 	if(this.currentChapter) {
+		this.currentChapter.unload();
 		this.trigger("book:chapterDestroyed");
 	}
 	
@@ -189,6 +195,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 			renderer.calcPages();
 			
+			promise.resolve(renderer);
+
 			renderer.currentLocationCfi = renderer.getPageCfi();
 
 			renderer.trigger("book:chapterDisplayed");
@@ -197,7 +205,7 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 		});
 		
-		promise.resolve(renderer);
+		
 		// that.afterLoaded(that);
 
 		
@@ -246,6 +254,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 
 	this.spreadWidth = (this.colWidth + this.gap) * divisor;
 
+	if(this.bodyEl) this.bodyEl.style.margin = 0;
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
@@ -328,7 +337,7 @@ EPUBJS.Renderer.prototype.calcPages = function() {
 	this.totalWidth = this.docEl.scrollWidth;
 	
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
-	
+
 	this.currentChapter.pages = this.displayedPages;
 }
 
@@ -372,6 +381,8 @@ EPUBJS.Renderer.prototype.prevPage = function(){
 
 EPUBJS.Renderer.prototype.chapterEnd = function(){
 	this.page(this.displayedPages);
+
+	this.currentLocationCfi = this.getPageCfi();
 }
 
 EPUBJS.Renderer.prototype.setLeft = function(leftPos){
@@ -379,9 +390,186 @@ EPUBJS.Renderer.prototype.setLeft = function(leftPos){
 	this.doc.defaultView.scrollTo(leftPos, 0)
 }
 
+EPUBJS.Renderer.prototype.replace = function(query, func, callback){
+	var items, resources, count;
+	
+	items = this.doc.querySelectorAll(query);
+	resources = Array.prototype.slice.call(items);
+	count = resources.length;
+	
+	resources.forEach(function(item){
+		
+		func(item, function(){
+			count--;
+			if(count <= 0 && callback) callback();
+		});
+	
+	}.bind(this));
+	
+	if(count === 0) callback();
+}
+
+EPUBJS.Renderer.prototype.determineStore = function(callback){
+	if(this.book.fromStorage) {
+		
+		//-- Filesystem api links are relative, so no need to replace them
+		if(this.book.storage.getStorageType() == "filesystem") {
+			return false;
+		}
+		
+		return this.book.store;
+		
+	} else if(this.book.contained) {
+		
+		return this.book.zip;
+		
+	} else {
+		
+		return false;
+		
+	}
+}
+	
+//-- Replaces links in head, such as stylesheets
+EPUBJS.Renderer.prototype.replaceHead = function(callback){
+	var srcs, resources, count, oldUrls, 
+		newUrls = {},
+		unarchiver = this,
+		store = this.determineStore(),
+		replaceUrl = function(link, url){
+			link.setAttribute("href", url);
+			link.onload = function(){
+				count--;
+				if(count <= 0) finished();
+			}
+		},
+		finished = function() {
+		
+			if(callback) callback();
+			
+			_.each(oldUrls, function(url){
+				store.revokeUrl(url);
+			});
+			
+			unarchiver.urlCache = newUrls;
+		};
+	
+	if(!store) {
+		if(callback) callback();
+		return false; 
+	}
+	
+	srcs = this.doc.head.querySelectorAll('[href]');
+	resources = Array.prototype.slice.call(srcs);
+	count = resources.length;
+	
+	if(!this.urlCache) this.urlCache = {};
+	oldUrls = _.clone(this.urlCache);
+
+	resources.forEach(function(link){
+		var src = link.getAttribute("href"),
+			full = this.book.settings.contentsPath + src;
+		
+		
+		if(full in oldUrls){
+			replaceUrl(link, oldUrls[full]);
+			newUrls[full] = oldUrls[full];
+			delete oldUrls[full];
+		}else{
+			
+			//-- Handle replacing urls in CSS
+			if(link.getAttribute("rel") === "stylesheet") {
+				store.getText(full).then(function(text){
+					var url;
+				
+					unarchiver.replaceUrlsInCss(full, text).then(function(newText){
+						var _URL = window.URL || window.webkitURL || window.mozURL;
+
+						var blob = new Blob([newText], { "type" : "text\/css" }),
+							url = _URL.createObjectURL(blob);
+
+						replaceUrl(link, url);
+						newUrls[full] = url;
+
+					}, function(e) {console.error(e)});
+					
+				});	
+			}else{
+				store.getUrl(full).then(function(url){
+					replaceUrl(link, url);
+					newUrls[full] = url;
+				});	
+			}
+
+		}
+		
+
+	}.bind(this));
+
+	if(count === 0) finished();
+	
+}
+
+EPUBJS.Renderer.prototype.replaceUrlsInCss = function(base, text){
+	var promise = new RSVP.Promise(),
+		promises = [],
+		store = this.determineStore(),
+		matches = text.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/g);
+
+	matches.forEach(function(str){
+		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
+		replaced = store.getUrl(full).then(function(url){
+			text = text.replace(str, 'url("'+url+'")');
+		}, function(e) {console.error(e)} );
+		
+		promises.push(replaced);
+	});
+	
+	RSVP.all(promises).then(function(){
+		promise.resolve(text);
+	});
+	
+	return promise;	
+}
+/*
+//-- Replaces links in head, such as stylesheets
+EPUBJS.Renderer.prototype.replaceCss = function(callback){
+	var styleSheets = this.doc.styleSheets,
+		store = this.determineStore(),
+		rules = [];
+	
+	_.each(styleSheets, function(sheet){
+		_.each(sheet.cssRules, function(rule, index){
+			if(rule.type == 5) {
+				//url("../fonts/STIXGeneral.otf")
+				// if()
+				var urlString = rule.cssText.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/),
+					full;
+				// rule.cssText = ""
+				// console.log(rule.style.src, rule.style[3])
+				// console.log(urlString)
+			
+				if(urlString[1]){
+					full = "OPS/" + urlString[1].slice(3);
+					store.getUrl(full).then(function(url){
+						var newRule = rule.cssText.replace(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/, 'url("'+url+'")');
+						sheet.deleteRule(index)
+						sheet.insertRule(newRule, false);
+					});
+				}	
+			
+			}
+		});
+	});
+	
+
+}
+*/
+
+
 //-- Replaces the relative links within the book to use our internal page changer
 EPUBJS.Renderer.prototype.replaceLinks = function(callback){
-	var hrefs = this.doc.querySelectorAll('[href]'),
+	var hrefs = this.doc.querySelectorAll('a'),
 		links = Array.prototype.slice.call(hrefs),
 		that = this;
 
@@ -390,7 +578,7 @@ EPUBJS.Renderer.prototype.replaceLinks = function(callback){
 			href = link.getAttribute("href"),
 			relative = href.search("://"),
 			fragment = href[0] == "#";
-
+		
 		if(relative != -1){
 
 			link.setAttribute("target", "_blank");
@@ -411,30 +599,35 @@ EPUBJS.Renderer.prototype.replaceLinks = function(callback){
 //-- Replaces assets src's to point to stored version if browser is offline
 EPUBJS.Renderer.prototype.replaceResources = function(callback){
 	var srcs, resources, count;
-
-	//-- No need to replace if there is network connectivity
-	//-- also Filesystem api links are relative, so no need to replace them
-	if((this.book.online && !this.book.contained) || EPUBJS.storage.getStorageType() == "filesystem") {
+	var store = this.determineStore();
+	
+	if(!store) {
 		if(callback) callback();
 		return false; 
 	}
-
+	
 	srcs = this.doc.querySelectorAll('[src]');
 	resources = Array.prototype.slice.call(srcs);
 	count = resources.length;
-
+	
 	resources.forEach(function(link){
 		var src = link.getAttribute("src"),
-			full = this.book.basePath + src;
+			full = this.book.settings.contentsPath + src;
 
-		EPUBJS.storage.get(full, function(url){
-			link.setAttribute("src", url);
-			count--;
-			if(count <= 0 && callback) callback();
+		store.getUrl(full).then(function(url){
+			// link.setAttribute("src", url);
+			link.src = url;
+			
+			link.onload = function(){
+				count--;
+				if(count <= 0 && callback) callback();
+			}
+			
 		});
-
+		
 	}.bind(this));
-
+	
+	if(count === 0) callback();
 }
 
 EPUBJS.Renderer.prototype.page = function(pg){
@@ -446,7 +639,7 @@ EPUBJS.Renderer.prototype.page = function(pg){
 		// localStorage.setItem("chapterPos", pg);
 		return true;
 	}
-	console.log("false", pg, this.displayedPages)
+
 	//-- Return false if page is greater than the total
 	return false;
 }
@@ -534,7 +727,7 @@ EPUBJS.Renderer.prototype.getPageCfi = function(){
 	this.visibileEl = this.findFirstVisible(prevEl);
 	
 	if(!this.visibileEl.id) {
-		this.visibileEl.id = "@EPUBJS-PAGE-" + this.chapterPos;
+		this.visibileEl.id = "EPUBJS-PAGE-" + this.chapterPos;
 	}
 	
 	this.pageIds[this.chapterPos] = this.visibileEl.id;
@@ -583,6 +776,11 @@ EPUBJS.Renderer.prototype.isElementVisible = function(el){
 	}
 	
 	return false;
+}
+
+
+EPUBJS.Renderer.prototype.height = function(el){
+	return this.docEl.offsetHeight;
 }
 
 

@@ -36,7 +36,7 @@ EPUBJS.core.request = function(url, type) {
 	
 	function handler() {
 	  if (this.readyState === this.DONE) {
-		if (this.status === 200) { 
+		if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
 			var r;
 			
 			if(type == 'xml'){
@@ -278,4 +278,26 @@ EPUBJS.core.addScript = function(src, callback, target) {
  	return unprefixed;
  
  
+ }
+ 
+ EPUBJS.core.resolveUrl = function(base, path) {
+	var url,
+		segments = [],
+	 	folders = base.split("/"),
+	 	paths;
+	 	
+	 folders.pop();
+	 
+	 paths = path.split("/");
+	 paths.forEach(function(p){
+		if(p === ".."){
+			folders.pop();
+		}else{
+			segments.push(p);
+		}
+	 });
+	 
+	 url = folders.concat(segments);
+	 
+	 return url.join("/");
  }

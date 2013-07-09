@@ -20,17 +20,25 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.filePath = "../src/";
+                EPUBJS.filePath = "../libs/";
                 fileStorage.filePath = "../libs/fileStorage/workers/";
                 
                 EPUBJS.VERSION = "0.1.5";
-                EPUBJSR.app.init('/demo/moby-dick');
+                EPUBJSR.app.init('/demo/moby-dick.epub');
               }  
             };
         
           </script>
         
         <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
+        
+        <!-- zip -->
+        <script src="../libs/zip/zip.js"></script>
+        <script src="../libs/zip/zip-fs.js"></script>
+        <script src="../libs/zip/zip-ext.js"></script>
+        <script src="../libs/zip/inflate.js"></script>
+        <script src="../libs/zip/mime-types.js"></script>
+        
         
         <!-- Render -->
         <script src="../libs/underscore/underscore.js"></script>
@@ -55,6 +63,8 @@
         <!-- Reader -->
         <script async src="../reader/utils.js"></script>
         <script async src="../reader/app.js"></script>
+        
+        
         
     </head>
     <body>

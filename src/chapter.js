@@ -20,9 +20,12 @@ EPUBJS.Chapter.prototype.contents = function(store){
 
 EPUBJS.Chapter.prototype.url = function(store){
 	var promise = new RSVP.Promise();
-	
+
 	if(store){
-		return store.getUrl(href);
+		if(!this.tempUrl) {
+			this.tempUrl = store.getUrl(this.href);
+		}
+		return this.tempUrl;
 	}else{
 		promise.resolve(this.href); //-- this is less than ideal but keeps it a promise
 		return promise;
@@ -40,4 +43,12 @@ EPUBJS.Chapter.prototype.getPages = function(num){
 
 EPUBJS.Chapter.prototype.getID = function(){
 	return this.ID;
+}
+
+EPUBJS.Chapter.prototype.unload = function(store){
+	
+	if(this.tempUrl && store) {
+		store.revokeUrl(this.tempUrl);
+		this.tempUrl = false;
+	}
 }

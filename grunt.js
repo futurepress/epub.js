@@ -19,7 +19,8 @@ module.exports = function(grunt) {
 		'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.min.js', 'build/epub.js'],
 		'demo/js/reader.min.js': 'build/reader.js',
 		'demo/js/hooks.min.js': 'build/hooks.js',
-		'demo/js/libs/zip.min.js': ['libs/zip/*.js']
+		'demo/js/libs/zip.min.js': ['libs/zip/*.js'],
+		'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js']
 	  }
 	});
 	

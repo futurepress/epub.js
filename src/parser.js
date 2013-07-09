@@ -18,17 +18,17 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 
 EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
 	var parse = this;
-	
+
 	if(baseUrl) this.baseUrl = baseUrl;
 	
 	var metadataNode = packageXml.querySelector("metadata"),
 		manifestNode = packageXml.querySelector("manifest"),
 		spineNode = packageXml.querySelector("spine");
-	
+
 	var manifest = parse.manifest(manifestNode),
 		tocPath = parse.findTocPath(manifestNode),
 		coverPath = parse.findCoverPath(manifestNode);
-	
+
 	var spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
 	
 	var spine = parse.spine(spineNode, manifest);
@@ -52,13 +52,13 @@ EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
 //-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 EPUBJS.Parser.prototype.findTocPath = function(manifestNode){
 	var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
-	return node.getAttribute('href');
+	return node ? node.getAttribute('href') : false;
 }
 
 //-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
 EPUBJS.Parser.prototype.findCoverPath = function(manifestNode){
 	var node = manifestNode.querySelector("item[properties='cover-image']");
-	return node.getAttribute('href');
+	return node ? node.getAttribute('href') : false;
 }
 
 

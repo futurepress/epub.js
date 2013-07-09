@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2012 Gildas Lormeau. All rights reserved.
+ Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -30,23 +30,20 @@
 
 	var CHUNK_SIZE = 512 * 1024;
 
-	var FileWriter = zip.FileWriter, //
-	TextWriter = zip.TextWriter, //
+	var TextWriter = zip.TextWriter, //
 	BlobWriter = zip.BlobWriter, //
 	Data64URIWriter = zip.Data64URIWriter, //
 	Reader = zip.Reader, //
 	TextReader = zip.TextReader, //
 	BlobReader = zip.BlobReader, //
 	Data64URIReader = zip.Data64URIReader, //
-	HttpRangeReader = zip.HttpRangeReader, //
-	HttpReader = zip.HttpReader, //
 	createReader = zip.createReader, //
 	createWriter = zip.createWriter;
 
 	function ZipBlobReader(entry) {
 		var that = this, blobReader;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			this.size = entry.uncompressedSize;
 			callback();
 		}
@@ -92,7 +89,6 @@
 		var index = 0;
 
 		function next() {
-			var child = entry.children[index];
 			index++;
 			if (index < entry.children.length)
 				process(entry.children[index]);
@@ -209,10 +205,10 @@
 			}, onerror);
 	}
 
-	function getFileEntry(fileEntry, entry, onend, onprogress, totalSize, checkCrc32) {
-		var currentIndex = 0, rootEntry;
+	function getFileEntry(fileEntry, entry, onend, onprogress, onerror, totalSize, checkCrc32) {
+		var currentIndex = 0;
 
-		function process(fileEntry, entry, onend, onprogress, totalSize) {
+		function process(fileEntry, entry, onend, onprogress, onerror, totalSize) {
 			var childIndex = 0;
 
 			function addChild(child) {
@@ -221,7 +217,7 @@
 					process(childFileEntry, child, function() {
 						childIndex++;
 						processChild();
-					}, onprogress, totalSize);
+					}, onprogress, onerror, totalSize);
 				}
 
 				if (child.directory)
@@ -232,7 +228,7 @@
 					fileEntry.getFile(child.name, {
 						create : true
 					}, function(file) {
-						child.getData(new FileWriter(file, zip.getMimeType(child.name)), nextChild, function(index, max) {
+						child.getData(new zip.FileWriter(file, zip.getMimeType(child.name)), nextChild, function(index) {
 							if (onprogress)
 								onprogress(currentIndex + index, totalSize);
 						}, checkCrc32);
@@ -249,11 +245,11 @@
 
 			processChild();
 		}
-		
+
 		if (entry.directory)
-			process(fileEntry, entry, onend, onprogress, totalSize);
+			process(fileEntry, entry, onend, onprogress, onerror, totalSize);
 		else
-			entry.getData(new FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
+			entry.getData(new zip.FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
 	}
 
 	function resetFS(fs) {
@@ -328,7 +324,7 @@
 		getFileEntry : function(fileEntry, onend, onprogress, onerror, checkCrc32) {
 			var that = this;
 			initReaders(that, function() {
-				getFileEntry(fileEntry, that, onend, onprogress, getTotalSize(that), checkCrc32);
+				getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
 			}, onerror);
 		},
 		moveTo : function(target) {
@@ -377,8 +373,8 @@
 
 	ZipFileEntry.prototype = ZipFileEntryProto = new ZipEntry();
 	ZipFileEntryProto.constructor = ZipFileEntry;
-	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32) {
-		this.getData(new TextWriter(), onend, onprogress, checkCrc32);
+	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32, encoding) {
+		this.getData(new TextWriter(encoding), onend, onprogress, checkCrc32);
 	};
 	ZipFileEntryProto.getBlob = function(mimeType, onend, onprogress, checkCrc32) {
 		this.getData(new BlobWriter(mimeType), onend, onprogress, checkCrc32);
@@ -421,12 +417,6 @@
 			Writer : Data64URIWriter
 		});
 	};
-	ZipDirectoryEntryProto.addHttpContent = function(name, URL, useRangeHeader) {
-		return addChild(this, name, {
-			data : URL,
-			Reader : useRangeHeader ? HttpRangeReader : HttpReader
-		});
-	};
 	ZipDirectoryEntryProto.addFileEntry = function(fileEntry, onend, onerror) {
 		addFileEntry(this, fileEntry, onend, onerror);
 	};
@@ -442,9 +432,6 @@
 	ZipDirectoryEntryProto.importData64URI = function(dataURI, onend, onerror) {
 		this.importZip(new Data64URIReader(dataURI), onend, onerror);
 	};
-	ZipDirectoryEntryProto.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
-		this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
-	};
 	ZipDirectoryEntryProto.exportBlob = function(onend, onprogress, onerror) {
 		this.exportZip(new BlobWriter("application/zip"), onend, onprogress, onerror);
 	};
@@ -452,7 +439,7 @@
 		this.exportZip(new TextWriter(), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportFileEntry = function(fileEntry, onend, onprogress, onerror) {
-		this.exportZip(new FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
+		this.exportZip(new zip.FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportData64URI = function(onend, onprogress, onerror) {
 		this.exportZip(new Data64URIWriter("application/zip"), onend, onprogress, onerror);
@@ -524,10 +511,6 @@
 			resetFS(this);
 			this.root.importData64URI(dataURI, onend, onerror);
 		},
-		importHttpContent : function(URL, useRangeHeader, onend, onerror) {
-			resetFS(this);
-			this.root.importHttpContent(URL, useRangeHeader, onend, onerror);
-		},
 		exportBlob : function(onend, onprogress, onerror) {
 			this.root.exportBlob(onend, onprogress, onerror);
 		},
@@ -543,9 +526,11 @@
 	};
 
 	zip.fs = {
-		FS : FS
+		FS : FS,
+		ZipDirectoryEntry : ZipDirectoryEntry,
+		ZipFileEntry : ZipFileEntry
 	};
-	
+
 	zip.getMimeType = function() {
 		return "application/octet-stream";
 	};

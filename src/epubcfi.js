@@ -28,7 +28,7 @@ EPUBJS.EpubCFI.prototype.generateFragment = function(element, chapter) {
 		parts.push((part.index + 1) * 2);
 
 		if(part.id && 
-		   part.id.slice(0, 7) != "@EPUBJS") { //-- ignore internal @EPUBJS ids
+		   part.id.slice(0, 6) != "EPUBJS") { //-- ignore internal @EPUBJS ids
 
 			parts.push("[" + part.id + "]"); 
 		}
@@ -149,6 +149,7 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, doc) {
 	  part = sections.shift();
 	
 	  if(part.id){
+		  console.log(part.id)
 		element = cfi.doc.querySelector("#" + part.id);	  
 	  }else{
 	

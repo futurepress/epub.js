@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2012 Gildas Lormeau. All rights reserved.
+ Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -36,24 +36,19 @@
 	var ERR_WRITE_DATA = "Error while writing file data.";
 	var ERR_READ_DATA = "Error while reading file data.";
 	var ERR_DUPLICATED_NAME = "File already exists.";
-	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 	var CHUNK_SIZE = 512 * 1024;
 
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
-
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
+	
+	var TEXT_PLAIN = "text/plain";
+	
+	var MESSAGE_EVENT = "message";
 
 	var appendABViewSupported;
-
-	function isAppendABViewSupported() {
-		if (typeof appendABViewSupported == "undefined") {
-			var blobBuilder;
-			blobBuilder = new BlobBuilder();
-			blobBuilder.append(getDataHelper(0).view);
-			appendABViewSupported = blobBuilder.getBlob().size == 0;
-		}
-		return appendABViewSupported;
+	try {
+		appendABViewSupported = new Blob([ new DataView(new ArrayBuffer(0)) ]).size === 0;
+	} catch (e) {
 	}
 
 	function Crc32() {
@@ -113,9 +108,10 @@
 		var that = this, blobReader;
 
 		function init(callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(text);
-			blobReader = new BlobReader(blobBuilder.getBlob("text/plain"));
+			var blob = new Blob([ text ], {
+				type : TEXT_PLAIN
+			});
+			blobReader = new BlobReader(blob);
 			blobReader.init(function() {
 				that.size = blobReader.size;
 				callback();
@@ -136,7 +132,7 @@
 	function Data64URIReader(dataURI) {
 		var that = this, dataStart;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			var dataEnd = dataURI.length;
 			while (dataURI.charAt(dataEnd - 1) == "=")
 				dataEnd--;
@@ -145,7 +141,7 @@
 			callback();
 		}
 
-		function readUint8Array(index, length, callback, onerror) {
+		function readUint8Array(index, length, callback) {
 			var i, data = getDataHelper(length);
 			var start = Math.floor(index / 3) * 4;
 			var end = Math.ceil((index + length) / 3) * 4;
@@ -166,7 +162,7 @@
 	function BlobReader(blob) {
 		var that = this;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			this.size = blob.size;
 			callback();
 		}
@@ -187,93 +183,6 @@
 	BlobReader.prototype = new Reader();
 	BlobReader.prototype.constructor = BlobReader;
 
-	function HttpReader(url) {
-		var that = this;
-
-		function getData(callback, onerror) {
-			var request;
-			if (!that.data) {
-				request = new XMLHttpRequest();
-				request.addEventListener("load", function() {
-					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length"));
-					that.data = new Uint8Array(request.response);
-					callback();
-				}, false);
-				request.addEventListener("error", onerror, false);
-				request.open("GET", url);
-				request.responseType = "arraybuffer";
-				request.send();
-			} else
-				callback();
-		}
-
-		function init(callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
-				callback();
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.open("HEAD", url);
-			request.send();
-		}
-
-		function readUint8Array(index, length, callback, onerror) {
-			getData(function() {
-				callback(new Uint8Array(that.data.subarray(index, index + length)));
-			}, onerror);
-		}
-
-		that.size = 0;
-		that.init = init;
-		that.readUint8Array = readUint8Array;
-	}
-	HttpReader.prototype = new Reader();
-	HttpReader.prototype.constructor = HttpReader;
-
-	function HttpRangeReader(url) {
-		var that = this;
-
-		function init(callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
-				if (request.getResponseHeader("Accept-Ranges") == "bytes")
-					callback();
-				else
-					onerror(ERR_HTTP_RANGE);
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.open("HEAD", url);
-			request.send();
-		}
-
-		function readArrayBuffer(index, length, callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.open("GET", url);
-			request.responseType = "arraybuffer";
-			request.setRequestHeader("Range", "bytes=" + index + "-" + (index + length - 1));
-			request.addEventListener("load", function() {
-				callback(request.response);
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.send();
-		}
-
-		function readUint8Array(index, length, callback, onerror) {
-			readArrayBuffer(index, length, function(arraybuffer) {
-				callback(new Uint8Array(arraybuffer));
-			}, onerror);
-		}
-
-		that.size = 0;
-		that.init = init;
-		that.readUint8Array = readUint8Array;
-	}
-	HttpRangeReader.prototype = new Reader();
-	HttpRangeReader.prototype.constructor = HttpRangeReader;
-
 	// Writers
 
 	function Writer() {
@@ -282,26 +191,30 @@
 		callback(this.data);
 	};
 
-	function TextWriter() {
-		var that = this, blobBuilder;
+	function TextWriter(encoding) {
+		var that = this, blob;
 
-		function init(callback, onerror) {
-			blobBuilder = new BlobBuilder();
+		function init(callback) {
+			blob = new Blob([], {
+				type : TEXT_PLAIN
+			});
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
+		function writeUint8Array(array, callback) {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
+				type : TEXT_PLAIN
+			});
 			callback();
 		}
 
-		function getData(callback) {
+		function getData(callback, onerror) {
 			var reader = new FileReader();
 			reader.onload = function(e) {
 				callback(e.target.result);
 			};
 			reader.onerror = onerror;
-			reader.readAsText(blobBuilder.getBlob("text/plain"));
+			reader.readAsText(blob, encoding);
 		}
 
 		that.init = init;
@@ -314,12 +227,12 @@
 	function Data64URIWriter(contentType) {
 		var that = this, data = "", pending = "";
 
-		function init(callback, onerror) {
+		function init(callback) {
 			data += "data:" + (contentType || "") + ";base64,";
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
+		function writeUint8Array(array, callback) {
 			var i, delta = pending.length, dataString = pending;
 			pending = "";
 			for (i = 0; i < (Math.floor((delta + array.length) / 3) * 3) - delta; i++)
@@ -344,53 +257,25 @@
 	Data64URIWriter.prototype = new Writer();
 	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
-	function FileWriter(fileEntry, contentType) {
-		var writer, that = this;
-
-		function init(callback, onerror) {
-			fileEntry.createWriter(function(fileWriter) {
-				writer = fileWriter;
-				callback();
-			}, onerror);
-		}
-
-		function writeUint8Array(array, callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
-			writer.onwrite = function() {
-				writer.onwrite = null;
-				callback();
-			};
-			writer.onerror = onerror;
-			writer.write(blobBuilder.getBlob(contentType));
-		}
-
-		function getData(callback) {
-			fileEntry.file(callback);
-		}
-
-		that.init = init;
-		that.writeUint8Array = writeUint8Array;
-		that.getData = getData;
-	}
-	FileWriter.prototype = new Writer();
-	FileWriter.prototype.constructor = FileWriter;
-
 	function BlobWriter(contentType) {
-		var blobBuilder, that = this;
+		var blob, that = this;
 
-		function init(callback, onerror) {
-			blobBuilder = new BlobBuilder();
+		function init(callback) {
+			blob = new Blob([], {
+				type : contentType
+			});
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
+		function writeUint8Array(array, callback) {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
+				type : contentType
+			});
 			callback();
 		}
 
 		function getData(callback) {
-			callback(blobBuilder.getBlob(contentType));
+			callback(blob);
 		}
 
 		that.init = init;
@@ -406,13 +291,12 @@
 		var chunkIndex = 0, index, outputSize;
 
 		function onflush() {
-			worker.removeEventListener("message", onmessage, false);
+			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
 			onend(outputSize);
 		}
 
 		function onmessage(event) {
 			var message = event.data, data = message.data;
-
 			if (message.onappend) {
 				outputSize += data.length;
 				writer.writeUint8Array(data, function() {
@@ -453,7 +337,7 @@
 		}
 
 		outputSize = 0;
-		worker.addEventListener("message", onmessage, false);
+		worker.addEventListener(MESSAGE_EVENT, onmessage, false);
 		step();
 	}
 
@@ -528,13 +412,13 @@
 		}
 
 		function onmessage() {
-			worker.removeEventListener("message", onmessage, false);
+			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
 			launchWorkerProcess(worker, reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
 		}
 
 		if (obj.zip.useWebWorkers) {
 			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
-			worker.addEventListener("message", onmessage, false);
+			worker.addEventListener(MESSAGE_EVENT, onmessage, false);
 			worker.postMessage({
 				init : true,
 				level : level
@@ -589,29 +473,8 @@
 		return out;
 	}
 
-	function decodeUTF8(str_data) {
-		var tmp_arr = [], i = 0, ac = 0, c1 = 0, c2 = 0, c3 = 0;
-
-		str_data += '';
-
-		while (i < str_data.length) {
-			c1 = str_data.charCodeAt(i);
-			if (c1 < 128) {
-				tmp_arr[ac++] = String.fromCharCode(c1);
-				i++;
-			} else if (c1 > 191 && c1 < 224) {
-				c2 = str_data.charCodeAt(i + 1);
-				tmp_arr[ac++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
-				i += 2;
-			} else {
-				c2 = str_data.charCodeAt(i + 1);
-				c3 = str_data.charCodeAt(i + 2);
-				tmp_arr[ac++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-				i += 3;
-			}
-		}
-
-		return tmp_arr.join('');
+	function decodeUTF8(string) {
+		return decodeURIComponent(escape(string));
 	}
 
 	function getString(bytes) {
@@ -630,7 +493,7 @@
 		}
 	}
 
-	function readCommonHeader(entry, data, index, centralDirectory) {
+	function readCommonHeader(entry, data, index, centralDirectory, onerror) {
 		entry.version = data.view.getUint16(index, true);
 		entry.bitFlag = data.view.getUint16(index + 2, true);
 		entry.compressionMethod = data.view.getUint16(index + 4, true);
@@ -697,7 +560,7 @@
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				readCommonHeader(that, data, 4);
+				readCommonHeader(that, data, 4, false, onerror);
 				dataOffset = that.offset + 30 + that.filenameLength + that.extraFieldLength;
 				writer.init(function() {
 					if (that.compressionMethod === 0)
@@ -708,18 +571,28 @@
 			}, onreaderror);
 		};
 
+		function seekEOCDR(offset, entriesCallback) {
+			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
+				var dataView = getDataHelper(bytes.length, bytes).view;
+				if (dataView.getUint32(0) != 0x504b0506) {
+					seekEOCDR(offset + 1, entriesCallback);
+				} else {
+					entriesCallback(dataView);
+				}
+			}, function() {
+				onerror(ERR_READ);
+			});
+		}
+
 		return {
 			getEntries : function(callback) {
 				if (reader.size < 22) {
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				reader.readUint8Array(reader.size - 22, 22, function(bytes) {
-					var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
-					if (dataView.getUint32(0) != 0x504b0506) {
-						onerror(ERR_BAD_FORMAT);
-						return;
-					}
+				// look for End of central directory record
+				seekEOCDR(22, function(dataView) {
+					var datalength, fileslength;
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
@@ -730,7 +603,7 @@
 								onerror(ERR_BAD_FORMAT);
 								return;
 							}
-							readCommonHeader(entry, data, index + 6, true);
+							readCommonHeader(entry, data, index + 6, true, onerror);
 							entry.commentLength = data.view.getUint16(index + 32, true);
 							entry.directory = ((data.view.getUint8(index + 38) & 0x10) == 0x10);
 							entry.offset = data.view.getUint32(index + 42, true);
@@ -748,8 +621,6 @@
 					}, function() {
 						onerror(ERR_READ);
 					});
-				}, function() {
-					onerror(ERR_READ);
 				});
 			},
 			close : function(callback) {
@@ -762,26 +633,7 @@
 	// ZipWriter
 
 	function encodeUTF8(string) {
-		var n, c1, enc, utftext = [], start = 0, end = 0, stringl = string.length;
-		for (n = 0; n < stringl; n++) {
-			c1 = string.charCodeAt(n);
-			enc = null;
-			if (c1 < 128)
-				end++;
-			else if (c1 > 127 && c1 < 2048)
-				enc = String.fromCharCode((c1 >> 6) | 192) + String.fromCharCode((c1 & 63) | 128);
-			else
-				enc = String.fromCharCode((c1 >> 12) | 224) + String.fromCharCode(((c1 >> 6) & 63) | 128) + String.fromCharCode((c1 & 63) | 128);
-			if (enc != null) {
-				if (end > start)
-					utftext += string.slice(start, end);
-				utftext += enc;
-				start = end = n + 1;
-			}
-		}
-		if (end > start)
-			utftext += string.slice(start, stringl);
-		return utftext;
+		return unescape(encodeURIComponent(string));
 	}
 
 	function getBytes(str) {
@@ -792,7 +644,7 @@
 	}
 
 	function createZipWriter(writer, onerror, dontDeflate) {
-		var worker, files = [], filenames = [], datalength = 0;
+		var worker, files = {}, filenames = [], datalength = 0;
 
 		function terminate(callback, message) {
 			if (worker)
@@ -828,7 +680,7 @@
 					header.view.setUint32(0, 0x14000808);
 					if (options.version)
 						header.view.setUint8(0, options.version);
-					if (!dontDeflate && options.level != 0)
+					if (!dontDeflate && options.level !== 0 && !options.directory)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
@@ -836,7 +688,6 @@
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: remove when chrome 18 will be stable (14: OK, 16: KO, 17: OK)
 					data.array.set(filename, 30);
 					datalength += data.array.length;
 					writer.writeUint8Array(data.array, callback, onwriteerror);
@@ -867,13 +718,15 @@
 					name = name.trim();
 					if (options.directory && name.charAt(name.length - 1) != "/")
 						name += "/";
-					if (files[name])
-						throw ERR_DUPLICATED_NAME;
+					if (files.hasOwnProperty(name)) {
+						onerror(ERR_DUPLICATED_NAME);
+						return;
+					}
 					filename = getBytes(encodeUTF8(name));
 					filenames.push(name);
 					writeHeader(function() {
 						if (reader)
-							if (dontDeflate || options.level == 0)
+							if (dontDeflate || options.level === 0)
 								copy(reader, writer, 0, reader.size, true, writeFooter, onprogress, onreaderror, onwriteerror);
 							else
 								worker = deflate(reader, writer, options.level, writeFooter, onprogress, onreaderror, onwriteerror);
@@ -888,14 +741,14 @@
 					writeFile();
 			},
 			close : function(callback) {
-				var data, length = 0, index = 0;
-				filenames.forEach(function(name) {
-					var file = files[name];
+				var data, length = 0, index = 0, indexFilename, file;
+				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
+					file = files[filenames[indexFilename]];
 					length += 46 + file.filename.length + file.comment.length;
-				});
+				}
 				data = getDataHelper(length + 22);
-				filenames.forEach(function(name) {
-					var file = files[name];
+				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
+					file = files[filenames[indexFilename]];
 					data.view.setUint32(index, 0x504b0102);
 					data.view.setUint16(index + 4, 0x1400);
 					data.array.set(file.headerArray, index + 6);
@@ -906,7 +759,7 @@
 					data.array.set(file.filename, index + 46);
 					data.array.set(file.comment, index + 46 + file.filename.length);
 					index += 46 + file.filename.length + file.comment.length;
-				});
+				}
 				data.view.setUint32(index, 0x504b0506);
 				data.view.setUint16(index + 8, filenames.length, true);
 				data.view.setUint16(index + 10, filenames.length, true);
@@ -921,42 +774,13 @@
 		};
 	}
 
-	if (typeof BlobBuilder == "undefined") {
-		BlobBuilder = function() {
-			var that = this, blobParts;
-
-			function initBlobParts() {
-				if (!blobParts) {
-					blobParts = [ new Blob() ]
-				}
-			}
-
-			that.append = function(data) {
-				initBlobParts();
-				blobParts.push(data);
-			};
-			that.getBlob = function(contentType) {
-				initBlobParts();
-				if (blobParts.length > 1 || blobParts[0].type != contentType) {
-					blobParts = [ contentType ? new Blob(blobParts, {
-						type : contentType
-					}) : new Blob(blobParts) ];
-				}
-				return blobParts[0];
-			};
-		};
-	}
-
 	obj.zip = {
 		Reader : Reader,
 		Writer : Writer,
 		BlobReader : BlobReader,
-		HttpReader : HttpReader,
-		HttpRangeReader : HttpRangeReader,
 		Data64URIReader : Data64URIReader,
 		TextReader : TextReader,
 		BlobWriter : BlobWriter,
-		FileWriter : FileWriter,
 		Data64URIWriter : Data64URIWriter,
 		TextWriter : TextWriter,
 		createReader : function(reader, callback, onerror) {
