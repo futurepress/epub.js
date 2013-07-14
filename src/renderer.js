@@ -517,6 +517,11 @@ EPUBJS.Renderer.prototype.replaceUrlsInCss = function(base, text){
 		promises = [],
 		store = this.determineStore(),
 		matches = text.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/g);
+	
+	if(!matches){
+		promise.resolve(text);
+		return promise;
+	}
 
 	matches.forEach(function(str){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));

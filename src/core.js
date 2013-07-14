@@ -172,6 +172,8 @@ EPUBJS.core.folder = function(url){
 	var slash = url.lastIndexOf('/'),
 		folder = url.slice(0, slash + 1);
 
+	if(slash == -1) folder = '';
+
 	return folder;
 
 };

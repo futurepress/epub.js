@@ -13,7 +13,7 @@ EPUBJS.Book = function(bookPath, options){
 	  height: false,
 	  spreads: true,
 	  responsive: true,
-	  version: 1.1,
+	  version: 1,
 	  restore: true
 	});
 	
@@ -159,7 +159,6 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 		   then(function(contents){
 
 			   book.contents = contents;
-
 			   book.manifest = book.contents.manifest;
 			   book.spine = book.contents.spine;
 			   book.spineIndexByURL = book.contents.spineIndexByURL;

@@ -68,43 +68,52 @@ EPUBJS.Parser.prototype.metadata = function(xml){
 		p = this;
 	
 	
-	metadata.bookTitle = p.getElement(xml, 'title');
-	metadata.creator = p.getElement(xml, 'creator'); 
-	metadata.description = p.getElement(xml, 'description');
+	metadata.bookTitle = p.getElementText(xml, 'title');
+	metadata.creator = p.getElementText(xml, 'creator'); 
+	metadata.description = p.getElementText(xml, 'description');
 	
-	metadata.pubdate = p.getElement(xml, 'date');
+	metadata.pubdate = p.getElementText(xml, 'date');
 	
-	metadata.publisher = p.getElement(xml, 'publisher');
+	metadata.publisher = p.getElementText(xml, 'publisher');
 	
-	metadata.identifier = p.getElement(xml, "identifier");
-	metadata.language = p.getElement(xml, "language"); 
-	metadata.rights = p.getElement(xml, "rights"); 
-
+	metadata.identifier = p.getElementText(xml, "identifier");
+	metadata.language = p.getElementText(xml, "language"); 
+	metadata.rights = p.getElementText(xml, "rights"); 
 	
-	metadata.modified_date = p.querySelector(xml, "meta[property='dcterms:modified']");
-	metadata.layout = p.querySelector(xml, "meta[property='rendition:orientation']");
-	metadata.orientation = p.querySelector(xml, "meta[property='rendition:orientation']");
-	metadata.spread = p.querySelector(xml, "meta[property='rendition:spread']");
-
+	
+	metadata.modified_date = p.querySelectorText(xml, "meta[property='dcterms:modified']");
+	metadata.layout = p.querySelectorText(xml, "meta[property='rendition:orientation']");
+	metadata.orientation = p.querySelectorText(xml, "meta[property='rendition:orientation']");
+	metadata.spread = p.querySelectorText(xml, "meta[property='rendition:spread']");
 	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 	
 	return metadata;
 }
 
-EPUBJS.Parser.prototype.getElement = function(xml, tag){
-	var find = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
+EPUBJS.Parser.prototype.getElementText = function(xml, tag){
+	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
 		el;
-		
-	if(!find) return '';
-	
-	el = find[0]; 
 
-	return el ? el.childNodes[0].nodeValue : '';
+	if(!found || found.length == 0) return '';
+	
+	el = found[0]; 
+
+	if(el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+	
 }
 
-EPUBJS.Parser.prototype.querySelector = function(xml, q){
+EPUBJS.Parser.prototype.querySelectorText = function(xml, q){
 	var el = xml.querySelector(q);
-	return el ? el.childNodes[0].nodeValue : '';
+
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
 }
 
 
