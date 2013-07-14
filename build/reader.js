@@ -1,5 +1,3 @@
-/*! FuturePress - v0.1.0 - 2013-07-08 */
-
 var EPUBJSR = EPUBJSR || {};
 
 EPUBJSR.app = {};
@@ -64,6 +62,7 @@ EPUBJSR.app.init = (function($){
 		controls();
 	});
 
+	return Book;
 
   }
 

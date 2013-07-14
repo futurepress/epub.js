@@ -14,6 +14,8 @@
 
         <script src="js/libs/jquery-1.9.0.min.js"></script>
 
+        <script src="js/libs/zip.min.js"></script>        
+
         <script>
             "use strict";
             
@@ -21,14 +23,14 @@
               if (document.readyState == "complete") {
                 EPUBJS.VERSION = "0.1.6";
                 
-                EPUBJS.filePath = "js/";
+                EPUBJS.filePath = "js/libs/";
                 fileStorage.filePath = EPUBJS.filePath + "libs/";
 
-                EPUBJSR.app.init("moby-dick/");
+                EPUBJSR.app.init("moby-dick.epub");
               }  
             };
         
-          </script>
+        </script>
                 
         <!-- Render -->
         <script src="js/epub.min.js"></script>

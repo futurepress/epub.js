@@ -6,10 +6,9 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			type = "noteref",
 			popups = {};
 			
+		EPUBJS.core.addCss("../demo/css/popup.css", false, chapter.doc.head);
 		
-		// EPUBJS.core.addCss("css/popup.css", false, chapter.doc.head);
 		
-		//console.log("notes", items)
 		items.forEach(function(item){
 			var epubType = item.getAttribute(attr),
 				href,
@@ -22,7 +21,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 				txt;
 				
 			if(epubType != type) return;
-			
+
 			href = item.getAttribute("href");
 			id = href.replace("#", '');
 			el = chapter.doc.getElementById(id);
@@ -61,11 +60,13 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					//-- TODO: will these leak memory? - Fred 
 					popups[id].addEventListener("mouseover", onPop, false);
 					popups[id].addEventListener("mouseout", offPop, false);
-					
+
 					//-- Add hide on page change
-					chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", hidePop);
-					chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", offPop);
-					
+					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", hidePop);
+					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", offPop);
+					chapter.book.on("book:pageChanged", hidePop, this);
+					chapter.book.on("book:pageChanged", offPop, this);
+					// chapter.book.on("book:chapterDestroy", hidePop, this);
 				}
 				
 				pop = popups[id];
@@ -75,7 +76,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 				itemRect = item.getBoundingClientRect();
 				left = itemRect.left;
 				top = itemRect.top;
-				
+					
 				//-- show the popup
 				pop.classList.add("show");
 				

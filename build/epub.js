@@ -1,4 +1,4 @@
-/*! FuturePress - v0.1.0 - 2013-07-08 */
+(function(e){"use strict";function v(e,n){t.async(function(){e.trigger("promise:resolved",{detail:n}),e.isResolved=!0,e.resolvedValue=n})}function m(e,n){t.async(function(){e.trigger("promise:failed",{detail:n}),e.isRejected=!0,e.rejectedValue=n})}function g(e){var t,n=[],r=new h,i=e.length;i===0&&r.resolve([]);var s=function(e){return function(t){o(e,t)}},o=function(e,t){n[e]=t,--i===0&&r.resolve(n)},u=function(e){r.reject(e)};for(t=0;t<i;t++)e[t].then(s(t),u);return r}function y(e,n){t[e]=n}var t={},n=typeof window!="undefined"?window:{},r=n.MutationObserver||n.WebKitMutationObserver,i;if(typeof process!="undefined"&&{}.toString.call(process)==="[object process]")t.async=function(e,t){process.nextTick(function(){e.call(t)})};else if(r){var s=[],o=new r(function(){var e=s.slice();s=[],e.forEach(function(e){var t=e[0],n=e[1];t.call(n)})}),u=document.createElement("div");o.observe(u,{attributes:!0}),window.addEventListener("unload",function(){o.disconnect(),o=null}),t.async=function(e,t){s.push([e,t]),u.setAttribute("drainQueue","drainQueue")}}else t.async=function(e,t){setTimeout(function(){e.call(t)},1)};var a=function(e,t){this.type=e;for(var n in t){if(!t.hasOwnProperty(n))continue;this[n]=t[n]}},f=function(e,t){for(var n=0,r=e.length;n<r;n++)if(e[n][0]===t)return n;return-1},l=function(e){var t=e._promiseCallbacks;return t||(t=e._promiseCallbacks={}),t},c={mixin:function(e){return e.on=this.on,e.off=this.off,e.trigger=this.trigger,e},on:function(e,t,n){var r=l(this),i,s;e=e.split(/\s+/),n=n||this;while(s=e.shift())i=r[s],i||(i=r[s]=[]),f(i,t)===-1&&i.push([t,n])},off:function(e,t){var n=l(this),r,i,s;e=e.split(/\s+/);while(i=e.shift()){if(!t){n[i]=[];continue}r=n[i],s=f(r,t),s!==-1&&r.splice(s,1)}},trigger:function(e,t){var n=l(this),r,i,s,o,u;if(r=n[e])for(var f=0,c=r.length;f<c;f++)i=r[f],s=i[0],o=i[1],typeof t!="object"&&(t={detail:t}),u=new a(e,t),s.call(o,u)}},h=function(){this.on("promise:resolved",function(e){this.trigger("success",{detail:e.detail})},this),this.on("promise:failed",function(e){this.trigger("error",{detail:e.detail})},this)},p=function(){},d=function(e,t,n,r){var i=typeof n=="function",s,o,u,a;if(i)try{s=n(r.detail),u=!0}catch(f){a=!0,o=f}else s=r.detail,u=!0;s&&typeof s.then=="function"?s.then(function(e){t.resolve(e)},function(e){t.reject(e)}):i&&u?t.resolve(s):a?t.reject(o):t[e](s)};h.prototype={then:function(e,n){var r=new h;return this.isResolved&&t.async(function(){d("resolve",r,e,{detail:this.resolvedValue})},this),this.isRejected&&t.async(function(){d("reject",r,n,{detail:this.rejectedValue})},this),this.on("promise:resolved",function(t){d("resolve",r,e,t)}),this.on("promise:failed",function(e){d("reject",r,n,e)}),r},resolve:function(e){v(this,e),this.resolve=p,this.reject=p},reject:function(e){m(this,e),this.resolve=p,this.reject=p}},c.mixin(h.prototype),e.Promise=h,e.Event=a,e.EventTarget=c,e.all=g,e.configure=y})(window.RSVP={});
 
 var EPUBJS = EPUBJS || {}; 
 EPUBJS.VERSION = "0.1.5";
@@ -13,6 +13,7 @@ EPUBJS.Book = function(bookPath, options){
 	this.settings = _.defaults(options || {}, {
 	  element : false,
 	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
+	  fromStorage : false,
 	  saved : false,
 	  online : true,
 	  contained : false,
@@ -20,7 +21,7 @@ EPUBJS.Book = function(bookPath, options){
 	  height: false,
 	  spreads: true,
 	  responsive: true,
-	  version: 1,
+	  version: 1.1,
 	  restore: true
 	});
 	
@@ -393,9 +394,8 @@ EPUBJS.Book.prototype.restore = function(){
 		reject = false,
 		fromStore = localStorage.getItem(contentsKey);
 	
-	if(fromStore != 'undefined'){
+	if(fromStore != 'undefined' && fromStore != 'null'){
 		this.contents = JSON.parse(fromStore);
-		
 		fetch.forEach(function(item){
 			book[item] = book.contents[item];
 			if(!book[item]) {
@@ -1176,10 +1176,11 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, doc) {
 	while(sections.length > 0) {
 	
 	  part = sections.shift();
-	
+
 	  if(part.id){
-		  console.log(part.id)
-		element = cfi.doc.querySelector("#" + part.id);	  
+		
+		element = doc.querySelector("#" + part.id);
+
 	  }else{
 	
 		element = children[part.index];
@@ -1440,15 +1441,28 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 }
 
 EPUBJS.Parser.prototype.toc = function(tocXml){
-	var toc = [];
-
-	var navMap = tocXml.querySelector("navMap");
 	
-	function getTOC(nodes, parent, list){
-		var list = list || [];
+	var navMap = tocXml.querySelector("navMap");
 
-		items = Array.prototype.slice.call(nodes);
+	function getTOC(parent){
+		var list = [],
+			items = [],
+			nodes = parent.childNodes,
+			nodesArray = Array.prototype.slice.call(nodes),
+			length = nodesArray.length,
+			iter = length,
+			node;
+		
 
+		if(length == 0) return false;
+
+		while(iter--){
+			node = nodesArray[iter];
+		  	if(node.nodeName === "navPoint") {
+		  		items.push(node);
+		  	}
+		}
+		
 		items.forEach(function(item){
 			var id = item.getAttribute('id'),
 				content = item.querySelector("content"),
@@ -1456,23 +1470,21 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 				split = src.split("#"),
 				navLabel = item.querySelector("navLabel"),
 				text = navLabel.textContent ? navLabel.textContent : "",
-				subitems =  item.querySelectorAll("navPoint");
-
-			
-			list.push({
+				subitems = getTOC(item);
+			list.unshift({
 						"id": id, 
 						"href": src, 
 						"label": text,
-						"subitems" : subitems.length ? getTOC(item.querySelectorAll("navPoint"), item, list) : false
+						"subitems" : subitems
 			});
 
 		});
 
 		return list;
 	}
-
-
-	return getTOC(navMap.querySelectorAll("navPoint"), navMap);
+	
+	
+	return getTOC(navMap);
 
 
 }
@@ -1647,7 +1659,7 @@ EPUBJS.Renderer.prototype.crossBrowserColumnCss = function(){
 	EPUBJS.Renderer.columnAxis  =  EPUBJS.core.prefixed('columnAxis');
 	EPUBJS.Renderer.columnGap   =  EPUBJS.core.prefixed('columnGap');
 	EPUBJS.Renderer.columnWidth =  EPUBJS.core.prefixed('columnWidth');
-
+	EPUBJS.Renderer.transform   =  EPUBJS.core.prefixed('transform');
 
 }
 
@@ -1665,7 +1677,7 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
 		renderer.bodyEl = renderer.doc.body;
-		
+
 		renderer.applyStyles();
 		
 		renderer.formatSpread();
@@ -1714,7 +1726,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 
 	this.gap = this.gap || Math.ceil(this.elWidth / 8);
 
-	if(this.elWidth < cutoff || this.settings.single) {
+	if(this.elWidth < cutoff || !this.book.settings.spreads) {
 		this.spread = false; //-- Single Page
 
 		divisor = 1;
@@ -1867,7 +1879,9 @@ EPUBJS.Renderer.prototype.chapterEnd = function(){
 
 EPUBJS.Renderer.prototype.setLeft = function(leftPos){
 	// this.bodyEl.style.marginLeft = -leftPos + "px";
-	this.doc.defaultView.scrollTo(leftPos, 0)
+	// this.docEl.style.marginLeft = -leftPos + "px";
+	// this.docEl.style[EPUBJS.Renderer.transform] = 'translate('+ (-leftPos) + 'px, 0)';
+	this.doc.defaultView.scrollTo(leftPos, 0);
 }
 
 EPUBJS.Renderer.prototype.replace = function(query, func, callback){
@@ -2056,9 +2070,14 @@ EPUBJS.Renderer.prototype.replaceLinks = function(callback){
 	links.forEach(function(link){
 		var path,
 			href = link.getAttribute("href"),
-			relative = href.search("://"),
-			fragment = href[0] == "#";
-		
+			relative,
+			fragment;
+
+		if(!href) return;
+
+		relative = href.search("://"),
+		fragment = href[0] == "#";
+
 		if(relative != -1){
 
 			link.setAttribute("target", "_blank");
@@ -2067,9 +2086,9 @@ EPUBJS.Renderer.prototype.replaceLinks = function(callback){
 
 			link.onclick = function(){
 				that.book.goto(href);
+				return false;
 			}
 		}				
-
 
 	});
 
@@ -2273,7 +2292,7 @@ RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);
 EPUBJS.Unarchiver = function(url){
 	
 	
-	this.libPath = EPUBJS.filePath  + "zip/";
+	this.libPath = EPUBJS.filePath;
 	this.zipUrl = url;
 	this.loadLib()
 	this.urlCache = {};

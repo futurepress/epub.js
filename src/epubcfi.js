@@ -147,10 +147,11 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, doc) {
 	while(sections.length > 0) {
 	
 	  part = sections.shift();
-	
+
 	  if(part.id){
-		  console.log(part.id)
-		element = cfi.doc.querySelector("#" + part.id);	  
+		
+		element = doc.querySelector("#" + part.id);
+
 	  }else{
 	
 		element = children[part.index];

@@ -1,7 +1,7 @@
 EPUBJS.Unarchiver = function(url){
 	
 	
-	this.libPath = EPUBJS.filePath  + "zip/";
+	this.libPath = EPUBJS.filePath;
 	this.zipUrl = url;
 	this.loadLib()
 	this.urlCache = {};

@@ -62,6 +62,7 @@ EPUBJSR.app.init = (function($){
 		controls();
 	});
 
+	return Book;
 
   }
 

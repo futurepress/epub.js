@@ -159,15 +159,28 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 }
 
 EPUBJS.Parser.prototype.toc = function(tocXml){
-	var toc = [];
-
-	var navMap = tocXml.querySelector("navMap");
 	
-	function getTOC(nodes, parent, list){
-		var list = list || [];
+	var navMap = tocXml.querySelector("navMap");
 
-		items = Array.prototype.slice.call(nodes);
+	function getTOC(parent){
+		var list = [],
+			items = [],
+			nodes = parent.childNodes,
+			nodesArray = Array.prototype.slice.call(nodes),
+			length = nodesArray.length,
+			iter = length,
+			node;
+		
 
+		if(length == 0) return false;
+
+		while(iter--){
+			node = nodesArray[iter];
+		  	if(node.nodeName === "navPoint") {
+		  		items.push(node);
+		  	}
+		}
+		
 		items.forEach(function(item){
 			var id = item.getAttribute('id'),
 				content = item.querySelector("content"),
@@ -175,23 +188,21 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 				split = src.split("#"),
 				navLabel = item.querySelector("navLabel"),
 				text = navLabel.textContent ? navLabel.textContent : "",
-				subitems =  item.querySelectorAll("navPoint");
-
-			
-			list.push({
+				subitems = getTOC(item);
+			list.unshift({
 						"id": id, 
 						"href": src, 
 						"label": text,
-						"subitems" : subitems.length ? getTOC(item.querySelectorAll("navPoint"), item, list) : false
+						"subitems" : subitems
 			});
 
 		});
 
 		return list;
 	}
-
-
-	return getTOC(navMap.querySelectorAll("navPoint"), navMap);
+	
+	
+	return getTOC(navMap);
 
 
 }

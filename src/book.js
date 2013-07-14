@@ -5,6 +5,7 @@ EPUBJS.Book = function(bookPath, options){
 	this.settings = _.defaults(options || {}, {
 	  element : false,
 	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
+	  fromStorage : false,
 	  saved : false,
 	  online : true,
 	  contained : false,
@@ -12,7 +13,7 @@ EPUBJS.Book = function(bookPath, options){
 	  height: false,
 	  spreads: true,
 	  responsive: true,
-	  version: 1,
+	  version: 1.1,
 	  restore: true
 	});
 	
@@ -385,9 +386,8 @@ EPUBJS.Book.prototype.restore = function(){
 		reject = false,
 		fromStore = localStorage.getItem(contentsKey);
 	
-	if(fromStore != 'undefined'){
+	if(fromStore != 'undefined' && fromStore != 'null'){
 		this.contents = JSON.parse(fromStore);
-		
 		fetch.forEach(function(item){
 			book[item] = book.contents[item];
 			if(!book[item]) {

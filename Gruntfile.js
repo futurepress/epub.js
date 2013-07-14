@@ -8,23 +8,34 @@ module.exports = function(grunt) {
 		  '<%= grunt.template.today("yyyy-mm-dd") %> */'
 	  },
 	  concat : {
-		'build/epub.js': ['<banner>', 'src/*.js'],
+		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.min.js', 'src/*.js'],
 		'build/reader.js': ['<banner>', 'reader/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
-		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js'
+		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
+		'demo/js/libs/inflate.js': 'libs/zip/inflate.js'
 	  },
-	  min: {
-		'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.min.js', 'build/epub.js'],
-		'demo/js/reader.min.js': 'build/reader.js',
-		'demo/js/hooks.min.js': 'build/hooks.js',
-		'demo/js/libs/zip.min.js': ['libs/zip/*.js'],
-		'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js']
+	  uglify: {
+	  	options: {
+      		preserveComments: 'some'
+    	},
+    	my_target: {
+      		files: {
+				'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
+				'demo/js/reader.min.js': 'build/reader.js',
+				'demo/js/hooks.min.js': 'build/hooks.js',
+				'demo/js/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
+				'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js']
+			}
+	  	}
 	  }
 	});
 	
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
+
 	// Default task(s).
-	grunt.registerTask('default', ['concat', 'min']);
+	grunt.registerTask('default', ['concat', 'uglify']);
 };
 
