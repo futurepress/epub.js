@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "unsupported.js",
+  "sourceRoot": "../..",
+  "sources": [
+    "src/plugin/unsupported.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAEA,IAAA;GAAA;kSAAA;;AAAM,CAAN,KAAsB,GAAP;CAEb;;;;;CAAA;;CAAA,EACE,IADF;CACE,CAAS,EAAT,GAAA,EAAkB,kDAAT;CADX,GAAA;;CAAA,EAOY,MAAA,CAAZ;CACE,OAAA,IAAA;AAAO,CAAP,GAAA,KAAgB;CACd,EAAE,MAAA,IAAF;CAEE,IAA4B,EAAO,CAAnC,CAAS,OAAT;CAIA,GAAG,CAA0B,CAAnB,EAAV,KAA6C,CAAzC;CACF,IAAA,CAAA,EAAA,SAAA;UAPF;CAAF,MAAE;MAFM;CAPZ,EAOY;;CAPZ;;CAFyC,QAAS"
+}

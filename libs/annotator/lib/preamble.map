@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "preamble.js",
+  "sourceRoot": "..",
+  "sources": [
+    "src/preamble.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;;;;;;;;;;CAAA;CAAA"
+}

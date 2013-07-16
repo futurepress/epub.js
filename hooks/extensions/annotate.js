@@ -11,21 +11,51 @@ EPUBJS.Hooks.register("beforeChapterDisplay").annotate = function(callback, chap
 			
 		
 		//EPUBJS.core.loadScripts(files, annotate, chapter.doc.head);
-		$(chapter.doc.body).annotator().annotator('setupPlugins', {}, {
+		// $(chapter.doc.body).annotator().annotator('setupPlugins', {}, {
 			
-			Filter:false,
-			Store: {
-				annotationData: {
-				  'uri': chapter.path
-				},
-				loadFromSearch: {
-					'limit': 100,
-					'uri': chapter.path
-				}
-			}
+		// 	Filter:false,
+		// 	Store: {
+		// 		annotationData: {
+		// 		  'uri': chapter.path
+		// 		},
+		// 		loadFromSearch: {
+		// 			'limit': 100,
+		// 			'uri': chapter.path
+		// 		}
+		// 	}
 			
-			});
-		EPUBJS.core.addCss("css/annotator.css", false, chapter.doc.head);
+		// 	});
+		Util.mousePosition = function(e, offsetEl) {
+		  var offset;
+		  offset = $(offsetEl).position();
+		  return {
+		    top: e.pageY,
+		    left: e.pageX
+		  };
+		};
+
+		devAnnotator = new Annotator(chapter.doc.body)
+			.addPlugin('Auth', {
+              tokenUrl: 'http://annotateit.org/api/token',//'http://localhost:5001/api/token'
+            })
+            .addPlugin('Unsupported')
+            .addPlugin('AnnotateItPermissions')
+            .addPlugin('Store', {
+              prefix: 'http://annotateit.org/api',//'http://localhost:5000',
+              loadFromSearch: {
+                uri: chapter.currentChapter.href
+              },
+              annotationData: {
+                uri: chapter.currentChapter.href
+              }
+            });
+          
+  //         devAnnotator.plugins.Auth.withToken(function (tok) {
+  //           console.log(tok);
+  //         })
+
+		EPUBJS.core.addCss("../libs/annotator/css/annotator.css", false, chapter.doc.head);
+
 		if(callback) callback();
 		
 		function annotate(){

@@ -26,7 +26,7 @@ EPUBJSR.app.init = (function($){
 	
 	//-- Create a new book object, 
 	//	 this will create an iframe in the el with the ID provided
-	Book = new EPUBJS.Book(bookURL);
+	Book = new EPUBJS.Book(bookURL, { restore : true });
 	
 	
 	//Book.single = true;

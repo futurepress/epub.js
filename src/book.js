@@ -12,9 +12,11 @@ EPUBJS.Book = function(bookPath, options){
 	  width : false,
 	  height: false,
 	  spreads: true,
+	  fixedLayout : false,
 	  responsive: true,
 	  version: 1,
-	  restore: true
+	  restore: false,
+	  styles : {}
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -582,13 +584,12 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 */
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
-	this.renderer.setStyle(style, val, prefixed);
-	
+	this.render.setStyle(style, val, prefixed);
 	this.settings.styles[style] = val;
 }
 
 EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
-	this.renderer.removeStyle(style);
+	this.render.removeStyle(style);
 
 	delete this.settings.styles[style];
 }

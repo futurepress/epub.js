@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "console_spec.js",
+  "sourceRoot": "../..",
+  "sources": [
+    "test/spec/console_spec.coffee"
+  ],
+  "names": [],
+  "mappings": ";AA6I6D"
+}

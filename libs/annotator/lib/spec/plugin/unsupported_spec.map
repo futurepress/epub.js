@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "unsupported_spec.js",
+  "sourceRoot": "../../..",
+  "sources": [
+    "test/spec/plugin/unsupported_spec.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAwFyC"
+}

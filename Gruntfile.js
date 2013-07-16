@@ -23,6 +23,7 @@ module.exports = function(grunt) {
     	my_target: {
       		files: {
 				'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
+				'build/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
 				'demo/js/reader.min.js': 'build/reader.js',
 				'demo/js/hooks.min.js': 'build/hooks.js',
 				'demo/js/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
