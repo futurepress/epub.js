@@ -21,8 +21,6 @@ Upcoming Updates
 
 + A framework (backbone / angular / ?) to use for our reader demo (which we suspect is going to start expanding quickly)
 
-+ A generic way to handle changing / overriding styles in the epub
-
 
 Why EPUB
 -------------------------
@@ -38,16 +36,17 @@ More specifically, the ePUB schema standardizes the table of contents, provides 
 Running Locally
 -------------------------
 
-install [http-server](https://github.com/nodeapps/http-server)
+install [node.js](http://nodejs.org/)
 
+install the project dependences with npm
 ```javascript
-npm install http-server -g
+npm install
 ```
 
 then you can run the reader locally with the command
 
 ```javascript
-http-server
+node server.js
 ```
 
 * [dev.html](http://localhost:8080/examples/dev.html) will pull from the source files and should be used during development.
@@ -56,15 +55,9 @@ http-server
 Building for Distribution
 -------------------------
 
-install [gruntjs](http://gruntjs.com/getting-started)
+Builds are concatenated and minified using [gruntjs](http://gruntjs.com/getting-started)
 
-```javascript
-npm install -g grunt-cli
-
-npm install
-```
-
-Then when you are ready to build just run
+To generate a new build run
 
 ```javascript
 grunt
