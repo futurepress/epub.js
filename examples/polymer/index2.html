@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>ePubJS Promises Example</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="stylesheet" href="../../demo/css/normalize.css">
+        <link rel="stylesheet" href="../../demo/css/main.css">
+        <link rel="stylesheet" href="../../demo/css/popup.css">
+
+        <script src="../../libs/polymer/polymer.min.js"></script>
+
+        <!-- EPUBJS Renderer -->
+        <script src="/build/epub.min.js"></script>
+
+        <script>
+            "use strict";
+            
+            var Book = new EPUBJS.Book("/demo/moby-dick/", { restore: true, reload: true });
+            
+        </script>
+    </head>
+    <body>
+        <div id="sidebar">
+          <div id="controls">
+            <a id="network"><img id="store" src="../../demo/img/save.png" save="../../demo/img/save.png" data-saved="../../demo/img/saved.png"></a>
+            <a id="setting"><img id="settings" src="../../demo/img/settings.png"></a>
+            <a id="bookmark"><img id="bookmarks" src="../../demo/img/star.png"></a>
+          </div>
+          <div id="toc">
+            <ul>
+              <template id="tocTemplate" repeat="{{ toc }}">
+                <li id="toc-{{ id }}">
+                  <a href="{{ href }}" class="toc_link{{ type }}">{{ label }}</a>
+                  <ul>
+                    <template ref="tocTemplate" repeat="{{ subitems }}"></template>
+                  </ul>
+                <li>
+              </template>
+            </ul>
+
+          </div>
+          <div id="settingsPanel">
+          </div>
+            
+        </div>
+        <div id="main">
+          <div id="opener">
+            <a id="open"><img src="../../demo/img/menu-icon.png" data-close="../../demo/img/close.png" data-open="../../demo/img/menu-icon.png"></a>
+          </div>
+          
+          <div id="titlebar">
+            <span id="book-title"></span>
+            <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+            <span id="chapter-title"> </span>
+          </div>
+
+          <div id="divider"></div>
+
+          <div id="prev" onclick="Book.prevPage();" class="arrow">‹</div>
+          <div id="area"></div>
+          <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
+
+          <div id="loader"><img src="../../demo/img/loader.gif"></div>
+          
+        </div>
+
+        <script>            
+            
+            Book.getMetadata().then(function(meta){
+
+                document.title = meta.bookTitle+" – "+meta.creator;
+                
+            });
+
+            Book.getToc().then(function(toc){
+
+              var $select = document.getElementById("toc");
+              var $template = document.getElementById("tocTemplate");
+
+              $template.model = { toc: toc };
+              
+              $select.onchange = function(){
+                  var index = $select.selectedIndex,
+                      url = $select.options[index].getAttribute('ref');
+
+                  Book.goto(url);
+                  return false;
+              }
+
+            });
+            
+            Book.ready.all.then(function(){
+              document.getElementById("loader").style.display = "none";
+            });
+
+            Book.renderTo("area");
+
+            // Needed to detect model changes if Object.observe
+            // is not available in the JS VM.
+            Platform.performMicrotaskCheckpoint();
+  
+        </script>
+    </body>
+</html>

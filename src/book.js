@@ -3,7 +3,6 @@ EPUBJS.Book = function(bookPath, options){
 	var book = this;
 	
 	this.settings = _.defaults(options || {}, {
-	  element : false,
 	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
 	  fromStorage : false,
 	  saved : false,
@@ -16,6 +15,7 @@ EPUBJS.Book = function(bookPath, options){
 	  responsive: true,
 	  version: 1,
 	  restore: false,
+	  reload : false,
 	  styles : {}
 	});
 	
@@ -23,7 +23,7 @@ EPUBJS.Book = function(bookPath, options){
 	
 	this.spinePos = 0;
 	this.stored = false;
-	
+
 	//-- All Book events for listening
 	/*
 		book:resized
@@ -68,12 +68,22 @@ EPUBJS.Book = function(bookPath, options){
 	}
 	
 	// Likewise if an element is present start rendering process
-	if(bookPath && this.settings.element) {
-		this.opened.then(function(){
-			this.rendered = this.renderTo(el);
-		});
-	}
+	// if(bookPath && this.settings.element) {
+	// 	this.opened.then(function(){
+	// 		this.rendered = this.renderTo(el);
+	// 	});
+	// }
 	
+	window.addEventListener("beforeunload", function(e) {
+	  
+	  if(book.settings.restore) {
+	  	  book.saveSettings();
+		  book.saveContents();
+	  }
+	  
+	  book.trigger("book:unload");
+	}, false);
+
 	//-- Listen for these promises:
 	//-- book.opened.then()
 	//-- book.rendered.then()
@@ -218,16 +228,6 @@ EPUBJS.Book.prototype.networkListeners = function(){
 	  book.trigger("book:online");
 	}, false);
 	
-	window.addEventListener("beforeunload", function(e) {
-	  book.saveSettings();
-	  
-	  if(book.settings.restore) {
-		  book.saveContents();
-	  }
-	  
-	  book.trigger("book:unload");
-	}, false);
-	
 }
 
 //-- Choose between a request from store or a request from network
@@ -346,16 +346,29 @@ EPUBJS.Book.prototype.saveContents = function(){
 
 }
 
+EPUBJS.Book.prototype.removeSavedContents = function() {
+	var bookKey = this.settings.bookPath + ":contents:" + this.settings.version;
+	
+	localStorage.removeItem(bookKey);
+}
+
+
 // EPUBJS.Book.prototype.chapterTitle = function(){
 // 	return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
 // }
 
-EPUBJS.Book.prototype.renderTo = function(el){
+//-- Takes a string or a element
+EPUBJS.Book.prototype.renderTo = function(elem){
 	var book = this;
-	//-- ...	
 	
-	this.settings.element = el;
-
+	if(_.isElement(elem)) {
+		this.element = elem;
+	} else if (typeof elem == "string") { 
+		this.element = EPUBJS.core.getEl(elem);
+	} else {
+		console.error("Not an Element");
+		return;
+	}
 	
 	return this.opened.
 			then(function(){
@@ -378,16 +391,18 @@ EPUBJS.Book.prototype.startDisplay = function(){
 	return display;
 }
 
-EPUBJS.Book.prototype.restore = function(){
+EPUBJS.Book.prototype.restore = function(reject){
 	
 	var book = this,
 		contentsKey = this.settings.bookPath + ":contents:" + this.settings.version,
 		promise = new RSVP.Promise(),
 		fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL'],
-		reject = false,
+		reject = reject || false,
 		fromStore = localStorage.getItem(contentsKey);
 	
-	if(fromStore != 'undefined' && fromStore != 'null'){
+	if(this.settings.clearSaved) reject = true;
+
+	if(!reject && fromStore != 'undefined' && fromStore != 'null'){
 		this.contents = JSON.parse(fromStore);
 		fetch.forEach(function(item){
 			book[item] = book.contents[item];
@@ -396,7 +411,7 @@ EPUBJS.Book.prototype.restore = function(){
 			}
 		});
 	}
-
+	
 	if(reject || !fromStore || !this.contents || !this.settings.contentsPath){
 		// this.removeSavedSettings();
 		return this.open(this.settings.bookPath, true);

@@ -1,18 +1,8 @@
 EPUBJS.Renderer = function(book) {
-	var elem = book.settings.element;
+	this.el = book.element;
 	this.book = book;
 	
 	this.settings = book.settings;
-	
-	//-- Takes a string or a element
-	if(_.isElement(elem)) {
-		this.el = elem;
-	} else if (typeof elem == "string") { 
-		this.el = EPUBJS.core.getEl(elem);
-	} else {
-		console.error("Not an Element");
-		return;
-	}
 	
 	book.registerHook("beforeChapterDisplay", 
 		[this.replaceLinks.bind(this), 
