@@ -1,0 +1,30 @@
+<polymer-element name="epub-toc" attributes="items">
+  <template>
+      <div id="toc">
+        <ul>
+          <template id="tocTemplate" repeat="{{ toc }}">
+            <li id="toc-{{ id }}">
+              <a href="{{ href }}" class="toc_link{{ type }}">{{ label }}</a>
+              <ul>
+                <template ref="tocTemplate" repeat="{{ subitems }}"></template>
+              </ul>
+            <li>
+          </template>
+        </ul>
+
+      </div>
+        
+    </div>
+
+  </template>
+  <script>
+
+    Polymer('epub-toc', {
+      src: '',
+      ready: function() {
+        
+      }
+    });
+    
+  </script>
+</polymer-element>

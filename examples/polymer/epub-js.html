@@ -1,0 +1,84 @@
+<script src="/build/epub.min.js"></script>
+
+<script type="text/javascript">
+  //-- Setups
+</script>
+
+<polymer-element name="epub-js" attributes="src width height restore spreads">
+  <template>
+    <style>
+      @host {
+         * {
+           display: block;
+         }
+      }
+      #area {
+        width: 100%;
+        height: 100%;
+      }
+      iframe {
+        border: none;
+      }
+    </style>
+    <div id="area"></div>
+  </template>
+  <script>
+    Polymer('epub-js', {
+      src: '',
+      ready: function() {
+        
+      },
+      prevPage: function() {
+        if (this.Book) this.Book.prevPage();
+      },
+      nextPage: function() {
+        if (this.Book) this.Book.nextPage();
+      },
+      srcChanged: function() {
+        
+        var src = this.src,
+            width = this.width || false,
+            height = this.height || false,
+            spreads = this.spreads != null ? true : false,
+            restore = this.restore != null ? true : false;
+
+        if(this.Book) this.Book.destroy();
+
+        this.Book = new EPUBJS.Book(src, {
+          width: width,
+          height: height,
+          spreads : spreads,
+          restore : restore
+        });
+
+        this.events();
+
+        this.Book.renderTo(this.$.area);
+
+      },
+      events: function() {
+        var element = this;
+        var ready = new CustomEvent('book-ready', { "bubbles" : true, "cancelable" : true }),
+            displayed = new CustomEvent('book-displayed', { "bubbles" : true, "cancelable" : true }),
+            unloaded = new CustomEvent('book-unloaded', { "bubbles" : true, "cancelable" : true });
+
+        this.Book.on("book:ready", function() {
+          element.dispatchEvent(ready);
+        });
+
+        this.Book.on("renderer:chapterDisplayed", function() {
+          element.dispatchEvent(displayed);
+        });
+
+        this.Book.on("renderer:chapterUnloaded", function() {
+          element.dispatchEvent(unloaded);
+        });
+        
+      },
+      hi: function(){
+        console.log("confused")
+      }
+      
+    });
+  </script>
+</polymer-element>

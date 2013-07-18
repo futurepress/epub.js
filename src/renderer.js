@@ -16,6 +16,13 @@ EPUBJS.Renderer = function(book) {
 		
 	this.initialize();
 	this.listeners();
+
+	//-- Renderer events for listening
+	/*
+		renderer:resized
+		renderer:chapterDisplayed
+		renderer:chapterUnloaded
+	*/
 }
 
 //-- Build up any html needed
@@ -28,7 +35,7 @@ EPUBJS.Renderer.prototype.initialize = function(){
 	} else {
 		this.resizeIframe(false, this.el.clientWidth, this.el.clientHeight);
 
-		this.on("book:resized", this.resizeIframe, this);
+		this.on("renderer:resized", this.resizeIframe, this);
 	}
 	
 
@@ -55,7 +62,9 @@ EPUBJS.Renderer.prototype.chapter = function(chapter){
 	
 	if(this.currentChapter) {
 		this.currentChapter.unload();
-		this.trigger("book:chapterDestroyed");
+
+		this.trigger("renderer:chapterUnloaded");
+		this.book.trigger("renderer:chapterUnloaded");
 	}
 	
 	this.currentChapter = chapter;
@@ -97,10 +106,13 @@ EPUBJS.Renderer.prototype.hideHashChanges = function(){
 
 EPUBJS.Renderer.prototype.onResized = function(){
 	
-	this.trigger("book:resized", {
+	var msg = {
 		width: this.el.clientWidth,
 		height: this.el.clientHeight
-	});
+	};
+
+	this.trigger("renderer:resized", msg);
+	this.book.trigger("book:resized", msg);
 	
 	this.reformat();
 }
@@ -204,7 +216,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 			renderer.currentLocationCfi = renderer.getPageCfi();
 
-			renderer.trigger("book:chapterDisplayed");
+			renderer.trigger("renderer:chapterDisplayed");
+			renderer.book.trigger("renderer:chapterDisplayed");
 
 			renderer.visible(true);
 
@@ -360,7 +373,7 @@ EPUBJS.Renderer.prototype.nextPage = function(){
 
 		this.currentLocationCfi = this.getPageCfi();
 		
-		this.trigger("book:pageChanged", this.currentLocationCfi);
+		this.book.trigger("book:pageChanged", this.currentLocationCfi);
 
 
 		return this.chapterPos;
@@ -379,7 +392,7 @@ EPUBJS.Renderer.prototype.prevPage = function(){
 
 		this.currentLocationCfi = this.getPageCfi();
 
-		this.trigger("book:pageChanged", this.currentLocationCfi);
+		this.book.trigger("book:pageChanged", this.currentLocationCfi);
 
 		return this.chapterPos;
 	}else{

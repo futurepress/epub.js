@@ -1,0 +1,22 @@
+<link rel="import" href="epub-controls.html">
+<link rel="import" href="epub-settings.html">
+<link rel="import" href="epub-toc.html">
+
+<polymer-element name="epub-sidebar" attributes="items">
+  <template>
+      <div id="sidebar">
+        <epub-controls></epub-controls>
+        <epub-toc items="{{ toc }}"></epub-toc>
+        <epub-setting></epub-setting>        
+    </div>
+  </template>
+  <script>
+
+    Polymer('epub-controls', {
+      ready: function() {
+        
+      }
+    });
+    
+  </script>
+</polymer-element>

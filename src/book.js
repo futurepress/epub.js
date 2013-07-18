@@ -26,12 +26,11 @@ EPUBJS.Book = function(bookPath, options){
 
 	//-- All Book events for listening
 	/*
-		book:resized
+		book:ready
 		book:stored
 		book:online
 		book:offline
 		book:pageChanged
-		book:chapterDisplayed
 	*/
 	
 	//-- All hooks to add functions (with a callback) to 
@@ -61,6 +60,10 @@ EPUBJS.Book = function(bookPath, options){
 	};
 	
 	this.ready.all = RSVP.all(_.values(this.ready));
+
+	this.ready.all.then(function(){
+		this.trigger("book:ready");
+	}.bind(this));
 	
 	// BookUrl is optional, but if present start loading process
 	if(bookPath) {
@@ -457,6 +460,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 	
 	//-- Set the book's spine position
 	this.spinePos = pos;
+
+
 	
 	//-- Create a new chapter	
 	this.chapter = new EPUBJS.Chapter(this.spine[pos]);
@@ -481,7 +486,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 			book.preloadNextChapter();
 		});
 	}
-	
+
 	return render;
 }
 
