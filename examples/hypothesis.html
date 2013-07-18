@@ -8,10 +8,10 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-                
         <!-- EPUBJS Renderer -->
         <script src="/build/epub.min.js"></script>
-        
+        <script src="../hooks/extensions/hypothesis.js"></script>
+
         <link rel="stylesheet" href="basic.css">
 
         <style type="text/css">
@@ -49,9 +49,8 @@
 
         <script>            
             
-            Book.renderTo("area").then(function(){
-              Book.setStyle("padding", "0 300px");
-            });
+            Book.renderTo("area");
+            Book.setStyle("padding", "0 300px");
 
         </script>
     </body>

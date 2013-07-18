@@ -612,12 +612,13 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 */
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
-	this.render.setStyle(style, val, prefixed);
 	this.settings.styles[style] = val;
+
+	if(this.render) this.render.setStyle(style, val, prefixed);
 }
 
 EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
-	this.render.removeStyle(style);
+	if(this.render) this.render.removeStyle(style);
 
 	delete this.settings.styles[style];
 }
