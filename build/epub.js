@@ -112,6 +112,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 	
 	//-- Get a absolute URL from the book path
 	this.bookUrl = this.urlFrom(bookPath);
+
 	// console.log("saved", saved, !forceReload)
 	//-- Remove the previous settings and reload
 	if(saved && !forceReload){
@@ -260,8 +261,6 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 		//-- Get URL orgin, try for native or combine 
 		origin = location.origin || location.protocol + "//" + location.host; 
 
-
-
 	// if(bookPath[bookPath.length - 1] != "/") bookPath += "/";
 
 	//-- 1. Check if url is absolute
@@ -276,6 +275,12 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 
 	//-- 3. Or find full path to url and add that
 	if(!absolute && !fromRoot){
+		
+		//-- go back
+		if(bookPath.slice(0, 3) == "../"){
+			return EPUBJS.core.resolveUrl(location.href, bookPath);
+		}
+
 		return origin + EPUBJS.core.folder(location.pathname) + bookPath;
 	}
 
