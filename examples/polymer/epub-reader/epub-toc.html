@@ -128,10 +128,15 @@
 
         this.dispatchEvent(selected);
 
-        if(this.selectedItem) this.selectedItem.classList.remove("currentChapter");
+        if(this.selectedItem) {
+          this.selectedItem.classList.remove("currentChapter");
+          this.selectedItem = false;
+        }
+        
       },
       currentChanged: function() {
-        
+        if(this.selectedItem) this.selectedItem.classList.remove("currentChapter");
+
         this.selectedItem = this.shadowRoot.getElementById("toc-"+this.current);
         if(this.selectedItem) this.selectedItem.classList.add("currentChapter");
       }

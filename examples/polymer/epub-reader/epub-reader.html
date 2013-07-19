@@ -12,6 +12,7 @@
 
 <link rel="stylesheet" href="../polymer-ui-elements/basic.css">
 
+
 <polymer-element name="epub-reader" attributes="src">
   <template>
     
@@ -86,7 +87,7 @@
 
         <g-menu-button responsive="true" selectedClass="" src="assets/settings.png" valign="right" on-activate="menuActivate">
           <g-menu-item src="assets/add.png" on-tap="publishElement">Bookmark</g-menu-item>
-          <g-menu-item src="assets/fullscreen.png" on-tap="clearElement">Fullscreen</g-menu-item>
+          <g-menu-item src="assets/fullscreen.png" on-tap="toggleFullscreen">Fullscreen</g-menu-item>
         </g-menu-button>
 
       </g-toolbar>
@@ -147,6 +148,14 @@
       },
       chapterDisplayed: function(e) {
         this.chapter = e.detail.chapter.id;
+      },
+      toggleFullscreen: function() {
+        var docEl = document.documentElement,
+            requestFullScreen = docEl.requestFullScreen ||
+                                docEl.webkitRequestFullScreen ||
+                                docEl.mozRequestFullScreen;
+
+            requestFullScreen();
       }
 
     });
