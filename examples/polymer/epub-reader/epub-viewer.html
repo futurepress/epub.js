@@ -1,0 +1,142 @@
+<link rel="import" href="epub-js.html">
+
+<polymer-element name="epub-viewer" attributes="src">
+  <template>
+    <style>
+      @host {
+         * {
+           display: block;
+         }
+      }
+
+      epub-js {
+        width: 100%;
+        height: 100%;
+      }
+
+      #prev {
+        left: 40px;
+      }
+
+      #next {  
+        right: 40px;
+      }
+
+      .arrow {
+        position: absolute;
+        top: 50%;
+        
+        font-size: 64px;
+        color: #E2E2E2;
+        font-family: arial, sans-serif;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .arrow:hover {
+        color: #777;
+      }
+      
+      .arrow.active, 
+      .arrow:active {
+        color: #000;
+      }
+
+      #divider {
+        position: absolute;
+        width: 1px;
+        border-right: 1px #000 solid;
+        height: 82%;
+        z-index: 1;
+        left: 50%;
+        top: 10%;
+        opacity: .15;
+        box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
+        display: none;
+      }
+
+      #divider.show {
+        display: block;
+      }
+
+      #loader {
+        position: absolute;
+        z-index: 10;
+        left: 50%;
+        top: 50%;
+        margin: -33px 0 0 -33px;
+      }
+
+
+
+    </style>
+      <div id="divider"></div>
+
+      <div id="prev" on-click="prev" class="arrow">‹</div>
+
+      <epub-js id="book" restore spreads 
+          src="{{ src }}"
+          chapter="{{ chapter }}"
+          on-book-ready="bookReady"  
+          on-book-displayed="bookDisplayed"
+          on-book-unloaded="bookUnloaded" >
+        </epub-js>
+
+      <div id="next" on-click="next" class="arrow">›</div>
+
+      <div id="loader"><img src="../../../demo/img/loader.gif"></div>
+  </template>
+  <script>
+    Polymer('epub-viewer', {
+      src: '',
+      ready: function() {
+        document.addEventListener('keydown', this.arrowKeys.bind(this), false);
+      },
+      prev: function() {
+        this.$.book.prevPage();
+      },
+      next: function() {
+        this.$.book.nextPage();
+      },
+      bookReady: function() {
+        this.$.loader.style.display = "none";
+      },
+      bookDisplayed: function() {
+        this.$.divider.style.display = "block";
+      },
+      bookUnloaded: function() {
+        this.$.divider.style.display = "none";
+      },
+      srcChanged: function() {
+                
+      },
+      goto: function(url){
+        this.$.book.goto(url);
+      },
+      arrowKeys: function(e){
+
+        if (e.keyCode == 37) { 
+           this.$.book.prevPage();
+           this.$.prev.classList.add("active");
+           this.lock = true;
+           setTimeout(function(){
+             this.lock = false;
+             this.$.prev.classList.remove("active");
+           }.bind(this), 100);
+           return false;
+        }
+        if (e.keyCode == 39) { 
+           this.$.book.nextPage();
+           this.$.next.classList.add("active");
+           this.lock = true;
+           setTimeout(function(){
+            this.lock = false;
+            this.$.next.classList.remove("active");
+           }.bind(this), 100);
+           return false;
+        }
+      }
+      
+    });
+  </script>
+</polymer-element>

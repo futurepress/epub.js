@@ -1,0 +1,155 @@
+<link rel="import" href="epub-sidebar.html">
+<link rel="import" href="epub-titlebar.html">
+<link rel="import" href="epub-viewer.html">
+
+<!-- <link rel="import" href="../polymer-ui-elements/polymer-ui-toggle-button/polymer-ui-toggle-button.html"> -->
+<link rel="import" href="../polymer-ui-elements/polymer-ui-icon-button/polymer-ui-icon-button.html">
+<link rel="import" href="../polymer-ui-elements/polymer-ui-toolbar/polymer-ui-toolbar.html">
+
+<link rel="import" href="../toolkit-ui/elements/g-menu-item.html">
+<link rel="import" href="../toolkit-ui/elements/g-menu.html">
+<link rel="import" href="../toolkit-ui/elements/g-menu-button.html">
+
+<link rel="stylesheet" href="../polymer-ui-elements/basic.css">
+
+<polymer-element name="epub-reader" attributes="src">
+  <template>
+    
+    <!-- <link rel="stylesheet" href="../../demo/css/main.css"> -->
+    <!-- <link rel="stylesheet" href="../ ../../demo/css/popup.css"> -->
+
+    <style>
+      @host {
+         * {
+            background: #6b6b6b;
+         }
+      }
+      epub-viewer {
+        width: 80%;
+        height: 80%;
+        margin: 2.5% auto;
+        max-width: 1250px;
+      }
+
+      #main {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 5px;
+        background: #fff;
+        overflow: hidden;
+        -webkit-transition: -webkit-transform .5s;
+        -moz-transition: -moz-transform .5s;
+        
+        -moz-box-shadow:    inset 0 0 50px rgba(0,0,0,.08);
+        -webkit-box-shadow: inset 0 0 50px rgba(0,0,0,.08);
+        box-shadow:         inset 0 0 50px rgba(0,0,0,.08);
+      } 
+
+      #main.closed {
+        -webkit-transform: translate(300px, 0);
+        -moz-transform: translate(300px, 0);
+      }
+
+      #opener {
+        padding: 10px 10px;
+        float: left;
+      }
+
+      #opener #open {
+        width: 25px;
+      }
+
+      polymer-ui-toolbar {
+        font-size: 16px !important;
+        background-color: none;
+        border: none !important;
+        padding: 0 6px;
+      }
+
+    </style>
+
+    <epub-sidebar id="sidebar" 
+                  toc="{{ toc }}"
+                  current="{{ chapter }}"
+                  on-chapter-selected="chapterSelected" >
+    </epub-sidebar>
+      
+    <div id="main">
+      
+      <polymer-ui-toolbar>
+        <!-- <polymer-ui-icon-button icon="drawer"></polymer-ui-icon-button> -->
+        <polymer-ui-icon-button icon="menu" on-click="toggleDrawer"></polymer-ui-icon-button>
+        <epub-titlebar flex author="{{ author }}" title="{{ title }}"></epub-titlebar>
+        <!-- <polymer-ui-icon-button icon="add"></polymer-ui-icon-button> -->
+        <!-- <polymer-ui-icon-button icon="settings"></polymer-ui-icon-button> -->
+
+        <g-menu-button responsive="true" selectedClass="" src="assets/settings.png" valign="right" on-activate="menuActivate">
+          <g-menu-item src="assets/add.png" on-tap="publishElement">Bookmark</g-menu-item>
+          <g-menu-item src="assets/fullscreen.png" on-tap="clearElement">Fullscreen</g-menu-item>
+        </g-menu-button>
+
+      </g-toolbar>
+      </polymer-ui-toolbar>
+
+      <!-- <polymer-ui-toggle-button></polymer-ui-toggle-button> -->
+      
+      <!-- <div id="opener"> -->
+        
+        
+        <!-- <a id="open"><img src="../../../demo/img/menu-icon.png" data-close="../../../demo/img/close.png" data-open="../../../demo/img/menu-icon.png"></a> -->
+      <!-- </div> -->
+            
+      
+      <epub-viewer id="viewer"
+        src="{{ src }}"
+        chapter="{{ chapter }}"
+        on-book-ready="bookReady"
+        on-book-metadata="bookMetadata"
+        on-book-toc="bookToc"
+        on-chapter-displayed="chapterDisplayed" >
+      
+      </epub-viewer>
+
+    </div>
+
+  </template>
+  <script>
+
+    Polymer('epub-reader', {
+      src: '',
+      drawOpen: false,
+      ready: function() {
+
+      },
+      bookReady: function(e){
+        // console.log("book is ready")
+      },
+      bookMetadata: function(e){
+        this.meta = e.detail.meta;
+
+        this.title = this.meta.bookTitle;
+        this.author = this.meta.creator;
+
+        document.title = this.title+" – "+this.meta.creator;
+      },
+      bookToc: function(e){
+        this.toc = e.detail.toc;
+      },
+      toggleDrawer: function(e) {
+        this.drawOpen = !this.drawOpen;
+        this.$.main.classList.toggle("closed");
+      },
+      chapterSelected: function(e) {
+        // this.chapter = e.detail.url;
+        this.$.viewer.goto(e.detail.url);
+        this.$.main.classList.toggle("closed");
+      },
+      chapterDisplayed: function(e) {
+        this.chapter = e.detail.chapter.id;
+      }
+
+    });
+    
+  </script>
+</polymer-element>

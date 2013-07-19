@@ -4,7 +4,8 @@ EPUBJS.EpubCFI = function(cfiStr){
 
 EPUBJS.EpubCFI.prototype.generateChapter = function(spineNodeIndex, pos, id) {
 	
-	var spineNodeIndex = spineNodeIndex + 1,	
+	var pos = parseInt(pos),
+		spineNodeIndex = spineNodeIndex + 1,	
 		cfi = '/'+spineNodeIndex+'/';
 
 	cfi += (pos + 1) * 2;

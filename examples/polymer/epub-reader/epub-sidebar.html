@@ -1,0 +1,38 @@
+<link rel="import" href="epub-controls.html">
+<link rel="import" href="epub-settings.html">
+<link rel="import" href="epub-toc.html">
+
+<polymer-element name="epub-sidebar" attributes="toc current">
+  <template>
+      <style>
+      @host {
+         * {
+            display: block;
+            background: #6b6b6b;
+            position: absolute;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            -webkit-transition: -webkit-transform .3s;
+            -moz-transition: -moz-transform .3s;
+            
+            overflow: hidden;
+         }
+      }
+
+      </style>
+
+      <!-- <epub-controls></epub-controls> -->
+      <epub-toc items="{{ toc }}" current="{{ current }}"></epub-toc>
+      <!-- <epub-setting></epub-setting>         -->
+  </template>
+  <script>
+
+    Polymer('epub-controls', {
+      ready: function() {
+        
+      }
+    });
+    
+  </script>
+</polymer-element>

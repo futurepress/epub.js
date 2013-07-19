@@ -1,0 +1,53 @@
+<polymer-element name="epub-controls" attributes="items">
+  <template>
+      <style>
+        @host {
+          * {
+
+            background: #4e4e4e;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 25px;
+            padding: 10px 0;
+            display: block;
+          }
+
+         
+        }
+
+       #controls a {
+          float: left;
+          margin-left: 12px;
+          opacity: .5;
+        }
+
+        #controls img:hover {
+          opacity: .8;
+        }
+
+        #controls img:active {
+          opacity: 1;
+        }
+
+        
+
+      </style>
+      <div id="controls">
+        
+        <!-- <a id="network"><img id="store" src="../../../demo/img/save.png" save="../../../demo/img/save.png" data-saved="../../../demo/img/saved.png"></a>
+        <a id="setting"><img id="settings" src="../../../demo/img/settings.png"></a>
+        <a id="bookmark"><img id="bookmarks" src="../../../demo/img/star.png"></a> -->
+      </div>
+  </template>
+  <script>
+
+    Polymer('epub-controls', {
+      ready: function() {
+        
+      }
+    });
+    
+  </script>
+</polymer-element>

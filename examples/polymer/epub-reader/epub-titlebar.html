@@ -1,0 +1,44 @@
+<polymer-element name="epub-titlebar" attributes="author title">
+  <template>
+    <style>
+      @host {
+         * {
+            /*height: 8%;*/
+            min-height: 20px;
+            padding: 10px 0 10px 0;
+            margin: 0 50px 0 50px;
+            text-align: center;
+            color: #4f4f4f;
+            font-weight: 100;
+            font-family: Georgia, "Times New Roman", Times, serif;
+            opacity: .5;
+            -webkit-transition: opacity .5s;
+            -moz-transition: opacity .5s;
+            display: block;
+        }
+
+        *:hover {
+          opacity: 1;
+        }
+
+      }
+      
+      #book-title {
+        font-weight: 600;
+      }
+
+    </style>
+    <span id="book-title">{{ title }}</span>
+    <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+    <span id="author">{{ author }}</span>
+  </template>
+  <script>
+
+    Polymer('epub-titlebar', {
+      ready: function() {
+        
+      }
+    });
+    
+  </script>
+</polymer-element>

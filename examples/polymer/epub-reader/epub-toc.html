@@ -1,0 +1,144 @@
+<polymer-element name="epub-toc" attributes="items current">
+  <template>
+      <style>
+        @host {
+          * {
+              overflow-x: hidden;
+              overflow-y: auto;
+              width: 300px;
+              height: 100%;
+              /*visibility: hidden;*/
+              -webkit-transition: visibility 0 ease .5s;
+              -moz-transition: visibility 0 ease .5s;
+              display: block;
+
+          }
+        }
+
+        #sidebar.open #toc {
+          overflow-y: auto;
+          visibility: visible;
+          -webkit-transition: visibility 0 ease 0;
+          -moz-transition: visibility 0 ease 0;
+        }
+
+       
+
+        #toclist > ul{
+          margin-top: 15px;
+          margin-bottom: 50px;
+          padding-left: 20px;
+          display: block;
+        }
+
+        #toclist li {
+          margin-bottom:10px;
+          width: 225px;
+          font-family: Georgia, "Times New Roman", Times, serif;
+          list-style: none;
+          text-transform: capitalize;
+        }
+
+        #toclist li:active,
+        #toclist li.currentChapter
+        {
+          list-style: none;
+        }
+
+        #toclist a {
+          color: #AAA;
+          text-decoration: none;
+        }
+
+        #toclist a.chapter {
+          font-size: 1em;
+        }
+
+        #toclist a.section {
+          font-size: .8em;
+        }
+
+        #toclist li.currentChapter > a,
+        #toclist li a:hover {
+          color: #f1f1f1
+        }
+
+        #toclist li.openChapter > a,
+        #toclist li a:hover {
+          color: #E2E2E2;
+        }
+
+        #toclist li ul {
+          padding-left:10px;
+          margin-top: 8px;
+          display: none;
+        }
+
+        #toclist li.currentChapter > ul,
+        #toclist li.openChapter > ul {
+          display: block;
+        }
+
+        #toclist h3 {
+          display: inline-block;
+          color: #ccc;
+          margin: 0;
+          padding: 0;
+          margin: 15px 0 0 20px;
+        }
+        
+      </style>
+      <div id="toclist">
+        <h3>Table of Contents</h3>
+        <ul>
+          <template id="tocTemplate" repeat="{{ items }}">
+            <li id="toc-{{ id }}">
+              <a href="#/{{ href }}" ref="{{ href }}" on-click="selectChapter" class="toc_link{{ type }}">{{ label }}</a>
+              <ul>
+                <template ref="tocTemplate" repeat="{{ subitems }}"></template>
+              </ul>
+            </li>
+          </template>
+        </ul>
+
+      </div>
+        
+    </div>
+
+  </template>
+  <script>
+
+    Polymer('epub-toc', {
+      selectedItem: false,
+      ready: function() {
+        
+      },
+      itemsChanged: function() {
+        // console.log("toc", this.items)
+      },
+      selectChapter: function(e){
+
+        var selected = new CustomEvent('chapter-selected', { 
+            "bubbles" : true, 
+            "cancelable" : true, 
+            "detail": { 
+              "url" : e.toElement.getAttribute("ref") 
+            } 
+          });
+
+        this.dispatchEvent(selected);
+
+        if(this.selectedItem) this.selectedItem.classList.remove("currentChapter");
+      },
+      currentChanged: function() {
+        
+        this.selectedItem = this.shadowRoot.getElementById("toc-"+this.current);
+        this.selectedItem.classList.add("currentChapter");
+      }
+    });
+    
+  </script>
+</polymer-element>
+
+
+

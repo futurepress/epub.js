@@ -1055,7 +1055,8 @@ EPUBJS.EpubCFI = function(cfiStr){
 
 EPUBJS.EpubCFI.prototype.generateChapter = function(spineNodeIndex, pos, id) {
 	
-	var spineNodeIndex = spineNodeIndex + 1,	
+	var pos = parseInt(pos),
+		spineNodeIndex = spineNodeIndex + 1,	
 		cfi = '/'+spineNodeIndex+'/';
 
 	cfi += (pos + 1) * 2;
@@ -1739,8 +1740,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 			renderer.currentLocationCfi = renderer.getPageCfi();
 
-			renderer.trigger("renderer:chapterDisplayed");
-			renderer.book.trigger("renderer:chapterDisplayed");
+			renderer.trigger("renderer:chapterDisplayed", renderer.currentChapter);
+			renderer.book.trigger("renderer:chapterDisplayed", renderer.currentChapter);
 
 			renderer.visible(true);
 
@@ -1795,7 +1796,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 
 	this.spreadWidth = (this.colWidth + this.gap) * divisor;
 
-	if(this.bodyEl) this.bodyEl.style.margin = 0;
+	// if(this.bodyEl) this.bodyEl.style.margin = 0;
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins

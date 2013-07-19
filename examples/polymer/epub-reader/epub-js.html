@@ -1,0 +1,108 @@
+<script src="../../../build/epub.min.js"></script>
+
+<script type="text/javascript">
+  //-- Setups
+</script>
+
+<polymer-element name="epub-js" attributes="src chapter width height restore spreads">
+  <template>
+    <style>
+      @host {
+         * {
+           display: block;
+         }
+      }
+      #area {
+        width: 100%;
+        height: 100%;
+      }
+      iframe {
+        border: none;
+      }
+    </style>
+    <div id="area"></div>
+  </template>
+  <script>
+    Polymer('epub-js', {
+      src: '',
+      shown: false,
+      ready: function() {
+        
+      },
+      prevPage: function() {
+        if (this.Book) this.Book.prevPage();
+      },
+      nextPage: function() {
+        if (this.Book) this.Book.nextPage();
+      },
+      goto: function(url) {
+        if (this.Book) this.Book.goto(url);
+      },
+      srcChanged: function() {
+        
+        var src = this.src,
+            width = this.width || false,
+            height = this.height || false,
+            spreads = this.spreads != null ? true : false,
+            restore = this.restore != null ? true : false;
+
+        if(this.Book) this.Book.destroy();
+
+        this.Book = new EPUBJS.Book(src, {
+          width: width,
+          height: height,
+          spreads : spreads,
+          restore : restore
+        });
+
+        this.events();
+
+        this.Book.renderTo(this.$.area);
+
+      },
+      chapterChanged: function() {
+        if(this.Book) this.Book.goto(this.chapter);
+        console.log(this.chapter)
+      },
+      events: function() {
+        var element = this;
+
+
+        this.Book.on("book:ready", function() {
+          var ready = new CustomEvent('book-ready', { "bubbles" : true, "cancelable" : true });
+          element.dispatchEvent(ready);
+        });
+
+        this.Book.on("renderer:chapterDisplayed", function(e) {
+          
+          if(element.shown == false){
+            var bookdisplayed = new CustomEvent('book-displayed', { "bubbles" : true, "cancelable" : true });
+            element.dispatchEvent(bookdisplayed);
+            shown = true;
+          }
+          
+          var chapterdisplayed = new CustomEvent('chapter-displayed', { "bubbles" : true, "cancelable" : true, "detail" : {"chapter" : e} });
+          element.dispatchEvent(chapterdisplayed);
+
+        });
+
+        this.Book.on("renderer:chapterUnloaded", function(e) {
+          var unloaded = new CustomEvent('chapter-unloaded', { "bubbles" : true, "cancelable" : true });
+          element.dispatchEvent(unloaded);
+        });
+
+        this.Book.getMetadata().then(function(meta){
+          var metadata = new CustomEvent('book-metadata', { "bubbles" : true, "cancelable" : true, "detail" : {"meta" : meta} });
+          element.dispatchEvent(metadata);
+        });
+
+        this.Book.getToc().then(function(toc){
+          var toc = new CustomEvent('book-toc', { "bubbles" : true, "cancelable" : true, "detail": {"toc" : toc} });
+          element.dispatchEvent(toc);
+        });
+        
+      }
+      
+    });
+  </script>
+</polymer-element>
