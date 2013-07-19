@@ -133,7 +133,7 @@
       currentChanged: function() {
         
         this.selectedItem = this.shadowRoot.getElementById("toc-"+this.current);
-        this.selectedItem.classList.add("currentChapter");
+        if(this.selectedItem) this.selectedItem.classList.add("currentChapter");
       }
     });
     
