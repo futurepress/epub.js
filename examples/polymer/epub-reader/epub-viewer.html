@@ -91,6 +91,10 @@
       src: '',
       ready: function() {
         document.addEventListener('keydown', this.arrowKeys.bind(this), false);
+
+        document.addEventListener('book-ready', this.bookReady.bind(this), false);
+        document.addEventListener('book-displayed', this.bookDisplayed.bind(this), false);
+        
       },
       prev: function() {
         this.$.book.prevPage();
