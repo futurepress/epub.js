@@ -1,8 +1,9 @@
-EPUBJS.Book = function(bookPath, options){
+EPUBJS.Book = function(options){
 	
 	var book = this;
 	
 	this.settings = _.defaults(options || {}, {
+	  bookPath : null,
 	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
 	  fromStorage : false,
 	  saved : false,
@@ -65,34 +66,20 @@ EPUBJS.Book = function(bookPath, options){
 		this.trigger("book:ready");
 	}.bind(this));
 	
+	this.opened = new RSVP.Promise();
 	// BookUrl is optional, but if present start loading process
-	if(bookPath) {
-		this.opened = this.open(bookPath);
+	if(this.settings.bookPath) {
+		this.open(this.settings.bookPath);
 	}
+	 
 	
-	// Likewise if an element is present start rendering process
-	// if(bookPath && this.settings.element) {
-	// 	this.opened.then(function(){
-	// 		this.rendered = this.renderTo(el);
-	// 	});
-	// }
-	
-	window.addEventListener("beforeunload", function(e) {
-	  
-	  if(book.settings.restore) {
-	  	  book.saveSettings();
-		  book.saveContents();
-	  }
-	  
-	  book.trigger("book:unload");
-	}, false);
+	window.addEventListener("beforeunload", this.unload.bind(this), false);
 
 	//-- Listen for these promises:
 	//-- book.opened.then()
 	//-- book.rendered.then()
 
 }
-
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
 EPUBJS.Book.prototype.open = function(bookPath, forceReload){
@@ -150,6 +137,10 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 		if(!this.settings.stored) opened.then(book.storeOffline());
 	}
 	
+	opened.then(function(){
+		book.opened.resolve();
+	});
+
 	return opened;
 
 }
@@ -619,6 +610,28 @@ EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
 
 	delete this.settings.styles[style];
 }
+
+EPUBJS.Book.prototype.unload = function(bookPath, forceReload){
+	
+	if(this.settings.restore) {
+	  	this.saveSettings();
+		this.saveContents();
+	}
+
+	this.trigger("book:unload");
+}
+
+EPUBJS.Book.prototype.destroy = function() {
+
+	window.removeEventListener("beforeunload", this.unload);
+
+	if(this.currentChapter) this.currentChapter.unload();
+
+	this.unload();
+
+	if(this.render) this.render.remove();
+
+}	
 
 
 //-- Get pre-registered hooks

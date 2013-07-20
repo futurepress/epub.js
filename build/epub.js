@@ -6,11 +6,69 @@ EPUBJS.VERSION = "0.1.5";
 EPUBJS.plugins = EPUBJS.plugins || {};
 
 EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
-EPUBJS.Book = function(bookPath, options){
+
+(function() {
+
+	var root = this;
+	var previousEpub = root.ePub || {};
+	
+	var ePub = root.ePub = function() {
+		var bookPath, options;
+
+		//-- var book = ePub("path/to/book.epub", { restore: true })
+		if(arguments[0] && 
+			typeof arguments[0] === 'string') {
+
+			bookPath = arguments[0];
+
+			if( arguments[1] && typeof arguments[1] === 'object' ) {
+				options = arguments[1];
+				options.bookPath = bookPath;
+			} else {
+				options = { 'bookPath' : bookPath }
+			}
+
+		}
+
+		/* 
+		 *	var book = ePub({ bookPath: "path/to/book.epub", restore: true });
+		 *  
+		 *   - OR -
+		 *
+		 * 	 var book = ePub({ restore: true });
+		 * 	 book.open("path/to/book.epub");
+		 */
+
+		 if( arguments[0] && typeof arguments[0] === 'object' ) {
+		 	options = arguments[0];
+		 }
+		 
+		
+		return new EPUBJS.Book(options);
+	}
+
+	_.extend(ePub, {
+		noConflict : function() {
+			root.ePub = previousEpub;
+			return this;
+		}
+	});
+
+	//exports to multiple environments
+  	if (typeof define === 'function' && define.amd)
+		//AMD
+		define(function(){ return ePub; });
+  	else if (typeof module != "undefined" && module.exports)
+		//Node
+		module.exports = ePub;
+
+})();
+EPUBJS.Book = function(options){
 	
 	var book = this;
 	
 	this.settings = _.defaults(options || {}, {
+	  bookPath : null,
 	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
 	  fromStorage : false,
 	  saved : false,
@@ -73,34 +131,20 @@ EPUBJS.Book = function(bookPath, options){
 		this.trigger("book:ready");
 	}.bind(this));
 	
+	this.opened = new RSVP.Promise();
 	// BookUrl is optional, but if present start loading process
-	if(bookPath) {
-		this.opened = this.open(bookPath);
+	if(this.settings.bookPath) {
+		this.open(this.settings.bookPath);
 	}
+	 
 	
-	// Likewise if an element is present start rendering process
-	// if(bookPath && this.settings.element) {
-	// 	this.opened.then(function(){
-	// 		this.rendered = this.renderTo(el);
-	// 	});
-	// }
-	
-	window.addEventListener("beforeunload", function(e) {
-	  
-	  if(book.settings.restore) {
-	  	  book.saveSettings();
-		  book.saveContents();
-	  }
-	  
-	  book.trigger("book:unload");
-	}, false);
+	window.addEventListener("beforeunload", this.unload.bind(this), false);
 
 	//-- Listen for these promises:
 	//-- book.opened.then()
 	//-- book.rendered.then()
 
 }
-
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
 EPUBJS.Book.prototype.open = function(bookPath, forceReload){
@@ -158,6 +202,10 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 		if(!this.settings.stored) opened.then(book.storeOffline());
 	}
 	
+	opened.then(function(){
+		book.opened.resolve();
+	});
+
 	return opened;
 
 }
@@ -627,6 +675,28 @@ EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
 
 	delete this.settings.styles[style];
 }
+
+EPUBJS.Book.prototype.unload = function(bookPath, forceReload){
+	
+	if(this.settings.restore) {
+	  	this.saveSettings();
+		this.saveContents();
+	}
+
+	this.trigger("book:unload");
+}
+
+EPUBJS.Book.prototype.destroy = function() {
+
+	window.removeEventListener("beforeunload", this.unload);
+
+	if(this.currentChapter) this.currentChapter.unload();
+
+	this.unload();
+
+	if(this.render) this.render.remove();
+
+}	
 
 
 //-- Get pre-registered hooks
@@ -1673,12 +1743,6 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	
 }
 
-EPUBJS.Renderer.prototype.destroy = function(){
-	window.removeEventListener("resize", this.resized, false);
-}
-
-
-
 EPUBJS.Renderer.prototype.resizeIframe = function(e, cWidth, cHeight){
 	var width, height;
 
@@ -1806,7 +1870,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
-	// this.bodyEl.style.margin = "0";
+	this.bodyEl.style.margin = "0";
 	
 	this.docEl.style.overflow = "hidden";
 
@@ -2347,7 +2411,10 @@ EPUBJS.Renderer.prototype.height = function(el){
 	return this.docEl.offsetHeight;
 }
 
-
+EPUBJS.Renderer.prototype.remove = function() {
+	window.removeEventListener("resize", this.resized);
+	this.el.removeChild(this.iframe);
+}
 
 
 

@@ -1,7 +1,7 @@
 EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
 		var images = chapter.doc.querySelectorAll('img'),
 			items = Array.prototype.slice.call(images),
-			iheight = chapter.height(),//chapter.doc.body.getBoundingClientRect().height,
+			iheight = chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
 			oheight;
 
 		items.forEach(function(item){
@@ -14,7 +14,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 					height = oHeight || rectHeight,
 					newHeight;
 				
-				iheight = chapter.height();
+				iheight = chapter.bodyEl.clientHeight;
 				if(top < 0) top = 0;
 								
 				if(height + top >= iheight) {

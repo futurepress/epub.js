@@ -143,12 +143,6 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	
 }
 
-EPUBJS.Renderer.prototype.destroy = function(){
-	window.removeEventListener("resize", this.resized, false);
-}
-
-
-
 EPUBJS.Renderer.prototype.resizeIframe = function(e, cWidth, cHeight){
 	var width, height;
 
@@ -276,7 +270,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
-	// this.bodyEl.style.margin = "0";
+	this.bodyEl.style.margin = "0";
 	
 	this.docEl.style.overflow = "hidden";
 
@@ -817,7 +811,10 @@ EPUBJS.Renderer.prototype.height = function(el){
 	return this.docEl.offsetHeight;
 }
 
-
+EPUBJS.Renderer.prototype.remove = function() {
+	window.removeEventListener("resize", this.resized);
+	this.el.removeChild(this.iframe);
+}
 
 
 

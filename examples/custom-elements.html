@@ -66,12 +66,14 @@
                   spreads = this.getAttribute("spreads") != null ? true : false,
                   restore = this.getAttribute("restore") != null ? true : false;
 
-              this.Book = new EPUBJS.Book(src, {
+              this.Book = new EPUBJS.Book({
                 width: width,
                 height: height,
                 spreads : spreads,
                 restore : restore
               });
+
+              this.Book.open(src);
 
             };
 

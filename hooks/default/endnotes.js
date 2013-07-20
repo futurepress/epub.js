@@ -4,9 +4,11 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			items = Array.prototype.slice.call(notes), //[].slice.call()
 			attr = "epub:type",
 			type = "noteref",
+			folder = EPUBJS.core.folder(location.pathname),
+			cssPath = folder + EPUBJS.cssPath || folder,
 			popups = {};
 			
-		EPUBJS.core.addCss("../demo/css/popup.css", false, chapter.doc.head);
+		EPUBJS.core.addCss(cssPath + "popup.css", false, chapter.doc.head);
 		
 		
 		items.forEach(function(item){

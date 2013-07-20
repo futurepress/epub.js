@@ -33,10 +33,10 @@
         <script src="../src/renderer.js"></script>
         <script src="../src/epubcfi.js"></script>
         
-        <!-- Plugins -->
-        <script async src="../hooks/default/transculsions.js"></script>
-        <script async src="../hooks/default/endnotes.js"></script>
-        <script async src="../hooks/default/smartimages.js"></script>
+        <!-- Hooks -->
+        <!-- <script src="../hooks/default/transculsions.js"></script> -->
+        <!-- <script src="../hooks/default/endnotes.js"></script> -->
+        <!-- <script src="../hooks/default/smartimages.js"></script> -->
         
         <style type="text/css">
 
@@ -95,7 +95,7 @@
          <script>
             "use strict";
             
-            var Book = new EPUBJS.Book("../demo/moby-dick/");
+            var Book = ePub("../demo/moby-dick/");
             
         </script>
     </head>
