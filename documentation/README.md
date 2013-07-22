@@ -51,13 +51,14 @@ Options:
 ```
 
 Intially you'll probably just want to turn on restore.
+
 The width and height will be set to the containing element's dimensions.
 
 ```javascript
 var Book = ePub("url/to/book/", { restore: true });
 ```
 
-The following examples will refer to this ePub variable as book.
+The following examples will refer to this ePub variable as ```Book```.
 
 #### Book.open(bookPath)
 
@@ -79,6 +80,7 @@ Book.open("url/to/book.epub");
 #### Book.renderTo(element)
 
 Appends the iframe that will contain the rendered book to a element.
+
 Returns a promise with the render object after the first chapter has been loaded 
 
 ```javascript
@@ -96,9 +98,11 @@ var Book = ePub("url/to/book/");
 Book.renderTo("div-id");
 ```
 
-#### Book.nextPage() / Book.prevPage()
+#### Book.nextPage()
+#### Book.prevPage()
 
 Changes the page the book is on.
+
 If on the first or last page of a chapter, the next chapter will be loaded.
 
 ```html
@@ -111,6 +115,7 @@ if the book has not been rendered yet, page changes will have no effect.
 #### Book.displayChapter(chap, end)
 
 Loads book chapter at a given spine position or epub CFI string.
+
 Returns a promise with the render after the given chapter has been loaded.
 
 ```javascript
@@ -125,7 +130,8 @@ Book.displayChapter(3, true);
 
 #### Book.goto(url)
 
-Loads book chapter that has the given url
+Loads book chapter that has the given url.
+
 Returns a promise with the render after the given chapter has been loaded 
 
 ```javascript
@@ -139,6 +145,7 @@ This is often used to create a table of contents, with links to specific chapter
 #### Book.setStyle(style, val, prefixed)
 
 Adds style to be attached to the body element rendered book.
+
 One common use is increasing font-size.
 
 ```javascript
@@ -174,13 +181,20 @@ Book.getToc().then(function(toc){
 ## Events
 
 book:ready
+
 book:stored
+
 book:online
+
 book:offline
 
+
 renderer:resized
+
 renderer:pageChanged
+
 renderer:chapterDisplayed
+
 renderer:chapterUnloaded
 
 
