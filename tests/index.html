@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>EPUB.js QUnit Tests</title>
+  <link rel="stylesheet" href="qunit/qunit.css">
+
+  <script src="../libs/jquery/jquery-1.9.0.min.js"></script>
+  <script src="qunit/qunit.js"></script>
+  
+  <script src="../demo/js/libs/zip.min.js"></script>  
+  <script src="../build/epub.min.js"></script>
+  <script>
+            
+    EPUBJS.filePath = "../demo/js/libs/";
+    EPUBJS.cssPath = "css/";
+
+  </script>
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  
+  <script src="core.js"></script>
+  <script src="render.js"></script>
+
+</body>
+</html>

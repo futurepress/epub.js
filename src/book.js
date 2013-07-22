@@ -436,6 +436,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 		cfi,
 		pos;
 
+	if(!this.render) return false;
+
 	if(_.isNumber(chap)){
 		pos = chap;
 	}else{
@@ -487,7 +489,11 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 }
 
 EPUBJS.Book.prototype.nextPage = function(){
-	var next = this.render.nextPage();
+	var next;
+
+	if(!this.render) return;
+
+	next = this.render.nextPage();
 
 	if(!next){
 		return this.nextChapter();
@@ -495,7 +501,11 @@ EPUBJS.Book.prototype.nextPage = function(){
 }
 
 EPUBJS.Book.prototype.prevPage = function() {
-	var prev = this.render.prevPage();
+	var prev;
+
+	if(!this.render) return;
+
+	prev = this.render.prevPage();
 	
 	if(!prev){
 		return this.prevChapter();
@@ -521,6 +531,8 @@ EPUBJS.Book.prototype.goto = function(url){
 		absoluteURL = (chapter.search("://") == -1) ? this.settings.contentsPath + chapter : chapter,
 		spinePos = this.spineIndexByURL[absoluteURL],
 		book;
+
+	if(!this.render) return;
 
 	//-- If link fragment only stay on current chapter
 	if(!chapter){
@@ -605,7 +617,7 @@ EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
 	if(this.render) this.render.setStyle(style, val, prefixed);
 }
 
-EPUBJS.Book.prototype.removeStyle = function(style, val, prefixed) {
+EPUBJS.Book.prototype.removeStyle = function(style) {
 	if(this.render) this.render.removeStyle(style);
 
 	delete this.settings.styles[style];

@@ -367,7 +367,7 @@ EPUBJS.Renderer.prototype.nextPage = function(){
 
 		this.currentLocationCfi = this.getPageCfi();
 		
-		this.book.trigger("book:pageChanged", this.currentLocationCfi);
+		this.book.trigger("renderer:pageChanged", this.currentLocationCfi);
 
 
 		return this.chapterPos;
@@ -386,7 +386,7 @@ EPUBJS.Renderer.prototype.prevPage = function(){
 
 		this.currentLocationCfi = this.getPageCfi();
 
-		this.book.trigger("book:pageChanged", this.currentLocationCfi);
+		this.book.trigger("renderer:pageChanged", this.currentLocationCfi);
 
 		return this.chapterPos;
 	}else{
