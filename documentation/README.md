@@ -1,21 +1,5 @@
 # EPUB.JS Documentation
 
-## Getting Started
-
-Grab the code here:
-
-```html
-<div onclick="Book.prevPage();">‹</div>
-<div id="area"></div>
-<div onclick="Book.nextPage();">›</div>
-
-
-<script>
-	var Book = ePub("url/to/book/", { restore: true });
-	Book.renderTo("area");
-</script>
-```
-
 ## Methods
 
 #### ePub(bookPath, options)

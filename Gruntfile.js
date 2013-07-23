@@ -27,7 +27,9 @@ module.exports = function(grunt) {
 				'demo/js/reader.min.js': 'build/reader.js',
 				'demo/js/hooks.min.js': 'build/hooks.js',
 				'demo/js/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
-				'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js']
+				'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js'],
+				'build/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
+				'build/libs/inflate.js': ['libs/zip/inflate.js']
 			}
 	  	}
 	  }

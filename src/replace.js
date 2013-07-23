@@ -1,0 +1,95 @@
+var EPUBJS = EPUBJS || {}; 
+EPUBJS.replace = {};
+
+EPUBJS.replace.head = function(callback, renderer) {
+
+	renderer.replaceWithStored("link[href]", "href", EPUBJS.replace.links, callback);
+
+}
+	
+
+//-- Replaces assets src's to point to stored version if browser is offline
+EPUBJS.replace.resources = function(callback, renderer){
+	//srcs = this.doc.querySelectorAll('[src]');
+	renderer.replaceWithStored("[src]", "src", EPUBJS.replace.srcs, callback);
+		
+	
+}
+
+EPUBJS.replace.svg = function(callback, renderer) {
+
+	renderer.replaceWithStored("image", "xlink:href", function(_store, full, done){
+		_store.getUrl(full).then(done);
+	}, callback);
+
+}
+
+EPUBJS.replace.srcs = function(_store, full, done){
+
+	_store.getUrl(full).then(done);
+	
+}
+
+//-- Replaces links in head, such as stylesheets - link[href]
+EPUBJS.replace.links = function(_store, full, done, link){
+	
+	//-- Handle replacing urls in CSS
+	if(link.getAttribute("rel") === "stylesheet") {
+		EPUBJS.replace.stylesheets(_store, full).then(done);
+	}else{
+		_store.getUrl(full).then(done);	
+	}
+
+	
+}
+
+EPUBJS.replace.stylesheets = function(_store, full) {
+	var promise = new RSVP.Promise();
+
+	if(!_store) return;
+
+	_store.getText(full).then(function(text){
+		var url;
+	
+		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
+			var _URL = window.URL || window.webkitURL || window.mozURL;
+
+			var blob = new Blob([newText], { "type" : "text\/css" }),
+				url = _URL.createObjectURL(blob);
+
+			promise.resolve(url);
+
+		}, function(e) {console.error(e)});
+		
+	});
+
+	return promise;
+}
+
+EPUBJS.replace.cssUrls = function(_store, base, text){
+	var promise = new RSVP.Promise(),
+		promises = [],
+		matches = text.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/g);
+	
+	if(!_store) return;
+
+	if(!matches){
+		promise.resolve(text);
+		return promise;
+	}
+
+	matches.forEach(function(str){
+		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
+		replaced = _store.getUrl(full).then(function(url){
+			text = text.replace(str, 'url("'+url+'")');
+		}, function(e) {console.error(e)} );
+		
+		promises.push(replaced);
+	});
+	
+	RSVP.all(promises).then(function(){
+		promise.resolve(text);
+	});
+	
+	return promise;	
+}

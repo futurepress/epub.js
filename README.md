@@ -3,23 +3,13 @@ Epub.js
 
 ![FuturePress Views](http://fchasen.com/futurepress/fp.png)
 
-Epub.js is a javascript library for rendering ePUB's in the browser, across many devices.
+Epub.js is a javascript library for rendering ePub's in the browser, across many devices.
 
 Epub.js provides common ebook functions (such as persistence and pagination) without the need to develop a dedicated application or plugin.
 
 Unlike an application, our HTML / Javascript reader can be hosted anywhere and can be easily customized using javascript, such as changing the interface or adding annotation functionality.
 
 [Try it while reading Moby Dick](http://fchasen.github.com/epub.js/demo/)
-
-Upcoming Updates
--------------------------
-+ Update documentation with the new API
-
-+ Offline storage is being update to work with the new api.
-
-+ Tests
-
-+ A framework (backbone / angular / ?) to use for our reader demo (which we suspect is going to start expanding quickly)
 
 
 Why EPUB
@@ -32,6 +22,64 @@ ePUB is a widely used and easily convertible format.  Many books are currently i
 An unzipped ePUB3 is a collection of HTML5 files, CSS, images and other media – just like any other website.  However, it enforces a schema of book components, which allows us to render a book and its parts based on a controlled vocabulary.  
 
 More specifically, the ePUB schema standardizes the table of contents, provides a manifest that enables the caching of the entire book and separates the storage of the content from how it’s displayed.
+
+Getting Started
+-------------------------
+
+Get the minified code from the build folder:
+
+```html
+<script src="../build/epub.min.js"></script>
+```
+
+If you plan on using compressed (zipped) epubs (any .epub file) include the minfied version of [zip.js](http://gildas-lormeau.github.io/zip.js/)
+
+Also make sure to set ```EPUBJS.filePath``` to the directory containing ```inflate.js```
+
+```html
+<!-- Zip JS -->
+<script src="/build/libs/zip.min.js"></script>  
+
+<script>
+    EPUBJS.filePath = "../build/libs/";
+</script>
+```
+
+Setup a element to render to:
+
+```html
+<div onclick="Book.prevPage();">‹</div>
+<div id="area"></div>
+<div onclick="Book.nextPage();">›</div>
+```
+
+Create the new ePub, and then render it to that element:
+
+```html
+<script>
+	var Book = ePub("url/to/book/", { restore: true });
+	Book.renderTo("area");
+</script>
+```
+
+See the [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md) to view events and methods for getting the books contents.
+
+However, the [Examples](https://github.com/fchasen/epub.js/tree/master/examples) are currently the best place to learn how to use the library.
+
+
+Recent Updates
+-------------------------
+
++ Started [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md)
+
++ ePub("book.epub", options) returns a new EPUBJS.Book(options),
+
++ EPUBJS.Book now only takes a options object, set bookPath with ePub("path/to/book/") or new EPUBJS.Book({ bookPath : "path/to/book/"})
+
++ [Examples](http://fchasen.github.io/epub.js/examples/)
+
++ [Tests](http://fchasen.github.io/epub.js/tests/)
+
 
 Running Locally
 -------------------------
@@ -49,7 +97,7 @@ then you can run the reader locally with the command
 node server.js
 ```
 
-* [dev.html](http://localhost:8080/examples/dev.html) will pull from the source files and should be used during development.
+* [dev.html](http://localhost:8080/demo/dev.html) will pull from the source files and should be used during development.
 * [index.html](http://localhost:8080/demo/index.html) will use the minified production libraries in the dist/ folder.
 
 Building for Distribution
@@ -61,23 +109,6 @@ To generate a new build run
 
 ```javascript
 grunt
-```
-
-Getting Started
--------------------------
-
-With the reader (which will create a new EPUBJS):
-
-```javascript
-FP.filePath = "/path/to/js/"; //-- For web workers
-FPR.app.init("/path/to/epub/"); //-- Starts the reader, with path to a book
-```
-
-Or just get use EPUBJS with your own UI:
-
-```javascript
-var book = new EPUBJS.book("url/to/book");
-book.renderTo("div-id");
 ```
 
 Persistence / Offline Storage
@@ -103,9 +134,9 @@ Hooks require a event to latch onto and a callback for when they are finished.
 Example hook:
 
 ```javascript
-FP.Hooks.register("beforeChapterDisplay").example = function(callback, chapter){
+EPBUJS.Hooks.register("beforeChapterDisplay").example = function(callback, render){
     
-    var elements = chapter.doc.querySelectorAll('[video]'),
+    var elements = render.doc.querySelectorAll('[video]'),
         items = Array.prototype.slice.call(elements);
     
     items.forEach(function(item){
