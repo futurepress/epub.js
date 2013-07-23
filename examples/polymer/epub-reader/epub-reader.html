@@ -25,6 +25,7 @@
             background: #6b6b6b;
          }
       }
+
       epub-viewer {
         width: 80%;
         height: 80%;
@@ -66,6 +67,28 @@
         background-color: none;
         border: none !important;
         padding: 0 6px;
+      }
+
+      @media only screen and (min-width: 901px) and (max-width: 1040px) {
+        epub-viewer {
+          width: 50%;
+          margin-left: 25%;
+        }
+        
+      }
+
+      @media only screen and (min-width: 551px) and (max-width: 900px) {
+        epub-viewer {
+          width: 60%;
+          margin-left: 20%;
+        }
+      }
+
+      @media only screen and (max-width: 550px) {
+        epub-viewer {
+          width: 80%;
+          margin-left: 10%;
+        }
       }
 
     </style>

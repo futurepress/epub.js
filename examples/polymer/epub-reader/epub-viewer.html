@@ -67,8 +67,47 @@
         margin: -33px 0 0 -33px;
       }
 
+      @media only screen and (max-width: 1040px) {
+        
+        #divider,
+        #divider.show {
+          display: none;
+        }
+        
+      }
 
+      @media only screen and (min-width: 551px) and (max-width: 900px) {
 
+        #prev {
+          left: 20px;
+        }
+        
+        #next {  
+          right: 20px;
+        }
+      }
+
+      @media only screen and (max-width: 550px) {
+        
+        #prev {
+          left: 0;
+        }
+        
+        #next {  
+          right: 0;
+        }
+        
+        .arrow {
+          height: 100%;
+          top: 45px;
+          width: 10%;
+          text-indent: -10000px;
+        }
+        
+      }
+
+      /* and (orientation : landscape) */
+      
     </style>
       <div id="divider"></div>
 
@@ -106,10 +145,10 @@
         this.$.loader.style.display = "none";
       },
       bookDisplayed: function() {
-        this.$.divider.style.display = "block";
+        this.$.divider.classList.add('show');
       },
       bookUnloaded: function() {
-        this.$.divider.style.display = "none";
+        this.$.divider.classList.remove('show');
       },
       srcChanged: function() {
                 

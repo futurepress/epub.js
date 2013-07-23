@@ -32,12 +32,20 @@
         <script src="../src/chapter.js"></script>
         <script src="../src/renderer.js"></script>
         <script src="../src/epubcfi.js"></script>
+        <script src="../src/replace.js"></script>
         
         <!-- Hooks -->
         <!-- <script src="../hooks/default/transculsions.js"></script> -->
         <!-- <script src="../hooks/default/endnotes.js"></script> -->
         <!-- <script src="../hooks/default/smartimages.js"></script> -->
         
+        <script>
+            
+            EPUBJS.filePath = "../demo/js/libs/";
+            EPUBJS.cssPath = "../demo/css/";
+
+        </script>
+
         <style type="text/css">
 
           body {
@@ -95,7 +103,7 @@
          <script>
             "use strict";
             
-            var Book = ePub("../demo/moby-dick/");
+            var Book = ePub("../demo/moby-dick/", {restore: true});
             
         </script>
     </head>
@@ -109,6 +117,7 @@
         <script>            
             
             Book.renderTo("area");
+
 
         </script>
     </body>

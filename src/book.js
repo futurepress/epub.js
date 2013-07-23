@@ -358,7 +358,8 @@ EPUBJS.Book.prototype.removeSavedContents = function() {
 
 //-- Takes a string or a element
 EPUBJS.Book.prototype.renderTo = function(elem){
-	var book = this;
+	var book = this,
+		rendered;
 	
 	if(_.isElement(elem)) {
 		this.element = elem;
@@ -369,12 +370,16 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 		return;
 	}
 	
-	return this.opened.
-			then(function(){
-				book.render = new EPUBJS.Renderer(book);
-									
-				return book.startDisplay();
-			})
+	rendered = this.opened.
+				then(function(){
+					book.render = new EPUBJS.Renderer(book);
+										
+					return book.startDisplay();
+				}, function(error) { console.error(error) });
+
+	rendered.then(null, function(error) { console.error(error) });
+
+	return rendered;
 }
 
 EPUBJS.Book.prototype.startDisplay = function(){
@@ -698,7 +703,6 @@ EPUBJS.Book.prototype.triggerHooks = function(type, callback, passed){
 	hooks = this.hooks[type];
 	
 	count = hooks.length;
-
 	function countdown(){
 		count--;
 		if(count <= 0 && callback) callback();
