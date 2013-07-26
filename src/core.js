@@ -13,6 +13,9 @@ EPUBJS.core.getEls = function(classes) {
 
 
 EPUBJS.core.request = function(url, type) {
+	var supportsURL = window.URL;
+	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+
 	var promise = new RSVP.Promise();
 	
 	var xhr = new XMLHttpRequest();
@@ -21,7 +24,7 @@ EPUBJS.core.request = function(url, type) {
 	xhr.onreadystatechange = handler;
 	
 	if(type == 'blob'){
-		xhr.responseType = type;
+		xhr.responseType = BLOB_RESPONSE;
 	}
 	
 	if(type == "json") {
@@ -44,6 +47,16 @@ EPUBJS.core.request = function(url, type) {
 			}else 
 			if(type == 'json'){
 				r = JSON.parse(this.response);
+			}else
+			if(type == 'blob'){
+
+				if(supportsURL) {
+ 					r = this.response;
+ 				} else {
+ 					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+ 					r = new Blob([this.response]);
+ 				}
+
 			}else{
 				r = this.response;
 			}
