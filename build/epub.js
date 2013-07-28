@@ -247,17 +247,24 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 
 			   //-- Adjust setting based on metadata			   
 
-			   //-- Load the TOC
-			   book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
-			   return book.loadXml(book.settings.tocUrl);
+			   //-- Load the TOC, optional
+			   if(contents.tocPath) {
+
+			   	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
+
+			   	 book.loadXml(book.settings.tocUrl).
+			   	  then(function(tocXml){
+				    return parse.toc(tocXml); // Grab Table of Contents
+				  }).then(function(toc){
+				    book.toc = book.contents.toc = toc;
+				    book.ready.toc.resolve(book.contents.toc);
+				   // book.saveSettings();
+				  });
+
+			   }
+
 		   }).
-		   then(function(tocXml){
-			   return parse.toc(tocXml); // Grab Table of Contents
-		   }).then(function(toc){
-			   book.toc = book.contents.toc = toc;
-			   book.ready.toc.resolve(book.contents.toc);
-			   // book.saveSettings();
-		   }).then(null, function(error) {
+		   then(null, function(error) {
 				console.error(error);
 		   });
 
@@ -850,6 +857,9 @@ EPUBJS.core.getEls = function(classes) {
 
 
 EPUBJS.core.request = function(url, type) {
+	var supportsURL = window.URL;
+	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+
 	var promise = new RSVP.Promise();
 	
 	var xhr = new XMLHttpRequest();
@@ -858,7 +868,7 @@ EPUBJS.core.request = function(url, type) {
 	xhr.onreadystatechange = handler;
 	
 	if(type == 'blob'){
-		xhr.responseType = type;
+		xhr.responseType = BLOB_RESPONSE;
 	}
 	
 	if(type == "json") {
@@ -881,6 +891,16 @@ EPUBJS.core.request = function(url, type) {
 			}else 
 			if(type == 'json'){
 				r = JSON.parse(this.response);
+			}else
+			if(type == 'blob'){
+
+				if(supportsURL) {
+ 					r = this.response;
+ 				} else {
+ 					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+ 					r = new Blob([this.response]);
+ 				}
+
 			}else{
 				r = this.response;
 			}
@@ -2296,7 +2316,7 @@ EPUBJS.Renderer.prototype.isElementVisible = function(el){
 		left = el.getBoundingClientRect().left;
 		
 		if( left >= 0 &&
-			left < this.spreadWidth ) {
+			left <= this.spreadWidth ) {
 			return true;	
 		}
 	}
