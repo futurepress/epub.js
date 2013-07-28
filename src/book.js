@@ -182,17 +182,24 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 
 			   //-- Adjust setting based on metadata			   
 
-			   //-- Load the TOC
-			   book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
-			   return book.loadXml(book.settings.tocUrl);
+			   //-- Load the TOC, optional
+			   if(contents.tocPath) {
+
+			   	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
+
+			   	 book.loadXml(book.settings.tocUrl).
+			   	  then(function(tocXml){
+				    return parse.toc(tocXml); // Grab Table of Contents
+				  }).then(function(toc){
+				    book.toc = book.contents.toc = toc;
+				    book.ready.toc.resolve(book.contents.toc);
+				   // book.saveSettings();
+				  });
+
+			   }
+
 		   }).
-		   then(function(tocXml){
-			   return parse.toc(tocXml); // Grab Table of Contents
-		   }).then(function(toc){
-			   book.toc = book.contents.toc = toc;
-			   book.ready.toc.resolve(book.contents.toc);
-			   // book.saveSettings();
-		   }).then(null, function(error) {
+		   then(null, function(error) {
 				console.error(error);
 		   });
 
