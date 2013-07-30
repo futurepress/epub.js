@@ -680,7 +680,7 @@ EPUBJS.Renderer.prototype.isElementVisible = function(el){
 		left = el.getBoundingClientRect().left;
 		
 		if( left >= 0 &&
-			left <= this.spreadWidth ) {
+			left < this.spreadWidth ) {
 			return true;	
 		}
 	}
