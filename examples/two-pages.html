@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<!--/*  Example of a try to get real 2 Page Layout
+<!--/* Example of a try to get real 2 Page Layout
 Problems:
-I need to insert a timeout to get the Right Page (2nd page) advance one page
 Seems that make .nextPage() twice not works properly. Try to advance 3 times using Next Page to see what I'm talking about.
-
+1st pages: Moby dick eating a boat Picture - Moby Dick or The whale picture
+Click on Next Page ->
+2nd pages: Brief Contents - Original Transcriber's notes
+Click on Next Page ->
+3rd pages: Etimology - Extracts
+Here instead of Extracts must be the next page of Etimology on the Right page.
+Click on Next Page ->
+4th pages: Extracts - "The Indian Sea...
+The 4th pages are both wrong ?¿?¿
+					
 Why I'm trying this:
 If we can get two real page layout we can use other libraries to get beautiful animations like turn.js
 */-->	
@@ -190,17 +198,20 @@ If we can get two real page layout we can use other libraries to get beautiful a
 	}
 	/* --> */
 	</style>
-     
-			 <script>
-			 /* I create to ePub with the same content, one for the Left Page (LBook) and other for the Right Page (RBook) */
-					"use strict";
-					var LBook = ePub("../demo/moby-dick/", {
-						spreads : false
-					});
-					var RBook = ePub("../demo/moby-dick/", {
-						spreads : false
-					});
-			</script>
+					
+					
+        </style>
+        
+         <script>
+						/* I create two ePub with the same content, one for the Left Page (LBook) and other for the Right Page (RBook) */
+            "use strict";
+            var LBook = ePub("../demo/moby-dick/", {
+              spreads : false
+            });
+            var RBook = ePub("../demo/moby-dick/", {
+              spreads : false
+            });
+        </script>
     </head>
     <body>
 			<div id="header">
@@ -217,27 +228,44 @@ If we can get two real page layout we can use other libraries to get beautiful a
         </div>
 			</div>
 			
-        <script>            
+        <script>   
+					// One page more for the Right Page (or Right Book), we must use the .ready.all.then promise to get it working properly
+					RBook.ready.all.then(function(){
+						RBook.nextPage();
+          });
+					
 					/* each book is rendered to different div */
 					LBook.renderTo("L-area");
 					RBook.renderTo("R-area");
 					
-					/* That's not working, I try to advance the Right Book to the next page (Left Page + 1)
-					RBook.nextPage();*/
-					
-					/* I need to set a timeout to make the Right page to advance one page, you must wait 2 seconds */
-					setTimeout(function(){ 
-							RBook.nextPage();},
-							2000); 
-					
 					/* Forward 2 pages on each book */
           function Next() {
-						LBook.nextPage();
-						RBook.nextPage();
-						LBook.nextPage();
-						RBook.nextPage();
+						LBook.ready.all.then(function(){
+              LBook.nextPage();
+            });
+						RBook.ready.all.then(function(){
+              RBook.nextPage();
+            });
+						LBook.ready.all.then(function(){
+              LBook.nextPage();
+            });
+						RBook.ready.all.then(function(){
+              RBook.nextPage();
+            });
 					}
-
+					/* Seems that's not working at chapter change:
+					1st pages: Moby dick eating a boat Picture - Moby Dick or The whale picture
+					Click on Next Page ->
+					2nd pages: Brief Contents - Original Transcriber's notes
+					Click on Next Page ->
+					3rd pages: Etimology - Extracts
+					Here instead of Extracts must be the next page of Etimology on the Right page.
+					Click on Next Page ->
+					4th pages: Extracts - "The Indian Sea...
+					The 4th pages are both wrong ?¿?¿
+					*/
+					
+					/* These also don't works properly */
 					/* Rewind 2 pages on each book */
 					function Previous() {
 						LBook.prevPage();
