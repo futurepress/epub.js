@@ -194,14 +194,6 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 	this.iframe.src = url;
 
-	
-	this.derf = document.createElement('iframe');
-	var b = new Blob(['<h1>PASS (1/1)</h1>'], { type: 'text/html' });
-	this.derf.src = window.webkitURL.createObjectURL(b);
-	this.derf.onload = function() {
-		console.log("this.derf");
-	}
-	document.body.appendChild(this.derf)
 	this.iframe.onload = function() {
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
