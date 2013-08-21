@@ -73,7 +73,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 		promise.resolve(this.urlCache[url]);
 		return promise;
 	}
-	
+
 	entry.getBlob(mime || zip.getMimeType(entry.name), function(blob){
 		var tempUrl = _URL.createObjectURL(blob);
 		promise.resolve(tempUrl);

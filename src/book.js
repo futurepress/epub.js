@@ -69,7 +69,7 @@ EPUBJS.Book = function(options){
 	this.opened = new RSVP.Promise();
 	// BookUrl is optional, but if present start loading process
 	if(this.settings.bookPath) {
-		this.open(this.settings.bookPath);
+		this.open(this.settings.bookPath, this.settings.reload);
 	}
 	 
 	
@@ -635,7 +635,7 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 	delete this.settings.styles[style];
 }
 
-EPUBJS.Book.prototype.unload = function(bookPath, forceReload){
+EPUBJS.Book.prototype.unload = function(){
 	
 	if(this.settings.restore) {
 	  	this.saveSettings();

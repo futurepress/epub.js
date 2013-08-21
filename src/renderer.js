@@ -24,7 +24,8 @@ EPUBJS.Renderer = function(book) {
 EPUBJS.Renderer.prototype.initialize = function(){
 	this.iframe = document.createElement('iframe');
 	//this.iframe.id = "epubjs-iframe";
-
+	this.iframe.scrolling = "no";
+	
 	if(this.book.settings.width || this.book.settings.height){
 		this.resizeIframe(false, this.book.settings.width || this.el.clientWidth, this.book.settings.height || this.el.clientHeight);
 	} else {
@@ -193,7 +194,14 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 
 	this.iframe.src = url;
 
-
+	
+	this.derf = document.createElement('iframe');
+	var b = new Blob(['<h1>PASS (1/1)</h1>'], { type: 'text/html' });
+	this.derf.src = window.webkitURL.createObjectURL(b);
+	this.derf.onload = function() {
+		console.log("this.derf");
+	}
+	document.body.appendChild(this.derf)
 	this.iframe.onload = function() {
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
@@ -277,7 +285,7 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
-	this.bodyEl.style.margin = "0";
+	if(this.bodyEl) this.bodyEl.style.margin = "0";
 	
 	this.docEl.style.overflow = "hidden";
 
@@ -403,8 +411,6 @@ EPUBJS.Renderer.prototype.prevPage = function(){
 
 EPUBJS.Renderer.prototype.chapterEnd = function(){
 	this.page(this.displayedPages);
-
-	this.currentLocationCfi = this.getPageCfi();
 }
 
 EPUBJS.Renderer.prototype.setLeft = function(leftPos){
@@ -544,7 +550,11 @@ EPUBJS.Renderer.prototype.page = function(pg){
 		this.chapterPos = pg;
 		this.leftPos = this.spreadWidth * (pg-1); //-- pages start at 1
 		this.setLeft(this.leftPos);
-
+		
+		this.currentLocationCfi = this.getPageCfi();
+			
+		this.book.trigger("renderer:pageChanged", this.currentLocationCfi);
+		
 		// localStorage.setItem("chapterPos", pg);
 		return true;
 	}
