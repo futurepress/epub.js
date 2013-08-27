@@ -1373,14 +1373,14 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, doc) {
 	  part = sections.shift();
 
 	  if(part.id){
-		
-		element = doc.querySelector("#" + part.id);
+
+			element = doc.getElementById(part.id);
 
 	  }else{
 	
-		element = children[part.index];
+			element = children[part.index];
 	
-		if(!children) console.error("No Kids", element);
+			if(!children) console.error("No Kids", element);
 	
 	  }
 	
