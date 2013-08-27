@@ -533,7 +533,7 @@ EPUBJS.Book.prototype.nextPage = function(){
 	var next;
 
 	if(!this.isRendered) return this._enqueue("nextPage", arguments);
-
+	
 	next = this.render.nextPage();
 
 	if(!next){

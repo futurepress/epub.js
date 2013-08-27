@@ -598,7 +598,7 @@ EPUBJS.Book.prototype.nextPage = function(){
 	var next;
 
 	if(!this.isRendered) return this._enqueue("nextPage", arguments);
-
+	
 	next = this.render.nextPage();
 
 	if(!next){
@@ -1246,14 +1246,17 @@ EPUBJS.EpubCFI.prototype.generateFragment = function(element, chapter) {
 	if(chapter) parts.push(chapter);
 
 	path.forEach(function(part){
-		parts.push((part.index + 1) * 2);
+		var segment = '';
+		segment += (part.index + 1) * 2;
 
 		if(part.id && 
 		   part.id.slice(0, 6) != "EPUBJS") { //-- ignore internal @EPUBJS ids
-
-			parts.push("[" + part.id + "]"); 
+			
+			segment += "[" + part.id + "]";
+			 
 		}
-
+		
+		parts.push(segment);
 	});
 
 	return parts.join('/');
