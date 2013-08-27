@@ -37,7 +37,7 @@
         <!-- Hooks -->
         <!-- <script src="../hooks/default/transculsions.js"></script> -->
         <!-- <script src="../hooks/default/endnotes.js"></script> -->
-        <!-- <script src="../hooks/default/smartimages.js"></script> -->
+        <script src="../hooks/default/smartimages.js"></script>
         
         <script>
             
@@ -104,7 +104,7 @@
             "use strict";
             
             var Book = ePub("../demo/moby-dick.epub", {restore: true, reload: true });
-            
+            Book.goto('chapter_008.xhtml');
         </script>
     </head>
     <body>

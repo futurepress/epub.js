@@ -14,20 +14,21 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 					height = oHeight || rectHeight,
 					newHeight;
 				
-				iheight = chapter.bodyEl.clientHeight;
+				iheight = chapter.docEl.clientHeight;
 				if(top < 0) top = 0;
-								
+		
 				if(height + top >= iheight) {
-
+				
 					if(top < iheight/2) {
 						newHeight = iheight - top;
 						item.style.maxHeight = newHeight + "px";
 						item.style.width= "auto";
 					}else{
-						height = (height < iheight ? height : iheight);
+						newHeight = (height < iheight ? height : iheight);
 						item.style.maxHeight = newHeight + "px";
 						item.style.marginTop = iheight - top + "px";
 						item.style.width= "auto";
+						console.log(newHeight)
 					}
 					
 					item.setAttribute('data-height', newHeight);

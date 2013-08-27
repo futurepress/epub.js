@@ -202,14 +202,14 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 						"id": id, 
 						"href": src, 
 						"label": text,
-						"subitems" : subitems
+						"subitems" : subitems,
+						"parent" : parent ? parent.getAttribute('id') : null
 			});
 
 		});
 
 		return list;
 	}
-	
 	
 	return getTOC(navMap);
 
