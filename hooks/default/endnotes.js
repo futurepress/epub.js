@@ -66,9 +66,9 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					//-- Add hide on page change
 					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", hidePop);
 					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", offPop);
-					chapter.book.on("book:pageChanged", hidePop, this);
-					chapter.book.on("book:pageChanged", offPop, this);
-					// chapter.book.on("book:chapterDestroy", hidePop, this);
+					chapter.book.on("renderer:pageChanged", hidePop, this);
+					chapter.book.on("renderer:pageChanged", offPop, this);
+					// chapter.book.on("renderer:chapterDestroy", hidePop, this);
 				}
 				
 				pop = popups[id];
