@@ -72,7 +72,7 @@ Recent Updates
 
 + Started [Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
-+ Openned public IRC: #epub.js
++ Openned our public IRC, Server: freenode.net Channel: #epub.js
 
 + Started [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md)
 
@@ -157,7 +157,7 @@ Additional Resources
 
 [Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
-IRC Chat: #epub.js
+IRC Server: freenode.net Channel: #epub.js
 
 Follow us on twitter: @Epubjs
 
