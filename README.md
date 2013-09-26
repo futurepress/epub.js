@@ -32,7 +32,7 @@ Get the minified code from the build folder:
 <script src="../build/epub.min.js"></script>
 ```
 
-If you plan on using compressed (zipped) epubs (any .epub file) include the minfied version of [zip.js](http://gildas-lormeau.github.io/zip.js/)
+If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [zip.js](http://gildas-lormeau.github.io/zip.js/)
 
 Also make sure to set ```EPUBJS.filePath``` to the directory containing ```inflate.js```
 
@@ -69,6 +69,10 @@ However, the [Examples](https://github.com/fchasen/epub.js/tree/master/examples)
 
 Recent Updates
 -------------------------
+
++ Started [Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
+
++ Openned public IRC: #epub.js
 
 + Started [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md)
 
@@ -150,6 +154,10 @@ EPBUJS.Hooks.register("beforeChapterDisplay").example = function(callback, rende
 
 Additional Resources
 -------------------------
+
+[Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
+
+IRC Chat: #epub.js
 
 Follow us on twitter: @Epubjs
 
