@@ -44,7 +44,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					pop = el.cloneNode(true);
 					txt = pop.querySelector("p");
 				}
-				
+
+				chapter.replaceLinks.bind(this)
 				//-- create a popup with endnote inside of it
 				if(!popups[id]) {
 					popups[id] = document.createElement("div");

@@ -28,13 +28,13 @@ EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 }
 
 EPUBJS.Unarchiver.prototype.openZip = function(zipUrl, callback){ 
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 	var zipFs = this.zipFs;
 	zipFs.importHttpContent(zipUrl, false, function() {
-		promise.resolve(zipFs);
+		deferred.resolve(zipFs);
 	}, this.failed);
 	
-	return promise
+	return deferred.promise;
 }
 
 // EPUBJS.Unarchiver.prototype.getXml = function(url){
@@ -63,29 +63,29 @@ EPUBJS.Unarchiver.prototype.getXml = function(url){
 
 EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var unarchiver = this;
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 	var entry = this.zipFs.find(url);	
 	var _URL = window.URL || window.webkitURL || window.mozURL; 
 
 	if(!entry) console.error(url);
 	
 	if(url in this.urlCache) {
-		promise.resolve(this.urlCache[url]);
-		return promise;
+		deferred.resolve(this.urlCache[url]);
+		return deferred.promise;
 	}
 
 	entry.getBlob(mime || zip.getMimeType(entry.name), function(blob){
 		var tempUrl = _URL.createObjectURL(blob);
-		promise.resolve(tempUrl);
+		deferred.resolve(tempUrl);
 		unarchiver.urlCache[url] = tempUrl;
 	});
 
-	return promise;
+	return deferred.promise;
 }
 
 EPUBJS.Unarchiver.prototype.getText = function(url){
 	var unarchiver = this;
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 	var entry = this.zipFs.find(url);	
 	var _URL = window.URL || window.webkitURL || window.mozURL; 
 
@@ -93,10 +93,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url){
 
 
 	entry.getText(function(text){
-		promise.resolve(text);
+		deferred.resolve(text);
 	}, null, null, 'ISO-8859-1');
 
-	return promise;
+	return deferred.promise;
 }
 
 EPUBJS.Unarchiver.prototype.revokeUrl = function(url){

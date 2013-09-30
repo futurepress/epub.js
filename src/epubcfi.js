@@ -99,8 +99,8 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	cfi.spinePos = (parseInt(cfi.chapter.split("/")[2]) / 2 - 1 ) || 0;
 	
 	chapId = cfi.chapter.match(/\[(.*)\]/);
-	
-	cfi.spineId = chapId[1] || false;
+
+	cfi.spineId = chapId ? chapId[1] : false;
 
 	path = cfi.fragment.split('/');
 	end = path[path.length-1];

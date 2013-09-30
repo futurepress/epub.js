@@ -56,14 +56,22 @@ EPUBJS.Book = function(options){
 	
 	
 	this.ready = {
-		manifest: new RSVP.Promise(),
-		spine: new RSVP.Promise(),
-		metadata: new RSVP.Promise(),
-		cover: new RSVP.Promise(),
-		toc: new RSVP.Promise()
+		manifest: new RSVP.defer(),
+		spine: new RSVP.defer(),
+		metadata: new RSVP.defer(),
+		cover: new RSVP.defer(),
+		toc: new RSVP.defer()
 	};
 	
-	this.ready.all = RSVP.all(_.values(this.ready));
+	this.readyPromises = [
+		this.ready.manifest.promise,
+		this.ready.spine.promise,
+		this.ready.metadata.promise,
+		this.ready.cover.promise,
+		this.ready.toc.promise
+	];
+	
+	this.ready.all = RSVP.all(this.readyPromises);
 
 	this.ready.all.then(this._ready);
 	
@@ -72,7 +80,8 @@ EPUBJS.Book = function(options){
 	this._rendering = false;
 	this._displayQ = [];
 	
-	this.opened = new RSVP.Promise();
+	this.defer_opened = new RSVP.defer();
+	this.opened = this.defer_opened.promise;
 	// BookUrl is optional, but if present start loading process
 	if(this.settings.bookPath) {
 		this.open(this.settings.bookPath, this.settings.reload);
@@ -144,7 +153,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 	}
 	
 	opened.then(function(){
-		book.opened.resolve();
+		book.defer_opened.resolve();
 	});
 
 	return opened;
@@ -195,7 +204,7 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 
 			   	 book.loadXml(book.settings.tocUrl).
 			   	  then(function(tocXml){
-				    return parse.toc(tocXml); // Grab Table of Contents
+				    		return parse.toc(tocXml); // Grab Table of Contents
 				  }).then(function(toc){
 				    book.toc = book.contents.toc = toc;
 				    book.ready.toc.resolve(book.contents.toc);
@@ -205,7 +214,7 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 			   }
 
 		   }).
-		   then(null, function(error) {
+		   fail(function(error) {
 				console.error(error);
 		   });
 
@@ -213,11 +222,11 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 }
 
 EPUBJS.Book.prototype.getMetadata = function() {
-	return this.ready.metadata;
+	return this.ready.metadata.promise;
 }
 
 EPUBJS.Book.prototype.getToc = function() {
-	return this.ready.toc;
+	return this.ready.toc.promise;
 }
 
 /* Private Helpers */
@@ -255,10 +264,18 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 		fromRoot = bookPath[0] == "/",
 		location = window.location,
 		//-- Get URL orgin, try for native or combine 
-		origin = location.origin || location.protocol + "//" + location.host; 
-
+		origin = location.origin || location.protocol + "//" + location.host,
+		baseTag = document.getElementsByTagName('base'),
+		base;
+			
 	// if(bookPath[bookPath.length - 1] != "/") bookPath += "/";
+	
+	//-- Check is Base tag is set
 
+	if(baseTag.length) {
+		base = baseTag[0].href;
+	}
+	
 	//-- 1. Check if url is absolute
 	if(absolute){
 		return bookPath;
@@ -266,7 +283,11 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 
 	//-- 2. Check if url starts with /, add base url
 	if(!absolute && fromRoot){
-		return origin + bookPath; 
+		if(base) {
+			return base + bookPath;
+		} else {
+			return origin + bookPath;
+		}
 	}
 
 	//-- 3. Or find full path to url and add that
@@ -274,10 +295,15 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 		
 		//-- go back
 		if(bookPath.slice(0, 3) == "../"){
-			return EPUBJS.core.resolveUrl(location.href, bookPath);
+			return EPUBJS.core.resolveUrl(base || location.pathname, bookPath);
 		}
-
-		return origin + EPUBJS.core.folder(location.pathname) + bookPath;
+		
+		if(base) {
+			return base + bookPath;
+		} else {
+			return origin + EPUBJS.core.folder(location.pathname) + bookPath;
+		}
+		
 	}
 
 }
@@ -403,11 +429,13 @@ EPUBJS.Book.prototype.startDisplay = function(){
 		display = this.goto(this.settings.goto);
 		
 	}else if( this.settings.restore && this.settings.previousLocationCfi) {
-
+		
 		display = this.displayChapter(this.settings.previousLocationCfi);
 		
 	}else{
+		
 		display = this.displayChapter(this.spinePos);
+	
 	}
 	
 	return display;
@@ -417,7 +445,7 @@ EPUBJS.Book.prototype.restore = function(reject){
 	
 	var book = this,
 		contentsKey = this.settings.bookPath + ":contents:" + this.settings.version,
-		promise = new RSVP.Promise(),
+		deferred = new RSVP.defer(),
 		fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL'],
 		reject = reject || false,
 		fromStore = localStorage.getItem(contentsKey);
@@ -444,8 +472,8 @@ EPUBJS.Book.prototype.restore = function(reject){
 		this.ready.metadata.resolve(this.metadata);
 		this.ready.cover.resolve(this.cover);
 		this.ready.toc.resolve(this.toc);
-		promise.resolve();
-		return promise;
+		deferred.resolve();
+		return deferred.promise;
 	}
 	
 
@@ -473,14 +501,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 		pos = cfi.spinePos;
 	}
 	
-	
-	if(pos >= this.spine.length){
-		// console.log("Reached End of Book");
-		return false;
-	}
-
-	if(pos < 0){
-		// console.log("Reached Start of Book");
+	if(pos < 0 || pos >= this.spine.length){
+		console.error("Not A Valid Chapter");
 		return false;
 	}
 	
@@ -555,19 +577,26 @@ EPUBJS.Book.prototype.prevPage = function() {
 
 EPUBJS.Book.prototype.nextChapter = function() {
 	this.spinePos++;
-
+	if(this.spinePos > this.spine.length) return;
+	
 	return this.displayChapter(this.spinePos);
 }
 
 EPUBJS.Book.prototype.prevChapter = function() {
 	this.spinePos--;
-
+	if(this.spinePos < 0) return;
+	
 	return this.displayChapter(this.spinePos, true);
+}
+
+EPUBJS.Book.prototype.gotoCfi = function(cfi){
+	if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
+	return this.displayChapter(cfi)
 }
 
 EPUBJS.Book.prototype.goto = function(url){
 	var split, chapter, section, absoluteURL, spinePos;
-	
+	var deferred = new RSVP.defer();
 	if(!this.isRendered) return this._enqueue("goto", arguments);
 	
 	split = url.split("#"),
@@ -592,7 +621,8 @@ EPUBJS.Book.prototype.goto = function(url){
 	}else{
 		//-- Only goto section
 		if(section) this.render.section(section);
-		return new RSVP.Promise().resolve(this.currentChapter);
+		deferred.resolve(this.currentChapter);
+		return deferred.promise;
 	}
 }
 

@@ -49,13 +49,14 @@
         <style type="text/css">
 
           body {
-            overflow: hidden;
+            
           }
 
           #main {
             position: absolute;
             width: 100%;
             height: 100%;
+            overflow: hidden;
           }
 
           #area {
@@ -103,8 +104,8 @@
          <script>
             "use strict";
             
-            var Book = ePub("../demo/moby-dick.epub", {restore: true, reload: true });
-
+            var Book = ePub("../demo/moby-dick/", {restore: true, reload: false });
+            
         </script>
     </head>
     <body>

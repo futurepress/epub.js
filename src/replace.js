@@ -44,7 +44,7 @@ EPUBJS.replace.links = function(_store, full, done, link){
 }
 
 EPUBJS.replace.stylesheets = function(_store, full) {
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 
 	if(!_store) return;
 
@@ -57,25 +57,25 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 			var blob = new Blob([newText], { "type" : "text\/css" }),
 				url = _URL.createObjectURL(blob);
 
-			promise.resolve(url);
+			deferred.resolve(url);
 
 		}, function(e) {console.error(e)});
 		
 	});
 
-	return promise;
+	return deferred.promise;
 }
 
 EPUBJS.replace.cssUrls = function(_store, base, text){
-	var promise = new RSVP.Promise(),
+	var deferred = new RSVP.defer(),
 		promises = [],
 		matches = text.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/g);
 	
 	if(!_store) return;
 
 	if(!matches){
-		promise.resolve(text);
-		return promise;
+		deferred.resolve(text);
+		return deferred.promise;
 	}
 
 	matches.forEach(function(str){
@@ -88,8 +88,8 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 	});
 	
 	RSVP.all(promises).then(function(){
-		promise.resolve(text);
+		deferred.resolve(text);
 	});
 	
-	return promise;	
+	return deferred.promise;	
 }

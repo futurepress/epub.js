@@ -16,7 +16,7 @@ EPUBJS.core.request = function(url, type) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 	
 	var xhr = new XMLHttpRequest();
 	
@@ -61,14 +61,14 @@ EPUBJS.core.request = function(url, type) {
 				r = this.response;
 			}
 			
-			promise.resolve(r);			
+			deferred.resolve(r);			
 		}
-		else { promise.reject(this); }
+		else { deferred.reject(this); }
 	  }
 	};
   
 
-  return promise;
+  return deferred.promise;
 };
 
 // EPUBJS.core.loadXML = function(url, callback){
@@ -183,7 +183,7 @@ EPUBJS.core.toArray = function(obj) {
 EPUBJS.core.folder = function(url){
 	
 	var slash = url.lastIndexOf('/'),
-		folder = url.slice(0, slash + 1);
+			folder = url.slice(0, slash + 1);
 
 	if(slash == -1) folder = '';
 

@@ -19,7 +19,7 @@ EPUBJS.Chapter.prototype.contents = function(store){
 }
 
 EPUBJS.Chapter.prototype.url = function(store){
-	var promise = new RSVP.Promise();
+	var deferred = new RSVP.defer();
 
 	if(store){
 		if(!this.tempUrl) {
@@ -27,8 +27,8 @@ EPUBJS.Chapter.prototype.url = function(store){
 		}
 		return this.tempUrl;
 	}else{
-		promise.resolve(this.href); //-- this is less than ideal but keeps it a promise
-		return promise;
+		deferred.resolve(this.href); //-- this is less than ideal but keeps it a promise
+		return deferred.promise;
 	}
 
 }

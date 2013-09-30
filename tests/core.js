@@ -23,7 +23,7 @@ asyncTest("Get book URL from bookPath", 1, function() {
 	var opended = Book.open('/demo/moby-dick/');
 	
 	opended.then(function(){
-		equal( Book.bookUrl, location.href.replace("tests/", '') + "/demo/moby-dick/", "bookUrl is correctly resolved" );
+		equal( Book.bookUrl, location.href.replace("tests/", '') + "demo/moby-dick/", "bookUrl is correctly resolved" );
 		start();
 	});
 
@@ -35,7 +35,7 @@ asyncTest("Get book URL from ../bookPath", 1, function() {
 	var Book = ePub();
 	var opended = Book.open('../demo/moby-dick/');
 	opended.then(function(){
-		equal( Book.bookUrl, location.href.replace("tests/", '') + "/demo/moby-dick/", "bookUrl with ../ is correctly resolved" );
+		equal( Book.bookUrl, "/demo/moby-dick/", "bookUrl with ../ is correctly resolved" );
 		start();
 	});
 
@@ -73,6 +73,7 @@ asyncTest("Get Contents from Uncompressed Epub", 5, function() {
 
 	Book.ready.all.then(function(){
 		ok( true, "Book is all ready" );
+
 		equal( Book.cover, Book.settings.contentsPath + "images/9780316000000.jpg", "Cover url is set");
 		start();
 	});
@@ -117,7 +118,7 @@ asyncTest("Get Contents from Restored Epub", 7, function() {
 
 		var Book = ePub('../demo/moby-dick/', { restore: true });
 
-		equal( Book.settings.contentsPath, location.href.replace("tests/", '') + "/demo/moby-dick/OPS/", "contentsPath was restored");
+		equal( Book.settings.contentsPath, "/demo/moby-dick/OPS/", "contentsPath was restored");
 
 		Book.getMetadata().then(function(meta){
 
