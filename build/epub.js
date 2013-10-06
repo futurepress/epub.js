@@ -1845,14 +1845,12 @@ EPUBJS.core.addScript = function(src, callback, target) {
 			if(total == curr){
 				if(callback) callback();
 			}else{
-				EPUBJS.core.loadScript(srcArr[curr], cb, target);
+				EPUBJS.core.addScript(srcArr[curr], cb, target);
 			}
 		};
 		
-    // srcArr.forEach(function(src){
-    // EPUBJS.core.loadScript(src, cb, target);
-    // });
-    EPUBJS.core.addScript(srcArr[curr], cb, target);
+
+		EPUBJS.core.addScript(srcArr[curr], cb, target);
     
  }
  
