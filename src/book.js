@@ -427,7 +427,7 @@ EPUBJS.Book.prototype.startDisplay = function(){
 	if( this.settings.restore && this.settings.goto) {
 		
 		display = this.goto(this.settings.goto);
-		
+
 	}else if( this.settings.restore && this.settings.previousLocationCfi) {
 		
 		display = this.displayChapter(this.settings.previousLocationCfi);

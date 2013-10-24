@@ -1621,6 +1621,17 @@ EPUBJS.core.request = function(url, type) {
 	
 	var xhr = new XMLHttpRequest();
 	
+	//-- Check from PDF.js: 
+	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+	var xhrPrototype = XMLHttpRequest.prototype;
+	
+	if (!('overrideMimeType' in xhrPrototype)) {
+		// IE10 might have response, but not overrideMimeType
+		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
+			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+		});
+	}
+	
 	xhr.open("GET", url);
 	xhr.onreadystatechange = handler;
 	
@@ -1826,7 +1837,7 @@ EPUBJS.core.addScript = function(src, callback, target) {
    s.async = false;
    s.src = src;
    s.onload = s.onreadystatechange = function() {
- 	//console.log( this.readyState ); //uncomment this line to see which ready states are called.
+
  	if ( !r && (!this.readyState || this.readyState == 'complete') )
  	{
  	  r = true;
