@@ -686,7 +686,7 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 		var bookPath, options;
 
 		//-- var book = ePub("path/to/book.epub", { restore: true })
-		if(arguments[0] && 
+		if(typeof(arguments[0]) != 'undefined' && 
 			typeof arguments[0] === 'string') {
 
 			bookPath = arguments[0];
@@ -818,7 +818,7 @@ EPUBJS.Book = function(options){
 	this.defer_opened = new RSVP.defer();
 	this.opened = this.defer_opened.promise;
 	// BookUrl is optional, but if present start loading process
-	if(this.settings.bookPath) {
+	if(typeof this.settings.bookPath === 'string') {
 		this.open(this.settings.bookPath, this.settings.reload);
 	}
 	 

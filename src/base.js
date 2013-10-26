@@ -14,7 +14,7 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 		var bookPath, options;
 
 		//-- var book = ePub("path/to/book.epub", { restore: true })
-		if(arguments[0] && 
+		if(typeof(arguments[0]) != 'undefined' && 
 			typeof arguments[0] === 'string') {
 
 			bookPath = arguments[0];

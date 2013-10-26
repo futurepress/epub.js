@@ -83,7 +83,7 @@ EPUBJS.Book = function(options){
 	this.defer_opened = new RSVP.defer();
 	this.opened = this.defer_opened.promise;
 	// BookUrl is optional, but if present start loading process
-	if(this.settings.bookPath) {
+	if(typeof this.settings.bookPath === 'string') {
 		this.open(this.settings.bookPath, this.settings.reload);
 	}
 	 

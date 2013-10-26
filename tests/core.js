@@ -41,6 +41,17 @@ asyncTest("Get book URL from ../bookPath", 1, function() {
 
 });
 
+asyncTest("Get book URL from same folder", 1, function() {
+
+	var Book = ePub();
+	var opended = Book.open('');
+	opended.then(function(){
+		equal( Book.bookUrl, location.href, "bookUrl with '' is correctly resolved" );
+		start();
+	});
+
+});
+
 asyncTest("Get book URL from Compressed Epub", 2, function() {
 
 	var Book = ePub();
