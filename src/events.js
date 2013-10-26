@@ -27,7 +27,7 @@ EPUBJS.Events.prototype.tell = function(evt, msg){
 	var e;
 
 	if(!this.events[evt]){
-		console.warn("No event:", evt,  "defined yet, creating.");
+		console.warn("No event:", evt, "defined yet, creating.");
 		e = this.createEvent(evt)
 	}else{
 		e = this.events[evt];
@@ -40,7 +40,7 @@ EPUBJS.Events.prototype.tell = function(evt, msg){
 
 EPUBJS.Events.prototype.listen = function(evt, func, bindto){
 	if(!this.events[evt]){
-		console.warn("No event:", evt,  "defined yet, creating.");
+		console.warn("No event:", evt, "defined yet, creating.");
 		this.createEvent(evt);
 		return;
 	}

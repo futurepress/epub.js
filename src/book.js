@@ -3,22 +3,22 @@ EPUBJS.Book = function(options){
 	var book = this;
 	
 	this.settings = _.defaults(options || {}, {
-	  bookPath : null,
-	  storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
-	  fromStorage : false,
-	  saved : false,
-	  online : true,
-	  contained : false,
-	  width : false,
-	  height: false,
-	  spreads: true,
-	  fixedLayout : false,
-	  responsive: true,
-	  version: 1,
-	  restore: false,
-	  reload : false,
-	  goto : false,
-	  styles : {}
+		bookPath : null,
+		storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
+		fromStorage : false,
+		saved : false,
+		online : true,
+		contained : false,
+		width : false,
+		height: false,
+		spreads: true,
+		fixedLayout : false,
+		responsive: true,
+		version: 1,
+		restore: false,
+		reload : false,
+		goto : false,
+		styles : {}
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -132,7 +132,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 			
 		});
 		
-	}  else {
+	}	else {
 		
 		if(saved && this.settings.restore && !forceReload){
 			//-- Will load previous package json, or re-unpack if error
@@ -167,56 +167,56 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 
 	//-- Return chain of promises
 	return book.loadXml(book.bookUrl + containerPath).
-		   then(function(containerXml){
-			  return parse.container(containerXml); // Container has path to content
-		   }).
-		   then(function(paths){
-			  book.settings.contentsPath = book.bookUrl + paths.basePath;
-			  book.settings.packageUrl = book.bookUrl + paths.packagePath;
-			  return book.loadXml(book.settings.packageUrl); // Containes manifest, spine and metadata 
-		   }).
-		   then(function(packageXml){
-			   return parse.package(packageXml, book.settings.contentsPath); // Extract info from contents
-		   }).
-		   then(function(contents){
+			 then(function(containerXml){
+				return parse.container(containerXml); // Container has path to content
+			 }).
+			 then(function(paths){
+				book.settings.contentsPath = book.bookUrl + paths.basePath;
+				book.settings.packageUrl = book.bookUrl + paths.packagePath;
+				return book.loadXml(book.settings.packageUrl); // Containes manifest, spine and metadata 
+			 }).
+			 then(function(packageXml){
+				 return parse.package(packageXml, book.settings.contentsPath); // Extract info from contents
+			 }).
+			 then(function(contents){
 
-			   book.contents = contents;
-			   book.manifest = book.contents.manifest;
-			   book.spine = book.contents.spine;
-			   book.spineIndexByURL = book.contents.spineIndexByURL;
-			   book.metadata = book.contents.metadata;
+				 book.contents = contents;
+				 book.manifest = book.contents.manifest;
+				 book.spine = book.contents.spine;
+				 book.spineIndexByURL = book.contents.spineIndexByURL;
+				 book.metadata = book.contents.metadata;
 
-			   book.cover = book.contents.cover = book.settings.contentsPath + contents.coverPath;
+				 book.cover = book.contents.cover = book.settings.contentsPath + contents.coverPath;
 
-			   book.spineNodeIndex = book.contents.spineNodeIndex = contents.spineNodeIndex;
+				 book.spineNodeIndex = book.contents.spineNodeIndex = contents.spineNodeIndex;
 				
-			   book.ready.manifest.resolve(book.contents.manifest);
-			   book.ready.spine.resolve(book.contents.spine);
-			   book.ready.metadata.resolve(book.contents.metadata);
-			   book.ready.cover.resolve(book.contents.cover);
+				 book.ready.manifest.resolve(book.contents.manifest);
+				 book.ready.spine.resolve(book.contents.spine);
+				 book.ready.metadata.resolve(book.contents.metadata);
+				 book.ready.cover.resolve(book.contents.cover);
 
-			   //-- Adjust setting based on metadata			   
+				 //-- Adjust setting based on metadata				 
 
-			   //-- Load the TOC, optional
-			   if(contents.tocPath) {
+				 //-- Load the TOC, optional
+				 if(contents.tocPath) {
 
-			   	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
+				 	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
 
-			   	 book.loadXml(book.settings.tocUrl).
-			   	  then(function(tocXml){
-				    		return parse.toc(tocXml); // Grab Table of Contents
-				  }).then(function(toc){
-				    book.toc = book.contents.toc = toc;
-				    book.ready.toc.resolve(book.contents.toc);
-				   // book.saveSettings();
-				  });
+				 	 book.loadXml(book.settings.tocUrl).
+				 		then(function(tocXml){
+								return parse.toc(tocXml); // Grab Table of Contents
+					}).then(function(toc){
+						book.toc = book.contents.toc = toc;
+						book.ready.toc.resolve(book.contents.toc);
+					 // book.saveSettings();
+					});
 
-			   }
+				 }
 
-		   }).
-		   fail(function(error) {
+			 }).
+			 fail(function(error) {
 				console.error(error);
-		   });
+			 });
 
 
 }
@@ -236,13 +236,13 @@ EPUBJS.Book.prototype.networkListeners = function(){
 	var book = this;
 
 	window.addEventListener("offline", function(e) {
-	  book.online = false;
-	  book.trigger("book:offline");
+		book.online = false;
+		book.trigger("book:offline");
 	}, false);
 
 	window.addEventListener("online", function(e) {
-	  book.online = true;
-	  book.trigger("book:online");
+		book.online = true;
+		book.trigger("book:online");
 	}, false);
 	
 }
@@ -531,7 +531,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 
 	
 	if(!this.settings.fromStorage && 
-	   !this.settings.contained) {
+		 !this.settings.contained) {
 		render.then(function(){
 			book.preloadNextChapter();
 		});
@@ -698,7 +698,7 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 EPUBJS.Book.prototype.unload = function(){
 	
 	if(this.settings.restore) {
-	  	this.saveSettings();
+			this.saveSettings();
 		this.saveContents();
 	}
 
@@ -762,7 +762,7 @@ EPUBJS.Book.prototype.getHooks = function(){
 }
 
 //-- Hooks allow for injecting async functions that must all complete before continuing 
-//   Functions must have a callback as their first argument.
+//	 Functions must have a callback as their first argument.
 EPUBJS.Book.prototype.registerHook = function(type, toAdd, toFront){
 	var book = this;
 	

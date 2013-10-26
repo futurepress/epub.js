@@ -2,12 +2,12 @@ module.exports = function(grunt) {
 
 	// Project configuration.
 	grunt.initConfig({
-	  pkg: '<json:package.json>',
-	  meta: {
+		pkg: '<json:package.json>',
+		meta: {
 		banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
-		  '<%= grunt.template.today("yyyy-mm-dd") %> */'
-	  },
-	  concat : {
+			'<%= grunt.template.today("yyyy-mm-dd") %> */'
+		},
+		concat : {
 		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
 		'build/reader.js': ['<banner>', 'reader/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
@@ -15,13 +15,13 @@ module.exports = function(grunt) {
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
 		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
 		'demo/js/libs/inflate.js': 'libs/zip/inflate.js'
-	  },
-	  uglify: {
-		  	options: {
-	      		preserveComments: 'some'
-	    	},
-	    	my_target: {
-	      	files: {
+		},
+		uglify: {
+			options: {
+					preserveComments: 'some'
+			},
+			my_target: {
+				files: {
 					'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
 					'build/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
 					'demo/js/reader.min.js': ['build/reader.js'],
@@ -32,8 +32,8 @@ module.exports = function(grunt) {
 					'build/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
 					'build/libs/inflate.js': ['libs/zip/inflate.js']
 				}
-		  	}
-	  }
+			}
+		}
 	});
 	
 	grunt.loadNpmTasks('grunt-contrib-concat');

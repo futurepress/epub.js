@@ -30,8 +30,8 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 
 		/* 
 		 *	var book = ePub({ bookPath: "path/to/book.epub", restore: true });
-		 *  
-		 *   - OR -
+		 *	
+		 *	 - OR -
 		 *
 		 * 	 var book = ePub({ restore: true });
 		 * 	 book.open("path/to/book.epub");
@@ -53,11 +53,11 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 	});
 
 	//exports to multiple environments
-  	if (typeof define === 'function' && define.amd)
-		//AMD
-		define(function(){ return ePub; });
-  	else if (typeof module != "undefined" && module.exports)
-		//Node
-		module.exports = ePub;
+	if (typeof define === 'function' && define.amd)
+	//AMD
+	define(function(){ return ePub; });
+	else if (typeof module != "undefined" && module.exports)
+	//Node
+	module.exports = ePub;
 
 })();

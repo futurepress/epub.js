@@ -30,7 +30,7 @@ EPUBJS.EpubCFI.prototype.generateFragment = function(element, chapter) {
 		segment += (part.index + 1) * 2;
 
 		if(part.id && 
-		   part.id.slice(0, 6) != "EPUBJS") { //-- ignore internal @EPUBJS ids
+			 part.id.slice(0, 6) != "EPUBJS") { //-- ignore internal @EPUBJS ids
 			
 			segment += "[" + part.id + "]";
 			 
@@ -150,23 +150,23 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, doc) {
 	
 	while(sections.length > 0) {
 	
-	  part = sections.shift();
+		part = sections.shift();
 
-	  if(part.id){
+		if(part.id){
 
 			element = doc.getElementById(part.id);
 
-	  }else{
+		}else{
 	
 			element = children[part.index];
 	
 			if(!children) console.error("No Kids", element);
 	
-	  }
+		}
 	
 	
-	  if(!element) console.error("No Element For", part);
-	  children = Array.prototype.slice.call(element.children);
+		if(!element) console.error("No Element For", part);
+		children = Array.prototype.slice.call(element.children);
 	}
 	
 	return element;

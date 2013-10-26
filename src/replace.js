@@ -12,7 +12,6 @@ EPUBJS.replace.head = function(callback, renderer) {
 EPUBJS.replace.resources = function(callback, renderer){
 	//srcs = this.doc.querySelectorAll('[src]');
 	renderer.replaceWithStored("[src]", "src", EPUBJS.replace.srcs, callback);
-		
 	
 }
 

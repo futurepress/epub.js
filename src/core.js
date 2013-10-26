@@ -3,12 +3,12 @@ EPUBJS.core = {}
 
 //-- Get a element for an id
 EPUBJS.core.getEl = function(elem) {
-  return document.getElementById(elem);
+	return document.getElementById(elem);
 }
 
 //-- Get all elements for a class
 EPUBJS.core.getEls = function(classes) {
-  return document.getElementsByClassName(classes);
+	return document.getElementsByClassName(classes);
 }
 
 
@@ -21,7 +21,7 @@ EPUBJS.core.request = function(url, type) {
 	var xhr = new XMLHttpRequest();
 	
 	//-- Check from PDF.js: 
-	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+	//	   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
 	var xhrPrototype = XMLHttpRequest.prototype;
 	
 	if (!('overrideMimeType' in xhrPrototype)) {
@@ -49,7 +49,7 @@ EPUBJS.core.request = function(url, type) {
 	xhr.send();
 	
 	function handler() {
-	  if (this.readyState === this.DONE) {
+		if (this.readyState === this.DONE) {
 		if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
 			var r;
 			
@@ -75,11 +75,11 @@ EPUBJS.core.request = function(url, type) {
 			deferred.resolve(r);			
 		}
 		else { deferred.reject(this); }
-	  }
+		}
 	};
-  
+	
 
-  return deferred.promise;
+	return deferred.promise;
 };
 
 // EPUBJS.core.loadXML = function(url, callback){
@@ -176,18 +176,18 @@ EPUBJS.core.request = function(url, type) {
 
 
 EPUBJS.core.toArray = function(obj) {
-  var arr = [];
+	var arr = [];
 
-  for (member in obj) {
+	for (member in obj) {
 	var newitm;
 	if ( obj.hasOwnProperty(member) ) {
-	  newitm = obj[member];
-	  newitm.ident = member;
-	  arr.push(newitm);
+		newitm = obj[member];
+		newitm.ident = member;
+		arr.push(newitm);
 	}
-  }
+	}
 
-  return arr;
+	return arr;
 };
 
 //-- Parse out the folder
@@ -206,11 +206,11 @@ EPUBJS.core.folder = function(url){
 EPUBJS.core.dataURLToBlob = function(dataURL) {
 	var BASE64_MARKER = ';base64,';
 	if (dataURL.indexOf(BASE64_MARKER) == -1) {
-	  var parts = dataURL.split(',');
-	  var contentType = parts[0].split(':')[1];
-	  var raw = parts[1];
+		var parts = dataURL.split(',');
+		var contentType = parts[0].split(':')[1];
+		var raw = parts[1];
 
-	  return new Blob([raw], {type: contentType});
+		return new Blob([raw], {type: contentType});
 	}
 
 	var parts = dataURL.split(BASE64_MARKER);
@@ -221,7 +221,7 @@ EPUBJS.core.dataURLToBlob = function(dataURL) {
 	var uInt8Array = new Uint8Array(rawLength);
 
 	for (var i = 0; i < rawLength; ++i) {
-	  uInt8Array[i] = raw.charCodeAt(i);
+		uInt8Array[i] = raw.charCodeAt(i);
 	}
 
 	return new Blob([uInt8Array], {type: contentType});
@@ -229,22 +229,20 @@ EPUBJS.core.dataURLToBlob = function(dataURL) {
  
 //-- Load scripts async: http://stackoverflow.com/questions/7718935/load-scripts-asynchronously 
 EPUBJS.core.addScript = function(src, callback, target) {
-   var s, r;
-   r = false;
-   s = document.createElement('script');
-   s.type = 'text/javascript';
-   s.async = false;
-   s.src = src;
-   s.onload = s.onreadystatechange = function() {
-
- 	if ( !r && (!this.readyState || this.readyState == 'complete') )
- 	{
- 	  r = true;
- 	  if(callback) callback();
- 	}
-   },
-   target = target || document.body;
-   target.appendChild(s);
+	 var s, r;
+	 r = false;
+	 s = document.createElement('script');
+	 s.type = 'text/javascript';
+	 s.async = false;
+	 s.src = src;
+	 s.onload = s.onreadystatechange = function() {
+		if ( !r && (!this.readyState || this.readyState == 'complete') ) {
+			r = true;
+			if(callback) callback();
+		}
+	 };
+	 target = target || document.body;
+	 target.appendChild(s);
  }
  
  EPUBJS.core.addScripts = function(srcArr, callback, target) {
@@ -261,27 +259,26 @@ EPUBJS.core.addScript = function(src, callback, target) {
 		
 
 		EPUBJS.core.addScript(srcArr[curr], cb, target);
-    
+		
  }
  
  EPUBJS.core.addCss = function(src, callback, target) {
-    var s, r;
-    r = false;
-    s = document.createElement('link');
-    s.type = 'text/css';
-    s.rel = "stylesheet";
-    s.href = src;
-    s.onload = s.onreadystatechange = function() {
-  	if ( !r && (!this.readyState || this.readyState == 'complete') )
-  	{
-  	  r = true;
-  	  if(callback) callback();
-  	}
-    },
-    target = target || document.body;
-    target.appendChild(s);
-  }
-  
+		var s, r;
+		r = false;
+		s = document.createElement('link');
+		s.type = 'text/css';
+		s.rel = "stylesheet";
+		s.href = src;
+		s.onload = s.onreadystatechange = function() {
+			if ( !r && (!this.readyState || this.readyState == 'complete') ) {
+				r = true;
+				if(callback) callback();
+			}
+		};
+		target = target || document.body;
+		target.appendChild(s);
+	}
+	
  EPUBJS.core.prefixed = function(unprefixed) {
  	var vendors = ["Webkit", "Moz", "O", "ms" ],
  		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
@@ -306,22 +303,22 @@ EPUBJS.core.addScript = function(src, callback, target) {
  
  EPUBJS.core.resolveUrl = function(base, path) {
 	var url,
-		segments = [],
-	 	folders = base.split("/"),
-	 	paths;
-	 	
-	 folders.pop();
+			segments = [],
+			folders = base.split("/"),
+			paths;
+			
+	folders.pop();
 	 
-	 paths = path.split("/");
-	 paths.forEach(function(p){
+	paths = path.split("/");
+	paths.forEach(function(p){
 		if(p === ".."){
 			folders.pop();
 		}else{
 			segments.push(p);
 		}
-	 });
+	});
 	 
-	 url = folders.concat(segments);
+	url = folders.concat(segments);
 	 
-	 return url.join("/");
+	return url.join("/");
  }

@@ -45,7 +45,7 @@ EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
 		'tocPath'  : tocPath,
 		'coverPath': coverPath,
 		'spineNodeIndex' : spineNodeIndex,
-		'spineIndexByURL' : spineIndexByURL
+		'spineIndexByURL': spineIndexByURL
 	};
 }
 
@@ -185,9 +185,9 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 
 		while(iter--){
 			node = nodesArray[iter];
-		  	if(node.nodeName === "navPoint") {
-		  		items.push(node);
-		  	}
+				if(node.nodeName === "navPoint") {
+					items.push(node);
+				}
 		}
 		
 		items.forEach(function(item){
