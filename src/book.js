@@ -198,7 +198,7 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 				 //-- Adjust setting based on metadata				 
 
 				 //-- Load the TOC, optional
-				 if(contents.tocPath) {
+				if(contents.tocPath) {
 
 				 	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
 
@@ -211,9 +211,9 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 					 // book.saveSettings();
 					});
 
-				 } else {
+				} else {
 					 book.ready.toc.resolve(false);
-				 }
+				}
 
 			 }).
 			 fail(function(error) {
