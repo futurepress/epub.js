@@ -211,6 +211,8 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 					 // book.saveSettings();
 					});
 
+				 } else {
+					 book.ready.toc.resolve(false);
 				 }
 
 			 }).

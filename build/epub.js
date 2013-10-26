@@ -946,6 +946,8 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 					 // book.saveSettings();
 					});
 
+				 } else {
+					 book.ready.toc.resolve(false);
 				 }
 
 			 }).
@@ -2191,7 +2193,7 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 		var rootfile = containerXml.querySelector("rootfile"),
 			fullpath = rootfile.getAttribute('full-path'),
 			folder = EPUBJS.core.folder(fullpath);
-
+		console.log("rootfile", containerXml.querySelectorAll("rootfile"));
 		//-- Now that we have the path we can parse the contents
 		return {
 			'packagePath' : fullpath,
