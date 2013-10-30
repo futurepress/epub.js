@@ -933,7 +933,7 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 				 //-- Adjust setting based on metadata				 
 
 				 //-- Load the TOC, optional
-				 if(contents.tocPath) {
+				if(contents.tocPath) {
 
 				 	 book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
 
@@ -946,9 +946,9 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 					 // book.saveSettings();
 					});
 
-				 } else {
+				} else {
 					 book.ready.toc.resolve(false);
-				 }
+				}
 
 			 }).
 			 fail(function(error) {
@@ -2193,7 +2193,7 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 		var rootfile = containerXml.querySelector("rootfile"),
 			fullpath = rootfile.getAttribute('full-path'),
 			folder = EPUBJS.core.folder(fullpath);
-		console.log("rootfile", containerXml.querySelectorAll("rootfile"));
+
 		//-- Now that we have the path we can parse the contents
 		return {
 			'packagePath' : fullpath,
