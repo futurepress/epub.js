@@ -1,0 +1,3 @@
+[submodule "books"]
+	path = books
+	url = git@github.com:futurepress/books.git
