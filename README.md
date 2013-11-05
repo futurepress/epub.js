@@ -104,6 +104,16 @@ node server.js
 * [dev.html](http://localhost:8080/demo/dev.html) will pull from the source files and should be used during development.
 * [index.html](http://localhost:8080/demo/index.html) will use the minified production libraries in the dist/ folder.
 
+Testing
+-------------------------
+
+Once you start a server you can run the [QUnit](http://qunitjs.com/) tests at [http://localhost:8080/tests/](http://localhost:8080/tests/)
+
+You can download the test books by running:
+```
+git submodule foreach git pull
+```
+
 Building for Distribution
 -------------------------
 
