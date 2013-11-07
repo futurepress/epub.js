@@ -47,7 +47,7 @@ EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
 		'tocPath'  : tocPath,
 		'coverPath': coverPath,
 		'spineNodeIndex' : spineNodeIndex,
-		'spineIndexByURL': spineIndexByURL
+		'spineIndexByURL' : spineIndexByURL
 	};
 }
 
@@ -137,12 +137,14 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 	items.forEach(function(item){
 		var id = item.getAttribute('id'),
 			href = item.getAttribute('href') || '',
+			type = item.getAttribute('media-type') || '';
 			type = item.getAttribute('media-type') || '',
 			properties = item.getAttribute('properties') || '';
 		
 		manifest[id] = {
 			'href' : baseUrl + href, //-- Absolute URL for loading with a web worker
-			'type' : type
+			'type' : type,
+      'properties' : properties
 		};
 	
 	});
@@ -160,16 +162,14 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	//-- Add to array to mantain ordering and cross reference with manifest
 	items.forEach(function(item, index){
 		var Id = item.getAttribute('idref');
-		c
 		var vert = {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
-			'properties' : item.getAttribute('properties') || '',
+			'properties' : manifest[Id].properties || '',
 			'href' : manifest[Id].href,
 			'index' : index
 		}
 		
-	
 		spine.push(vert);
 	});
 	
@@ -260,9 +260,9 @@ EPUBJS.Parser.prototype.toc = function(tocXml){
 
 		while(iter--){
 			node = nodesArray[iter];
-				if(node.nodeName === "navPoint") {
-					items.push(node);
-				}
+		  	if(node.nodeName === "navPoint") {
+		  		items.push(node);
+		  	}
 		}
 		
 		items.forEach(function(item){
