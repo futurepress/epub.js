@@ -109,9 +109,14 @@ Testing
 
 Once you start a server you can run the [QUnit](http://qunitjs.com/) tests at [http://localhost:8080/tests/](http://localhost:8080/tests/)
 
-You can download the test books by running:
+You can download the test books from https://github.com/futurepress/books by running:
 ```
-git submodule foreach git pull
+git submodule update --init --recursive
+```
+
+Then you can pull the latest with:
+```
+git submodule foreach git pull origin master
 ```
 
 Building for Distribution
