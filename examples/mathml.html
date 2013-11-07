@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <link rel="stylesheet" href="../demo/css/normalize.css">
+        <link rel="stylesheet" href="../demo/css/main.css">
+        <link rel="stylesheet" href="../demo/css/popup.css">
+        <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
+        <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
+        -->
+        <script src="../libs/jquery/jquery-1.9.0.js"></script>
+        <script>
+            "use strict";
+            
+            document.onreadystatechange = function () {  
+              if (document.readyState == "complete") {
+                EPUBJS.filePath = "../libs/zip/";
+                EPUBJS.cssPath = "css/";
+                fileStorage.filePath = "../libs/fileStorage/workers/";
+                
+                EPUBJS.VERSION = "0.1.5";
+                //EPUBJSR.app.init('/books/mathjax_tests.epub');
+                window.book = EPUBJSR.app.init('/books/mathjax_tests/');
+              }  
+            };
+        
+          </script>
+        
+        <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
+        
+        <!-- zip -->
+        <script src="../libs/zip/zip.js"></script>
+        <script src="../libs/zip/zip-fs.js"></script>
+        <script src="../libs/zip/zip-ext.js"></script>
+        <script src="../libs/zip/inflate.js"></script>
+        <script src="../libs/zip/mime-types.js"></script>
+        
+        
+        <!-- Render -->
+        <script src="../libs/underscore/underscore.js"></script>
+        <script src="../libs/rsvp/rsvp.js"></script>
+        <script src="../libs/fileStorage/fileStorage.min.js"></script>
+
+        <script src="../src/base.js"></script>
+        <script src="../src/core.js"></script>
+        <script src="../src/unarchiver.js"></script>
+        <script src="../src/parser.js"></script>
+        <script src="../src/hooks.js"></script>
+        <script src="../src/book.js"></script>
+        <script src="../src/chapter.js"></script>
+        <script src="../src/renderer.js"></script>
+        <script src="../src/epubcfi.js"></script>
+        
+        <!-- Plugins -->
+        <script async src="../hooks/default/transculsions.js"></script>
+        <script async src="../hooks/default/endnotes.js"></script>
+        <script async src="../hooks/default/smartimages.js"></script>
+        <script async src="../hooks/default/mathml.js"></script>
+        
+        <!-- Reader -->
+        <script async src="../reader/utils.js"></script>
+        <script async src="../reader/app.js"></script>
+        
+        
+        
+    </head>
+    <body>
+        <div id="sidebar">
+          <div id="controls">
+            
+            <input id="search" placeholder="search">
+            <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
+            <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
+            <a id="bookmark"><img id="bookmarks" src="../demo/img/star.png"></a>
+          </div>
+          <div id="toc">
+          </div>
+          <div id="settingsPanel">
+          </div>
+            
+        </div>
+        <div id="main">
+          <div id="opener">
+            <a id="open"><img src="../demo/img/menu-icon.png" data-close="../demo/img/close.png" data-open="../demo/img/menu-icon.png"></a>
+          </div>
+          <div id="titlebar">
+            <span id="book-title"></span>
+            <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+            <span id="chapter-title"> </span>
+          </div>
+          <div id="divider"></div>
+          <div id="prev" class="arrow">‹</div>
+          <div id="area"></div>
+          <div id="next" class="arrow">›</div>
+          
+          <div id="loader"><img src="../demo/img/loader.gif"></div>
+        </div>
+    </body>
+</html>
