@@ -15,18 +15,19 @@
         <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
         <script src="../libs/jquery/jquery-1.9.0.js"></script>
+
         <script>
             "use strict";
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.filePath = "../libs/zip/";
-                EPUBJS.cssPath = "css/";
-                fileStorage.filePath = "../libs/fileStorage/workers/";
+                EPUBJS.VERSION = "0.1.6";
                 
-                EPUBJS.VERSION = "0.1.5";
-                // EPUBJSR.app.init('/demo/moby-dick.epub');
-                window.book = EPUBJSR.app.init('/demo/moby-dick/');
+                EPUBJS.filePath = "js/libs/";
+                EPUBJS.cssPath = "css/";
+                // fileStorage.filePath = EPUBJS.filePath;
+
+                EPUBJSR.app.init("moby-dick/");
               }  
             };
         
@@ -66,17 +67,21 @@
         <script async src="../reader/utils.js"></script>
         <script async src="../reader/app.js"></script>
         
+        <!-- Full Screen -->
+        <script src="js/libs/screenfull.min.js"></script>
         
         
     </head>
     <body>
         <div id="sidebar">
           <div id="controls">
-            
             <input id="search" placeholder="search">
             <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
             <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
-            <a id="bookmark"><img id="bookmarks" src="../demo/img/star.png"></a>
+            <a id="fullscreen">
+              <img id="fullscreenicon" src="img/fullscreen.png">
+              <img id="cancelfullscreenicon" src="img/cancelfullscreen.png" style="display: none">
+            </a>
           </div>
           <div id="toc">
           </div>
