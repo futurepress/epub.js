@@ -14,7 +14,8 @@ module.exports = function(grunt) {
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
 		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
-		'demo/js/libs/inflate.js': 'libs/zip/inflate.js'
+		'demo/js/libs/inflate.js': 'libs/zip/inflate.js',
+		'demo/js/libs/screenfull.min.js': 'libs/screenfull.min.js'
 		},
 		uglify: {
 			options: {
@@ -30,7 +31,8 @@ module.exports = function(grunt) {
 					'demo/js/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
 					'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js'],
 					'build/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
-					'build/libs/inflate.js': ['libs/zip/inflate.js']
+					'build/libs/inflate.js': ['libs/zip/inflate.js'],
+					'build/libs/screenfull.min.js': ['libs/screenfull.min.js']
 				}
 			}
 		}
