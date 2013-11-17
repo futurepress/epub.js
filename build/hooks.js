@@ -170,8 +170,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, render
         s.type = 'text/x-mathjax-config';
         s.innerHTML = '\
         MathJax.Hub.Register.StartupHook("End",function () { \
-          console.log("The TeX input jax is loaded and ready!"); \
-          // window.mathmlCallback() \
+          window.mathmlCallback(); \
         });\
         MathJax.Hub.Config({jax: ["input/TeX","input/MathML","output/SVG"],extensions: ["tex2jax.js","mml2jax.js","MathEvents.js"],TeX: {extensions: ["noErrors.js","noUndefined.js","autoload-all.js"]},MathMenu: {showRenderer: false},menuSettings: {zoom: "Click"},messageStyle: "none"}); \
                 ';
