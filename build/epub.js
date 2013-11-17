@@ -2370,9 +2370,11 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 
 EPUBJS.Parser.prototype.nav = function(navHtml){
 
-  var navEl = navHtml.querySelector('nav[*|type="toc"]'),
+  var navEl = navHtml.querySelector('nav'), //-- [*|type="toc"] * Doesn't seem to work
     idCounter = 0;
-
+  
+  if(!navEl) return [];
+  
   // Implements `> ol > li`
   function findListItems(parent){
     var items = [];
@@ -2437,7 +2439,8 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
 EPUBJS.Parser.prototype.toc = function(tocXml){
 	
 	var navMap = tocXml.querySelector("navMap");
-
+	if(!navMap) return [];
+	
 	function getTOC(parent){
 		var list = [],
 			items = [],
