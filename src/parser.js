@@ -225,7 +225,7 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
         text = content.textContent || "",
         subitems = getTOC(item);
       item.setAttribute('id', id); // Ensure all elements have an id
-      list.unshift({
+      list.push({
             "id": id,
             "href": href,
             "label": text,
