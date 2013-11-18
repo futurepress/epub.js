@@ -1,19 +1,19 @@
-var EPUBJS = EPUBJS || {}; 
+var EPUBJS = EPUBJS || {};
 EPUBJS.replace = {};
 
 EPUBJS.replace.head = function(callback, renderer) {
 
 	renderer.replaceWithStored("link[href]", "href", EPUBJS.replace.links, callback);
 
-}
-	
+};
+
 
 //-- Replaces assets src's to point to stored version if browser is offline
 EPUBJS.replace.resources = function(callback, renderer){
 	//srcs = this.doc.querySelectorAll('[src]');
 	renderer.replaceWithStored("[src]", "src", EPUBJS.replace.srcs, callback);
 	
-}
+};
 
 EPUBJS.replace.svg = function(callback, renderer) {
 
@@ -21,13 +21,13 @@ EPUBJS.replace.svg = function(callback, renderer) {
 		_store.getUrl(full).then(done);
 	}, callback);
 
-}
+};
 
 EPUBJS.replace.srcs = function(_store, full, done){
 
 	_store.getUrl(full).then(done);
 	
-}
+};
 
 //-- Replaces links in head, such as stylesheets - link[href]
 EPUBJS.replace.links = function(_store, full, done, link){
@@ -36,11 +36,10 @@ EPUBJS.replace.links = function(_store, full, done, link){
 	if(link.getAttribute("rel") === "stylesheet") {
 		EPUBJS.replace.stylesheets(_store, full).then(done);
 	}else{
-		_store.getUrl(full).then(done);	
+		_store.getUrl(full).then(done);
 	}
 
-	
-}
+};
 
 EPUBJS.replace.stylesheets = function(_store, full) {
 	var deferred = new RSVP.defer();
@@ -58,12 +57,14 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 			deferred.resolve(url);
 
-		}, function(e) {console.error(e)});
+		}, function(e) {
+			console.error(e);
+		});
 		
 	});
 
 	return deferred.promise;
-}
+};
 
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
@@ -81,7 +82,9 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
 		replaced = _store.getUrl(full).then(function(url){
 			text = text.replace(str, 'url("'+url+'")');
-		}, function(e) {console.error(e)} );
+		}, function(e) {
+			console.error(e);
+		});
 		
 		promises.push(replaced);
 	});
@@ -90,5 +93,5 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		deferred.resolve(text);
 	});
 	
-	return deferred.promise;	
-}
+	return deferred.promise;
+};

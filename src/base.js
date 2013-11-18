@@ -1,4 +1,6 @@
-var EPUBJS = EPUBJS || {}; 
+'use strict';
+
+var EPUBJS = EPUBJS || {};
 EPUBJS.VERSION = "0.1.5";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
@@ -14,7 +16,7 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 		var bookPath, options;
 
 		//-- var book = ePub("path/to/book.epub", { restore: true })
-		if(typeof(arguments[0]) != 'undefined' && 
+		if(typeof(arguments[0]) != 'undefined' &&
 			typeof arguments[0] === 'string') {
 
 			bookPath = arguments[0];
@@ -23,27 +25,27 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 				options = arguments[1];
 				options.bookPath = bookPath;
 			} else {
-				options = { 'bookPath' : bookPath }
+				options = { 'bookPath' : bookPath };
 			}
 
 		}
 
 		/* 
-		 *	var book = ePub({ bookPath: "path/to/book.epub", restore: true });
-		 *	
-		 *	 - OR -
-		 *
-		 * 	 var book = ePub({ restore: true });
-		 * 	 book.open("path/to/book.epub");
-		 */
+		*   var book = ePub({ bookPath: "path/to/book.epub", restore: true });
+		*
+		*   - OR -
+		*
+		*   var book = ePub({ restore: true });
+		*   book.open("path/to/book.epub");
+		*/
 
-		 if( arguments[0] && typeof arguments[0] === 'object' ) {
-		 	options = arguments[0];
-		 }
-		 
+		if( arguments[0] && typeof arguments[0] === 'object' ) {
+			options = arguments[0];
+		}
+		
 		
 		return new EPUBJS.Book(options);
-	}
+	};
 
 	_.extend(ePub, {
 		noConflict : function() {
