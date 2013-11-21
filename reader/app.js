@@ -273,6 +273,9 @@ EPUBJSR.app.init = (function($){
 	  	  $settingLink = $("#setting"),
 	  	  $settings = $("#settingsPanel"),
 	  	  $toc = $("#toc"),
+	  	  $fullscreen = $("#fullscreen"),
+	  	  $fullscreenicon = $("#fullscreenicon"),
+          $cancelfullscreenicon = $("#cancelfullscreenicon"),
 	  	  $window = $(window);
 
 
@@ -302,7 +305,11 @@ EPUBJSR.app.init = (function($){
 
 	  });
 	 
-	  
+	  $fullscreen.on("click", function () {
+        screenfull.toggle($('#container')[0]);
+        $fullscreenicon.toggle();
+        $cancelfullscreenicon.toggle();
+      });
 
 	  var lock = false;
 	   	$(document).keydown(function(e){
