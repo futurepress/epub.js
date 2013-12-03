@@ -1333,6 +1333,11 @@ EPUBJS.Book.prototype.prevChapter = function() {
 	return this.displayChapter(this.spinePos, true);
 };
 
+EPUBJS.Book.prototype.getCurrentLocationCfi = function() {
+	if(!this.isRendered) return false;
+	return this.render.currentLocationCfi;
+};
+
 EPUBJS.Book.prototype.gotoCfi = function(cfi){
 	if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
 	return this.displayChapter(cfi);
