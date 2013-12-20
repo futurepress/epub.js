@@ -30,49 +30,26 @@
                 EPUBJSR.app.init("moby-dick/");
               }  
             };
-        
+            
+            $(function() {
+              EPUBJSR.search.View();
+            });
+            
           </script>
         
-        <!--<script async src="epubjs/libs/jquery.touchy.min.js"></script>-->
-        
-        <!-- zip -->
-        <script src="../libs/zip/zip.js"></script>
-        <script src="../libs/zip/zip-fs.js"></script>
-        <script src="../libs/zip/zip-ext.js"></script>
-        <script src="../libs/zip/inflate.js"></script>
-        <script src="../libs/zip/mime-types.js"></script>
-        
-        
-        <!-- Render -->
-        <script src="../libs/underscore/underscore.js"></script>
-        <script src="../libs/rsvp/rsvp.js"></script>
-        <script src="../libs/fileStorage/fileStorage.min.js"></script>
-
-        <script src="../src/base.js"></script>
-        <script src="../src/core.js"></script>
-        <script src="../src/unarchiver.js"></script>
-        <script src="../src/parser.js"></script>
-        <script src="../src/hooks.js"></script>
-        <script src="../src/book.js"></script>
-        <script src="../src/chapter.js"></script>
-        <script src="../src/renderer.js"></script>
-        <script src="../src/epubcfi.js"></script>
-        
-        <!-- Plugins -->
-        <script async src="../hooks/default/transculsions.js"></script>
-        <script async src="../hooks/default/endnotes.js"></script>
-        <script async src="../hooks/default/smartimages.js"></script>
+        <script src="../build/epub.min.js"></script>
         
         <!-- Reader -->
         <script src="../reader/utils.js"></script>
         <script src="../reader/app.js"></script>
-        
+        <script src="../reader/search.js"></script>
+
         <!-- Full Screen -->
-        <script src="js/libs/screenfull.min.js"></script>
+        <script src="../demo/js/libs/screenfull.min.js"></script>
         
         <!-- Highlights -->
-        <script src="js/libs/jquery.highlight.js"></script>
-        <script async src="../hooks/extensions/highlight.js"></script>
+        <script src="../demo/js/libs/jquery.highlight.js"></script>
+        <script src="../hooks/extensions/highlight.js"></script>
         
     </head>
     <body>
@@ -82,8 +59,8 @@
             <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
             <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
             <a id="fullscreen">
-              <img id="fullscreenicon" src="img/fullscreen.png">
-              <img id="cancelfullscreenicon" src="img/cancelfullscreen.png" style="display: none">
+              <img id="fullscreenicon" src="../demo/img/fullscreen.png">
+              <img id="cancelfullscreenicon" src="../demo/img/cancelfullscreen.png" style="display: none">
             </a>
           </div>
           <div id="toc">
@@ -111,6 +88,5 @@
           
           <div id="loader"><img src="../demo/img/loader.gif"></div>
         </div>
-        
     </body>
 </html>

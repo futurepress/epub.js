@@ -7,9 +7,8 @@ EPUBJS.plugins = EPUBJS.plugins || {};
 
 EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 
-(function() {
+(function(root) {
 
-	var root = this;
 	var previousEpub = root.ePub || {};
 	
 	var ePub = root.ePub = function() {
@@ -62,4 +61,4 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 	//Node
 	module.exports = ePub;
 
-})();
+})(window);
