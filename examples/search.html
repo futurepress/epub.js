@@ -18,6 +18,7 @@
 
         <script>
             "use strict";
+            var Book;
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
@@ -27,14 +28,16 @@
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                EPUBJSR.app.init("moby-dick/");
+                Book = EPUBJSR.app.init("moby-dick/");
+                
+                $(function() {
+                  EPUBJSR.search.View(Book);
+                });
+
               }  
             };
             
-            $(function() {
-              EPUBJSR.search.View();
-            });
-            
+                        
           </script>
         
         <script src="../build/epub.min.js"></script>

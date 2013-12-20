@@ -18,7 +18,7 @@ EPUBJSR.search.request = function(q, callback) {
   });
 };
 
-EPUBJSR.search.View = function() {
+EPUBJSR.search.View = function(Book) {
 
   var $searchBox = $("#searchBox"),
       $searchResults = $("#searchResults"),
@@ -75,7 +75,9 @@ EPUBJSR.search.View = function() {
         $item.on("click", function(e) {
           var $this = $(this),
               cfi = $this.data("cfi");
-              
+          
+          e.preventDefault();
+          
           Book.gotoCfi(cfi);
           
           Book.on("renderer:chapterDisplayed", function() {
@@ -83,7 +85,7 @@ EPUBJSR.search.View = function() {
             $(iframeDoc).find('body').highlight(q, { element: 'span' });
           })
           
-          e.preventDefault();
+          
           
         });
         $li.append($item);
