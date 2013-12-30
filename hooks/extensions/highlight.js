@@ -5,7 +5,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").highlight = function(callback, ren
     var s = document.createElement("style");
     s.innerHTML =".highlight { background: yellow; font-weight: normal; }";
     
-    renderer.doc.body.appendChild(s);
+    renderer.doc.head.appendChild(s);
     
     if(callback) callback();
 

@@ -43,9 +43,9 @@ EPUBJS.EpubCFI.prototype.generateFragment = function(element, chapter) {
 
 EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 	var stack = [],
-		children;
+			children;
 
-	while(node && node.parentNode.nodeName == "html" && node.parentNode !== null) {
+	while(node && node.parentNode !== null ) {
 		children = node.parentNode.children;
 
 		stack.unshift({
@@ -55,7 +55,11 @@ EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 			'index' : children ? Array.prototype.indexOf.call(children, node) : 0
 		});
 
-		node = node.parentNode;
+		if(node.parentNode.nodeName != "html") {
+			node = node.parentNode;
+		} else {
+			node = false;
+		}
 	}
 
 	return stack;
