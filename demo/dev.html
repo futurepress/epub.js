@@ -27,7 +27,7 @@
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                EPUBJSR.app.init("moby-dick/");
+                EPUBJS.Reader("moby-dick/");
               }  
             };
         
@@ -64,8 +64,7 @@
         <script async src="../hooks/default/smartimages.js"></script>
         
         <!-- Reader -->
-        <script src="../reader/utils.js"></script>
-        <script src="../reader/app.js"></script>
+        <script src="../reader/reader.js"></script>
         
         <!-- Full Screen -->
         <script src="js/libs/screenfull.min.js"></script>
@@ -79,12 +78,13 @@
         <div id="sidebar">
           <div id="controls">
             <input id="searchBox" placeholder="search" type="search">
-            <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
-            <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
-            <a id="fullscreen">
-              <img id="fullscreenicon" src="img/fullscreen.png">
-              <img id="cancelfullscreenicon" src="img/cancelfullscreen.png" style="display: none">
-            </a>
+            
+            
+            <a id="searcher" class="icon-search">Search</a>
+            <a id="network" class="icon-list-1 active">TOC</a>
+            <a id="bookmarks" class="icon-bookmark">Bookmarks</a>
+            <a id="notes" class="icon-edit">Notes</a>
+           
           </div>
           <div id="toc">
           </div>
@@ -96,17 +96,26 @@
             
         </div>
         <div id="main">
-          <div id="opener">
-            <a id="open"><img src="../demo/img/menu-icon.png" data-close="../demo/img/close.png" data-open="../demo/img/menu-icon.png"></a>
-          </div>
+          
           <div id="titlebar">
-            <span id="book-title"></span>
-            <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
-            <span id="chapter-title"> </span>
+            <div id="opener">
+              <a id="slider" class="icon-menu">Menu</a>
+            </div>
+            <div id="metainfo">
+              <span id="book-title"></span>
+              <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+              <span id="chapter-title"></span>
+            </div>
+            <div id="title-controls">
+              <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
+              <a id="setting" class="icon-cog">Settings</a>
+              <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
+            </div>
           </div>
+          
           <div id="divider"></div>
           <div id="prev" class="arrow">‹</div>
-          <div id="area"></div>
+          <div id="viewer"></div>
           <div id="next" class="arrow">›</div>
           
           <div id="loader"><img src="../demo/img/loader.gif"></div>
