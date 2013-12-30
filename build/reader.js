@@ -383,6 +383,293 @@ EPUBJSR.app.init = (function($){
   return  init;
 
 })(jQuery);
+EPUBJS.reader = {};
+
+EPUBJS.Reader = function(path, options) {
+	var reader = this;
+	var book = this.book = ePub(path, options);
+	
+	this.offline = false;
+	this.sidebarOpen = false;
+	
+	book.renderTo("viewer");
+
+	book.ready.all.then(function() {
+		reader.ReaderView = EPUBJS.reader.ReaderView.call(reader, book);
+		reader.SettingsView = EPUBJS.reader.SettingsView.call(reader, book);
+		reader.ControlsView = EPUBJS.reader.ControlsView.call(reader, book);
+		
+	});
+
+	book.getMetadata().then(function(meta) {
+		reader.MetaView = EPUBJS.reader.MetaView.call(reader, meta);
+	});
+
+	book.getToc().then(function(toc) {
+		reader.TocView = EPUBJS.reader.TocView.call(reader, toc);
+	});
+	
+	return this;
+};
+
+EPUBJS.reader.MetaView = function(meta) {
+	var title = meta.bookTitle,
+			author = meta.creator;
+
+	var $title = $("#book-title"),
+			$author = $("#chapter-title"),
+			$dash = $("#title-seperator");
+
+		document.title = title+" – "+author;
+
+		$title.html(title);
+		$author.html(author);
+		$dash.show();
+};
+
+EPUBJS.reader.ReaderView = function(book) {
+	var $main = $("#main"),
+			$divider = $("#divider"),
+			$loader = $("#loader"),
+			$next = $("#next"),
+			$prev = $("#prev");
+	
+	var slideIn = function() {
+		$main.removeClass("closed");
+	};
+	
+	var slideOut = function() {
+		$main.addClass("closed");
+	};
+	
+	var showLoader = function() {
+		$loader.show();
+	};
+	
+	var hideLoader = function() {
+		$loader.hide();
+	};
+	
+	var showDivider = function() {
+		$divider.addClass("show");
+	};
+	
+	var hideDivider = function() {
+		$divider.removeClass("show");
+	};
+	
+	var keylock = false;
+	
+	var arrowKeys = function(e) {		
+		if(e.keyCode == 37) { 
+			book.prevPage();
+			$prev.addClass("active");
+
+			keylock = true;
+			setTimeout(function(){
+				keylock = false;
+				$prev.removeClass("active");
+			}, 100);
+
+			 e.preventDefault();
+		}
+		if(e.keyCode == 39) { 
+			book.nextPage();
+			$next.addClass("active");
+			
+			keylock = true;
+			setTimeout(function(){
+				keylock = false;
+				$next.removeClass("active");
+			}, 100);
+			
+			 e.preventDefault();
+		}
+	}
+
+	document.addEventListener('keydown', arrowKeys, false);
+	
+	$next.on("click", function(e){
+		book.nextPage();
+		e.preventDefault();
+	});
+	
+	$prev.on("click", function(e){
+		book.prevPage();
+		e.preventDefault();
+	});
+	
+	//-- Hide the spinning loader
+	hideLoader();
+	
+	//-- If the book is using spreads, show the divider
+	if(!book.single) {
+		showDivider();
+	}
+	
+	return {
+		"slideOut" : slideOut,
+		"slideIn"  : slideIn,
+		"showLoader" : showLoader,
+		"hideLoader" : hideLoader,
+		"showDivider" : showDivider,
+		"hideDivider" : hideDivider
+	};
+};
+
+EPUBJS.reader.ControlsView = function(book) {
+	var reader = this;
+
+	var $store = $("#store"),
+			$fullscreen = $("#fullscreen"),
+			$fullscreenicon = $("#fullscreenicon"),
+			$cancelfullscreenicon = $("#cancelfullscreenicon"),
+			$slider = $("#slider"),
+			$main = $("#main"),
+			$sidebar = $("#sidebar"),
+			$settings = $("#settings"),
+			$bookmark = $("#bookmark");
+			
+	
+	var goOnline = function() {
+		reader.offline = false;
+		// $store.attr("src", $icon.data("save"));
+	};
+
+	var goOffline = function() {
+		reader.offline = true;
+		// $store.attr("src", $icon.data("saved"));
+	};
+	
+	var showSidebar = function() {
+		reader.sidebarOpen = true;
+		reader.ReaderView.slideOut();
+		$sidebar.addClass("open");
+	}
+	
+	var hideSidebar = function() {
+		reader.sidebarOpen = false;
+		reader.ReaderView.slideIn();
+		$sidebar.removeClass("open");
+	}
+	
+	book.on("book:online", goOnline);
+	book.on("book:offline", goOffline);
+
+	$slider.on("click", function () {
+		if(reader.sidebarOpen) {
+			hideSidebar();
+		} else {
+			showSidebar();
+		}
+	});
+	
+	$fullscreen.on("click", function() {
+		screenfull.toggle($('#container')[0]);
+		$fullscreenicon.toggle();
+		$cancelfullscreenicon.toggle();
+	});
+	
+	$settings.on("click", function() {
+		reader.TocView.hide();
+		reader.SettingsView.show();
+	});
+
+	$bookmark.on("click", function() {
+		console.log(reader.book.getCurrentLocationCfi());
+	});
+	
+	return {
+		"fadeIn" : fadeIn,
+		"fadeOut": fadeOut
+	};
+};
+
+EPUBJS.reader.TocView = function(toc) {
+	var book = this.book;
+	
+	var $list = $("#toc"),
+			docfrag = document.createDocumentFragment();
+	
+	var generateTocItems = function(toc, level) {
+		var container = document.createElement("ul");
+		
+		if(!level) level = 1;
+
+		toc.forEach(function(chapter) {
+			var listitem = document.createElement("li"),
+					link = document.createElement("a");
+			var subitems;
+			
+			listitem.id = "toc-"+chapter.id;
+
+			link.textContent = chapter.label;
+			link.href = chapter.href;
+			link.classList.add('toc_link');
+			
+			
+			if(chapter.subitems) {
+				level++;
+				subitems = generateTocItems(chapter.subitems, level);
+				listitem.appendChild(subitems);
+			}
+			
+			listitem.appendChild(link);
+			container.appendChild(listitem);
+			
+		});
+		
+		return container;
+	};
+	
+	var onShow = function() {
+		$list.show();
+	};
+	
+	var onHide = function() {
+		$list.hide();
+	};
+
+	var tocitems = generateTocItems(toc);
+	
+	docfrag.appendChild(tocitems);
+	
+	$list.append(docfrag);
+	
+	$list.find("a").on("click", function(event){
+			var url = this.getAttribute('href');
+
+			//-- Provide the Book with the url to show
+			//   The Url must be found in the books manifest
+			book.goto(url);
+
+			event.preventDefault();
+	});
+	
+	return {
+		"show" : onShow,
+		"hide" : onHide
+	};
+};
+
+EPUBJS.reader.SettingsView = function(toc) {
+	var book = this.book;
+
+	var $settings = $("#settingsPanel");
+
+	var onShow = function() {
+		$settings.show();
+	};
+
+	var onHide = function() {
+		$settings.hide();
+	};
+
+	return {
+		"show" : onShow,
+		"hide" : onHide
+	};
+};
 EPUBJSR.search = {};
 
 // Search Server -- https://github.com/futurepress/epubjs-search
@@ -403,7 +690,7 @@ EPUBJSR.search.request = function(q, callback) {
   });
 };
 
-EPUBJSR.search.View = function() {
+EPUBJSR.search.View = function(Book) {
 
   var $searchBox = $("#searchBox"),
       $searchResults = $("#searchResults"),
@@ -460,7 +747,9 @@ EPUBJSR.search.View = function() {
         $item.on("click", function(e) {
           var $this = $(this),
               cfi = $this.data("cfi");
-              
+          
+          e.preventDefault();
+          
           Book.gotoCfi(cfi);
           
           Book.on("renderer:chapterDisplayed", function() {
@@ -468,7 +757,7 @@ EPUBJSR.search.View = function() {
             $(iframeDoc).find('body').highlight(q, { element: 'span' });
           })
           
-          e.preventDefault();
+          
           
         });
         $li.append($item);
