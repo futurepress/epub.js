@@ -81,7 +81,7 @@ EPUBJS.Renderer.prototype.chapter = function(chapter){
 	
 	this.currentChapterCfi = this.epubcfi.generateChapter(this.book.spineNodeIndex, chapter.spinePos, chapter.id);
 	this.visibileEl = false;
-
+	
 	return chapter.url(store).
 		then(function(url) {
 			return renderer.setIframeSrc(url);

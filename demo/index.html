@@ -27,7 +27,7 @@
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                EPUBJSR.app.init("moby-dick/");
+                var reader = ePubReader("moby-dick/");
               }  
             };
         
@@ -51,36 +51,49 @@
     </head>
     <body>
         <div id="sidebar">
-          <div id="controls">
+            <div id="controls">
+              <input id="searchBox" placeholder="search" type="search">
+              
+              
+              <a id="searcher" class="icon-search">Search</a>
+              <a id="network" class="icon-list-1 active">TOC</a>
+              <a id="bookmarks" class="icon-bookmark">Bookmarks</a>
+              <a id="notes" class="icon-edit">Notes</a>
+             
+            </div>
+            <div id="tocView">
+            </div>
+            <div id="searchView">
+              <ul id="searchResults"></ul>
+            </div>
+            <div id="settingsPanel">
+            </div>
+              
+          </div>
+          <div id="main">
             
-            <!-- <input id="search" placeholder="search"> -->
-            <a id="network"><img id="store" src="img/save.png"></a>
-            <a id="setting"><img id="settings" src="img/settings.png"></a>
-            <a id="fullscreen">
-              <img id="fullscreenicon" src="img/fullscreen.png">
-              <img id="cancelfullscreenicon" src="img/cancelfullscreen.png" style="display: none">
-            </a>
-          </div>
-          <div id="toc">
-          </div>
-          <div id="settingsPanel">
-          </div>
+            <div id="titlebar">
+              <div id="opener">
+                <a id="slider" class="icon-menu">Menu</a>
+              </div>
+              <div id="metainfo">
+                <span id="book-title"></span>
+                <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+                <span id="chapter-title"></span>
+              </div>
+              <div id="title-controls">
+                <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
+                <a id="setting" class="icon-cog">Settings</a>
+                <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
+              </div>
+            </div>
             
-        </div>
-        <div id="main">
-          <div id="opener">
-            <a id="open"><img src="img/menu-icon.png"></a>
-          </div>
-          <div id="titlebar">
-            <span id="book-title"></span>
-            <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
-            <span id="chapter-title"> </span>
-          </div>
-          <div id="divider"></div>
-          <div id="prev" class="arrow">‹</div>
-          <div id="area"></div>
-          <div id="next" class="arrow">›</div>
-          <div id="loader"><img src="img/loader.gif"></div>
+            <div id="divider"></div>
+            <div id="prev" class="arrow">‹</div>
+            <div id="viewer"></div>
+            <div id="next" class="arrow">›</div>
+            
+            <div id="loader"><img src="../demo/img/loader.gif"></div>
         </div>
     </body>
 </html>

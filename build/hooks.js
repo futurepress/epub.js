@@ -183,6 +183,35 @@ EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, render
     }
 }
 
+EPUBJS.Hooks.register("beforeChapterDisplay").pageTurns = function(callback, renderer){
+
+		var lock = false;
+
+		$(renderer.docEl).keydown(function(e){
+			if(lock) return;
+
+			if (e.keyCode == 37) { 
+				renderer.book.prevPage();
+				lock = true;
+				setTimeout(function(){
+					lock = false;
+				}, 100);
+				return false;
+			}
+
+			if (e.keyCode == 39) { 
+				renderer.book.nextPage();
+				lock = true;
+				setTimeout(function(){
+					lock = false;
+				}, 100);
+				return false;
+			}
+
+		});
+
+		if(callback) callback();
+}
 EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
 		var images = chapter.doc.querySelectorAll('img'),
 			items = Array.prototype.slice.call(images),

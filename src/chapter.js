@@ -1,5 +1,6 @@
 EPUBJS.Chapter = function(spineObject){
 	this.href = spineObject.href;
+	this.absolute = spineObject.url;
 	this.id = spineObject.id;
 	this.spinePos = spineObject.index;
 	this.properties = spineObject.properties;
@@ -23,11 +24,11 @@ EPUBJS.Chapter.prototype.url = function(store){
 
 	if(store){
 		if(!this.tempUrl) {
-			this.tempUrl = store.getUrl(this.href);
+			this.tempUrl = store.getUrl(this.absolute);
 		}
 		return this.tempUrl;
 	}else{
-		deferred.resolve(this.href); //-- this is less than ideal but keeps it a promise
+		deferred.resolve(this.absolute); //-- this is less than ideal but keeps it a promise
 		return deferred.promise;
 	}
 
