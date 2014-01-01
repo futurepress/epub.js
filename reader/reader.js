@@ -41,14 +41,15 @@ EPUBJS.Reader = function(path, options) {
 	
 	reader.SettingsView = EPUBJS.reader.SettingsView.call(reader, book);
 	reader.ControlsView = EPUBJS.reader.ControlsView.call(reader, book);
+	reader.SidebarView = EPUBJS.reader.SidebarView.call(reader, book);
 	
 	book.ready.all.then(function() {
 		reader.ReaderView = EPUBJS.reader.ReaderView.call(reader, book);
 		
 		// Call Plugins
 		for(var plugin in EPUBJS.reader.plugins) {
-			if(obj.hasOwnProperty(prop)) {
-				plugin.call(reader, book);
+			if(EPUBJS.reader.plugins.hasOwnProperty(plugin)) {
+				reader[plugin] = EPUBJS.reader.plugins[plugin].call(reader, book);
 			}
 		}
 		
@@ -61,7 +62,7 @@ EPUBJS.Reader = function(path, options) {
 	book.getToc().then(function(toc) {
 		reader.TocView = EPUBJS.reader.TocView.call(reader, toc);
 	});
-	
+
 	return this;
 };
 
@@ -170,6 +171,51 @@ EPUBJS.reader.ReaderView = function(book) {
 	};
 };
 
+EPUBJS.reader.SidebarView = function(book) {
+	var reader = this;
+
+	var $sidebar = $("#sidebar"),
+			$panels = $("#panels");
+	
+	var activePanel = "TocView";
+	
+	var changePanelTo = function(viewName) {
+		if(activePanel == viewName || typeof reader[viewName] === 'undefined' ) return;
+		reader[activePanel].hide();
+		reader[viewName].show();
+		activePanel = viewName;
+
+		$panels.find('.active').removeClass("active");
+		$panels.find("#show-" + viewName ).addClass("active");
+	};
+	
+	var show = function() {
+		reader.sidebarOpen = true;
+		reader.ReaderView.slideOut();
+		$sidebar.addClass("open");
+	}
+	
+	var hide = function() {
+		reader.sidebarOpen = false;
+		reader.ReaderView.slideIn();
+		$sidebar.removeClass("open");
+	}
+	
+	$panels.find(".show_view").on("click", function(event) {
+		var view = $(this).data("view");
+		
+		changePanelTo(view);
+		event.preventDefault();
+	});
+	
+	return {
+		'show' : show,
+		'hide' : hide,
+		'activePanel' : activePanel,
+		'changePanelTo' : changePanelTo
+	};
+};
+
 EPUBJS.reader.ControlsView = function(book) {
 	var reader = this;
 
@@ -182,8 +228,7 @@ EPUBJS.reader.ControlsView = function(book) {
 			$sidebar = $("#sidebar"),
 			$settings = $("#settings"),
 			$bookmark = $("#bookmark");
-			
-	
+
 	var goOnline = function() {
 		reader.offline = false;
 		// $store.attr("src", $icon.data("save"));
@@ -193,31 +238,19 @@ EPUBJS.reader.ControlsView = function(book) {
 		reader.offline = true;
 		// $store.attr("src", $icon.data("saved"));
 	};
-	
-	var showSidebar = function() {
-		reader.sidebarOpen = true;
-		reader.ReaderView.slideOut();
-		$sidebar.addClass("open");
-		$slider.addClass("icon-right");
-		$slider.removeClass("icon-menu");
-	}
-	
-	var hideSidebar = function() {
-		reader.sidebarOpen = false;
-		reader.ReaderView.slideIn();
-		$sidebar.removeClass("open");
-		$slider.addClass("icon-menu");
-		$slider.removeClass("icon-right");
-	}
-	
+
 	book.on("book:online", goOnline);
 	book.on("book:offline", goOffline);
 
 	$slider.on("click", function () {
 		if(reader.sidebarOpen) {
-			hideSidebar();
+			reader.SidebarView.hide();
+			$slider.addClass("icon-menu");
+			$slider.removeClass("icon-right");
 		} else {
-			showSidebar();
+			reader.SidebarView.show();
+			$slider.addClass("icon-right");
+			$slider.removeClass("icon-menu");
 		}
 	});
 	
@@ -236,7 +269,14 @@ EPUBJS.reader.ControlsView = function(book) {
 		$bookmark.removeClass("icon-bookmark-empty");
 		console.log(reader.book.getCurrentLocationCfi());
 	});
-	
+
+	book.on('renderer:pageChanged', function(cfi){
+		//-- TODO: Check if bookmarked
+		$bookmark
+			.removeClass("icon-bookmark")
+			.addClass("icon-bookmark-empty"); 
+	});
+
 	return {
 		
 	};

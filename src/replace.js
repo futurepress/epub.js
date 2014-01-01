@@ -80,11 +80,11 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 
 	matches.forEach(function(str){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
-		replaced = _store.getUrl(full).then(function(url){
-			text = text.replace(str, 'url("'+url+'")');
-		}, function(e) {
-			console.error(e);
-		});
+		var replaced = _store.getUrl(full).then(function(url){
+				text = text.replace(str, 'url("'+url+'")');
+			}, function(e) {
+				console.error(e);
+			});
 		
 		promises.push(replaced);
 	});

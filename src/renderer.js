@@ -652,14 +652,15 @@ EPUBJS.Renderer.prototype.findFirstVisible = function(startEl){
 };
 
 EPUBJS.Renderer.prototype.isElementVisible = function(el){
-	var left;
+	var rect;
 	
 	if(el && typeof el.getBoundingClientRect === 'function'){
+		rect = el.getBoundingClientRect();
 
-		left = el.getBoundingClientRect().left;
-		
-		if( left >= 0 &&
-			left < this.spreadWidth ) {
+		if( rect.width != 0 && 
+				rect.height != 0 &&
+				rect.left >= 0 &&
+				rect.left < this.spreadWidth ) {
 			return true;
 		}
 	}

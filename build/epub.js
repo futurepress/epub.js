@@ -2138,8 +2138,8 @@ EPUBJS.Book.prototype.removeSavedSettings = function() {
 };
 		
 EPUBJS.Book.prototype.applySavedSettings = function() {
-		var bookKey = this.settings.bookPath + ":" + this.settings.version;
-			stored = JSON.parse(localStorage.getItem(bookKey));
+		var bookKey = this.settings.bookPath + ":" + this.settings.version,
+				stored = JSON.parse(localStorage.getItem(bookKey));
 
 		if(EPUBJS.VERSION != stored.EPUBJSVERSION) return false;
 		this.settings = _.defaults(this.settings, stored);
@@ -2500,7 +2500,7 @@ EPUBJS.Book.prototype._enqueue = function(command, args) {
 	
 	this._q.push({
 		'command': command,
-		'arguments': args
+		'args': args
 	});
 
 };
@@ -2518,7 +2518,7 @@ EPUBJS.Book.prototype._rendered = function(err) {
 	this.trigger("book:rendered");
 
 	this._q.forEach(function(item){
-		book[item.command].apply(book, item.arguments);
+		book[item.command].apply(book, item.args);
 	});
 
 };
@@ -2528,7 +2528,7 @@ EPUBJS.Book.prototype.getHooks = function(){
 	var book = this,
 		plugs;
 	
-	plugTypes = _.values(this.hooks);
+	var plugTypes = _.values(this.hooks); //-- unused
 
 	for (var plugType in this.hooks) {
 		plugs = _.values(EPUBJS.Hooks[plugType]);
@@ -2590,17 +2590,16 @@ RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-	console.error(event, event.detail);
+	//console.error(event, event.detail);
 });
 
-var listener = function(event){
-	console.log(event);
-}
-RSVP.configure('instrument', false);
-RSVP.on('created', listener);
-RSVP.on('chained', listener);
-RSVP.on('fulfilled', listener);
-RSVP.on('rejected', listener);
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+// RSVP.on('created', listener);
+// RSVP.on('chained', listener);
+// RSVP.on('fulfilled', listener);
+RSVP.on('rejected', function(event){
+	console.error(event.detail, event.detail.message);
+});
 
 EPUBJS.Chapter = function(spineObject){
 	this.href = spineObject.href;
@@ -2932,7 +2931,7 @@ EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 	var stack = [],
 			children;
 
-	while(node && node.parentNode !== null ) {
+	while(node && node.parentNode !== null && node.parentNode.nodeType != 9) {
 		children = node.parentNode.children;
 
 		stack.unshift({
@@ -2942,11 +2941,7 @@ EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 			'index' : children ? Array.prototype.indexOf.call(children, node) : 0
 		});
 		
-		if(node.parentNode.nodeName != "html") {
-			node = node.parentNode;
-		} else {
-			node = false;
-		}
+		node = node.parentNode;
 	}
 	
 	return stack;
@@ -4113,14 +4108,15 @@ EPUBJS.Renderer.prototype.findFirstVisible = function(startEl){
 };
 
 EPUBJS.Renderer.prototype.isElementVisible = function(el){
-	var left;
+	var rect;
 	
 	if(el && typeof el.getBoundingClientRect === 'function'){
+		rect = el.getBoundingClientRect();
 
-		left = el.getBoundingClientRect().left;
-		
-		if( left >= 0 &&
-			left < this.spreadWidth ) {
+		if( rect.width != 0 && 
+				rect.height != 0 &&
+				rect.left >= 0 &&
+				rect.left < this.spreadWidth ) {
 			return true;
 		}
 	}
@@ -4224,11 +4220,11 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 
 	matches.forEach(function(str){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
-		replaced = _store.getUrl(full).then(function(url){
-			text = text.replace(str, 'url("'+url+'")');
-		}, function(e) {
-			console.error(e);
-		});
+		var replaced = _store.getUrl(full).then(function(url){
+				text = text.replace(str, 'url("'+url+'")');
+			}, function(e) {
+				console.error(e);
+			});
 		
 		promises.push(replaced);
 	});

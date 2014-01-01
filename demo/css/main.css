@@ -153,7 +153,7 @@ body {
   -moz-transform: translate(300px, 0);
 }
 
-#controls {
+#panels {
   background: #4e4e4e;
   position: absolute;
   left: 0;
@@ -182,7 +182,7 @@ body {
   float: right;
 }
 
-#controls a {
+#panels a {
   visibility: hidden;
   width: 18px;
   height: 20px;
@@ -192,21 +192,21 @@ body {
   margin-left: 6px;
 }
 
-#controls a::before {
+#panels a::before {
   visibility: visible;
 }
 
-#controls a:hover {
+#panels a:hover {
   color: #AAA;
 }
 
-#controls a:active {
+#panels a:active {
   color: #AAA;
   margin: 1px 0 -1px 6px;
 }
 
-#controls a.active,
-#controls a.active:hover {
+#panels a.active,
+#panels a.active:hover {
   color: #AAA;
 }
 

@@ -45,7 +45,7 @@ EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 	var stack = [],
 			children;
 
-	while(node && node.parentNode !== null ) {
+	while(node && node.parentNode !== null && node.parentNode.nodeType != 9) {
 		children = node.parentNode.children;
 
 		stack.unshift({
@@ -55,11 +55,7 @@ EPUBJS.EpubCFI.prototype.pathTo = function(node) {
 			'index' : children ? Array.prototype.indexOf.call(children, node) : 0
 		});
 		
-		if(node.parentNode.nodeName != "html") {
-			node = node.parentNode;
-		} else {
-			node = false;
-		}
+		node = node.parentNode;
 	}
 	
 	return stack;

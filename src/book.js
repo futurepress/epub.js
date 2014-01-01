@@ -365,8 +365,8 @@ EPUBJS.Book.prototype.removeSavedSettings = function() {
 };
 		
 EPUBJS.Book.prototype.applySavedSettings = function() {
-		var bookKey = this.settings.bookPath + ":" + this.settings.version;
-			stored = JSON.parse(localStorage.getItem(bookKey));
+		var bookKey = this.settings.bookPath + ":" + this.settings.version,
+				stored = JSON.parse(localStorage.getItem(bookKey));
 
 		if(EPUBJS.VERSION != stored.EPUBJSVERSION) return false;
 		this.settings = _.defaults(this.settings, stored);
@@ -727,7 +727,7 @@ EPUBJS.Book.prototype._enqueue = function(command, args) {
 	
 	this._q.push({
 		'command': command,
-		'arguments': args
+		'args': args
 	});
 
 };
@@ -745,7 +745,7 @@ EPUBJS.Book.prototype._rendered = function(err) {
 	this.trigger("book:rendered");
 
 	this._q.forEach(function(item){
-		book[item.command].apply(book, item.arguments);
+		book[item.command].apply(book, item.args);
 	});
 
 };
@@ -755,7 +755,7 @@ EPUBJS.Book.prototype.getHooks = function(){
 	var book = this,
 		plugs;
 	
-	plugTypes = _.values(this.hooks);
+	var plugTypes = _.values(this.hooks); //-- unused
 
 	for (var plugType in this.hooks) {
 		plugs = _.values(EPUBJS.Hooks[plugType]);
@@ -817,14 +817,13 @@ RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-	console.error(event, event.detail);
+	//console.error(event, event.detail);
 });
 
-var listener = function(event){
-	console.log(event);
-}
-RSVP.configure('instrument', false);
-RSVP.on('created', listener);
-RSVP.on('chained', listener);
-RSVP.on('fulfilled', listener);
-RSVP.on('rejected', listener);
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+// RSVP.on('created', listener);
+// RSVP.on('chained', listener);
+// RSVP.on('fulfilled', listener);
+RSVP.on('rejected', function(event){
+	console.error(event.detail, event.detail.message);
+});

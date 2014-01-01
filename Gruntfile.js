@@ -9,11 +9,11 @@ module.exports = function(grunt) {
 		},
 		concat : {
 		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
-		'build/reader.js': ['<banner>', 'reader/*.js'],
+		'build/reader.js': ['<banner>', 'reader/reader.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
-		'demo/js/libs/jquery-1.9.0.min.js': 'libs/jquery/jquery-1.9.0.min.js',
+		'demo/js/libs/jquery-2.0.3.min.js': 'libs/jquery/jquery-2.0.3.min.js',
 		'demo/js/libs/inflate.js': 'libs/zip/inflate.js',
 		'demo/js/libs/screenfull.min.js': 'libs/screenfull.min.js'
 		},
