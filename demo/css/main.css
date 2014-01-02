@@ -436,6 +436,122 @@ input:-moz-placeholder {
 
 .highlight { background-color: yellow }
 
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  width: 630px;
+  
+  height: auto;
+  z-index: 2000;
+  visibility: hidden;
+  margin-left: -320px;
+  margin-top: -160px;
+ 
+}
+
+.overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  opacity: 0;
+  background: rgba(255,255,255,0.8);
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  transition: all 0.3s;
+}
+
+.md-show {
+    visibility: visible;
+}
+
+.md-show ~ .overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Content styles */
+.md-content {
+  color: #fff;
+  background: #6b6b6b;
+  position: relative;
+  border-radius: 3px;
+  margin: 0 auto;
+  height: 320px;
+}
+
+.md-content h3 {
+  margin: 0;
+  padding: 6px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 300;
+  opacity: 0.8;
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px 3px 0 0;
+}
+
+.md-content > div {
+  padding: 15px 40px 30px;
+  margin: 0;
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.md-content > div p {
+  margin: 0;
+  padding: 10px 0;
+}
+
+.md-content > div ul {
+  margin: 0;
+  padding: 0 0 30px 20px;
+}
+
+.md-content > div ul li {
+  padding: 5px 0;
+}
+
+.md-content button {
+  display: block;
+  margin: 0 auto;
+  font-size: 0.8em;
+}
+
+/* Effect 1: Fade in and scale up */
+.md-effect-1 .md-content {
+  -webkit-transform: scale(0.7);
+  -moz-transform: scale(0.7);
+  -ms-transform: scale(0.7);
+  transform: scale(0.7);
+  opacity: 0;
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  transition: all 0.3s;
+}
+
+.md-show.md-effect-1 .md-content {
+  -webkit-transform: scale(1);
+  -moz-transform: scale(1);
+  -ms-transform: scale(1);
+  transform: scale(1);
+  opacity: 1;
+}
+
+.md-content > .closer {
+  font-size: 18px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 24px;
+  padding: 4px;
+}
+
 @media only screen and (max-width: 1040px) {
   #viewer{
     width: 50%;
@@ -536,6 +652,7 @@ input:-moz-placeholder {
    /* you can be more comfortable with increased icons size */
    font-size: 112%;
  }
+ 
  
 .icon-search:before { content: '\e807'; } /* '' */
 .icon-resize-full-1:before { content: '\e804'; } /* '' */

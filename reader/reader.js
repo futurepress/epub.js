@@ -226,7 +226,7 @@ EPUBJS.reader.ControlsView = function(book) {
 			$slider = $("#slider"),
 			$main = $("#main"),
 			$sidebar = $("#sidebar"),
-			$settings = $("#settings"),
+			$settings = $("#setting"),
 			$bookmark = $("#bookmark");
 
 	var goOnline = function() {
@@ -397,18 +397,27 @@ EPUBJS.reader.TocView = function(toc) {
 EPUBJS.reader.SettingsView = function() {
 	var book = this.book;
 
-	var $settings = $("#settingsPanel");
+	var $settings = $("#settings-modal"),
+			$overlay = $(".overlay");
 
-	var onShow = function() {
-		$settings.show();
+	var show = function() {
+		$settings.addClass("md-show");
 	};
 
-	var onHide = function() {
-		$settings.hide();
+	var hide = function() {
+		$settings.removeClass("md-show");
 	};
-
+	
+	$settings.find(".closer").on("click", function() {
+		hide();
+	});
+	
+	$overlay.on("click", function() {
+		hide();
+	});
+	
 	return {
-		"show" : onShow,
-		"hide" : onHide
+		"show" : show,
+		"hide" : hide
 	};
 };
