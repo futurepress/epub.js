@@ -260,7 +260,8 @@ input:-moz-placeholder {
   margin: -33px 0 0 -33px;
 }
 
-#tocView {
+#tocView,
+#bookmarksView {
   overflow-x: hidden;
   overflow-y: hidden;
   width: 300px;
@@ -273,21 +274,24 @@ input:-moz-placeholder {
 
 
 
-#sidebar.open #tocView {
+#sidebar.open #tocView,
+#sidebar.open #bookmarksView {
   overflow-y: auto;
   visibility: visible;
   -webkit-transition: visibility 0 ease 0;
   -moz-transition: visibility 0 ease 0;
 }
 
-#tocView > ul{
+#tocView > ul,
+#bookmarksView > ul {
   margin-top: 15px;
   margin-bottom: 50px;
   padding-left: 20px;
   display: block;
 }
 
-#tocView li {
+#tocView li, 
+#bookmarksView li {
   margin-bottom:10px;
   width: 225px;
   font-family: Georgia, "Times New Roman", Times, serif;
@@ -301,37 +305,37 @@ input:-moz-placeholder {
   list-style: none;
 }
 
-#tocView a {
+.list_item a {
   color: #AAA;
   text-decoration: none;
 }
 
-#tocView a.chapter {
+.list_item a.chapter {
   font-size: 1em;
 }
 
-#tocView a.section {
+.list_item a.section {
   font-size: .8em;
 }
 
-#tocView li.currentChapter > a,
-#tocView li a:hover {
+.list_item.currentChapter > a,
+.list_item a:hover {
   color: #f1f1f1
 }
 
 /* #tocView li.openChapter > a, */
-#tocView li a:hover {
+.list_item a:hover {
   color: #E2E2E2;
 }
 
-#tocView li ul {
+.list_item ul {
   padding-left:10px;
   margin-top: 8px;
   display: none;
 }
 
-#tocView li.currentChapter > ul,
-#tocView li.openChapter > ul {
+.list_item.currentChapter > ul,
+.list_item.openChapter > ul {
   display: block;
 }
 

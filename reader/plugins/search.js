@@ -18,12 +18,11 @@ EPUBJS.reader.search.request = function(q, callback) {
 	});
 };
 
-EPUBJS.reader.plugins.SearchView = function(Book) {
+EPUBJS.reader.plugins.SearchController = function(Book) {
 	var reader = this;
 	
 	var $searchBox = $("#searchBox"),
 			$searchResults = $("#searchResults"),
-			$tocView = $("#tocView"),
 			$searchView = $("#searchView"),
 			iframeDoc;
 	
@@ -103,9 +102,8 @@ EPUBJS.reader.plugins.SearchView = function(Book) {
 		//-- SearchBox is empty or cleared
 		if(q == '') {
 			$searchResults.empty();
-			
-			if(reader.SidebarView.activePanel != "SearchView") {
-				reader.SidebarView.changePanelTo("TocView");
+			if(reader.SidebarController.getActivePanel() == "Search") {
+				reader.SidebarController.changePanelTo("Toc");
 			}
 			
 			$(iframeDoc).find('body').unhighlight();
@@ -113,9 +111,7 @@ EPUBJS.reader.plugins.SearchView = function(Book) {
 			return;
 		}
 		
-		if(reader.SidebarView.activePanel != "SearchView") {
-			reader.SidebarView.changePanelTo("SearchView");
-		}
+		reader.SidebarController.changePanelTo("Search");
 		
 		e.preventDefault();
 	});

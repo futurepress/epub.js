@@ -16,19 +16,24 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 		};
 };
 
-EPUBJS.Parser.prototype.package = function(packageXml, baseUrl){
+EPUBJS.Parser.prototype.identifier = function(packageXml){
+	var metadataNode = packageXml.querySelector("metadata");
+	return this.getElementText(metadataNode, "identifier");
+};
+
+EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	var parse = this;
 
 	if(baseUrl) this.baseUrl = baseUrl;
 	
 	var metadataNode = packageXml.querySelector("metadata"),
-		manifestNode = packageXml.querySelector("manifest"),
-		spineNode = packageXml.querySelector("spine");
+			manifestNode = packageXml.querySelector("manifest"),
+			spineNode = packageXml.querySelector("spine");
 
 	var manifest = parse.manifest(manifestNode),
-		navPath = parse.findNavPath(manifestNode),
-		tocPath = parse.findTocPath(manifestNode),
-		coverPath = parse.findCoverPath(manifestNode);
+			navPath = parse.findNavPath(manifestNode),
+			tocPath = parse.findTocPath(manifestNode),
+			coverPath = parse.findCoverPath(manifestNode);
 
 	var spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
 	
@@ -72,7 +77,7 @@ EPUBJS.Parser.prototype.findCoverPath = function(manifestNode){
 //-- Expanded to match Readium web components
 EPUBJS.Parser.prototype.metadata = function(xml){
 	var metadata = {},
-		p = this;
+			p = this;
 	
 	metadata.bookTitle = p.getElementText(xml, 'title');
 	metadata.creator = p.getElementText(xml, 'creator');
@@ -123,7 +128,7 @@ EPUBJS.Parser.prototype.querySelectorText = function(xml, q){
 
 EPUBJS.Parser.prototype.manifest = function(manifestXml){
 	var baseUrl = this.baseUrl,
-		manifest = {};
+			manifest = {};
 	
 	//-- Turn items into an array
 	var selected = manifestXml.querySelectorAll("item"),
@@ -132,9 +137,9 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 	//-- Create an object with the id as key
 	items.forEach(function(item){
 		var id = item.getAttribute('id'),
-			href = item.getAttribute('href') || '',
-			type = item.getAttribute('media-type') || '',
-			properties = item.getAttribute('properties') || '';
+				href = item.getAttribute('href') || '',
+				type = item.getAttribute('media-type') || '',
+				properties = item.getAttribute('properties') || '';
 		
 		manifest[id] = {
 			'href' : href,
@@ -153,7 +158,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	var spine = [];
 	
 	var selected = spineXml.getElementsByTagName("itemref"),
-		items = Array.prototype.slice.call(selected);
+			items = Array.prototype.slice.call(selected);
 	
 	//-- Add to array to mantain ordering and cross reference with manifest
 	items.forEach(function(item, index){
@@ -175,7 +180,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 
 EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 	var navEl = navHtml.querySelector('nav'), //-- [*|type="toc"] * Doesn't seem to work
-		idCounter = 0;
+			idCounter = 0;
 	
 	if(!navEl) return [];
 	
@@ -212,10 +217,10 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 	
 	function getTOC(parent){
 		var list = [],
-			nodes = findListItems(parent),
-			items = Array.prototype.slice.call(nodes),
-			length = items.length,
-			node;
+				nodes = findListItems(parent),
+				items = Array.prototype.slice.call(nodes),
+				length = items.length,
+				node;
 	
 		if(length === 0) return false;
 		
@@ -262,12 +267,12 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	
 	function getTOC(parent){
 		var list = [],
-			items = [],
-			nodes = parent.childNodes,
-			nodesArray = Array.prototype.slice.call(nodes),
-			length = nodesArray.length,
-			iter = length,
-			node;
+				items = [],
+				nodes = parent.childNodes,
+				nodesArray = Array.prototype.slice.call(nodes),
+				length = nodesArray.length,
+				iter = length,
+				node;
 		
 
 		if(length === 0) return false;
@@ -281,15 +286,15 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 		
 		items.forEach(function(item){
 			var id = item.getAttribute('id') || false,
-				content = item.querySelector("content"),
-				src = content.getAttribute('src'),
-				navLabel = item.querySelector("navLabel"),
-				text = navLabel.textContent ? navLabel.textContent : "",
-				split = src.split("#"),
-				baseUrl = split[0],
-				spinePos = spineIndexByURL[baseUrl],
-				spineItem,
-				subitems = getTOC(item);
+					content = item.querySelector("content"),
+					src = content.getAttribute('src'),
+					navLabel = item.querySelector("navLabel"),
+					text = navLabel.textContent ? navLabel.textContent : "",
+					split = src.split("#"),
+					baseUrl = split[0],
+					spinePos = spineIndexByURL[baseUrl],
+					spineItem,
+					subitems = getTOC(item);
 
 			if(!id) {
 				if(spinePos) {

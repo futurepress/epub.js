@@ -1,0 +1,74 @@
+EPUBJS.reader.ControlsController = function(book) {
+	var reader = this;
+
+	var $store = $("#store"),
+			$fullscreen = $("#fullscreen"),
+			$fullscreenicon = $("#fullscreenicon"),
+			$cancelfullscreenicon = $("#cancelfullscreenicon"),
+			$slider = $("#slider"),
+			$main = $("#main"),
+			$sidebar = $("#sidebar"),
+			$settings = $("#setting"),
+			$bookmark = $("#bookmark");
+
+	var goOnline = function() {
+		reader.offline = false;
+		// $store.attr("src", $icon.data("save"));
+	};
+
+	var goOffline = function() {
+		reader.offline = true;
+		// $store.attr("src", $icon.data("saved"));
+	};
+
+	book.on("book:online", goOnline);
+	book.on("book:offline", goOffline);
+
+	$slider.on("click", function () {
+		if(reader.sidebarOpen) {
+			reader.SidebarController.hide();
+			$slider.addClass("icon-menu");
+			$slider.removeClass("icon-right");
+		} else {
+			reader.SidebarController.show();
+			$slider.addClass("icon-right");
+			$slider.removeClass("icon-menu");
+		}
+	});
+
+	$fullscreen.on("click", function() {
+		screenfull.toggle($('#container')[0]);
+		$fullscreenicon.toggle();
+		$cancelfullscreenicon.toggle();
+	});
+
+	$settings.on("click", function() {
+		reader.SettingsController.show();
+	});
+
+	$bookmark.on("click", function() {
+		$bookmark.addClass("icon-bookmark");
+		$bookmark.removeClass("icon-bookmark-empty");
+		reader.addBookmark(reader.book.getCurrentLocationCfi());
+	});
+
+	book.on('renderer:pageChanged', function(cfi){
+		//-- Check if bookmarked
+		var bookmarked = reader.isBookmarked(cfi);
+		
+		if(bookmarked === -1) { //-- Not bookmarked
+			$bookmark
+				.removeClass("icon-bookmark")
+				.addClass("icon-bookmark-empty"); 
+		} else { //-- Bookmarked
+			$bookmark
+				.addClass("icon-bookmark")
+				.removeClass("icon-bookmark-empty"); 
+		}
+		
+	});
+
+	return {
+
+	};
+};

@@ -66,6 +66,13 @@
         
         <!-- Reader -->
         <script src="../reader/reader.js"></script>
+        <script src="../reader/controllers/bookmarks_controller.js"></script>
+        <script src="../reader/controllers/controls_controller.js"></script>
+        <script src="../reader/controllers/meta_controller.js"></script>
+        <script src="../reader/controllers/reader_controller.js"></script>
+        <script src="../reader/controllers/settings_controller.js"></script>
+        <script src="../reader/controllers/sidebar_controller.js"></script>
+        <script src="../reader/controllers/toc_controller.js"></script>
         
         <!-- Full Screen -->
         <script src="js/libs/screenfull.min.js"></script>
@@ -80,10 +87,10 @@
         <div id="panels">
           <input id="searchBox" placeholder="search" type="search">
           
-          <a id="show-SearchView" class="show_view icon-search" data-view="SearchView">Search</a>
-          <a id="show-TocView" class="show_view icon-list-1 active" data-view="TocView">TOC</a>
-          <a id="show-BookmarksView" class="show_view icon-bookmark" data-view="BookmarksView">Bookmarks</a>
-          <a id="show-NotesView" class="show_view icon-edit" data-view="NotesView">Notes</a>
+          <a id="show-Search" class="show_view icon-search" data-view="Search">Search</a>
+          <a id="show-Toc" class="show_view icon-list-1 active" data-view="Toc">TOC</a>
+          <a id="show-Bookmarks" class="show_view icon-bookmark" data-view="Bookmarks">Bookmarks</a>
+          <a id="show-Notes" class="show_view icon-edit" data-view="Notes">Notes</a>
          
         </div>
         <div id="tocView">
@@ -91,9 +98,9 @@
         <div id="searchView">
           <ul id="searchResults"></ul>
         </div>
-        <div id="settingsPanel">
+        <div id="bookmarksView">
+          <ul id="bookmarks"></ul>
         </div>
-          
       </div>
       <div id="main">
         

@@ -85,15 +85,21 @@ EPUBJS.EpubCFI.prototype.getOffset = function(cfiStr) {
 
 EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	var cfi = {},
+		chapSegment,
 		chapId,
 		path,
 		end,
 		text;
 
 	cfi.chapter = this.getChapter(cfiStr);
-
+	
+	chapSegment = parseInt(cfi.chapter.split("/")[2]) || false;
+	
 	cfi.fragment = this.getFragment(cfiStr);
-	cfi.spinePos = (parseInt(cfi.chapter.split("/")[2]) / 2 - 1 ) || 0;
+
+	if(!chapSegment || !cfi.fragment) return {spinePos: -1};
+	
+	cfi.spinePos = (parseInt(chapSegment) / 2 - 1 ) || 0;
 
 	chapId = cfi.chapter.match(/\[(.*)\]/);
 

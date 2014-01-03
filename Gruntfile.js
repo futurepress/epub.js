@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 		},
 		concat : {
 		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
-		'build/reader.js': ['<banner>', 'reader/reader.js'],
+		'build/reader.js': ['<banner>', 'reader/reader.js', 'reader/controllers/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',

@@ -1,5 +1,5 @@
 EPUBJS.reader = {};
-EPUBJS.reader.plugins = {}; //-- Attach extra view as plugins (like search?)
+EPUBJS.reader.plugins = {}; //-- Attach extra Controllers as plugins (like search?)
 
 (function(root) {
 
@@ -26,398 +26,151 @@ EPUBJS.reader.plugins = {}; //-- Attach extra view as plugins (like search?)
 
 })(window);
 
-EPUBJS.Reader = function(path, options) {
+EPUBJS.Reader = function(path, _options) {
 	var reader = this;
-	var settings = _.defaults(options || {}, {
-		restore: true
+	var book;
+	
+	this.settings = _.defaults(_options || {}, {
+		restore: true,
+		bookmarks: null
 	});
-	var book = this.book = ePub(path, settings);
+	
+	this.setBookKey(path); //-- This could be username + path or any unique string
+	
+	if(this.settings.restore && this.isSaved()) {
+		this.applySavedSettings();
+	}
+	
+	this.book = book = new EPUBJS.Book({
+		bookPath: path,
+		restore: this.settings.restore,
+		previousLocationCfi: this.settings.previousLocationCfi
+	});
 
-	this.settings = settings;
 	this.offline = false;
 	this.sidebarOpen = false;
+	if(!this.settings.bookmarks) {
+		this.settings.bookmarks = [];
+	}
 
 	book.renderTo("viewer");
 	
-	reader.SettingsView = EPUBJS.reader.SettingsView.call(reader, book);
-	reader.ControlsView = EPUBJS.reader.ControlsView.call(reader, book);
-	reader.SidebarView = EPUBJS.reader.SidebarView.call(reader, book);
+	reader.ReaderController = EPUBJS.reader.ReaderController.call(reader, book);
+	reader.SettingsController = EPUBJS.reader.SettingsController.call(reader, book);
+	reader.ControlsController = EPUBJS.reader.ControlsController.call(reader, book);
+	reader.SidebarController = EPUBJS.reader.SidebarController.call(reader, book);
+	reader.BookmarksController = EPUBJS.reader.BookmarksController.call(reader, book);
+	
+	// Call Plugins
+	for(var plugin in EPUBJS.reader.plugins) {
+		if(EPUBJS.reader.plugins.hasOwnProperty(plugin)) {
+			reader[plugin] = EPUBJS.reader.plugins[plugin].call(reader, book);
+		}
+	}
 	
 	book.ready.all.then(function() {
-		reader.ReaderView = EPUBJS.reader.ReaderView.call(reader, book);
-		
-		// Call Plugins
-		for(var plugin in EPUBJS.reader.plugins) {
-			if(EPUBJS.reader.plugins.hasOwnProperty(plugin)) {
-				reader[plugin] = EPUBJS.reader.plugins[plugin].call(reader, book);
-			}
-		}
-		
+		reader.ReaderController.hideLoader();
 	});
 
 	book.getMetadata().then(function(meta) {
-		reader.MetaView = EPUBJS.reader.MetaView.call(reader, meta);
+		reader.MetaController = EPUBJS.reader.MetaController.call(reader, meta);
 	});
 
 	book.getToc().then(function(toc) {
-		reader.TocView = EPUBJS.reader.TocView.call(reader, toc);
+		reader.TocController = EPUBJS.reader.TocController.call(reader, toc);
 	});
-
+	
+	window.addEventListener("beforeunload", this.unload.bind(this), false);
+	
 	return this;
 };
 
-EPUBJS.reader.MetaView = function(meta) {
-	var title = meta.bookTitle,
-			author = meta.creator;
+EPUBJS.Reader.prototype.addBookmark = function(cfi) {
+	var present = this.isBookmarked(cfi);
+	if(present > -1 ) return;
 
-	var $title = $("#book-title"),
-			$author = $("#chapter-title"),
-			$dash = $("#title-seperator");
-
-		document.title = title+" – "+author;
-
-		$title.html(title);
-		$author.html(author);
-		$dash.show();
+	this.settings.bookmarks.push(cfi);
+	
+	this.trigger("reader:bookmarked", cfi);
 };
 
-EPUBJS.reader.ReaderView = function(book) {
-	var $main = $("#main"),
-			$divider = $("#divider"),
-			$loader = $("#loader"),
-			$next = $("#next"),
-			$prev = $("#prev");
+EPUBJS.Reader.prototype.removeBookmark = function(cfi) {
+	var bookmark = this.isBookmarked(cfi);
+	if(!bookmark === -1 ) return;
 	
-	var slideIn = function() {
-		$main.removeClass("closed");
-	};
-	
-	var slideOut = function() {
-		$main.addClass("closed");
-	};
-	
-	var showLoader = function() {
-		$loader.show();
-	};
-	
-	var hideLoader = function() {
-		$loader.hide();
-	};
-	
-	var showDivider = function() {
-		$divider.addClass("show");
-	};
-	
-	var hideDivider = function() {
-		$divider.removeClass("show");
-	};
-	
-	var keylock = false;
-	
-	var arrowKeys = function(e) {		
-		if(e.keyCode == 37) { 
-			book.prevPage();
-			$prev.addClass("active");
-
-			keylock = true;
-			setTimeout(function(){
-				keylock = false;
-				$prev.removeClass("active");
-			}, 100);
-
-			 e.preventDefault();
-		}
-		if(e.keyCode == 39) { 
-			book.nextPage();
-			$next.addClass("active");
-			
-			keylock = true;
-			setTimeout(function(){
-				keylock = false;
-				$next.removeClass("active");
-			}, 100);
-			
-			 e.preventDefault();
-		}
-	}
-
-	document.addEventListener('keydown', arrowKeys, false);
-	
-	$next.on("click", function(e){
-		book.nextPage();
-		e.preventDefault();
-	});
-	
-	$prev.on("click", function(e){
-		book.prevPage();
-		e.preventDefault();
-	});
-	
-	//-- Hide the spinning loader
-	hideLoader();
-	
-	//-- If the book is using spreads, show the divider
-	if(!book.single) {
-		showDivider();
-	}
-	
-	return {
-		"slideOut" : slideOut,
-		"slideIn"  : slideIn,
-		"showLoader" : showLoader,
-		"hideLoader" : hideLoader,
-		"showDivider" : showDivider,
-		"hideDivider" : hideDivider
-	};
+	delete this.settings.bookmarks[bookmark];
 };
 
-EPUBJS.reader.SidebarView = function(book) {
-	var reader = this;
+EPUBJS.Reader.prototype.isBookmarked = function(cfi) {
+	var bookmarks = this.settings.bookmarks;
+	
+	return bookmarks.indexOf(cfi);
+};
 
-	var $sidebar = $("#sidebar"),
-			$panels = $("#panels");
+/*
+EPUBJS.Reader.prototype.searchBookmarked = function(cfi) {
+	var bookmarks = this.settings.bookmarks,
+			len = bookmarks.length;
 	
-	var activePanel = "TocView";
-	
-	var changePanelTo = function(viewName) {
-		if(activePanel == viewName || typeof reader[viewName] === 'undefined' ) return;
-		reader[activePanel].hide();
-		reader[viewName].show();
-		activePanel = viewName;
+	for(var i = 0; i < len; i++) {
+		if (bookmarks[i]['cfi'] === cfi) return i;
+	}
+	return -1;
+};
+*/
 
-		$panels.find('.active').removeClass("active");
-		$panels.find("#show-" + viewName ).addClass("active");
-	};
-	
-	var show = function() {
-		reader.sidebarOpen = true;
-		reader.ReaderView.slideOut();
-		$sidebar.addClass("open");
+EPUBJS.Reader.prototype.clearBookmarks = function() {
+	this.settings.bookmarks = [];
+};
+
+//-- Settings
+EPUBJS.Reader.prototype.setBookKey = function(identifier){
+	if(!this.settings.bookKey) {
+		this.settings.bookKey = "epubjsreader:" + EPUBJS.VERSION + ":" + window.location.host + ":" + identifier;
 	}
-	
-	var hide = function() {
-		reader.sidebarOpen = false;
-		reader.ReaderView.slideIn();
-		$sidebar.removeClass("open");
+	return this.settings.bookKey;
+};
+
+//-- Checks if the book setting can be retrieved from localStorage
+EPUBJS.Reader.prototype.isSaved = function(bookPath) {
+	var storedSettings = localStorage.getItem(this.settings.bookKey);
+
+	if( !localStorage ||
+		storedSettings === null) {
+		return false;
+	} else {
+		return true;
 	}
-	
-	$panels.find(".show_view").on("click", function(event) {
-		var view = $(this).data("view");
+};
+
+EPUBJS.Reader.prototype.removeSavedSettings = function() {
+	localStorage.removeItem(this.settings.bookKey);
+};
+
+EPUBJS.Reader.prototype.applySavedSettings = function() {
+		var stored = JSON.parse(localStorage.getItem(this.settings.bookKey));
 		
-		changePanelTo(view);
-		event.preventDefault();
-	});
-	
-	return {
-		'show' : show,
-		'hide' : hide,
-		'activePanel' : activePanel,
-		'changePanelTo' : changePanelTo
-	};
-};
-
-EPUBJS.reader.ControlsView = function(book) {
-	var reader = this;
-
-	var $store = $("#store"),
-			$fullscreen = $("#fullscreen"),
-			$fullscreenicon = $("#fullscreenicon"),
-			$cancelfullscreenicon = $("#cancelfullscreenicon"),
-			$slider = $("#slider"),
-			$main = $("#main"),
-			$sidebar = $("#sidebar"),
-			$settings = $("#setting"),
-			$bookmark = $("#bookmark");
-
-	var goOnline = function() {
-		reader.offline = false;
-		// $store.attr("src", $icon.data("save"));
-	};
-
-	var goOffline = function() {
-		reader.offline = true;
-		// $store.attr("src", $icon.data("saved"));
-	};
-
-	book.on("book:online", goOnline);
-	book.on("book:offline", goOffline);
-
-	$slider.on("click", function () {
-		if(reader.sidebarOpen) {
-			reader.SidebarView.hide();
-			$slider.addClass("icon-menu");
-			$slider.removeClass("icon-right");
+		if(stored) {
+			this.settings = _.defaults(this.settings, stored);
+			return true;
 		} else {
-			reader.SidebarView.show();
-			$slider.addClass("icon-right");
-			$slider.removeClass("icon-menu");
+			return false;
 		}
-	});
-	
-	$fullscreen.on("click", function() {
-		screenfull.toggle($('#container')[0]);
-		$fullscreenicon.toggle();
-		$cancelfullscreenicon.toggle();
-	});
-	
-	$settings.on("click", function() {
-		reader.SettingsView.show();
-	});
-
-	$bookmark.on("click", function() {
-		$bookmark.addClass("icon-bookmark");
-		$bookmark.removeClass("icon-bookmark-empty");
-		console.log(reader.book.getCurrentLocationCfi());
-	});
-
-	book.on('renderer:pageChanged', function(cfi){
-		//-- TODO: Check if bookmarked
-		$bookmark
-			.removeClass("icon-bookmark")
-			.addClass("icon-bookmark-empty"); 
-	});
-
-	return {
-		
-	};
 };
 
-EPUBJS.reader.TocView = function(toc) {
-	var book = this.book;
-	
-	var $list = $("#tocView"),
-			docfrag = document.createDocumentFragment();
-	
-	var currentChapter = false;
-	
-	var generateTocItems = function(toc, level) {
-		var container = document.createElement("ul");
-		
-		if(!level) level = 1;
+EPUBJS.Reader.prototype.saveSettings = function(){
+	if(this.book) {
+		this.settings.previousLocationCfi = this.book.getCurrentLocationCfi();
+	}
 
-		toc.forEach(function(chapter) {
-			var listitem = document.createElement("li"),
-					link = document.createElement("a");
-					toggle = document.createElement("a");
-			var subitems;
-			
-			listitem.id = "toc-"+chapter.id;
-
-			link.textContent = chapter.label;
-			link.href = chapter.href;
-			link.classList.add('toc_link');
-
-			listitem.appendChild(link);
-
-			if(chapter.subitems) {
-				level++;
-				subitems = generateTocItems(chapter.subitems, level);
-				toggle.classList.add('toc_toggle');
-				
-				listitem.insertBefore(toggle, link);
-				listitem.appendChild(subitems);
-			}
-			
-			
-			container.appendChild(listitem);
-			
-		});
-		
-		return container;
-	};
-	
-	var onShow = function() {
-		$list.show();
-	};
-	
-	var onHide = function() {
-		$list.hide();
-	};
-	
-	var chapterChange = function(e) {
-		var id = e.id,
-				$item = $list.find("#toc-"+id),
-				$current = $list.find(".currentChapter"),
-				$open = $list.find('.openChapter');
-
-		if($item.length){
-			
-			if($item != $current && $item.has(currentChapter).length > 0) {
-				$current.removeClass("currentChapter");
-			}
-			
-			$item.addClass("currentChapter");
-			
-			// $open.removeClass("openChapter");
-			$item.parents('li').addClass("openChapter");
-		}	  
-	};
-	
-	book.on('renderer:chapterDisplayed', chapterChange);
-
-	var tocitems = generateTocItems(toc);
-	
-	docfrag.appendChild(tocitems);
-	
-	$list.append(docfrag);
-	$list.find(".toc_link").on("click", function(event){
-			var url = this.getAttribute('href');
-
-			//-- Provide the Book with the url to show
-			//   The Url must be found in the books manifest
-			book.goto(url);
-			
-			$list.find(".currentChapter")
-					.addClass("openChapter")
-					.removeClass("currentChapter");
-					
-			$(this).parent('li').addClass("currentChapter");
-			
-			event.preventDefault();
-	});
-
-	$list.find(".toc_toggle").on("click", function(event){
-			var $el = $(this).parent('li'),
-					open = $el.hasClass("openChapter");
-			
-			if(open){
-				$el.removeClass("openChapter");
-			} else {
-				$el.addClass("openChapter");
-			}
-			event.preventDefault();
-	});
-	
-	return {
-		"show" : onShow,
-		"hide" : onHide
-	};
+	localStorage.setItem(this.settings.bookKey, JSON.stringify(this.settings));
 };
 
-EPUBJS.reader.SettingsView = function() {
-	var book = this.book;
-
-	var $settings = $("#settings-modal"),
-			$overlay = $(".overlay");
-
-	var show = function() {
-		$settings.addClass("md-show");
-	};
-
-	var hide = function() {
-		$settings.removeClass("md-show");
-	};
-	
-	$settings.find(".closer").on("click", function() {
-		hide();
-	});
-	
-	$overlay.on("click", function() {
-		hide();
-	});
-	
-	return {
-		"show" : show,
-		"hide" : hide
-	};
+EPUBJS.Reader.prototype.unload = function(){
+	if(this.settings.restore) {
+		this.saveSettings();
+	}
 };
+
+//-- Enable binding events to reader
+RSVP.EventTarget.mixin(EPUBJS.Reader.prototype);
