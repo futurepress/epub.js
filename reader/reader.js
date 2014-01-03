@@ -43,10 +43,13 @@ EPUBJS.Reader = function(path, _options) {
 	
 	this.book = book = new EPUBJS.Book({
 		bookPath: path,
-		restore: this.settings.restore,
-		previousLocationCfi: this.settings.previousLocationCfi
+		restore: this.settings.restore
 	});
-
+	
+	if(this.settings.previousLocationCfi) {
+		book.gotoCfi(this.settings.previousLocationCfi);
+	}
+	
 	this.offline = false;
 	this.sidebarOpen = false;
 	if(!this.settings.bookmarks) {
@@ -96,9 +99,11 @@ EPUBJS.Reader.prototype.addBookmark = function(cfi) {
 
 EPUBJS.Reader.prototype.removeBookmark = function(cfi) {
 	var bookmark = this.isBookmarked(cfi);
-	if(!bookmark === -1 ) return;
+	if( bookmark === -1 ) return;
 	
 	delete this.settings.bookmarks[bookmark];
+	
+	this.trigger("reader:unbookmarked", bookmark);
 };
 
 EPUBJS.Reader.prototype.isBookmarked = function(cfi) {

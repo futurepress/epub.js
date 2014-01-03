@@ -47,9 +47,21 @@ EPUBJS.reader.ControlsController = function(book) {
 	});
 
 	$bookmark.on("click", function() {
-		$bookmark.addClass("icon-bookmark");
-		$bookmark.removeClass("icon-bookmark-empty");
-		reader.addBookmark(reader.book.getCurrentLocationCfi());
+		var cfi = reader.book.getCurrentLocationCfi();
+		var bookmarked = reader.isBookmarked(cfi);
+		
+		if(bookmarked === -1) { //-- Add bookmark
+			reader.addBookmark(cfi);
+			$bookmark
+				.addClass("icon-bookmark")
+				.removeClass("icon-bookmark-empty"); 
+		} else { //-- Remove Bookmark
+			reader.removeBookmark(cfi);
+			$bookmark
+				.removeClass("icon-bookmark")
+				.addClass("icon-bookmark-empty"); 
+		}
+
 	});
 
 	book.on('renderer:pageChanged', function(cfi){

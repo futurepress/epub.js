@@ -423,11 +423,11 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 EPUBJS.Book.prototype.startDisplay = function(){
 	var display;
 	
-	if( this.settings.restore && this.settings.goto) {
+	if(this.settings.goto) {
 		
 		display = this.goto(this.settings.goto);
 
-	}else if( this.settings.restore && this.settings.previousLocationCfi) {
+	}else if(this.settings.previousLocationCfi) {
 		
 		display = this.displayChapter(this.settings.previousLocationCfi);
 		
@@ -593,14 +593,23 @@ EPUBJS.Book.prototype.getCurrentLocationCfi = function() {
 };
 
 EPUBJS.Book.prototype.gotoCfi = function(cfi){
-	if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
+	//if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
+	if(!this.isRendered) {
+		this.settings.previousLocationCfi = cfi;
+		return;
+	}
+	
 	return this.displayChapter(cfi);
 };
 
 EPUBJS.Book.prototype.goto = function(url){
 	var split, chapter, section, absoluteURL, spinePos;
 	var deferred = new RSVP.defer();
-	if(!this.isRendered) return this._enqueue("goto", arguments);
+	//if(!this.isRendered) return this._enqueue("goto", arguments);
+	if(!this.isRendered) {
+		this.settings.goto = url;
+		return;
+	}
 	
 	split = url.split("#");
 	chapter = split[0];

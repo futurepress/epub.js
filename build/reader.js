@@ -43,10 +43,13 @@ EPUBJS.Reader = function(path, _options) {
 	
 	this.book = book = new EPUBJS.Book({
 		bookPath: path,
-		restore: this.settings.restore,
-		previousLocationCfi: this.settings.previousLocationCfi
+		restore: this.settings.restore
 	});
-
+	
+	if(this.settings.previousLocationCfi) {
+		book.gotoCfi(this.settings.previousLocationCfi);
+	}
+	
 	this.offline = false;
 	this.sidebarOpen = false;
 	if(!this.settings.bookmarks) {
@@ -96,9 +99,11 @@ EPUBJS.Reader.prototype.addBookmark = function(cfi) {
 
 EPUBJS.Reader.prototype.removeBookmark = function(cfi) {
 	var bookmark = this.isBookmarked(cfi);
-	if(!bookmark === -1 ) return;
+	if( bookmark === -1 ) return;
 	
 	delete this.settings.bookmarks[bookmark];
+	
+	this.trigger("reader:unbookmarked", bookmark);
 };
 
 EPUBJS.Reader.prototype.isBookmarked = function(cfi) {
@@ -175,6 +180,7 @@ EPUBJS.Reader.prototype.unload = function(){
 //-- Enable binding events to reader
 RSVP.EventTarget.mixin(EPUBJS.Reader.prototype);
 EPUBJS.reader.BookmarksController = function() {
+	var reader = this;
 	var book = this.book;
 
 	var $bookmarks = $("#bookmarksView"),
@@ -190,10 +196,13 @@ EPUBJS.reader.BookmarksController = function() {
 		$bookmarks.hide();
 	};
 	
+	var counter = 0;
+	
 	var createBookmarkItem = function(cfi) {
 		var listitem = document.createElement("li"),
 				link = document.createElement("a");
-				
+		
+		listitem.id = "bookmark-"+counter;
 		listitem.classList.add('list_item');
 		
 		//-- TODO: Parse Cfi
@@ -209,6 +218,9 @@ EPUBJS.reader.BookmarksController = function() {
 		}, false);
 		
 		listitem.appendChild(link);
+		
+		counter++;
+		
 		return listitem;
 	};
 
@@ -219,11 +231,14 @@ EPUBJS.reader.BookmarksController = function() {
 	
 	$list.append(docfrag);
 	
-	
-	
 	this.on("reader:bookmarked", function(cfi) {
 		var item = createBookmarkItem(cfi);
 		$list.append(item);
+	});
+	
+	this.on("reader:unbookmarked", function(index) {
+		var $item = $("#bookmark-"+index);
+		$item.remove();
 	});
 
 	return {
@@ -280,9 +295,21 @@ EPUBJS.reader.ControlsController = function(book) {
 	});
 
 	$bookmark.on("click", function() {
-		$bookmark.addClass("icon-bookmark");
-		$bookmark.removeClass("icon-bookmark-empty");
-		reader.addBookmark(reader.book.getCurrentLocationCfi());
+		var cfi = reader.book.getCurrentLocationCfi();
+		var bookmarked = reader.isBookmarked(cfi);
+		
+		if(bookmarked === -1) { //-- Add bookmark
+			reader.addBookmark(cfi);
+			$bookmark
+				.addClass("icon-bookmark")
+				.removeClass("icon-bookmark-empty"); 
+		} else { //-- Remove Bookmark
+			reader.removeBookmark(cfi);
+			$bookmark
+				.removeClass("icon-bookmark")
+				.addClass("icon-bookmark-empty"); 
+		}
+
 	});
 
 	book.on('renderer:pageChanged', function(cfi){

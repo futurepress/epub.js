@@ -56,25 +56,30 @@ body {
 }
 
 #titlebar a {
-  visibility: hidden;
   width: 18px;
   height: 20px;
   overflow: hidden;
   display: inline-block;
   opacity: .5;
+  padding: 4px;
+  border-radius: 4px;
 }
 
 #titlebar a::before {
   visibility: visible;
-}
+}  
 
 #titlebar a:hover {
   opacity: .8;
+  border: 1px rgba(0,0,0,.2) solid;
+  padding: 3px;
 }
 
 #titlebar a:active {
   opacity: 1;
-  margin: 1px -1px -1px 1px;
+  color: rgba(0,0,0,.6);
+  /* margin: 1px -1px -1px 1px; */
+  -webkit-box-shadow: inset 0 0 6px rgba(155,155,155,.8);
 }
 
 #book-title {

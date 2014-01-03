@@ -1,4 +1,5 @@
 EPUBJS.reader.BookmarksController = function() {
+	var reader = this;
 	var book = this.book;
 
 	var $bookmarks = $("#bookmarksView"),
@@ -14,10 +15,13 @@ EPUBJS.reader.BookmarksController = function() {
 		$bookmarks.hide();
 	};
 	
+	var counter = 0;
+	
 	var createBookmarkItem = function(cfi) {
 		var listitem = document.createElement("li"),
 				link = document.createElement("a");
-				
+		
+		listitem.id = "bookmark-"+counter;
 		listitem.classList.add('list_item');
 		
 		//-- TODO: Parse Cfi
@@ -33,6 +37,9 @@ EPUBJS.reader.BookmarksController = function() {
 		}, false);
 		
 		listitem.appendChild(link);
+		
+		counter++;
+		
 		return listitem;
 	};
 
@@ -43,11 +50,14 @@ EPUBJS.reader.BookmarksController = function() {
 	
 	$list.append(docfrag);
 	
-	
-	
 	this.on("reader:bookmarked", function(cfi) {
 		var item = createBookmarkItem(cfi);
 		$list.append(item);
+	});
+	
+	this.on("reader:unbookmarked", function(index) {
+		var $item = $("#bookmark-"+index);
+		$item.remove();
 	});
 
 	return {
