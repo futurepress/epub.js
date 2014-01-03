@@ -583,16 +583,14 @@ EPUBJS.Book.prototype.prevPage = function() {
 };
 
 EPUBJS.Book.prototype.nextChapter = function() {
-	this.spinePos++;
 	if(this.spinePos > this.spine.length) return;
-	
+	this.spinePos++;
 	return this.displayChapter(this.spinePos);
 };
 
 EPUBJS.Book.prototype.prevChapter = function() {
+	if(this.spinePos < 1) return;
 	this.spinePos--;
-	if(this.spinePos < 0) return;
-	
 	return this.displayChapter(this.spinePos, true);
 };
 
