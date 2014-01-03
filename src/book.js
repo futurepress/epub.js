@@ -450,14 +450,18 @@ EPUBJS.Book.prototype.restore = function(identifier){
 	
 	if(this.settings.clearSaved) reject = true;
 
-	if(!reject && fromStore != 'undefined' && fromStore != 'null'){
-		this.contents = JSON.parse(fromStore);
-		fetch.forEach(function(item){
-			book[item] = book.contents[item];
-			if(!book[item]) {
+	if(!reject && fromStore != 'undefined' && fromStore != null){
+		book.contents = JSON.parse(fromStore);
+		
+		for(var i = 0, len = fetch.length; i < len; i++) {
+			var item = fetch[i];
+			
+			if(!book.contents[item]) {
 				reject = true;
+				break;
 			}
-		});
+			book[item] = book.contents[item];
+		}
 	}
 	
 	if(reject || !fromStore || !this.contents || !this.settings.contentsPath){
