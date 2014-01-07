@@ -446,7 +446,7 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 				_newUrls[full] = url;
 			},
 			finished = function(notempty) {
-			
+				
 				if(callback) callback();
 				
 				_.each(_oldUrls, function(url){
@@ -466,10 +466,19 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 				full = EPUBJS.core.resolveUrl(_chapterBase, src);
 
 		var replaceUrl = function(url) {
-					link.setAttribute(_attr, url);
 					link.onload = function(){
 						done(url, full);
 					};
+					link.onerror = function(e){
+						console.error(e);
+					};
+					
+					if(query == "image") {
+						//-- SVG needs this to trigger a load event
+						link.setAttribute("externalResourcesRequired", "true");
+					}
+					
+					link.setAttribute(_attr, url);
 				};
 
 		if(full in _oldUrls){
