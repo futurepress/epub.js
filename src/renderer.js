@@ -209,7 +209,8 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 			
 			renderer.trigger("renderer:chapterDisplayed", msg);
 			renderer.book.trigger("renderer:chapterDisplayed", msg);
-
+			renderer.book.trigger("renderer:pageChanged", renderer.currentLocationCfi);
+			
 			renderer.visible(true);
 
 		});
@@ -513,7 +514,7 @@ EPUBJS.Renderer.prototype.replaceLinks = function(callback){
 
 
 EPUBJS.Renderer.prototype.page = function(pg){
-	if(pg >= 1 && pg <= this.displayedPages){
+	if(pg >= 1 && pg <= this.displayedPages && pg != this.chapterPos){
 		this.chapterPos = pg;
 		this.leftPos = this.spreadWidth * (pg-1); //-- pages start at 1
 		this.setLeft(this.leftPos);

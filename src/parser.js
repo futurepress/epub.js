@@ -268,22 +268,14 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	function getTOC(parent){
 		var list = [],
 				items = [],
-				nodes = parent.childNodes,
-				nodesArray = Array.prototype.slice.call(nodes),
-				length = nodesArray.length,
+				nodes = parent.querySelectorAll("navPoint"),
+				items = Array.prototype.slice.call(nodes).reverse(),
+				length = items.length,
 				iter = length,
 				node;
 		
+		if(length === 0) return [];
 
-		if(length === 0) return false;
-
-		while(iter--){
-			node = nodesArray[iter];
-			if(node.nodeName === "navPoint") {
-				items.push(node);
-			}
-		}
-		
 		items.forEach(function(item){
 			var id = item.getAttribute('id') || false,
 					content = item.querySelector("content"),
@@ -298,7 +290,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 
 			if(!id) {
 				if(spinePos) {
-					spineItem = bookSpine[spinePos];				
+					spineItem = bookSpine[spinePos];
 					id = spineItem.id
 				} else {
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
@@ -318,6 +310,6 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 
 		return list;
 	}
-	
+
 	return getTOC(navMap);
 };

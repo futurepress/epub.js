@@ -49,6 +49,7 @@ body {
   text-align: center;
   -webkit-transition: opacity .5s;
   -moz-transition: opacity .5s;
+  z-index: 10;
 }
 
 #titlebar:hover {
@@ -57,7 +58,8 @@ body {
 
 #titlebar a {
   width: 18px;
-  height: 20px;
+  height: 19px;
+  line-height: 20px;
   overflow: hidden;
   display: inline-block;
   opacity: .5;
@@ -115,7 +117,7 @@ body {
 .arrow {
   position: absolute;
   top: 50%;
-  
+  margin-top: -32px;
   font-size: 64px;
   color: #E2E2E2;
   font-family: arial, sans-serif;
@@ -622,10 +624,13 @@ input:-moz-placeholder {
   }
   
   #titlebar {
-    font-size: 10px;
+    /* font-size: 16px; */
     /* margin: 0 50px 0 50px; */
   }
   
+  #metainfo {
+    font-size: 10px;
+  }
   
   #tocView {
     width: 260px;

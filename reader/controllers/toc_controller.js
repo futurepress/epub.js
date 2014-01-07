@@ -28,7 +28,7 @@ EPUBJS.reader.TocController = function(toc) {
 
 			listitem.appendChild(link);
 
-			if(chapter.subitems) {
+			if(chapter.subitems.length > 0) {
 				level++;
 				subitems = generateTocItems(chapter.subitems, level);
 				toggle.classList.add('toc_toggle');
