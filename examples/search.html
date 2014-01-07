@@ -8,46 +8,50 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/popup.css">
-
-        <script src="js/libs/jquery-2.0.3.min.js"></script>
-
-        <script src="js/libs/zip.min.js"></script>        
+        <link rel="stylesheet" href="../demo/css/normalize.css">
+        <link rel="stylesheet" href="../demo/css/main.css">
+        <link rel="stylesheet" href="../demo/css/popup.css">
+        <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
+        <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
+        -->
+        <script src="../libs/jquery/jquery-2.0.3.js"></script>
 
         <script>
             "use strict";
-            
+
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.VERSION = "0.1.7";
-                
+                EPUBJS.VERSION = "0.1.6";
+
                 EPUBJS.filePath = "js/libs/";
-                EPUBJS.cssPath = "css/";
+                EPUBJS.cssPath = "../demo/css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                var reader = ePubReader("moby-dick/");
+                ePubReader("../demo/moby-dick/");
               }  
             };
-        
+
         </script>
-                
+
         <!-- Render -->
-        <script src="js/epub.min.js"></script>
+        <script src="../demo/js/epub.min.js"></script>
         
         <!-- Hooks -->
-        <script src="js/hooks.min.js"></script> 
+        <script src="../demo/js/hooks.min.js"></script> 
         
         <!-- Reader -->
-        <script src="js/reader.min.js"></script>
+        <script src="../demo/js/reader.min.js"></script>
         
-        <!-- File Storage -->
-        <!-- <script src="js/libs/fileStorage.min.js"></script> -->
+        <!-- Plugins -->
+        <script src="../reader/plugins/search.js"></script>
 
         <!-- Full Screen -->
-        <script src="js/libs/screenfull.min.js"></script>
-        
+        <script src="../demo/js/libs/screenfull.min.js"></script>
+
+        <!-- Highlights -->
+        <script src="../demo/js/libs/jquery.highlight.js"></script>
+        <script src="../hooks/extensions/highlight.js"></script>
+
     </head>
     <body>
       <div id="sidebar">
@@ -92,13 +96,12 @@
         <div id="viewer"></div>
         <div id="next" class="arrow">›</div>
         
-        <div id="loader"><img src="img/loader.gif"></div>
+        <div id="loader"><img src="../demo/img/loader.gif"></div>
       </div>
       <div class="modal md-effect-1" id="settings-modal">
           <div class="md-content">
               <h3>Settings</h3>
               <div>
-                  <p></p>
               </div>
               <div class="closer icon-cancel-circled"></div>
           </div>

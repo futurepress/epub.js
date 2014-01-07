@@ -1,9 +1,11 @@
 EPUBJS.Book = function(options){
-	
+
 	var book = this;
 	
 	this.settings = _.defaults(options || {}, {
 		bookPath : null,
+		bookKey : null,
+		packageUrl : null,
 		storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
 		fromStorage : false,
 		saved : false,
@@ -49,7 +51,7 @@ EPUBJS.Book = function(options){
 	//-- Determine storage method
 	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
 	
-	if(this.settings.storage != false ){
+	if(this.settings.storage !== false){
 		this.storage = new fileStorage.storage(this.settings.storage);
 	}
 	
@@ -73,7 +75,7 @@ EPUBJS.Book = function(options){
 	
 	this.ready.all = RSVP.all(this.readyPromises);
 
-	this.ready.all.then(this._ready);
+	this.ready.all.then(this._ready.bind(this));
 	
 	this._q = [];
 	this.isRendered = false;
@@ -93,80 +95,76 @@ EPUBJS.Book = function(options){
 	//-- Listen for these promises:
 	//-- book.opened.then()
 	//-- book.rendered.then()
-
-}
+};
 
 //-- Check bookUrl and start parsing book Assets or load them from storage 
 EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 	var book = this,
-		saved = this.isSaved(bookPath),
-		opened;
-	
+			epubpackage,
+			opened = new RSVP.defer();
+
 	this.settings.bookPath = bookPath;
-	
+
 	//-- Get a absolute URL from the book path
 	this.bookUrl = this.urlFrom(bookPath);
 
-	// console.log("saved", saved, !forceReload)
-	//-- Remove the previous settings and reload
-	if(saved && !forceReload){
-		//-- Apply settings, keeping newer ones
-		this.applySavedSettings();
-	}
-
 	if(this.settings.contained || this.isContained(bookPath)){
-		
 		
 		this.settings.contained = this.contained = true;
 		
 		this.bookUrl = '';
 		
 		// return; //-- TODO: this need to be fixed and tested before enabling
-		opened = this.unarchive(bookPath).then(function(){
+		epubpackage = this.unarchive(bookPath).
+			then(function(){
+				return book.loadPackage();
+			});
 			
-			if(saved && book.settings.restore && !forceReload){
-				return book.restore();
-			}else{
-				return book.unpack();
+	}	else {
+		epubpackage = this.loadPackage();
+	}
+	
+	if(this.settings.restore && !forceReload){
+		//-- Will load previous package json, or re-unpack if error
+		epubpackage.then(function(packageXml) {
+			var identifier = book.packageIdentifier(packageXml);
+			var restored = book.restore(identifier);
+
+			if(!restored) {
+				book.unpack(packageXml);
 			}
-			
+			opened.resolve();
+			book.defer_opened.resolve();
 		});
 		
-	}	else {
+	}else{
 		
-		if(saved && this.settings.restore && !forceReload){
-			//-- Will load previous package json, or re-unpack if error
-			opened = this.restore();
-		
-		}else{
-			
-			//-- Get package information from epub opf
-			opened = this.unpack();
-			
-		}
-		
+		//-- Get package information from epub opf
+		epubpackage.then(function(packageXml) {
+			book.unpack(packageXml);
+			opened.resolve();
+			book.defer_opened.resolve();
+		});
 	}
-
+	
 	//-- If there is network connection, store the books contents
 	if(this.online && this.settings.storage && !this.settings.contained){
 		if(!this.settings.stored) opened.then(book.storeOffline());
 	}
-	
-	opened.then(function(){
-		book.defer_opened.resolve();
-	});
 
-	return opened;
+	return opened.promise;
 
-}
+};
 
-EPUBJS.Book.prototype.unpack = function(containerPath){
+EPUBJS.Book.prototype.loadPackage = function(_containerPath){
 	var book = this,
-		parse = new EPUBJS.Parser(),
-		containerPath = containerPath || "META-INF/container.xml";
-
-	//-- Return chain of promises
-	return book.loadXml(book.bookUrl + containerPath).
+			parse = new EPUBJS.Parser(),
+			containerPath = _containerPath || "META-INF/container.xml",
+			containerXml,
+			packageXml;
+	
+	if(!this.settings.packageUrl) { //-- provide the packageUrl to skip this step
+		packageXml = book.loadXml(book.bookUrl + containerPath).
 			then(function(containerXml){
 				return parse.container(containerXml); // Container has path to content
 			}).
@@ -174,68 +172,83 @@ EPUBJS.Book.prototype.unpack = function(containerPath){
 				book.settings.contentsPath = book.bookUrl + paths.basePath;
 				book.settings.packageUrl = book.bookUrl + paths.packagePath;
 				return book.loadXml(book.settings.packageUrl); // Containes manifest, spine and metadata 
-			}).
-			then(function(packageXml){
-				return parse.package(packageXml, book.settings.contentsPath); // Extract info from contents
-			}).
-			then(function(contents){
-				book.contents = contents;
-				book.manifest = book.contents.manifest;
-				book.spine = book.contents.spine;
-				book.spineIndexByURL = book.contents.spineIndexByURL;
-				book.metadata = book.contents.metadata;
-				
-				book.cover = book.contents.cover = book.settings.contentsPath + contents.coverPath;
-				
-				book.spineNodeIndex = book.contents.spineNodeIndex = contents.spineNodeIndex;
-				
-				book.ready.manifest.resolve(book.contents.manifest);
-				book.ready.spine.resolve(book.contents.spine);
-				book.ready.metadata.resolve(book.contents.metadata);
-				book.ready.cover.resolve(book.contents.cover);
-
-				//-- Adjust setting based on metadata				 
-
-				//-- Load the TOC, optional; either the EPUB3 XHTML Navigation file or the EPUB2 NCX file
-				if(contents.navPath) {
-					book.settings.navUrl = book.settings.contentsPath + contents.navPath;
-	
-					book.loadXml(book.settings.navUrl).
-					then(function(navHtml){
-						return parse.nav(navHtml); // Grab Table of Contents
-					}).then(function(toc){
-						book.toc = book.contents.toc = toc;
-						book.ready.toc.resolve(book.contents.toc);
-					});
-
-				} else if(contents.tocPath) {
-				 	book.settings.tocUrl = book.settings.contentsPath + contents.tocPath;
-
-					book.loadXml(book.settings.tocUrl).
-						then(function(tocXml){
-								return parse.toc(tocXml); // Grab Table of Contents
-					}).then(function(toc){
-						book.toc = book.contents.toc = toc;
-						book.ready.toc.resolve(book.contents.toc);
-					});
-
-				} else {
-					 book.ready.toc.resolve(false);
-				}
-
-			}).
-			fail(function(error) {
-				console.error(error);
 			});
-}
+	} else {
+		packageXml = book.loadXml(book.settings.packageUrl);
+	}
+
+	return packageXml;
+};
+
+EPUBJS.Book.prototype.packageIdentifier = function(packageXml){
+	var book = this,
+			parse = new EPUBJS.Parser();
+
+	return parse.identifier(packageXml);
+};
+
+EPUBJS.Book.prototype.unpack = function(packageXml){
+	var book = this,
+			parse = new EPUBJS.Parser();
+	
+	book.contents = parse.packageContents(packageXml, book.settings.contentsPath); // Extract info from contents
+
+	book.manifest = book.contents.manifest;
+	book.spine = book.contents.spine;
+	book.spineIndexByURL = book.contents.spineIndexByURL;
+	book.metadata = book.contents.metadata;
+	book.setBookKey(book.metadata.identifier);
+	
+	book.cover = book.contents.cover = book.settings.contentsPath + book.contents.coverPath;
+	
+	book.spineNodeIndex = book.contents.spineNodeIndex;
+	
+	book.ready.manifest.resolve(book.contents.manifest);
+	book.ready.spine.resolve(book.contents.spine);
+	book.ready.metadata.resolve(book.contents.metadata);
+	book.ready.cover.resolve(book.contents.cover);
+
+	//-- TODO: Adjust setting based on metadata
+
+	//-- Load the TOC, optional; either the EPUB3 XHTML Navigation file or the EPUB2 NCX file
+	if(book.contents.navPath) {
+		book.settings.navUrl = book.settings.contentsPath + book.contents.navPath;
+
+		book.loadXml(book.settings.navUrl).
+			then(function(navHtml){
+				return parse.nav(navHtml, book.spineIndexByURL, book.spine); // Grab Table of Contents
+			}).then(function(toc){
+				book.toc = book.contents.toc = toc;
+				book.ready.toc.resolve(book.contents.toc);
+			}, function(error) {
+				book.ready.toc.resolve(false);
+			});
+	} else if(book.contents.tocPath) {
+		book.settings.tocUrl = book.settings.contentsPath + book.contents.tocPath;
+
+		book.loadXml(book.settings.tocUrl).
+			then(function(tocXml){
+					return parse.toc(tocXml, book.spineIndexByURL, book.spine); // Grab Table of Contents
+			}).then(function(toc){
+				book.toc = book.contents.toc = toc;
+				book.ready.toc.resolve(book.contents.toc);
+			}, function(error) {
+				book.ready.toc.resolve(false);
+			});
+
+	} else {
+		book.ready.toc.resolve(false);
+	}
+
+};
 
 EPUBJS.Book.prototype.getMetadata = function() {
 	return this.ready.metadata.promise;
-}
+};
 
 EPUBJS.Book.prototype.getToc = function() {
 	return this.ready.toc.promise;
-}
+};
 
 /* Private Helpers */
 
@@ -253,7 +266,7 @@ EPUBJS.Book.prototype.networkListeners = function(){
 		book.trigger("book:online");
 	}, false);
 	
-}
+};
 
 //-- Choose between a request from store or a request from network
 EPUBJS.Book.prototype.loadXml = function(url){
@@ -263,8 +276,8 @@ EPUBJS.Book.prototype.loadXml = function(url){
 		return this.zip.getXml(url);
 	}else{
 		return EPUBJS.core.request(url, 'xml');
-	} 
-}
+	}
+};
 
 //-- Turns a url into a absolute url
 EPUBJS.Book.prototype.urlFrom = function(bookPath){
@@ -314,10 +327,10 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 		
 	}
 
-}
+};
 
 
-EPUBJS.Book.prototype.unarchive = function(bookPath){	
+EPUBJS.Book.prototype.unarchive = function(bookPath){
 	var book = this,
 		unarchived;
 		
@@ -330,77 +343,55 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 	this.zip = new EPUBJS.Unarchiver();
 		
 	return this.zip.openZip(bookPath);
-}
+};
 
 //-- Checks if url has a .epub or .zip extension
 EPUBJS.Book.prototype.isContained = function(bookUrl){
 	var dot = bookUrl.lastIndexOf('.'),
-		ext = bookUrl.slice(dot+1);
+			ext = bookUrl.slice(dot+1);
 
 	if(ext && (ext == "epub" || ext == "zip")){
 		return true;
 	}
 
 	return false;
-}
+};
 
-//-- Checks if the book setting can be retrieved from localStorage
-EPUBJS.Book.prototype.isSaved = function(bookPath) {
-	var bookKey = bookPath + ":" + this.settings.version,
-		storedSettings = localStorage.getItem(bookKey);
+//-- Checks if the book can be retrieved from localStorage
+EPUBJS.Book.prototype.isSaved = function(bookKey) {
+	var storedSettings = localStorage.getItem(bookKey);
 
 	if( !localStorage ||
 		storedSettings === null) {
 		return false;
 	} else {
 		return true;
-	} 
-}
-
-//-- Remove save book settings
-EPUBJS.Book.prototype.removeSavedSettings = function() {
-	var bookKey = this.settings.bookPath + ":" + this.settings.version;
-	
-		localStorage.removeItem(bookKey);
-		
-		this.settings.stored = false; //TODO: is this needed?
-}
-		
-EPUBJS.Book.prototype.applySavedSettings = function() {
-		var bookKey = this.settings.bookPath + ":" + this.settings.version;
-			stored = JSON.parse(localStorage.getItem(bookKey));
-
-		if(EPUBJS.VERSION != stored.EPUBJSVERSION) return false;
-		this.settings = _.defaults(this.settings, stored); 
-}
-
-EPUBJS.Book.prototype.saveSettings = function(){
-	var bookKey = this.settings.bookPath + ":" + this.settings.version;
-	
-	if(this.render) {
-		this.settings.previousLocationCfi = this.render.currentLocationCfi;
 	}
-		
-	localStorage.setItem(bookKey, JSON.stringify(this.settings));
+};
 
-}
+EPUBJS.Book.prototype.setBookKey = function(identifier){
+	if(!this.settings.bookKey) {
+		this.settings.bookKey = this.generateBookKey(identifier);
+	}
+	return this.settings.bookKey;
+};
+
+EPUBJS.Book.prototype.generateBookKey = function(identifier){
+	return "epubjs:" + EPUBJS.VERSION + ":" + window.location.host + ":" + identifier;
+};
 
 EPUBJS.Book.prototype.saveContents = function(){
-	var contentsKey = this.settings.bookPath + ":contents:" + this.settings.version;
-
-	localStorage.setItem(contentsKey, JSON.stringify(this.contents));
-
-}
+	localStorage.setItem(this.settings.bookKey, JSON.stringify(this.contents));
+};
 
 EPUBJS.Book.prototype.removeSavedContents = function() {
-	var bookKey = this.settings.bookPath + ":contents:" + this.settings.version;
-	
-	localStorage.removeItem(bookKey);
-}
+	localStorage.removeItem(this.settings.bookKey);
+};
+
 
 
 // EPUBJS.Book.prototype.chapterTitle = function(){
-// 	return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
+// return this.spine[this.spinePos].id; //-- TODO: clarify that this is returning title
 // }
 
 //-- Takes a string or a element
@@ -410,7 +401,7 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 	
 	if(_.isElement(elem)) {
 		this.element = elem;
-	} else if (typeof elem == "string") { 
+	} else if (typeof elem == "string") {
 		this.element = EPUBJS.core.getEl(elem);
 	} else {
 		console.error("Not an Element");
@@ -420,23 +411,23 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 	rendered = this.opened.
 				then(function(){
 					book.render = new EPUBJS.Renderer(book);
-					book._rendered();				
+					book._rendered();
 					return book.startDisplay();
-				}, function(error) { console.error(error) });
+				}, function(error) { console.error(error); });
 
-	rendered.then(null, function(error) { console.error(error) });
+	rendered.then(null, function(error) { console.error(error); });
 
 	return rendered;
-}
+};
 
 EPUBJS.Book.prototype.startDisplay = function(){
 	var display;
 	
-	if( this.settings.restore && this.settings.goto) {
+	if(this.settings.goto) {
 		
 		display = this.goto(this.settings.goto);
 
-	}else if( this.settings.restore && this.settings.previousLocationCfi) {
+	}else if(this.settings.previousLocationCfi) {
 		
 		display = this.displayChapter(this.settings.previousLocationCfi);
 		
@@ -447,45 +438,44 @@ EPUBJS.Book.prototype.startDisplay = function(){
 	}
 	
 	return display;
-}
+};
 
-EPUBJS.Book.prototype.restore = function(reject){
+EPUBJS.Book.prototype.restore = function(identifier){
 	
 	var book = this,
-		contentsKey = this.settings.bookPath + ":contents:" + this.settings.version,
-		deferred = new RSVP.defer(),
-		fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL'],
-		reject = reject || false,
-		fromStore = localStorage.getItem(contentsKey);
+			fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL'],
+			reject = false,
+			bookKey = this.setBookKey(identifier),
+			fromStore = localStorage.getItem(bookKey);
 	
 	if(this.settings.clearSaved) reject = true;
 
-	if(!reject && fromStore != 'undefined' && fromStore != 'null'){
-		this.contents = JSON.parse(fromStore);
-		fetch.forEach(function(item){
-			book[item] = book.contents[item];
-			if(!book[item]) {
+	if(!reject && fromStore != 'undefined' && fromStore != null){
+		book.contents = JSON.parse(fromStore);
+		
+		for(var i = 0, len = fetch.length; i < len; i++) {
+			var item = fetch[i];
+			
+			if(!book.contents[item]) {
 				reject = true;
+				break;
 			}
-		});
+			book[item] = book.contents[item];
+		}
 	}
 	
 	if(reject || !fromStore || !this.contents || !this.settings.contentsPath){
-		// this.removeSavedSettings();
-		return this.open(this.settings.bookPath, true);
-		
+		return false;
 	}else{
 		this.ready.manifest.resolve(this.manifest);
 		this.ready.spine.resolve(this.spine);
 		this.ready.metadata.resolve(this.metadata);
 		this.ready.cover.resolve(this.cover);
 		this.ready.toc.resolve(this.toc);
-		deferred.resolve();
-		return deferred.promise;
+		return true;
 	}
-	
 
-}
+};
 
 
 
@@ -510,15 +500,15 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 	}
 	
 	if(pos < 0 || pos >= this.spine.length){
-		console.error("Not A Valid Chapter");
-		return false;
+		console.warn("Not A Valid Location");
+		pos = 0;
+		end = false;
+		cfi = false;
 	}
 	
 	//-- Set the book's spine position
 	this.spinePos = pos;
 
-
-	
 	//-- Create a new chapter	
 	this.chapter = new EPUBJS.Chapter(this.spine[pos]);
 	
@@ -534,12 +524,12 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 	} else if(end) {
 		render.then(function(chapter){
 			chapter.gotoChapterEnd();
-		})
+		});
 	}
 
 	
-	if(!this.settings.fromStorage && 
-		 !this.settings.contained) {
+	if(!this.settings.fromStorage &&
+		!this.settings.contained) {
 		render.then(function(){
 			book.preloadNextChapter();
 		});
@@ -557,7 +547,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 		
 	});
 	return render;
-}
+};
 
 EPUBJS.Book.prototype.nextPage = function(){
 	var next;
@@ -569,7 +559,7 @@ EPUBJS.Book.prototype.nextPage = function(){
 	if(!next){
 		return this.nextChapter();
 	}
-}
+};
 
 EPUBJS.Book.prototype.prevPage = function() {
 	var prev;
@@ -581,37 +571,49 @@ EPUBJS.Book.prototype.prevPage = function() {
 	if(!prev){
 		return this.prevChapter();
 	}
-}
+};
 
 EPUBJS.Book.prototype.nextChapter = function() {
-	this.spinePos++;
 	if(this.spinePos > this.spine.length) return;
-	
+	this.spinePos++;
 	return this.displayChapter(this.spinePos);
-}
+};
 
 EPUBJS.Book.prototype.prevChapter = function() {
+	if(this.spinePos < 1) return;
 	this.spinePos--;
-	if(this.spinePos < 0) return;
-	
 	return this.displayChapter(this.spinePos, true);
-}
+};
+
+EPUBJS.Book.prototype.getCurrentLocationCfi = function() {
+	if(!this.isRendered) return false;
+	return this.render.currentLocationCfi;
+};
 
 EPUBJS.Book.prototype.gotoCfi = function(cfi){
-	if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
-	return this.displayChapter(cfi)
-}
+	//if(!this.isRendered) return this._enqueue("gotoCfi", arguments);
+	if(!this.isRendered) {
+		this.settings.previousLocationCfi = cfi;
+		return;
+	}
+	
+	return this.displayChapter(cfi);
+};
 
 EPUBJS.Book.prototype.goto = function(url){
 	var split, chapter, section, absoluteURL, spinePos;
 	var deferred = new RSVP.defer();
-	if(!this.isRendered) return this._enqueue("goto", arguments);
+	//if(!this.isRendered) return this._enqueue("goto", arguments);
+	if(!this.isRendered) {
+		this.settings.goto = url;
+		return;
+	}
 	
-	split = url.split("#"),
-	chapter = split[0],
-	section = split[1] || false,
-	absoluteURL = (chapter.search("://") == -1) ? this.settings.contentsPath + chapter : chapter,
-	spinePos = this.spineIndexByURL[absoluteURL];
+	split = url.split("#");
+	chapter = split[0];
+	section = split[1] || false;
+	// absoluteURL = (chapter.search("://") === -1) ? (this.settings.contentsPath + chapter) : chapter;
+	spinePos = this.spineIndexByURL[chapter];
 
 	//-- If link fragment only stay on current chapter
 	if(!chapter){
@@ -632,22 +634,18 @@ EPUBJS.Book.prototype.goto = function(url){
 		deferred.resolve(this.currentChapter);
 		return deferred.promise;
 	}
-}
-
-
+};
 
 EPUBJS.Book.prototype.preloadNextChapter = function() {
-	var temp = document.createElement('iframe');
-		next; 
-	
-		if(this.spinePos >= this.spine.length){
-			return false;
-		}
+	var next;
+
+	if(this.spinePos >= this.spine.length){
+		return false;
+	}
 		
 	next = new EPUBJS.Chapter(this.spine[this.spinePos + 1]);
-	
-	EPUBJS.core.request(next.href);
-}
+	EPUBJS.core.request(next.absolute);
+};
 
 
 EPUBJS.Book.prototype.storeOffline = function() {
@@ -660,11 +658,11 @@ EPUBJS.Book.prototype.storeOffline = function() {
 				book.settings.stored = true;
 				book.trigger("book:stored");
 			});
-}
+};
 
 EPUBJS.Book.prototype.availableOffline = function() {
 	return this.settings.stored > 0 ? true : false;
-}
+};
 
 /*
 EPUBJS.Book.prototype.fromStorage = function(stored) {
@@ -695,23 +693,22 @@ EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
 	this.settings.styles[style] = val;
 
 	if(this.render) this.render.setStyle(style, val, prefixed);
-}
+};
 
 EPUBJS.Book.prototype.removeStyle = function(style) {
 	if(this.render) this.render.removeStyle(style);
 
 	delete this.settings.styles[style];
-}
+};
 
 EPUBJS.Book.prototype.unload = function(){
 	
 	if(this.settings.restore) {
-			this.saveSettings();
 		this.saveContents();
 	}
 
 	this.trigger("book:unload");
-}
+};
 
 EPUBJS.Book.prototype.destroy = function() {
 
@@ -723,23 +720,22 @@ EPUBJS.Book.prototype.destroy = function() {
 
 	if(this.render) this.render.remove();
 
-}	
+};
 
-EPUBJS.Book.prototype._enqueue = function(command, arguments) {
+EPUBJS.Book.prototype._enqueue = function(command, args) {
 	
 	this._q.push({
 		'command': command,
-		'arguments': arguments
+		'args': args
 	});
 
-}
+};
 
-EPUBJS.Book.prototype._ready = function(err) {
-	var book = this;
+EPUBJS.Book.prototype._ready = function() {
 
 	this.trigger("book:ready");
-	
-}
+
+};
 
 EPUBJS.Book.prototype._rendered = function(err) {
 	var book = this;
@@ -748,29 +744,29 @@ EPUBJS.Book.prototype._rendered = function(err) {
 	this.trigger("book:rendered");
 
 	this._q.forEach(function(item){
-		book[item.command].apply(book, item.arguments);
+		book[item.command].apply(book, item.args);
 	});
 
-}
+};
 
 //-- Get pre-registered hooks
 EPUBJS.Book.prototype.getHooks = function(){
 	var book = this,
 		plugs;
 	
-	plugTypes = _.values(this.hooks);
+	var plugTypes = _.values(this.hooks); //-- unused
 
-	for (plugType in this.hooks) {
+	for (var plugType in this.hooks) {
 		plugs = _.values(EPUBJS.Hooks[plugType]);
 
 		plugs.forEach(function(hook){
 			book.registerHook(plugType, hook);
 		});
 	}
-}
+};
 
 //-- Hooks allow for injecting async functions that must all complete before continuing 
-//	 Functions must have a callback as their first argument.
+//   Functions must have a callback as their first argument.
 EPUBJS.Book.prototype.registerHook = function(type, toAdd, toFront){
 	var book = this;
 	
@@ -795,7 +791,7 @@ EPUBJS.Book.prototype.registerHook = function(type, toAdd, toFront){
 		//-- Allows for undefined hooks, but maybe this should error?
 		this.hooks[type] = [func];
 	}
-}
+};
 
 EPUBJS.Book.prototype.triggerHooks = function(type, callback, passed){
 	var hooks, count;
@@ -813,7 +809,20 @@ EPUBJS.Book.prototype.triggerHooks = function(type, callback, passed){
 	hooks.forEach(function(hook){
 		hook(countdown, passed);
 	});
-}
+};
 
 //-- Enable binding events to book
 RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
+
+//-- Handle RSVP Errors
+RSVP.on('error', function(event) {
+	//console.error(event, event.detail);
+});
+
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+// RSVP.on('created', listener);
+// RSVP.on('chained', listener);
+// RSVP.on('fulfilled', listener);
+RSVP.on('rejected', function(event){
+	console.error(event.detail.message, event.detail.stack);
+});

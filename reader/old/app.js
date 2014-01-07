@@ -379,8 +379,7 @@ EPUBJSR.app.init = (function($){
 
 		
   }
-  
-	
+  	
   return  init;
 
 })(jQuery);

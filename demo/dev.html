@@ -14,20 +14,20 @@
         <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
         <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
-        <script src="../libs/jquery/jquery-1.9.0.js"></script>
+        <script src="../libs/jquery/jquery-2.0.3.js"></script>
 
         <script>
             "use strict";
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.VERSION = "0.1.6";
+                EPUBJS.VERSION = "0.1.7";
                 
                 EPUBJS.filePath = "js/libs/";
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                EPUBJSR.app.init("moby-dick/");
+                window.Reader = ePubReader("moby-dick/", { reload: true });
               }  
             };
         
@@ -56,54 +56,93 @@
         <script src="../src/book.js"></script>
         <script src="../src/chapter.js"></script>
         <script src="../src/renderer.js"></script>
+        <script src="../src/replace.js"></script>
         <script src="../src/epubcfi.js"></script>
         
-        <!-- Plugins -->
+        <!-- Hooks -->
         <script async src="../hooks/default/transculsions.js"></script>
         <script async src="../hooks/default/endnotes.js"></script>
         <script async src="../hooks/default/smartimages.js"></script>
+        <script async src="../hooks/default/pageturns.js"></script>
         
         <!-- Reader -->
-        <script async src="../reader/utils.js"></script>
-        <script async src="../reader/app.js"></script>
+        <script src="../reader/reader.js"></script>
+        <script src="../reader/controllers/bookmarks_controller.js"></script>
+        <script src="../reader/controllers/controls_controller.js"></script>
+        <script src="../reader/controllers/meta_controller.js"></script>
+        <script src="../reader/controllers/reader_controller.js"></script>
+        <script src="../reader/controllers/settings_controller.js"></script>
+        <script src="../reader/controllers/sidebar_controller.js"></script>
+        <script src="../reader/controllers/toc_controller.js"></script>
         
         <!-- Full Screen -->
         <script src="js/libs/screenfull.min.js"></script>
         
+        <!-- Highlights -->
+        <script src="js/libs/jquery.highlight.js"></script>
+        <script async src="../hooks/extensions/highlight.js"></script>
         
     </head>
     <body>
-        <div id="sidebar">
-          <div id="controls">
-            <input id="search" placeholder="search">
-            <a id="network"><img id="store" src="../demo/img/save.png" save="../demo/img/save.png" data-saved="../demo/img/saved.png"></a>
-            <a id="setting"><img id="settings" src="../demo/img/settings.png"></a>
-            <a id="fullscreen">
-              <img id="fullscreenicon" src="img/fullscreen.png">
-              <img id="cancelfullscreenicon" src="img/cancelfullscreen.png" style="display: none">
-            </a>
-          </div>
-          <div id="toc">
-          </div>
-          <div id="settingsPanel">
-          </div>
-            
+      <div id="sidebar">
+        <div id="panels">
+          <input id="searchBox" placeholder="search" type="search">
+          
+          <a id="show-Search" class="show_view icon-search" data-view="Search">Search</a>
+          <a id="show-Toc" class="show_view icon-list-1 active" data-view="Toc">TOC</a>
+          <a id="show-Bookmarks" class="show_view icon-bookmark" data-view="Bookmarks">Bookmarks</a>
+          <a id="show-Notes" class="show_view icon-edit" data-view="Notes">Notes</a>
+         
         </div>
-        <div id="main">
+        <div id="tocView">
+        </div>
+        <div id="searchView">
+          <ul id="searchResults"></ul>
+        </div>
+        <div id="bookmarksView">
+          <ul id="bookmarks"></ul>
+        </div>
+      </div>
+      <div id="main">
+        
+        <div id="titlebar">
           <div id="opener">
-            <a id="open"><img src="../demo/img/menu-icon.png" data-close="../demo/img/close.png" data-open="../demo/img/menu-icon.png"></a>
+            <a id="slider" class="icon-menu">Menu</a>
           </div>
-          <div id="titlebar">
+          <div id="metainfo">
             <span id="book-title"></span>
             <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
-            <span id="chapter-title"> </span>
+            <span id="chapter-title"></span>
           </div>
-          <div id="divider"></div>
-          <div id="prev" class="arrow">‹</div>
-          <div id="area"></div>
-          <div id="next" class="arrow">›</div>
-          
-          <div id="loader"><img src="../demo/img/loader.gif"></div>
+          <div id="title-controls">
+            <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
+            <a id="setting" class="icon-cog">Settings</a>
+            <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
+          </div>
         </div>
+        
+        <div id="divider"></div>
+        <div id="prev" class="arrow">‹</div>
+        <div id="viewer"></div>
+        <div id="next" class="arrow">›</div>
+        
+        <div id="loader"><img src="img/loader.gif"></div>
+      </div>
+      <div class="modal md-effect-1" id="settings-modal">
+          <div class="md-content">
+              <h3>Settings</h3>
+              <div>
+                  <p>
+                    <!-- <input type='radio' name='fontSize' value='x-small'><span class='xsmall'>Extra Small</span><br>
+                    <input type='radio' name='fontSize' value='small'><span class='small'>Small</span><br>
+                    <input type='radio' name='fontSize' value='medium'><span class='medium'>Medium</span><br>
+                    <input type='radio' name='fontSize' value='large'><span class='large'>Large</span><br>
+                    <input type='radio' name='fontSize' value='x-large'><span class='xlarge'>Extra Large</span> -->
+                  </p>
+              </div>
+              <div class="closer icon-cancel-circled"></div>
+          </div>
+      </div>
+      <div class="overlay"></div>
     </body>
 </html>
