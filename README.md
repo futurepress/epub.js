@@ -67,7 +67,7 @@ The [Examples](https://github.com/fchasen/epub.js/tree/master/examples) are like
 
 Recent Updates
 -------------------------
-+ ```book.goto()``` and ```book.gottoCfi()``` can be called before ```book.renderTo()``` to start rendering at a previous page location.
++ ```book.goto()``` and ```book.gotoCfi()``` can be called before ```book.renderTo()``` to start rendering at a previous page location.
 
 + Moved page position restoring from local storage out of main library and into the demo reader. 
 
