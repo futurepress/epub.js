@@ -55,7 +55,7 @@ Create the new ePub, and then render it to that element:
 
 ```html
 <script>
-	var Book = ePub("url/to/book/", { restore: true });
+	var Book = ePub("url/to/book/");
 	Book.renderTo("area");
 </script>
 ```
