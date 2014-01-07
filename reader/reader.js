@@ -32,6 +32,7 @@ EPUBJS.Reader = function(path, _options) {
 	
 	this.settings = _.defaults(_options || {}, {
 		restore: true,
+		reload: false,
 		bookmarks: null
 	});
 	
@@ -43,7 +44,8 @@ EPUBJS.Reader = function(path, _options) {
 	
 	this.book = book = new EPUBJS.Book({
 		bookPath: path,
-		restore: this.settings.restore
+		restore: this.settings.restore,
+		reload: this.settings.reload
 	});
 	
 	if(this.settings.previousLocationCfi) {

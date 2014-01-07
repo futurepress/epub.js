@@ -117,7 +117,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 		// return; //-- TODO: this need to be fixed and tested before enabling
 		epubpackage = this.unarchive(bookPath).
 			then(function(){
-				return this.loadPackage();
+				return book.loadPackage();
 			});
 			
 	}	else {

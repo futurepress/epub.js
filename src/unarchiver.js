@@ -52,7 +52,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var entry = this.zipFs.find(url);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error(url);
+	if(!entry) console.error("File not found:", url);
 	
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);

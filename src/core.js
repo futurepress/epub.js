@@ -96,14 +96,64 @@ EPUBJS.core.toArray = function(obj) {
 	return arr;
 };
 
+//-- Parse out the origin
+EPUBJS.core.uri = function(url){
+	var uri = {
+				protocol : '',
+				host : '',
+				path : '',
+				origin : '',
+				directory : '',
+				base : '',
+				filename : ''
+			},
+			doubleSlash = url.indexOf('://'),
+			search = url.indexOf('?'),
+			firstSlash;
+	
+	if(search != -1) {
+		uri.search = url.slice(search + 1);
+		url = url.slice(0, search);
+	}
+	
+	if(doubleSlash != -1) {
+		uri.protocol = url.slice(0, doubleSlash);
+		uri.path = url.slice(doubleSlash+3);
+		firstSlash = uri.path.indexOf('/');
+		
+		if(firstSlash === -1) {
+			uri.host = uri.path;
+		} else {
+			uri.host = uri.path.slice(0, firstSlash);
+		}
+		
+		uri.origin = uri.protocol + "://" + uri.host;
+		
+		uri.directory = EPUBJS.core.folder(uri.path.replace(uri.host, ''));
+		
+		uri.base = uri.origin + uri.directory;
+		// return origin;
+	} else {
+		uri.path = url;
+		uri.directory = EPUBJS.core.folder(url);
+		uri.base = uri.directory;
+	}
+	
+	//-- Filename
+	uri.filename = url.replace(uri.base, '');
+	
+	return uri;
+};
+
 //-- Parse out the folder
 EPUBJS.core.folder = function(url){
 	
-	var slash = url.lastIndexOf('/'),
-			folder = url.slice(0, slash + 1);
-
-	if(slash == -1) folder = '';
-
+	var lastSlash = url.lastIndexOf('/');
+	
+	if(lastSlash == -1) folder = '';
+		
+	folder = url.slice(0, lastSlash + 1);
+	
 	return folder;
 
 };

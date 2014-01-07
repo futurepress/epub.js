@@ -427,7 +427,7 @@ EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 	}
 
 	resources.forEach(function(item){
-		
+
 		func(item, after);
 	
 	}.bind(this));
@@ -436,24 +436,25 @@ EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 
 EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callback) {
 	var _oldUrls,
-		_newUrls = {},
-		_store = this.determineStore(),
-		_cache = this.caches[query],
-		_contentsPath = this.book.settings.contentsPath,
-		_attr = attr,
-		progress = function(url, full, count) {
-			_newUrls[full] = url;
-		},
-		finished = function(notempty) {
-		
-			if(callback) callback();
+			_newUrls = {},
+			_store = this.determineStore(),
+			_cache = this.caches[query],
+			_uri = EPUBJS.core.uri(this.book.chapter.absolute),
+			_chapterBase = _uri.base,
+			_attr = attr,
+			progress = function(url, full, count) {
+				_newUrls[full] = url;
+			},
+			finished = function(notempty) {
 			
-			_.each(_oldUrls, function(url){
-				_store.revokeUrl(url);
-			});
-			
-			_cache = _newUrls;
-		};
+				if(callback) callback();
+				
+				_.each(_oldUrls, function(url){
+					_store.revokeUrl(url);
+				});
+				
+				_cache = _newUrls;
+			};
 
 	if(!_store) return;
 
@@ -461,17 +462,16 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 	_oldUrls = _.clone(_cache);
 
 	this.replace(query, function(link, done){
-
 		var src = link.getAttribute(_attr),
-			full = EPUBJS.core.resolveUrl(_contentsPath, src),
-			replaceUrl = function(url) {
-				link.setAttribute(_attr, url);
-				link.onload = function(){
-					done(url, full);
+				full = EPUBJS.core.resolveUrl(_chapterBase, src);
+
+		var replaceUrl = function(url) {
+					link.setAttribute(_attr, url);
+					link.onload = function(){
+						done(url, full);
+					};
 				};
-			};
-	
-	
+
 		if(full in _oldUrls){
 			replaceUrl(_oldUrls[full]);
 			_newUrls[full] = _oldUrls[full];
