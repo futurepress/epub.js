@@ -3799,6 +3799,7 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 
 	//-- Scroll
 	this.docEl.style.overflow = "auto";
+	this.iframe.scrolling = "yes";
 
 	// this.displayedPages = 1;
 };
@@ -4201,6 +4202,7 @@ EPUBJS.Renderer.prototype.remove = function() {
 
 //-- Enable binding events to parser
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);
+
 var EPUBJS = EPUBJS || {};
 EPUBJS.replace = {};
 

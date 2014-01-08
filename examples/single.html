@@ -40,7 +40,7 @@
             box-shadow:           inset 10px 0 20px rgba(0,0,0,.1);
           }
 
-          #area iframe {
+          #area {
             padding: 40px 40px;
           }
 
@@ -70,7 +70,9 @@
 
         <script>            
             
-            Book.renderTo("area");
+            Book.renderTo("area").then(function(){
+              //Book.setStyle("width", "400px");
+            });
 
         </script>
     </body>
