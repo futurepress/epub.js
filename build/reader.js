@@ -1,7 +1,7 @@
 EPUBJS.reader = {};
 EPUBJS.reader.plugins = {}; //-- Attach extra Controllers as plugins (like search?)
 
-(function(root) {
+(function(root, $) {
 
 	var previousReader = root.ePubReader || {};
 
@@ -24,16 +24,20 @@ EPUBJS.reader.plugins = {}; //-- Attach extra Controllers as plugins (like searc
 	//Node
 	module.exports = ePubReader;
 
-})(window);
+})(window, jQuery);
 
 EPUBJS.Reader = function(path, _options) {
 	var reader = this;
 	var book;
+	var plugin;
 	
 	this.settings = _.defaults(_options || {}, {
-		restore: true,
-		reload: false,
-		bookmarks: null
+		restore : true,
+		reload : false,
+		bookmarks : null,
+		contained : null,
+		bookKey : null,
+		styles : null
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
@@ -41,11 +45,18 @@ EPUBJS.Reader = function(path, _options) {
 	if(this.settings.restore && this.isSaved()) {
 		this.applySavedSettings();
 	}
+
+	this.settings.styles = this.settings.styles || {
+		fontSize : "100%"
+	};
 	
 	this.book = book = new EPUBJS.Book({
 		bookPath: path,
 		restore: this.settings.restore,
-		reload: this.settings.reload
+		reload: this.settings.reload,
+		contained: this.settings.contained,
+		bookKey: this.settings.bookKey,
+		styles: this.settings.styles
 	});
 	
 	if(this.settings.previousLocationCfi) {
@@ -67,7 +78,7 @@ EPUBJS.Reader = function(path, _options) {
 	reader.BookmarksController = EPUBJS.reader.BookmarksController.call(reader, book);
 	
 	// Call Plugins
-	for(var plugin in EPUBJS.reader.plugins) {
+	for(plugin in EPUBJS.reader.plugins) {
 		if(EPUBJS.reader.plugins.hasOwnProperty(plugin)) {
 			reader[plugin] = EPUBJS.reader.plugins[plugin].call(reader, book);
 		}
@@ -87,7 +98,46 @@ EPUBJS.Reader = function(path, _options) {
 	
 	window.addEventListener("beforeunload", this.unload.bind(this), false);
 	
+	document.addEventListener('keydown', this.adjustFontSize.bind(this), false);
+	
+	book.on("renderer:keydown", this.adjustFontSize.bind(this));
+	book.on("renderer:keydown", reader.ReaderController.arrowKeys.bind(this));
+
 	return this;
+};
+
+EPUBJS.Reader.prototype.adjustFontSize = function(e) {
+	var fontSize;
+	var interval = 2;
+	var PLUS = 187;
+	var MINUS = 189;
+	var ZERO = 48;
+	var MOD = (e.ctrlKey || e.metaKey );
+	
+	if(!this.settings.styles) return;
+	
+	if(!this.settings.styles.fontSize) {
+		this.settings.styles.fontSize = "100%";
+	}
+	
+	fontSize = parseInt(this.settings.styles.fontSize.slice(0, -1));
+
+	if(MOD && e.keyCode == PLUS) {
+		e.preventDefault();
+		this.book.setStyle("fontSize", (fontSize + interval) + "%");
+		
+	}
+
+	if(MOD && e.keyCode == MINUS){
+
+		e.preventDefault();
+		this.book.setStyle("fontSize", (fontSize - interval) + "%");
+	}
+	
+	if(MOD && e.keyCode == ZERO){
+		e.preventDefault();
+		this.book.setStyle("fontSize", "100%");
+	}
 };
 
 EPUBJS.Reader.prototype.addBookmark = function(cfi) {
@@ -117,9 +167,10 @@ EPUBJS.Reader.prototype.isBookmarked = function(cfi) {
 /*
 EPUBJS.Reader.prototype.searchBookmarked = function(cfi) {
 	var bookmarks = this.settings.bookmarks,
-			len = bookmarks.length;
+			len = bookmarks.length,
+			i;
 	
-	for(var i = 0; i < len; i++) {
+	for(i = 0; i < len; i++) {
 		if (bookmarks[i]['cfi'] === cfi) return i;
 	}
 	return -1;
@@ -270,6 +321,8 @@ EPUBJS.reader.ControlsController = function(book) {
 		reader.offline = true;
 		// $store.attr("src", $icon.data("saved"));
 	};
+	
+	var fullscreen = false;
 
 	book.on("book:online", goOnline);
 	book.on("book:offline", goOffline);
@@ -288,10 +341,22 @@ EPUBJS.reader.ControlsController = function(book) {
 
 	$fullscreen.on("click", function() {
 		screenfull.toggle($('#container')[0]);
-		$fullscreenicon.toggle();
-		$cancelfullscreenicon.toggle();
 	});
-
+	
+	document.addEventListener(screenfull.raw.fullscreenchange, function() {
+			fullscreen = screenfull.isFullscreen;
+			if(fullscreen) {
+				$fullscreen
+					.addClass("icon-resize-small")
+					.removeClass("icon-resize-full");
+			} else {
+				$fullscreen
+					.addClass("icon-resize-full")
+					.removeClass("icon-resize-small");
+			}
+	});
+	
+	
 	$settings.on("click", function() {
 		reader.SettingsController.show();
 	});
@@ -372,7 +437,7 @@ EPUBJS.reader.ReaderController = function(book) {
 		$loader.hide();
 		
 		//-- If the book is using spreads, show the divider
-		if(!book.single) {
+		if(book.settings.spreads) {
 			showDivider();
 		}
 	};
@@ -425,6 +490,14 @@ EPUBJS.reader.ReaderController = function(book) {
 		book.prevPage();
 		e.preventDefault();
 	});
+	
+	book.on("book:spreads", function(){
+		if(book.settings.spreads) {
+			showDivider();
+		} else {
+			hideDivider();
+		}
+	});
 
 	return {
 		"slideOut" : slideOut,
@@ -432,7 +505,8 @@ EPUBJS.reader.ReaderController = function(book) {
 		"showLoader" : showLoader,
 		"hideLoader" : hideLoader,
 		"showDivider" : showDivider,
-		"hideDivider" : hideDivider
+		"hideDivider" : hideDivider,
+		"arrowKeys" : arrowKeys
 	};
 };
 EPUBJS.reader.SettingsController = function() {

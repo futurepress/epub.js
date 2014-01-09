@@ -36,9 +36,9 @@ EPUBJS.Unarchiver.prototype.openZip = function(zipUrl, callback){
 	return deferred.promise;
 };
 
-EPUBJS.Unarchiver.prototype.getXml = function(url){
+EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	
-	return this.getText(url).
+	return this.getText(url, encoding).
 			then(function(text){
 				var parser = new DOMParser();
 				return parser.parseFromString(text, "application/xml");
@@ -68,7 +68,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	return deferred.promise;
 };
 
-EPUBJS.Unarchiver.prototype.getText = function(url){
+EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
 	var entry = this.zipFs.find(url);
@@ -79,7 +79,7 @@ EPUBJS.Unarchiver.prototype.getText = function(url){
 
 	entry.getText(function(text){
 		deferred.resolve(text);
-	}, null, null, 'ISO-8859-1');
+	}, null, null, encoding || 'UTF-8');
 
 	return deferred.promise;
 };
@@ -87,7 +87,6 @@ EPUBJS.Unarchiver.prototype.getText = function(url){
 EPUBJS.Unarchiver.prototype.revokeUrl = function(url){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var fromCache = unarchiver.urlCache[url];
-	console.log("revoke", fromCache);
 	if(fromCache) _URL.revokeObjectURL(fromCache);
 };
 

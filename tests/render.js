@@ -168,5 +168,50 @@ asyncTest("Display end of chapter 20 and go to prev page", 3, function() {
 	
 });
 
-// asyncTest("Add styles to book", 3, function() {
-// });
+asyncTest("Add styles to book", 4, function() {
+	
+	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	
+	var render = Book.renderTo("qunit-fixture");
+	
+	var result = function(){
+	
+		var $iframe = $( "iframe", "#qunit-fixture" ),
+				$body;
+		
+		equal( Book.render.bodyEl.style.background, '', "background not set");
+		
+		Book.setStyle("background", "purple");
+		equal( Book.render.bodyEl.style.background, "purple", "background is purple");
+		
+		equal( Book.render.bodyEl.style.fontSize, '', "fontSize not set");
+		
+		Book.setStyle("fontSize", "100px");
+		equal( Book.render.bodyEl.style.fontSize, "100px", "fontSize is purple");
+			
+		start();
+		
+	
+	};
+	
+	render.then(result);
+	
+});
+
+asyncTest("Switch Spreads to Single", 3, function() {
+	
+	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	
+	var render = Book.renderTo("qunit-fixture");
+	
+	var result = function(){
+		equal( Book.settings.spreads, true, "Use Spreads");
+		Book.useSpreads(false);
+		equal( Book.settings.spreads, false, "Don't Use Spreads");
+		equal( Book.render.docEl.style[EPUBJS.Renderer.columnWidth], "400px", "Don't Use Spreads");
+		start();
+	};
+	
+	render.then(result);
+});
+

@@ -12,7 +12,7 @@ EPUBJS.replace.head = function(callback, renderer) {
 EPUBJS.replace.resources = function(callback, renderer){
 	//srcs = this.doc.querySelectorAll('[src]');
 	renderer.replaceWithStored("[src]", "src", EPUBJS.replace.srcs, callback);
-	
+
 };
 
 EPUBJS.replace.svg = function(callback, renderer) {
@@ -38,7 +38,6 @@ EPUBJS.replace.links = function(_store, full, done, link){
 	}else{
 		_store.getUrl(full).then(done);
 	}
-
 };
 
 EPUBJS.replace.stylesheets = function(_store, full) {
@@ -48,12 +47,12 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 	_store.getText(full).then(function(text){
 		var url;
-	
+
 		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
 			var _URL = window.URL || window.webkitURL || window.mozURL;
 
 			var blob = new Blob([newText], { "type" : "text\/css" }),
-				url = _URL.createObjectURL(blob);
+					url = _URL.createObjectURL(blob);
 
 			deferred.resolve(url);
 

@@ -22,7 +22,7 @@ EPUBJS.reader.ReaderController = function(book) {
 		$loader.hide();
 		
 		//-- If the book is using spreads, show the divider
-		if(!book.single) {
+		if(book.settings.spreads) {
 			showDivider();
 		}
 	};
@@ -75,6 +75,14 @@ EPUBJS.reader.ReaderController = function(book) {
 		book.prevPage();
 		e.preventDefault();
 	});
+	
+	book.on("book:spreads", function(){
+		if(book.settings.spreads) {
+			showDivider();
+		} else {
+			hideDivider();
+		}
+	});
 
 	return {
 		"slideOut" : slideOut,
@@ -82,6 +90,7 @@ EPUBJS.reader.ReaderController = function(book) {
 		"showLoader" : showLoader,
 		"hideLoader" : hideLoader,
 		"showDivider" : showDivider,
-		"hideDivider" : hideDivider
+		"hideDivider" : hideDivider,
+		"arrowKeys" : arrowKeys
 	};
 };
