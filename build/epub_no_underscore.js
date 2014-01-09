@@ -1710,7 +1710,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.1.7";
+EPUBJS.VERSION = "0.1.8";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -3865,6 +3865,7 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 
 	//-- Scroll
 	this.docEl.style.overflow = "auto";
+	this.iframe.scrolling = "yes";
 
 	// this.displayedPages = 1;
 };

@@ -338,6 +338,7 @@ EPUBJS.Renderer.prototype.fixedLayout = function(){
 
 	//-- Scroll
 	this.docEl.style.overflow = "auto";
+	this.iframe.scrolling = "yes";
 
 	// this.displayedPages = 1;
 };
