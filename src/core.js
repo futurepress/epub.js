@@ -257,9 +257,14 @@ EPUBJS.core.prefixed = function(unprefixed) {
 EPUBJS.core.resolveUrl = function(base, path) {
 	var url,
 		segments = [],
+		uri = EPUBJS.core.uri(path),
 		folders = base.split("/"),
 		paths;
-
+	
+	if(uri.host) {
+		return path;
+	}
+	
 	folders.pop();
 
 	paths = path.split("/");
