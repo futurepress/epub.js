@@ -2933,11 +2933,11 @@ EPUBJS.core.prefixed = function(unprefixed) {
 EPUBJS.core.resolveUrl = function(base, path) {
 	var url,
 		segments = [],
-		relative = href.search("://"),
+		uri = EPUBJS.core.uri(path),
 		folders = base.split("/"),
 		paths;
 	
-	if(relative) {
+	if(uri.host) {
 		return path;
 	}
 	
