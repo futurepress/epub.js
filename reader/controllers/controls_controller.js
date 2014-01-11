@@ -20,6 +20,8 @@ EPUBJS.reader.ControlsController = function(book) {
 		reader.offline = true;
 		// $store.attr("src", $icon.data("saved"));
 	};
+	
+	var fullscreen = false;
 
 	book.on("book:online", goOnline);
 	book.on("book:offline", goOffline);
@@ -38,10 +40,22 @@ EPUBJS.reader.ControlsController = function(book) {
 
 	$fullscreen.on("click", function() {
 		screenfull.toggle($('#container')[0]);
-		$fullscreenicon.toggle();
-		$cancelfullscreenicon.toggle();
 	});
-
+	
+	document.addEventListener(screenfull.raw.fullscreenchange, function() {
+			fullscreen = screenfull.isFullscreen;
+			if(fullscreen) {
+				$fullscreen
+					.addClass("icon-resize-small")
+					.removeClass("icon-resize-full");
+			} else {
+				$fullscreen
+					.addClass("icon-resize-full")
+					.removeClass("icon-resize-small");
+			}
+	});
+	
+	
 	$settings.on("click", function() {
 		reader.SettingsController.show();
 	});

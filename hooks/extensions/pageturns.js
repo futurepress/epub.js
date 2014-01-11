@@ -1,8 +1,7 @@
 EPUBJS.Hooks.register("beforeChapterDisplay").pageTurns = function(callback, renderer){
 
 		var lock = false;
-
-		$(renderer.docEl).keydown(function(e){
+		var arrowKeys = function(e){
 			if(lock) return;
 
 			if (e.keyCode == 37) { 
@@ -23,7 +22,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").pageTurns = function(callback, ren
 				return false;
 			}
 
-		});
-
-		if(callback) callback();		
+		};
+		renderer.docEl.addEventListener('keydown', arrowKeys, false);
+		if(callback) callback();
 }

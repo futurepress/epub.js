@@ -6,13 +6,15 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
 		var rootfile = containerXml.querySelector("rootfile"),
-			fullpath = rootfile.getAttribute('full-path'),
-			folder = EPUBJS.core.folder(fullpath);
+				fullpath = rootfile.getAttribute('full-path'),
+				folder = EPUBJS.core.folder(fullpath),
+				encoding = containerXml.xmlEncoding;
 
 		//-- Now that we have the path we can parse the contents
 		return {
 			'packagePath' : fullpath,
-			'basePath' : folder
+			'basePath' : folder,
+			'encoding' : encoding
 		};
 };
 

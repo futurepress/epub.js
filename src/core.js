@@ -141,7 +141,7 @@ EPUBJS.core.uri = function(url){
 	
 	//-- Filename
 	uri.filename = url.replace(uri.base, '');
-	
+
 	return uri;
 };
 

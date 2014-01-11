@@ -8,7 +8,8 @@ module.exports = function(grunt) {
 			'<%= grunt.template.today("yyyy-mm-dd") %> */'
 		},
 		concat : {
-		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
+		'build/epub_no_underscore.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
+		'build/epub.js': ['<banner>', 'libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.js', 'src/*.js'],
 		'build/reader.js': ['<banner>', 'reader/reader.js', 'reader/controllers/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
@@ -23,8 +24,8 @@ module.exports = function(grunt) {
 			},
 			my_target: {
 				files: {
-					'demo/js/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
-					'build/epub.min.js': ['libs/underscore/underscore-min.js', 'build/epub.js'],
+					'demo/js/epub.min.js': ['build/epub.js'],
+					'build/epub.min.js': ['build/epub.js'],
 					'demo/js/reader.min.js': ['build/reader.js'],
 					'demo/js/hooks.min.js': ['build/hooks.js'],
 					'build/hooks.min.js': ['build/hooks.js'],
