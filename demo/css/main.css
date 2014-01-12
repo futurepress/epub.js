@@ -19,6 +19,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
+  right: 0;
   /* left: 40px; */ 
 /*   -webkit-transform: translate(40px, 0);
   -moz-transform: translate(40px, 0); */
@@ -27,9 +28,9 @@ body {
   border-radius: 5px;
   background: #fff;
   overflow: hidden;
-  -webkit-transition: -webkit-transform .5s;
-  -moz-transition: -moz-transform .5s;
-  
+  -webkit-transition: -webkit-transform .5s, width .5s;
+  -moz-transition: -webkit-transform .5s, width .5s;
+
   -moz-box-shadow:    inset 0 0 50px rgba(0,0,0,.1);
   -webkit-box-shadow: inset 0 0 50px rgba(0,0,0,.1);
   box-shadow:         inset 0 0 50px rgba(0,0,0,.1);
@@ -143,7 +144,8 @@ body {
   /* -webkit-transform: translate(-260px, 0);
   -moz-transform: translate(-260px, 0); */
   top: 0;
-  width: 300px;
+  min-width: 300px;
+  width: 25%;
   height: 100%;
   -webkit-transition: -webkit-transform .5s;
   -moz-transition: -moz-transform .5s;
@@ -161,6 +163,10 @@ body {
   /* left: 300px; */
   -webkit-transform: translate(300px, 0);
   -moz-transform: translate(300px, 0);
+}
+
+#main.single {
+  width: 75%;
 }
 
 #panels {
@@ -277,7 +283,8 @@ input:-moz-placeholder {
 #bookmarksView {
   overflow-x: hidden;
   overflow-y: hidden;
-  width: 300px;
+  min-width: 300px;
+  width: 25%;
   height: 100%;
   padding-top: 40px;
   visibility: hidden;
