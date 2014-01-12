@@ -6,12 +6,20 @@ EPUBJS.reader.ReaderController = function(book) {
 			$prev = $("#prev");
 
 	var slideIn = function() {
-		$main.removeClass("closed");
-	};
+        if (Reader.settings.sidebarReflow){
+                $('#main').removeClass('single');
+        } else {
+                $main.removeClass("closed");
+        }
+    };
 
-	var slideOut = function() {
-		$main.addClass("closed");
-	};
+    var slideOut = function() {
+        if (Reader.settings.sidebarReflow){
+                $('#main').addClass('single');
+        } else {
+                $main.addClass("closed");
+        }
+    };
 
 	var showLoader = function() {
 		$loader.show();

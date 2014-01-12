@@ -12,6 +12,12 @@ EPUBJS.reader.SettingsController = function() {
 		$settings.removeClass("md-show");
 	};
 
+	var $sidebarReflowSetting = $('#sidebarReflow');
+
+    $sidebarReflowSetting.on('click', function() {
+        Reader.settings.sidebarReflow = !Reader.settings.sidebarReflow;
+    });
+
 	$settings.find(".closer").on("click", function() {
 		hide();
 	});
