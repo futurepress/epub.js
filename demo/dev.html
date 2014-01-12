@@ -28,6 +28,9 @@
                 // fileStorage.filePath = EPUBJS.filePath;
 
                 window.Reader = ePubReader("moby-dick/", { reload: true });
+                Reader.book.on('book:rendered', function(){
+                  Reader.book.addHeadTag('link', { 'rel': 'canonical', 'href': 'http://localhost:8081'});
+                });
               }  
             };
         
