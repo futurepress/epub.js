@@ -27,7 +27,7 @@ asyncTest("getXml method returns valid xml", 1, function(){
 
 	zipPromise.then(function(zipFile){
 
-		xmlFilePromise = unarchiver.getXml('META-INF/container.xml');
+		var xmlFilePromise = unarchiver.getXml('META-INF/container.xml');
 		xmlFilePromise.then(function(xmlFile){
 			var rootNode = xmlFile.querySelector("rootfile");
 			equal(rootNode.getAttribute('full-path'), "OPS/package.opf", "getXml returns a rootfile from moby-dick's container.xml that is valid xml");
