@@ -151,7 +151,7 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 
 	// sections.shift(); //-- html
 
-	while(sections.length > 0) {
+	while(sections && sections.length > 0) {
 	
 		part = sections.shift();
 

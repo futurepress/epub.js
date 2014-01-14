@@ -34,7 +34,12 @@ EPUBJS.replace.links = function(_store, full, done, link){
 	
 	//-- Handle replacing urls in CSS
 	if(link.getAttribute("rel") === "stylesheet") {
-		EPUBJS.replace.stylesheets(_store, full).then(done);
+		EPUBJS.replace.stylesheets(_store, full).then(function(url, full){
+			// done
+			setTimeout(function(){
+				done(url, full);
+			}, 5); //-- Allow for css to apply before displaying chapter
+		});
 	}else{
 		_store.getUrl(full).then(done);
 	}

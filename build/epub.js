@@ -1711,7 +1711,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.1.8";
+EPUBJS.VERSION = "0.1.9";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -1794,6 +1794,7 @@ EPUBJS.Book = function(options){
 		restore: false,
 		reload : false,
 		goto : false,
+		withCredentials: false,
 		styles : {}
 	});
 	
@@ -2050,22 +2051,22 @@ EPUBJS.Book.prototype.loadXml = function(url){
 	} else if(this.settings.contained) {
 		return this.zip.getXml(url, this.settings.encoding);
 	}else{
-		return EPUBJS.core.request(url, 'xml');
+		return EPUBJS.core.request(url, 'xml', this.settings.withCredentials);
 	}
 };
 
 //-- Turns a url into a absolute url
 EPUBJS.Book.prototype.urlFrom = function(bookPath){
-	var absolute = bookPath.search("://") != -1,
-		fromRoot = bookPath[0] == "/",
+	var uri = EPUBJS.core.uri(bookPath),
+		absolute = uri.protocol,
+		fromRoot = uri.path[0] == "/",
 		location = window.location,
 		//-- Get URL orgin, try for native or combine 
 		origin = location.origin || location.protocol + "//" + location.host,
 		baseTag = document.getElementsByTagName('base'),
 		base;
 			
-	// if(bookPath[bookPath.length - 1] != "/") bookPath += "/";
-	
+
 	//-- Check is Base tag is set
 
 	if(baseTag.length) {
@@ -2073,33 +2074,18 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 	}
 	
 	//-- 1. Check if url is absolute
-	if(absolute){
-		return bookPath;
+	if(uri.protocol){
+		return uri.origin + uri.path;
 	}
 
 	//-- 2. Check if url starts with /, add base url
 	if(!absolute && fromRoot){
-		if(base) {
-			return base + bookPath;
-		} else {
-			return origin + bookPath;
-		}
+		return (base || origin) + uri.path;
 	}
 
 	//-- 3. Or find full path to url and add that
 	if(!absolute && !fromRoot){
-		
-		//-- go back
-		if(bookPath.slice(0, 3) == "../"){
-			return EPUBJS.core.resolveUrl(base || location.pathname, bookPath);
-		}
-		
-		if(base) {
-			return base + bookPath;
-		} else {
-			return origin + EPUBJS.core.folder(location.pathname) + bookPath;
-		}
-		
+		return EPUBJS.core.resolveUrl(base || location.pathname, uri.path);
 	}
 
 };
@@ -2122,8 +2108,9 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 
 //-- Checks if url has a .epub or .zip extension
 EPUBJS.Book.prototype.isContained = function(bookUrl){
-	var dot = bookUrl.lastIndexOf('.'),
-			ext = bookUrl.slice(dot+1);
+	var uri = EPUBJS.core.uri(bookUrl),
+			dot = uri.filename.lastIndexOf('.'),
+			ext = uri.filename.slice(dot+1);
 
 	if(ext && (ext == "epub" || ext == "zip")){
 		return true;
@@ -2687,7 +2674,7 @@ EPUBJS.core.getEls = function(classes) {
 	return document.getElementsByClassName(classes);
 };
 
-EPUBJS.core.request = function(url, type) {
+EPUBJS.core.request = function(url, type, withCredentials) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
@@ -2705,8 +2692,10 @@ EPUBJS.core.request = function(url, type) {
 			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
 		});
 	}
-	
-	xhr.open("GET", url);
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
+	xhr.open("GET", url, true);
 	xhr.onreadystatechange = handler;
 	
 	if(type == 'blob'){
@@ -2749,7 +2738,10 @@ EPUBJS.core.request = function(url, type) {
 				
 				deferred.resolve(r);
 			} else {
-				deferred.reject(this);
+				deferred.reject({
+					message : this.response,
+					stack : new Error().stack
+				});
 			}
 		}
 	}
@@ -2781,10 +2773,12 @@ EPUBJS.core.uri = function(url){
 				origin : '',
 				directory : '',
 				base : '',
-				filename : ''
+				filename : '',
+				href : url
 			},
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
+			withoutProtocol,
 			firstSlash;
 	
 	if(search != -1) {
@@ -2794,18 +2788,21 @@ EPUBJS.core.uri = function(url){
 	
 	if(doubleSlash != -1) {
 		uri.protocol = url.slice(0, doubleSlash);
-		uri.path = url.slice(doubleSlash+3);
-		firstSlash = uri.path.indexOf('/');
+		withoutProtocol = url.slice(doubleSlash+3);
+		firstSlash = withoutProtocol.indexOf('/');
 		
 		if(firstSlash === -1) {
 			uri.host = uri.path;
+			uri.path = "";
 		} else {
-			uri.host = uri.path.slice(0, firstSlash);
+			uri.host = withoutProtocol.slice(0, firstSlash);
+			uri.path = withoutProtocol.slice(firstSlash);
 		}
+		
 		
 		uri.origin = uri.protocol + "://" + uri.host;
 		
-		uri.directory = EPUBJS.core.folder(uri.path.replace(uri.host, ''));
+		uri.directory = EPUBJS.core.folder(uri.path);
 		
 		uri.base = uri.origin + uri.directory;
 		// return origin;
@@ -3109,7 +3106,7 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 
 	// sections.shift(); //-- html
 
-	while(sections.length > 0) {
+	while(sections && sections.length > 0) {
 	
 		part = sections.shift();
 
@@ -3219,12 +3216,24 @@ EPUBJS.Parser = function(baseUrl){
 };
 
 EPUBJS.Parser.prototype.container = function(containerXml){
-
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-		var rootfile = containerXml.querySelector("rootfile"),
-				fullpath = rootfile.getAttribute('full-path'),
-				folder = EPUBJS.core.folder(fullpath),
-				encoding = containerXml.xmlEncoding;
+		var rootfile, fullpath, folder, encoding;
+		
+		if(!containerXml) {
+			console.error("Container File Not Found");
+			return;
+		}
+		
+		rootfile = containerXml.querySelector("rootfile");
+		
+		if(!rootfile) {
+			console.error("No RootFile Found");
+			return;
+		}
+		
+		fullpath = rootfile.getAttribute('full-path');
+		folder = EPUBJS.core.uri(fullpath).directory;
+		encoding = containerXml.xmlEncoding;
 
 		//-- Now that we have the path we can parse the contents
 		return {
@@ -3235,29 +3244,66 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 };
 
 EPUBJS.Parser.prototype.identifier = function(packageXml){
-	var metadataNode = packageXml.querySelector("metadata");
+	var metadataNode;
+	
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
+	
+	metadataNode = packageXml.querySelector("metadata");
+	
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
+	
 	return this.getElementText(metadataNode, "identifier");
 };
 
 EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	var parse = this;
-
+	var metadataNode, manifestNode, spineNode;
+	var manifest, navPath, tocPath, coverPath;
+	var spineNodeIndex;
+	var spine;
+	var spineIndexByURL;
+	
 	if(baseUrl) this.baseUrl = baseUrl;
 	
-	var metadataNode = packageXml.querySelector("metadata"),
-			manifestNode = packageXml.querySelector("manifest"),
-			spineNode = packageXml.querySelector("spine");
-
-	var manifest = parse.manifest(manifestNode),
-			navPath = parse.findNavPath(manifestNode),
-			tocPath = parse.findTocPath(manifestNode),
-			coverPath = parse.findCoverPath(manifestNode);
-
-	var spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
 	
-	var spine = parse.spine(spineNode, manifest);
+	metadataNode = packageXml.querySelector("metadata");
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
 	
-	var spineIndexByURL = {};
+	manifestNode = packageXml.querySelector("manifest");
+	if(!metadataNode) {
+		console.error("No Manifest Found");
+		return;
+	}
+	
+	spineNode = packageXml.querySelector("spine");
+	if(!metadataNode) {
+		console.error("No Spine Found");
+		return;
+	}
+	
+	manifest = parse.manifest(manifestNode);
+	navPath = parse.findNavPath(manifestNode);
+	tocPath = parse.findTocPath(manifestNode);
+	coverPath = parse.findCoverPath(manifestNode);
+
+	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+	
+	spine = parse.spine(spineNode, manifest);
+	
+	spineIndexByURL = {};
 	spine.forEach(function(item){
 		spineIndexByURL[item.href] = item.index;
 	});
@@ -4328,7 +4374,12 @@ EPUBJS.replace.links = function(_store, full, done, link){
 	
 	//-- Handle replacing urls in CSS
 	if(link.getAttribute("rel") === "stylesheet") {
-		EPUBJS.replace.stylesheets(_store, full).then(done);
+		EPUBJS.replace.stylesheets(_store, full).then(function(url, full){
+			// done
+			setTimeout(function(){
+				done(url, full);
+			}, 5); //-- Allow for css to apply before displaying chapter
+		});
 	}else{
 		_store.getUrl(full).then(done);
 	}
@@ -4440,10 +4491,14 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
-
-	if(!entry) console.error("File not found:", url);
+	
+	if(!entry) {
+		console.error("File not found in the epub:", url);
+		return;
+	}
 	
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
@@ -4462,7 +4517,8 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
 	if(!entry) console.error(url);
