@@ -11,6 +11,7 @@ EPUBJS.Unarchiver = function(url){
 	
 };
 
+//-- Load the zip lib and set the workerScriptsPath
 EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 	if(typeof(zip) == "undefined") console.error("Zip lib not loaded");
 	
@@ -74,8 +75,7 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var entry = this.zipFs.find(url);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error(url);
-
+	if(!entry) console.error("No entry found", url);
 
 	entry.getText(function(text){
 		deferred.resolve(text);

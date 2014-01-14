@@ -21,7 +21,7 @@ EPUBJS.Book = function(options){
 		reload : false,
 		goto : false,
 		styles : {},
-    headTags : {},
+		headTags : {},
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;

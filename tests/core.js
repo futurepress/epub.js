@@ -17,6 +17,7 @@ test("Using EPUBJS.Book({ bookPath: '/path/to/epub/' })", 1, function() {
 
 module('Open');
 
+// Test fails when Check for Globals is run???
 asyncTest("Get book URL from bookPath", 1, function() {
 
 	var Book = ePub();
