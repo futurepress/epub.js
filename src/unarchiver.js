@@ -50,10 +50,14 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
-
-	if(!entry) console.error("File not found:", url);
+	
+	if(!entry) {
+		console.error("File not found in the epub:", url);
+		return;
+	}
 	
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
@@ -72,7 +76,8 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
 	if(!entry) console.error("No entry found", url);

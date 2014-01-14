@@ -21,13 +21,11 @@
             
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
-                EPUBJS.VERSION = "0.1.7";
-                
                 EPUBJS.filePath = "js/libs/";
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                window.Reader = ePubReader("moby-dick.epub", { reload: true });
+                window.Reader = ePubReader("moby-dick/", { reload: true });
               }  
             };
         

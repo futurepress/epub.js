@@ -22,6 +22,7 @@ EPUBJS.Book = function(options){
 		goto : false,
 		styles : {},
 		headTags : {},
+		withCredentials: false,
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -277,22 +278,22 @@ EPUBJS.Book.prototype.loadXml = function(url){
 	} else if(this.settings.contained) {
 		return this.zip.getXml(url, this.settings.encoding);
 	}else{
-		return EPUBJS.core.request(url, 'xml');
+		return EPUBJS.core.request(url, 'xml', this.settings.withCredentials);
 	}
 };
 
 //-- Turns a url into a absolute url
 EPUBJS.Book.prototype.urlFrom = function(bookPath){
-	var absolute = bookPath.search("://") != -1,
-		fromRoot = bookPath[0] == "/",
+	var uri = EPUBJS.core.uri(bookPath),
+		absolute = uri.protocol,
+		fromRoot = uri.path[0] == "/",
 		location = window.location,
 		//-- Get URL orgin, try for native or combine 
 		origin = location.origin || location.protocol + "//" + location.host,
 		baseTag = document.getElementsByTagName('base'),
 		base;
 			
-	// if(bookPath[bookPath.length - 1] != "/") bookPath += "/";
-	
+
 	//-- Check is Base tag is set
 
 	if(baseTag.length) {
@@ -300,33 +301,18 @@ EPUBJS.Book.prototype.urlFrom = function(bookPath){
 	}
 	
 	//-- 1. Check if url is absolute
-	if(absolute){
-		return bookPath;
+	if(uri.protocol){
+		return uri.origin + uri.path;
 	}
 
 	//-- 2. Check if url starts with /, add base url
 	if(!absolute && fromRoot){
-		if(base) {
-			return base + bookPath;
-		} else {
-			return origin + bookPath;
-		}
+		return (base || origin) + uri.path;
 	}
 
 	//-- 3. Or find full path to url and add that
 	if(!absolute && !fromRoot){
-		
-		//-- go back
-		if(bookPath.slice(0, 3) == "../"){
-			return EPUBJS.core.resolveUrl(base || location.pathname, bookPath);
-		}
-		
-		if(base) {
-			return base + bookPath;
-		} else {
-			return origin + EPUBJS.core.folder(location.pathname) + bookPath;
-		}
-		
+		return EPUBJS.core.resolveUrl(base || location.pathname, uri.path);
 	}
 
 };
@@ -349,8 +335,9 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 
 //-- Checks if url has a .epub or .zip extension
 EPUBJS.Book.prototype.isContained = function(bookUrl){
-	var dot = bookUrl.lastIndexOf('.'),
-			ext = bookUrl.slice(dot+1);
+	var uri = EPUBJS.core.uri(bookUrl),
+			dot = uri.filename.lastIndexOf('.'),
+			ext = uri.filename.slice(dot+1);
 
 	if(ext && (ext == "epub" || ext == "zip")){
 		return true;

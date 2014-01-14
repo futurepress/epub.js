@@ -11,7 +11,7 @@ EPUBJS.core.getEls = function(classes) {
 	return document.getElementsByClassName(classes);
 };
 
-EPUBJS.core.request = function(url, type) {
+EPUBJS.core.request = function(url, type, withCredentials) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
@@ -29,8 +29,10 @@ EPUBJS.core.request = function(url, type) {
 			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
 		});
 	}
-	
-	xhr.open("GET", url);
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
+	xhr.open("GET", url, true);
 	xhr.onreadystatechange = handler;
 	
 	if(type == 'blob'){
@@ -73,7 +75,10 @@ EPUBJS.core.request = function(url, type) {
 				
 				deferred.resolve(r);
 			} else {
-				deferred.reject(this);
+				deferred.reject({
+					message : this.response,
+					stack : new Error().stack
+				});
 			}
 		}
 	}
@@ -105,10 +110,12 @@ EPUBJS.core.uri = function(url){
 				origin : '',
 				directory : '',
 				base : '',
-				filename : ''
+				filename : '',
+				href : url
 			},
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
+			withoutProtocol,
 			firstSlash;
 	
 	if(search != -1) {
@@ -118,18 +125,21 @@ EPUBJS.core.uri = function(url){
 	
 	if(doubleSlash != -1) {
 		uri.protocol = url.slice(0, doubleSlash);
-		uri.path = url.slice(doubleSlash+3);
-		firstSlash = uri.path.indexOf('/');
+		withoutProtocol = url.slice(doubleSlash+3);
+		firstSlash = withoutProtocol.indexOf('/');
 		
 		if(firstSlash === -1) {
 			uri.host = uri.path;
+			uri.path = "";
 		} else {
-			uri.host = uri.path.slice(0, firstSlash);
+			uri.host = withoutProtocol.slice(0, firstSlash);
+			uri.path = withoutProtocol.slice(firstSlash);
 		}
+		
 		
 		uri.origin = uri.protocol + "://" + uri.host;
 		
-		uri.directory = EPUBJS.core.folder(uri.path.replace(uri.host, ''));
+		uri.directory = EPUBJS.core.folder(uri.path);
 		
 		uri.base = uri.origin + uri.directory;
 		// return origin;

@@ -3,12 +3,24 @@ EPUBJS.Parser = function(baseUrl){
 };
 
 EPUBJS.Parser.prototype.container = function(containerXml){
-
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-		var rootfile = containerXml.querySelector("rootfile"),
-				fullpath = rootfile.getAttribute('full-path'),
-				folder = EPUBJS.core.folder(fullpath),
-				encoding = containerXml.xmlEncoding;
+		var rootfile, fullpath, folder, encoding;
+		
+		if(!containerXml) {
+			console.error("Container File Not Found");
+			return;
+		}
+		
+		rootfile = containerXml.querySelector("rootfile");
+		
+		if(!rootfile) {
+			console.error("No RootFile Found");
+			return;
+		}
+		
+		fullpath = rootfile.getAttribute('full-path');
+		folder = EPUBJS.core.uri(fullpath).directory;
+		encoding = containerXml.xmlEncoding;
 
 		//-- Now that we have the path we can parse the contents
 		return {
@@ -19,29 +31,66 @@ EPUBJS.Parser.prototype.container = function(containerXml){
 };
 
 EPUBJS.Parser.prototype.identifier = function(packageXml){
-	var metadataNode = packageXml.querySelector("metadata");
+	var metadataNode;
+	
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
+	
+	metadataNode = packageXml.querySelector("metadata");
+	
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
+	
 	return this.getElementText(metadataNode, "identifier");
 };
 
 EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	var parse = this;
-
+	var metadataNode, manifestNode, spineNode;
+	var manifest, navPath, tocPath, coverPath;
+	var spineNodeIndex;
+	var spine;
+	var spineIndexByURL;
+	
 	if(baseUrl) this.baseUrl = baseUrl;
 	
-	var metadataNode = packageXml.querySelector("metadata"),
-			manifestNode = packageXml.querySelector("manifest"),
-			spineNode = packageXml.querySelector("spine");
-
-	var manifest = parse.manifest(manifestNode),
-			navPath = parse.findNavPath(manifestNode),
-			tocPath = parse.findTocPath(manifestNode),
-			coverPath = parse.findCoverPath(manifestNode);
-
-	var spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
 	
-	var spine = parse.spine(spineNode, manifest);
+	metadataNode = packageXml.querySelector("metadata");
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
 	
-	var spineIndexByURL = {};
+	manifestNode = packageXml.querySelector("manifest");
+	if(!metadataNode) {
+		console.error("No Manifest Found");
+		return;
+	}
+	
+	spineNode = packageXml.querySelector("spine");
+	if(!metadataNode) {
+		console.error("No Spine Found");
+		return;
+	}
+	
+	manifest = parse.manifest(manifestNode);
+	navPath = parse.findNavPath(manifestNode);
+	tocPath = parse.findTocPath(manifestNode);
+	coverPath = parse.findCoverPath(manifestNode);
+
+	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+	
+	spine = parse.spine(spineNode, manifest);
+	
+	spineIndexByURL = {};
 	spine.forEach(function(item){
 		spineIndexByURL[item.href] = item.index;
 	});
