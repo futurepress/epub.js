@@ -22,9 +22,9 @@ EPUBJS.reader.ReaderController = function(book) {
 		$loader.hide();
 		
 		//-- If the book is using spreads, show the divider
-		if(book.settings.spreads) {
-			showDivider();
-		}
+		// if(book.settings.spreads) {
+		// 	showDivider();
+		// }
 	};
 
 	var showDivider = function() {
@@ -76,8 +76,8 @@ EPUBJS.reader.ReaderController = function(book) {
 		e.preventDefault();
 	});
 	
-	book.on("book:spreads", function(){
-		if(book.settings.spreads) {
+	book.on("renderer:spreads", function(bool){
+		if(bool) {
 			showDivider();
 		} else {
 			hideDivider();

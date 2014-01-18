@@ -1,6 +1,6 @@
-EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, renderer){
 
-		var notes = chapter.doc.querySelectorAll('a[href]'),
+		var notes = renderer.contents.querySelectorAll('a[href]'),
 			items = Array.prototype.slice.call(notes), //[].slice.call()
 			attr = "epub:type",
 			type = "noteref",
@@ -8,7 +8,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			cssPath = folder + EPUBJS.cssPath || folder,
 			popups = {};
 			
-		EPUBJS.core.addCss(cssPath + "popup.css", false, chapter.doc.head);
+		EPUBJS.core.addCss(cssPath + "popup.css", false, renderer.render.document.head);
 		
 		
 		items.forEach(function(item){
@@ -26,7 +26,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 
 			href = item.getAttribute("href");
 			id = href.replace("#", '');
-			el = chapter.doc.getElementById(id);
+			el = renderer.render.document.getElementById(id);
 			
 						
 			item.addEventListener("mouseover", showPop, false);
@@ -34,8 +34,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			
 			function showPop(){
 				var poppos,
-					iheight = chapter.iframe.height,
-					iwidth = chapter.iframe.width,
+					iheight = renderer.height,
+					iwidth = renderer.width,
 				 	tip,
 					pop,
 					maxHeight = 225;
@@ -45,7 +45,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					txt = pop.querySelector("p");
 				}
 
-				chapter.replaceLinks.bind(this)
+				// chapter.replaceLinks.bind(this) //TODO:Fred - update?
 				//-- create a popup with endnote inside of it
 				if(!popups[id]) {
 					popups[id] = document.createElement("div");

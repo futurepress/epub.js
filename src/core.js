@@ -111,13 +111,21 @@ EPUBJS.core.uri = function(url){
 				directory : '',
 				base : '',
 				filename : '',
+				extension : '',
 				href : url
 			},
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
+			fragment = url.indexOf("#"),
 			withoutProtocol,
+			dot,
 			firstSlash;
-	
+
+	if(fragment != -1) {
+		uri.fragment = url.slice(fragment + 1);
+		url = url.slice(0, fragment);
+	}
+
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
@@ -151,7 +159,10 @@ EPUBJS.core.uri = function(url){
 	
 	//-- Filename
 	uri.filename = url.replace(uri.base, '');
-
+	dot = uri.filename.lastIndexOf('.');
+	if(dot != -1) {
+		uri.extension = uri.filename.slice(dot+1);
+	}
 	return uri;
 };
 

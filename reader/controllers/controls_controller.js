@@ -81,7 +81,6 @@ EPUBJS.reader.ControlsController = function(book) {
 	book.on('renderer:pageChanged', function(cfi){
 		//-- Check if bookmarked
 		var bookmarked = reader.isBookmarked(cfi);
-		
 		if(bookmarked === -1) { //-- Not bookmarked
 			$bookmark
 				.removeClass("icon-bookmark")

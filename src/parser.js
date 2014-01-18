@@ -143,7 +143,7 @@ EPUBJS.Parser.prototype.metadata = function(xml){
 	metadata.rights = p.getElementText(xml, "rights");
 	
 	metadata.modified_date = p.querySelectorText(xml, "meta[property='dcterms:modified']");
-	metadata.layout = p.querySelectorText(xml, "meta[property='rendition:orientation']");
+	metadata.layout = p.querySelectorText(xml, "meta[property='rendition:layout']");
 	metadata.orientation = p.querySelectorText(xml, "meta[property='rendition:orientation']");
 	metadata.spread = p.querySelectorText(xml, "meta[property='rendition:spread']");
 	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
@@ -210,18 +210,25 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	
 	var selected = spineXml.getElementsByTagName("itemref"),
 			items = Array.prototype.slice.call(selected);
-	
+
+	var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
+
+ 	var epubcfi = new EPUBJS.EpubCFI();
+ 	
 	//-- Add to array to mantain ordering and cross reference with manifest
 	items.forEach(function(item, index){
 		var Id = item.getAttribute('idref');
+		var cfiBase = epubcfi.generateChapter(spineNodeIndex, index, Id);
 		var vert = {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
-			'properties' : manifest[Id].properties || '',
+			'properties' : item.getAttribute('properties') || '',
+			'manifestProperties' : manifest[Id].properties || '',
 			'href' : manifest[Id].href,
 			'url' :  manifest[Id].url,
-			'index' : index
-		};
+			'index' : index,
+			'cfiBase' : cfiBase
+	};
 		
 		spine.push(vert);
 	});

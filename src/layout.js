@@ -1,72 +1,115 @@
-EPUBJS.Renderer.prototype.formatSpread = function(){
+EPUBJS.Layout = EPUBJS.Layout || {};
 
-	var divisor = 2,
-		cutoff = 800;
-
+EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
+	var columnAxis = EPUBJS.core.prefixed('columnAxis');
+	var columnGap = EPUBJS.core.prefixed('columnGap');
+	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	
 	//-- Check the width and decied on columns
-	//-- Todo: a better place for this?
-	this.elWidth = this.iframe.clientWidth;
-	if(this.elWidth % 2 !== 0){
-		this.elWidth -= 1;
-	}
+	var width = (_width % 2 == 0) ? _width : Math.floor(_width) - 1;
+	var section = Math.ceil(width / 8);
+	var gap = (section % 2 == 0) ? section : section - 1;
 
-	// this.gap = this.gap || Math.ceil(this.elWidth / 8);
-	this.gap = Math.ceil(this.elWidth / 8);
+	//-- Single Page
+	var spreadWidth = (width + gap);
+	var totalWidth, displayedPages;
 
-	if(this.gap % 2 !== 0){
-		this.gap += 1;
-	}
+	documentElement.style.width = "auto"; //-- reset width for calculations
 
-	if(this.elWidth < cutoff || !this.book.settings.spreads) {
-		this.spread = false; //-- Single Page
 
-		divisor = 1;
-		this.colWidth = Math.floor(this.elWidth / divisor);
-	}else{
-		this.spread = true; //-- Double Page
 
-		this.colWidth = Math.floor((this.elWidth - this.gap) / divisor);
-	}
+	documentElement.style.overflow = "hidden";
 
-	this.spreadWidth = (this.colWidth + this.gap) * divisor;
-	// if(this.bodyEl) this.bodyEl.style.margin = 0;
-	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
-
-	//-- Clear Margins
-	if(this.bodyEl) this.bodyEl.style.margin = "0";
-
-	this.docEl.style.overflow = "hidden";
-
-	this.docEl.style.width = this.elWidth + "px";
+	documentElement.style.width = width + "px";
 
 	//-- Adjust height
-	this.docEl.style.height = this.iframe.clientHeight	+ "px";
+	documentElement.style.height = _height + "px";
 
 	//-- Add columns
-	this.docEl.style[EPUBJS.Renderer.columnAxis] = "horizontal";
-	this.docEl.style[EPUBJS.Renderer.columnGap] = this.gap+"px";
-	this.docEl.style[EPUBJS.Renderer.columnWidth] = this.colWidth+"px";
+	documentElement.style[columnAxis] = "horizontal";
+	documentElement.style[columnGap] = gap+"px";
+	documentElement.style[columnWidth] = width+"px";
 
+	totalWidth = documentElement.scrollWidth;
+	displayedPages = Math.ceil(totalWidth / spreadWidth);	
+	
+	// documentElement.style.width = totalWidth + spreadWidth + "px";
+
+	return {
+		pageWidth : spreadWidth,
+		pageHeight : _height,
+		displayedPages : displayedPages
+	};
 };
 
-EPUBJS.Renderer.prototype.fixedLayout = function(){
-	this.paginated = false;
+EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
+	var columnAxis = EPUBJS.core.prefixed('columnAxis');
+	var columnGap = EPUBJS.core.prefixed('columnGap');
+	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	
+	var divisor = 2,
+			cutoff = 800;
 
-	this.elWidth = this.iframe.width;
-	this.docEl.style.width = this.elWidth;
-	// this.setLeft(0);
+	//-- Check the width and decied on columns
+	var width = (_width % 2 == 0) ? _width : Math.floor(_width) - 1;
+	var section = Math.ceil(width / 8);
+	var gap = (section % 2 == 0) ? section : section - 1;
 
-	this.docEl.style.width = this.elWidth;
+	//-- Double Page
+	var colWidth = Math.floor((width - gap) / divisor);
+	var spreadWidth = (colWidth + gap) * divisor;
+
+	var totalWidth, displayedPages;
+	
+	documentElement.style.width = "auto"; //-- reset width for calculations
+	
+	documentElement.style.overflow = "hidden";
+
+	documentElement.style.width = width + "px";
 
 	//-- Adjust height
-	this.docEl.style.height = "auto";
+	documentElement.style.height = _height	+ "px";
+
+	//-- Add columns
+	documentElement.style[columnAxis] = "horizontal";
+	documentElement.style[columnGap] = gap+"px";
+	documentElement.style[columnWidth] = colWidth+"px";
+	
+	totalWidth = documentElement.scrollWidth;
+	displayedPages = Math.ceil(totalWidth / spreadWidth);
+	
+	documentElement.style.width = totalWidth + spreadWidth + "px";
+
+	return {
+		pageWidth : spreadWidth,
+		pageHeight : _height,
+		displayedPages : displayedPages
+	};
+};
+
+EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
+	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	
+	var totalWidth = documentElement.scrollWidth;
+	var totalHeight = documentElement.scrollHeight;
+	
+	documentElement.style.width = _width;
+
+	//-- Adjust height
+	documentElement.style.height = "auto";
 
 	//-- Remove columns
-	// this.docEl.style[EPUBJS.core.columnWidth] = "auto";
+	documentElement.style[columnWidth] = "auto";
 
 	//-- Scroll
-	this.docEl.style.overflow = "auto";
-	this.iframe.scrolling = "yes";
+	documentElement.style.overflow = "auto";
+	// this.iframe.scrolling = "yes";
 
 	// this.displayedPages = 1;
+	return {
+		pageWidth : totalWidth,
+		pageHeight : totalHeight,
+		displayedPages : 1
+	};
+	
 };

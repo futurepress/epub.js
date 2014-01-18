@@ -54,8 +54,11 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	
 	if(!entry) {
-		console.error("File not found in the epub:", url);
-		return;
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+		return deferred.promise;
 	}
 	
 	if(url in this.urlCache) {
