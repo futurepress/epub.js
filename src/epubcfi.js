@@ -168,7 +168,7 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 		}
 	
 	
-		if(!element) console.error("No Element For", part);
+		if(!element) console.error("No Element For", part, cfi);
 		children = Array.prototype.slice.call(element.children);
 	}
 	

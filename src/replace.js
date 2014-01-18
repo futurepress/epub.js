@@ -1,6 +1,33 @@
 var EPUBJS = EPUBJS || {};
 EPUBJS.replace = {};
 
+//-- Replaces the relative links within the book to use our internal page changer
+EPUBJS.replace.hrefs = function(callback, renderer){
+	var replacments = function(link, done){
+		var href = link.getAttribute("href"),
+				relative = href.search("://"),
+				fragment = href[0] == "#";
+
+		if(relative != -1){
+
+			link.setAttribute("target", "_blank");
+
+		}else{
+
+			link.onclick = function(){
+				renderer.book.goto(href);
+				return false;
+			};
+
+		}
+		done();
+
+	};
+	
+	renderer.replace("a[href]", replacments, callback);
+
+};
+
 EPUBJS.replace.head = function(callback, renderer) {
 
 	renderer.replaceWithStored("link[href]", "href", EPUBJS.replace.links, callback);
@@ -73,7 +100,7 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
 		promises = [],
-		matches = text.match(/url\(\'?\"?([^\'|^\"]*)\'?\"?\)/g);
+		matches = text.match(/url\(\'?\"?([^\'|^\"|^\)]*)\'?\"?\)/g);
 	
 	if(!_store) return;
 
@@ -86,8 +113,6 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
 		var replaced = _store.getUrl(full).then(function(url){
 				text = text.replace(str, 'url("'+url+'")');
-			}, function(e) {
-				console.error(e);
 			});
 		
 		promises.push(replaced);

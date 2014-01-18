@@ -1,15 +1,18 @@
-EPUBJS.Chapter = function(spineObject){
+EPUBJS.Chapter = function(spineObject, store){
 	this.href = spineObject.href;
 	this.absolute = spineObject.url;
 	this.id = spineObject.id;
 	this.spinePos = spineObject.index;
+	this.cfiBase = spineObject.cfiBase;
 	this.properties = spineObject.properties;
 	this.linear = spineObject.linear;
 	this.pages = 1;
+	this.store = store;
 };
 
 
-EPUBJS.Chapter.prototype.contents = function(store){
+EPUBJS.Chapter.prototype.contents = function(_store){
+	var store = _store || this.store;
 	// if(this.store && (!this.book.online || this.book.contained))
 	if(store){
 		return store.get(href);
@@ -19,9 +22,10 @@ EPUBJS.Chapter.prototype.contents = function(store){
 
 };
 
-EPUBJS.Chapter.prototype.url = function(store){
+EPUBJS.Chapter.prototype.url = function(_store){
 	var deferred = new RSVP.defer();
-
+	var store = _store || this.store;
+	
 	if(store){
 		if(!this.tempUrl) {
 			this.tempUrl = store.getUrl(this.absolute);

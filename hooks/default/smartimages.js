@@ -1,8 +1,13 @@
-EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
-		var images = chapter.doc.querySelectorAll('img'),
+EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, renderer){
+		var images = renderer.contents.querySelectorAll('img'),
 			items = Array.prototype.slice.call(images),
-			iheight = chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
+			iheight = renderer.height,//chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
 			oheight;
+
+		if(renderer.settings.layout != "reflowable") {
+			callback();
+			return; //-- Only adjust images for reflowable text
+		}
 
 		items.forEach(function(item){
 			
@@ -14,7 +19,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 					height = oHeight || rectHeight,
 					newHeight;
 				
-				iheight = chapter.docEl.clientHeight;
+				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
 		
 				if(height + top >= iheight) {
@@ -28,7 +33,6 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 						item.style.maxHeight = newHeight + "px";
 						item.style.marginTop = iheight - top + "px";
 						item.style.width= "auto";
-						console.log(newHeight)
 					}
 					
 					item.setAttribute('data-height', newHeight);
@@ -41,11 +45,11 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 			
 			item.addEventListener('load', size, false);
 			
-			chapter.on("renderer:resized", size);
+			renderer.on("renderer:resized", size);
 			
-			chapter.on("renderer:chapterUnloaded", function(){
+			renderer.on("renderer:chapterUnloaded", function(){
 				item.removeEventListener('load', size);
-				chapter.off("renderer:resized", size);
+				renderer.off("renderer:resized", size);
 			});
 			
 			size();
