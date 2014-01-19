@@ -37,7 +37,8 @@ EPUBJS.Reader = function(path, _options) {
 		bookmarks : null,
 		contained : null,
 		bookKey : null,
-		styles : null
+		styles : null,
+		sidebarReflow: false
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
