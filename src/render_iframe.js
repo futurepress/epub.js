@@ -45,8 +45,9 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		render.window.addEventListener("resize", render.resized.bind(render), false);
 
 		//-- Clear Margins
-		if(render.bodyEl) render.bodyEl.style.margin = "0";
-		
+		if(render.bodyEl) {
+			render.bodyEl.style.margin = "0";
+		}	
 		
 		deferred.resolve(render.docEl);
 	};

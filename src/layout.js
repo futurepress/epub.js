@@ -27,15 +27,17 @@ EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = width+"px";
 
-	totalWidth = documentElement.scrollWidth;
-	displayedPages = Math.ceil(totalWidth / spreadWidth);
-
 	documentElement.style.width = width + "px";
+	
+
+	totalWidth = documentElement.scrollWidth;
+	displayedPages = Math.round(totalWidth / spreadWidth);
 
 	return {
 		pageWidth : spreadWidth,
 		pageHeight : _height,
-		displayedPages : displayedPages
+		displayedPages : displayedPages,
+		pageCount : displayedPages
 	};
 };
 
@@ -65,7 +67,7 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 	documentElement.style.width = width + "px";
 
 	//-- Adjust height
-	documentElement.style.height = _height	+ "px";
+	documentElement.style.height = _height + "px";
 
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
@@ -81,7 +83,8 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 	return {
 		pageWidth : spreadWidth,
 		pageHeight : _height,
-		displayedPages : displayedPages
+		displayedPages : displayedPages,
+		pageCount : displayedPages * 2
 	};
 };
 
@@ -121,7 +124,8 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
 	return {
 		pageWidth : width,
 		pageHeight : height,
-		displayedPages : 1
+		displayedPages : 1,
+		pageCount : 1
 	};
 	
 };

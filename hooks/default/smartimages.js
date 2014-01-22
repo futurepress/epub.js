@@ -17,15 +17,18 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 					top = itemRect.top,
 					oHeight = item.getAttribute('data-height'),
 					height = oHeight || rectHeight,
-					newHeight;
-				
+					newHeight,
+					fontSize = Number(getComputedStyle(item, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]),
+					fontAdjust = fontSize ? fontSize / 2 : 0;
+
 				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
 		
 				if(height + top >= iheight) {
 				
 					if(top < iheight/2) {
-						newHeight = iheight - top;
+						// Remove top and half font-size from height to keep container from overflowing
+						newHeight = iheight - top - fontAdjust;
 						item.style.maxHeight = newHeight + "px";
 						item.style.width= "auto";
 					}else{

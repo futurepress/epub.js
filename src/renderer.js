@@ -477,6 +477,7 @@ EPUBJS.Renderer.prototype.onResized = function(e){
 	this.height = this.container.clientHeight;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
+	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.settings);
