@@ -7,7 +7,7 @@ EPUBJS.Renderer = function(type) {
 	* Options are: Iframe
 	*/
 	if(type && typeof(EPUBJS.Render[type]) != "undefined"){
-		this.render = new EPUBJS.Render[type]() ;
+		this.render = new EPUBJS.Render[type]();
 	} else {
 		console.error("Not a Valid Rendering Method");
 	}
@@ -300,6 +300,13 @@ EPUBJS.Renderer.prototype.setStyle = function(style, val, prefixed){
 
 EPUBJS.Renderer.prototype.removeStyle = function(style){
 	this.render.removeStyle(style);
+};
+
+//-- HEAD TAGS
+EPUBJS.Renderer.prototype.applyHeadTags = function(headTags) {
+	for ( var headTag in headTags ) {
+		this.render.addHeadTag(headTag, headTags[headTag])
+	}
 };
 
 //-- NAVIGATION

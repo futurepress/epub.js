@@ -38,6 +38,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		render.document = render.iframe.contentDocument;
 		
 		render.docEl = render.document.documentElement;
+		render.headEl = render.document.head;
 		render.bodyEl = render.document.body;
 		render.window = render.iframe.contentWindow;
 		
@@ -51,7 +52,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 	};
 	
 	this.iframe.onerror = function(e) {
-		console.error("Error Loading Contents", e);
+		//console.error("Error Loading Contents", e);
 		deferred.reject({
 				message : "Error Loading Contents: " + e,
 				stack : new Error().stack
@@ -119,6 +120,16 @@ EPUBJS.Render.Iframe.prototype.removeStyle = function(style){
 
 	if(this.bodyEl) this.bodyEl.style[style] = '';
 
+};
+
+EPUBJS.Render.Iframe.prototype.addHeadTag = function(tag, attrs) {
+	var tag = document.createElement(tag);
+
+	for(attr in attrs) {
+		tag[attr] = attrs[attr];
+	}
+
+	if(this.headEl) this.headEl.appendChild(tag);
 };
 
 EPUBJS.Render.Iframe.prototype.page = function(pg){

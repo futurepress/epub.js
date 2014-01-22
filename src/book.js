@@ -24,6 +24,7 @@ EPUBJS.Book = function(options){
 		styles : {},
 		headTags : {},
 		withCredentials: false,
+		renderer: "Iframe"
 	});
 
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -830,8 +831,15 @@ EPUBJS.Book.prototype.applyStyles = function(callback){
 	callback();
 };
 
+EPUBJS.Book.prototype.applyHeadTags = function(callback){
+	if(!this.isRendered) return this._enqueue("applyHeadTags", arguments);
+	this.renderer.applyHeadTags(this.settings.headTags);
+	callback();
+};
+
 EPUBJS.Book.prototype._registerReplacements = function(){
 	this.renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this), true);
+	this.renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this), true);
 	this.renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs, true);
 
 	if(this._needsAssetReplacement()) {
