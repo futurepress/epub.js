@@ -47,7 +47,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		//-- Clear Margins
 		if(render.bodyEl) {
 			render.bodyEl.style.margin = "0";
-		}	
+		}
 		
 		deferred.resolve(render.docEl);
 	};
@@ -124,13 +124,13 @@ EPUBJS.Render.Iframe.prototype.removeStyle = function(style){
 };
 
 EPUBJS.Render.Iframe.prototype.addHeadTag = function(tag, attrs) {
-	var tag = document.createElement(tag);
+	var tagEl = document.createElement(tag);
 
-	for(attr in attrs) {
-		tag[attr] = attrs[attr];
+	for(var attr in attrs) {
+		tagEl[attr] = attrs[attr];
 	}
 
-	if(this.headEl) this.headEl.appendChild(tag);
+	if(this.headEl) this.headEl.appendChild(tagEl);
 };
 
 EPUBJS.Render.Iframe.prototype.page = function(pg){

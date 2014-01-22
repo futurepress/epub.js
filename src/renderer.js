@@ -305,7 +305,7 @@ EPUBJS.Renderer.prototype.removeStyle = function(style){
 //-- HEAD TAGS
 EPUBJS.Renderer.prototype.applyHeadTags = function(headTags) {
 	for ( var headTag in headTags ) {
-		this.render.addHeadTag(headTag, headTags[headTag])
+		this.render.addHeadTag(headTag, headTags[headTag]);
 	}
 };
 

@@ -37,7 +37,8 @@ EPUBJS.Reader = function(path, _options) {
 		bookmarks : null,
 		contained : null,
 		bookKey : null,
-		styles : null
+		styles : null,
+		sidebarReflow: false
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
@@ -382,7 +383,6 @@ EPUBJS.reader.ControlsController = function(book) {
 	book.on('renderer:pageChanged', function(cfi){
 		//-- Check if bookmarked
 		var bookmarked = reader.isBookmarked(cfi);
-		
 		if(bookmarked === -1) { //-- Not bookmarked
 			$bookmark
 				.removeClass("icon-bookmark")
@@ -421,12 +421,20 @@ EPUBJS.reader.ReaderController = function(book) {
 			$prev = $("#prev");
 
 	var slideIn = function() {
-		$main.removeClass("closed");
-	};
+        if (Reader.settings.sidebarReflow){
+                $('#main').removeClass('single');
+        } else {
+                $main.removeClass("closed");
+        }
+    };
 
-	var slideOut = function() {
-		$main.addClass("closed");
-	};
+    var slideOut = function() {
+        if (Reader.settings.sidebarReflow){
+                $('#main').addClass('single');
+        } else {
+                $main.addClass("closed");
+        }
+    };
 
 	var showLoader = function() {
 		$loader.show();
@@ -437,9 +445,9 @@ EPUBJS.reader.ReaderController = function(book) {
 		$loader.hide();
 		
 		//-- If the book is using spreads, show the divider
-		if(book.settings.spreads) {
-			showDivider();
-		}
+		// if(book.settings.spreads) {
+		// 	showDivider();
+		// }
 	};
 
 	var showDivider = function() {
@@ -491,8 +499,8 @@ EPUBJS.reader.ReaderController = function(book) {
 		e.preventDefault();
 	});
 	
-	book.on("book:spreads", function(){
-		if(book.settings.spreads) {
+	book.on("renderer:spreads", function(bool){
+		if(bool) {
 			showDivider();
 		} else {
 			hideDivider();
@@ -522,6 +530,12 @@ EPUBJS.reader.SettingsController = function() {
 	var hide = function() {
 		$settings.removeClass("md-show");
 	};
+
+	var $sidebarReflowSetting = $('#sidebarReflow');
+
+    $sidebarReflowSetting.on('click', function() {
+        Reader.settings.sidebarReflow = !Reader.settings.sidebarReflow;
+    });
 
 	$settings.find(".closer").on("click", function() {
 		hide();

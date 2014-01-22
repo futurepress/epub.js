@@ -1,6 +1,6 @@
-EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, renderer){
 
-		var notes = chapter.doc.querySelectorAll('a[href]'),
+		var notes = renderer.contents.querySelectorAll('a[href]'),
 			items = Array.prototype.slice.call(notes), //[].slice.call()
 			attr = "epub:type",
 			type = "noteref",
@@ -8,7 +8,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			cssPath = folder + EPUBJS.cssPath || folder,
 			popups = {};
 			
-		EPUBJS.core.addCss(cssPath + "popup.css", false, chapter.doc.head);
+		EPUBJS.core.addCss(cssPath + "popup.css", false, renderer.render.document.head);
 		
 		
 		items.forEach(function(item){
@@ -26,7 +26,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 
 			href = item.getAttribute("href");
 			id = href.replace("#", '');
-			el = chapter.doc.getElementById(id);
+			el = renderer.render.document.getElementById(id);
 			
 						
 			item.addEventListener("mouseover", showPop, false);
@@ -34,8 +34,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 			
 			function showPop(){
 				var poppos,
-					iheight = chapter.iframe.height,
-					iwidth = chapter.iframe.width,
+					iheight = renderer.height,
+					iwidth = renderer.width,
 				 	tip,
 					pop,
 					maxHeight = 225;
@@ -45,7 +45,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					txt = pop.querySelector("p");
 				}
 
-				chapter.replaceLinks.bind(this)
+				// chapter.replaceLinks.bind(this) //TODO:Fred - update?
 				//-- create a popup with endnote inside of it
 				if(!popups[id]) {
 					popups[id] = document.createElement("div");
@@ -67,8 +67,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 					//-- Add hide on page change
 					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", hidePop);
 					// chapter.book.listenUntil("book:pageChanged", "book:chapterDestroy", offPop);
-					chapter.book.on("renderer:pageChanged", hidePop, this);
-					chapter.book.on("renderer:pageChanged", offPop, this);
+					renderer.on("renderer:pageChanged", hidePop, this);
+					renderer.on("renderer:pageChanged", offPop, this);
 					// chapter.book.on("renderer:chapterDestroy", hidePop, this);
 				}
 				
@@ -160,7 +160,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, chap
 EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, renderer){
 
     // check of currentChapter properties contains 'mathml'
-    if(renderer.currentChapter.properties.indexOf("mathml") !== -1 ){
+    if(renderer.currentChapter.manifestProperties.indexOf("mathml") !== -1 ){
         
         // Assign callback to be inside iframe window
         renderer.iframe.contentWindow.mathmlCallback = callback;
@@ -183,11 +183,16 @@ EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, render
     }
 }
 
-EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, chapter){
-		var images = chapter.doc.querySelectorAll('img'),
+EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, renderer){
+		var images = renderer.contents.querySelectorAll('img'),
 			items = Array.prototype.slice.call(images),
-			iheight = chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
+			iheight = renderer.height,//chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
 			oheight;
+
+		if(renderer.settings.layout != "reflowable") {
+			callback();
+			return; //-- Only adjust images for reflowable text
+		}
 
 		items.forEach(function(item){
 			
@@ -197,15 +202,18 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 					top = itemRect.top,
 					oHeight = item.getAttribute('data-height'),
 					height = oHeight || rectHeight,
-					newHeight;
-				
-				iheight = chapter.docEl.clientHeight;
+					newHeight,
+					fontSize = Number(getComputedStyle(item, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]),
+					fontAdjust = fontSize ? fontSize / 2 : 0;
+
+				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
 		
 				if(height + top >= iheight) {
 				
 					if(top < iheight/2) {
-						newHeight = iheight - top;
+						// Remove top and half font-size from height to keep container from overflowing
+						newHeight = iheight - top - fontAdjust;
 						item.style.maxHeight = newHeight + "px";
 						item.style.width= "auto";
 					}else{
@@ -213,7 +221,6 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 						item.style.maxHeight = newHeight + "px";
 						item.style.marginTop = iheight - top + "px";
 						item.style.width= "auto";
-						console.log(newHeight)
 					}
 					
 					item.setAttribute('data-height', newHeight);
@@ -226,11 +233,11 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 			
 			item.addEventListener('load', size, false);
 			
-			chapter.on("renderer:resized", size);
+			renderer.on("renderer:resized", size);
 			
-			chapter.on("renderer:chapterUnloaded", function(){
+			renderer.on("renderer:chapterUnloaded", function(){
 				item.removeEventListener('load', size);
-				chapter.off("renderer:resized", size);
+				renderer.off("renderer:resized", size);
 			});
 			
 			size();
@@ -241,15 +248,15 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, c
 
 }
 
-EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
 		/*
 		<aside ref="http://www.youtube.com/embed/DUL6MBVKVLI?html5=1" transclusion="video" width="560" height="315">
 			<a href="http://www.youtube.com/embed/DUL6MBVKVLI"> Watch the National Geographic: The Last Roll of Kodachrome</a>
 		</aside>
 		*/
 
-		var trans = chapter.doc.querySelectorAll('[transclusion]'),
-			items = Array.prototype.slice.call(trans);
+		var trans = renderer.contents.querySelectorAll('[transclusion]'),
+				items = Array.prototype.slice.call(trans);
 
 		items.forEach(function(item){
 			var src = item.getAttribute("ref"),
@@ -283,7 +290,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback,
 			//-- resize event
 
 			
-			chapter.book.listenUntil("book:resized", "book:chapterDestroy", size);
+			renderer.listenUntil("renderer:resized", "renderer:chapterUnloaded", size);
 		
 			iframe.src = src;
 			
