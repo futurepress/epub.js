@@ -10,6 +10,7 @@
     "optimist": "~0.6.0",
     "portfinder": "~0.2.1",
     "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-uglify": "~0.2.2"
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-jshint": "~0.8.0"
   }
 }

@@ -1,13 +1,13 @@
 EPUBJS.hooks = {};
 EPUBJS.Hooks = (function(){
-	function hooks(){};
+	function hooks(){}
 	
 	//-- Get pre-registered hooks
 	hooks.prototype.getHooks = function(){
 		var plugs;
 		this.hooks = {};
 		Array.prototype.slice.call(arguments).forEach(function(arg){
-			this.hooks[arg] = []; 
+			this.hooks[arg] = [];
 		}, this);
 			
 		for (var plugType in this.hooks) {

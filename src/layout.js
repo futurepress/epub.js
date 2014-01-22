@@ -1,14 +1,15 @@
 EPUBJS.Layout = EPUBJS.Layout || {};
 
 EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
+	// Get the prefixed CSS commands
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	
 	//-- Check the width and decied on columns
-	var width = (_width % 2 == 0) ? _width : Math.floor(_width) - 1;
+	var width = (_width % 2 === 0) ? _width : Math.floor(_width) - 1;
 	var section = Math.ceil(width / 8);
-	var gap = (section % 2 == 0) ? section : section - 1;
+	var gap = (section % 2 === 0) ? section : section - 1;
 
 	//-- Single Page
 	var spreadWidth = (width + gap);
@@ -16,11 +17,7 @@ EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
 
 	documentElement.style.width = "auto"; //-- reset width for calculations
 
-
-
 	documentElement.style.overflow = "hidden";
-
-	documentElement.style.width = width + "px";
 
 	//-- Adjust height
 	documentElement.style.height = _height + "px";
@@ -31,9 +28,9 @@ EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
 	documentElement.style[columnWidth] = width+"px";
 
 	totalWidth = documentElement.scrollWidth;
-	displayedPages = Math.ceil(totalWidth / spreadWidth);	
-	
-	// documentElement.style.width = totalWidth + spreadWidth + "px";
+	displayedPages = Math.ceil(totalWidth / spreadWidth);
+
+	documentElement.style.width = width + "px";
 
 	return {
 		pageWidth : spreadWidth,
@@ -50,10 +47,10 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 	var divisor = 2,
 			cutoff = 800;
 
-	//-- Check the width and decied on columns
-	var width = (_width % 2 == 0) ? _width : Math.floor(_width) - 1;
+	//-- Check the width and create even width columns
+	var width = (_width % 2 === 0) ? _width : Math.floor(_width) - 1;
 	var section = Math.ceil(width / 8);
-	var gap = (section % 2 == 0) ? section : section - 1;
+	var gap = (section % 2 === 0) ? section : section - 1;
 
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
@@ -78,6 +75,7 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 	totalWidth = documentElement.scrollWidth;
 	displayedPages = Math.ceil(totalWidth / spreadWidth);
 	
+	//-- Add a page to the width of the document to account an for odd number of pages
 	documentElement.style.width = totalWidth + spreadWidth + "px";
 
 	return {
@@ -89,26 +87,40 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 
 EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
-	
-	var totalWidth = documentElement.scrollWidth;
-	var totalHeight = documentElement.scrollHeight;
-	
-	documentElement.style.width = _width;
+	var viewport = documentElement.querySelector("[name=viewport");
+	var content;
+	var contents;
+	var width, height;
 
-	//-- Adjust height
-	documentElement.style.height = "auto";
+	/**
+	* check for the viewport size
+	* <meta name="viewport" content="width=1024,height=697" />
+	*/
+	if(viewport && viewport.hasAttribute("content")) {
+		content = viewport.getAttribute("content");
+		contents = content.split(',');
+		if(contents[0]){
+			width = contents[0].replace("width=", '');
+		}
+		if(contents[1]){
+			height = contents[1].replace("height=", '');
+		}
+	}
+	
+	//-- Adjust width and height
+	documentElement.style.width =  width + "px" || "auto";
+	documentElement.style.height =  height + "px" || "auto";
 
 	//-- Remove columns
 	documentElement.style[columnWidth] = "auto";
 
 	//-- Scroll
 	documentElement.style.overflow = "auto";
-	// this.iframe.scrolling = "yes";
 
-	// this.displayedPages = 1;
+	
 	return {
-		pageWidth : totalWidth,
-		pageHeight : totalHeight,
+		pageWidth : width,
+		pageHeight : height,
 		displayedPages : 1
 	};
 	

@@ -40,7 +40,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback,
 			//-- resize event
 
 			
-			chapter.book.listenUntil("book:resized", "book:chapterDestroy", size);
+			renderer.listenUntil("renderer:resized", "renderer:chapterUnloaded", size);
 		
 			iframe.src = src;
 			

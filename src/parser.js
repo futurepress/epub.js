@@ -213,8 +213,8 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 
 	var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
 
- 	var epubcfi = new EPUBJS.EpubCFI();
- 	
+	var epubcfi = new EPUBJS.EpubCFI();
+
 	//-- Add to array to mantain ordering and cross reference with manifest
 	items.forEach(function(item, index){
 		var Id = item.getAttribute('idref');
@@ -295,8 +295,8 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 				
 			if(!id) {
 				if(spinePos) {
-					spineItem = bookSpine[spinePos];				
-					id = spineItem.id
+					spineItem = bookSpine[spinePos];
+					id = spineItem.id;
 				} else {
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}
@@ -325,7 +325,6 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	
 	function getTOC(parent){
 		var list = [],
-				items = [],
 				nodes = parent.querySelectorAll("navPoint"),
 				items = Array.prototype.slice.call(nodes).reverse(),
 				length = items.length,
@@ -349,7 +348,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 			if(!id) {
 				if(spinePos) {
 					spineItem = bookSpine[spinePos];
-					id = spineItem.id
+					id = spineItem.id;
 				} else {
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}

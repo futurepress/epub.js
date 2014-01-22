@@ -101,7 +101,7 @@ EPUBJS.core.toArray = function(obj) {
 	return arr;
 };
 
-//-- Parse out the origin
+//-- Parse the different parts of a url, returning a object
 EPUBJS.core.uri = function(url){
 	var uri = {
 				protocol : '',
@@ -112,6 +112,7 @@ EPUBJS.core.uri = function(url){
 				base : '',
 				filename : '',
 				extension : '',
+				fragment : '',
 				href : url
 			},
 			doubleSlash = url.indexOf('://'),
@@ -166,7 +167,8 @@ EPUBJS.core.uri = function(url){
 	return uri;
 };
 
-//-- Parse out the folder
+//-- Parse out the folder, will return everything before the last slash
+
 EPUBJS.core.folder = function(url){
 	
 	var lastSlash = url.lastIndexOf('/');

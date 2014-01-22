@@ -36,12 +36,43 @@ module.exports = function(grunt) {
 					'build/libs/screenfull.min.js': ['libs/screenfull.min.js']
 				}
 			}
+		},
+		jshint: {
+			all: ['src/**/*.js'],//, 'reader/**/*.js']
+			options : {
+				// Environments
+				"browser": true,
+				"devel": true,
+				"worker": true,
+				
+				// Enforcing
+				//"maxlen": 80,
+				//"quotmark": "single",
+				"trailing": true,
+				"strict": false,
+				
+				// Relaxing
+				"boss": true,
+				"funcscope": true,
+				"globalstrict": true,
+				"loopfunc": true,
+				"maxerr": 1000,
+				"nonstandard": true,
+				"sub": true,
+				"validthis": true,
+				
+				"globals": { 
+					"_": false,
+					"define" : false,
+					"module" : false
+				}
+			}
 		}
 	});
 	
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-
+	grunt.loadNpmTasks('grunt-contrib-jshint');
 	// Default task(s).
 	grunt.registerTask('default', ['concat', 'uglify']);
 };

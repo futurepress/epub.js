@@ -29,7 +29,7 @@ asyncTest("Fit to given width and height", 3, function() {
 		equal( $iframe.width(), 400, "iframe had correct width" );
 		equal( $iframe.height(), 600, "iframe has correct height" );
 
-		start();				
+		start();
 
 	};
 
