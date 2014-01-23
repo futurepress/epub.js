@@ -1,4 +1,4 @@
-EPUBJS.Renderer = function(type) {
+EPUBJS.Renderer = function(renderMethod) {
 	// Dom events to listen for
 	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click"];
 	
@@ -6,8 +6,8 @@ EPUBJS.Renderer = function(type) {
 	* Setup a render method.
 	* Options are: Iframe
 	*/
-	if(type && typeof(EPUBJS.Render[type]) != "undefined"){
-		this.render = new EPUBJS.Render[type]();
+	if(renderMethod && typeof(EPUBJS.Render[renderMethod]) != "undefined"){
+		this.render = new EPUBJS.Render[renderMethod]();
 	} else {
 		console.error("Not a Valid Rendering Method");
 	}
