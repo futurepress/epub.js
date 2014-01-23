@@ -533,6 +533,7 @@ EPUBJS.Renderer.prototype.onMouseUp = function(e){
 
 EPUBJS.Renderer.prototype.setMinSpreadWidth = function(width){
 	this.minSpreadWidth = width;
+	this.spreads = this.determineSpreads(width);
 };
 
 EPUBJS.Renderer.prototype.determineSpreads = function(cutoff){

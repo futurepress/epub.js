@@ -13,8 +13,7 @@ EPUBJS.Book = function(options){
 		contained : false,
 		width : null,
 		height: null,
-		spread: null,
-		layout : null,
+		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : null,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
 		version: 1,
@@ -762,10 +761,8 @@ EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
 EPUBJS.Book.prototype.useSpreads = function(use) {
 	if(use) {
 		this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
-		this.settings.spreads = true;
 	} else {
 		this.renderer.setMinSpreadWidth(0);
-		this.settings.spreads = false;
 	}
 
 	if(this.isRendered) {
@@ -878,9 +875,9 @@ EPUBJS.Book.prototype._needsAssetReplacement = function(){
 
 //-- http://www.idpf.org/epub/fxl/
 EPUBJS.Book.prototype.parseLayoutProperties = function(metadata){
-	var layout = this.settings.layout || metadata.layout || "reflowable";
-	var spread = this.settings.spread || metadata.spread || "auto";
-	var orientation = this.settings.orientations || metadata.orientation || "auto";
+	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
+	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
+	var orientation = (this.layoutOveride && this.layoutOveride.orientation) || metadata.orientation || "auto";
 	return {
 		layout : layout,
 		spread : spread,

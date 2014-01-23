@@ -200,15 +200,15 @@ asyncTest("Add styles to book", 4, function() {
 
 asyncTest("Switch Spreads to Single", 3, function() {
 	
-	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	var Book = ePub('../demo/moby-dick/', { width: 800, height: 600 });
 	
 	var render = Book.renderTo("qunit-fixture");
 	
 	var result = function(){
-		equal( Book.settings.spreads, true, "Use Spreads");
+		equal( Book.renderer.spreads, true, "Use Spreads");
 		Book.useSpreads(false);
-		equal( Book.settings.spreads, false, "Don't Use Spreads");
-		equal( Book.renderer.render.docEl.style[EPUBJS.Renderer.columnWidth], "400px", "Don't Use Spreads");
+		equal( Book.renderer.spreads, false, "Don't Use Spreads");
+		equal( Book.renderer.contents.style[EPUBJS.core.prefixed('columnWidth')], "352px", "Don't Use Spreads");
 		start();
 	};
 	
