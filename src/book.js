@@ -24,7 +24,7 @@ EPUBJS.Book = function(options){
 		styles : {},
 		headTags : {},
 		withCredentials: false,
-		renderer: "Iframe"
+		render_method: "Iframe"
 	});
 
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -88,7 +88,7 @@ EPUBJS.Book = function(options){
 	* Creates a new renderer. 
 	* The renderer will handle displaying the content using the method provided in the settings
 	*/
-	this.renderer = new EPUBJS.Renderer(this.settings.renderer);
+	this.renderer = new EPUBJS.Renderer(this.settings.render_method);
 	//-- Set the width at which to switch from spreads to single pages
 	this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
 	//-- Pass through the renderer events
