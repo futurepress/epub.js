@@ -445,7 +445,7 @@ EPUBJS.Book.prototype.startDisplay = function(){
 EPUBJS.Book.prototype.restore = function(identifier){
 
 	var book = this,
-			fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL'],
+			fetch = ['manifest', 'spine', 'metadata', 'cover', 'toc', 'spineNodeIndex', 'spineIndexByURL', 'globalLayoutProperties'],
 			reject = false,
 			bookKey = this.generateBookKey(identifier),
 			fromStore = localStorage.getItem(bookKey),

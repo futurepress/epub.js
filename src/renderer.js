@@ -157,7 +157,6 @@ EPUBJS.Renderer.prototype.load = function(url){
 * Returns: Object with layout properties
 */
 EPUBJS.Renderer.prototype.reconcileLayoutSettings = function(global, chapter){
-	var layoutMethod = "ReflowableSpreads"; // Default to Spreads
 	var properties = chapter.split(' ');
 	var settings = {};
 	var spreads = true;
@@ -191,53 +190,33 @@ EPUBJS.Renderer.prototype.reconcileLayoutSettings = function(global, chapter){
 * Returns: EPUBJS.Layout function
 */
 EPUBJS.Renderer.prototype.determineLayout = function(settings){
-	var layoutMethod = "ReflowableSpreads";
-
+	// Default is layout: reflowable & spread: auto
+	var spreads = this.determineSpreads(this.minSpreadWidth);
+	var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
+	var scroll = false;
+	
 	if(settings.layout === "pre-paginated") {
-			layoutMethod = "Fixed";
-			this.render.scroll(true);
-			return EPUBJS.Layout[layoutMethod];
+		layoutMethod = "Fixed";
+		scroll = true;
+		spreads = false;
 	}
 
 	if(settings.layout === "reflowable" && settings.spread === "none") {
-			layoutMethod = "Reflowable";
-			this.render.scroll(false);
-			this.trigger("renderer:spreads", false);
-			return EPUBJS.Layout[layoutMethod];
+		layoutMethod = "Reflowable";
+		scroll = false;
+		spreads = false;
 	}
 	
 	if(settings.layout === "reflowable" && settings.spread === "both") {
-			layoutMethod = "ReflowableSpreads";
-			this.render.scroll(false);
-			this.trigger("renderer:spreads", true);
-			return EPUBJS.Layout[layoutMethod];
+		layoutMethod = "ReflowableSpreads";
+		scroll = false;
+		spreads = true;
 	}
-	
-	// Reflowable Auto adjustments for width
-	if(settings.layout === "reflowable" && settings.spread === "auto"){
-		spreads = this.determineSpreads(this.minSpreadWidth);
-		if(spreads){
-			layoutMethod = "ReflowableSpreads";
-			this.trigger("renderer:spreads", true);
-	} else {
-			layoutMethod = "Reflowable";
-			this.trigger("renderer:spreads", false);
-	}
-		this.render.scroll(false);
-		return EPUBJS.Layout[layoutMethod];
-	} else { // Base case no settings.layout set
-		spreads = this.determineSpreads(this.minSpreadWidth);
-		if(spreads){
-			layoutMethod = "ReflowableSpreads";
-			this.trigger("renderer:spreads", true);
-		} else {
-			layoutMethod = "Reflowable";
-			this.trigger("renderer:spreads", false);
-		}
-		this.render.scroll(false);
-		return EPUBJS.Layout[layoutMethod];
-	}
-	
+
+	this.spreads = spreads;
+	this.render.scroll(scroll);
+	this.trigger("renderer:spreads", spreads);
+	return EPUBJS.Layout[layoutMethod];
 };
 
 // Shortcut to trigger the hook before displaying the chapter
