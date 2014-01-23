@@ -225,8 +225,18 @@ EPUBJS.Renderer.prototype.determineLayout = function(settings){
 	}
 		this.render.scroll(false);
 		return EPUBJS.Layout[layoutMethod];
+	} else { // Base case no settings.layout set
+		spreads = this.determineSpreads(this.minSpreadWidth);
+		if(spreads){
+			layoutMethod = "ReflowableSpreads";
+			this.trigger("renderer:spreads", true);
+		} else {
+			layoutMethod = "Reflowable";
+			this.trigger("renderer:spreads", false);
+		}
+		this.render.scroll(false);
+		return EPUBJS.Layout[layoutMethod];
 	}
-	
 	
 };
 

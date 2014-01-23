@@ -63,10 +63,10 @@ asyncTest("Go to chapter 1 and advance to next page", 4, function() {
 			$body = $iframe.contents().find("body");
 
 			Book.nextPage();
-			equal( $body.scrollLeft(), 450, "on page 2");
+			equal( $body.scrollLeft(), 454, "on page 2");
 
 			Book.nextPage();
-			equal( $body.scrollLeft(), 900, "on page 3");
+			equal( $body.scrollLeft(), 908, "on page 3");
 		});
 		
 
@@ -95,7 +95,7 @@ asyncTest("Go to chapter 10 at restore start", 2, function() {
 		
 
 		start();
-		equal( Book.render.currentChapter.id, "xchapter_010", "on chapter 10");
+		equal( Book.currentChapter.id, "xchapter_010", "on chapter 10");
 
 	};
 
@@ -119,10 +119,8 @@ asyncTest("Go to chapter 20 from queue", 2, function() {
 
 		equal( $iframe.length, 1, "iframe added successfully" );
 
-
-
 		start();
-		equal( Book.render.currentChapter.id, "xchapter_020", "on chapter 20");
+		equal( Book.currentChapter.id, "xchapter_020", "on chapter 20");
 
 	};
 
@@ -151,11 +149,11 @@ asyncTest("Display end of chapter 20 and go to prev page", 3, function() {
 			$body = $iframe.contents().find("body");
 			Book.prevPage();
 
-			equal( $body.scrollLeft(), 1350, "on last page");
+			equal( $body.scrollLeft(), 1362, "on last page");
 
 
 			Book.prevPage();
-			equal( $body.scrollLeft(), 900, "on second to last page ");
+			equal( $body.scrollLeft(), 908, "on second to last page ");
 			
 			
 		});
@@ -178,16 +176,18 @@ asyncTest("Add styles to book", 4, function() {
 	
 		var $iframe = $( "iframe", "#qunit-fixture" ),
 				$body;
+
+		console.log(Book)
 		
-		equal( Book.render.bodyEl.style.background, '', "background not set");
+		equal( Book.renderer.render.bodyEl.style.background, '', "background not set");
 		
 		Book.setStyle("background", "purple");
-		equal( Book.render.bodyEl.style.background, "purple", "background is purple");
+		equal( Book.renderer.render.bodyEl.style.background, "purple", "background is purple");
 		
-		equal( Book.render.bodyEl.style.fontSize, '', "fontSize not set");
+		equal( Book.renderer.render.bodyEl.style.fontSize, '', "fontSize not set");
 		
 		Book.setStyle("fontSize", "100px");
-		equal( Book.render.bodyEl.style.fontSize, "100px", "fontSize is purple");
+		equal( Book.renderer.render.bodyEl.style.fontSize, "100px", "fontSize is purple");
 			
 		start();
 		
@@ -208,7 +208,7 @@ asyncTest("Switch Spreads to Single", 3, function() {
 		equal( Book.settings.spreads, true, "Use Spreads");
 		Book.useSpreads(false);
 		equal( Book.settings.spreads, false, "Don't Use Spreads");
-		equal( Book.render.docEl.style[EPUBJS.Renderer.columnWidth], "400px", "Don't Use Spreads");
+		equal( Book.renderer.render.docEl.style[EPUBJS.Renderer.columnWidth], "400px", "Don't Use Spreads");
 		start();
 	};
 	
