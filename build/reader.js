@@ -420,22 +420,23 @@ EPUBJS.reader.ReaderController = function(book) {
 			$loader = $("#loader"),
 			$next = $("#next"),
 			$prev = $("#prev");
+	var reader = this;
 
 	var slideIn = function() {
-        if (Reader.settings.sidebarReflow){
-                $('#main').removeClass('single');
-        } else {
-                $main.removeClass("closed");
-        }
-    };
+		if (reader.settings.sidebarReflow){
+			$main.removeClass('single');
+		} else {
+			$main.removeClass("closed");
+		}
+	};
 
-    var slideOut = function() {
-        if (Reader.settings.sidebarReflow){
-                $('#main').addClass('single');
-        } else {
-                $main.addClass("closed");
-        }
-    };
+	var slideOut = function() {
+		if (reader.settings.sidebarReflow){
+			$main.addClass('single');
+		} else {
+			$main.addClass("closed");
+		}
+	};
 
 	var showLoader = function() {
 		$loader.show();
@@ -520,7 +521,7 @@ EPUBJS.reader.ReaderController = function(book) {
 };
 EPUBJS.reader.SettingsController = function() {
 	var book = this.book;
-
+	var reader = this;
 	var $settings = $("#settings-modal"),
 			$overlay = $(".overlay");
 
@@ -534,9 +535,9 @@ EPUBJS.reader.SettingsController = function() {
 
 	var $sidebarReflowSetting = $('#sidebarReflow');
 
-    $sidebarReflowSetting.on('click', function() {
-        Reader.settings.sidebarReflow = !Reader.settings.sidebarReflow;
-    });
+	$sidebarReflowSetting.on('click', function() {
+		reader.settings.sidebarReflow = !reader.settings.sidebarReflow;
+	});
 
 	$settings.find(".closer").on("click", function() {
 		hide();

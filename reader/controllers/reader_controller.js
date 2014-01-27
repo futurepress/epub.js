@@ -4,22 +4,23 @@ EPUBJS.reader.ReaderController = function(book) {
 			$loader = $("#loader"),
 			$next = $("#next"),
 			$prev = $("#prev");
+	var reader = this;
 
 	var slideIn = function() {
-        if (Reader.settings.sidebarReflow){
-                $('#main').removeClass('single');
-        } else {
-                $main.removeClass("closed");
-        }
-    };
+		if (reader.settings.sidebarReflow){
+			$main.removeClass('single');
+		} else {
+			$main.removeClass("closed");
+		}
+	};
 
-    var slideOut = function() {
-        if (Reader.settings.sidebarReflow){
-                $('#main').addClass('single');
-        } else {
-                $main.addClass("closed");
-        }
-    };
+	var slideOut = function() {
+		if (reader.settings.sidebarReflow){
+			$main.addClass('single');
+		} else {
+			$main.addClass("closed");
+		}
+	};
 
 	var showLoader = function() {
 		$loader.show();

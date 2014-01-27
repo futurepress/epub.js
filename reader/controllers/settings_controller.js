@@ -1,6 +1,6 @@
 EPUBJS.reader.SettingsController = function() {
 	var book = this.book;
-
+	var reader = this;
 	var $settings = $("#settings-modal"),
 			$overlay = $(".overlay");
 
@@ -14,9 +14,9 @@ EPUBJS.reader.SettingsController = function() {
 
 	var $sidebarReflowSetting = $('#sidebarReflow');
 
-    $sidebarReflowSetting.on('click', function() {
-        Reader.settings.sidebarReflow = !Reader.settings.sidebarReflow;
-    });
+	$sidebarReflowSetting.on('click', function() {
+		reader.settings.sidebarReflow = !reader.settings.sidebarReflow;
+	});
 
 	$settings.find(".closer").on("click", function() {
 		hide();
