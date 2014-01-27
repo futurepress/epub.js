@@ -40,7 +40,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	};
 };
 
-EPUBJS.Layout.Reflowable.prototype.calculatePages = function() { 
+EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
 	var totalWidth, displayedPages;
 	this.documentElement.style.width = "auto"; //-- reset width for calculations
 	totalWidth = this.documentElement.scrollWidth;
@@ -97,7 +97,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	};
 };
 
-EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() { 
+EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 	var totalWidth = this.documentElement.scrollWidth;
 	var displayedPages = Math.round(totalWidth / this.spreadWidth);
 

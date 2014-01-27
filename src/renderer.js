@@ -19,7 +19,7 @@ EPUBJS.Renderer = function(renderMethod) {
 	this.epubcfi = new EPUBJS.EpubCFI();
 	
 	this.spreads = true;
-	this.forceSingle = false;
+	this.isForcedSingle = false;
 	this.resized = _.throttle(this.onResized.bind(this), 10);
 
 	this.layoutSettings = {};
@@ -116,7 +116,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	// Switch to the required layout method for the settings
 	this.layoutMethod = this.determineLayout(this.layoutSettings);
-	this.layout = new EPUBJS.Layout[this.layoutMethod];
+	this.layout = new EPUBJS.Layout[this.layoutMethod]();
 
 	this.visible(false);
 
@@ -195,8 +195,9 @@ EPUBJS.Renderer.prototype.reconcileLayoutSettings = function(global, chapter){
 
 /**
 * Uses the settings to determine which Layout Method is needed
+* Triggers events based on the method choosen
 * Takes: Layout settings object
-* Returns: EPUBJS.Layout function
+* Returns: String of appropriate for EPUBJS.Layout function
 */
 EPUBJS.Renderer.prototype.determineLayout = function(settings){
 	// Default is layout: reflowable & spread: auto
@@ -483,8 +484,8 @@ EPUBJS.Renderer.prototype.onResized = function(e){
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
-		this.layout = new EPUBJS.Layout[this.layoutMethod];	
-}
+		this.layout = new EPUBJS.Layout[this.layoutMethod]();
+	}
 
 	if(this.contents){
 		this.reformat();
@@ -551,7 +552,7 @@ EPUBJS.Renderer.prototype.setMinSpreadWidth = function(width){
 };
 
 EPUBJS.Renderer.prototype.determineSpreads = function(cutoff){
-	if(this.forceSingle || !cutoff || this.width < cutoff) {
+	if(this.isForcedSingle || !cutoff || this.width < cutoff) {
 		return false; //-- Single Page
 	}else{
 		return true; //-- Double Page
@@ -560,10 +561,10 @@ EPUBJS.Renderer.prototype.determineSpreads = function(cutoff){
 
 EPUBJS.Renderer.prototype.forceSingle = function(bool){
 	if(bool) {
-		this.forceSingle = true;
+		this.isForcedSingle = true;
 		this.spreads = false;
 	} else {
-		this.forceSingle = false;
+		this.isForcedSingle = false;
 		this.spreads = this.determineSpreads(width);
 	}
 };
