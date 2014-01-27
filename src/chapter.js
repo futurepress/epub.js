@@ -5,6 +5,7 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.spinePos = spineObject.index;
 	this.cfiBase = spineObject.cfiBase;
 	this.properties = spineObject.properties;
+	this.manifestProperties = spineObject.manifestProperties;
 	this.linear = spineObject.linear;
 	this.pages = 1;
 	this.store = store;

@@ -2687,6 +2687,7 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.spinePos = spineObject.index;
 	this.cfiBase = spineObject.cfiBase;
 	this.properties = spineObject.properties;
+	this.manifestProperties = spineObject.manifestProperties;
 	this.linear = spineObject.linear;
 	this.pages = 1;
 	this.store = store;
@@ -3760,17 +3761,19 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 		var Id = item.getAttribute('idref');
 		var cfiBase = epubcfi.generateChapter(spineNodeIndex, index, Id);
 		var props = item.getAttribute('properties') || '';
+		var propArray = props.length ? props.split(' ') : [];
+		var manifestProps = manifest[Id].properties;
+		var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
 		var vert = {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
-			'properties' : props.split(' '),
-			'manifestProperties' : manifest[Id].properties.split(' '),
+			'properties' : propArray,
+			'manifestProperties' : manifestPropArray,
 			'href' : manifest[Id].href,
 			'url' :  manifest[Id].url,
 			'index' : index,
 			'cfiBase' : cfiBase
-	};
-		
+		};
 		spine.push(vert);
 	});
 	
