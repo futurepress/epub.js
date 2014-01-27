@@ -103,9 +103,10 @@ body {
   max-width: 1250px;
   /* z-index: 2;
   position: absolute; */
+  overflow: hidden;
 }
 
-#viewer iframe {
+#viewer #epubjs-iframe {
   border: none;
 }
 
@@ -659,26 +660,56 @@ input:-moz-placeholder {
   }
 }
 
- [class^="icon-"]:before, [class*=" icon-"]:before {
-   font-family: "fontello";
-   font-style: normal;
-   font-weight: normal;
-   speak: none;
- 
-   display: inline-block;
-   text-decoration: inherit;
-   width: 1em;
-   margin-right: .2em;
-   text-align: center;
-   /* opacity: .8; */
- 
-   /* For safety - reset parent styles, that can break glyph codes*/
-   font-variant: normal;
-   text-transform: none;
- 
-   /* you can be more comfortable with increased icons size */
-   font-size: 112%;
- }
+
+/* For iPad portrait layouts only */
+@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation: portrait) {
+    #viewer #epubjs-iframe {
+        width: 460px;
+        height: 740px;
+    } 
+}
+ /*For iPad landscape layouts only */
+@media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation: landscape) {
+    #viewer #epubjs-iframe {
+        width: 460px;
+        height: 415px;
+    }
+}
+/* For iPhone portrait layouts only */
+@media only screen and (max-device-width: 480px) and (orientation: portrait) {
+    #viewer #epubjs-iframe {
+       width: 256px;
+       height: 368px;
+    }
+}
+/* For iPhone landscape layouts only */
+@media only screen and (max-device-width: 480px) and (orientation: landscape) {
+    #viewer #epubjs-iframe {
+        width: 256px;
+        height: 124px;
+    }
+}
+
+[class^="icon-"]:before, [class*=" icon-"]:before {
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+    
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+    
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+    
+    /* you can be more comfortable with increased icons size */
+    font-size: 112%;
+}
  
  
 .icon-search:before { content: '\e807'; } /* '' */
@@ -703,3 +734,4 @@ input:-moz-placeholder {
 .icon-columns:before { content: '\e810'; } /* '' */
 .icon-list:before { content: '\e800'; } /* '' */
 .icon-resize-small:before { content: '\e808'; } /* '' */
+
