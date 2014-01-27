@@ -1,6 +1,11 @@
 EPUBJS.Layout = EPUBJS.Layout || {};
 
-EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
+EPUBJS.Layout.Reflowable = function(){
+	this.documentElement = null;
+	this.spreadWidth = null;
+};
+
+EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height){
 	// Get the prefixed CSS commands
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
@@ -11,9 +16,9 @@ EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
 	var section = Math.ceil(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
 
+	this.documentElement = documentElement;
 	//-- Single Page
-	var spreadWidth = (width + gap);
-	var totalWidth, displayedPages;
+	this.spreadWidth = (width + gap);
 
 	documentElement.style.width = "auto"; //-- reset width for calculations
 
@@ -28,20 +33,31 @@ EPUBJS.Layout.Reflowable = function(documentElement, _width, _height){
 	documentElement.style[columnWidth] = width+"px";
 
 	documentElement.style.width = width + "px";
-	
-
-	totalWidth = documentElement.scrollWidth;
-	displayedPages = Math.round(totalWidth / spreadWidth);
 
 	return {
-		pageWidth : spreadWidth,
-		pageHeight : _height,
+		pageWidth : this.spreadWidth,
+		pageHeight : _height
+	};
+};
+
+EPUBJS.Layout.Reflowable.prototype.calculatePages = function() { 
+	var totalWidth, displayedPages;
+	this.documentElement.style.width = "auto"; //-- reset width for calculations
+	totalWidth = this.documentElement.scrollWidth;
+	displayedPages = Math.round(totalWidth / this.spreadWidth);
+
+	return {
 		displayedPages : displayedPages,
 		pageCount : displayedPages
 	};
 };
 
-EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
+EPUBJS.Layout.ReflowableSpreads = function(){
+	this.documentElement = null;
+	this.spreadWidth = null;
+};
+
+EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height){
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
@@ -56,15 +72,16 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
-	var spreadWidth = (colWidth + gap) * divisor;
 
-	var totalWidth, displayedPages;
+	this.documentElement = documentElement;
+	this.spreadWidth = (colWidth + gap) * divisor;
+
 	
 	documentElement.style.width = "auto"; //-- reset width for calculations
 	
 	documentElement.style.overflow = "hidden";
 
-	documentElement.style.width = width + "px";
+	//documentElement.style.width = width + "px";
 
 	//-- Adjust height
 	documentElement.style.height = _height + "px";
@@ -73,19 +90,28 @@ EPUBJS.Layout.ReflowableSpreads = function(documentElement, _width, _height){
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = colWidth+"px";
-	
-	totalWidth = documentElement.scrollWidth;
-	displayedPages = Math.ceil(totalWidth / spreadWidth);
-	
-	//-- Add a page to the width of the document to account an for odd number of pages
-	documentElement.style.width = totalWidth + spreadWidth + "px";
 
 	return {
-		pageWidth : spreadWidth,
-		pageHeight : _height,
+		pageWidth : this.spreadWidth,
+		pageHeight : _height
+	};
+};
+
+EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() { 
+	var totalWidth = this.documentElement.scrollWidth;
+	var displayedPages = Math.round(totalWidth / this.spreadWidth);
+
+	//-- Add a page to the width of the document to account an for odd number of pages
+	this.documentElement.style.width = totalWidth + this.spreadWidth + "px";
+
+	return {
 		displayedPages : displayedPages,
 		pageCount : displayedPages * 2
 	};
+};
+
+EPUBJS.Layout.Fixed = function(){
+	this.documentElement = null;
 };
 
 EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
@@ -94,7 +120,8 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
 	var content;
 	var contents;
 	var width, height;
-
+	
+	this.documentElement = documentElement;
 	/**
 	* check for the viewport size
 	* <meta name="viewport" content="width=1024,height=697" />
@@ -123,9 +150,14 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
 	
 	return {
 		pageWidth : width,
-		pageHeight : height,
+		pageHeight : height
+	};
+	
+};
+
+EPUBJS.Layout.Fixed.prototype.calculatePages = function(){
+	return {
 		displayedPages : 1,
 		pageCount : 1
 	};
-	
 };

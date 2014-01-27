@@ -4,7 +4,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 			iheight = renderer.height,//chapter.bodyEl.clientHeight,//chapter.doc.body.getBoundingClientRect().height,
 			oheight;
 
-		if(renderer.settings.layout != "reflowable") {
+		if(renderer.layoutSettings.layout != "reflowable") {
 			callback();
 			return; //-- Only adjust images for reflowable text
 		}

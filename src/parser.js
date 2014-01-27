@@ -219,11 +219,12 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	items.forEach(function(item, index){
 		var Id = item.getAttribute('idref');
 		var cfiBase = epubcfi.generateChapter(spineNodeIndex, index, Id);
+		var props = item.getAttribute('properties') || '';
 		var vert = {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
-			'properties' : item.getAttribute('properties') || '',
-			'manifestProperties' : manifest[Id].properties || '',
+			'properties' : props.split(' '),
+			'manifestProperties' : manifest[Id].properties.split(' '),
 			'href' : manifest[Id].href,
 			'url' :  manifest[Id].url,
 			'index' : index,

@@ -759,16 +759,19 @@ EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
 };
 
 EPUBJS.Book.prototype.useSpreads = function(use) {
-	if(use) {
-		this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+	console.warn("useSpreads is deprecated, use forceSingle or set a layoutOveride instead");
+	if(use === false) {
+		this.forceSingle(true);
 	} else {
-		this.renderer.setMinSpreadWidth(0);
+		this.forceSingle(false);
 	}
+};
 
+EPUBJS.Book.prototype.forceSingle = function(use) {
+	this.renderer.forceSingle(use);
 	if(this.isRendered) {
 		this.renderer.reformat();
 	}
-
 };
 
 EPUBJS.Book.prototype.unload = function(){
