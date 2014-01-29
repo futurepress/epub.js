@@ -218,7 +218,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	//-- Add to array to mantain ordering and cross reference with manifest
 	items.forEach(function(item, index){
 		var Id = item.getAttribute('idref');
-		var cfiBase = epubcfi.generateChapter(spineNodeIndex, index, Id);
+		var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
 		var props = item.getAttribute('properties') || '';
 		var propArray = props.length ? props.split(' ') : [];
 		var manifestProps = manifest[Id].properties;

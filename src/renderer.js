@@ -425,7 +425,7 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 	this.visibileEl = this.findFirstVisible(prevEl);
 
-	return this.epubcfi.generateFragment(this.visibileEl, this.currentChapter.cfiBase);
+	return this.epubcfi.generateCfiFromElement(this.visibileEl, this.currentChapter.cfiBase);
 };
 
 // Goto a cfi position in the current chapter

@@ -205,7 +205,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 					newHeight,
 					fontSize = Number(getComputedStyle(item, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]),
 					fontAdjust = fontSize ? fontSize / 2 : 0;
-
+					
 				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
 		
@@ -217,10 +217,16 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 						item.style.maxHeight = newHeight + "px";
 						item.style.width= "auto";
 					}else{
-						newHeight = (height < iheight ? height : iheight);
-						item.style.maxHeight = newHeight + "px";
-						item.style.marginTop = iheight - top + "px";
-						item.style.width= "auto";
+						if(height > iheight) {
+							item.style.maxHeight = iheight + "px";
+							item.style.width= "auto";
+							itemRect = item.getBoundingClientRect();
+							height = itemRect.height;
+						}
+						item.style.display = "block";
+						item.style["WebkitColumnBreakBefore"] = "always";
+						item.style["breakBefore"] = "column";
+						
 					}
 					
 					item.setAttribute('data-height', newHeight);
