@@ -79,7 +79,7 @@ EPUBJS.reader.ControlsController = function(book) {
 
 	});
 
-	book.on('renderer:pageChanged', function(cfi){
+	book.on('renderer:locationChanged', function(cfi){
 		//-- Check if bookmarked
 		var bookmarked = reader.isBookmarked(cfi);
 		if(bookmarked === -1) { //-- Not bookmarked
@@ -92,6 +92,10 @@ EPUBJS.reader.ControlsController = function(book) {
 				.removeClass("icon-bookmark-empty"); 
 		}
 		
+	});
+	
+	book.on('book:pageChanged', function(location){
+		console.log("page", location.page, location.percentage)
 	});
 
 	return {

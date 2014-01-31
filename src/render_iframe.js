@@ -12,7 +12,7 @@ EPUBJS.Render.Iframe = function() {
 //-- Build up any html needed
 EPUBJS.Render.Iframe.prototype.create = function(){
 	this.iframe = document.createElement('iframe');
-	this.iframe.id = "epubjs-iframe";
+	this.iframe.id = "epubjs-iframe:" + EPUBJS.core.uuid();
 	this.iframe.scrolling = "no";
 	
 	return this.iframe;
@@ -76,8 +76,9 @@ EPUBJS.Render.Iframe.prototype.resize = function(width, height){
 
 	this.iframe.width = width;
 	// Get the fractional height and width of the iframe
-	this.width = this.iframe.getBoundingClientRect().width;
-	this.height = this.iframe.getBoundingClientRect().height;
+	// Default to orginal if bounding rect is 0
+	this.width = this.iframe.getBoundingClientRect().width || width;
+	this.height = this.iframe.getBoundingClientRect().height || height;
 };
 
 

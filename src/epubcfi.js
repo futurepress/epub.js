@@ -40,7 +40,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
 	var steps = this.pathTo(element);
 	var path = this.generatePathComponent(steps);
 
-	return "epubcfi(" + chapter + "!" + path + ")";
+	return "epubcfi(" + chapter + "!" + path + "/1:0)";
 };
 
 EPUBJS.EpubCFI.prototype.pathTo = function(node) {
@@ -221,10 +221,10 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 
 EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 	if(typeof cfiOne === 'string') {
-		cfiOne = this.parse(cfiOne);
+		cfiOne = new EPUBJS.EpubCFI(cfiOne);
 	}
 	if(typeof cfiTwo === 'string') {
-		cfiTwo = this.parse(cfiTwo);
+		cfiTwo = new EPUBJS.EpubCFI(cfiTwo);
 	}
 	// Compare Spine Positions
 	if(cfiOne.spinePos > cfiTwo.spinePos) {

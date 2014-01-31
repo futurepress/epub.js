@@ -240,7 +240,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 };
 
 EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
-	var navEl = navHtml.querySelector('nav'), //-- [*|type="toc"] * Doesn't seem to work
+	var navEl = navHtml.querySelector('nav[*|type="toc"]'), //-- [*|type="toc"] * Doesn't seem to work
 			idCounter = 0;
 	
 	if(!navEl) return [];
@@ -372,4 +372,75 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	}
 
 	return getTOC(navMap);
+};
+
+EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
+	var navEl = navHtml.querySelector('nav[*|type="page-list"]'),
+			idCounter = 0;
+
+	if(!navEl) return [];
+	
+	// Implements `> ol > li`
+	function findListItems(parent){
+		var items = [];
+	
+		Array.prototype.slice.call(parent.childNodes).forEach(function(node){
+			if('ol' == node.tagName){
+				Array.prototype.slice.call(node.childNodes).forEach(function(item){
+					if('li' == item.tagName){
+						items.push(item);
+					}
+				});
+			}
+		});
+		
+		return items;
+	
+	}
+	
+	// Implements `> a, > span`
+	function findAnchorOrSpan(parent){
+		var item = null;
+		
+		Array.prototype.slice.call(parent.childNodes).forEach(function(node){
+			if('a' == node.tagName || 'span' == node.tagName){
+				item = node;
+			}
+		});
+		
+		return item;
+	}
+	
+	function getPages(parent){
+		var list = [],
+				nodes = findListItems(parent),
+				items = Array.prototype.slice.call(nodes),
+				length = items.length,
+				node;
+	
+		if(length === 0) return false;
+		
+		items.forEach(function(item){
+			var id = item.getAttribute('id') || false,
+				content = findAnchorOrSpan(item),
+				href = content.getAttribute('href') || '',
+				text = content.textContent || "",
+				split = href.split("#"),
+				packageUrl = split[0],
+				cfi = split.length > 1 ? split[1] : false;
+
+			if(cfi) {
+				list.push({
+					"cfi" : cfi,
+					"packageUrl" : packageUrl,
+					"page" : text
+				});
+			}
+
+		});
+	
+		return list;
+	}
+	
+	return getPages(navEl);
 };

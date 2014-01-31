@@ -42,7 +42,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:selected",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
-	"renderer:pageChanged",
+	"renderer:locationChanged",
 	"renderer:resized",
 	"renderer:spreads"
 ];
@@ -144,12 +144,12 @@ EPUBJS.Renderer.prototype.load = function(url){
 			var pages = this.layout.calculatePages();
 			var msg = this.currentChapter;
 			
+			this.updatePages(pages);
+
 			msg.cfi = this.currentLocationCfi = this.getPageCfi();
 
 			this.trigger("renderer:chapterDisplayed", msg);
-			this.trigger("renderer:pageChanged", this.currentLocationCfi);
-
-			this.updatePages(pages);
+			this.trigger("renderer:locationChanged", this.currentLocationCfi);
 
 			this.visible(true);
 
@@ -279,7 +279,7 @@ EPUBJS.Renderer.prototype.visible = function(bool){
 
 // Remove the render element and clean up listeners
 EPUBJS.Renderer.prototype.remove = function() {
-	if(this.renderer.window) {
+	if(this.render.window) {
 		this.render.unload();
 		this.render.window.removeEventListener("resize", this.resized);
 		this.removeEventListeners();
@@ -321,7 +321,7 @@ EPUBJS.Renderer.prototype.page = function(pg){
 		this.render.page(pg);
 
 		this.currentLocationCfi = this.getPageCfi();
-		this.trigger("renderer:pageChanged", this.currentLocationCfi);
+		this.trigger("renderer:locationChanged", this.currentLocationCfi);
 
 		return true;
 	}
@@ -338,8 +338,8 @@ EPUBJS.Renderer.prototype.nextPage = function(){
 		this.render.page(pg);
 	
 		this.currentLocationCfi = this.getPageCfi(this.visibileEl);
-		this.trigger("renderer:pageChanged", this.currentLocationCfi);
-	
+		this.trigger("renderer:locationChanged", this.currentLocationCfi);
+
 		return true;
 	}
 	//-- Return false if page is greater than the total

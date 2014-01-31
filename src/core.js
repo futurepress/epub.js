@@ -314,3 +314,33 @@ EPUBJS.core.uuid = function() {
 	});
 	return uuid;
 };
+
+// Fast quicksort insert for sorted array -- based on:
+// http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers 
+EPUBJS.core.insert = function(item, array, compareFunction) {
+	var location = EPUBJS.core.locationOf(item, array, compareFunction);
+	array.splice(location+1, 0, item);
+	
+	return location+1;
+};
+
+EPUBJS.core.locationOf = function(item, array, compareFunction, _start, _end) {
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 1 || compareFunction(array[pivot], item) === 0) {
+		return pivot;
+	}
+	if(compareFunction(array[pivot], item) === -1) {
+		return EPUBJS.core.locationOf(item, array, compareFunction, pivot, end);
+	} else{
+		return EPUBJS.core.locationOf(item, array, compareFunction, start, pivot);
+	}
+};

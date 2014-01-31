@@ -9,7 +9,7 @@ EPUBJS.Hooks = (function(){
 		Array.prototype.slice.call(arguments).forEach(function(arg){
 			this.hooks[arg] = [];
 		}, this);
-			
+
 		for (var plugType in this.hooks) {
 			plugs = _.values(EPUBJS.hooks[plugType]);
 	
@@ -54,6 +54,11 @@ EPUBJS.Hooks = (function(){
 		hooks = this.hooks[type];
 	
 		count = hooks.length;
+		
+		if(count === 0 && callback) {
+			callback();
+		}
+
 		function countdown(){
 			count--;
 			if(count <= 0 && callback) callback();
