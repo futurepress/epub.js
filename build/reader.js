@@ -38,7 +38,8 @@ EPUBJS.Reader = function(path, _options) {
 		contained : null,
 		bookKey : null,
 		styles : null,
-		sidebarReflow: false
+		sidebarReflow: false,
+		generatePagination: false
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
@@ -68,6 +69,10 @@ EPUBJS.Reader = function(path, _options) {
 	this.sidebarOpen = false;
 	if(!this.settings.bookmarks) {
 		this.settings.bookmarks = [];
+	}
+
+	if(this.settings.generatePagination) {
+		book.generatePagination(1076, 588);
 	}
 
 	book.renderTo("viewer");

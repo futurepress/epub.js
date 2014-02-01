@@ -2076,7 +2076,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 	var spinePos = -1;
 	var spineLength = this.spine.length;
 	var totalPages = 0;
-	var currentPage = 1;
+	var currentPage = 0;
 	var nextChapter = function(deferred){
 		var chapter;
 		var next = spinePos + 1;
@@ -2090,7 +2090,6 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(){
 				var nextPage = pager.nextPage();
-				currentPage += 1;
 				// Page though the entire chapter
 				while (nextPage) {
 					nextPage = pager.nextPage();
@@ -2109,6 +2108,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 	}.bind(this));
 
 	pager.on("renderer:locationChanged", function(cfi){
+		currentPage += 1;
 		pageList.push({
 			"cfi" : cfi,
 			"page" : currentPage
@@ -3849,7 +3849,7 @@ EPUBJS.Pagination.prototype.pageFromPercentage = function(percent){
 // Returns a value between 0 - 1 corresponding to the location of a page
 EPUBJS.Pagination.prototype.percentageFromPage = function(pg){
 	var percentage = (pg - this.firstPage) / this.totalPages;
-	return Math.round(percentage * 100) / 100;
+	return Math.round(percentage * 1000) / 1000;
 };
 
 // Returns a value between 0 - 1 corresponding to the location of a cfi
