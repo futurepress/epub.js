@@ -145,7 +145,7 @@ Hooks require a event to latch onto and a callback for when they are finished.
 Example hook:
 
 ```javascript
-EPBUJS.Hooks.register("beforeChapterDisplay").example = function(callback, render){
+EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, render){
     
     var elements = render.doc.querySelectorAll('[video]'),
         items = Array.prototype.slice.call(elements);
