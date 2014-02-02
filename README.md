@@ -142,7 +142,7 @@ Examples of this functionality is loading videos from YouTube links before displ
 
 Hooks require a event to latch onto and a callback for when they are finished.
 
-Example hook:
+Example hooks:
 
 ```javascript
 EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, render){
@@ -158,6 +158,13 @@ EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, rende
 		
 }
 ```
+
+```javascript
+Book.on("renderer:pageChanged", function(cfi) {
+    console.log("at page:", cfi);
+});
+```
+
 
 Additional Resources
 -------------------------
