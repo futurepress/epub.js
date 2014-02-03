@@ -74,6 +74,8 @@ EPUBJS.Book = function(options){
 		this.ready.cover.promise,
 		this.ready.toc.promise
 	];
+	
+	this.pagination = new EPUBJS.Pagination();
 	this.pageListReady = this.ready.pageList.promise;
 	
 	this.ready.all = RSVP.all(this.readyPromises);
@@ -248,7 +250,6 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 				return parse.pageList(navHtml, book.spineIndexByURL, book.spine);
 			}).then(function(pageList){
 				book.pageList = book.contents.pageList = pageList;
-				book.pagination = new EPUBJS.Pagination();
 				if(pageList.length) {
 					book.pagination.process(book.pageList);
 					book.ready.pageList.resolve(book.pageList);
@@ -362,11 +363,15 @@ EPUBJS.Book.prototype.generatePagination = function(width, height) {
 
 // Process the pagination from a JSON array containing the pagelist
 EPUBJS.Book.prototype.loadPagination = function(pagelistJSON) {
-	var pageList = JSON.parse(jsonArray);
+	var pageList = JSON.parse(pagelistJSON);
+
 	if(pageList && pageList.length) {
-		this.pageList = this.contents.pageList = pageList;
+		this.pageList = pageList;
 		this.pagination.process(this.pageList);
-		this.ready.pageList.resolve(this.pageList);
+		// Wait for book contents to load before resolving
+		this.ready.all.then(function(){
+			this.ready.pageList.resolve(this.pageList);
+		}.bind(this));
 	}
 	return this.pageList;
 };

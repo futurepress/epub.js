@@ -38,6 +38,11 @@ EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 
 EPUBJS.Pagination.prototype.cfiFromPage = function(pg){
 	var cfi;
+	// check that pg is an int
+	if(typeof pg != "number"){
+		pg = parseInt(pg);
+	}
+
 	// check if the cfi is in the page list
 	var index = this.pages.indexOf(pg);
 	if(index != -1) {

@@ -118,7 +118,7 @@
          <script>
             "use strict";
             
-            var book = ePub("../demo/moby-dick/", {restore: false, reload: true });
+            var book = ePub("../demo/moby-dick/");
 
         </script>
     </head>
@@ -133,31 +133,47 @@
         <script>            
             var controls = document.getElementById("controls");
             var slider = document.createElement("input");
+            var pageList;
+             
+            var rendered = book.renderTo("area");
             
-            book.renderTo("area");
+            // Load in stored pageList from json or local storage
+            /*
+            EPUBJS.core.request("page_list.json").then(function(storedPageList){
+                pageList = storedPageList;
+                book.loadPagination(pageList);
+            });
+            */
+            
+            // Or generate the pageList on the fly
             book.ready.all.then(function(){
                 book.generatePagination();
             });
-                 
+            
+            // Wait for the pageList to be ready and then show slider
             book.pageListReady.then(function(pageList){
-                // console.log(pageList);
-                
+                // console.log(JSON.stringify(pageList)); // Save the result
                 slider.setAttribute("type", "range");
                 slider.setAttribute("min", book.pagination.firstPage);
                 slider.setAttribute("max", book.pagination.lastPage);
-                slider.setAttribute("value", 1);
                 slider.setAttribute("step", 1);
+                
                 slider.addEventListener("change", function(value){
-                    console.log(slider.value);
+                    book.gotoPage(slider.value);
                 }, false);
+                
+                // Wait for book to be rendered to get current page
+                rendered.then(function(){
+                    var currentLocation = book.getCurrentLocationCfi();
+                    var currentPage = book.pagination.pageFromCfi(currentLocation);
+                    slider.value = currentPage;
+                });
+                
                 controls.appendChild(slider);
             });
             
             book.on('book:pageChanged', function(location){
-                if(slider){
-                console.log("page", location.page, location.percentage);
-                    slider.setAttribute("value", location.page);
-                }
+                slider.value = location.page;
             });
         </script>
     </body>
