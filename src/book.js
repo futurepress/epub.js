@@ -20,9 +20,8 @@ EPUBJS.Book = function(options){
 		restore: false,
 		reload : false,
 		goto : false,
-		styles : {},
-		headTags : {},
 		withCredentials: false,
+		styles : {}
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -697,11 +696,6 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 	this.render.removeStyle(style);
 	this.render.reformat();
 	delete this.settings.styles[style];
-};
-
-EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
-	if(!this.isRendered) return this._enqueue("addHeadTag", arguments);
-    this.settings.headTags[tag] = attrs;
 };
 
 EPUBJS.Book.prototype.useSpreads = function(use) {

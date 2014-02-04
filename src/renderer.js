@@ -232,12 +232,10 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 	this.iframe.onload = function() {
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
-		renderer.headEl = renderer.doc.head;
 		renderer.bodyEl = renderer.doc.body;
 		renderer.contentWindow = renderer.iframe.contentWindow;
 		
 		renderer.applyStyles();
-		renderer.applyHeadTags();
 		
 		if(renderer.book.settings.fixedLayout) {
 			renderer.fixedLayout();
@@ -307,22 +305,20 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
-	if(this.bodyEl) {
-		this.bodyEl.style.margin = "0";
+	if(this.bodyEl) this.bodyEl.style.margin = "0";
 		
-		this.docEl.style.overflow = "hidden";
+	this.docEl.style.overflow = "hidden";
 
-		this.docEl.style.width = this.elWidth + "px";
+	this.docEl.style.width = this.elWidth + "px";
 
-		//-- Adjust height
-		this.docEl.style.height = this.iframe.clientHeight	+ "px";
+	//-- Adjust height
+	this.docEl.style.height = this.iframe.clientHeight	+ "px";
 
-		//-- Add columns
-		this.docEl.style[EPUBJS.Renderer.columnAxis] = "horizontal";
-		this.docEl.style[EPUBJS.Renderer.columnGap] = this.gap+"px";
-		this.docEl.style[EPUBJS.Renderer.columnWidth] = this.colWidth+"px";
-	}
-
+	//-- Add columns
+	this.docEl.style[EPUBJS.Renderer.columnAxis] = "horizontal";
+	this.docEl.style[EPUBJS.Renderer.columnGap] = this.gap+"px";
+	this.docEl.style[EPUBJS.Renderer.columnWidth] = this.colWidth+"px";
+	
 };
 
 EPUBJS.Renderer.prototype.fixedLayout = function(){
@@ -370,24 +366,6 @@ EPUBJS.Renderer.prototype.applyStyles = function() {
 	}
 };
 
-EPUBJS.Renderer.prototype.addHeadTag = function(tag, attrs) {
-	var s = document.createElement(tag);
-
-	for(attr in attrs) {
-		s[attr] = attrs[attr];
-	}
-	this.headEl.appendChild(s);
-}
-
-EPUBJS.Renderer.prototype.applyHeadTags = function() {
-	
-	var headTags = this.book.settings.headTags;
-	
-	for ( var headTag in headTags ) {
-		this.addHeadTag(headTag, headTags[headTag])
-	}
-};
-
 EPUBJS.Renderer.prototype.gotoChapterEnd = function(){
 	this.chapterEnd();
 };
@@ -406,7 +384,7 @@ EPUBJS.Renderer.prototype.visible = function(bool){
 
 EPUBJS.Renderer.prototype.calcPages = function() {
 	
-	if(this.docEl) this.totalWidth = this.docEl.scrollWidth;
+	this.totalWidth = this.docEl.scrollWidth;
 	
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 
