@@ -1711,7 +1711,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.1.9";
+EPUBJS.VERSION = "0.1.10";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -1772,6 +1772,7 @@ EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
 	module.exports = ePub;
 
 })(window);
+
 EPUBJS.Book = function(options){
 
 	var book = this;
