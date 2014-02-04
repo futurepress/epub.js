@@ -37,7 +37,8 @@ EPUBJS.Reader = function(path, _options) {
 		bookmarks : null,
 		contained : null,
 		bookKey : null,
-		styles : null
+		styles : null,
+		sidebarReflow: false
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
@@ -421,12 +422,20 @@ EPUBJS.reader.ReaderController = function(book) {
 			$prev = $("#prev");
 
 	var slideIn = function() {
-		$main.removeClass("closed");
-	};
+        if (Reader.settings.sidebarReflow){
+                $('#main').removeClass('single');
+        } else {
+                $main.removeClass("closed");
+        }
+    };
 
-	var slideOut = function() {
-		$main.addClass("closed");
-	};
+    var slideOut = function() {
+        if (Reader.settings.sidebarReflow){
+                $('#main').addClass('single');
+        } else {
+                $main.addClass("closed");
+        }
+    };
 
 	var showLoader = function() {
 		$loader.show();
@@ -522,6 +531,12 @@ EPUBJS.reader.SettingsController = function() {
 	var hide = function() {
 		$settings.removeClass("md-show");
 	};
+
+	var $sidebarReflowSetting = $('#sidebarReflow');
+
+    $sidebarReflowSetting.on('click', function() {
+        Reader.settings.sidebarReflow = !Reader.settings.sidebarReflow;
+    });
 
 	$settings.find(".closer").on("click", function() {
 		hide();

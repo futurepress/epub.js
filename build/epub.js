@@ -1794,8 +1794,9 @@ EPUBJS.Book = function(options){
 		restore: false,
 		reload : false,
 		goto : false,
+		styles : {},
+		headTags : {},
 		withCredentials: false,
-		styles : {}
 	});
 	
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -2472,6 +2473,11 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 	delete this.settings.styles[style];
 };
 
+EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
+	if(!this.isRendered) return this._enqueue("addHeadTag", arguments);
+    this.settings.headTags[tag] = attrs;
+};
+
 EPUBJS.Book.prototype.useSpreads = function(use) {
 	if(!this.isRendered) return this._enqueue("useSpreads", arguments);
 	this.settings.spreads = use;
@@ -2823,7 +2829,7 @@ EPUBJS.core.folder = function(url){
 	
 	var lastSlash = url.lastIndexOf('/');
 	
-	if(lastSlash == -1) folder = '';
+	if(lastSlash == -1) var folder = '';
 		
 	folder = url.slice(0, lastSlash + 1);
 	
@@ -2953,6 +2959,7 @@ EPUBJS.core.resolveUrl = function(base, path) {
 
 	return url.join("/");
 };
+
 EPUBJS.EpubCFI = function(cfiStr){
 	if(cfiStr) return this.parse(cfiStr);
 };
@@ -3811,10 +3818,12 @@ EPUBJS.Renderer.prototype.setIframeSrc = function(url){
 	this.iframe.onload = function() {
 		renderer.doc = renderer.iframe.contentDocument;
 		renderer.docEl = renderer.doc.documentElement;
+		renderer.headEl = renderer.doc.head;
 		renderer.bodyEl = renderer.doc.body;
 		renderer.contentWindow = renderer.iframe.contentWindow;
 		
 		renderer.applyStyles();
+		renderer.applyHeadTags();
 		
 		if(renderer.book.settings.fixedLayout) {
 			renderer.fixedLayout();
@@ -3884,20 +3893,22 @@ EPUBJS.Renderer.prototype.formatSpread = function(){
 	// this.bodyEl.style.fontSize = localStorage.getItem("fontSize") || "medium";
 	
 	//-- Clear Margins
-	if(this.bodyEl) this.bodyEl.style.margin = "0";
+	if(this.bodyEl) {
+		this.bodyEl.style.margin = "0";
 		
-	this.docEl.style.overflow = "hidden";
+		this.docEl.style.overflow = "hidden";
 
-	this.docEl.style.width = this.elWidth + "px";
+		this.docEl.style.width = this.elWidth + "px";
 
-	//-- Adjust height
-	this.docEl.style.height = this.iframe.clientHeight	+ "px";
+		//-- Adjust height
+		this.docEl.style.height = this.iframe.clientHeight	+ "px";
 
-	//-- Add columns
-	this.docEl.style[EPUBJS.Renderer.columnAxis] = "horizontal";
-	this.docEl.style[EPUBJS.Renderer.columnGap] = this.gap+"px";
-	this.docEl.style[EPUBJS.Renderer.columnWidth] = this.colWidth+"px";
-	
+		//-- Add columns
+		this.docEl.style[EPUBJS.Renderer.columnAxis] = "horizontal";
+		this.docEl.style[EPUBJS.Renderer.columnGap] = this.gap+"px";
+		this.docEl.style[EPUBJS.Renderer.columnWidth] = this.colWidth+"px";
+	}
+
 };
 
 EPUBJS.Renderer.prototype.fixedLayout = function(){
@@ -3945,6 +3956,24 @@ EPUBJS.Renderer.prototype.applyStyles = function() {
 	}
 };
 
+EPUBJS.Renderer.prototype.addHeadTag = function(tag, attrs) {
+	var s = document.createElement(tag);
+
+	for(attr in attrs) {
+		s[attr] = attrs[attr];
+	}
+	this.headEl.appendChild(s);
+}
+
+EPUBJS.Renderer.prototype.applyHeadTags = function() {
+	
+	var headTags = this.book.settings.headTags;
+	
+	for ( var headTag in headTags ) {
+		this.addHeadTag(headTag, headTags[headTag])
+	}
+};
+
 EPUBJS.Renderer.prototype.gotoChapterEnd = function(){
 	this.chapterEnd();
 };
@@ -3963,7 +3992,7 @@ EPUBJS.Renderer.prototype.visible = function(bool){
 
 EPUBJS.Renderer.prototype.calcPages = function() {
 	
-	this.totalWidth = this.docEl.scrollWidth;
+	if(this.docEl) this.totalWidth = this.docEl.scrollWidth;
 	
 	this.displayedPages = Math.ceil(this.totalWidth / this.spreadWidth);
 
@@ -4338,6 +4367,7 @@ EPUBJS.Renderer.prototype.remove = function() {
 
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);
+
 var EPUBJS = EPUBJS || {};
 EPUBJS.replace = {};
 
@@ -4453,6 +4483,7 @@ EPUBJS.Unarchiver = function(url){
 	
 };
 
+//-- Load the zip lib and set the workerScriptsPath
 EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 	if(typeof(zip) == "undefined") console.error("Zip lib not loaded");
 	
@@ -4496,8 +4527,8 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	
 	if(!entry) {
-		console.error("File not found in the epub:", url);
-		return;
+		console.warn("File not found in the epub:", url);
+		return deferred.promise;
 	}
 	
 	if(url in this.urlCache) {
@@ -4521,8 +4552,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error(url);
-
+	if(!entry) {
+		console.warn("File not found in the contained epub:", url);
+		return deferred.promise;
+	}
 
 	entry.getText(function(text){
 		deferred.resolve(text);
