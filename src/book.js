@@ -75,6 +75,7 @@ EPUBJS.Book = function(options){
 		this.ready.toc.promise
 	];
 	
+	this.pageList = [];
 	this.pagination = new EPUBJS.Pagination();
 	this.pageListReady = this.ready.pageList.promise;
 	
@@ -249,8 +250,8 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 			then(function(navHtml){
 				return parse.pageList(navHtml, book.spineIndexByURL, book.spine);
 			}).then(function(pageList){
-				book.pageList = book.contents.pageList = pageList;
 				if(pageList.length) {
+					book.pageList = book.contents.pageList = pageList;
 					book.pagination.process(book.pageList);
 					book.ready.pageList.resolve(book.pageList);
 				}
@@ -287,6 +288,9 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
  
 	hiddenEl = document.createElement("div");
 	hiddenEl.style.visibility = "hidden";
+	hiddenEl.style.overflow = "hidden";
+	hiddenEl.style.width = "0";
+	hiddenEl.style.height = "0";
 	this.element.appendChild(hiddenEl);
 	
 	renderer.initialize(hiddenEl, width, height);
@@ -314,8 +318,8 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 
-			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(){
-				var nextPage = pager.nextPage();
+			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
+				var nextPage = true;//pager.nextPage();
 				// Page though the entire chapter
 				while (nextPage) {
 					nextPage = pager.nextPage();
@@ -368,10 +372,7 @@ EPUBJS.Book.prototype.loadPagination = function(pagelistJSON) {
 	if(pageList && pageList.length) {
 		this.pageList = pageList;
 		this.pagination.process(this.pageList);
-		// Wait for book contents to load before resolving
-		this.ready.all.then(function(){
-			this.ready.pageList.resolve(this.pageList);
-		}.bind(this));
+		this.ready.pageList.resolve(this.pageList);
 	}
 	return this.pageList;
 };
@@ -425,8 +426,22 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 				"page": page,
 				"percentage": percent
 			});
+			
+			// TODO: Add event for first and last page. 
+			// (though last is going to be hard, since it could be several reflowed pages long)
 		}
 	}.bind(this));
+	
+	renderer.on("render:loaded", this.loadChange.bind(this));
+};
+
+// Listens for load events from the Renderer and checks against the current chapter
+// Prevents the Render from loading a different chapter when back button is pressed
+EPUBJS.Book.prototype.loadChange = function(url){
+	var uri = EPUBJS.core.uri(url);
+	if(this.currentChapter && uri.path != this.currentChapter.absolute){
+		this.goto(uri.filename);
+	}
 };
 
 EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
@@ -975,7 +990,7 @@ EPUBJS.Book.prototype.applyHeadTags = function(callback){
 EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this), true);
 	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this), true);
-	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs, true);
+	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs.bind(this), true);
 
 	if(this._needsAssetReplacement()) {
 

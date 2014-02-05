@@ -76,7 +76,7 @@ test("Get Percentage from a cfi present in the pageList", 1, function() {
 test("Get Percentage from a cfi NOT present in the pageList", 1, function() {
 	var pagination = new EPUBJS.Pagination(mockPageList);
 	var pg = pagination.percentageFromCfi("epubcfi(/6/4[ct]!/4/2[d10e42]/20/12/1:0)");
-	equal( pg, .17, "Page is found, and correct presentage reported" );
+	equal( pg, 0.167, "Page is found, and correct presentage reported" );
 });
 
 asyncTest("Generate PageList", 4, function() {
@@ -95,9 +95,49 @@ asyncTest("Generate PageList", 4, function() {
 	});
 	
 	book.pageListReady.then(function(pageList){
-		equal(pageList.length, 885, "PageList has been generated");
+		equal(pageList.length, 888, "PageList has been generated");
 		// fixture seems to be removed by the time this is run
 		// equal($("#qunit-fixture frame").length, 1, "Hidden Element Removed"); 
 		start();
+	});
+});
+
+
+asyncTest("Load a pageList", 2, function() {
+	var book = ePub('../books/moby-dick/', { width: 1076, height: 588 });
+
+	var render = book.renderTo("qunit-fixture");
+	
+	EPUBJS.core.request("../examples/page_list.json").then(function(storedPageList){
+		pageList = storedPageList;
+		book.loadPagination(pageList);
+	});
+
+	book.pageListReady.then(function(pageList){
+		equal(pageList.length, 394, "PageList has been generated");
+		equal(book.pagination.lastPage, 394, "All pages present")
+		start();
+	});
+});
+
+
+asyncTest("gotoPage after generating page list", 2, function() {
+	var book = ePub('../demo/moby-dick/', { width: 1076, height: 588 });
+
+	var render = book.renderTo("qunit-fixture");
+	
+	book.generatePagination();
+
+	book.pageListReady.then(function(pageList){
+		// console.log(JSON.stringify(pageList));
+		var changed = book.gotoPage(38);
+		changed.then(function(){
+			equal(book.getCurrentLocationCfi(), "epubcfi(/6/24[xchapter_006]!4/2/14/1:0)", "Page changed"); 
+			start();
+		});
+		
+		start();
+		equal(pageList.length, 394, "PageList has been generated");
+		stop();
 	});
 });

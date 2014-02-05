@@ -1,9 +1,10 @@
 EPUBJS.Pagination = function(pageList) {
-	this.pageList = pageList;
 	this.pages = [];
 	this.locations = [];
-	
 	this.epubcfi = new EPUBJS.EpubCFI();
+	if(pageList && pageList.length) {
+		this.process(pageList);
+	}
 };
 
 EPUBJS.Pagination.prototype.process = function(pageList){
@@ -11,14 +12,15 @@ EPUBJS.Pagination.prototype.process = function(pageList){
 		this.pages.push(item.page);
 		this.locations.push(item.cfi);
 	}, this);
-
+	
+	this.pageList = pageList;
 	this.firstPage = parseInt(this.pages[0]);
 	this.lastPage = parseInt(this.pages[this.pages.length-1]);
 	this.totalPages = this.lastPage - this.firstPage;
 };
 
 EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
-	var pg;
+	var pg = -1;
 	// check if the cfi is in the location list
 	var index = this.locations.indexOf(cfi);
 	if(index != -1 && index < (this.pages.length-1) ) {
@@ -32,12 +34,11 @@ EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 		// Add the new page in so that the locations and page array match up
 		this.pages.splice(index, 0, pg);
 	}
-
 	return pg;
 };
 
 EPUBJS.Pagination.prototype.cfiFromPage = function(pg){
-	var cfi;
+	var cfi = -1;
 	// check that pg is an int
 	if(typeof pg != "number"){
 		pg = parseInt(pg);
@@ -73,10 +74,10 @@ EPUBJS.Pagination.prototype.percentageFromCfi = function(cfi){
 // TODO: move these
 EPUBJS.Book.prototype.gotoPage = function(pg){
 	var cfi = this.pagination.cfiFromPage(pg);
-	this.gotoCfi(cfi);
+	return this.gotoCfi(cfi);
 };
 
 EPUBJS.Book.prototype.gotoPercentage = function(percent){
 	var pg = this.pagination.pageFromPercentage(percent);
-	this.gotoCfi(pg);
+	return this.gotoCfi(pg);
 };

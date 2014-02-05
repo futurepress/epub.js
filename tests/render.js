@@ -63,10 +63,10 @@ asyncTest("Go to chapter 1 and advance to next page", 4, function() {
 			$body = $iframe.contents().find("body");
 
 			Book.nextPage();
-			equal( $body.scrollLeft(), 454, "on page 2");
+			equal( $body.scrollLeft(), 450, "on page 2");
 
 			Book.nextPage();
-			equal( $body.scrollLeft(), 908, "on page 3");
+			equal( $body.scrollLeft(), 900, "on page 3");
 		});
 		
 
@@ -149,11 +149,11 @@ asyncTest("Display end of chapter 20 and go to prev page", 3, function() {
 			$body = $iframe.contents().find("body");
 			Book.prevPage();
 
-			equal( $body.scrollLeft(), 1362, "on last page");
+			equal( $body.scrollLeft(), 1350, "on last page");
 
 
 			Book.prevPage();
-			equal( $body.scrollLeft(), 908, "on second to last page ");
+			equal( $body.scrollLeft(), 900, "on second to last page ");
 			
 			
 		});
@@ -206,9 +206,9 @@ asyncTest("Switch Spreads to Single", 3, function() {
 	
 	var result = function(){
 		equal( Book.renderer.spreads, true, "Use Spreads");
-		Book.useSpreads(false);
+		Book.forceSingle(true);
 		equal( Book.renderer.spreads, false, "Don't Use Spreads");
-		equal( Book.renderer.contents.style[EPUBJS.core.prefixed('columnWidth')], "352px", "Don't Use Spreads");
+		equal( Book.renderer.contents.style[EPUBJS.core.prefixed('columnWidth')], "350px", "Don't Use Spreads");
 		start();
 	};
 	

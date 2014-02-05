@@ -39,8 +39,13 @@ EPUBJS.EpubCFI.prototype.generatePathComponent = function(steps) {
 EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
 	var steps = this.pathTo(element);
 	var path = this.generatePathComponent(steps);
-
-	return "epubcfi(" + chapter + "!" + path + "/1:0)";
+	if(!path.length) {
+		// Start of Chapter
+		return "epubcfi(" + chapter + ")";
+	} else {
+		// First Text Node
+		return "epubcfi(" + chapter + "!" + path + "/1:0)";
+	}
 };
 
 EPUBJS.EpubCFI.prototype.pathTo = function(node) {
@@ -96,18 +101,18 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 		end,
 		text;
 
+	cfi.str = cfiStr;
+
 	if(cfiStr.indexOf("epubcfi(") === 0) {
 		// Remove intial epubcfi( and ending )
 		cfiStr = cfiStr.slice(8, cfiStr.length-1);
 	}
-	
 
-	
 	chapterComponent = this.getChapterComponent(cfiStr);
-	pathComponent = this.getPathComponent(cfiStr);
+	pathComponent = this.getPathComponent(cfiStr) || '';
 	charecterOffsetComponent = this.getCharecterOffsetComponent(cfiStr);
 	// Make sure this is a valid cfi or return
-	if(!chapterComponent.length || !pathComponent.length) {
+	if(!chapterComponent) {
 		return {spinePos: -1};
 	}
 	
@@ -181,18 +186,20 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 		cfi = this.parse(cfi);
 	}
 	
-	sections = cfi.steps;
+	sections = cfi.steps.slice(0); // Clone steps array
 	
 	while(sections && sections.length > 0) {
 		part = sections.shift();
-		
 		// Wrap text elements in a span and return that new element
 		if(part.type === "text") {
 			text = element.childNodes[part.index];
 			element = doc.createElement('span');
 			element.id = "EPUBJS-CFI-MARKER:"+ EPUBJS.core.uuid();
-
+			element.classList.add("EPUBJS-CFI-MARKER");
+			
 			if(cfi.characterOffset) {
+				// TODO: replace with text.splitText(cfi.characterOffset)
+				// https://developer.mozilla.org/en-US/docs/Web/API/Text.splitText
 				textBegin = doc.createTextNode(text.textContent.slice(0, cfi.characterOffset));
 				textEnd = doc.createTextNode(text.textContent.slice(cfi.characterOffset));
 				text.parentNode.insertBefore(textEnd, text);
@@ -200,20 +207,32 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 				text.parentNode.insertBefore(textBegin, element);
 				text.parentNode.removeChild(text);
 			} else {
-				text.parentNode.insertBefore(element, text);
+				// If this is the first text node, just return the orginal element
+				if(part.index === 0){
+					element = text.parentNode;
+				} else {
+					text.parentNode.insertBefore(element, text);
+				}
 			}
 		// sort cut to find element by id
 		} else if(part.id){
 			element = doc.getElementById(part.id);
 		// find element in parent
 		}else{
-			if(!children) console.error("No Kids", element);
+			// if(!children.length) return console.error("No Kids", element);
 			element = children[part.index];
 		}
 	
-	
-		if(!element) console.error("No Element For", part, cfi);
+		if(!element) return console.error("No Element For", part, cfi, part.index, children, children[part.index]);
 		children = Array.prototype.slice.call(element.children);
+		// Remove EPUBJS-CFI-MARKER elements
+		children.forEach(function(child){
+			if(child.classList.contains("EPUBJS-CFI-MARKER")){
+				var index = children.indexOf(child);
+				children.splice(index, 1);
+			}
+		});
+		// console.log(element, children)
 	}
 
 	return element;

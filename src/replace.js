@@ -3,6 +3,7 @@ EPUBJS.replace = {};
 
 //-- Replaces the relative links within the book to use our internal page changer
 EPUBJS.replace.hrefs = function(callback, renderer){
+	var book = this;
 	var replacments = function(link, done){
 		var href = link.getAttribute("href"),
 				relative = href.search("://"),
@@ -15,7 +16,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 		}else{
 
 			link.onclick = function(){
-				renderer.book.goto(href);
+				book.goto(href);
 				return false;
 			};
 

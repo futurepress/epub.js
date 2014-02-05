@@ -12,6 +12,9 @@ EPUBJS.Renderer = function(renderMethod) {
 		console.error("Not a Valid Rendering Method");
 	}
 
+	// Listen for load events
+	this.render.on("render:loaded", this.loaded.bind(this));
+	
 	// Cached for replacement urls from storage
 	this.caches = {};
 	
@@ -120,9 +123,9 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	this.visible(false);
 
-	loaded = this.render.load(url);
+	render = this.render.load(url);
 
-	loaded.then(function(contents) {
+	render.then(function(contents) {
 		var formated;
 		
 		this.contents = contents;
@@ -136,6 +139,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 			this.render.window.addEventListener("resize", this.resized, false);
 		}
 
+		
 		this.addEventListeners();
 		this.addSelectionListeners();
 
@@ -159,6 +163,13 @@ EPUBJS.Renderer.prototype.load = function(url){
 	}.bind(this));
 
 	return deferred.promise;
+};
+
+EPUBJS.Renderer.prototype.loaded = function(url){
+	this.trigger("render:loaded", url);
+	// var uri = EPUBJS.core.uri(url);
+	// var relative = uri.path.replace(book.bookUrl, '');
+	// console.log(url, uri, relative);
 };
 
 /**
@@ -189,8 +200,7 @@ EPUBJS.Renderer.prototype.reconcileLayoutSettings = function(global, chapter){
 			settings[property] = value;
 		}
 	});
-
-	return settings;
+ return settings;
 };
 
 /**
@@ -251,7 +261,7 @@ EPUBJS.Renderer.prototype.reformat = function(){
 
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
-	
+
 	// Give the css styles time to update
 	clearTimeout(this.timeoutTillCfi);
 	this.timeoutTillCfi = setTimeout(function(){
@@ -322,7 +332,6 @@ EPUBJS.Renderer.prototype.page = function(pg){
 
 		this.currentLocationCfi = this.getPageCfi();
 		this.trigger("renderer:locationChanged", this.currentLocationCfi);
-
 		return true;
 	}
 	//-- Return false if page is greater than the total
@@ -375,7 +384,20 @@ EPUBJS.Renderer.prototype.section = function(fragment){
 
 };
 
-// Walk the node tree from an element to the root
+EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
+	var children = node.childNodes;
+	var leng = children.length;
+	
+	if(leng && 
+		children[0] && // First Child
+		children[0].nodeType === 3 && // This is a textNodes
+		children[0].textContent.trim().length) { // With non whitespace or return charecters
+		return true;
+	}
+	return false;
+};
+
+// Walk the node tree from a start element to next visible element
 EPUBJS.Renderer.prototype.walk = function(node) {
 	var r, children, leng,
 		startNode = node,
@@ -387,7 +409,7 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 	while(!r && stack.length) {
 
 		node = stack.shift();
-		if( this.render.isElementVisible(node) ) {
+		if( this.render.isElementVisible(node) && this.firstElementisTextNode(node)) {
 			r = node;
 		}
 
@@ -398,8 +420,8 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 			} else {
 				return r;
 			}
-			for (var i = 0; i < leng; i++) {
-				if(children[i] != prevNode) stack.push(children[i]);
+			for (var i = leng-1; i >= 0; i--) {
+				if(children[i] != prevNode) stack.unshift(children[i]);
 			}
 		}
 
@@ -437,6 +459,7 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 	}
 
 	element = this.epubcfi.getElement(cfi, this.doc);
+	el = element;
 	this.pageByElement(element);
 };
 

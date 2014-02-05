@@ -14,7 +14,11 @@ EPUBJS.Render.Iframe.prototype.create = function(){
 	this.iframe = document.createElement('iframe');
 	this.iframe.id = "epubjs-iframe:" + EPUBJS.core.uuid();
 	this.iframe.scrolling = "no";
+	this.iframe.seamless = "seamless";
+	// Back up if seamless isn't supported
+	this.iframe.style.border = "none";
 	
+	this.iframe.addEventListener("load", this.loaded.bind(this), false);
 	return this.iframe;
 };
 
@@ -27,9 +31,11 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 	var render = this,
 			deferred = new RSVP.defer();
 
-	this.leftPos = 0;
 	this.iframe.src = url;
-	
+
+	// Reset the scroll position
+	render.leftPos = 0;
+
 	if(this.window) {
 		this.unload();
 	}
@@ -43,12 +49,12 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		render.window = render.iframe.contentWindow;
 		
 		render.window.addEventListener("resize", render.resized.bind(render), false);
-
+	
 		//-- Clear Margins
 		if(render.bodyEl) {
 			render.bodyEl.style.margin = "0";
 		}
-		
+	
 		deferred.resolve(render.docEl);
 	};
 	
@@ -60,6 +66,12 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 			});
 	};
 	return deferred.promise;
+};
+
+
+EPUBJS.Render.Iframe.prototype.loaded = function(){
+	var url = this.iframe.contentWindow.location.href;
+	this.trigger("render:loaded", url);
 };
 
 // Resize the iframe to the given width and height
@@ -159,13 +171,15 @@ EPUBJS.Render.Iframe.prototype.getBaseElement = function(){
 // Checks if an element is on the screen
 EPUBJS.Render.Iframe.prototype.isElementVisible = function(el){
 	var rect;
+	var left;
 
 	if(el && typeof el.getBoundingClientRect === 'function'){
 		rect = el.getBoundingClientRect();
+		left = rect.left; //+ rect.width;
 		if( rect.width !== 0 &&
 				rect.height !== 0 && // Element not visible
-				rect.left >= 0 &&
-				rect.left < this.pageWidth ) {
+				left >= 0 &&
+				left < this.pageWidth ) {
 			return true;
 		}
 	}
@@ -186,3 +200,6 @@ EPUBJS.Render.Iframe.prototype.scroll = function(bool){
 EPUBJS.Render.Iframe.prototype.unload = function(){
 	this.window.removeEventListener("resize", this.resized);
 };
+
+//-- Enable binding events to Render
+RSVP.EventTarget.mixin(EPUBJS.Render.Iframe.prototype);

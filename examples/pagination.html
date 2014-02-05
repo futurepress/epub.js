@@ -57,7 +57,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            /* overflow: hidden; */
           }
 
           #area {
@@ -108,9 +108,10 @@
             width: 400px;
             margin-left: -200px;
             text-align: center;
+            display: none;
           }
           
-          #controls > input {
+          #controls > input[type=range] {
               width: 400px;
           }
         </style>
@@ -118,7 +119,7 @@
          <script>
             "use strict";
             
-            var book = ePub("../demo/moby-dick/");
+            var book = ePub("../demo/moby-dick/", { width: 1076, height: 588 });
 
         </script>
     </head>
@@ -127,23 +128,27 @@
           <div id="prev" onclick="book.prevPage();" class="arrow">‹</div>
           <div id="area"></div>
           <div id="next" onclick="book.nextPage();"class="arrow">›</div>
-          <div id="controls"></div>
+          <div id="controls">
+              <input id="currentpg" size="3" maxlength="3"/> / <span id="totalpg">0</span>
+          </div>
         </div>
 
         <script>            
             var controls = document.getElementById("controls");
+            var currentPage = document.getElementById("currentpg");
+            var totalPages = document.getElementById("totalpg");
             var slider = document.createElement("input");
             var pageList;
-             
+            
             var rendered = book.renderTo("area");
             
             // Load in stored pageList from json or local storage
-            /*
-            EPUBJS.core.request("page_list.json").then(function(storedPageList){
-                pageList = storedPageList;
-                book.loadPagination(pageList);
-            });
-            */
+            ///*
+            // EPUBJS.core.request("page_list.json").then(function(storedPageList){
+            //     pageList = storedPageList;
+            //     book.loadPagination(pageList);
+            // });
+
             
             // Or generate the pageList on the fly
             book.ready.all.then(function(){
@@ -152,13 +157,16 @@
             
             // Wait for the pageList to be ready and then show slider
             book.pageListReady.then(function(pageList){
+                controls.style.display = "block";
                 // console.log(JSON.stringify(pageList)); // Save the result
                 slider.setAttribute("type", "range");
                 slider.setAttribute("min", book.pagination.firstPage);
                 slider.setAttribute("max", book.pagination.lastPage);
                 slider.setAttribute("step", 1);
+                slider.setAttribute("value", 0);
                 
                 slider.addEventListener("change", function(value){
+                    console.log(slider.value)
                     book.gotoPage(slider.value);
                 }, false);
                 
@@ -167,13 +175,21 @@
                     var currentLocation = book.getCurrentLocationCfi();
                     var currentPage = book.pagination.pageFromCfi(currentLocation);
                     slider.value = currentPage;
+                    currentPage.value = currentPage;
                 });
                 
                 controls.appendChild(slider);
+                
+                totalPages.innerText = book.pagination.totalPages;
+                currentPage.addEventListener("change", function(value){
+                    console.log(currentPage.value)
+                    book.gotoPage(currentPage.value);
+                }, false);
             });
             
             book.on('book:pageChanged', function(location){
                 slider.value = location.page;
+                currentPage.value = location.page;
             });
         </script>
     </body>
