@@ -536,6 +536,13 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end){
 		}
 		
 	});
+	
+	render = render.then(function() {
+		var deferred = new RSVP.defer();
+		setTimeout(function() { deferred.resolve() }, 0)
+		return deferred.promise
+	}.bind(this))
+	
 	return render;
 };
 
