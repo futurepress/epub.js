@@ -453,14 +453,19 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 // Goto a cfi position in the current chapter
 EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 	var element;
+	var pg;
 
 	if(_.isString(cfi)){
 		cfi = this.epubcfi.parse(cfi);
 	}
 
-	element = this.epubcfi.getElement(cfi, this.doc);
-	el = element;
-	this.pageByElement(element);
+	marker = this.epubcfi.addMarker(cfi, this.doc);
+	if(marker) {
+		pg = this.render.getPageNumberByElement(marker);
+		// Must Clean up Marker before going to page
+		this.epubcfi.removeMarker(marker, this.doc);
+		this.page(pg);
+	}
 };
 
 //  Walk nodes until a visible element is found

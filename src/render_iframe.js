@@ -69,7 +69,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 };
 
 
-EPUBJS.Render.Iframe.prototype.loaded = function(){
+EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	var url = this.iframe.contentWindow.location.href;
 	this.trigger("render:loaded", url);
 };

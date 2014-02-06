@@ -23,10 +23,7 @@ EPUBJS.EpubCFI.prototype.generatePathComponent = function(steps) {
 		var segment = '';
 		segment += (part.index + 1) * 2;
 
-		if(part.id && part.id.slice(0, 6) === "EPUBJS") {
-			//-- ignore internal @EPUBJS ids for
-			return;
-		} else if(part.id) {
+		if(part.id) {
 			segment += "[" + part.id + "]";
 		}
 
@@ -174,8 +171,83 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	return cfi;
 };
 
+EPUBJS.EpubCFI.prototype.addMarker = function(cfi, _doc, _marker) {
+	var doc = _doc || document;
+	var marker = _marker || this.createMarker(doc);
+	var parent;
+	var lastStep;
+	var text;
+	var split;
+	
+	if(typeof cfi === 'string') {
+		cfi = this.parse(cfi);
+	}
+	// Get the terminal step
+	lastStep = cfi.steps[cfi.steps.length-1];
 
-EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
+	// check spinePos
+	if(cfi.spinePos === -1) {
+		// Not a valid CFI
+		return false;
+	}
+	
+	// Find the CFI elements parent
+	parent = this.findParent(cfi, doc);
+	
+	if(!parent) {
+		// CFI didn't return an element
+		// Maybe it isnt in the current chapter?
+		return false;
+	}
+	
+	if(lastStep && lastStep.type === "text") {
+		text = parent.childNodes[lastStep.index];
+		if(cfi.characterOffset){
+			split = text.splitText();
+			marker.classList.add("EPUBJS-CFI-SPLIT");
+			parent.insertBefore(marker, split);
+		} else {
+			parent.insertBefore(marker, text);
+		}
+	} else {
+		parent.insertBefore(marker, parent.firstChild);
+	}
+	
+	return marker;
+};
+
+EPUBJS.EpubCFI.prototype.createMarker = function(_doc) {
+	var doc = _doc || document;
+	var element = doc.createElement('span');
+	element.id = "EPUBJS-CFI-MARKER:"+ EPUBJS.core.uuid();
+	element.classList.add("EPUBJS-CFI-MARKER");
+	
+	return element;
+};
+
+EPUBJS.EpubCFI.prototype.removeMarker = function(marker, _doc) {
+	var doc = _doc || document;
+	// var id = marker.id;
+
+	// Remove only elements added as markers
+	if(marker.classList.contains("EPUBJS-CFI-MARKER")){
+		marker.parentElement.removeChild(marker);
+	}
+
+	// Cleanup textnodes
+	if(marker.classList.contains("EPUBJS-CFI-SPLIT")){
+		nextSib = marker.nextSibling;
+		prevSib = marker.previousSibling;
+		if(nextSib.nodeType === 3 && prevSib.nodeType === 3){
+			prevSib.innerText += nextSib.innerText;
+			marker.parentElement.removeChild(nextSib);
+		}
+		marker.parentElement.removeChild(marker);
+	}
+
+};
+
+EPUBJS.EpubCFI.prototype.findParent = function(cfi, _doc) {
 	var doc = _doc || document,
 			element = doc.getElementsByTagName('html')[0],
 			children = Array.prototype.slice.call(element.children),
@@ -187,52 +259,27 @@ EPUBJS.EpubCFI.prototype.getElement = function(cfi, _doc) {
 	}
 	
 	sections = cfi.steps.slice(0); // Clone steps array
-	
+	if(!sections.length) {
+		return doc.getElementsByTagName('body')[0];
+	}
+
 	while(sections && sections.length > 0) {
 		part = sections.shift();
-		// Wrap text elements in a span and return that new element
+		// Find textNodes Parent
 		if(part.type === "text") {
 			text = element.childNodes[part.index];
-			element = doc.createElement('span');
-			element.id = "EPUBJS-CFI-MARKER:"+ EPUBJS.core.uuid();
-			element.classList.add("EPUBJS-CFI-MARKER");
-			
-			if(cfi.characterOffset) {
-				// TODO: replace with text.splitText(cfi.characterOffset)
-				// https://developer.mozilla.org/en-US/docs/Web/API/Text.splitText
-				textBegin = doc.createTextNode(text.textContent.slice(0, cfi.characterOffset));
-				textEnd = doc.createTextNode(text.textContent.slice(cfi.characterOffset));
-				text.parentNode.insertBefore(textEnd, text);
-				text.parentNode.insertBefore(element, textEnd);
-				text.parentNode.insertBefore(textBegin, element);
-				text.parentNode.removeChild(text);
-			} else {
-				// If this is the first text node, just return the orginal element
-				if(part.index === 0){
-					element = text.parentNode;
-				} else {
-					text.parentNode.insertBefore(element, text);
-				}
-			}
-		// sort cut to find element by id
+			element = text.parentNode || element;
+		// Find element by id if present
 		} else if(part.id){
 			element = doc.getElementById(part.id);
-		// find element in parent
+		// Find element in parent
 		}else{
-			// if(!children.length) return console.error("No Kids", element);
 			element = children[part.index];
 		}
-	
-		if(!element) return console.error("No Element For", part, cfi, part.index, children, children[part.index]);
+
+		if(!element) return console.error("No Element For", part, cfi);
+		// Get current element children and continue through steps
 		children = Array.prototype.slice.call(element.children);
-		// Remove EPUBJS-CFI-MARKER elements
-		children.forEach(function(child){
-			if(child.classList.contains("EPUBJS-CFI-MARKER")){
-				var index = children.indexOf(child);
-				children.splice(index, 1);
-			}
-		});
-		// console.log(element, children)
 	}
 
 	return element;
