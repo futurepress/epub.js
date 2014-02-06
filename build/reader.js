@@ -520,7 +520,7 @@ EPUBJS.reader.ReaderController = function(book) {
 };
 EPUBJS.reader.SettingsController = function() {
 	var book = this.book;
-
+	var reader = this;
 	var $settings = $("#settings-modal"),
 			$overlay = $(".overlay");
 
