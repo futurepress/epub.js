@@ -5,8 +5,10 @@ EPUBJS.reader.ReaderController = function(book) {
 			$next = $("#next"),
 			$prev = $("#prev");
 
+	var reader = this
+
 	var slideIn = function() {
-        if (Reader.settings.sidebarReflow){
+        if (reader.settings.sidebarReflow){
                 $('#main').removeClass('single');
         } else {
                 $main.removeClass("closed");
@@ -14,7 +16,7 @@ EPUBJS.reader.ReaderController = function(book) {
     };
 
     var slideOut = function() {
-        if (Reader.settings.sidebarReflow){
+        if (reader.settings.sidebarReflow){
                 $('#main').addClass('single');
         } else {
                 $main.addClass("closed");
