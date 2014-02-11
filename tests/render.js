@@ -10,7 +10,7 @@ asyncTest("renderTo element on page", 1, function() {
 		start();
 	};
 
-	render.then(result, result);
+	render.then(result).catch(result);
 	
 });
 
@@ -177,8 +177,6 @@ asyncTest("Add styles to book", 4, function() {
 		var $iframe = $( "iframe", "#qunit-fixture" ),
 				$body;
 
-		console.log(Book)
-		
 		equal( Book.renderer.render.bodyEl.style.background, '', "background not set");
 		
 		Book.setStyle("background", "purple");

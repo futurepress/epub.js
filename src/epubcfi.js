@@ -276,8 +276,11 @@ EPUBJS.EpubCFI.prototype.findParent = function(cfi, _doc) {
 		}else{
 			element = children[part.index];
 		}
-
-		if(!element) return console.error("No Element For", part, cfi);
+		// Element can't be found
+		if(typeof element === "undefined") {
+			console.error("No Element For", part, cfi.str);
+			return false;
+		}
 		// Get current element children and continue through steps
 		children = Array.prototype.slice.call(element.children);
 	}

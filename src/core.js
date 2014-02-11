@@ -344,3 +344,44 @@ EPUBJS.core.locationOf = function(item, array, compareFunction, _start, _end) {
 		return EPUBJS.core.locationOf(item, array, compareFunction, start, pivot);
 	}
 };
+
+EPUBJS.core.queue = function(_scope){
+	var _q = [];
+	var scope = _scope;
+	// Add an item to the queue
+	var enqueue = function(funcName, args, context) {
+		_q.push({
+			"funcName" : funcName,
+			"args"     : args,
+			"context"  : context
+		});
+		return _q;
+	};
+	// Run one item
+	var dequeue = function(){
+		var inwait;
+		if(_q.length) {
+			inwait = _q.shift();
+			// Defer to any current tasks
+			setTimeout(function(){
+				scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
+			}, 0);
+		}
+	};
+	// Run All
+	var flush = function(){
+		while(_q.length) {
+			dequeue();
+		}
+	};
+	// Clear all items in wait
+	var clear = function(){
+		_q = [];
+	};
+	return {
+		"enqueue" : enqueue,
+		"dequeue" : dequeue,
+		"flush" : flush,
+		"clear" : clear
+	};
+};

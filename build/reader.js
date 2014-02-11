@@ -695,6 +695,8 @@ EPUBJS.reader.TocController = function(toc) {
 	$list.find(".toc_link").on("click", function(event){
 			var url = this.getAttribute('href');
 
+			event.preventDefault();
+
 			//-- Provide the Book with the url to show
 			//   The Url must be found in the books manifest
 			book.goto(url);
@@ -705,19 +707,18 @@ EPUBJS.reader.TocController = function(toc) {
 
 			$(this).parent('li').addClass("currentChapter");
 
-			event.preventDefault();
 	});
 
 	$list.find(".toc_toggle").on("click", function(event){
 			var $el = $(this).parent('li'),
 					open = $el.hasClass("openChapter");
 
+			event.preventDefault();
 			if(open){
 				$el.removeClass("openChapter");
 			} else {
 				$el.addClass("openChapter");
 			}
-			event.preventDefault();
 	});
 
 	return {

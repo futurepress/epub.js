@@ -70,14 +70,3 @@ EPUBJS.Pagination.prototype.percentageFromCfi = function(cfi){
 	var percentage = this.percentageFromPage(pg);
 	return percentage;
 };
-
-// TODO: move these
-EPUBJS.Book.prototype.gotoPage = function(pg){
-	var cfi = this.pagination.cfiFromPage(pg);
-	return this.gotoCfi(cfi);
-};
-
-EPUBJS.Book.prototype.gotoPercentage = function(percent){
-	var pg = this.pagination.pageFromPercentage(percent);
-	return this.gotoCfi(pg);
-};
