@@ -5,7 +5,7 @@ Epub.js
 
 Epub.js is a JavaScript library for rendering ePub documents in the browser, across many devices.
 
-Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin.
+Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license. 
 
 [Try it while reading Moby Dick](http://futurepress.github.com/epub.js/demo/)
 
