@@ -255,13 +255,41 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 			then(function(navHtml){
 				return parse.pageList(navHtml, book.spineIndexByURL, book.spine);
 			}).then(function(pageList){
-				if(pageList.length) {
-					book.pageList = book.contents.pageList = pageList;
+				var epubcfi = new EPUBJS.EpubCFI();
+				var wait = 0; // need to generate a cfi
+
+				// No pageList found
+				if(pageList.length === 0) {
+					book.ready.pageList.resolve([]);
+					return;
+				}
+
+				book.pageList = book.contents.pageList = pageList;
+
+				// Replace HREFs with CFI
+				book.pageList.forEach(function(pg){
+					if(!pg.cfi) {
+						wait += 1;
+						epubcfi.generateCfiFromHref(pg.href, book).then(function(cfi){
+							pg.cfi = cfi;
+							pg.packageUrl = book.settings.packageUrl;
+
+							wait -= 1;
+							if(wait === 0) {
+								book.pagination.process(book.pageList);
+								book.ready.pageList.resolve(book.pageList);
+							}
+						});
+					}
+				});
+				
+				if(!wait) {
 					book.pagination.process(book.pageList);
 					book.ready.pageList.resolve(book.pageList);
 				}
+
 			}, function(error) {
-				// book.ready.pageList.resolve(false);
+				book.ready.pageList.resolve([]);
 			});
 	} else if(book.contents.tocPath) {
 		book.settings.tocUrl = book.settings.contentsPath + book.contents.tocPath;
@@ -445,7 +473,7 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 EPUBJS.Book.prototype.loadChange = function(url){
 	var uri = EPUBJS.core.uri(url);
 	if(this.currentChapter && uri.path != this.currentChapter.absolute){
-		console.warn("Miss Match", uri.path, this.currentChapter.absolute);
+		// console.warn("Miss Match", uri.path, this.currentChapter.absolute);
 		this.goto(uri.filename);
 	}
 };
@@ -883,7 +911,7 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 		deferred.resolve(this.renderer.currentLocationCfi);
 	}
 
-	promise.then(function(){
+	deferred.promise.then(function(){
 		this._gotoQ.dequeue();
 	}.bind(this));
 

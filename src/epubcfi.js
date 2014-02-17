@@ -326,3 +326,27 @@ EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 	// CFI's are equal
 	return 0;
 };
+
+EPUBJS.EpubCFI.prototype.generateCfiFromHref = function(href, book) {
+	var uri = EPUBJS.core.uri(href);
+	var path = uri.path;
+	var fragment = uri.fragment;
+	var spinePos = book.spineIndexByURL[path];
+	var loaded;
+	var deferred = new RSVP.defer();
+	var epubcfi = new EPUBJS.EpubCFI();
+	var spineItem;
+	
+	if(typeof spinePos !== "undefined"){
+		spineItem = book.spine[spinePos];
+		loaded = book.loadXml(spineItem.url);
+		loaded.then(function(doc){
+			var element = doc.getElementById(fragment);
+			var cfi;
+			cfi = epubcfi.generateCfiFromElement(element, spineItem.cfiBase);
+			deferred.resolve(cfi);
+		});
+	}
+	
+	return deferred.promise;
+};

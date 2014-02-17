@@ -1,6 +1,6 @@
 module('Pagination');
 
-asyncTest("PageList is loaded from Nav Element", 4, function() {
+asyncTest("PageList of CFI's is loaded from Nav Element", 4, function() {
 	var book = ePub('../books/georgia-cfi-20120521/', { width: 400, height: 600 });
 
 	var render = book.renderTo("qunit-fixture");
@@ -11,6 +11,24 @@ asyncTest("PageList is loaded from Nav Element", 4, function() {
 		pg = book.pageList[3];
 		equal( pg.cfi, "epubcfi(/6/4[ct]!/4/2[d10e42]/26[d10e271]/4[d10e276]/3:1054)", "Cfi string is correct." );
 		equal( pg.packageUrl, "package.opf", "Package Url is present" );
+		equal( pg.page, 755, "Page has been parsed" );
+		start();
+	};
+
+	render.then(result);
+});
+
+asyncTest("PageList of HREFs is loaded from Nav Element", 3, function() {
+	var book = ePub('../books/georgia-pls-ssml-20120322/', { width: 400, height: 600 });
+
+	var render = book.renderTo("qunit-fixture");
+
+	var result = function(){
+		var pg;
+		equal( book.pageList.length, 7, "All items in the page list have been parsed." );
+		pg = book.pageList[3];
+		equal( pg.cfi, "epubcfi(/6/4[doc1]!4/2[d10e42]/26[d10e271]/4[d10e276]/4[page755]/1:0)", "Cfi string is correct." );
+		// equal( pg.packageUrl, "package.opf", "Package Url is present" );
 		equal( pg.page, 755, "Page has been parsed" );
 		start();
 	};

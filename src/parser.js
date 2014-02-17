@@ -425,14 +425,24 @@ EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine)
 				content = findAnchorOrSpan(item),
 				href = content.getAttribute('href') || '',
 				text = content.textContent || "",
-				split = href.split("#"),
-				packageUrl = split[0],
+				isCfi = href.indexOf("epubcfi"),
+				split,
+				packageUrl,
+				cfi;
+				
+			if(isCfi != -1) {
+				split = href.split("#");
+				packageUrl = split[0];
 				cfi = split.length > 1 ? split[1] : false;
-
-			if(cfi) {
 				list.push({
 					"cfi" : cfi,
+					"href" : href,
 					"packageUrl" : packageUrl,
+					"page" : text
+				});
+			} else {
+				list.push({
+					"href" : href,
 					"page" : text
 				});
 			}

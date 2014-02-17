@@ -19,17 +19,19 @@ asyncTest("Renderer Updates to new CFI", 1, function() {
 	render.then(result);
 });
 
-// asyncTest("Find Element from cfi", 1, function() {
-// 	var book = ePub('/demo/moby-dick/', { width: 400, height: 600 });
-// 
-// 	var render = book.renderTo("qunit-fixture");
-// 
-// 	var result = function(){
-// 		var d = book.gotoCfi("epubcfi(/6/24[xchapter_006]!4/2/14/1:0)");
-// 		console.log(d, book.getCurrentLocationCfi())
-// 		// equal( pg.page, 755, "Page has been parsed" );
-// 		start();
-// 	};
-// 
-// 	render.then(result);
-// });
+asyncTest("Find CFI from href", 1, function() {
+	var book = ePub('/demo/moby-dick/', { width: 400, height: 600 });
+
+	var render = book.renderTo("qunit-fixture");
+
+	var result = function(){
+		var epubcfi = new EPUBJS.EpubCFI();
+		var generated = epubcfi.generateCfiFromHref("epigraph_001.xhtml#extracts", book);
+		generated.then(function(cfi){
+			equal( cfi, "epubcfi(/6/12[xepigraph_001]!4/2/8[extracts]/1:0)", "CFI generated" );
+			start();
+		});
+	};
+
+	render.then(result);
+});
