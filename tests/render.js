@@ -213,3 +213,130 @@ asyncTest("Switch Spreads to Single", 3, function() {
 	render.then(result);
 });
 
+asyncTest("Go to chapter 4 and advance through chapter, checking position with width set", 11, function() {
+	var Book = ePub('../demo/moby-dick/', { width: 1100.5, height: 612 });
+
+	var render = Book.renderTo("qunit-fixture");
+
+	var result = function(){
+
+		var $iframe = $( "iframe", "#qunit-fixture" ),
+			$body;
+		
+		equal( $iframe.length, 1, "iframe added successfully" );
+
+		start();
+
+		$body = $iframe.contents().find("body");
+		equal( $body.scrollLeft(), 0, "on page 1");
+
+		stop();
+
+		Book.goto("chapter_003.xhtml").then(function(){
+			
+			start();
+			
+			equal(Book.renderer.layout.spreadWidth, 1240);
+			
+			$body = $iframe.contents().find("body");
+
+			Book.nextPage();
+			equal( $body.scrollLeft(), 1240, "on page 2");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 2480, "on page 3");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 3720, "on page 4");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 4960, "on page 5");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 6200, "on page 6");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 7440, "on page 7");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 8680, "on page 8");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), 9920, "on page 9");
+		});
+		
+
+	};
+
+	render.then(result);
+
+	
+});
+
+asyncTest("Go to chapter 4 and advance through chapter, checking position with width from div", 11, function() {
+	var Book = ePub('../demo/moby-dick/');
+	var viewer = document.createElement("div");
+	var $viewer;
+	var render;
+	var width = 1236;
+	
+	var result = function(){
+
+		var $iframe = $( "iframe", "#viewer" ),
+			$body;
+		
+		equal( $iframe.length, 1, "iframe added successfully" );
+
+		start();
+
+		$body = $iframe.contents().find("body");
+		equal( $body.scrollLeft(), 0, "on page 1");
+
+		stop();
+
+		Book.goto("chapter_003.xhtml").then(function(){
+			
+			start();
+			
+			console.log(Book.renderer.render.width)
+			equal(Book.renderer.layout.spreadWidth, width, "Spread width is correctly calculated");
+			$body = $iframe.contents().find("body");
+
+			Book.nextPage();
+			equal( $body.scrollLeft(), width, "on page 2");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 2, "on page 3");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 3, "on page 4");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 4, "on page 5");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 5, "on page 6");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 6, "on page 7");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 7, "on page 8");
+			
+			Book.nextPage();
+			equal( $body.scrollLeft(), width * 8, "on page 9");
+			
+		});
+		
+
+	};
+	viewer.id = "viewer";
+	$("#qunit-fixture").append(viewer);
+	$viewer = $("#viewer");
+	
+	$viewer.width(1100.797);
+	$viewer.height(612);
+	
+	render = Book.renderTo("viewer");
+	render.then(result);
+});

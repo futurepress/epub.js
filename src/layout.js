@@ -65,22 +65,21 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 			cutoff = 800;
 
 	//-- Check the width and create even width columns
-	var width = (_width % 2 === 0) ? _width : Math.floor(_width) - 1;
-	var section = Math.ceil(width / 8);
+	var fullWidth = Math.floor(_width);
+	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
-
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
 
 	this.documentElement = documentElement;
 	this.spreadWidth = (colWidth + gap) * divisor;
-
 	
-	documentElement.style.width = "auto"; //-- reset width for calculations
 	
 	documentElement.style.overflow = "hidden";
 
-	//documentElement.style.width = width + "px";
+	// Must be set to the new calculated width or the columns will be off
+	documentElement.style.width = width + "px";
 
 	//-- Adjust height
 	documentElement.style.height = _height + "px";

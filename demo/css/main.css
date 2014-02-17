@@ -262,6 +262,7 @@ input:-moz-placeholder {
   height: 80%;
   z-index: 1;
   left: 50%;
+  margin-left: -1px;
   top: 10%;
   opacity: .15;
   box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
@@ -734,4 +735,3 @@ input:-moz-placeholder {
 .icon-columns:before { content: '\e810'; } /* '' */
 .icon-list:before { content: '\e800'; } /* '' */
 .icon-resize-small:before { content: '\e808'; } /* '' */
-
