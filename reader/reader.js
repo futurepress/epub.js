@@ -30,6 +30,7 @@ EPUBJS.Reader = function(path, _options) {
 	var reader = this;
 	var book;
 	var plugin;
+	var $viewer = $("#viewer");
 	
 	this.settings = _.defaults(_options || {}, {
 		restore : true,
@@ -39,7 +40,8 @@ EPUBJS.Reader = function(path, _options) {
 		bookKey : null,
 		styles : null,
 		sidebarReflow: false,
-		generatePagination: false
+		generatePagination: false,
+		history: true
 	});
 	
 	this.setBookKey(path); //-- This could be username + path or any unique string
@@ -72,7 +74,7 @@ EPUBJS.Reader = function(path, _options) {
 	}
 
 	if(this.settings.generatePagination) {
-		book.generatePagination(1076, 588);
+		book.generatePagination($viewer.width(), $viewer.height());
 	}
 
 	book.renderTo("viewer");
@@ -104,10 +106,14 @@ EPUBJS.Reader = function(path, _options) {
 	
 	window.addEventListener("beforeunload", this.unload.bind(this), false);
 	
+	window.addEventListener("hashchange", this.hashChanged.bind(this), false);
+
 	document.addEventListener('keydown', this.adjustFontSize.bind(this), false);
 	
 	book.on("renderer:keydown", this.adjustFontSize.bind(this));
 	book.on("renderer:keydown", reader.ReaderController.arrowKeys.bind(this));
+	
+	book.on("renderer:selected", this.selectedRange.bind(this));
 
 	return this;
 };
@@ -234,6 +240,16 @@ EPUBJS.Reader.prototype.unload = function(){
 	if(this.settings.restore) {
 		this.saveSettings();
 	}
+};
+
+
+EPUBJS.Reader.prototype.hashChanged = function(){
+	var hash = window.location.hash.slice(1);
+	this.book.goto(hash);
+};
+
+EPUBJS.Reader.prototype.selectedRange = function(range){
+	console.log("range", range)
 };
 
 //-- Enable binding events to reader

@@ -425,6 +425,7 @@ EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine)
 				content = findAnchorOrSpan(item),
 				href = content.getAttribute('href') || '',
 				text = content.textContent || "",
+				page = parseInt(text),
 				isCfi = href.indexOf("epubcfi"),
 				split,
 				packageUrl,
@@ -438,12 +439,12 @@ EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine)
 					"cfi" : cfi,
 					"href" : href,
 					"packageUrl" : packageUrl,
-					"page" : text
+					"page" : page
 				});
 			} else {
 				list.push({
 					"href" : href,
-					"page" : text
+					"page" : page
 				});
 			}
 

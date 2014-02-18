@@ -352,7 +352,8 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
-				var nextPage = true;//pager.nextPage();
+				var nextPage = true;
+
 				// Page though the entire chapter
 				while (nextPage) {
 					nextPage = pager.nextPage();
@@ -798,12 +799,12 @@ EPUBJS.Book.prototype.getCurrentLocationCfi = function() {
 
 EPUBJS.Book.prototype.goto = function(target){
 
-	if(typeof target === "number"){
-		return this.gotoPage(target);
-	} else if(target.indexOf("epubcfi(") === 0) {
+	if(target.indexOf("epubcfi(") === 0) {
 		return this.gotoCfi(target);
 	} else if(target.indexOf("%") === target.length-1) {
-		return this.gotoPercentage(parseInt(target.substring(0, target.length-1)));
+		return this.gotoPercentage(parseInt(target.substring(0, target.length-1))/100);
+	} else if(typeof target === "number" || isNaN(target) === false){
+		return this.gotoPage(target);
 	} else {
 		return this.gotoHref(target);
 	}
@@ -899,14 +900,14 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 		//-- Load new chapter if different than current
 		return this.displayChapter(spinePos).then(function(){
 				if(section){
-					this.render.section(section);
+					this.renderer.section(section);
 				}
 				deferred.resolve(this.renderer.currentLocationCfi);
 			}.bind(this));
 	}else{
 		//-- Only goto section
 		if(section) {
-			this.render.section(section);
+			this.renderer.section(section);
 		}
 		deferred.resolve(this.renderer.currentLocationCfi);
 	}
@@ -925,7 +926,7 @@ EPUBJS.Book.prototype.gotoPage = function(pg){
 
 EPUBJS.Book.prototype.gotoPercentage = function(percent){
 	var pg = this.pagination.pageFromPercentage(percent);
-	return this.gotoCfi(pg);
+	return this.gotoPage(pg);
 };
 
 EPUBJS.Book.prototype.preloadNextChapter = function() {

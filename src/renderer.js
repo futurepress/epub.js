@@ -274,7 +274,7 @@ EPUBJS.Renderer.prototype.reformat = function(){
 
 };
 
-// Hide and show the render's container element.
+// Hide and show the render's container .
 EPUBJS.Renderer.prototype.visible = function(bool){
 	if(typeof(bool) === "undefined") {
 		return this.container.style.visibility;

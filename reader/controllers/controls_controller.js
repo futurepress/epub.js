@@ -92,10 +92,14 @@ EPUBJS.reader.ControlsController = function(book) {
 				.removeClass("icon-bookmark-empty"); 
 		}
 		
+		// Update the History Location
+		if(reader.settings.history) {
+			history.pushState({}, '', "#"+cfi);
+		}
 	});
 	
 	book.on('book:pageChanged', function(location){
-		console.log("page", location.page, location.percentage)
+		// console.log("page", location.page, location.percentage)
 	});
 
 	return {
