@@ -80,6 +80,7 @@ EPUBJS.reader.ControlsController = function(book) {
 	});
 
 	book.on('renderer:locationChanged', function(cfi){
+		var cfiFragment = "#" + cfi;
 		//-- Check if bookmarked
 		var bookmarked = reader.isBookmarked(cfi);
 		if(bookmarked === -1) { //-- Not bookmarked
@@ -93,8 +94,10 @@ EPUBJS.reader.ControlsController = function(book) {
 		}
 		
 		// Update the History Location
-		if(reader.settings.history) {
-			history.pushState({}, '', "#"+cfi);
+		if(reader.settings.history &&
+				window.location.hash != cfiFragment) {
+			// Add CFI fragment to the history
+			history.pushState({}, '', cfiFragment);
 		}
 	});
 	

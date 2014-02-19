@@ -831,6 +831,11 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 	
 	cfi = new EPUBJS.EpubCFI(cfiString);
 	spinePos = cfi.spinePos;
+	
+	if(spinePos == -1) {
+		return false;
+	}
+
 	spineItem = this.spine[spinePos];
 	promise = deferred.promise;
 	this._moving = true;

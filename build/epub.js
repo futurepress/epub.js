@@ -2607,6 +2607,11 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 	
 	cfi = new EPUBJS.EpubCFI(cfiString);
 	spinePos = cfi.spinePos;
+	
+	if(spinePos == -1) {
+		return false;
+	}
+
 	spineItem = this.spine[spinePos];
 	promise = deferred.promise;
 	this._moving = true;
@@ -3463,6 +3468,10 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 		path,
 		end,
 		text;
+	
+	if(typeof cfiStr !== "string") {
+		return {spinePos: -1};
+	}
 
 	cfi.str = cfiStr;
 
@@ -3569,7 +3578,7 @@ EPUBJS.EpubCFI.prototype.addMarker = function(cfi, _doc, _marker) {
 	if(lastStep && lastStep.type === "text") {
 		text = parent.childNodes[lastStep.index];
 		if(cfi.characterOffset){
-			split = text.splitText();
+			split = text.splitText(cfi.characterOffset);
 			marker.classList.add("EPUBJS-CFI-SPLIT");
 			parent.insertBefore(marker, split);
 		} else {
@@ -3595,19 +3604,21 @@ EPUBJS.EpubCFI.prototype.removeMarker = function(marker, _doc) {
 	var doc = _doc || document;
 	// var id = marker.id;
 
-	// Remove only elements added as markers
-	if(marker.classList.contains("EPUBJS-CFI-MARKER")){
-		marker.parentElement.removeChild(marker);
-	}
-
-	// Cleanup textnodes
+	// Cleanup textnodes if they were split
 	if(marker.classList.contains("EPUBJS-CFI-SPLIT")){
 		nextSib = marker.nextSibling;
 		prevSib = marker.previousSibling;
-		if(nextSib.nodeType === 3 && prevSib.nodeType === 3){
+		if(nextSib &&
+				prevSib &&
+				nextSib.nodeType === 3 &&
+				prevSib.nodeType === 3){
+
 			prevSib.innerText += nextSib.innerText;
 			marker.parentElement.removeChild(nextSib);
 		}
+		marker.parentElement.removeChild(marker);
+	} else if(marker.classList.contains("EPUBJS-CFI-MARKER")) {
+		// Remove only elements added as markers
 		marker.parentElement.removeChild(marker);
 	}
 
