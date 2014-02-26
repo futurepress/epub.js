@@ -101,8 +101,8 @@ body {
   /* margin-left: 10%; */
   margin: 0 auto;
   max-width: 1250px;
-  /* z-index: 2;
-  position: absolute; */
+  z-index: 2;
+  position: relative;
   overflow: hidden;
 }
 
@@ -680,7 +680,7 @@ input:-moz-placeholder {
 @media only screen and (max-device-width: 480px) and (orientation: portrait) {
     #viewer iframe {
        width: 256px;
-       height: 368px;
+       height: 468px;
     }
 }
 /* For iPhone landscape layouts only */
