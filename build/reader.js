@@ -249,8 +249,17 @@ EPUBJS.Reader.prototype.hashChanged = function(){
 };
 
 EPUBJS.Reader.prototype.selectedRange = function(range){
+	var epubcfi = new EPUBJS.EpubCFI();
+	var cfi = epubcfi.generateCfiFromElement(range.anchorNode.parentElement, this.book.renderer.currentChapter.cfiBase);
+	var cfiFragment = "#"+cfi;
 	console.log("range", range)
-};
+	console.log("anchor", cfi)
+	// Update the History Location
+	if(this.settings.history &&
+			window.location.hash != cfiFragment) {
+		// Add CFI fragment to the history
+		history.pushState({}, '', cfiFragment);
+	}};
 
 //-- Enable binding events to reader
 RSVP.EventTarget.mixin(EPUBJS.Reader.prototype);

@@ -2036,7 +2036,6 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 
 				// No pageList found
 				if(pageList.length === 0) {
-					book.ready.pageList.resolve([]);
 					return;
 				}
 
@@ -2163,16 +2162,16 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 // Width and Height are optional and will default to the current dimensions
 EPUBJS.Book.prototype.generatePagination = function(width, height) {
 	var book = this;
-	var pageListReady;
 	
 	this.ready.spine.promise.then(function(){
-		pageListReady = book.generatePageList(width, height).then(function(pageList){
+		book.generatePageList(width, height).then(function(pageList){
 			book.pageList = book.contents.pageList = pageList;
 			book.pagination.process(pageList);
 			book.ready.pageList.resolve(book.pageList);
 		});
 	});
-	return pageListReady;
+	
+	return this.pageListReady;
 };
 
 // Process the pagination from a JSON array containing the pagelist
@@ -3613,7 +3612,7 @@ EPUBJS.EpubCFI.prototype.removeMarker = function(marker, _doc) {
 				nextSib.nodeType === 3 &&
 				prevSib.nodeType === 3){
 
-			prevSib.innerText += nextSib.innerText;
+			prevSib.textContent += nextSib.textContent;
 			marker.parentElement.removeChild(nextSib);
 		}
 		marker.parentElement.removeChild(marker);

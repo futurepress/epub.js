@@ -242,7 +242,7 @@ EPUBJS.EpubCFI.prototype.removeMarker = function(marker, _doc) {
 				nextSib.nodeType === 3 &&
 				prevSib.nodeType === 3){
 
-			prevSib.innerText += nextSib.innerText;
+			prevSib.textContent += nextSib.textContent;
 			marker.parentElement.removeChild(nextSib);
 		}
 		marker.parentElement.removeChild(marker);
