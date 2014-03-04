@@ -300,6 +300,7 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 				"id": id,
 				"href": href,
 				"label": text,
+        "spinePos" : spinePos,
 				"subitems" : subitems,
 				"parent" : parent ? parent.getAttribute('id') : null
 			});
