@@ -5,18 +5,26 @@ EPUBJS.reader.ReaderController = function(book) {
 			$next = $("#next"),
 			$prev = $("#prev");
 	var reader = this;
-
+	var book = this.book;
 	var slideIn = function() {
+		var currentPosition = book.getCurrentLocationCfi();
 		if (reader.settings.sidebarReflow){
 			$main.removeClass('single');
+			$main.one("transitionend", function(){
+				book.gotoCfi(currentPosition);
+			});
 		} else {
 			$main.removeClass("closed");
 		}
 	};
 
 	var slideOut = function() {
+		var currentPosition = book.getCurrentLocationCfi();
 		if (reader.settings.sidebarReflow){
 			$main.addClass('single');
+			$main.one("transitionend", function(){
+				book.gotoCfi(currentPosition);
+			});
 		} else {
 			$main.addClass("closed");
 		}

@@ -143,7 +143,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 		epubpackage = this.loadPackage();
 	}
 
-	if(this.settings.restore && !forceReload){
+	if(this.settings.restore && !forceReload && localStorage){
 		//-- Will load previous package json, or re-unpack if error
 		epubpackage.then(function(packageXml) {
 			var identifier = book.packageIdentifier(packageXml);
@@ -559,7 +559,13 @@ EPUBJS.Book.prototype.isContained = function(bookUrl){
 
 //-- Checks if the book can be retrieved from localStorage
 EPUBJS.Book.prototype.isSaved = function(bookKey) {
-	var storedSettings = localStorage.getItem(bookKey);
+	var storedSettings;
+
+	if(!localStorage) {
+		return false;
+	}
+
+	storedSettings = localStorage.getItem(bookKey);
 
 	if( !localStorage ||
 		storedSettings === null) {
@@ -575,10 +581,16 @@ EPUBJS.Book.prototype.generateBookKey = function(identifier){
 };
 
 EPUBJS.Book.prototype.saveContents = function(){
+	if(!localStorage) {
+		return false;
+	}
 	localStorage.setItem(this.settings.bookKey, JSON.stringify(this.contents));
 };
 
 EPUBJS.Book.prototype.removeSavedContents = function() {
+	if(!localStorage) {
+		return false;
+	}
 	localStorage.removeItem(this.settings.bookKey);
 };
 
@@ -1028,7 +1040,7 @@ EPUBJS.Book.prototype.forceSingle = function(use) {
 
 EPUBJS.Book.prototype.unload = function(){
 	
-	if(this.settings.restore) {
+	if(this.settings.restore && localStorage) {
 		this.saveContents();
 	}
 

@@ -16,8 +16,9 @@ module.exports = function(grunt) {
 		'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
 		'demo/js/libs/jquery-2.0.3.min.js': 'libs/jquery/jquery-2.0.3.min.js',
 		'demo/js/libs/inflate.js': 'libs/zip/inflate.js',
-		'demo/js/libs/screenfull.min.js': 'libs/screenfull.min.js'
-		},
+		'demo/js/libs/screenfull.min.js': 'libs/screenfull.min.js',
+		'demo/js/plugins/search.js': 'reader/plugins/search.js'
+	},
 		uglify: {
 			options: {
 					preserveComments: 'some'

@@ -75,7 +75,7 @@ test("Get Page number from a cfi NOT present in the pageList, returning the FIRS
 	var pg = pagination.pageFromCfi("epubcfi(/6/4[ct]!/4/2[d10e42]/4/8/7:0)");
 	var prevIndex = pagination.pages.indexOf("752");
 	equal( pg, "752", "Closest Page is found" );
-	equal( pagination.locations.indexOf("epubcfi(/6/4[ct]!/4/2[d10e42]/4/8/7:0)"), 1, "Pagination.locations is updated" );
+	equal( pagination.locations.indexOf("epubcfi(/6/4[ct]!/4/2[d10e42]/4/8/7:0)"), 0, "Pagination.locations is updated" );
 	equal( pagination.pages[prevIndex+1], "752", "Pagination.pages is updated" );
 });
 
@@ -158,4 +158,16 @@ asyncTest("gotoPage after generating page list", 2, function() {
 		equal(pageList.length, 394, "PageList has been generated");
 		stop();
 	});
+});
+
+test("insert items into page list", null, function() {
+	var pg = new EPUBJS.Pagination();
+	equal(pg.locations.length, 0, "No locations");
+	equal(EPUBJS.core.insert("epubcfi(/6/2[cover]!/4/6)", pg.locations, pg.epubcfi.compare), 0, "inserted first");
+	equal(EPUBJS.core.insert("epubcfi(/6/2[cover]!/4/4/8/1:0)", pg.locations, pg.epubcfi.compare), 0, "inserted before first");
+	equal(EPUBJS.core.insert("epubcfi(/6/2[cover]!/4/4/12/1:0)", pg.locations, pg.epubcfi.compare), 1, "inserted inbetween");
+	equal(EPUBJS.core.insert("epubcfi(/6/2[cover]!/4/6/8/1:0)", pg.locations, pg.epubcfi.compare), 3, "inserted last");
+	equal(EPUBJS.core.indexOfSorted("epubcfi(/6/2[cover]!/4/6)", pg.locations, pg.epubcfi.compare), 2, "already in list");
+	equal(EPUBJS.core.indexOfSorted("epubcfi(/6/2[cover]!/4/60)", pg.locations, pg.epubcfi.compare), -1, "not in list");
+	// equal(pg.locations.length, 2, "New locations");
 });

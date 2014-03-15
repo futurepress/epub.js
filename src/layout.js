@@ -11,28 +11,30 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	
-	//-- Check the width and decied on columns
-	var width = (_width % 2 === 0) ? _width : Math.floor(_width) - 1;
-	var section = Math.ceil(width / 8);
+	//-- Check the width and create even width columns
+	var fullWidth = Math.floor(_width);
+	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
-
+	
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
-
-	documentElement.style.width = "auto"; //-- reset width for calculations
-
+	
+	
 	documentElement.style.overflow = "hidden";
-
+	
+	// Must be set to the new calculated width or the columns will be off
+	documentElement.style.width = width + "px";
+	
 	//-- Adjust height
 	documentElement.style.height = _height + "px";
-
+	
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = width+"px";
 
-	documentElement.style.width = width + "px";
 	return {
 		pageWidth : this.spreadWidth,
 		pageHeight : _height

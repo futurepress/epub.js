@@ -38,7 +38,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, rend
 					iwidth = renderer.width,
 				 	tip,
 					pop,
-					maxHeight = 225;
+					maxHeight = 225,
+					itemRect;
 				
 				if(!txt) {
 					pop = el.cloneNode(true);

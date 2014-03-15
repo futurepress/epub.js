@@ -21,18 +21,32 @@ EPUBJS.Pagination.prototype.process = function(pageList){
 
 EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 	var pg = -1;
+	
+	// Check if the pageList has not been set yet
+	if(this.locations.length === 0) {
+		return -1;
+	}
+	
+	// TODO: check if CFI is valid?
+
 	// check if the cfi is in the location list
-	var index = this.locations.indexOf(cfi);
+	// var index = this.locations.indexOf(cfi);
+	var index = EPUBJS.core.indexOfSorted(cfi, this.locations, this.epubcfi.compare);
 	if(index != -1 && index < (this.pages.length-1) ) {
 		pg = this.pages[index];
 	} else {
 		// Otherwise add it to the list of locations
 		// Insert it in the correct position in the locations page
 		index = EPUBJS.core.insert(cfi, this.locations, this.epubcfi.compare);
-		// Get the page at the location just before the new one
-		pg = this.pages[index-1];
-		// Add the new page in so that the locations and page array match up
-		this.pages.splice(index, 0, pg);
+		// Get the page at the location just before the new one, or return the first
+		pg = index-1 >= 0 ? this.pages[index-1] : this.pages[0];
+		if(pg != undefined) {
+			// Add the new page in so that the locations and page array match up
+			this.pages.splice(index, 0, pg);
+		} else {
+			pg = -1;
+		}
+
 	}
 	return pg;
 };
@@ -45,6 +59,7 @@ EPUBJS.Pagination.prototype.cfiFromPage = function(pg){
 	}
 
 	// check if the cfi is in the page list
+	// Pages could be unsorted.
 	var index = this.pages.indexOf(pg);
 	if(index != -1) {
 		cfi = this.locations[index];

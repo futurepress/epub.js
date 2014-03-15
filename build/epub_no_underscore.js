@@ -3407,7 +3407,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
 	var path = this.generatePathComponent(steps);
 	if(!path.length) {
 		// Start of Chapter
-		return "epubcfi(" + chapter + ")";
+		return "epubcfi(" + chapter + "!/4/)";
 	} else {
 		// First Text Node
 		return "epubcfi(" + chapter + "!" + path + "/1:0)";
@@ -3502,7 +3502,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	}
 
 	path = pathComponent.split('/');
-	end = path[path.length-1];
+	end = path.pop();
 
 	cfi.steps = [];
 
@@ -3510,36 +3510,38 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 		var type, index, has_brackets, id;
 		
 		if(!part) return;
-		//-- Check if this is a text node or element
-		if(parseInt(part) % 2){
-			type = "text";
-			index = parseInt(part) - 1;
-		} else {
-			type = "element";
-			index = parseInt(part) / 2 - 1;
-			has_brackets = part.match(/\[(.*)\]/);
-			if(has_brackets && has_brackets[1]){
-				id = has_brackets[1];
-			}
+		
+		type = "element";
+		index = parseInt(part) / 2 - 1;
+		has_brackets = part.match(/\[(.*)\]/);
+		if(has_brackets && has_brackets[1]){
+			id = has_brackets[1];
 		}
-
+		
 		cfi.steps.push({
 			"type" : type,
 			'index' : index,
 			'id' : id || false
 		});
 		
-		assertion = charecterOffsetComponent.match(/\[(.*)\]/);
-		if(assertion && assertion[1]){
-			cfi.characterOffset = parseInt(charecterOffsetComponent.split('[')[0]);
-			// We arent handling these assertions yet
-			cfi.textLocationAssertion = assertion[1];
-		} else {
-			cfi.characterOffset = parseInt(charecterOffsetComponent);
-		}
-		
 	});
-	
+
+	//-- Check if END is a text node or element
+	if(!isNaN(parseInt(end))) {
+		cfi.steps.push({
+			"type" : "text",
+			'index' : parseInt(end) - 1,
+		});
+	}
+
+	assertion = charecterOffsetComponent.match(/\[(.*)\]/);
+	if(assertion && assertion[1]){
+		cfi.characterOffset = parseInt(charecterOffsetComponent.split('[')[0]);
+		// We arent handling these assertions yet
+		cfi.textLocationAssertion = assertion[1];
+	} else {
+		cfi.characterOffset = parseInt(charecterOffsetComponent);
+	}
 	
 	return cfi;
 };
@@ -3563,7 +3565,7 @@ EPUBJS.EpubCFI.prototype.addMarker = function(cfi, _doc, _marker) {
 		// Not a valid CFI
 		return false;
 	}
-	
+
 	// Find the CFI elements parent
 	parent = this.findParent(cfi, doc);
 	
@@ -3725,6 +3727,22 @@ EPUBJS.EpubCFI.prototype.generateCfiFromHref = function(href, book) {
 	
 	return deferred.promise;
 };
+
+EPUBJS.EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base) {
+	var parent = anchor.parentElement;
+	var steps = this.pathTo(parent);
+	var path = this.generatePathComponent(steps);
+	var index = [].slice.apply(parent.childNodes).indexOf(anchor) + 1;
+	return "epubcfi(" + base + "!" + path + "/"+index+":"+(offset || 0)+")";
+};
+
+EPUBJS.EpubCFI.prototype.generateCfiFromRangeAnchor = function(range, base) {
+	var anchor = range.anchorNode;
+	var offset = range.anchorOffset;
+	return this.generateCfiFromTextNode(anchor, offset, base);
+};
+
+
 EPUBJS.Events = function(obj, el){
 	
 	this.events = {};
@@ -3893,28 +3911,30 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	
-	//-- Check the width and decied on columns
-	var width = (_width % 2 === 0) ? _width : Math.floor(_width) - 1;
-	var section = Math.ceil(width / 8);
+	//-- Check the width and create even width columns
+	var fullWidth = Math.floor(_width);
+	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
-
+	
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
-
-	documentElement.style.width = "auto"; //-- reset width for calculations
-
+	
+	
 	documentElement.style.overflow = "hidden";
-
+	
+	// Must be set to the new calculated width or the columns will be off
+	documentElement.style.width = width + "px";
+	
 	//-- Adjust height
 	documentElement.style.height = _height + "px";
-
+	
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = width+"px";
 
-	documentElement.style.width = width + "px";
 	return {
 		pageWidth : this.spreadWidth,
 		pageHeight : _height

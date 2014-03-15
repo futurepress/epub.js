@@ -28,8 +28,8 @@ body {
   border-radius: 5px;
   background: #fff;
   overflow: hidden;
-  -webkit-transition: -webkit-transform .5s, width .5s;
-  -moz-transition: -webkit-transform .5s, width .5s;
+  -webkit-transition: -webkit-transform .4s, width .2s;
+  -moz-transition: -webkit-transform .4s, width .2s;
 
   -moz-box-shadow:    inset 0 0 50px rgba(0,0,0,.1);
   -webkit-box-shadow: inset 0 0 50px rgba(0,0,0,.1);
@@ -170,6 +170,11 @@ body {
   width: 75%;
 }
 
+#main.single #viewer {
+  /* width: 60%;
+  margin-left: 20%; */
+}
+
 #panels {
   background: #4e4e4e;
   position: absolute;
@@ -288,7 +293,6 @@ input:-moz-placeholder {
   min-width: 300px;
   width: 25%;
   height: 100%;
-  padding-top: 40px;
   visibility: hidden;
   -webkit-transition: visibility 0 ease .5s;
   -moz-transition: visibility 0 ease .5s;
@@ -302,6 +306,10 @@ input:-moz-placeholder {
   visibility: visible;
   -webkit-transition: visibility 0 ease 0;
   -moz-transition: visibility 0 ease 0;
+}
+
+#sidebar.open #tocView {
+  display: block;
 }
 
 #tocView > ul,
@@ -385,14 +393,15 @@ input:-moz-placeholder {
   content: '▾';
 }
 
-#searchView {
+.view {
   width: 300px;
   height: 100%;
   display: none;
+  padding-top: 50px;
+  overflow-y: auto;
 }
 
 #searchResults {
-  margin-top: 50px;
   margin-bottom: 50px;
   padding-left: 20px;
   display: block;
@@ -432,6 +441,51 @@ input:-moz-placeholder {
 #searchView.shown {
   display: block;
   overflow-y: scroll;
+}
+
+#notes {
+ padding: 0 0 0 34px;
+}
+
+#notes li {
+  color: #eee;
+  font-size: 12px;
+  width: 240px;
+  border-top: 1px #fff solid;
+  padding-top: 6px;
+  margin-bottom: 6px;
+}
+
+#notes li a {
+  color: #fff;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+#notes li a:hover {
+  text-decoration: underline;
+}
+
+#notes li img {
+  max-width: 240px;
+}
+
+#note-text {
+  display: block;
+  width: 260px;
+  height: 80px;
+  margin: 0 auto;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+#note-text[disabled], #note-text[disabled="disabled"]{
+    opacity: .5;
+}
+
+#note-anchor {
+  margin-left: 218px;
+  margin-top: 5px;
 }
 
 #settingsPanel {
@@ -667,7 +721,7 @@ input:-moz-placeholder {
     #viewer iframe {
         width: 460px;
         height: 740px;
-    } 
+    }
 }
  /*For iPad landscape layouts only */
 @media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation: landscape) {
