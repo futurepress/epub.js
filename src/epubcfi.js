@@ -173,7 +173,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 			cfi.steps.push({
 				"type" : "text",
 				'index' : parseInt(end) - 1,
-			});		
+			});
 		}
 
 	}

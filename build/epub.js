@@ -1919,7 +1919,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 		epubpackage = this.loadPackage();
 	}
 
-	if(this.settings.restore && !forceReload){
+	if(this.settings.restore && !forceReload && localStorage){
 		//-- Will load previous package json, or re-unpack if error
 		epubpackage.then(function(packageXml) {
 			var identifier = book.packageIdentifier(packageXml);
@@ -2335,7 +2335,13 @@ EPUBJS.Book.prototype.isContained = function(bookUrl){
 
 //-- Checks if the book can be retrieved from localStorage
 EPUBJS.Book.prototype.isSaved = function(bookKey) {
-	var storedSettings = localStorage.getItem(bookKey);
+	var storedSettings;
+
+	if(!localStorage) {
+		return false;
+	}
+
+	storedSettings = localStorage.getItem(bookKey);
 
 	if( !localStorage ||
 		storedSettings === null) {
@@ -2351,10 +2357,16 @@ EPUBJS.Book.prototype.generateBookKey = function(identifier){
 };
 
 EPUBJS.Book.prototype.saveContents = function(){
+	if(!localStorage) {
+		return false;
+	}
 	localStorage.setItem(this.settings.bookKey, JSON.stringify(this.contents));
 };
 
 EPUBJS.Book.prototype.removeSavedContents = function() {
+	if(!localStorage) {
+		return false;
+	}
 	localStorage.removeItem(this.settings.bookKey);
 };
 
@@ -2804,7 +2816,7 @@ EPUBJS.Book.prototype.forceSingle = function(use) {
 
 EPUBJS.Book.prototype.unload = function(){
 	
-	if(this.settings.restore) {
+	if(this.settings.restore && localStorage) {
 		this.saveContents();
 	}
 
@@ -3302,15 +3314,16 @@ EPUBJS.core.uuid = function() {
 // http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers 
 EPUBJS.core.insert = function(item, array, compareFunction) {
 	var location = EPUBJS.core.locationOf(item, array, compareFunction);
-	array.splice(location+1, 0, item);
+	array.splice(location, 0, item);
 	
-	return location+1;
+	return location;
 };
 
 EPUBJS.core.locationOf = function(item, array, compareFunction, _start, _end) {
 	var start = _start || 0;
 	var end = _end || array.length;
 	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
 	if(!compareFunction){
 		compareFunction = function(a, b) {
 			if(a > b) return 1;
@@ -3318,15 +3331,55 @@ EPUBJS.core.locationOf = function(item, array, compareFunction, _start, _end) {
 			if(a = b) return 0;
 		};
 	}
-	if(end-start <= 1 || compareFunction(array[pivot], item) === 0) {
+	if(end-start <= 0) {
 		return pivot;
 	}
-	if(compareFunction(array[pivot], item) === -1) {
+	
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared > 0 ? pivot : pivot + 1;
+	}
+	
+	if(compared === 0) {
+		return pivot;
+	}
+	if(compared === -1) {
 		return EPUBJS.core.locationOf(item, array, compareFunction, pivot, end);
 	} else{
 		return EPUBJS.core.locationOf(item, array, compareFunction, start, pivot);
 	}
 };
+
+EPUBJS.core.indexOfSorted = function(item, array, compareFunction, _start, _end) {
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 0) {
+		return -1; // Not found
+	}
+
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared === 0 ? pivot : -1;
+	}
+	if(compared === 0) {
+		return pivot; // Found
+	}
+	if(compared === -1) {
+		return EPUBJS.core.indexOfSorted(item, array, compareFunction, pivot, end);
+	} else{
+		return EPUBJS.core.indexOfSorted(item, array, compareFunction, start, pivot);
+	}
+};
+
 
 EPUBJS.core.queue = function(_scope){
 	var _q = [];
@@ -3466,7 +3519,24 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 		chapId,
 		path,
 		end,
-		text;
+		endInt,
+		text,
+		parseStep = function(part){
+			var type, index, has_brackets, id;
+			
+			type = "element";
+			index = parseInt(part) / 2 - 1;
+			has_brackets = part.match(/\[(.*)\]/);
+			if(has_brackets && has_brackets[1]){
+				id = has_brackets[1];
+			}
+			
+			return {
+				"type" : type,
+				'index' : index,
+				'id' : id || false
+			};
+		};
 	
 	if(typeof cfiStr !== "string") {
 		return {spinePos: -1};
@@ -3508,31 +3578,27 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 	cfi.steps = [];
 
 	path.forEach(function(part){
-		var type, index, has_brackets, id;
+		var step;
 		
-		if(!part) return;
-		
-		type = "element";
-		index = parseInt(part) / 2 - 1;
-		has_brackets = part.match(/\[(.*)\]/);
-		if(has_brackets && has_brackets[1]){
-			id = has_brackets[1];
+		if(part) {
+			step = parseStep(part);
+			cfi.steps.push(step);
 		}
-		
-		cfi.steps.push({
-			"type" : type,
-			'index' : index,
-			'id' : id || false
-		});
-		
 	});
 
 	//-- Check if END is a text node or element
-	if(!isNaN(parseInt(end))) {
-		cfi.steps.push({
-			"type" : "text",
-			'index' : parseInt(end) - 1,
-		});
+	endInt = parseInt(end);
+	if(!isNaN(endInt)) {
+		
+		if(endInt % 2 === 0) { // Even = is an element
+			cfi.steps.push(parseStep(end));
+		} else {
+			cfi.steps.push({
+				"type" : "text",
+				'index' : parseInt(end) - 1,
+			});
+		}
+
 	}
 
 	assertion = charecterOffsetComponent.match(/\[(.*)\]/);
@@ -3680,7 +3746,9 @@ EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 	if(cfiOne.spinePos < cfiTwo.spinePos) {
 		return -1;
 	}
-	// Compare Each Step
+	
+	
+	// Compare Each Step in the First item
 	for (var i = 0; i < cfiOne.steps.length; i++) {
 		if(!cfiTwo.steps[i]) {
 			return 1;
@@ -3693,6 +3761,12 @@ EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 		}
 		// Otherwise continue checking
 	}
+	
+	// All steps in First present in Second
+	if(cfiOne.steps.length < cfiTwo.steps.length) {
+		return -1;
+	}
+
 	// Compare the charecter offset of the text node
 	if(cfiOne.characterOffset > cfiTwo.characterOffset) {
 		return 1;
@@ -4085,18 +4159,32 @@ EPUBJS.Pagination.prototype.process = function(pageList){
 
 EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 	var pg = -1;
+	
+	// Check if the pageList has not been set yet
+	if(this.locations.length === 0) {
+		return -1;
+	}
+	
+	// TODO: check if CFI is valid?
+
 	// check if the cfi is in the location list
-	var index = this.locations.indexOf(cfi);
+	// var index = this.locations.indexOf(cfi);
+	var index = EPUBJS.core.indexOfSorted(cfi, this.locations, this.epubcfi.compare);
 	if(index != -1 && index < (this.pages.length-1) ) {
 		pg = this.pages[index];
 	} else {
 		// Otherwise add it to the list of locations
 		// Insert it in the correct position in the locations page
 		index = EPUBJS.core.insert(cfi, this.locations, this.epubcfi.compare);
-		// Get the page at the location just before the new one
-		pg = this.pages[index-1];
-		// Add the new page in so that the locations and page array match up
-		this.pages.splice(index, 0, pg);
+		// Get the page at the location just before the new one, or return the first
+		pg = index-1 >= 0 ? this.pages[index-1] : this.pages[0];
+		if(pg !== undefined) {
+			// Add the new page in so that the locations and page array match up
+			this.pages.splice(index, 0, pg);
+		} else {
+			pg = -1;
+		}
+
 	}
 	return pg;
 };
@@ -4109,6 +4197,7 @@ EPUBJS.Pagination.prototype.cfiFromPage = function(pg){
 	}
 
 	// check if the cfi is in the page list
+	// Pages could be unsorted.
 	var index = this.pages.indexOf(pg);
 	if(index != -1) {
 		cfi = this.locations[index];
