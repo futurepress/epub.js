@@ -732,9 +732,13 @@ input:-moz-placeholder {
 }
 /* For iPhone portrait layouts only */
 @media only screen and (max-device-width: 480px) and (orientation: portrait) {
+    #viewer {
+      width: 256px;
+      height: 432px;
+    }
     #viewer iframe {
        width: 256px;
-       height: 468px;
+       height: 432px;
     }
 }
 /* For iPhone landscape layouts only */
