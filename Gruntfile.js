@@ -10,11 +10,8 @@ module.exports = function(grunt) {
 		concat_sourcemap : {
 		'build/epub_no_underscore.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
 		'build/epub.js': ['<banner>', 'libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.js', 'src/*.js'],
-		'build/reader.js': ['<banner>', 'reader/reader.js', 'reader/controllers/*.js'],
+		'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js']
-		// 'demo/js/libs/fileStorage.min.js': 'libs/fileStorage/fileStorage.min.js',
-		// 'demo/js/libs/loader_filesystem.min.js': 'libs/fileStorage/workers/loader_filesystem.min.js',
-		// 'demo/js/libs/inflate.js': 'libs/zip/inflate.js',
 		},
 		uglify: {
 			my_target: {
@@ -23,34 +20,29 @@ module.exports = function(grunt) {
 						sourceMap: true
 				},
 				files: {
-					// 'demo/js/epub.min.js': ['build/epub.js'],
 					'build/epub.min.js': ['build/epub.js'],
 					'build/reader.min.js': ['build/reader.js'],
-					// 'demo/js/hooks.min.js': ['build/hooks.js'],
 					'build/hooks.min.js': ['build/hooks.js'],
-					// 'demo/js/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
-					// 'demo/js/libs/inflate.min.js': ['libs/zip/inflate.js'],
 					'build/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
 					'build/libs/inflate.js': ['libs/zip/inflate.js']
-					// 'build/libs/screenfull.min.js': ['libs/screenfull.min.js']
 				}
 			}
 		},
 		copy: {
 			main: {
 				files: [
-					{src: 'build/epub.js', dest: 'demo/js/epub.min.js'},
-					{src: 'build/hooks.min.js', dest: 'demo/js/hooks.min.js'},
-					{src: 'build/reader.min.js', dest: 'demo/js/reader.min.js'},
-					{src: 'build/epub.min.map', dest: 'demo/js/epub.js.map'},
-					{src: 'build/hooks.min.map', dest: 'demo/js/hooks.js.map'},
-					{src: 'build/reader.js.map', dest: 'demo/js/hooks.js.map'},
-					{src: 'build/zip/*', dest: 'demo/js/libs/', filter: 'isFile'},
-					{src: 'libs/jquery/jquery-2.1.0.min.js', dest:'demo/js/libs/jquery-2.1.0.min.js'},
-				  {src: 'libs/screenfull.min.js', dest: 'demo/js/libs/screenfull.min.js'},
-					{src: 'reader/plugins/search.js', dest: 'demo/js/plugins/search.js'},
-					{src: 'reader/plugins/hypothesis.js', dest: 'demo/js/plugins/hypothesis.js'},
-					{src: 'hooks/extensions/highlight.js', dest: 'demo/js/hooks/extensions/highlight.js'}
+					{src: 'build/epub.js', dest: 'reader/js/epub.min.js'},
+					{src: 'build/hooks.min.js', dest: 'reader/js/hooks.min.js'},
+					{src: 'build/reader.min.js', dest: 'reader/js/reader.min.js'},
+					{src: 'build/epub.min.map', dest: 'reader/js/epub.js.map'},
+					{src: 'build/hooks.min.map', dest: 'reader/js/hooks.js.map'},
+					{src: 'build/reader.js.map', dest: 'reader/js/hooks.js.map'},
+					{src: 'build/zip/*', dest: 'reader/js/libs/', filter: 'isFile'},
+					{src: 'libs/jquery/jquery-2.1.0.min.js', dest:'reader/js/libs/jquery-2.1.0.min.js'},
+				  {src: 'libs/screenfull.min.js', dest: 'reader/js/libs/screenfull.min.js'},
+					{src: 'reader_src/plugins/search.js', dest: 'reader/js/plugins/search.js'},
+					{src: 'reader_src/plugins/hypothesis.js', dest: 'reader/js/plugins/hypothesis.js'},
+					{src: 'hooks/extensions/highlight.js', dest: 'reader/js/hooks/extensions/highlight.js'}
 		
 				]
 			},
