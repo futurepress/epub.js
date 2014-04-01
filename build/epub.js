@@ -4587,6 +4587,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 						"id": id,
 						"href": src,
 						"label": text,
+						"spinePos": spinePos,
 						"subitems" : subitems,
 						"parent" : parent ? parent.getAttribute('id') : null
 			});
