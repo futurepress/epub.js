@@ -2561,19 +2561,36 @@ EPUBJS.Book.prototype.prevPage = function() {
 };
 
 EPUBJS.Book.prototype.nextChapter = function() {
-	if(this.spinePos < this.spine.length - 1){
-		this.spinePos += 1;
-		return this.displayChapter(this.spinePos);
+	if (this.spinePos < this.spine.length - 1) {
+		var next = this.spinePos + 1;
+		while (this.spine[next] && this.spine[next].linear && this.spine[next].linear == 'no') {
+			next++;
+		}
+		if (next < this.spine.length - 1) {
+			this.spinePos = next;
+			return this.displayChapter(this.spinePos);
+		} else {
+			this.trigger("book:atEnd");
+		}
+
 	} else {
 		this.trigger("book:atEnd");
 	}
-	
 };
 
 EPUBJS.Book.prototype.prevChapter = function() {
-	if(this.spinePos > 0){
-		this.spinePos -= 1;
-		return this.displayChapter(this.spinePos, true);
+	if (this.spinePos > 0) {
+		var prev = this.spinePos - 1;
+		while (this.spine[prev] && this.spine[prev].linear && this.spine[prev].linear == 'no') {
+			prev--;
+		}
+		if (prev >= 0) {
+			this.spinePos = prev;
+			return this.displayChapter(this.spinePos, true);
+		} else {
+			this.trigger("book:atStart");
+		}
+
 	} else {
 		this.trigger("book:atStart");
 	}
