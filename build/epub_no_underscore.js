@@ -4294,13 +4294,13 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	}
 	
 	manifestNode = packageXml.querySelector("manifest");
-	if(!metadataNode) {
+	if(!manifestNode) {
 		console.error("No Manifest Found");
 		return;
 	}
 	
 	spineNode = packageXml.querySelector("spine");
-	if(!metadataNode) {
+	if(!spineNode) {
 		console.error("No Spine Found");
 		return;
 	}
@@ -5799,7 +5799,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error("No entry found", url);
+	if(!entry) {
+		console.warn("File not found in the contained epub:", url);
+		return deferred.promise;
+	}
 
 	entry.getText(function(text){
 		deferred.resolve(text);

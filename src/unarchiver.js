@@ -83,7 +83,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error("No entry found", url);
+	if(!entry) {
+		console.warn("File not found in the contained epub:", url);
+		return deferred.promise;
+	}
 
 	entry.getText(function(text){
 		deferred.resolve(text);
