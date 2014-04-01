@@ -26,13 +26,27 @@ EPUBJS.reader.plugins = {}; //-- Attach extra Controllers as plugins (like searc
 
 })(window, jQuery);
 
-EPUBJS.Reader = function(path, _options) {
+EPUBJS.Reader = function(bookPath, _options) {
 	var reader = this;
 	var book;
 	var plugin;
 	var $viewer = $("#viewer");
+	var search = window.location.search;
+	var parameters;
 	
+	// Overide options with search parameters
+	if(search) {
+		parameters = search.slice(1).split("&");
+		parameters.forEach(function(p){
+			var split = p.split("=");
+			var name = split[0];
+			var value = split[1] || '';
+			_options[name] = value;
+		});
+	}
+
 	this.settings = _.defaults(_options || {}, {
+		bookPath : bookPath,
 		restore : true,
 		reload : false,
 		bookmarks : null,
@@ -45,7 +59,7 @@ EPUBJS.Reader = function(path, _options) {
 		history: true
 	});
 	
-	this.setBookKey(path); //-- This could be username + path or any unique string
+	this.setBookKey(bookPath); //-- This could be username + path or any unique string
 	
 	if(this.settings.restore && this.isSaved()) {
 		this.applySavedSettings();
@@ -56,7 +70,7 @@ EPUBJS.Reader = function(path, _options) {
 	};
 	
 	this.book = book = new EPUBJS.Book({
-		bookPath: path,
+		bookPath: this.settings.bookPath,
 		restore: this.settings.restore,
 		reload: this.settings.reload,
 		contained: this.settings.contained,
