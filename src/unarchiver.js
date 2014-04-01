@@ -11,6 +11,7 @@ EPUBJS.Unarchiver = function(url){
 	
 };
 
+//-- Load the zip lib and set the workerScriptsPath
 EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 	if(typeof(zip) == "undefined") console.error("Zip lib not loaded");
 	
@@ -49,10 +50,17 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
-
-	if(!entry) console.error("File not found:", url);
+	
+	if(!entry) {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+		return deferred.promise;
+	}
 	
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
@@ -71,11 +79,14 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var unarchiver = this;
 	var deferred = new RSVP.defer();
-	var entry = this.zipFs.find(url);
+	var decodededUrl = window.decodeURIComponent(url);
+	var entry = this.zipFs.find(decodededUrl);
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
-	if(!entry) console.error(url);
-
+	if(!entry) {
+		console.warn("File not found in the contained epub:", url);
+		return deferred.promise;
+	}
 
 	entry.getText(function(text){
 		deferred.resolve(text);

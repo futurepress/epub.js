@@ -1,12 +1,12 @@
-EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, chapter){
+EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
 		/*
 		<aside ref="http://www.youtube.com/embed/DUL6MBVKVLI?html5=1" transclusion="video" width="560" height="315">
 			<a href="http://www.youtube.com/embed/DUL6MBVKVLI"> Watch the National Geographic: The Last Roll of Kodachrome</a>
 		</aside>
 		*/
 
-		var trans = chapter.doc.querySelectorAll('[transclusion]'),
-			items = Array.prototype.slice.call(trans);
+		var trans = renderer.contents.querySelectorAll('[transclusion]'),
+				items = Array.prototype.slice.call(trans);
 
 		items.forEach(function(item){
 			var src = item.getAttribute("ref"),
@@ -40,7 +40,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback,
 			//-- resize event
 
 			
-			chapter.book.listenUntil("book:resized", "book:chapterDestroy", size);
+			renderer.listenUntil("renderer:resized", "renderer:chapterUnloaded", size);
 		
 			iframe.src = src;
 			

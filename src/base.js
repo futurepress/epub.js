@@ -1,11 +1,13 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.1.8";
+EPUBJS.VERSION = "0.2.0";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
 EPUBJS.filePath = EPUBJS.filePath || "/epubjs/";
+
+EPUBJS.Render = {};
 
 (function(root) {
 

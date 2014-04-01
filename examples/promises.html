@@ -16,7 +16,7 @@
         <script>
             "use strict";
             
-            var Book = ePub("../demo/moby-dick/", { restore: true });
+            var Book = ePub("../reader/moby-dick/", { restore: true });
             
             
         </script>
@@ -26,7 +26,7 @@
           <div id="prev" onclick="Book.prevPage();" class="arrow">‹</div>
           <div id="area"></div>
           <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
-          <div id="loader"><img src="../demo/img/loader.gif"></div>
+          <div id="loader"><img src="../reader/img/loader.gif"></div>
           <select id="toc"></select>
         </div>
 

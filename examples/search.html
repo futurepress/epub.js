@@ -8,13 +8,13 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <link rel="stylesheet" href="../demo/css/normalize.css">
-        <link rel="stylesheet" href="../demo/css/main.css">
-        <link rel="stylesheet" href="../demo/css/popup.css">
+        <link rel="stylesheet" href="../reader/css/normalize.css">
+        <link rel="stylesheet" href="../reader/css/main.css">
+        <link rel="stylesheet" href="../reader/css/popup.css">
         <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
         <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
         -->
-        <script src="../libs/jquery/jquery-2.0.3.js"></script>
+        <script src="../libs/jquery/jquery-2.1.0.js"></script>
 
         <script>
             "use strict";
@@ -24,32 +24,32 @@
                 EPUBJS.VERSION = "0.1.6";
 
                 EPUBJS.filePath = "js/libs/";
-                EPUBJS.cssPath = "../demo/css/";
+                EPUBJS.cssPath = "../reader/css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                ePubReader("../demo/moby-dick/");
+                ePubReader("../reader/moby-dick/");
               }  
             };
 
         </script>
 
         <!-- Render -->
-        <script src="../demo/js/epub.min.js"></script>
+        <script src="../reader/js/epub.min.js"></script>
         
         <!-- Hooks -->
-        <script src="../demo/js/hooks.min.js"></script> 
+        <script src="../reader/js/hooks.min.js"></script> 
         
         <!-- Reader -->
-        <script src="../demo/js/reader.min.js"></script>
+        <script src="../reader/js/reader.min.js"></script>
         
         <!-- Plugins -->
-        <script src="../reader/plugins/search.js"></script>
+        <script src="../reader_src/plugins/search.js"></script>
 
         <!-- Full Screen -->
-        <script src="../demo/js/libs/screenfull.min.js"></script>
+        <script src="../reader/js/libs/screenfull.min.js"></script>
 
         <!-- Highlights -->
-        <script src="../demo/js/libs/jquery.highlight.js"></script>
+        <script src="../reader/js/libs/jquery.highlight.js"></script>
         <script src="../hooks/extensions/highlight.js"></script>
 
     </head>
@@ -96,7 +96,7 @@
         <div id="viewer"></div>
         <div id="next" class="arrow">›</div>
         
-        <div id="loader"><img src="../demo/img/loader.gif"></div>
+        <div id="loader"><img src="../reader/img/loader.gif"></div>
       </div>
       <div class="modal md-effect-1" id="settings-modal">
           <div class="md-content">

@@ -11,7 +11,7 @@ EPUBJS.core.getEls = function(classes) {
 	return document.getElementsByClassName(classes);
 };
 
-EPUBJS.core.request = function(url, type) {
+EPUBJS.core.request = function(url, type, withCredentials) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
@@ -29,8 +29,10 @@ EPUBJS.core.request = function(url, type) {
 			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
 		});
 	}
-	
-	xhr.open("GET", url);
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
+	xhr.open("GET", url, true);
 	xhr.onreadystatechange = handler;
 	
 	if(type == 'blob'){
@@ -73,7 +75,10 @@ EPUBJS.core.request = function(url, type) {
 				
 				deferred.resolve(r);
 			} else {
-				deferred.reject(this);
+				deferred.reject({
+					message : this.response,
+					stack : new Error().stack
+				});
 			}
 		}
 	}
@@ -96,7 +101,7 @@ EPUBJS.core.toArray = function(obj) {
 	return arr;
 };
 
-//-- Parse out the origin
+//-- Parse the different parts of a url, returning a object
 EPUBJS.core.uri = function(url){
 	var uri = {
 				protocol : '',
@@ -105,12 +110,23 @@ EPUBJS.core.uri = function(url){
 				origin : '',
 				directory : '',
 				base : '',
-				filename : ''
+				filename : '',
+				extension : '',
+				fragment : '',
+				href : url
 			},
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
+			fragment = url.indexOf("#"),
+			withoutProtocol,
+			dot,
 			firstSlash;
-	
+
+	if(fragment != -1) {
+		uri.fragment = url.slice(fragment + 1);
+		url = url.slice(0, fragment);
+	}
+
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
@@ -118,18 +134,21 @@ EPUBJS.core.uri = function(url){
 	
 	if(doubleSlash != -1) {
 		uri.protocol = url.slice(0, doubleSlash);
-		uri.path = url.slice(doubleSlash+3);
-		firstSlash = uri.path.indexOf('/');
+		withoutProtocol = url.slice(doubleSlash+3);
+		firstSlash = withoutProtocol.indexOf('/');
 		
 		if(firstSlash === -1) {
 			uri.host = uri.path;
+			uri.path = "";
 		} else {
-			uri.host = uri.path.slice(0, firstSlash);
+			uri.host = withoutProtocol.slice(0, firstSlash);
+			uri.path = withoutProtocol.slice(firstSlash);
 		}
+		
 		
 		uri.origin = uri.protocol + "://" + uri.host;
 		
-		uri.directory = EPUBJS.core.folder(uri.path.replace(uri.host, ''));
+		uri.directory = EPUBJS.core.folder(uri.path);
 		
 		uri.base = uri.origin + uri.directory;
 		// return origin;
@@ -141,16 +160,20 @@ EPUBJS.core.uri = function(url){
 	
 	//-- Filename
 	uri.filename = url.replace(uri.base, '');
-
+	dot = uri.filename.lastIndexOf('.');
+	if(dot != -1) {
+		uri.extension = uri.filename.slice(dot+1);
+	}
 	return uri;
 };
 
-//-- Parse out the folder
+//-- Parse out the folder, will return everything before the last slash
+
 EPUBJS.core.folder = function(url){
 	
 	var lastSlash = url.lastIndexOf('/');
 	
-	if(lastSlash == -1) folder = '';
+	if(lastSlash == -1) var folder = '';
 		
 	folder = url.slice(0, lastSlash + 1);
 	
@@ -257,9 +280,14 @@ EPUBJS.core.prefixed = function(unprefixed) {
 EPUBJS.core.resolveUrl = function(base, path) {
 	var url,
 		segments = [],
+		uri = EPUBJS.core.uri(path),
 		folders = base.split("/"),
 		paths;
-
+	
+	if(uri.host) {
+		return path;
+	}
+	
 	folders.pop();
 
 	paths = path.split("/");
@@ -274,4 +302,127 @@ EPUBJS.core.resolveUrl = function(base, path) {
 	url = folders.concat(segments);
 
 	return url.join("/");
+};
+
+// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+EPUBJS.core.uuid = function() {
+	var d = new Date().getTime();
+	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			var r = (d + Math.random()*16)%16 | 0;
+			d = Math.floor(d/16);
+			return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+	});
+	return uuid;
+};
+
+// Fast quicksort insert for sorted array -- based on:
+// http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers 
+EPUBJS.core.insert = function(item, array, compareFunction) {
+	var location = EPUBJS.core.locationOf(item, array, compareFunction);
+	array.splice(location, 0, item);
+	
+	return location;
+};
+
+EPUBJS.core.locationOf = function(item, array, compareFunction, _start, _end) {
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 0) {
+		return pivot;
+	}
+	
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared > 0 ? pivot : pivot + 1;
+	}
+	
+	if(compared === 0) {
+		return pivot;
+	}
+	if(compared === -1) {
+		return EPUBJS.core.locationOf(item, array, compareFunction, pivot, end);
+	} else{
+		return EPUBJS.core.locationOf(item, array, compareFunction, start, pivot);
+	}
+};
+
+EPUBJS.core.indexOfSorted = function(item, array, compareFunction, _start, _end) {
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 0) {
+		return -1; // Not found
+	}
+
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared === 0 ? pivot : -1;
+	}
+	if(compared === 0) {
+		return pivot; // Found
+	}
+	if(compared === -1) {
+		return EPUBJS.core.indexOfSorted(item, array, compareFunction, pivot, end);
+	} else{
+		return EPUBJS.core.indexOfSorted(item, array, compareFunction, start, pivot);
+	}
+};
+
+
+EPUBJS.core.queue = function(_scope){
+	var _q = [];
+	var scope = _scope;
+	// Add an item to the queue
+	var enqueue = function(funcName, args, context) {
+		_q.push({
+			"funcName" : funcName,
+			"args"     : args,
+			"context"  : context
+		});
+		return _q;
+	};
+	// Run one item
+	var dequeue = function(){
+		var inwait;
+		if(_q.length) {
+			inwait = _q.shift();
+			// Defer to any current tasks
+			setTimeout(function(){
+				scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
+			}, 0);
+		}
+	};
+	// Run All
+	var flush = function(){
+		while(_q.length) {
+			dequeue();
+		}
+	};
+	// Clear all items in wait
+	var clear = function(){
+		_q = [];
+	};
+	return {
+		"enqueue" : enqueue,
+		"dequeue" : dequeue,
+		"flush" : flush,
+		"clear" : clear
+	};
 };
