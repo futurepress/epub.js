@@ -3514,6 +3514,7 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 				"id": id,
 				"href": href,
 				"label": text,
+        "spinePos" : spinePos,
 				"subitems" : subitems,
 				"parent" : parent ? parent.getAttribute('id') : null
 			});
@@ -3567,6 +3568,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 						"id": id,
 						"href": src,
 						"label": text,
+						"spinePos": spinePos,
 						"subitems" : subitems,
 						"parent" : parent ? parent.getAttribute('id') : null
 			});
@@ -3578,6 +3580,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 
 	return getTOC(navMap);
 };
+
 EPUBJS.Renderer = function(book) {
 	this.el = book.element;
 	this.book = book;
