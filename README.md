@@ -7,7 +7,7 @@ Epub.js is a JavaScript library for rendering ePub documents in the browser, acr
 
 Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin.
 
-[Try it while reading Moby Dick](http://futurepress.github.com/epub.js/demo/)
+[Try it while reading Moby Dick](http://futurepress.github.com/epub.js/reader/)
 
 
 Why EPUB
@@ -60,32 +60,26 @@ Create the new ePub, and then render it to that element:
 </script>
 ```
 
-See the [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md) to view events and methods for getting the books contents.
+See the [Documentation](https://github.com/futurepress/epub.js/blob/master/documentation/README.md) to view events and methods for getting the books contents.
 
-The [Examples](https://github.com/fchasen/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
+The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
 
 
 Recent Updates
 -------------------------
-+ ```book.goto()``` and ```book.gotoCfi()``` can be called before ```book.renderTo()``` to start rendering at a previous page location.
++ v2 splits the render method from the layout and renderer. Currently only iframe rendering is supported, but this change will allow for new render methods in the future. See the breaking changes to the renderer [here](https://github.com/futurepress/epub.js/blob/master/documentation/README.md#renderer).
 
-+ Moved page position restoring from local storage out of main library and into the demo reader. 
++ Work-in-progress pagination support using EPUB page-lists. See a [usage example](http://futurepress.github.io/epub.js/examples/pagination.html). ```renderer:pageChanged``` has changed to ```renderer:locationChanged``` and a ```book:pageChanged``` event was added to pass pagination events.
 
-+ Rewritten [Demo Reader](http://futurepress.github.com/epub.js/demo/)
++ Moved [Demo Reader](http://futurepress.github.com/epub.js/demo/) to ```/reader/``` and the source to ```/reader_src/```.
 
-+ Started [Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
++ Updated CFI handling to support text offsets. CFIs return wrapped like: ```"epubcfi(/6/12[xepigraph_001]!4/2/28/2/1:0)"```. Ranges to be added soon.
 
-+ Opened our public IRC, Server: freenode.net Channel: #epub.js
++ Added support for [EPUB properties](http://www.idpf.org/epub/fxl/#property-orientation). This can be overridden in the settings and default to ```{spread: 'reflowable', layout: 'auto', orientation: 'auto'}```
 
-+ Started [Documentation](https://github.com/fchasen/epub.js/blob/master/documentation/README.md)
++ Updated [Documentation](https://github.com/futurepress/epub.js/blob/master/documentation/README.md)
 
-+ ePub("book.epub", options) returns a new EPUBJS.Book(options),
-
-+ EPUBJS.Book now only takes a options object, set bookPath with ePub("path/to/book/") or new EPUBJS.Book({ bookPath : "path/to/book/"})
-
-+ [Examples](http://fchasen.github.io/epub.js/examples/)
-
-+ [Tests](http://fchasen.github.io/epub.js/tests/)
++ Many more [Tests](http://futurepress.github.io/epub.js/tests/)
 
 
 Running Locally
@@ -104,8 +98,23 @@ then you can run the reader locally with the command
 node server.js
 ```
 
-* [dev.html](http://localhost:8080/demo/dev.html) will pull from the source files and should be used during development.
-* [index.html](http://localhost:8080/demo/index.html) will use the minified production libraries in the dist/ folder.
+* [dev.html](http://localhost:8080/reader/dev.html) will pull from the source files and should be used during development.
+* [index.html](http://localhost:8080/reader/index.html) will use the minified production libraries in the build/ folder.
+
+Examples
+-------------------------
+
++ [Single](http://futurepress.github.io/epub.js/examples/single.html)
++ [Basic](http://futurepress.github.io/epub.js/examples/basic.html)
++ [Contained Epub](http://futurepress.github.io/epub.js/examples/contained.html)
++ [Promises](http://futurepress.github.io/epub.js/examples/promises.html)
++ [Fixed Width & Height](http://futurepress.github.io/epub.js/examples/fixed.html)
++ [Custom Element](http://futurepress.github.io/epub.js/examples/custom-elements.html)
++ [MathML with MathJAX](http://futurepress.github.io/epub.js/examples/mathml.html)
++ [Annotations with Hypothes.is](http://futurepress.github.io/epub.js/examples/hypothesis.html)
++ [Pagination](http://futurepress.github.io/epub.js/examples/pagination.html)
+
+[View All Examples](http://futurepress.github.io/epub.js/examples/)
 
 Testing
 -------------------------
@@ -145,7 +154,7 @@ Hooks require a event to latch onto and a callback for when they are finished.
 Example hook:
 
 ```javascript
-EPBUJS.Hooks.register("beforeChapterDisplay").example = function(callback, render){
+EPBUJS.Hooks.register("beforeChapterDisplay").example = function(callback, renderer){
     
     var elements = render.doc.querySelectorAll('[video]'),
         items = Array.prototype.slice.call(elements);
