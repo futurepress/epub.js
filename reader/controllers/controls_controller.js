@@ -93,6 +93,8 @@ EPUBJS.reader.ControlsController = function(book) {
 				.removeClass("icon-bookmark-empty"); 
 		}
 		
+		reader.currentLocationCfi = cfi;
+		
 		// Update the History Location
 		if(reader.settings.history &&
 				window.location.hash != cfiFragment) {

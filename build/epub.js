@@ -5689,7 +5689,7 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
 		promises = [],
-		matches = text.match(/url\(\'?\"?([^\'|^\"|^\)]*)\'?\"?\)/g);
+		matches = text.match(/url\(\'?\"?([^\'|^\"^\)]*)\'?\"?\)/g);
 	
 	if(!_store) return;
 
@@ -5853,3 +5853,5 @@ EPUBJS.Unarchiver.prototype.saveEntryFileToStorage = function(entry, callback){
 		EPUBJS.storage.save(entry.filename, blob, callback);
 	});
 };
+
+//# sourceMappingURL=epub.js.map

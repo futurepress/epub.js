@@ -300,6 +300,7 @@ EPUBJS.Reader.prototype.selectedRange = function(range){
 			window.location.hash != cfiFragment) {
 		// Add CFI fragment to the history
 		history.pushState({}, '', cfiFragment);
+		this.currentLocationCfi = cfi;
 	}
 };
 

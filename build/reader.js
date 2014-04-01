@@ -300,6 +300,7 @@ EPUBJS.Reader.prototype.selectedRange = function(range){
 			window.location.hash != cfiFragment) {
 		// Add CFI fragment to the history
 		history.pushState({}, '', cfiFragment);
+		this.currentLocationCfi = cfi;
 	}
 };
 
@@ -466,6 +467,8 @@ EPUBJS.reader.ControlsController = function(book) {
 				.addClass("icon-bookmark")
 				.removeClass("icon-bookmark-empty"); 
 		}
+		
+		reader.currentLocationCfi = cfi;
 		
 		// Update the History Location
 		if(reader.settings.history &&
@@ -1095,3 +1098,5 @@ EPUBJS.reader.TocController = function(toc) {
 		"hide" : onHide
 	};
 };
+
+//# sourceMappingURL=reader.js.map

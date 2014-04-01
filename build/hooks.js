@@ -314,3 +314,5 @@ EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback,
 
 	
 }
+
+//# sourceMappingURL=hooks.js.map
