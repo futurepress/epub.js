@@ -70,13 +70,13 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	}
 	
 	manifestNode = packageXml.querySelector("manifest");
-	if(!metadataNode) {
+	if(!manifestNode) {
 		console.error("No Manifest Found");
 		return;
 	}
 	
 	spineNode = packageXml.querySelector("spine");
-	if(!metadataNode) {
+	if(!spineNode) {
 		console.error("No Spine Found");
 		return;
 	}
