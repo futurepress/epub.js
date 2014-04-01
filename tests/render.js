@@ -1,7 +1,7 @@
 module('Render');
 
 asyncTest("renderTo element on page", 1, function() {
-	var Book = ePub('../demo/moby-dick/');
+	var Book = ePub('../reader/moby-dick/');
 
 	var render = Book.renderTo("qunit-fixture");
 
@@ -15,7 +15,7 @@ asyncTest("renderTo element on page", 1, function() {
 });
 
 asyncTest("Fit to given width and height", 3, function() {
-	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	var Book = ePub('../reader/moby-dick/', { width: 400, height: 600 });
 
 	var render = Book.renderTo("qunit-fixture");
 
@@ -39,7 +39,7 @@ asyncTest("Fit to given width and height", 3, function() {
 });
 
 asyncTest("Go to chapter 1 and advance to next page", 4, function() {
-	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	var Book = ePub('../reader/moby-dick/', { width: 400, height: 600 });
 
 	var render = Book.renderTo("qunit-fixture");
 
@@ -78,7 +78,7 @@ asyncTest("Go to chapter 1 and advance to next page", 4, function() {
 });
 
 asyncTest("Go to chapter 10 at restore start", 2, function() {
-	var Book = ePub('../demo/moby-dick/', { width: 400, 
+	var Book = ePub('../reader/moby-dick/', { width: 400, 
 																				 height: 600,
 																				 restore: true,
 																				 goto: "chapter_010.xhtml" });
@@ -105,7 +105,7 @@ asyncTest("Go to chapter 10 at restore start", 2, function() {
 });
 
 asyncTest("Go to chapter 20 from queue", 2, function() {
-	var Book = ePub('../demo/moby-dick/', { width: 400, 
+	var Book = ePub('../reader/moby-dick/', { width: 400, 
 																				 height: 600 });
 	
 	Book.goto("chapter_020.xhtml");
@@ -130,7 +130,7 @@ asyncTest("Go to chapter 20 from queue", 2, function() {
 
 asyncTest("Display end of chapter 20 and go to prev page", 3, function() {
 
-	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	var Book = ePub('../reader/moby-dick/', { width: 400, height: 600 });
 
 	var render = Book.renderTo("qunit-fixture");
 
@@ -168,7 +168,7 @@ asyncTest("Display end of chapter 20 and go to prev page", 3, function() {
 
 asyncTest("Add styles to book", 4, function() {
 	
-	var Book = ePub('../demo/moby-dick/', { width: 400, height: 600 });
+	var Book = ePub('../reader/moby-dick/', { width: 400, height: 600 });
 	
 	var render = Book.renderTo("qunit-fixture");
 	
@@ -198,7 +198,7 @@ asyncTest("Add styles to book", 4, function() {
 
 asyncTest("Switch Spreads to Single", 3, function() {
 	
-	var Book = ePub('../demo/moby-dick/', { width: 800, height: 600 });
+	var Book = ePub('../reader/moby-dick/', { width: 800, height: 600 });
 	
 	var render = Book.renderTo("qunit-fixture");
 	
@@ -214,7 +214,7 @@ asyncTest("Switch Spreads to Single", 3, function() {
 });
 
 asyncTest("Go to chapter 4 and advance through chapter, checking position with width set", 11, function() {
-	var Book = ePub('../demo/moby-dick/', { width: 1100.5, height: 612 });
+	var Book = ePub('../reader/moby-dick/', { width: 1100.5, height: 612 });
 
 	var render = Book.renderTo("qunit-fixture");
 
@@ -274,7 +274,7 @@ asyncTest("Go to chapter 4 and advance through chapter, checking position with w
 });
 
 asyncTest("Go to chapter 4 and advance through chapter, checking position with width from div", 11, function() {
-	var Book = ePub('../demo/moby-dick/');
+	var Book = ePub('../reader/moby-dick/');
 	var viewer = document.createElement("div");
 	var $viewer;
 	var render;

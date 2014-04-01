@@ -1,10 +1,10 @@
-// /demo/moby-dick/OPS/chapter_006.xhtml
+// /reader/moby-dick/OPS/chapter_006.xhtml
 // epubcfi(/6/24[xchapter_006]!4/2/14/1:0)
 
 module('EPUB CFI');
 
 asyncTest("Renderer Updates to new CFI", 1, function() {
-	var book = ePub('/demo/moby-dick/', { width: 400, height: 600 });
+	var book = ePub('/reader/moby-dick/', { width: 400, height: 600 });
 
 	var render = book.renderTo("qunit-fixture");
 
@@ -20,7 +20,7 @@ asyncTest("Renderer Updates to new CFI", 1, function() {
 });
 
 asyncTest("Find CFI from href", 1, function() {
-	var book = ePub('/demo/moby-dick/', { width: 400, height: 600 });
+	var book = ePub('/reader/moby-dick/', { width: 400, height: 600 });
 
 	var render = book.renderTo("qunit-fixture");
 

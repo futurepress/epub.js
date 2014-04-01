@@ -1,18 +1,18 @@
 module('Create');
 
 test("Using ePub(/path/to/epub/)", 1, function() {
-	var Book = ePub("../demo/moby-dick/");
-	equal( Book.settings.bookPath, "../demo/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
+	var Book = ePub("../reader/moby-dick/");
+	equal( Book.settings.bookPath, "../reader/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
 });
 
 test("Using ePub({ bookPath: '/path/to/epub/' })", 1, function() {
-	var Book = ePub({ bookPath : "../demo/moby-dick/" });
-	equal( Book.settings.bookPath, "../demo/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
+	var Book = ePub({ bookPath : "../reader/moby-dick/" });
+	equal( Book.settings.bookPath, "../reader/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
 });
 
 test("Using EPUBJS.Book({ bookPath: '/path/to/epub/' })", 1, function() {
-	var Book = new EPUBJS.Book({ bookPath : "../demo/moby-dick/" });
-	equal( Book.settings.bookPath, "../demo/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
+	var Book = new EPUBJS.Book({ bookPath : "../reader/moby-dick/" });
+	equal( Book.settings.bookPath, "../reader/moby-dick/", "bookPath is passed to new EPUBJS.Book" );
 });
 
 module('Open');
@@ -21,10 +21,10 @@ module('Open');
 asyncTest("Get book URL from bookPath", 1, function() {
 
 	var Book = ePub();
-	var opended = Book.open('/demo/moby-dick/');
+	var opended = Book.open('/reader/moby-dick/');
 	
 	opended.then(function(){
-		equal( Book.bookUrl, location.href.replace("tests/", '') + "demo/moby-dick/", "bookUrl is correctly resolved" );
+		equal( Book.bookUrl, location.href.replace("tests/", '') + "reader/moby-dick/", "bookUrl is correctly resolved" );
 		start();
 	});
 
@@ -34,9 +34,9 @@ asyncTest("Get book URL from bookPath", 1, function() {
 asyncTest("Get book URL from ../bookPath", 1, function() {
 
 	var Book = ePub();
-	var opended = Book.open('../demo/moby-dick/');
+	var opended = Book.open('../reader/moby-dick/');
 	opended.then(function(){
-		equal( Book.bookUrl, "/demo/moby-dick/", "bookUrl with ../ is correctly resolved" );
+		equal( Book.bookUrl, "/reader/moby-dick/", "bookUrl with ../ is correctly resolved" );
 		start();
 	});
 
@@ -56,7 +56,7 @@ asyncTest("Get book URL from ../bookPath", 1, function() {
 asyncTest("Get book URL from Compressed Epub", 2, function() {
 
 	var Book = ePub();
-	var opended = Book.open('/demo/moby-dick.epub');
+	var opended = Book.open('/reader/moby-dick.epub');
 	opended.then(function(){
 		equal( Book.contained, true, "Book is contained");
 		equal( Book.bookUrl, "", "bookUrl from compressed epub should be empty string" );
@@ -70,7 +70,7 @@ module('Contents');
 
 asyncTest("Get Contents from Uncompressed Epub", 5, function() {
 
-	var Book = ePub('../demo/moby-dick/');
+	var Book = ePub('../reader/moby-dick/');
 
 	Book.getMetadata().then(function(meta){
 
@@ -95,7 +95,7 @@ asyncTest("Get Contents from Uncompressed Epub", 5, function() {
 
 asyncTest("Get Contents from Compressed Epub", 5, function() {
 
-	var Book = ePub('../demo/moby-dick.epub');
+	var Book = ePub('../reader/moby-dick.epub');
 
 	Book.getMetadata().then(function(meta){
 
@@ -120,7 +120,7 @@ asyncTest("Get Contents from Compressed Epub", 5, function() {
 
 asyncTest("Get Contents from Restored Epub", 6, function() {
 
-	var BookFirstLoad = ePub('../demo/moby-dick/', { restore: true, reload: true });
+	var BookFirstLoad = ePub('../reader/moby-dick/', { restore: true, reload: true });
 	
 	equal( BookFirstLoad.settings.restore, true, "Book settings are being restored");
 
@@ -128,9 +128,9 @@ asyncTest("Get Contents from Restored Epub", 6, function() {
 		
 		BookFirstLoad.destroy();
 
-		var Book = ePub('../demo/moby-dick/', { restore: true });
+		var Book = ePub('../reader/moby-dick/', { restore: true });
 
-		// equal( Book.settings.contentsPath, "/demo/moby-dick/OPS/", "contentsPath was restored");
+		// equal( Book.settings.contentsPath, "/reader/moby-dick/OPS/", "contentsPath was restored");
 
 		Book.getMetadata().then(function(meta){
 

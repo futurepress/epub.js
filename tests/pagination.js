@@ -140,7 +140,7 @@ asyncTest("Load a pageList", 2, function() {
 
 
 asyncTest("gotoPage after generating page list", 2, function() {
-	var book = ePub('../demo/moby-dick/', { width: 1076, height: 588 });
+	var book = ePub('../reader/moby-dick/', { width: 1076, height: 588 });
 
 	var render = book.renderTo("qunit-fixture");
 	

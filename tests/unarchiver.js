@@ -1,14 +1,14 @@
 module('EPUBJS.Unarchiver');
 
 test("zip.workerScriptsPath is set correctly", 1, function() {
-	var Book = ePub("/demo/moby-dick.epub");
+	var Book = ePub("/reader/moby-dick.epub");
 	equal( zip.workerScriptsPath, EPUBJS.filePath, "zip workerScriptsPath is set from EPUBJS.filePath");
 });
 
 asyncTest("openZip method returns a zip file object", 3, function(){
 
 	var unarchiver = new EPUBJS.Unarchiver(),
-		zipPromise = unarchiver.openZip('/demo/moby-dick.epub');
+		zipPromise = unarchiver.openZip('/reader/moby-dick.epub');
 
 	zipPromise.then(function(zipFile){
 		// root directory
@@ -23,7 +23,7 @@ asyncTest("openZip method returns a zip file object", 3, function(){
 asyncTest("getXml method returns valid xml", 1, function(){
 
 	var unarchiver = new EPUBJS.Unarchiver(),
-		zipPromise = unarchiver.openZip("/demo/moby-dick.epub");
+		zipPromise = unarchiver.openZip("/reader/moby-dick.epub");
 
 	zipPromise.then(function(zipFile){
 
