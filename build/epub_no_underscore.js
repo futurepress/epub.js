@@ -4036,7 +4036,7 @@ EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
 	var totalWidth, displayedPages;
 	this.documentElement.style.width = "auto"; //-- reset width for calculations
 	totalWidth = this.documentElement.scrollWidth;
-	displayedPages = Math.round(totalWidth / this.spreadWidth);
+	displayedPages = Math.ceil(totalWidth / this.spreadWidth);
 
 	return {
 		displayedPages : displayedPages,
@@ -4090,11 +4090,10 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 
 EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 	var totalWidth = this.documentElement.scrollWidth;
-	var displayedPages = Math.round(totalWidth / this.spreadWidth);
+	var displayedPages = Math.ceil(totalWidth / this.spreadWidth);
 
 	//-- Add a page to the width of the document to account an for odd number of pages
 	this.documentElement.style.width = totalWidth + this.spreadWidth + "px";
-
 	return {
 		displayedPages : displayedPages,
 		pageCount : displayedPages * 2
