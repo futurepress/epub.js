@@ -163,6 +163,16 @@ EPUBJS.Render.Iframe.prototype.getPageNumberByElement = function(el){
 	return pg;
 };
 
+//-- Show the page containing an Element
+EPUBJS.Render.Iframe.prototype.getPageNumberByRect = function(boundingClientRect){
+	var left, pg;
+
+	left = this.leftPos + boundingClientRect.left; //-- Calculate left offset compaired to scrolled position
+	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
+	
+	return pg;
+};
+
 // Return the root element of the content
 EPUBJS.Render.Iframe.prototype.getBaseElement = function(){
 	return this.bodyEl;

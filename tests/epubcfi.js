@@ -78,4 +78,32 @@ test("Compare CFI's", null, function() {
 	equal(epubcfi.compare("epubcfi(/6/2[cover]!/4/8/5:1)", "epubcfi(/6/2[cover]!/4/6/15:2)"), 1, "First Element is greater");
 	equal(epubcfi.compare("epubcfi(/6/2[cover]!/4/8/1:0)", "epubcfi(/6/2[cover]!/4/8/1:0)"), 0, "All Equal");
 
-})
+});
+
+test("Generate XPath from Steps", null, function() {
+	var epubcfi = new EPUBJS.EpubCFI();
+	var cfi = epubcfi.parse("epubcfi(/6/12[xepigraph_001]!4/2/8[extracts]/1:0)");
+	var xpath = epubcfi.generateXpathFromSteps(cfi.steps);
+
+	equal(xpath, "./*/*[2]/*[1]/*[position()=4 and @id='extracts']/text()[1]", "Correct Xpath Generated");
+
+});
+
+
+asyncTest("Generate Range from CFI", 1, function() {
+	var book = ePub('/reader/moby-dick/', { width: 400, height: 600 });
+
+	var render = book.renderTo("qunit-fixture");
+
+	var result = function(){
+		var displayed = book.gotoHref("epigraph_001.xhtml");
+		displayed.then(function(){
+				var epubcfi = new EPUBJS.EpubCFI();
+				var range = epubcfi.generateRangeFromCfi("epubcfi(/6/12[xepigraph_001]!4/2/8[extracts]/1:0)", book.renderer.doc);
+				equal( range.startContainer.data, "Extracts.", "Anchor is correct" );
+				start();
+		});
+	};
+
+	render.then(result);
+});

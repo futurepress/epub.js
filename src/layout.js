@@ -12,11 +12,10 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	
 	//-- Check the width and create even width columns
-	var fullWidth = Math.floor(_width);
-	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	var width = Math.floor(_width);
+	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
-	
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -32,8 +31,8 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
-	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = width+"px";
+	documentElement.style[columnGap] = gap+"px";
 
 	return {
 		pageWidth : this.spreadWidth,
@@ -69,6 +68,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	//-- Check the width and create even width columns
 	var fullWidth = Math.floor(_width);
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	
 	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
 	//-- Double Page

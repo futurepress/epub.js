@@ -105,16 +105,16 @@ EPUBJS.reader.NotesController = function() {
 		
 		marker.style.verticalAlign = "super";
 		marker.style.fontSize = ".75em";
-		marker.style.position = "relative";
+		// marker.style.position = "relative";
 		marker.style.lineHeight = "1em";
 
-		mark.style.display = "inline-block";
+		// mark.style.display = "inline-block";
 		mark.style.padding = "2px";
 		mark.style.backgroundColor = "#fffa96";
 		mark.style.borderRadius = "5px";
 		mark.style.cursor = "pointer";
 		
-		marker.id = annotation.anchor;
+		marker.id = "note-"+EPUBJS.core.uuid();
 		mark.innerHTML = annotations.indexOf(annotation) + 1 + "[Reader]";
 		
 		marker.appendChild(mark);

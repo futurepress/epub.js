@@ -452,19 +452,28 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 
 // Goto a cfi position in the current chapter
 EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
-	var element;
 	var pg;
+	var marker;
+	var range;
 
 	if(_.isString(cfi)){
 		cfi = this.epubcfi.parse(cfi);
 	}
-
-	marker = this.epubcfi.addMarker(cfi, this.doc);
-	if(marker) {
-		pg = this.render.getPageNumberByElement(marker);
-		// Must Clean up Marker before going to page
-		this.epubcfi.removeMarker(marker, this.doc);
-		this.page(pg);
+	
+	if(typeof document.evaluate === 'undefined') {
+		marker = this.epubcfi.addMarker(cfi, this.doc);
+		if(marker) {
+			pg = this.render.getPageNumberByElement(marker);
+			// Must Clean up Marker before going to page
+			this.epubcfi.removeMarker(marker, this.doc);
+			this.page(pg);
+		}
+	} else {
+		var range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
+		if(range) {
+			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
+			this.page(pg); 
+		}
 	}
 };
 
