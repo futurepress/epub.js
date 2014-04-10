@@ -40,9 +40,8 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		this.unload();
 	}
 	
-	this.iframe.onload = function() {
+	this.iframe.onload = function(e) {
 		render.document = render.iframe.contentDocument;
-		
 		render.docEl = render.document.documentElement;
 		render.headEl = render.document.head;
 		render.bodyEl = render.document.body;

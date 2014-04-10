@@ -3,16 +3,16 @@
   "version": "0.2.0",
   "repository": "https://github.com/futurepress/epub.js",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-connect": "~0.3.0",
-    "connect": "~2.8.4",
-    "colors": "~0.6.0-1",
-    "optimist": "~0.6.0",
+    "grunt": "~0.4.4",
+    "grunt-contrib-connect": "~0.7.1",
+    "connect": "~2.14.4",
+    "colors": "~0.6.2",
+    "optimist": "~0.6.1",
     "portfinder": "~0.2.1",
-    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-concat": "~0.4.0",
     "grunt-contrib-uglify": "~0.4.0",
-    "grunt-contrib-jshint": "~0.8.0",
-    "grunt-concat-sourcemap": "~0.4.1",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt": "~0.4.4",
     "grunt-contrib-copy": "~0.5.0"
   }
 }

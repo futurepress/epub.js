@@ -80,30 +80,29 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 * Returns: Promise with passed Renderer after pages has loaded
 */
 EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
-	var renderer = this,
-			store = false;
-
-	// Unload the previous chapter listener
-	if(this.currentChapter) {
-		this.currentChapter.unload(); // Remove stored blobs
-		this.render.window.removeEventListener("resize", this.resized);
-		this.removeEventListeners();
-		this.removeSelectionListeners();
-		this.trigger("renderer:chapterUnloaded");
-	}
-
-	this.currentChapter = chapter;
-	this.chapterPos = 1;
-
-	this.currentChapterCfiBase = chapter.cfiBase;
-
-	this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-
+	var store = false;
 	// Get the url string from the chapter (may be from storage)
 	return chapter.url().
 		then(function(url) {
-			return renderer.load(url);
-		});
+			
+			// Unload the previous chapter listener
+			if(this.currentChapter) {
+				this.currentChapter.unload(); // Remove stored blobs
+				this.render.window.removeEventListener("resize", this.resized);
+				this.removeEventListeners();
+				this.removeSelectionListeners();
+				this.trigger("renderer:chapterUnloaded");
+			}
+		
+			this.currentChapter = chapter;
+			this.chapterPos = 1;
+		
+			this.currentChapterCfiBase = chapter.cfiBase;
+		
+			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
+			return this.load(url);
+			
+		}.bind(this));
 
 };
 
@@ -445,9 +444,30 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
-	this.visibileEl = this.findFirstVisible(prevEl);
+	var range = this.doc.createRange();
+	var position;
+	// TODO : this might need to take margin / padding into account?
+	var x = 0;
+	var y = 0;
 
-	return this.epubcfi.generateCfiFromElement(this.visibileEl, this.currentChapter.cfiBase);
+	if(typeof document.caretPositionFromPoint !== "undefined"){
+		position = this.doc.caretPositionFromPoint(x, y);		
+		range.setStart(position.offsetNode, position.offset);
+	} else if(typeof document.caretRangeFromPoint !== "undefined"){
+		range = this.doc.caretRangeFromPoint(x, y);
+	} else {
+		this.visibileEl = this.findFirstVisible(prevEl);
+		range.setStart(this.visibileEl, 1);
+	}
+	
+	// var test = this.doc.defaultView.getSelection();
+	// var r = this.doc.createRange();
+	// test.removeAllRanges();
+	// r.setStart(range.startContainer, range.startOffset);
+	// r.setEnd(range.startContainer, range.startOffset + 1);
+	// test.addRange(r);
+	
+	return this.currentChapter.cfiFromRange(range);
 };
 
 // Goto a cfi position in the current chapter

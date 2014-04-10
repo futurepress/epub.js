@@ -426,3 +426,55 @@ EPUBJS.core.queue = function(_scope){
 		"clear" : clear
 	};
 };
+
+// From: https://code.google.com/p/fbug/source/browse/branches/firebug1.10/content/firebug/lib/xpath.js
+/**
+ * Gets an XPath for an element which describes its hierarchical location.
+ */
+EPUBJS.core.getElementXPath = function(element) {
+	if (element && element.id) {
+		return '//*[@id="' + element.id + '"]';
+	} else {
+		return EPUBJS.core.getElementTreeXPath(element);
+	}
+};
+
+EPUBJS.core.getElementTreeXPath = function(element) {
+	var paths = [];
+	var 	isXhtml = (element.ownerDocument.documentElement.getAttribute('xmlns') === "http://www.w3.org/1999/xhtml");
+	
+	if(element.nodeType === 3){
+		paths.push("text()");
+		element = element.parentElement;
+	}
+
+	// Use nodeName (instead of localName) so namespace prefix is included (if any).
+	for (; element && element.nodeType == 1; element = element.parentNode)
+	{
+		var index = 0;
+		for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
+		{
+			// Ignore document type declaration.
+			if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE) {
+				continue;
+			}
+			if (sibling.nodeName == element.nodeName) {
+				++index;
+			}
+		}
+		var nodeName = element.nodeName.toLowerCase();
+		var tagName = (isXhtml ? "xhtml:" + nodeName : nodeName);
+		var pathIndex = (index ? "[" + (index+1) + "]" : "");
+		paths.splice(0, 0, tagName + pathIndex);
+	}
+
+	return paths.length ? "./" + paths.join("/") : null;
+};
+
+EPUBJS.core.nsResolver = function(prefix) {
+	var ns = {
+		'xhtml' : 'http://www.w3.org/1999/xhtml',
+		'epub': 'http://www.idpf.org/2007/ops'
+	};
+	return ns[prefix] || null;
+};

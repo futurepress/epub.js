@@ -394,6 +394,46 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRangeAnchor = function(range, base) {
 	return this.generateCfiFromTextNode(anchor, offset, base);
 };
 
+EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
+	var start, startElement, startSteps, startPath, startOffset, startIndex;
+	var end, endElement, endSteps, endPath, endOffset, endIndex;
+	
+	start = range.startContainer;
+	
+	if(start.nodeType === 3) { // text node
+		startElement = start.parentElement;
+		startIndex = 1 + (2 * Array.prototype.indexOf.call(startElement.childNodes, start));
+		startSteps = this.pathTo(startElement);
+	} else if(range.collapsed) {
+		return this.generateCfiFromElement(start, base); // single element
+	} else {
+		startSteps = this.pathTo(startElement);
+	}
+	
+	startPath = this.generatePathComponent(startSteps);
+	startOffset = range.startOffset;
+	
+	
+	if(!range.collapsed) {
+		end = range.startContainer;
+		
+		if(end.nodeType === 3) { // text node
+			endElement = end.parentElement;
+			startIndex = 1 + (2 * Array.prototype.indexOf.call(endElement.childNodes, end));
+			endSteps = this.pathTo(endElement);
+		} else {
+			endSteps = this.pathTo(end);
+		}
+		
+		endPath = this.generatePathComponent(endSteps);
+		
+		return "epubcfi(" + base + "!" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + "/" + endIndex + ":" + endOffset + ")";
+		
+	} else {
+		return "epubcfi(" + base + "!" + startPath + "/"+ startIndex +":"+ startOffset +")";
+	}
+};
+
 EPUBJS.EpubCFI.prototype.generateXpathFromSteps = function(steps) {
 	var xpath = [".", "*"];
 
