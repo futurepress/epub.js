@@ -63,6 +63,120 @@ define("rsvp/all",
       return Promise.all(array, label);
     };
   });
+define("rsvp/all_settled", 
+  ["./promise","./utils","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Promise = __dependency1__["default"];
+    var isArray = __dependency2__.isArray;
+    var isNonThenable = __dependency2__.isNonThenable;
+
+    /**
+      `RSVP.allSettled` is similar to `RSVP.all`, but instead of implementing
+      a fail-fast method, it waits until all the promises have returned and
+      shows you all the results. This is useful if you want to handle multiple
+      promises' failure states together as a set.
+
+      Returns a promise that is fulfilled when all the given promises have been
+      settled. The return promise is fulfilled with an array of the states of
+      the promises passed into the `promises` array argument.
+
+      Each state object will either indicate fulfillment or rejection, and
+      provide the corresponding value or reason. The states will take one of
+      the following formats:
+
+      ```javascript
+      { state: 'fulfilled', value: value }
+        or
+      { state: 'rejected', reason: reason }
+      ```
+
+      Example:
+
+      ```javascript
+      var promise1 = RSVP.Promise.resolve(1);
+      var promise2 = RSVP.Promise.reject(new Error('2'));
+      var promise3 = RSVP.Promise.reject(new Error('3'));
+      var promises = [ promise1, promise2, promise3 ];
+
+      RSVP.allSettled(promises).then(function(array){
+        // array == [
+        //   { state: 'fulfilled', value: 1 },
+        //   { state: 'rejected', reason: Error },
+        //   { state: 'rejected', reason: Error }
+        // ]
+        // Note that for the second item, reason.message will be "2", and for the
+        // third item, reason.message will be "3".
+      }, function(error) {
+        // Not run. (This block would only be called if allSettled had failed,
+        // for instance if passed an incorrect argument type.)
+      });
+      ```
+
+      @method @allSettled
+      @for RSVP
+      @param {Array} promises;
+      @param {String} label - optional string that describes the promise.
+      Useful for tooling.
+      @return {Promise} promise that is fulfilled with an array of the settled
+      states of the constituent promises.
+    */
+
+    __exports__["default"] = function allSettled(entries, label) {
+      return new Promise(function(resolve, reject) {
+        if (!isArray(entries)) {
+          throw new TypeError('You must pass an array to allSettled.');
+        }
+
+        var remaining = entries.length;
+        var entry;
+
+        if (remaining === 0) {
+          resolve([]);
+          return;
+        }
+
+        var results = new Array(remaining);
+
+        function fulfilledResolver(index) {
+          return function(value) {
+            resolveAll(index, fulfilled(value));
+          };
+        }
+
+        function rejectedResolver(index) {
+          return function(reason) {
+            resolveAll(index, rejected(reason));
+          };
+        }
+
+        function resolveAll(index, value) {
+          results[index] = value;
+          if (--remaining === 0) {
+            resolve(results);
+          }
+        }
+
+        for (var index = 0; index < entries.length; index++) {
+          entry = entries[index];
+
+          if (isNonThenable(entry)) {
+            resolveAll(index, fulfilled(entry));
+          } else {
+            Promise.cast(entry).then(fulfilledResolver(index), rejectedResolver(index));
+          }
+        }
+      }, label);
+    };
+
+    function fulfilled(value) {
+      return { state: 'fulfilled', value: value };
+    }
+
+    function rejected(reason) {
+      return { state: 'rejected', reason: reason };
+    }
+  });
 define("rsvp/asap", 
   ["exports"],
   function(__exports__) {
@@ -189,7 +303,8 @@ define("rsvp/defer",
 
       @method defer
       @for RSVP
-      @param {String} -
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
       @return {Object}
      */
 
@@ -233,7 +348,6 @@ define("rsvp/events",
     __exports__["default"] = {
 
       /**
-        @private
         `RSVP.EventTarget.mixin` extends an object with EventTarget methods. For
         Example:
 
@@ -272,6 +386,7 @@ define("rsvp/events",
 
         @method mixin
         @param {Object} object object to extend with EventTarget methods
+        @private
       */
       mixin: function(object) {
         object.on = this.on;
@@ -282,8 +397,6 @@ define("rsvp/events",
       },
 
       /**
-        @private
-
         Registers a callback to be executed when `eventName` is triggered
 
         ```javascript
@@ -297,6 +410,7 @@ define("rsvp/events",
         @method on
         @param {String} eventName name of the event to listen for
         @param {Function} callback function to be called when the event is triggered.
+        @private
       */
       on: function(eventName, callback) {
         var allCallbacks = callbacksFor(this), callbacks;
@@ -313,8 +427,6 @@ define("rsvp/events",
       },
 
       /**
-        @private
-
         You can use `off` to stop firing a particular callback for an event:
 
         ```javascript
@@ -350,6 +462,8 @@ define("rsvp/events",
         given will be removed from the event's callback queue. If no `callback`
         argument is given, all callbacks will be removed from the event's callback
         queue.
+        @private
+
       */
       off: function(eventName, callback) {
         var allCallbacks = callbacksFor(this), callbacks, index;
@@ -367,8 +481,6 @@ define("rsvp/events",
       },
 
       /**
-        @private
-
         Use `trigger` to fire custom events. For example:
 
         ```javascript
@@ -395,6 +507,7 @@ define("rsvp/events",
         @param {String} eventName name of the event to be triggered
         @param {Any} options optional value to be passed to any event handlers for
         the given `eventName`
+        @private
       */
       trigger: function(eventName, options) {
         var allCallbacks = callbacksFor(this),
@@ -769,7 +882,7 @@ define("rsvp/map",
       @for RSVP
       @param {Array} promises
       @param {Function} mapFn function to be called on each fulfilled promise.
-      @param {String} label optional string for labelling the promise.
+      @param {String} label optional string for labeling the promise.
       Useful for tooling.
       @return {Promise} promise that is fulfilled with the result of calling
       `mapFn` on each fulfilled promise or value when they become fulfilled.
@@ -932,6 +1045,103 @@ define("rsvp/promise",
     function noop() {}
 
     __exports__["default"] = Promise;
+
+
+    /**
+
+      Promise objects represent the eventual result of an asynchronous operation. The
+      primary way of interacting with a promise is through its `then` method, which
+      registers callbacks to receive either a promiseâ€™s eventual value or the reason
+      why the promise cannot be fulfilled.
+
+      Terminology
+      -----------
+
+      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+      - `thenable` is an object or function that defines a `then` method.
+      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+      - `exception` is a value that is thrown using the throw statement.
+      - `reason` is a value that indicates why a promise was rejected.
+      - `settled` the final resting state of a promise, fulfilled or rejected.
+
+      A promise can be in one of three states: pending, fulfilled, or rejected.
+
+
+      Basic Usage:
+      ------------
+
+      ```js
+      var promise = new Promise(function(resolve, reject) {
+        // on success
+        resolve(value);
+
+        // on failure
+        reject(reason);
+      });
+
+      promise.then(function(value) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+
+      Advanced Usage:
+      ---------------
+
+      Promises shine when abstracting away asynchronous interactions such as
+      `XMLHttpRequest`s.
+
+      ```js
+      function getJSON(url) {
+        return new Promise(function(resolve, reject){
+          var xhr = new XMLHttpRequest();
+
+          xhr.open('GET', url);
+          xhr.onreadystatechange = handler;
+          xhr.responseType = 'json';
+          xhr.setRequestHeader('Accept', 'application/json');
+          xhr.send();
+
+          function handler() {
+            if (this.readyState === this.DONE) {
+              if (this.status === 200) {
+                resolve(this.response);
+              } else {
+                reject(new Error("getJSON: `" + url + "` failed with status: [" + this.status + "]");
+              }
+            }
+          };
+        });
+      }
+
+      getJSON('/posts.json').then(function(json) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+
+      Unlike callbacks, promises are great composable primitives.
+
+      ```js
+      Promise.all([
+        getJSON('/posts'),
+        getJSON('/comments')
+      ]).then(function(values){
+        values[0] // => postsJSON
+        values[1] // => commentsJSON
+
+        return values;
+      });
+      ```
+
+      @class Promise
+      @param {function}
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @constructor
+    */
     function Promise(resolver, label) {
       if (!isFunction(resolver)) {
         throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
@@ -1008,6 +1218,9 @@ define("rsvp/promise",
     }
 
     Promise.prototype = {
+    /**
+      @property constructor
+    */
       constructor: Promise,
 
       _id: undefined,
@@ -1022,6 +1235,202 @@ define("rsvp/promise",
         config.trigger('error', reason);
       },
 
+    /**
+
+      A promise represents the eventual result of an asynchronous operation. The
+      primary way of interacting with a promise is through its `then` method, which
+      registers callbacks to receive either a promise's eventual value or the reason
+      why the promise cannot be fulfilled.
+
+      ```js
+      findUser().then(function(user){
+        // user is available
+      }, function(reason){
+        // user is unavailable, and you are given the reason why
+      });
+      ```
+
+      Chaining
+      --------
+
+      The return value of `then` is itself a promise.  This second, "downstream"
+      promise is resolved with the return value of the first promise's fulfillment
+      or rejection handler, or rejected if the handler throws an exception.
+
+      ```js
+      findUser().then(function (user) {
+        return user.name;
+      }, function (reason) {
+        return "default name";
+      }).then(function (userName) {
+        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+        // will be `"default name"`
+      });
+
+      findUser().then(function (user) {
+        throw "Found user, but still unhappy";
+      }, function (reason) {
+        throw "`findUser` rejected and we're unhappy";
+      }).then(function (value) {
+        // never reached
+      }, function (reason) {
+        // if `findUser` fulfilled, `reason` will be "Found user, but still unhappy".  
+        // If `findUser` rejected, `reason` will be "`findUser` rejected and we're unhappy".
+      });
+      ```
+      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+
+      ```js
+      findUser().then(function (user) {
+        throw new PedagogicalException("Upstream error");
+      }).then(function (value) {
+        // never reached
+      }).then(function (value) {
+        // never reached
+      }, function (reason) {
+        // The `PedgagocialException` is propagated all the way down to here
+      });
+      ```
+
+      Assimilation
+      ------------
+
+      Sometimes the value you want to propagate to a downstream promise can only be
+      retrieved asynchronously.  This can be achieved by returning a promise in the
+      fulfillment or rejection handler.  The downstream promise will then be pending
+      until the returned promise is settled.  This is called *assimilation*.
+
+      ```js
+      findUser().then(function (user) {
+        return findCommentsByAuthor(user);
+      }).then(function (comments) {
+        // The user's comments are now available
+      });
+      ```
+
+      If the assimliated promise rejects, then the downstream promise will also reject.
+
+      ```js
+      findUser().then(function (user) {
+        return findCommentsByAuthor(user);
+      }).then(function (comments) {
+        // If `findCommentsByAuthor` fulfills, we'll have the value here
+      }, function (reason) {
+        // If `findCommentsByAuthor` rejects, we'll have the reason here
+      });
+      ```
+
+      Simple Example
+      --------------
+
+      Synchronous Example
+
+      ```javascript
+      var result;
+
+      try {
+        result = findResult();
+        // success
+      } catch(reason) {
+        // failure
+      }
+      ```
+
+      Errback Example
+
+      ```js
+      findResult(function(result, err){
+        if (err) {
+          // failure
+        } else {
+          // success
+        }
+      });
+      ```
+
+      Promise Example;
+
+      ```javacsript
+      findResult().then(function(result){
+
+      }, function(reason){
+
+      });
+      ```
+
+      Advanced Example
+      --------------
+
+      Synchronous Example
+
+      ```javascript
+      var author, books;
+
+      try {
+        author = findAuthor();
+        books  = findBooksByAuthor(author);
+        // success
+      } catch(reason) {
+        // failure
+      }
+      ```
+
+      Errback Example
+
+      ```js
+
+      function foundBooks(books) {
+
+      }
+
+      function failure(reason) {
+
+      }
+
+      findAuthor(function(author, err){
+        if (err) {
+          failure(err);
+          // failure
+        } else {
+          try {
+            findBoooksByAuthor(author, function(books, err) {
+              if (err) {
+                failure(err);
+              } else {
+                try {
+                  foundBooks(books);
+                } catch(reason) {
+                  failure(reason);
+                }
+              }
+            });
+          } catch(error) {
+            failure(err);
+          }
+          // success
+        }
+      });
+      ```
+
+      Promise Example;
+
+      ```javacsript
+      findAuthor().
+        then(findBooksByAuthor).
+        then(function(books){
+          // found books
+      }).catch(function(reason){
+        // something went wrong;
+      });
+      ```
+
+      @method then
+      @param {Function} onFulfillment
+      @param {Function} onRejection
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @return {Promise}
+    */
       then: function(onFulfillment, onRejection, label) {
         var promise = this;
         this._onerror = null;
@@ -1044,10 +1453,70 @@ define("rsvp/promise",
         return thenPromise;
       },
 
+    /**
+      `catch` is simply sugar for `then(null, onRejection)` which makes it the same
+      as the catch block, of a try/catch statement.
+
+      ```js
+      function findAuthor(){
+        throw new Error("couldn't find that author");
+      }
+
+      // synchronous
+      try {
+        findAuthor();
+      } catch(reason) {
+
+      }
+
+      // async with promises
+      findAuthor().catch(function(reason){
+        // something went wrong;
+      });
+      ```
+
+      @method catch
+      @param {Function} onRejection
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @return {Promise}
+    */
       'catch': function(onRejection, label) {
         return this.then(null, onRejection, label);
       },
 
+    /**
+      `finally` will be invoked regardless of the promise's fate just as native
+      try/catch/finally behaves
+
+      ```js
+      findAuthor() {
+        if (Math.random() > 0.5) {
+          throw new Error();
+        }
+        return new Author();
+      }
+
+      try {
+        return findAuthor(); // succeed or fail
+      } catch(error) {
+        return findOtherAuther();
+      } finally {
+        // always runs
+        // doesn't effect the return value
+      }
+
+      findAuthor().finally(function(){
+        // author was either found, or not
+      });
+      ```
+
+      @method finally
+      @param {Function} callback
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @return {Promise}
+    */
       'finally': function(callback, label) {
         var constructor = this.constructor;
 
@@ -1178,10 +1647,11 @@ define("rsvp/promise/all",
     var isNonThenable = __dependency1__.isNonThenable;
 
     /**
-      Returns a promise that is fulfilled when all the given promises have been
-      fulfilled, or rejected if any of them become rejected. The return promise
-      is fulfilled with an array that gives all the values in the order they were
-      passed in the `promises` array argument.
+
+      `RSVP.Promise.all` returns a new promise which is fulfilled with an array of
+      fulfillment values for the passed promises, or rejects with the reason of the
+      first passed promise that rejects. It casts all elements of the passed iterable
+      to promises as it runs this algorithm.
 
       Example:
 
@@ -1218,19 +1688,21 @@ define("rsvp/promise/all",
       @method all
       @for RSVP.Promise
       @param {Array} promises
-      @param {String} label
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
       @return {Promise} promise that is fulfilled when all `promises` have been
       fulfilled, or rejected if any of them become rejected.
     */
     __exports__["default"] = function all(entries, label) {
-      if (!isArray(entries)) {
-        throw new TypeError('You must pass an array to all.');
-      }
 
       /*jshint validthis:true */
       var Constructor = this;
 
       return new Constructor(function(resolve, reject) {
+        if (!isArray(entries)) {
+          throw new TypeError('You must pass an array to all.');
+        }
+
         var remaining = entries.length;
         var results = new Array(remaining);
         var entry, pending = true;
@@ -1273,13 +1745,14 @@ define("rsvp/promise/cast",
   function(__exports__) {
     "use strict";
     /**
-      `RSVP.Promise.cast` returns the same promise if that promise shares a constructor
-      with the promise being casted.
+
+      `RSVP.Promise.cast` cast coerces its argument to a promise, or returns the
+      argument if it is already a promise which shares a constructor with the caster;
 
       Example:
 
       ```javascript
-      var promise = RSVP.resolve(1);
+      var promise = RSVP.Promise.resolve(1);
       var casted = RSVP.Promise.cast(promise);
 
       console.log(promise === casted); // true
@@ -1306,8 +1779,9 @@ define("rsvp/promise/cast",
       });
       ```
 
-      `RSVP.Promise.cast` is similar to `RSVP.resolve`, but `RSVP.Promise.cast` differs in the
+      `RSVP.Promise.cast` is similar to `RSVP.Promise.resolve`, but `RSVP.Promise.cast` differs in the
       following ways:
+
       * `RSVP.Promise.cast` serves as a memory-efficient way of getting a promise, when you
       have something that could either be a promise or a value. RSVP.resolve
       will have the same effect but will create a new promise wrapper if the
@@ -1319,11 +1793,12 @@ define("rsvp/promise/cast",
       @method cast
       @for RSVP.Promise
       @param {Object} object to be casted
-      @return {Promise} promise that is fulfilled when all properties of `promises`
-      have been fulfilled, or rejected if any of them become rejected.
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @return {Promise} promise
     */
 
-    __exports__["default"] = function cast(object) {
+    __exports__["default"] = function cast(object, label) {
       /*jshint validthis:true */
       var Constructor = this;
 
@@ -1333,7 +1808,7 @@ define("rsvp/promise/cast",
 
       return new Constructor(function(resolve) {
         resolve(object);
-      });
+      }, label);
     };
   });
 define("rsvp/promise/race", 
@@ -1347,8 +1822,8 @@ define("rsvp/promise/race",
     var isNonThenable = __dependency1__.isNonThenable;
 
     /**
-      `RSVP.Promise.race` allows you to watch a series of promises and act as soon as the
-      first promise given to the `promises` argument fulfills or rejects.
+      `RSVP.Promise.race` returns a new promise which is settled in the same way as the
+      first passed promise to settle.
 
       Example:
 
@@ -1371,11 +1846,11 @@ define("rsvp/promise/race",
       });
       ```
 
-      `RSVP.race` is deterministic in that only the state of the first completed
-      promise matters. For example, even if other promises given to the `promises`
-      array argument are resolved, but the first completed promise has become
-      rejected before the other promises became fulfilled, the returned promise
-      will become rejected:
+      `RSVP.Promise.race` is deterministic in that only the state of the first
+      completed promise matters. For example, even if other promises given to the
+      `promises` array argument are resolved, but the first completed promise has
+      become rejected before the other promises became fulfilled, the returned
+      promise will become rejected:
 
       ```javascript
       var promise1 = new RSVP.Promise(function(resolve, reject){
@@ -1403,20 +1878,18 @@ define("rsvp/promise/race",
       @param {Array} promises array of promises to observe
       @param {String} label optional string for describing the promise returned.
       Useful for tooling.
-      @return {Promise} a promise that becomes fulfilled with the value the first
-      completed promises is resolved with if the first completed promise was
-      fulfilled, or rejected with the reason that the first completed promise
-      was rejected with.
+      @return {Promise} a promise which settles in the same way as the first passed
+      promise to settle.
     */
     __exports__["default"] = function race(entries, label) {
-      if (!isArray(entries)) {
-        throw new TypeError('You must pass an array to race.');
-      }
-
       /*jshint validthis:true */
       var Constructor = this, entry;
 
       return new Constructor(function(resolve, reject) {
+        if (!isArray(entries)) {
+          throw new TypeError('You must pass an array to race.');
+        }
+
         var pending = true;
 
         function onFulfillment(value) { if (pending) { pending = false; resolve(value); } }
@@ -1440,8 +1913,8 @@ define("rsvp/promise/reject",
   function(__exports__) {
     "use strict";
     /**
-      `RSVP.reject` returns a promise that will become rejected with the passed
-      `reason`. `RSVP.reject` is essentially shorthand for the following:
+      `RSVP.Promise.reject` returns a promise  rejected with the passed `reason`.
+      It is essentially shorthand for the following:
 
       ```javascript
       var promise = new RSVP.Promise(function(resolve, reject){
@@ -1458,7 +1931,7 @@ define("rsvp/promise/reject",
       Instead of writing the above, your code now simply becomes the following:
 
       ```javascript
-      var promise = RSVP.reject(new Error('WHOOPS'));
+      var promise = RSVP.Promise.reject(new Error('WHOOPS'));
 
       promise.then(function(value){
         // Code here doesn't run because the promise is rejected!
@@ -1472,8 +1945,7 @@ define("rsvp/promise/reject",
       @param {Any} reason value that the returned promise will be rejected with.
       @param {String} label optional string for identifying the returned promise.
       Useful for tooling.
-      @return {Promise} a promise that will become rejected with the given
-      `reason`.
+      @return {Promise} a promise rejected with the given `reason`.
     */
     __exports__["default"] = function reject(reason, label) {
       /*jshint validthis:true */
@@ -1489,8 +1961,8 @@ define("rsvp/promise/resolve",
   function(__exports__) {
     "use strict";
     /**
-      `RSVP.resolve` returns a promise that will become fulfilled with the passed
-      `value`. `RSVP.resolve` is essentially shorthand for the following:
+      `RSVP.Promise.resolve` returns a promise that will become fulfilled with the passed
+      `value`. It is essentially shorthand for the following:
 
       ```javascript
       var promise = new RSVP.Promise(function(resolve, reject){
@@ -1505,7 +1977,7 @@ define("rsvp/promise/resolve",
       Instead of writing the above, your code now simply becomes the following:
 
       ```javascript
-      var promise = RSVP.resolve(1);
+      var promise = RSVP.Promise.resolve(1);
 
       promise.then(function(value){
         // value === 1
@@ -1584,7 +2056,7 @@ define("rsvp/rethrow",
         throws();
       });
 
-      promise.fail(RSVP.rethrow).then(function(){
+      promise.catch(RSVP.rethrow).then(function(){
         // Code here doesn't run because the promise became rejected due to an
         // error!
       }, function (err){
@@ -1594,7 +2066,7 @@ define("rsvp/rethrow",
 
       The 'Whoops' error will be thrown on the next turn of the event loop
       and you can watch for it in your console. You can also handle it using a
-      rejection handler given to `.then` or `.fail` on the returned promise.
+      rejection handler given to `.then` or `.catch` on the returned promise.
 
       @method rethrow
       @for RSVP
@@ -1644,24 +2116,25 @@ define("rsvp/utils",
     __exports__.keysOf = keysOf;
   });
 define("rsvp", 
-  ["./rsvp/promise","./rsvp/events","./rsvp/node","./rsvp/all","./rsvp/race","./rsvp/hash","./rsvp/rethrow","./rsvp/defer","./rsvp/config","./rsvp/map","./rsvp/resolve","./rsvp/reject","./rsvp/asap","./rsvp/filter","exports"],
-  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __dependency6__, __dependency7__, __dependency8__, __dependency9__, __dependency10__, __dependency11__, __dependency12__, __dependency13__, __dependency14__, __exports__) {
+  ["./rsvp/promise","./rsvp/events","./rsvp/node","./rsvp/all","./rsvp/all_settled","./rsvp/race","./rsvp/hash","./rsvp/rethrow","./rsvp/defer","./rsvp/config","./rsvp/map","./rsvp/resolve","./rsvp/reject","./rsvp/asap","./rsvp/filter","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __dependency6__, __dependency7__, __dependency8__, __dependency9__, __dependency10__, __dependency11__, __dependency12__, __dependency13__, __dependency14__, __dependency15__, __exports__) {
     "use strict";
     var Promise = __dependency1__["default"];
     var EventTarget = __dependency2__["default"];
     var denodeify = __dependency3__["default"];
     var all = __dependency4__["default"];
-    var race = __dependency5__["default"];
-    var hash = __dependency6__["default"];
-    var rethrow = __dependency7__["default"];
-    var defer = __dependency8__["default"];
-    var config = __dependency9__.config;
-    var configure = __dependency9__.configure;
-    var map = __dependency10__["default"];
-    var resolve = __dependency11__["default"];
-    var reject = __dependency12__["default"];
-    var asap = __dependency13__["default"];
-    var filter = __dependency14__["default"];
+    var allSettled = __dependency5__["default"];
+    var race = __dependency6__["default"];
+    var hash = __dependency7__["default"];
+    var rethrow = __dependency8__["default"];
+    var defer = __dependency9__["default"];
+    var config = __dependency10__.config;
+    var configure = __dependency10__.configure;
+    var map = __dependency11__["default"];
+    var resolve = __dependency12__["default"];
+    var reject = __dependency13__["default"];
+    var asap = __dependency14__["default"];
+    var filter = __dependency15__["default"];
 
     config.async = asap; // default async is asap;
 
@@ -1691,6 +2164,7 @@ define("rsvp",
     __exports__.Promise = Promise;
     __exports__.EventTarget = EventTarget;
     __exports__.all = all;
+    __exports__.allSettled = allSettled;
     __exports__.race = race;
     __exports__.hash = hash;
     __exports__.rethrow = rethrow;
@@ -1706,7 +2180,7 @@ define("rsvp",
     __exports__.filter = filter;
   });
 global.RSVP = requireModule('rsvp');
-}(window));
+}(window)); 
 'use strict';
 
 var EPUBJS = EPUBJS || {};
@@ -1813,6 +2287,8 @@ EPUBJS.Book = function(options){
 		book:online
 		book:offline
 		book:pageChanged
+		book:loadFailed
+		book:loadChapterFailed
 	*/
 	
 	//-- Adds Hook methods to the Book prototype
@@ -1973,7 +2449,12 @@ EPUBJS.Book.prototype.loadPackage = function(_containerPath){
 	} else {
 		packageXml = book.loadXml(book.settings.packageUrl);
 	}
-
+	
+	packageXml.catch(function(error) {
+		// handle errors in either of the two requests
+		console.error("Could not load book at: "+ containerPath);
+		book.trigger("book:loadFailed", containerPath);
+	});
 	return packageXml;
 };
 
@@ -2460,6 +2941,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		store,
 		defer = deferred || new RSVP.defer();
 	
+	var chapter;
+	
 	if(!this.isRendered) {
 		this._q.enqueue("displayChapter", arguments);
 		// Reject for now. TODO: pass promise to queue
@@ -2489,47 +2972,47 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		end = false;
 		cfi = false;
 	}
-	
-	//-- Set the book's spine position
-	this.spinePos = pos;
 
 	//-- Create a new chapter	
-	this.currentChapter = new EPUBJS.Chapter(this.spine[pos], this.store);
+	chapter = new EPUBJS.Chapter(this.spine[pos], this.store);
 	
 	this._rendering = true;
 	
-	render = book.renderer.displayChapter(this.currentChapter, this.globalLayoutProperties);
+	render = book.renderer.displayChapter(chapter, this.globalLayoutProperties);
 	
-	if(cfi) {
-		render.then(function(chapter){
-			// chapter.currentLocationCfi = chap;
-			chapter.gotoCfi(cfi);
+	//-- Success, Clear render queue
+	render.then(function(rendered){
+		// var inwait;
+		//-- Set the book's spine position
+		book.spinePos = pos;
+		
+		if(cfi) {
+			rendered.gotoCfi(cfi);
 			defer.resolve(book.renderer);
-		});
-	} else if(end) {
-		render.then(function(chapter){
-			chapter.lastPage();
+		} else if(end) {
+			rendered.lastPage();
 			defer.resolve(book.renderer);
-		});
-	} else {
-		render.then(function(){
+		} else {
 			defer.resolve(book.renderer);
-		});
-	}
-
+		}
 	
-	if(!this.settings.fromStorage &&
-		!this.settings.contained) {
-		render.then(function(){
+		
+		if(!book.settings.fromStorage &&
+			 !book.settings.contained) {
 			book.preloadNextChapter();
-		});
-	}
-	
-	//-- Clear render queue
-	render.then(function(){
-		var inwait;
+		}
+		
+		book.currentChapter = chapter;
 		book._rendering = false;
 		book._displayQ.dequeue();
+
+	}, function(error) {
+		// handle errors in either of the two requests
+		console.error("Could not load Chapter: "+ chapter.absolute);
+		book.trigger("book:chapterLoadFailed", chapter.absolute);
+		book._rendering = false;
+		book._displayQ.dequeue();
+		defer.reject(error);
 	});
 	
 	return defer.promise;
@@ -2560,14 +3043,14 @@ EPUBJS.Book.prototype.prevPage = function() {
 };
 
 EPUBJS.Book.prototype.nextChapter = function() {
+	var next;
 	if (this.spinePos < this.spine.length - 1) {
-		var next = this.spinePos + 1;
+		next = this.spinePos + 1;
 		while (this.spine[next] && this.spine[next].linear && this.spine[next].linear == 'no') {
 			next++;
 		}
 		if (next < this.spine.length - 1) {
-			this.spinePos = next;
-			return this.displayChapter(this.spinePos);
+			return this.displayChapter(next);
 		} else {
 			this.trigger("book:atEnd");
 		}
@@ -2578,14 +3061,14 @@ EPUBJS.Book.prototype.nextChapter = function() {
 };
 
 EPUBJS.Book.prototype.prevChapter = function() {
+	var prev;
 	if (this.spinePos > 0) {
-		var prev = this.spinePos - 1;
+		prev = this.spinePos - 1;
 		while (this.spine[prev] && this.spine[prev].linear && this.spine[prev].linear == 'no') {
 			prev--;
 		}
 		if (prev >= 0) {
-			this.spinePos = prev;
-			return this.displayChapter(this.spinePos, true);
+			return this.displayChapter(prev);
 		} else {
 			this.trigger("book:atStart");
 		}
@@ -2959,6 +3442,7 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.linear = spineObject.linear;
 	this.pages = 1;
 	this.store = store;
+	this.epubcfi = new EPUBJS.EpubCFI();
 };
 
 
@@ -2976,17 +3460,28 @@ EPUBJS.Chapter.prototype.contents = function(_store){
 EPUBJS.Chapter.prototype.url = function(_store){
 	var deferred = new RSVP.defer();
 	var store = _store || this.store;
+	var loaded;
+	var chapter = this;
+	var url;
 	
 	if(store){
 		if(!this.tempUrl) {
 			this.tempUrl = store.getUrl(this.absolute);
 		}
-		return this.tempUrl;
+		url = this.tempUrl;
 	}else{
-		deferred.resolve(this.absolute); //-- this is less than ideal but keeps it a promise
-		return deferred.promise;
+		url = this.absolute;
 	}
-
+	
+	loaded = EPUBJS.core.request(url, 'xml', false);
+	loaded.then(function(contents){
+		chapter.contents = contents;
+		deferred.resolve(chapter.absolute);
+	}, function(error){
+		deferred.reject(error);
+	});
+	
+	return deferred.promise;
 };
 
 EPUBJS.Chapter.prototype.setPages = function(num){
@@ -3007,6 +3502,59 @@ EPUBJS.Chapter.prototype.unload = function(store){
 		store.revokeUrl(this.tempUrl);
 		this.tempUrl = false;
 	}
+};
+
+EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
+	var range;
+	var startXpath, endXpath;
+	var startContainer, endContainer;
+
+	// Check for Contents
+	if(!this.contents) return;
+	
+	startXpath = EPUBJS.core.getElementXPath(_range.startContainer);
+	endXpath = EPUBJS.core.getElementXPath(_range.endContainer);
+	startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	
+	if(!_range.collapsed) {
+		endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	}
+	
+	range = this.contents.createRange();
+
+	// Find Exact Range in original document
+	if(startContainer) {
+		range.setStart(startContainer, _range.startOffset);
+		
+		if(!_range.collapsed && endContainer) {
+			range.setEnd(endContainer, _range.endOffset);
+		}
+		
+	}
+
+	// Fuzzy Match
+	if(!startContainer) {
+		console.log("not found, try fuzzy match");
+		startXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
+		endXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
+		
+		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+		
+		if(startContainer){	
+			range.setStart(startContainer, _range.startOffset);
+
+			if(!_range.collapsed) {
+				endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+				if(endContainer) {
+					range.setEnd(endContainer, _range.endOffset);
+				}
+			}
+
+		}
+	}
+	
+	// Generate the Cfi 
+	return this.epubcfi.generateCfiFromRange(range, this.cfiBase);
 };
 
 var EPUBJS = EPUBJS || {};
@@ -3437,6 +3985,58 @@ EPUBJS.core.queue = function(_scope){
 		"clear" : clear
 	};
 };
+
+// From: https://code.google.com/p/fbug/source/browse/branches/firebug1.10/content/firebug/lib/xpath.js
+/**
+ * Gets an XPath for an element which describes its hierarchical location.
+ */
+EPUBJS.core.getElementXPath = function(element) {
+	if (element && element.id) {
+		return '//*[@id="' + element.id + '"]';
+	} else {
+		return EPUBJS.core.getElementTreeXPath(element);
+	}
+};
+
+EPUBJS.core.getElementTreeXPath = function(element) {
+	var paths = [];
+	var 	isXhtml = (element.ownerDocument.documentElement.getAttribute('xmlns') === "http://www.w3.org/1999/xhtml");
+	
+	if(element.nodeType === 3){
+		paths.push("text()");
+		element = element.parentElement;
+	}
+
+	// Use nodeName (instead of localName) so namespace prefix is included (if any).
+	for (; element && element.nodeType == 1; element = element.parentNode)
+	{
+		var index = 0;
+		for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
+		{
+			// Ignore document type declaration.
+			if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE) {
+				continue;
+			}
+			if (sibling.nodeName == element.nodeName) {
+				++index;
+			}
+		}
+		var nodeName = element.nodeName.toLowerCase();
+		var tagName = (isXhtml ? "xhtml:" + nodeName : nodeName);
+		var pathIndex = (index ? "[" + (index+1) + "]" : "");
+		paths.splice(0, 0, tagName + pathIndex);
+	}
+
+	return paths.length ? "./" + paths.join("/") : null;
+};
+
+EPUBJS.core.nsResolver = function(prefix) {
+	var ns = {
+		'xhtml' : 'http://www.w3.org/1999/xhtml',
+		'epub': 'http://www.idpf.org/2007/ops'
+	};
+	return ns[prefix] || null;
+};
 EPUBJS.EpubCFI = function(cfiStr){
 	if(cfiStr) return this.parse(cfiStr);
 };
@@ -3560,7 +4160,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 
 	cfi.str = cfiStr;
 
-	if(cfiStr.indexOf("epubcfi(") === 0) {
+	if(cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length-1] === ")") {
 		// Remove intial epubcfi( and ending )
 		cfiStr = cfiStr.slice(8, cfiStr.length-1);
 	}
@@ -3611,7 +4211,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 		} else {
 			cfi.steps.push({
 				"type" : "text",
-				'index' : parseInt(end) - 1,
+				'index' : (endInt - 1 ) / 2
 			});
 		}
 
@@ -3823,7 +4423,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base
 	var parent = anchor.parentElement;
 	var steps = this.pathTo(parent);
 	var path = this.generatePathComponent(steps);
-	var index = [].slice.apply(parent.childNodes).indexOf(anchor) + 1;
+	var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
 	return "epubcfi(" + base + "!" + path + "/"+index+":"+(offset || 0)+")";
 };
 
@@ -3833,6 +4433,107 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRangeAnchor = function(range, base) {
 	return this.generateCfiFromTextNode(anchor, offset, base);
 };
 
+EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
+	var start, startElement, startSteps, startPath, startOffset, startIndex;
+	var end, endElement, endSteps, endPath, endOffset, endIndex;
+	
+	start = range.startContainer;
+	
+	if(start.nodeType === 3) { // text node
+		startElement = start.parentElement;
+		startIndex = 1 + (2 * Array.prototype.indexOf.call(startElement.childNodes, start));
+		startSteps = this.pathTo(startElement);
+	} else if(range.collapsed) {
+		return this.generateCfiFromElement(start, base); // single element
+	} else {
+		startSteps = this.pathTo(startElement);
+	}
+	
+	startPath = this.generatePathComponent(startSteps);
+	startOffset = range.startOffset;
+	
+	
+	if(!range.collapsed) {
+		end = range.startContainer;
+		
+		if(end.nodeType === 3) { // text node
+			endElement = end.parentElement;
+			startIndex = 1 + (2 * Array.prototype.indexOf.call(endElement.childNodes, end));
+			endSteps = this.pathTo(endElement);
+		} else {
+			endSteps = this.pathTo(end);
+		}
+		
+		endPath = this.generatePathComponent(endSteps);
+		
+		return "epubcfi(" + base + "!" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + "/" + endIndex + ":" + endOffset + ")";
+		
+	} else {
+		return "epubcfi(" + base + "!" + startPath + "/"+ startIndex +":"+ startOffset +")";
+	}
+};
+
+EPUBJS.EpubCFI.prototype.generateXpathFromSteps = function(steps) {
+	var xpath = [".", "*"];
+
+	steps.forEach(function(step){
+		var position = step.index + 1;
+		
+		if(step.id){
+			xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
+		} else if(step.type === "text") {
+			xpath.push("text()[" + position + "]");
+		} else {
+			xpath.push("*[" + position + "]");
+		}
+	});
+
+ 	return xpath.join("/");
+};
+
+
+EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
+	var doc = _doc || document;
+	var range = doc.createRange();
+	var lastStep;
+	var xpath;
+	var startContainer;
+	var textLength;
+	
+	if(typeof cfi === 'string') {
+		cfi = this.parse(cfi);
+	}
+	
+	// check spinePos
+	if(cfi.spinePos === -1) {
+		// Not a valid CFI
+		return false;
+	}
+		
+	xpath = this.generateXpathFromSteps(cfi.steps);
+	
+	// Get the terminal step
+	lastStep = cfi.steps[cfi.steps.length-1];
+	startContainer = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	if(!startContainer) {
+		return null;
+	}
+
+	if(startContainer && cfi.characterOffset >= 0) {
+		textLength = startContainer.length;
+		if(cfi.characterOffset < textLength) {
+			range.setStart(startContainer, cfi.characterOffset);
+			range.setEnd(startContainer, textLength );
+		} else {
+			range.setStart(startContainer, cfi.characterOffset - 1 );
+			range.setEnd(startContainer, cfi.characterOffset );	
+		}
+	} else if(startContainer) {
+		range.selectNode(startContainer);
+	}
+	// doc.defaultView.getSelection().addRange(range);
+	return range;
+};
 
 EPUBJS.Events = function(obj, el){
 	
@@ -4003,11 +4704,10 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	
 	//-- Check the width and create even width columns
-	var fullWidth = Math.floor(_width);
-	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	var width = Math.floor(_width);
+	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
-	
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -4023,8 +4723,8 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
-	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = width+"px";
+	documentElement.style[columnGap] = gap+"px";
 
 	return {
 		pageWidth : this.spreadWidth,
@@ -4060,6 +4760,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	//-- Check the width and create even width columns
 	var fullWidth = Math.floor(_width);
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+	
 	var section = Math.floor(width / 8);
 	var gap = (section % 2 === 0) ? section : section - 1;
 	//-- Double Page
@@ -4739,9 +5440,8 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		this.unload();
 	}
 	
-	this.iframe.onload = function() {
+	this.iframe.onload = function(e) {
 		render.document = render.iframe.contentDocument;
-		
 		render.docEl = render.document.documentElement;
 		render.headEl = render.document.head;
 		render.bodyEl = render.document.body;
@@ -4857,6 +5557,16 @@ EPUBJS.Render.Iframe.prototype.getPageNumberByElement = function(el){
 
 	left = this.leftPos + el.getBoundingClientRect().left; //-- Calculate left offset compaired to scrolled position
 	
+	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
+	
+	return pg;
+};
+
+//-- Show the page containing an Element
+EPUBJS.Render.Iframe.prototype.getPageNumberByRect = function(boundingClientRect){
+	var left, pg;
+
+	left = this.leftPos + boundingClientRect.left; //-- Calculate left offset compaired to scrolled position
 	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
 	
 	return pg;
@@ -4984,30 +5694,29 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 * Returns: Promise with passed Renderer after pages has loaded
 */
 EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
-	var renderer = this,
-			store = false;
-
-	// Unload the previous chapter listener
-	if(this.currentChapter) {
-		this.currentChapter.unload(); // Remove stored blobs
-		this.render.window.removeEventListener("resize", this.resized);
-		this.removeEventListeners();
-		this.removeSelectionListeners();
-		this.trigger("renderer:chapterUnloaded");
-	}
-
-	this.currentChapter = chapter;
-	this.chapterPos = 1;
-
-	this.currentChapterCfiBase = chapter.cfiBase;
-
-	this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-
+	var store = false;
 	// Get the url string from the chapter (may be from storage)
 	return chapter.url().
 		then(function(url) {
-			return renderer.load(url);
-		});
+			
+			// Unload the previous chapter listener
+			if(this.currentChapter) {
+				this.currentChapter.unload(); // Remove stored blobs
+				this.render.window.removeEventListener("resize", this.resized);
+				this.removeEventListeners();
+				this.removeSelectionListeners();
+				this.trigger("renderer:chapterUnloaded");
+			}
+		
+			this.currentChapter = chapter;
+			this.chapterPos = 1;
+		
+			this.currentChapterCfiBase = chapter.cfiBase;
+		
+			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
+			return this.load(url);
+			
+		}.bind(this));
 
 };
 
@@ -5349,26 +6058,56 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
-	this.visibileEl = this.findFirstVisible(prevEl);
+	var range = this.doc.createRange();
+	var position;
+	// TODO : this might need to take margin / padding into account?
+	var x = 0;
+	var y = 0;
 
-	return this.epubcfi.generateCfiFromElement(this.visibileEl, this.currentChapter.cfiBase);
+	if(typeof document.caretPositionFromPoint !== "undefined"){
+		position = this.doc.caretPositionFromPoint(x, y);		
+		range.setStart(position.offsetNode, position.offset);
+	} else if(typeof document.caretRangeFromPoint !== "undefined"){
+		range = this.doc.caretRangeFromPoint(x, y);
+	} else {
+		this.visibileEl = this.findFirstVisible(prevEl);
+		range.setStart(this.visibileEl, 1);
+	}
+	
+	// var test = this.doc.defaultView.getSelection();
+	// var r = this.doc.createRange();
+	// test.removeAllRanges();
+	// r.setStart(range.startContainer, range.startOffset);
+	// r.setEnd(range.startContainer, range.startOffset + 1);
+	// test.addRange(r);
+	
+	return this.currentChapter.cfiFromRange(range);
 };
 
 // Goto a cfi position in the current chapter
 EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
-	var element;
 	var pg;
+	var marker;
+	var range;
 
 	if(_.isString(cfi)){
 		cfi = this.epubcfi.parse(cfi);
 	}
-
-	marker = this.epubcfi.addMarker(cfi, this.doc);
-	if(marker) {
-		pg = this.render.getPageNumberByElement(marker);
-		// Must Clean up Marker before going to page
-		this.epubcfi.removeMarker(marker, this.doc);
-		this.page(pg);
+	
+	if(typeof document.evaluate === 'undefined') {
+		marker = this.epubcfi.addMarker(cfi, this.doc);
+		if(marker) {
+			pg = this.render.getPageNumberByElement(marker);
+			// Must Clean up Marker before going to page
+			this.epubcfi.removeMarker(marker, this.doc);
+			this.page(pg);
+		}
+	} else {
+		range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
+		if(range) {
+			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
+			this.page(pg); 
+		}
 	}
 };
 

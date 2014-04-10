@@ -489,7 +489,7 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 			this.page(pg);
 		}
 	} else {
-		var range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
+		range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
 		if(range) {
 			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
 			this.page(pg); 

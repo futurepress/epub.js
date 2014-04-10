@@ -33,17 +33,6 @@ EPUBJS.Reader = function(bookPath, _options) {
 	var $viewer = $("#viewer");
 	var search = window.location.search;
 	var parameters;
-	
-	// Overide options with search parameters
-	if(search) {
-		parameters = search.slice(1).split("&");
-		parameters.forEach(function(p){
-			var split = p.split("=");
-			var name = split[0];
-			var value = split[1] || '';
-			_options[name] = value;
-		});
-	}
 
 	this.settings = _.defaults(_options || {}, {
 		bookPath : bookPath,
@@ -58,8 +47,19 @@ EPUBJS.Reader = function(bookPath, _options) {
 		generatePagination: false,
 		history: true
 	});
-	
-	this.setBookKey(bookPath); //-- This could be username + path or any unique string
+
+	// Overide options with search parameters
+	if(search) {
+		parameters = search.slice(1).split("&");
+		parameters.forEach(function(p){
+			var split = p.split("=");
+			var name = split[0];
+			var value = split[1] || '';
+			reader.settings[name] = value;
+		});
+	}
+
+	this.setBookKey(this.settings.bookPath); //-- This could be username + path or any unique string
 	
 	if(this.settings.restore && this.isSaved()) {
 		this.applySavedSettings();
@@ -621,16 +621,16 @@ EPUBJS.reader.NotesController = function() {
 		
 		marker.style.verticalAlign = "super";
 		marker.style.fontSize = ".75em";
-		marker.style.position = "relative";
+		// marker.style.position = "relative";
 		marker.style.lineHeight = "1em";
 
-		mark.style.display = "inline-block";
+		// mark.style.display = "inline-block";
 		mark.style.padding = "2px";
 		mark.style.backgroundColor = "#fffa96";
 		mark.style.borderRadius = "5px";
 		mark.style.cursor = "pointer";
 		
-		marker.id = annotation.anchor;
+		marker.id = "note-"+EPUBJS.core.uuid();
 		mark.innerHTML = annotations.indexOf(annotation) + 1 + "[Reader]";
 		
 		marker.appendChild(mark);
@@ -903,6 +903,14 @@ EPUBJS.reader.ReaderController = function(book) {
 			hideDivider();
 		}
 	});
+
+	// book.on("book:atStart", function(){
+	// 	$prev.addClass("disabled");
+	// });
+	// 
+	// book.on("book:atEnd", function(){
+	// 	$next.addClass("disabled");	
+	// });
 
 	return {
 		"slideOut" : slideOut,
