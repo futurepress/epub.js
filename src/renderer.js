@@ -1,7 +1,13 @@
 EPUBJS.Renderer = function(renderMethod) {
 	// Dom events to listen for
 	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click"];
-	
+	this.upEvent = "mouseup";
+	this.downEvent = "mousedown";
+	if('ontouchstart' in document.documentElement) {
+		this.listenedEvents.push("touchstart", "touchend");
+		this.upEvent = "touchend";
+		this.downEvent = "touchstart";
+	}
 	/**
 	* Setup a render method.
 	* Options are: Iframe
@@ -42,6 +48,8 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:mouseup",
 	"renderer:mousedown",
 	"renderer:click",
+	"renderer:touchstart",
+	"renderer:touchend",
 	"renderer:selected",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
@@ -578,26 +586,20 @@ EPUBJS.Renderer.prototype.triggerEvent = function(e){
 
 EPUBJS.Renderer.prototype.addSelectionListeners = function(){
 	this.render.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
-	this.render.window.addEventListener("mouseup", this.onMouseUp.bind(this), false);
 };
 
 EPUBJS.Renderer.prototype.removeSelectionListeners = function(){
 	this.doc.removeEventListener("selectionchange", this.onSelectionChange, false);
-	this.render.window.removeEventListener("mouseup", this.onMouseUp, false);
 };
 
 EPUBJS.Renderer.prototype.onSelectionChange = function(e){
-	this.highlighted = true;
-};
-
-//  only pass selection on mouse up
-EPUBJS.Renderer.prototype.onMouseUp = function(e){
-	var selection;
-	if(this.highlighted) {
-		selection = this.render.window.getSelection();
-		this.trigger("renderer:selected", selection);
-		this.highlighted = false;
+	if (this.selectionEndTimeout) {
+		clearTimeout(this.selectionEndTimeout);
 	}
+	this.selectionEndTimeout = setTimeout(function() {
+		this.selectedRange = this.render.window.getSelection();
+		this.trigger("renderer:selected", this.selectedRange);
+	}.bind(this), 500);
 };
 
 

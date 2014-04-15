@@ -2729,7 +2729,7 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 // Prevents the Render from loading a different chapter when back button is pressed
 EPUBJS.Book.prototype.loadChange = function(url){
 	var uri = EPUBJS.core.uri(url);
-	if(this.currentChapter && uri.path != this.currentChapter.absolute){
+	if(!this._rendering && this.currentChapter && uri.path != this.currentChapter.absolute){
 		// console.warn("Miss Match", uri.path, this.currentChapter.absolute);
 		this.goto(uri.filename);
 	}
@@ -2953,6 +2953,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 			});
 		return defer.promise;
 	}
+		
 
 	if(this._rendering) {
 		// Pass along the current defer
@@ -2980,7 +2981,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 	this._rendering = true;
 	
 	render = book.renderer.displayChapter(chapter, this.globalLayoutProperties);
-	
+
 	//-- Success, Clear render queue
 	render.then(function(rendered){
 		// var inwait;
@@ -3012,7 +3013,6 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		console.error("Could not load Chapter: "+ chapter.absolute);
 		book.trigger("book:chapterLoadFailed", chapter.absolute);
 		book._rendering = false;
-		book._displayQ.dequeue();
 		defer.reject(error);
 	});
 	
@@ -3069,7 +3069,7 @@ EPUBJS.Book.prototype.prevChapter = function() {
 			prev--;
 		}
 		if (prev >= 0) {
-			return this.displayChapter(prev);
+			return this.displayChapter(prev, true);
 		} else {
 			this.trigger("book:atStart");
 		}
@@ -5616,7 +5616,13 @@ RSVP.EventTarget.mixin(EPUBJS.Render.Iframe.prototype);
 EPUBJS.Renderer = function(renderMethod) {
 	// Dom events to listen for
 	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click"];
-	
+	this.upEvent = "mouseup";
+	this.downEvent = "mousedown";
+	if('ontouchstart' in document.documentElement) {
+		this.listenedEvents.push("touchstart", "touchend");
+		this.upEvent = "touchend";
+		this.downEvent = "touchstart";
+	}
 	/**
 	* Setup a render method.
 	* Options are: Iframe
@@ -5657,6 +5663,8 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:mouseup",
 	"renderer:mousedown",
 	"renderer:click",
+	"renderer:touchstart",
+	"renderer:touchend",
 	"renderer:selected",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
@@ -6193,26 +6201,20 @@ EPUBJS.Renderer.prototype.triggerEvent = function(e){
 
 EPUBJS.Renderer.prototype.addSelectionListeners = function(){
 	this.render.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
-	this.render.window.addEventListener("mouseup", this.onMouseUp.bind(this), false);
 };
 
 EPUBJS.Renderer.prototype.removeSelectionListeners = function(){
 	this.doc.removeEventListener("selectionchange", this.onSelectionChange, false);
-	this.render.window.removeEventListener("mouseup", this.onMouseUp, false);
 };
 
 EPUBJS.Renderer.prototype.onSelectionChange = function(e){
-	this.highlighted = true;
-};
-
-//  only pass selection on mouse up
-EPUBJS.Renderer.prototype.onMouseUp = function(e){
-	var selection;
-	if(this.highlighted) {
-		selection = this.render.window.getSelection();
-		this.trigger("renderer:selected", selection);
-		this.highlighted = false;
+	if (this.selectionEndTimeout) {
+		clearTimeout(this.selectionEndTimeout);
 	}
+	this.selectionEndTimeout = setTimeout(function() {
+		this.selectedRange = this.render.window.getSelection();
+		this.trigger("renderer:selected", this.selectedRange);
+	}.bind(this), 500);
 };
 
 
