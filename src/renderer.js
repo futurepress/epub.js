@@ -54,6 +54,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
+	"renderer:visibleLocationChanged",
 	"renderer:resized",
 	"renderer:spreads"
 ];
@@ -139,8 +140,8 @@ EPUBJS.Renderer.prototype.load = function(url){
 		this.doc = this.render.document;
 
 		// Format the contents using the current layout method
-		formated = this.layout.format(contents, this.render.width, this.render.height);
-		this.render.setPageDimensions(formated.pageWidth, formated.pageHeight);
+		this.formated = this.layout.format(contents, this.render.width, this.render.height);
+		this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 		if(!this.initWidth && !this.initHeight){
 			this.render.window.addEventListener("resize", this.resized, false);
@@ -157,11 +158,14 @@ EPUBJS.Renderer.prototype.load = function(url){
 			
 			this.updatePages(pages);
 
-			msg.cfi = this.currentLocationCfi = this.getPageCfi();
-
-			this.trigger("renderer:chapterDisplayed", msg);
+			this.visibleRangeCfi = this.getVisibleRangeCfi();
+			this.currentLocationCfi = this.visibleRangeCfi.start;
 			this.trigger("renderer:locationChanged", this.currentLocationCfi);
+			this.trigger("renderer:visibleRangeChanged", this.visibleRangeCfi);
 
+			msg.cfi = this.currentLocationCfi;
+			this.trigger("renderer:chapterDisplayed", msg);
+	
 			this.visible(true);
 
 			deferred.resolve(this); //-- why does this return the renderer?
@@ -263,8 +267,11 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	var formated, pages;
 	if(!this.contents) return;
 	
-	formated = this.layout.format(this.contents, this.render.width, this.render.height);
-	this.render.setPageDimensions(formated.pageWidth, formated.pageHeight);
+	this.layoutMethod = this.determineLayout(this.layoutSettings);
+	this.layout = new EPUBJS.Layout[this.layoutMethod]();
+	
+	this.formated = this.layout.format(this.contents, this.render.width, this.render.height);
+	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
@@ -336,9 +343,11 @@ EPUBJS.Renderer.prototype.page = function(pg){
 		this.chapterPos = pg;
 
 		this.render.page(pg);
-
-		this.currentLocationCfi = this.getPageCfi();
+		this.visibleRangeCfi = this.getVisibleRangeCfi();
+		this.currentLocationCfi = this.visibleRangeCfi.start;
 		this.trigger("renderer:locationChanged", this.currentLocationCfi);
+		this.trigger("renderer:visibleRangeChanged", this.visibleRangeCfi);
+
 		return true;
 	}
 	//-- Return false if page is greater than the total
@@ -346,6 +355,7 @@ EPUBJS.Renderer.prototype.page = function(pg){
 };
 
 // Short cut to find next page's cfi starting at the last visible element
+/*
 EPUBJS.Renderer.prototype.nextPage = function(){
 	var pg = this.chapterPos + 1;
 	if(pg <= this.displayedPages){
@@ -360,6 +370,10 @@ EPUBJS.Renderer.prototype.nextPage = function(){
 	}
 	//-- Return false if page is greater than the total
 	return false;
+};
+*/
+EPUBJS.Renderer.prototype.nextPage = function(){
+	return this.page(this.chapterPos + 1);
 };
 
 EPUBJS.Renderer.prototype.prevPage = function(){
@@ -455,11 +469,28 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 	var range = this.doc.createRange();
 	var position;
 	// TODO : this might need to take margin / padding into account?
-	var x = 0;
-	var y = 0;
+	var x = 1;//this.formated.pageWidth/2;
+	var y = 1;//;this.formated.pageHeight/2;
 
+	range = this.getRange(x, y);
+	
+	// var test = this.doc.defaultView.getSelection();
+	// var r = this.doc.createRange();
+	// test.removeAllRanges();
+	// r.setStart(range.startContainer, range.startOffset);
+	// r.setEnd(range.startContainer, range.startOffset + 1);
+	// test.addRange(r);
+	
+	return this.currentChapter.cfiFromRange(range);
+};
+
+
+EPUBJS.Renderer.prototype.getRange = function(x, y){
+	var range = this.doc.createRange();
+	var position;
+	
 	if(typeof document.caretPositionFromPoint !== "undefined"){
-		position = this.doc.caretPositionFromPoint(x, y);		
+		position = this.doc.caretPositionFromPoint(x, y);
 		range.setStart(position.offsetNode, position.offset);
 	} else if(typeof document.caretRangeFromPoint !== "undefined"){
 		range = this.doc.caretRangeFromPoint(x, y);
@@ -474,8 +505,26 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 	// r.setStart(range.startContainer, range.startOffset);
 	// r.setEnd(range.startContainer, range.startOffset + 1);
 	// test.addRange(r);
+	return range;
+};
+
+EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
+	var startX = 1;
+	var startY = 1;
+	var endX = this.width-1;
+	var endY = this.height-1;
+	var startRange = this.getRange(startX, startY);
+	var endRange = this.getRange(endX, endY); //fix if carret not avail
+	var startCfi = this.currentChapter.cfiFromRange(startRange);
+	var endCfi;
+	if(endRange) {
+		endCfi = this.currentChapter.cfiFromRange(endRange);
+	}
 	
-	return this.currentChapter.cfiFromRange(range);
+	return {
+		start: startCfi,
+		end: endCfi || false
+	};
 };
 
 // Goto a cfi position in the current chapter
@@ -624,7 +673,7 @@ EPUBJS.Renderer.prototype.forceSingle = function(bool){
 		this.spreads = false;
 	} else {
 		this.isForcedSingle = false;
-		this.spreads = this.determineSpreads(width);
+		this.spreads = this.determineSpreads(this.minSpreadWidth);
 	}
 };
 

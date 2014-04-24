@@ -91,10 +91,14 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 
 	// Find Exact Range in original document
 	if(startContainer) {
-		range.setStart(startContainer, _range.startOffset);
-		
-		if(!_range.collapsed && endContainer) {
-			range.setEnd(endContainer, _range.endOffset);
+		try {
+			range.setStart(startContainer, _range.startOffset);
+			if(!_range.collapsed && endContainer) {
+				range.setEnd(endContainer, _range.endOffset);
+			}
+		} catch (e) {
+			console.log("missed");
+			startContainer = false;
 		}
 		
 	}
@@ -107,7 +111,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 		
 		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 		
-		if(startContainer){	
+		if(startContainer){
 			range.setStart(startContainer, _range.startOffset);
 
 			if(!_range.collapsed) {

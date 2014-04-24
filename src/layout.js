@@ -90,7 +90,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = colWidth+"px";
-
+	this.colWidth = colWidth;
+	this.gap = gap;
 	return {
 		pageWidth : this.spreadWidth,
 		pageHeight : _height

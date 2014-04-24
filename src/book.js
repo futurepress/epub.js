@@ -324,7 +324,10 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
   this._registerReplacements(renderer);
- 
+	if(this.settings.forceSingle) {
+		renderer.forceSingle(true);
+	}
+	
 	hiddenEl = document.createElement("div");
 	hiddenEl.style.visibility = "hidden";
 	hiddenEl.style.overflow = "hidden";
@@ -377,12 +380,30 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		deferred.resolve(pageList);
 	}.bind(this));
 
-	pager.on("renderer:locationChanged", function(cfi){
+	pager.on("renderer:visibleRangeChanged", function(range){
+		var endX, endY;
+		var endRange, endCfi;
+		
 		currentPage += 1;
 		pageList.push({
-			"cfi" : cfi,
+			"cfi" : range.start,
 			"page" : currentPage
 		});
+	
+		if (pager.layoutMethod == "ReflowableSpreads") {
+			endX = pager.layout.colWidth + pager.layout.gap + 1;
+			endY = 1; 
+			endRange = pager.getRange(endX, endY); 
+			if(endRange) {
+				endCfi = pager.currentChapter.cfiFromRange(endRange);
+				currentPage += 1;
+				pageList.push({
+					"cfi" : endCfi,
+					"page" : currentPage
+				});
+			}
+		}
+		
 	});
 
 	
@@ -393,16 +414,18 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 // Width and Height are optional and will default to the current dimensions
 EPUBJS.Book.prototype.generatePagination = function(width, height) {
 	var book = this;
-	
+	var defered = new RSVP.defer();
+
 	this.ready.spine.promise.then(function(){
 		book.generatePageList(width, height).then(function(pageList){
 			book.pageList = book.contents.pageList = pageList;
 			book.pagination.process(pageList);
 			book.ready.pageList.resolve(book.pageList);
+			defered.resolve(book.pageList);
 		});
 	});
 	
-	return this.pageListReady;
+	return defered.promise;
 };
 
 // Process the pagination from a JSON array containing the pagelist
@@ -455,16 +478,26 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 			book.trigger(eventName, e);
 		});
 	});
-	
-	
-	renderer.on("renderer:locationChanged", function(cfi) {
-		var page, percent;
+
+	renderer.on("renderer:visibleRangeChanged", function(range) {
+		var startPage, endPage, percent;
+		var pageRange = [];
+		
 		if(this.pageList.length > 0) {
-			page = this.pagination.pageFromCfi(cfi);
-			percent = this.pagination.percentageFromPage(page);
+			startPage = this.pagination.pageFromCfi(range.start);
+			percent = this.pagination.percentageFromPage(startPage);
+			pageRange.push(startPage);
+
+			if(range.end) {
+				endPage = this.pagination.pageFromCfi(range.end);
+				if(startPage != endPage) {
+					pageRange.push(endPage);
+				}
+			}
 			this.trigger("book:pageChanged", {
-				"page": page,
-				"percentage": percent
+				"anchorPage": startPage,
+				"percentage": percent,
+				"pageRange" : pageRange
 			});
 			
 			// TODO: Add event for first and last page. 
@@ -1059,6 +1092,7 @@ EPUBJS.Book.prototype.useSpreads = function(use) {
 
 EPUBJS.Book.prototype.forceSingle = function(use) {
 	this.renderer.forceSingle(use);
+	this.settings.forceSingle = use;
 	if(this.isRendered) {
 		this.renderer.reformat();
 	}
