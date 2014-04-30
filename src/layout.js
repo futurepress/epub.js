@@ -5,7 +5,7 @@ EPUBJS.Layout.Reflowable = function(){
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height){
+EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height, _gap){
 	// Get the prefixed CSS commands
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
@@ -15,7 +15,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var width = Math.floor(_width);
 	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
-	var gap = (section % 2 === 0) ? section : section - 1;
+	var gap = _gap || (section % 2 === 0) ? section : section - 1;
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -59,7 +59,7 @@ EPUBJS.Layout.ReflowableSpreads = function(){
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height){
+EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
@@ -72,7 +72,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
 	
 	var section = Math.floor(width / 8);
-	var gap = (section % 2 === 0) ? section : section - 1;
+	var gap = _gap || (section % 2 === 0) ? section : section - 1;
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
 
@@ -116,7 +116,7 @@ EPUBJS.Layout.Fixed = function(){
 	this.documentElement = null;
 };
 
-EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
+EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	var viewport = documentElement.querySelector("[name=viewport");
 	var content;

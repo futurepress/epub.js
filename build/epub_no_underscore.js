@@ -2265,6 +2265,7 @@ EPUBJS.Book = function(options){
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : null,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
+		gap: false, //-- False == auto
 		version: 1,
 		restore: false,
 		reload : false,
@@ -2351,6 +2352,7 @@ EPUBJS.Book = function(options){
 	this.renderer = new EPUBJS.Renderer(this.settings.render_method);
 	//-- Set the width at which to switch from spreads to single pages
 	this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+	this.renderer.setGap(this.settings.gap);
 	//-- Pass through the renderer events
 	this.listenToRenderer(this.renderer);
 	
@@ -2572,6 +2574,8 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	var hiddenContainer;
 	var hiddenEl;
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+	renderer.setGap(this.settings.gap);
+
   this._registerReplacements(renderer);
 	if(this.settings.forceSingle) {
 		renderer.forceSingle(true);
@@ -4731,7 +4735,7 @@ EPUBJS.Layout.Reflowable = function(){
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height){
+EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height, _gap){
 	// Get the prefixed CSS commands
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
@@ -4741,7 +4745,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var width = Math.floor(_width);
 	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
-	var gap = (section % 2 === 0) ? section : section - 1;
+	var gap = _gap || (section % 2 === 0) ? section : section - 1;
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -4785,7 +4789,7 @@ EPUBJS.Layout.ReflowableSpreads = function(){
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height){
+EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
@@ -4798,7 +4802,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
 	
 	var section = Math.floor(width / 8);
-	var gap = (section % 2 === 0) ? section : section - 1;
+	var gap = _gap || (section % 2 === 0) ? section : section - 1;
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
 
@@ -4842,7 +4846,7 @@ EPUBJS.Layout.Fixed = function(){
 	this.documentElement = null;
 };
 
-EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
+EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	var viewport = documentElement.querySelector("[name=viewport");
 	var content;
@@ -5798,7 +5802,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 		this.doc = this.render.document;
 
 		// Format the contents using the current layout method
-		this.formated = this.layout.format(contents, this.render.width, this.render.height);
+		this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
 		this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 		if(!this.initWidth && !this.initHeight){
@@ -5929,7 +5933,7 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	this.layoutMethod = this.determineLayout(this.layoutSettings);
 	this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height);
+	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
 	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 	pages = renderer.layout.calculatePages();
@@ -6588,6 +6592,10 @@ EPUBJS.Renderer.prototype.forceSingle = function(bool){
 		this.isForcedSingle = false;
 		this.spreads = this.determineSpreads(this.minSpreadWidth);
 	}
+};
+
+EPUBJS.Renderer.prototype.setGap = function(gap){
+	this.gap = gap; //-- False == auto gap
 };
 
 //-- Content Replacements

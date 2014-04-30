@@ -16,6 +16,7 @@ EPUBJS.Book = function(options){
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : null,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
+		gap: false, //-- False == auto
 		version: 1,
 		restore: false,
 		reload : false,
@@ -102,6 +103,7 @@ EPUBJS.Book = function(options){
 	this.renderer = new EPUBJS.Renderer(this.settings.render_method);
 	//-- Set the width at which to switch from spreads to single pages
 	this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+	this.renderer.setGap(this.settings.gap);
 	//-- Pass through the renderer events
 	this.listenToRenderer(this.renderer);
 	
@@ -323,6 +325,8 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	var hiddenContainer;
 	var hiddenEl;
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+	renderer.setGap(this.settings.gap);
+
   this._registerReplacements(renderer);
 	if(this.settings.forceSingle) {
 		renderer.forceSingle(true);

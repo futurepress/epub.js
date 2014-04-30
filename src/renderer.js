@@ -144,7 +144,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 		this.doc = this.render.document;
 
 		// Format the contents using the current layout method
-		this.formated = this.layout.format(contents, this.render.width, this.render.height);
+		this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
 		this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 		if(!this.initWidth && !this.initHeight){
@@ -275,7 +275,7 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	this.layoutMethod = this.determineLayout(this.layoutSettings);
 	this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height);
+	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
 	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
 
 	pages = renderer.layout.calculatePages();
@@ -934,6 +934,10 @@ EPUBJS.Renderer.prototype.forceSingle = function(bool){
 		this.isForcedSingle = false;
 		this.spreads = this.determineSpreads(this.minSpreadWidth);
 	}
+};
+
+EPUBJS.Renderer.prototype.setGap = function(gap){
+	this.gap = gap; //-- False == auto gap
 };
 
 //-- Content Replacements
