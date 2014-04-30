@@ -31,8 +31,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 	var render = this,
 			deferred = new RSVP.defer();
 
-	this.iframe.src = url;
-
+	this.iframe.contentWindow.location.replace(url);
 	// Reset the scroll position
 	render.leftPos = 0;
 

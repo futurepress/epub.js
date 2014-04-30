@@ -374,7 +374,6 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 						"page" : currentPage
 					});
 					
-										
 				});
 				
 				if(pager.pageMap.length % 2 > 0 &&
@@ -387,7 +386,9 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 				}
 
 				// Load up the next chapter
-				nextChapter(done);
+				setTimeout(function(){
+					nextChapter(done);
+				}, 1);
 			});
 		}
 		return done.promise;

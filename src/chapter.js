@@ -39,7 +39,7 @@ EPUBJS.Chapter.prototype.url = function(_store){
 	}else{
 		url = this.absolute;
 	}
-	
+	/*
 	loaded = EPUBJS.core.request(url, 'xml', false);
 	loaded.then(function(contents){
 		chapter.contents = contents;
@@ -47,6 +47,8 @@ EPUBJS.Chapter.prototype.url = function(_store){
 	}, function(error){
 		deferred.reject(error);
 	});
+	*/
+	deferred.resolve(url);
 	
 	return deferred.promise;
 };
@@ -64,7 +66,7 @@ EPUBJS.Chapter.prototype.getID = function(){
 };
 
 EPUBJS.Chapter.prototype.unload = function(store){
-	
+	this.contents = null;
 	if(this.tempUrl && store) {
 		store.revokeUrl(this.tempUrl);
 		this.tempUrl = false;
