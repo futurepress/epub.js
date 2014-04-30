@@ -1,4 +1,4 @@
-EPUBJS.Renderer = function(renderMethod) {
+EPUBJS.Renderer = function(renderMethod, hidden) {
 	// Dom events to listen for
 	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click"];
 	this.upEvent = "mouseup";
@@ -32,7 +32,8 @@ EPUBJS.Renderer = function(renderMethod) {
 	this.resized = _.throttle(this.onResized.bind(this), 10);
 
 	this.layoutSettings = {};
-
+	
+	this.hidden = hidden || false;
 	//-- Adds Hook methods to the Book prototype
 	//   Hooks will all return before triggering the callback.
 	EPUBJS.Hooks.mixin(this);
@@ -257,6 +258,7 @@ EPUBJS.Renderer.prototype.beforeDisplay = function(callback, renderer){
 
 // Update the renderer with the information passed by the layout
 EPUBJS.Renderer.prototype.updatePages = function(layout){
+	this.pageMap = this.mapPage();
 	this.displayedPages = layout.displayedPages;
 	this.currentChapter.pages = layout.pageCount;
 };
@@ -291,13 +293,13 @@ EPUBJS.Renderer.prototype.reformat = function(){
 // Hide and show the render's container .
 EPUBJS.Renderer.prototype.visible = function(bool){
 	if(typeof(bool) === "undefined") {
-		return this.container.style.visibility;
+		return this.element.style.visibility;
 	}
 
-	if(bool === true){
-		this.container.style.visibility = "visible";
+	if(bool === true && !this.hidden){
+		this.element.style.visibility = "visible";
 	}else if(bool === false){
-		this.container.style.visibility = "hidden";
+		this.element.style.visibility = "hidden";
 	}
 };
 
@@ -419,7 +421,7 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 };
 
 // Walk the node tree from a start element to next visible element
-EPUBJS.Renderer.prototype.walk = function(node) {
+EPUBJS.Renderer.prototype.walk = function(node, x, y) {
 	var r, children, leng,
 		startNode = node,
 		prevNode,
@@ -428,9 +430,8 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 	var STOP = 10000, ITER=0;
 
 	while(!r && stack.length) {
-
 		node = stack.shift();
-		if( this.render.isElementVisible(node) && this.firstElementisTextNode(node)) {
+		if( this.containsPoint(node, x, y) && this.firstElementisTextNode(node)) {
 			r = node;
 		}
 
@@ -464,6 +465,164 @@ EPUBJS.Renderer.prototype.walk = function(node) {
 	return r;
 };
 
+// Checks if an element is on the screen
+EPUBJS.Renderer.prototype.containsPoint = function(el, x, y){
+	var rect;
+	var left;
+	if(el && typeof el.getBoundingClientRect === 'function'){
+		rect = el.getBoundingClientRect();
+		// console.log(el, rect, x, y);
+
+		if( rect.width !== 0 &&
+				rect.height !== 0 && // Element not visible
+				rect.left >= x &&
+				x <= rect.left + rect.width) {
+			return true;
+		}
+	}
+
+	return false;
+};
+
+
+EPUBJS.Renderer.prototype.sprint = function(root, func) {
+	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: function (node) {
+					if ( ! /^\s*$/.test(node.data) ) {
+						return NodeFilter.FILTER_ACCEPT;
+					} else {
+						return NodeFilter.FILTER_REJECT;
+					}
+			}
+	}, false);
+	
+	while ((node = treeWalker.nextNode())) {
+		func(node);
+	}
+
+};
+
+
+EPUBJS.Renderer.prototype.mapPage = function(){
+	var renderer = this;
+	var map = [{ start: null, end: null }];
+	var root = this.render.getBaseElement();
+	var page = 1;
+	var width = this.layout.colWidth + this.layout.gap;
+	var offset = this.formated.pageWidth * (this.chapterPos-1);
+	var limit = (width * page) - offset;
+	var prevRange;
+	var cfi;
+	var check = function(node) {
+		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
+		
+		ranges.forEach(function(range){
+			var pos = renderer.rangePosition(range);
+			
+			// console.log(pos.left, pos.top, node);
+			
+			if(!pos || (pos.width === 0 && pos.height === 0)) {
+				return;
+			}
+			
+			if(pos.left + pos.width < limit) {
+				if(!map[page-1].start){
+					range.collapse(true);
+					cfi = renderer.currentChapter.cfiFromRange(range);
+					map[page-1].start = cfi;
+				}
+			} else {
+				if(prevRange){
+					prevRange.collapse(true);
+					cfi = renderer.currentChapter.cfiFromRange(prevRange);
+					map[page-1].end = cfi;
+				}
+				
+				range.collapse(true);
+				cfi = renderer.currentChapter.cfiFromRange(range);
+				map.push({
+						start: cfi,
+						end: null
+				});
+				page += 1;
+				limit = (width * page) - offset;
+			}
+			
+			prevRange = range;
+		});
+		
+	};
+	
+	this.sprint(root, check);
+	
+	if(prevRange){
+		prevRange.collapse(true);
+		cfi = renderer.currentChapter.cfiFromRange(prevRange);
+		map[page-1].end = cfi;
+	}
+	
+	// Handle empty map
+	if(map.length === 1 && !map[0].start) {
+		range = this.doc.createRange();
+		range.selectNodeContents(root);
+		range.collapse(true);
+		cfi = renderer.currentChapter.cfiFromRange(range);
+		map[0].start = cfi;
+		map[0].end = cfi;
+	}
+	
+	return map;
+};
+
+EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
+	var ranges = [];
+	var text = node.textContent;
+	var range;
+	var rect;
+	var list;
+	
+	pos = text.indexOf(" ");
+	
+	if(pos === -1) {
+		range = this.doc.createRange();
+		range.selectNodeContents(node);
+		return [range];
+	}
+	
+	range = this.doc.createRange();
+	range.setStart(node, pos+1);
+	
+	while ( pos != -1 ) {
+		pos = text.indexOf(" ", pos + 1);
+		if(pos > 0) {
+			range.setEnd(node, pos);
+			ranges.push(range);
+			range = this.doc.createRange();
+			range.setStart(node, pos+1);
+		}
+	}
+	
+	range.setEnd(node, text.length);
+	ranges.push(range);
+	
+	return ranges;
+};
+
+EPUBJS.Renderer.prototype.rangePosition = function(range){
+	var rect;
+	var list;
+	
+	list = range.getClientRects();
+	
+	if(list.length) {
+		rect = list[0];
+		return rect;
+	}
+	
+	return null;
+};
+
+/*
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 	var range = this.doc.createRange();
@@ -483,19 +642,32 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 	
 	return this.currentChapter.cfiFromRange(range);
 };
+*/
 
+// Get the cfi of the current page
+EPUBJS.Renderer.prototype.getPageCfi = function(){
+	var pg;
+	if (this.layoutMethod == "ReflowableSpreads") {
+		pg = this.chapterPos*2;
+		startRange = this.pageMap[pg-2];
+	} else {
+		pg = this.chapterPos;
+		startRange = this.pageMap[pg-1];
+	}
+	return this.pageMap[(this.chapterPos * 2) -1].start;
+};
 
-EPUBJS.Renderer.prototype.getRange = function(x, y){
+EPUBJS.Renderer.prototype.getRange = function(x, y, forceElement){
 	var range = this.doc.createRange();
 	var position;
-	
-	if(typeof document.caretPositionFromPoint !== "undefined"){
+	forceElement = true; // temp override
+	if(typeof document.caretPositionFromPoint !== "undefined" && !forceElement){
 		position = this.doc.caretPositionFromPoint(x, y);
 		range.setStart(position.offsetNode, position.offset);
-	} else if(typeof document.caretRangeFromPoint !== "undefined"){
+	} else if(typeof document.caretRangeFromPoint !== "undefined" && !forceElement){
 		range = this.doc.caretRangeFromPoint(x, y);
 	} else {
-		this.visibileEl = this.findFirstVisible(prevEl);
+		this.visibileEl = this.findElementAfter(x, y);
 		range.setStart(this.visibileEl, 1);
 	}
 	
@@ -508,9 +680,10 @@ EPUBJS.Renderer.prototype.getRange = function(x, y){
 	return range;
 };
 
+/*
 EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
-	var startX = 1;
-	var startY = 1;
+	var startX = 0;
+	var startY = 0;
 	var endX = this.width-1;
 	var endY = this.height-1;
 	var startRange = this.getRange(startX, startY);
@@ -524,6 +697,29 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 	return {
 		start: startCfi,
 		end: endCfi || false
+	};
+};
+*/
+
+EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
+	var pg;
+	var startRange, endRange;
+	if (this.layoutMethod == "ReflowableSpreads") {
+		pg = this.chapterPos*2;
+		startRange = this.pageMap[pg-2];
+		endRange = startRange;
+	
+		if(this.layout.pageCount > 1) {
+			endRange = this.pageMap[pg-1];
+		}
+	} else {
+		pg = this.chapterPos;
+		startRange = this.pageMap[pg-1];
+		endRange = startRange;
+	}
+	return {
+		start: startRange.start,
+		end: endRange.end
 	};
 };
 
@@ -564,6 +760,18 @@ EPUBJS.Renderer.prototype.findFirstVisible = function(startEl){
 		return found;
 	}else{
 		return startEl;
+	}
+
+};
+// TODO: remove me - unsused
+EPUBJS.Renderer.prototype.findElementAfter = function(x, y, startEl){
+	var el = startEl || this.render.getBaseElement();
+	var	found;
+	found = this.walk(el, x, y);
+	if(found) {
+		return found;
+	}else{
+		return el;
 	}
 
 };

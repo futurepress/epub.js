@@ -97,7 +97,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 				range.setEnd(endContainer, _range.endOffset);
 			}
 		} catch (e) {
-			console.log("missed");
+			// console.log("missed");
 			startContainer = false;
 		}
 		
@@ -105,13 +105,14 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 
 	// Fuzzy Match
 	if(!startContainer) {
-		console.log("not found, try fuzzy match");
+		// console.log("not found, try fuzzy match");
 		startXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
 		endXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
 		
 		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 		
 		if(startContainer){
+			// console.log("Found with Fuzzy");
 			range.setStart(startContainer, _range.startOffset);
 
 			if(!_range.collapsed) {

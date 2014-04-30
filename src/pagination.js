@@ -37,12 +37,14 @@ EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 	} else {
 		// Otherwise add it to the list of locations
 		// Insert it in the correct position in the locations page
-		index = EPUBJS.core.insert(cfi, this.locations, this.epubcfi.compare);
+		//index = EPUBJS.core.insert(cfi, this.locations, this.epubcfi.compare);
+		index = EPUBJS.core.locationOf(cfi, this.locations, this.epubcfi.compare);
 		// Get the page at the location just before the new one, or return the first
 		pg = index-1 >= 0 ? this.pages[index-1] : this.pages[0];
+		pg = this.pages[index];
 		if(pg !== undefined) {
 			// Add the new page in so that the locations and page array match up
-			this.pages.splice(index, 0, pg);
+			//this.pages.splice(index, 0, pg);
 		} else {
 			pg = -1;
 		}

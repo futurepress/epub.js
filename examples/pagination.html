@@ -196,9 +196,10 @@
             
             book.on('book:pageChanged', function(location){
                 if(!mouseDown) {
-                    slider.value = location.page;
+                    slider.value = location.anchorPage;
                 }
-                currentPage.value = location.page;
+                currentPage.value = location.anchorPage;
+                console.log(location.pageRange)
             });
         </script>
     </body>

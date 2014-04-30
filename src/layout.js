@@ -33,7 +33,9 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnWidth] = width+"px";
 	documentElement.style[columnGap] = gap+"px";
-
+	this.colWidth = width;
+	this.gap = gap;
+	
 	return {
 		pageWidth : this.spreadWidth,
 		pageHeight : _height
@@ -147,6 +149,8 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height){
 	//-- Scroll
 	documentElement.style.overflow = "auto";
 
+	this.colWidth = width;
+	this.gap = 0;
 	
 	return {
 		pageWidth : width,

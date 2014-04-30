@@ -320,30 +320,37 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	var box = this.element.getBoundingClientRect();
 	var width = _width || this.settings.width || box.width;
 	var height = _height || this.settings.height || box.height;
+	var hiddenContainer;
 	var hiddenEl;
-	
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
   this._registerReplacements(renderer);
 	if(this.settings.forceSingle) {
 		renderer.forceSingle(true);
 	}
 	
+	hiddenContainer = document.createElement("div");
+	hiddenContainer.style.visibility = "hidden";
+	hiddenContainer.style.overflow = "hidden";
+	hiddenContainer.style.width = "0";
+	hiddenContainer.style.height = "0";
+	this.element.appendChild(hiddenContainer);
+
 	hiddenEl = document.createElement("div");
 	hiddenEl.style.visibility = "hidden";
 	hiddenEl.style.overflow = "hidden";
-	hiddenEl.style.width = "0";
-	hiddenEl.style.height = "0";
-	this.element.appendChild(hiddenEl);
+	hiddenEl.style.width = width + "px";//"0";
+	hiddenEl.style.height = height +"px"; //"0";
+	hiddenContainer.appendChild(hiddenEl);
 	
-	renderer.initialize(hiddenEl, width, height);
-	return hiddenEl;
+	renderer.initialize(hiddenEl);
+	return hiddenContainer;
 };
 
 // Generates the pageList array by loading every chapter and paging through them
 EPUBJS.Book.prototype.generatePageList = function(width, height){
 	var pageList = [];
-	var pager = new EPUBJS.Renderer(this.settings.render_method);
-	var hiddenElement = this.createHiddenRender(pager, width, height);
+	var pager = new EPUBJS.Renderer(this.settings.render_method, false); //hidden
+	var hiddenContainer = this.createHiddenRender(pager, width, height);
 	var deferred = new RSVP.defer();
 	var spinePos = -1;
 	var spineLength = this.spine.length;
@@ -359,14 +366,26 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		} else {
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
-
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
-				var nextPage = true;
-
-				// Page though the entire chapter
-				while (nextPage) {
-					nextPage = pager.nextPage();
+				pager.pageMap.forEach(function(item){
+					currentPage += 1;
+					pageList.push({
+						"cfi" : item.start,
+						"page" : currentPage
+					});
+					
+										
+				});
+				
+				if(pager.pageMap.length % 2 > 0 &&
+					 pager.layoutMethod == "ReflowableSpreads") {
+					currentPage += 1; // Handle Spreads
+					pageList.push({
+						"cfi" : pager.pageMap[pager.pageMap.length - 1].end,
+						"page" : currentPage
+					});
 				}
+
 				// Load up the next chapter
 				nextChapter(done);
 			});
@@ -376,36 +395,9 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 	
 	var finished = nextChapter().then(function(){
 		pager.remove();
-		this.element.removeChild(hiddenElement);
+		this.element.removeChild(hiddenContainer);
 		deferred.resolve(pageList);
 	}.bind(this));
-
-	pager.on("renderer:visibleRangeChanged", function(range){
-		var endX, endY;
-		var endRange, endCfi;
-		
-		currentPage += 1;
-		pageList.push({
-			"cfi" : range.start,
-			"page" : currentPage
-		});
-	
-		if (pager.layoutMethod == "ReflowableSpreads") {
-			endX = pager.layout.colWidth + pager.layout.gap + 1;
-			endY = 1; 
-			endRange = pager.getRange(endX, endY); 
-			if(endRange) {
-				endCfi = pager.currentChapter.cfiFromRange(endRange);
-				currentPage += 1;
-				pageList.push({
-					"cfi" : endCfi,
-					"page" : currentPage
-				});
-			}
-		}
-		
-	});
-
 	
 	return deferred.promise;
 };
@@ -482,7 +474,7 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 	renderer.on("renderer:visibleRangeChanged", function(range) {
 		var startPage, endPage, percent;
 		var pageRange = [];
-		
+
 		if(this.pageList.length > 0) {
 			startPage = this.pagination.pageFromCfi(range.start);
 			percent = this.pagination.percentageFromPage(startPage);
@@ -490,9 +482,9 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 
 			if(range.end) {
 				endPage = this.pagination.pageFromCfi(range.end);
-				if(startPage != endPage) {
+				//if(startPage != endPage) {
 					pageRange.push(endPage);
-				}
+				//}
 			}
 			this.trigger("book:pageChanged", {
 				"anchorPage": startPage,
@@ -1137,21 +1129,21 @@ EPUBJS.Book.prototype._rendered = function(err) {
 };
 
 
-EPUBJS.Book.prototype.applyStyles = function(callback){
-	if(!this.isRendered) return this._q.enqueue("applyStyles", arguments);
-	this.renderer.applyStyles(this.settings.styles);
+EPUBJS.Book.prototype.applyStyles = function(renderer, callback){
+	// if(!this.isRendered) return this._q.enqueue("applyStyles", arguments);
+	renderer.applyStyles(this.settings.styles);
 	callback();
 };
 
-EPUBJS.Book.prototype.applyHeadTags = function(callback){
-	if(!this.isRendered) return this._q.enqueue("applyHeadTags", arguments);
-	this.renderer.applyHeadTags(this.settings.headTags);
+EPUBJS.Book.prototype.applyHeadTags = function(renderer, callback){
+	// if(!this.isRendered) return this._q.enqueue("applyHeadTags", arguments);
+	renderer.applyHeadTags(this.settings.headTags);
 	callback();
 };
 
 EPUBJS.Book.prototype._registerReplacements = function(renderer){
-	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this), true);
-	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this), true);
+	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this, renderer), true);
+	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs.bind(this), true);
 
 	if(this._needsAssetReplacement()) {

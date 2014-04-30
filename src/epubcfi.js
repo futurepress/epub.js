@@ -407,26 +407,26 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
 	} else if(range.collapsed) {
 		return this.generateCfiFromElement(start, base); // single element
 	} else {
-		startSteps = this.pathTo(startElement);
+		startSteps = this.pathTo(start);
 	}
 	
 	startPath = this.generatePathComponent(startSteps);
 	startOffset = range.startOffset;
 	
-	
 	if(!range.collapsed) {
-		end = range.startContainer;
+		end = range.endContainer;
 		
 		if(end.nodeType === 3) { // text node
 			endElement = end.parentElement;
-			startIndex = 1 + (2 * Array.prototype.indexOf.call(endElement.childNodes, end));
+			endIndex = 1 + (2 * Array.prototype.indexOf.call(endElement.childNodes, end));
 			endSteps = this.pathTo(endElement);
 		} else {
 			endSteps = this.pathTo(end);
 		}
-		
+
 		endPath = this.generatePathComponent(endSteps);
-		
+		endOffset = range.endOffset;
+
 		return "epubcfi(" + base + "!" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + "/" + endIndex + ":" + endOffset + ")";
 		
 	} else {
