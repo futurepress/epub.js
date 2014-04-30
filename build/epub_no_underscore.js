@@ -3344,6 +3344,22 @@ EPUBJS.Book.prototype.forceSingle = function(use) {
 	}
 };
 
+EPUBJS.Book.prototype.setSpreadWidth = function(width) {
+	this.settings.minSpreadWidth = width;
+	if(this.isRendered) {
+		this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
+		this.renderer.reformat();
+	}
+};
+
+EPUBJS.Book.prototype.setGap = function(gap) {
+	this.settings.gap = gap;
+	if(this.isRendered) {
+		this.renderer.setGap(this.settings.gap);
+		this.renderer.reformat();
+	}
+};
+
 EPUBJS.Book.prototype.unload = function(){
 	
 	if(this.settings.restore && localStorage) {
