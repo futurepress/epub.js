@@ -16,7 +16,7 @@ EPUBJS.Book = function(options){
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : null,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
-		gap: false, //-- False == auto
+		gap: "auto", //-- "auto" or int
 		version: 1,
 		restore: false,
 		reload : false,
@@ -381,7 +381,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 				});
 				
 				if(pager.pageMap.length % 2 > 0 &&
-					 pager.layoutMethod == "ReflowableSpreads") {
+					 pager.spreads) {
 					currentPage += 1; // Handle Spreads
 					pageList.push({
 						"cfi" : pager.pageMap[pager.pageMap.length - 1].end,
@@ -1095,7 +1095,7 @@ EPUBJS.Book.prototype.forceSingle = function(use) {
 	}
 };
 
-EPUBJS.Book.prototype.setSpreadWidth = function(width) {
+EPUBJS.Book.prototype.setMinSpreadWidth = function(width) {
 	this.settings.minSpreadWidth = width;
 	if(this.isRendered) {
 		this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);

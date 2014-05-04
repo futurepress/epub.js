@@ -2265,7 +2265,7 @@ EPUBJS.Book = function(options){
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : null,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
-		gap: false, //-- False == auto
+		gap: "auto", //-- "auto" or int
 		version: 1,
 		restore: false,
 		reload : false,
@@ -2630,7 +2630,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 				});
 				
 				if(pager.pageMap.length % 2 > 0 &&
-					 pager.layoutMethod == "ReflowableSpreads") {
+					 pager.spreads) {
 					currentPage += 1; // Handle Spreads
 					pageList.push({
 						"cfi" : pager.pageMap[pager.pageMap.length - 1].end,
@@ -3344,7 +3344,7 @@ EPUBJS.Book.prototype.forceSingle = function(use) {
 	}
 };
 
-EPUBJS.Book.prototype.setSpreadWidth = function(width) {
+EPUBJS.Book.prototype.setMinSpreadWidth = function(width) {
 	this.settings.minSpreadWidth = width;
 	if(this.isRendered) {
 		this.renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
@@ -4761,7 +4761,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var width = Math.floor(_width);
 	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
-	var gap = _gap || (section % 2 === 0) ? section : section - 1;
+	var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -4818,7 +4818,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
 	
 	var section = Math.floor(width / 8);
-	var gap = _gap || (section % 2 === 0) ? section : section - 1;
+	var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
+
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
 
@@ -6372,7 +6373,7 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(){
 	var pg;
-	if (this.layoutMethod == "ReflowableSpreads") {
+	if (this.spreads) {
 		pg = this.chapterPos*2;
 		startRange = this.pageMap[pg-2];
 	} else {
@@ -6426,10 +6427,16 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 };
 */
 
-EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
+EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 	var pg;
 	var startRange, endRange;
-	if (this.layoutMethod == "ReflowableSpreads") {
+
+	if(!this.pageMap) {
+		console.warn("page map not loaded");
+		return false;
+	}
+	
+	if (this.spreads) {
 		pg = this.chapterPos*2;
 		startRange = this.pageMap[pg-2];
 		endRange = startRange;
@@ -6442,6 +6449,13 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 		startRange = this.pageMap[pg-1];
 		endRange = startRange;
 	}
+	
+	if(!startRange) {
+		console.warn("startRange miss:", this.pageMap, pg);
+		startRange = this.pageMap[this.pageMap.length-1];
+		endRange = startRange;
+	}
+	
 	return {
 		start: startRange.start,
 		end: endRange.end
@@ -6518,14 +6532,16 @@ EPUBJS.Renderer.prototype.hideHashChanges = function(){
 
 */
 
-//-- Listeners for events in the frame
-
-EPUBJS.Renderer.prototype.onResized = function(e){
+EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 	var spreads;
 	
-	this.width = this.container.clientWidth;
-	this.height = this.container.clientHeight;
-
+	this.width = width;
+	this.height = height;
+	
+	if(setSize !== false) {
+		this.render.resize(this.width, this.height);
+	}
+	
 	spreads = this.determineSpreads(this.minSpreadWidth);
 	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
@@ -6533,16 +6549,24 @@ EPUBJS.Renderer.prototype.onResized = function(e){
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
 		this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	}
-
+	
 	if(this.contents){
 		this.reformat();
 	}
-
+	
 	this.trigger("renderer:resized", {
 		width: this.width,
 		height: this.height
 	});
+};
 
+//-- Listeners for events in the frame
+
+EPUBJS.Renderer.prototype.onResized = function(e) {
+	var width = this.container.clientWidth;
+	var height = this.container.clientHeight;
+
+	this.resize(width, height, false);
 };
 
 EPUBJS.Renderer.prototype.addEventListeners = function(){

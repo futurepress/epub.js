@@ -15,7 +15,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var width = Math.floor(_width);
 	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
 	var section = Math.floor(width / 8);
-	var gap = _gap || (section % 2 === 0) ? section : section - 1;
+	var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
@@ -72,7 +72,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
 	
 	var section = Math.floor(width / 8);
-	var gap = _gap || (section % 2 === 0) ? section : section - 1;
+	var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
+
 	//-- Double Page
 	var colWidth = Math.floor((width - gap) / divisor);
 
