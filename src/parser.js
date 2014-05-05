@@ -231,7 +231,8 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 			'href' : manifest[Id].href,
 			'url' :  manifest[Id].url,
 			'index' : index,
-			'cfiBase' : cfiBase
+			'cfiBase' : cfiBase,
+			'cfi' : "epub(" + cfiBase + ")"
 		};
 		spine.push(vert);
 	});
@@ -294,12 +295,14 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 				baseUrl = split[0],
 				subitems = getTOC(item),
 				spinePos = spineIndexByURL[baseUrl],
-				spineItem;
+				spineItem = bookSpine[spinePos],
+				cfi = 	spineItem ? spineItem.cfi : '';
 				
 			if(!id) {
 				if(spinePos) {
 					spineItem = bookSpine[spinePos];
 					id = spineItem.id;
+					cfi = spineItem.cfi;
 				} else {
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}
@@ -311,7 +314,8 @@ EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 				"href": href,
 				"label": text,
 				"subitems" : subitems,
-				"parent" : parent ? parent.getAttribute('id') : null
+				"parent" : parent ? parent.getAttribute('id') : null,
+				"cfi" : cfi
 			});
 		
 		});
@@ -345,13 +349,15 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 					split = src.split("#"),
 					baseUrl = split[0],
 					spinePos = spineIndexByURL[baseUrl],
-					spineItem,
-					subitems = getTOC(item);
+					spineItem = bookSpine[spinePos],
+					subitems = getTOC(item),
+					cfi = 	spineItem ? spineItem.cfi : '';
 
 			if(!id) {
 				if(spinePos) {
 					spineItem = bookSpine[spinePos];
 					id = spineItem.id;
+					cfi = 	spineItem.cfi;
 				} else {
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}
@@ -364,7 +370,8 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 						"label": text,
 						"spinePos": spinePos,
 						"subitems" : subitems,
-						"parent" : parent ? parent.getAttribute('id') : null
+						"parent" : parent ? parent.getAttribute('id') : null,
+						"cfi" : cfi
 			});
 
 		});
