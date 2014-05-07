@@ -3557,7 +3557,8 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-
+	var cleanTextContent, cleanEndTextContent;
+	
 	// Check for Contents
 	if(!this.contents) return;
 	
@@ -3588,16 +3589,18 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	// Fuzzy Match
 	if(!startContainer) {
 		// console.log("not found, try fuzzy match");
-		startXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
-		endXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
+		cleanStartTextContent = EPUBJS.core.cleanStringForXpath(_range.startContainer.textContent);
+		startXpath = "//text()[contains(.," + cleanStartTextContent + ")]";
 		
 		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-		
+
 		if(startContainer){
 			// console.log("Found with Fuzzy");
 			range.setStart(startContainer, _range.startOffset);
 
 			if(!_range.collapsed) {
+				cleanEndTextContent = EPUBJS.core.cleanStringForXpath(_range.endContainer.textContent);
+				endXpath = "//text()[contains(.," + cleanEndTextContent + ")]";
 				endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 				if(endContainer) {
 					range.setEnd(endContainer, _range.endOffset);
@@ -4090,6 +4093,22 @@ EPUBJS.core.nsResolver = function(prefix) {
 		'epub': 'http://www.idpf.org/2007/ops'
 	};
 	return ns[prefix] || null;
+};
+
+//https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
+EPUBJS.core.cleanStringForXpath = function(str)  {
+		var parts = str.match(/[^'"]+|['"]/g);
+		parts = parts.map(function(part){
+				if (part === "'")  {
+						return '\"\'\"'; // output "'"
+				}
+
+				if (part === '"') {
+						return "\'\"\'"; // output '"'
+				}
+				return "\'" + part + "\'";
+		});
+		return "concat(\'\'," + parts.join(",") + ")";
 };
 EPUBJS.EpubCFI = function(cfiStr){
 	if(cfiStr) return this.parse(cfiStr);
@@ -6433,6 +6452,29 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 	};
 };
 */
+
+EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
+	var pg;
+	var lastPage;
+	var pagesLeft;
+
+	if(!this.pageMap) {
+		console.warn("page map not loaded");
+		return false;
+	}
+	
+	lastPage = this.pageMap.length;
+	
+	if (this.spreads) {
+		pg = this.chapterPos*2;
+	} else {
+		pg = this.chapterPos;
+	}
+
+	pagesLeft = lastPage - pg;
+	return pagesLeft;
+	
+};
 
 EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 	var pg;

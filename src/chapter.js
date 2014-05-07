@@ -77,7 +77,8 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-
+	var cleanTextContent, cleanEndTextContent;
+	
 	// Check for Contents
 	if(!this.contents) return;
 	
@@ -108,16 +109,18 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	// Fuzzy Match
 	if(!startContainer) {
 		// console.log("not found, try fuzzy match");
-		startXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
-		endXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
+		cleanStartTextContent = EPUBJS.core.cleanStringForXpath(_range.startContainer.textContent);
+		startXpath = "//text()[contains(.," + cleanStartTextContent + ")]";
 		
 		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-		
+
 		if(startContainer){
 			// console.log("Found with Fuzzy");
 			range.setStart(startContainer, _range.startOffset);
 
 			if(!_range.collapsed) {
+				cleanEndTextContent = EPUBJS.core.cleanStringForXpath(_range.endContainer.textContent);
+				endXpath = "//text()[contains(.," + cleanEndTextContent + ")]";
 				endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 				if(endContainer) {
 					range.setEnd(endContainer, _range.endOffset);

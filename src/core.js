@@ -478,3 +478,19 @@ EPUBJS.core.nsResolver = function(prefix) {
 	};
 	return ns[prefix] || null;
 };
+
+//https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
+EPUBJS.core.cleanStringForXpath = function(str)  {
+		var parts = str.match(/[^'"]+|['"]/g);
+		parts = parts.map(function(part){
+				if (part === "'")  {
+						return '\"\'\"'; // output "'"
+				}
+
+				if (part === '"') {
+						return "\'\"\'"; // output '"'
+				}
+				return "\'" + part + "\'";
+		});
+		return "concat(\'\'," + parts.join(",") + ")";
+};

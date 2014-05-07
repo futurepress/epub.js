@@ -752,6 +752,29 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 };
 */
 
+EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
+	var pg;
+	var lastPage;
+	var pagesLeft;
+
+	if(!this.pageMap) {
+		console.warn("page map not loaded");
+		return false;
+	}
+	
+	lastPage = this.pageMap.length;
+	
+	if (this.spreads) {
+		pg = this.chapterPos*2;
+	} else {
+		pg = this.chapterPos;
+	}
+
+	pagesLeft = lastPage - pg;
+	return pagesLeft;
+	
+};
+
 EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 	var pg;
 	var startRange, endRange;
