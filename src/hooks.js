@@ -60,8 +60,8 @@ EPUBJS.Hooks = (function(){
 		}
 
 		function countdown(){
-			count--;
 			if(count <= 0 && callback) callback();
+			count--;
 		}
 	
 		hooks.forEach(function(hook){

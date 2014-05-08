@@ -3419,9 +3419,9 @@ EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	if(this._needsAssetReplacement()) {
 
 		renderer.registerHook("beforeChapterDisplay", [
-			EPUBJS.replace.head,
-			EPUBJS.replace.resources,
-			EPUBJS.replace.svg
+			EPUBJS.replace.head
+			// EPUBJS.replace.resources,
+			// EPUBJS.replace.svg
 		], true);
 
 	}
@@ -3513,11 +3513,17 @@ EPUBJS.Chapter.prototype.url = function(_store){
 	
 	if(store){
 		if(!this.tempUrl) {
-			this.tempUrl = store.getUrl(this.absolute);
+			store.getUrl(this.absolute).then(function(url){
+				chapter.tempUrl = url;
+				deferred.resolve(url);
+			});
+		} else {
+			url = this.tempUrl;
+			deferred.resolve(url);
 		}
-		url = this.tempUrl;
 	}else{
 		url = this.absolute;
+		deferred.resolve(url);
 	}
 	/*
 	loaded = EPUBJS.core.request(url, 'xml', false);
@@ -3528,7 +3534,6 @@ EPUBJS.Chapter.prototype.url = function(_store){
 		deferred.reject(error);
 	});
 	*/
-	deferred.resolve(url);
 	
 	return deferred.promise;
 };
@@ -4739,8 +4744,8 @@ EPUBJS.Hooks = (function(){
 		}
 
 		function countdown(){
-			count--;
 			if(count <= 0 && callback) callback();
+			count--;
 		}
 	
 		hooks.forEach(function(hook){
@@ -5740,6 +5745,10 @@ EPUBJS.Renderer = function(renderMethod, hidden) {
 	EPUBJS.Hooks.mixin(this);
 	//-- Get pre-registered hooks for events
 	this.getHooks("beforeChapterDisplay");
+	
+	//-- Queue up page changes if page map isn't ready
+	this._q = EPUBJS.core.queue(this);
+
 };
 
 //-- Renderer events for listening
@@ -5860,7 +5869,6 @@ EPUBJS.Renderer.prototype.load = function(url){
 		this.beforeDisplay(function(){
 			var pages = this.layout.calculatePages();
 			var msg = this.currentChapter;
-			
 			this.updatePages(pages);
 
 			this.visibleRangeCfi = this.getVisibleRangeCfi();
@@ -5965,6 +5973,8 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 	this.pageMap = this.mapPage();
 	this.displayedPages = layout.displayedPages;
 	this.currentChapter.pages = layout.pageCount;
+	
+	this._q.flush();
 };
 
 // Apply the layout again and jump back to the previous cfi position
@@ -6044,7 +6054,13 @@ EPUBJS.Renderer.prototype.applyHeadTags = function(headTags) {
 
 //-- NAVIGATION
 
-EPUBJS.Renderer.prototype.page = function(pg){
+EPUBJS.Renderer.prototype.page = function(pg){	
+	
+	if(!this.pageMap) {
+		this._q.enqueue("page", arguments);
+		return true;
+	}
+
 	if(pg >= 1 && pg <= this.displayedPages){
 		this.chapterPos = pg;
 
@@ -6500,7 +6516,7 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 	}
 	
 	if(!startRange) {
-		console.warn("startRange miss:", this.pageMap, pg);
+		console.warn("page range miss:", pg);
 		startRange = this.pageMap[this.pageMap.length-1];
 		endRange = startRange;
 	}
