@@ -54,14 +54,13 @@ EPUBJS.Hooks = (function(){
 		hooks = this.hooks[type];
 	
 		count = hooks.length;
-		
 		if(count === 0 && callback) {
 			callback();
 		}
 
 		function countdown(){
-			if(count <= 0 && callback) callback();
 			count--;
+			if(count <= 0 && callback) callback();
 		}
 	
 		hooks.forEach(function(hook){

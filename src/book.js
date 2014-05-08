@@ -1170,9 +1170,9 @@ EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	if(this._needsAssetReplacement()) {
 
 		renderer.registerHook("beforeChapterDisplay", [
-			EPUBJS.replace.head
-			// EPUBJS.replace.resources,
-			// EPUBJS.replace.svg
+			EPUBJS.replace.head,
+			EPUBJS.replace.resources,
+			EPUBJS.replace.svg
 		], true);
 
 	}

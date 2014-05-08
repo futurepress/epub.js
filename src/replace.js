@@ -59,7 +59,6 @@ EPUBJS.replace.srcs = function(_store, full, done){
 
 //-- Replaces links in head, such as stylesheets - link[href]
 EPUBJS.replace.links = function(_store, full, done, link){
-	
 	//-- Handle replacing urls in CSS
 	if(link.getAttribute("rel") === "stylesheet") {
 		EPUBJS.replace.stylesheets(_store, full).then(function(url, full){

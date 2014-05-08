@@ -3420,9 +3420,9 @@ EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	if(this._needsAssetReplacement()) {
 
 		renderer.registerHook("beforeChapterDisplay", [
-			EPUBJS.replace.head
-			// EPUBJS.replace.resources,
-			// EPUBJS.replace.svg
+			EPUBJS.replace.head,
+			EPUBJS.replace.resources,
+			EPUBJS.replace.svg
 		], true);
 
 	}
@@ -4739,14 +4739,13 @@ EPUBJS.Hooks = (function(){
 		hooks = this.hooks[type];
 	
 		count = hooks.length;
-		
 		if(count === 0 && callback) {
 			callback();
 		}
 
 		function countdown(){
-			if(count <= 0 && callback) callback();
 			count--;
+			if(count <= 0 && callback) callback();
 		}
 	
 		hooks.forEach(function(hook){
@@ -6470,6 +6469,43 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(prevEl){
 };
 */
 
+EPUBJS.Renderer.prototype.pagesInCurrentChapter = function() {
+	var pgs;
+	var length;
+
+	if(!this.pageMap) {
+		console.warn("page map not loaded");
+		return false;
+	}
+
+	length = this.pageMap.length;
+
+	if(this.spreads){
+		pgs = Math.ceil(length / 2);
+	} else {
+		pgs = length;
+	}
+
+	return pgs;
+};
+
+EPUBJS.Renderer.prototype.currentRenderedPage = function(){
+	var pg;
+
+	if(!this.pageMap) {
+		console.warn("page map not loaded");
+		return false;
+	}
+
+	if (this.spreads && this.layout.pageCount > 1) {
+		pg = this.chapterPos*2;
+	} else {
+		pg = this.chapterPos;
+	}
+
+	return pg;
+};
+
 EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
 	var pg;
 	var lastPage;
@@ -6709,19 +6745,24 @@ EPUBJS.Renderer.prototype.setGap = function(gap){
 EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 	var items = this.contents.querySelectorAll(query),
 		resources = Array.prototype.slice.call(items),
-		count = resources.length,
-		after = function(result, full){
-			count--;
-			if(progress) progress(result, full, count);
-			if(count <= 0 && finished) finished(true);
-		};
+		count = resources.length;
+		
 
 	if(count === 0) {
 		finished(false);
 		return;
 	}
 	resources.forEach(function(item){
-
+		var called = false;
+		var after = function(result, full){
+			if(called === false) {
+				count--;
+				if(progress) progress(result, full, count);
+				if(count <= 0 && finished) finished(true);
+				called = true;
+			}
+		};
+		
 		func(item, after);
 
 	}.bind(this));
@@ -6761,7 +6802,6 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 
 		var replaceUrl = function(url) {
 				var timeout;
-
 				link.onload = function(){
 					clearTimeout(timeout);
 					done(url, full);
@@ -6778,7 +6818,7 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 					link.setAttribute("externalResourcesRequired", "true");
 				}
 
-				if(query == "link[href]") {
+				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
 					//-- Only Stylesheet links seem to have a load events, just continue others
 					done(url, full);
 				}
@@ -6866,7 +6906,6 @@ EPUBJS.replace.srcs = function(_store, full, done){
 
 //-- Replaces links in head, such as stylesheets - link[href]
 EPUBJS.replace.links = function(_store, full, done, link){
-	
 	//-- Handle replacing urls in CSS
 	if(link.getAttribute("rel") === "stylesheet") {
 		EPUBJS.replace.stylesheets(_store, full).then(function(url, full){

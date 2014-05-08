@@ -149,16 +149,17 @@
             
             // Load in stored pageList from json or local storage
             ///*
-            // EPUBJS.core.request("page_list.json").then(function(storedPageList){
-            //     pageList = storedPageList;
-            //     book.loadPagination(pageList);
-            // });
+            EPUBJS.core.request("page_list.json").then(function(storedPageList){
+                pageList = storedPageList;
+                console.log(storedPageList)
+                book.loadPagination(pageList);
+            });
 
             
             // Or generate the pageList on the fly
-            book.ready.all.then(function(){
-                book.generatePagination();
-            });
+            // book.ready.all.then(function(){
+            //     book.generatePagination();
+            // });
             
             // Wait for the pageList to be ready and then show slider
             book.pageListReady.then(function(pageList){
