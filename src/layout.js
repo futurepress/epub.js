@@ -10,7 +10,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
-	
+
 	//-- Check the width and create even width columns
 	var width = Math.floor(_width);
 	// var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 0; // Not needed for single
@@ -19,23 +19,23 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	this.documentElement = documentElement;
 	//-- Single Page
 	this.spreadWidth = (width + gap);
-	
-	
+
+
 	documentElement.style.overflow = "hidden";
-	
+
 	// Must be set to the new calculated width or the columns will be off
 	documentElement.style.width = width + "px";
-	
+
 	//-- Adjust height
 	documentElement.style.height = _height + "px";
-	
+
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
 	documentElement.style[columnWidth] = width+"px";
 	documentElement.style[columnGap] = gap+"px";
 	this.colWidth = width;
 	this.gap = gap;
-	
+
 	return {
 		pageWidth : this.spreadWidth,
 		pageHeight : _height
@@ -63,14 +63,14 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
-	
+
 	var divisor = 2,
 			cutoff = 800;
 
 	//-- Check the width and create even width columns
 	var fullWidth = Math.floor(_width);
 	var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
-	
+
 	var section = Math.floor(width / 8);
 	var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
 
@@ -79,8 +79,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 
 	this.documentElement = documentElement;
 	this.spreadWidth = (colWidth + gap) * divisor;
-	
-	
+
+
 	documentElement.style.overflow = "hidden";
 
 	// Must be set to the new calculated width or the columns will be off
@@ -123,7 +123,7 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
 	var content;
 	var contents;
 	var width, height;
-	
+
 	this.documentElement = documentElement;
 	/**
 	* check for the viewport size
@@ -139,7 +139,7 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
 			height = contents[1].replace("height=", '');
 		}
 	}
-	
+
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
 	documentElement.style.height =  height + "px" || "auto";
@@ -152,12 +152,12 @@ EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
 
 	this.colWidth = width;
 	this.gap = 0;
-	
+
 	return {
 		pageWidth : width,
 		pageHeight : height
 	};
-	
+
 };
 
 EPUBJS.Layout.Fixed.prototype.calculatePages = function(){

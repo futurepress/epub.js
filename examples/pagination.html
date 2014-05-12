@@ -6,7 +6,7 @@
         <title>Basic ePubJS Example</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
-        <meta name="apple-mobile-web-app-capable" content="yes">    
+        <meta name="apple-mobile-web-app-capable" content="yes">
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <!-- EPUBJS Renderer -->
         <!-- zip -->
@@ -15,8 +15,8 @@
         <script src="../libs/zip/zip-ext.js"></script>
         <script src="../libs/zip/inflate.js"></script>
         <script src="../libs/zip/mime-types.js"></script>
-        
-        
+
+
         <!-- Render -->
         <script src="../libs/underscore/underscore.js"></script>
         <script src="../libs/rsvp/rsvp.js"></script>
@@ -39,9 +39,9 @@
         <!-- <script src="../hooks/default/transculsions.js"></script> -->
         <!-- <script src="../hooks/default/endnotes.js"></script> -->
         <script src="../hooks/default/smartimages.js"></script>
-        
+
         <script>
-            
+
             EPUBJS.filePath = "../reader/js/libs/";
             EPUBJS.cssPath = "../reader/css/";
 
@@ -50,7 +50,7 @@
         <style type="text/css">
 
           body {
-            
+
           }
 
           #main {
@@ -75,7 +75,7 @@
             left: 40px;
           }
 
-          #next {  
+          #next {
             right: 40px;
           }
 
@@ -96,11 +96,11 @@
           .arrow:hover {
             color: #777;
           }
-           
+
           .arrow:active {
             color: #000;
           }
-          
+
           #controls {
             position: absolute;
             bottom: 16px;
@@ -110,15 +110,15 @@
             text-align: center;
             display: none;
           }
-          
+
           #controls > input[type=range] {
               width: 400px;
           }
         </style>
-        
+
          <script>
             "use strict";
-            
+
             var book = ePub("../reader/moby-dick/", { width: 1076, height: 588 });
 
         </script>
@@ -133,7 +133,7 @@
           </div>
         </div>
 
-        <script>            
+        <script>
             var controls = document.getElementById("controls");
             var currentPage = document.getElementById("currentpg");
             var totalPages = document.getElementById("totalpg");
@@ -144,23 +144,23 @@
             };
             var throttledSlide = _.throttle(slide, 200);
             var mouseDown = false;
-            
+
             var rendered = book.renderTo("area");
-            
+
             // Load in stored pageList from json or local storage
             ///*
-            EPUBJS.core.request("page_list.json").then(function(storedPageList){
-                pageList = storedPageList;
-                console.log(storedPageList)
-                book.loadPagination(pageList);
+            // EPUBJS.core.request("page_list.json").then(function(storedPageList){
+            //     pageList = storedPageList;
+            //     console.log(storedPageList)
+            //     book.loadPagination(pageList);
+            // });
+
+
+            // Or generate the pageList on the fly
+            book.ready.all.then(function(){
+                book.generatePagination();
             });
 
-            
-            // Or generate the pageList on the fly
-            // book.ready.all.then(function(){
-            //     book.generatePagination();
-            // });
-            
             // Wait for the pageList to be ready and then show slider
             book.pageListReady.then(function(pageList){
                 controls.style.display = "block";
@@ -170,7 +170,7 @@
                 slider.setAttribute("max", book.pagination.lastPage);
                 slider.setAttribute("step", 1);
                 slider.setAttribute("value", 0);
-                
+
                 slider.addEventListener("change", throttledSlide, false);
                 slider.addEventListener("mousedown", function(){
                     mouseDown = true;
@@ -178,7 +178,7 @@
                 slider.addEventListener("mouseup", function(){
                     mouseDown = false;
                 }, false);
-                
+
                 // Wait for book to be rendered to get current page
                 rendered.then(function(){
                     var currentLocation = book.getCurrentLocationCfi();
@@ -186,15 +186,15 @@
                     slider.value = currentPage;
                     currentPage.value = currentPage;
                 });
-                
+
                 controls.appendChild(slider);
-                
+
                 totalPages.innerText = book.pagination.totalPages;
                 currentPage.addEventListener("change", function(){
                     book.gotoPage(currentPage.value);
                 }, false);
             });
-            
+
             book.on('book:pageChanged', function(location){
                 if(!mouseDown) {
                     slider.value = location.anchorPage;
