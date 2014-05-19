@@ -10,6 +10,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	var columnFill = EPUBJS.core.prefixed('columnFill');
 
 	//-- Check the width and create even width columns
 	var width = Math.floor(_width);
@@ -31,6 +32,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
+	documentElement.style[columnFill] = "auto";
 	documentElement.style[columnWidth] = width+"px";
 	documentElement.style[columnGap] = gap+"px";
 	this.colWidth = width;
@@ -63,6 +65,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	var columnFill = EPUBJS.core.prefixed('columnFill');
 
 	var divisor = 2,
 			cutoff = 800;
@@ -91,8 +94,10 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 
 	//-- Add columns
 	documentElement.style[columnAxis] = "horizontal";
+	documentElement.style[columnFill] = "auto";
 	documentElement.style[columnGap] = gap+"px";
 	documentElement.style[columnWidth] = colWidth+"px";
+
 	this.colWidth = colWidth;
 	this.gap = gap;
 	return {

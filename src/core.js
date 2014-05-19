@@ -130,6 +130,7 @@ EPUBJS.core.uri = function(url){
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
+		href = url;
 	}
 	
 	if(doubleSlash != -1) {
@@ -404,11 +405,12 @@ EPUBJS.core.queue = function(_scope){
 		if(_q.length) {
 			inwait = _q.shift();
 			// Defer to any current tasks
-			setTimeout(function(){
-				scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
-			}, 0);
+			// setTimeout(function(){
+			scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
+			// }, 0);
 		}
 	};
+	
 	// Run All
 	var flush = function(){
 		while(_q.length) {
@@ -419,11 +421,17 @@ EPUBJS.core.queue = function(_scope){
 	var clear = function(){
 		_q = [];
 	};
+	
+	var length = function(){
+		return _q.length;
+	};
+	
 	return {
 		"enqueue" : enqueue,
 		"dequeue" : dequeue,
 		"flush" : flush,
-		"clear" : clear
+		"clear" : clear,
+		"length" : length
 	};
 };
 
@@ -442,16 +450,20 @@ EPUBJS.core.getElementXPath = function(element) {
 EPUBJS.core.getElementTreeXPath = function(element) {
 	var paths = [];
 	var 	isXhtml = (element.ownerDocument.documentElement.getAttribute('xmlns') === "http://www.w3.org/1999/xhtml");
+	var index, nodeName, tagName, pathIndex;
 	
-	if(element.nodeType === 3){
-		paths.push("text()");
-		element = element.parentElement;
+	if(element.nodeType === Node.TEXT_NODE){
+		// index = Array.prototype.indexOf.call(element.parentNode.childNodes, element) + 1;
+		index = EPUBJS.core.indexOfTextNode(element) + 1;
+
+		paths.push("text()["+index+"]");
+		element = element.parentNode;
 	}
 
 	// Use nodeName (instead of localName) so namespace prefix is included (if any).
 	for (; element && element.nodeType == 1; element = element.parentNode)
 	{
-		var index = 0;
+		index = 0;
 		for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
 		{
 			// Ignore document type declaration.
@@ -462,9 +474,9 @@ EPUBJS.core.getElementTreeXPath = function(element) {
 				++index;
 			}
 		}
-		var nodeName = element.nodeName.toLowerCase();
-		var tagName = (isXhtml ? "xhtml:" + nodeName : nodeName);
-		var pathIndex = (index ? "[" + (index+1) + "]" : "");
+		nodeName = element.nodeName.toLowerCase();
+		tagName = (isXhtml ? "xhtml:" + nodeName : nodeName);
+		pathIndex = (index ? "[" + (index+1) + "]" : "");
 		paths.splice(0, 0, tagName + pathIndex);
 	}
 
@@ -493,4 +505,20 @@ EPUBJS.core.cleanStringForXpath = function(str)  {
 				return "\'" + part + "\'";
 		});
 		return "concat(\'\'," + parts.join(",") + ")";
+};
+
+EPUBJS.core.indexOfTextNode = function(textNode){
+	var parent = textNode.parentElement;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if(sib.nodeType === Node.TEXT_NODE){
+			index++;
+		}
+		if(sib == textNode) break;
+	}
+	
+	return index;
 };

@@ -509,8 +509,14 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 // Prevents the Render from loading a different chapter when back button is pressed
 EPUBJS.Book.prototype.loadChange = function(url){
 	var uri = EPUBJS.core.uri(url);
-	if(!this._rendering && this.currentChapter && uri.path != this.currentChapter.absolute){
-		// console.warn("Miss Match", uri.path, this.currentChapter.absolute);
+	var chapter;
+	
+	if(this.currentChapter) {
+		chapter = EPUBJS.core.uri(this.currentChapter.absolute);
+	}
+	
+	if(!this._rendering && this.currentChapter && uri.path != chapter.path){
+		console.warn("Miss Match", uri.path, this.currentChapter.absolute);
 		this.goto(uri.filename);
 	}
 };
@@ -735,7 +741,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 	}
 
 
-	if(this._rendering) {
+	if(this._rendering || this._rendering) {
 		// Pass along the current defer
 		this._displayQ.enqueue("displayChapter", [chap, end, defer]);
 		return defer.promise;
@@ -761,23 +767,18 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 	this._rendering = true;
 
 	render = book.renderer.displayChapter(chapter, this.globalLayoutProperties);
-
+	if(cfi) {
+		book.renderer.gotoCfi(cfi);
+	} else if(end) {
+		book.renderer.lastPage();
+	}
 	//-- Success, Clear render queue
 	render.then(function(rendered){
 		// var inwait;
 		//-- Set the book's spine position
 		book.spinePos = pos;
 
-		if(cfi) {
-			rendered.gotoCfi(cfi);
-			defer.resolve(book.renderer);
-		} else if(end) {
-			rendered.lastPage();
-			defer.resolve(book.renderer);
-		} else {
-			defer.resolve(book.renderer);
-		}
-
+		defer.resolve(book.renderer);
 
 		if(!book.settings.fromStorage &&
 			 !book.settings.contained) {
@@ -787,6 +788,9 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		book.currentChapter = chapter;
 		book._rendering = false;
 		book._displayQ.dequeue();
+		if(book._displayQ.length() === 0) {
+			book._gotoQ.dequeue();
+		}
 
 	}, function(error) {
 		// handle errors in either of the two requests
@@ -886,12 +890,14 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			deferred = defer || new RSVP.defer();
 
 	if(!this.isRendered) {
+		console.warn("Not yet Rendered");
 		this.settings.previousLocationCfi = cfiString;
 		return false;
 	}
 
 	// Currently going to a chapter
-	if(this._moving) {
+	if(this._moving || this._rendering) {
+		console.warn("Renderer is moving");
 		this._gotoQ.enqueue("gotoCfi", [cfiString, deferred]);
 		return false;
 	}
@@ -924,8 +930,8 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			this.spinePos = spinePos;
 			render = this.renderer.displayChapter(this.currentChapter, this.globalLayoutProperties);
 
+			this.renderer.gotoCfi(cfi);
 			render.then(function(rendered){
-					rendered.gotoCfi(cfi);
 					this._moving = false;
 					deferred.resolve(rendered.currentLocationCfi);
 			}.bind(this));
@@ -949,7 +955,7 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 	}
 
 	// Currently going to a chapter
-	if(this._moving) {
+	if(this._moving || this._rendering) {
 		this._gotoQ.enqueue("gotoHref", [url, deferred]);
 		return false;
 	}
@@ -1061,12 +1067,20 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 */
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
+	var noreflow = ["color", "background", "background-color"];
+	
 	if(!this.isRendered) return this._q.enqueue("setStyle", arguments);
 
 	this.settings.styles[style] = val;
 
 	this.renderer.setStyle(style, val, prefixed);
-	this.renderer.reformat();
+	
+	if(noreflow.indexOf(style) === -1) {
+		clearTimeout(this.reformatTimeout);
+		this.reformatTimeout = setTimeout(function(){
+			this.renderer.reformat();
+		}.bind(this), 10);
+	}
 };
 
 EPUBJS.Book.prototype.removeStyle = function(style) {
