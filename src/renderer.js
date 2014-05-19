@@ -1081,10 +1081,10 @@ EPUBJS.Renderer.prototype.determineSpreads = function(cutoff){
 EPUBJS.Renderer.prototype.forceSingle = function(bool){
 	if(bool) {
 		this.isForcedSingle = true;
-		this.spreads = false;
+		// this.spreads = false;
 	} else {
 		this.isForcedSingle = false;
-		this.spreads = this.determineSpreads(this.minSpreadWidth);
+		// this.spreads = this.determineSpreads(this.minSpreadWidth);
 	}
 };
 
