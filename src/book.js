@@ -946,7 +946,7 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 };
 
 EPUBJS.Book.prototype.gotoHref = function(url, defer){
-	var split, chapter, section, absoluteURL, spinePos;
+	var split, chapter, section, relativeURL, spinePos;
 	var deferred = defer || new RSVP.defer();
 
 	if(!this.isRendered) {
@@ -964,7 +964,8 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 	chapter = split[0];
 	section = split[1] || false;
 	// absoluteURL = (chapter.search("://") === -1) ? (this.settings.contentsPath + chapter) : chapter;
-	spinePos = this.spineIndexByURL[chapter];
+	relativeURL = chapter.replace(this.settings.contentsPath, '');
+	spinePos = this.spineIndexByURL[relativeURL];
 
 	//-- If link fragment only stay on current chapter
 	if(!chapter){

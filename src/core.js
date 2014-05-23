@@ -508,7 +508,7 @@ EPUBJS.core.cleanStringForXpath = function(str)  {
 };
 
 EPUBJS.core.indexOfTextNode = function(textNode){
-	var parent = textNode.parentElement;
+	var parent = textNode.parentNode;
 	var children = parent.childNodes;
 	var sib;
 	var index = -1;

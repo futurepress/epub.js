@@ -6,17 +6,21 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 	var book = this;
 	var replacments = function(link, done){
 		var href = link.getAttribute("href"),
-				relative = href.search("://"),
-				fragment = href[0] == "#";
+				isRelative = href.search("://"),
+				directory,
+				relative;
 
-		if(relative != -1){
+		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-
+			
+			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
+			relative = EPUBJS.core.resolveUrl(directory, href);
+			
 			link.onclick = function(){
-				book.goto(href);
+				book.goto(relative);
 				return false;
 			};
 

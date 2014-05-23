@@ -3196,7 +3196,7 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 };
 
 EPUBJS.Book.prototype.gotoHref = function(url, defer){
-	var split, chapter, section, absoluteURL, spinePos;
+	var split, chapter, section, relativeURL, spinePos;
 	var deferred = defer || new RSVP.defer();
 
 	if(!this.isRendered) {
@@ -3214,7 +3214,8 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 	chapter = split[0];
 	section = split[1] || false;
 	// absoluteURL = (chapter.search("://") === -1) ? (this.settings.contentsPath + chapter) : chapter;
-	spinePos = this.spineIndexByURL[chapter];
+	relativeURL = chapter.replace(this.settings.contentsPath, '');
+	spinePos = this.spineIndexByURL[relativeURL];
 
 	//-- If link fragment only stay on current chapter
 	if(!chapter){
@@ -4146,7 +4147,7 @@ EPUBJS.core.cleanStringForXpath = function(str)  {
 };
 
 EPUBJS.core.indexOfTextNode = function(textNode){
-	var parent = textNode.parentElement;
+	var parent = textNode.parentNode;
 	var children = parent.childNodes;
 	var sib;
 	var index = -1;
@@ -4420,12 +4421,12 @@ EPUBJS.EpubCFI.prototype.removeMarker = function(marker, _doc) {
 				prevSib.nodeType === 3){
 
 			prevSib.textContent += nextSib.textContent;
-			marker.parentElement.removeChild(nextSib);
+			marker.parentNode.removeChild(nextSib);
 		}
-		marker.parentElement.removeChild(marker);
+		marker.parentNode.removeChild(marker);
 	} else if(marker.classList.contains("EPUBJS-CFI-MARKER")) {
 		// Remove only elements added as markers
-		marker.parentElement.removeChild(marker);
+		marker.parentNode.removeChild(marker);
 	}
 
 };
@@ -4543,7 +4544,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromHref = function(href, book) {
 };
 
 EPUBJS.EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base) {
-	var parent = anchor.parentElement;
+	var parent = anchor.parentNode;
 	var steps = this.pathTo(parent);
 	var path = this.generatePathComponent(steps);
 	var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
@@ -4563,7 +4564,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
 	start = range.startContainer;
 	
 	if(start.nodeType === 3) { // text node
-		startElement = start.parentElement;
+		startElement = start.parentNode;
 		//startIndex = 1 + (2 * Array.prototype.indexOf.call(startElement.childNodes, start));
 		startIndex = 1 + (2 * EPUBJS.core.indexOfTextNode(start));
 		startSteps = this.pathTo(startElement);
@@ -4580,7 +4581,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
 		end = range.endContainer;
 		
 		if(end.nodeType === 3) { // text node
-			endElement = end.parentElement;
+			endElement = end.parentNode;
 			// endIndex = 1 + (2 * Array.prototype.indexOf.call(endElement.childNodes, end));			
 			endIndex = 1 + (2 * EPUBJS.core.indexOfTextNode(end));
 			
@@ -6970,17 +6971,21 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 	var book = this;
 	var replacments = function(link, done){
 		var href = link.getAttribute("href"),
-				relative = href.search("://"),
-				fragment = href[0] == "#";
+				isRelative = href.search("://"),
+				directory,
+				relative;
 
-		if(relative != -1){
+		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-
+			
+			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
+			relative = EPUBJS.core.resolveUrl(directory, href);
+			
 			link.onclick = function(){
-				book.goto(href);
+				book.goto(relative);
 				return false;
 			};
 
