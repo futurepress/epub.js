@@ -33,13 +33,19 @@ EPUBJS.Chapter.prototype.url = function(_store){
 	
 	if(store){
 		if(!this.tempUrl) {
-			this.tempUrl = store.getUrl(this.absolute);
+			store.getUrl(this.absolute).then(function(url){
+				chapter.tempUrl = url;
+				deferred.resolve(url);
+			});
+		} else {
+			url = this.tempUrl;
+			deferred.resolve(url);
 		}
-		url = this.tempUrl;
 	}else{
 		url = this.absolute;
+		deferred.resolve(url);
 	}
-	
+	/*
 	loaded = EPUBJS.core.request(url, 'xml', false);
 	loaded.then(function(contents){
 		chapter.contents = contents;
@@ -47,6 +53,7 @@ EPUBJS.Chapter.prototype.url = function(_store){
 	}, function(error){
 		deferred.reject(error);
 	});
+	*/
 	
 	return deferred.promise;
 };
@@ -64,7 +71,7 @@ EPUBJS.Chapter.prototype.getID = function(){
 };
 
 EPUBJS.Chapter.prototype.unload = function(store){
-	
+	this.contents = null;
 	if(this.tempUrl && store) {
 		store.revokeUrl(this.tempUrl);
 		this.tempUrl = false;
@@ -75,11 +82,12 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-
+	var cleanTextContent, cleanEndTextContent;
+	
 	// Check for Contents
 	if(!this.contents) return;
-	
 	startXpath = EPUBJS.core.getElementXPath(_range.startContainer);
+	// console.log(startContainer)
 	endXpath = EPUBJS.core.getElementXPath(_range.endContainer);
 	startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 	
@@ -88,13 +96,16 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	}
 	
 	range = this.contents.createRange();
-
 	// Find Exact Range in original document
 	if(startContainer) {
-		range.setStart(startContainer, _range.startOffset);
-		
-		if(!_range.collapsed && endContainer) {
-			range.setEnd(endContainer, _range.endOffset);
+		try {
+			range.setStart(startContainer, _range.startOffset);
+			if(!_range.collapsed && endContainer) {
+				range.setEnd(endContainer, _range.endOffset);
+			}
+		} catch (e) {
+			console.log("missed");
+			startContainer = false;
 		}
 		
 	}
@@ -102,15 +113,18 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	// Fuzzy Match
 	if(!startContainer) {
 		console.log("not found, try fuzzy match");
-		startXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
-		endXpath = "//text()[contains(.,'" + _range.startContainer.textContent + "')]";
+		cleanStartTextContent = EPUBJS.core.cleanStringForXpath(_range.startContainer.textContent);
+		startXpath = "//text()[contains(.," + cleanStartTextContent + ")]";
 		
 		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-		
-		if(startContainer){	
+
+		if(startContainer){
+			// console.log("Found with Fuzzy");
 			range.setStart(startContainer, _range.startOffset);
 
 			if(!_range.collapsed) {
+				cleanEndTextContent = EPUBJS.core.cleanStringForXpath(_range.endContainer.textContent);
+				endXpath = "//text()[contains(.," + cleanEndTextContent + ")]";
 				endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 				if(endContainer) {
 					range.setEnd(endContainer, _range.endOffset);

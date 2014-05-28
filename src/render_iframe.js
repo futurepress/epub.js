@@ -32,7 +32,6 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 			deferred = new RSVP.defer();
 
 	this.iframe.contentWindow.location.replace(url);
-
 	// Reset the scroll position
 	render.leftPos = 0;
 
@@ -70,7 +69,9 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 
 EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	var url = this.iframe.contentWindow.location.href;
-	this.trigger("render:loaded", url);
+	if(url != "about:blank"){
+		this.trigger("render:loaded", url);	
+	}
 };
 
 // Resize the iframe to the given width and height

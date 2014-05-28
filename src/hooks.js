@@ -54,7 +54,6 @@ EPUBJS.Hooks = (function(){
 		hooks = this.hooks[type];
 	
 		count = hooks.length;
-		
 		if(count === 0 && callback) {
 			callback();
 		}

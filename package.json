@@ -1,6 +1,6 @@
 {
   "name": "EpubJS",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": "https://github.com/futurepress/epub.js",
   "devDependencies": {
     "grunt": "~0.4.4",
@@ -12,7 +12,7 @@
     "grunt-contrib-concat": "~0.4.0",
     "grunt-contrib-uglify": "~0.4.0",
     "grunt-contrib-jshint": "~0.10.0",
-    "grunt": "~0.4.4",
-    "grunt-contrib-copy": "~0.5.0"
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-concat-sourcemap": "~0.4.1"
   }
 }
