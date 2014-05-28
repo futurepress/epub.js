@@ -2184,7 +2184,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.0";
+EPUBJS.VERSION = "0.2.1";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -2195,7 +2195,7 @@ EPUBJS.Render = {};
 (function(root) {
 
 	var previousEpub = root.ePub || {};
-	
+
 	var ePub = root.ePub = function() {
 		var bookPath, options;
 
@@ -2214,7 +2214,7 @@ EPUBJS.Render = {};
 
 		}
 
-		/* 
+		/*
 		*   var book = ePub({ bookPath: "path/to/book.epub", restore: true });
 		*
 		*   - OR -
@@ -2226,8 +2226,8 @@ EPUBJS.Render = {};
 		if( arguments[0] && typeof arguments[0] === 'object' ) {
 			options = arguments[0];
 		}
-		
-		
+
+
 		return new EPUBJS.Book(options);
 	};
 
@@ -2247,6 +2247,7 @@ EPUBJS.Render = {};
 	module.exports = ePub;
 
 })(window);
+
 EPUBJS.Book = function(options){
 
 	var book = this;
