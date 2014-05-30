@@ -130,6 +130,7 @@ EPUBJS.core.uri = function(url){
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
+		href = url;
 	}
 	
 	if(doubleSlash != -1) {
@@ -404,11 +405,12 @@ EPUBJS.core.queue = function(_scope){
 		if(_q.length) {
 			inwait = _q.shift();
 			// Defer to any current tasks
-			setTimeout(function(){
-				scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
-			}, 0);
+			// setTimeout(function(){
+			scope[inwait.funcName].apply(inwait.context || scope, inwait.args);
+			// }, 0);
 		}
 	};
+	
 	// Run All
 	var flush = function(){
 		while(_q.length) {
@@ -419,10 +421,104 @@ EPUBJS.core.queue = function(_scope){
 	var clear = function(){
 		_q = [];
 	};
+	
+	var length = function(){
+		return _q.length;
+	};
+	
 	return {
 		"enqueue" : enqueue,
 		"dequeue" : dequeue,
 		"flush" : flush,
-		"clear" : clear
+		"clear" : clear,
+		"length" : length
 	};
+};
+
+// From: https://code.google.com/p/fbug/source/browse/branches/firebug1.10/content/firebug/lib/xpath.js
+/**
+ * Gets an XPath for an element which describes its hierarchical location.
+ */
+EPUBJS.core.getElementXPath = function(element) {
+	if (element && element.id) {
+		return '//*[@id="' + element.id + '"]';
+	} else {
+		return EPUBJS.core.getElementTreeXPath(element);
+	}
+};
+
+EPUBJS.core.getElementTreeXPath = function(element) {
+	var paths = [];
+	var 	isXhtml = (element.ownerDocument.documentElement.getAttribute('xmlns') === "http://www.w3.org/1999/xhtml");
+	var index, nodeName, tagName, pathIndex;
+	
+	if(element.nodeType === Node.TEXT_NODE){
+		// index = Array.prototype.indexOf.call(element.parentNode.childNodes, element) + 1;
+		index = EPUBJS.core.indexOfTextNode(element) + 1;
+
+		paths.push("text()["+index+"]");
+		element = element.parentNode;
+	}
+
+	// Use nodeName (instead of localName) so namespace prefix is included (if any).
+	for (; element && element.nodeType == 1; element = element.parentNode)
+	{
+		index = 0;
+		for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
+		{
+			// Ignore document type declaration.
+			if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE) {
+				continue;
+			}
+			if (sibling.nodeName == element.nodeName) {
+				++index;
+			}
+		}
+		nodeName = element.nodeName.toLowerCase();
+		tagName = (isXhtml ? "xhtml:" + nodeName : nodeName);
+		pathIndex = (index ? "[" + (index+1) + "]" : "");
+		paths.splice(0, 0, tagName + pathIndex);
+	}
+
+	return paths.length ? "./" + paths.join("/") : null;
+};
+
+EPUBJS.core.nsResolver = function(prefix) {
+	var ns = {
+		'xhtml' : 'http://www.w3.org/1999/xhtml',
+		'epub': 'http://www.idpf.org/2007/ops'
+	};
+	return ns[prefix] || null;
+};
+
+//https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
+EPUBJS.core.cleanStringForXpath = function(str)  {
+		var parts = str.match(/[^'"]+|['"]/g);
+		parts = parts.map(function(part){
+				if (part === "'")  {
+						return '\"\'\"'; // output "'"
+				}
+
+				if (part === '"') {
+						return "\'\"\'"; // output '"'
+				}
+				return "\'" + part + "\'";
+		});
+		return "concat(\'\'," + parts.join(",") + ")";
+};
+
+EPUBJS.core.indexOfTextNode = function(textNode){
+	var parent = textNode.parentNode;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if(sib.nodeType === Node.TEXT_NODE){
+			index++;
+		}
+		if(sib == textNode) break;
+	}
+	
+	return index;
 };

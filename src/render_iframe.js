@@ -31,8 +31,7 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 	var render = this,
 			deferred = new RSVP.defer();
 
-	this.iframe.src = url;
-
+	this.iframe.contentWindow.location.replace(url);
 	// Reset the scroll position
 	render.leftPos = 0;
 
@@ -40,9 +39,8 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		this.unload();
 	}
 	
-	this.iframe.onload = function() {
+	this.iframe.onload = function(e) {
 		render.document = render.iframe.contentDocument;
-		
 		render.docEl = render.document.documentElement;
 		render.headEl = render.document.head;
 		render.bodyEl = render.document.body;
@@ -71,7 +69,9 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 
 EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	var url = this.iframe.contentWindow.location.href;
-	this.trigger("render:loaded", url);
+	if(url != "about:blank"){
+		this.trigger("render:loaded", url);	
+	}
 };
 
 // Resize the iframe to the given width and height
@@ -158,6 +158,16 @@ EPUBJS.Render.Iframe.prototype.getPageNumberByElement = function(el){
 
 	left = this.leftPos + el.getBoundingClientRect().left; //-- Calculate left offset compaired to scrolled position
 	
+	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
+	
+	return pg;
+};
+
+//-- Show the page containing an Element
+EPUBJS.Render.Iframe.prototype.getPageNumberByRect = function(boundingClientRect){
+	var left, pg;
+
+	left = this.leftPos + boundingClientRect.left; //-- Calculate left offset compaired to scrolled position
 	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
 	
 	return pg;

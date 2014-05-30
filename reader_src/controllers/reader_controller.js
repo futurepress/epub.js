@@ -101,6 +101,14 @@ EPUBJS.reader.ReaderController = function(book) {
 		}
 	});
 
+	// book.on("book:atStart", function(){
+	// 	$prev.addClass("disabled");
+	// });
+	// 
+	// book.on("book:atEnd", function(){
+	// 	$next.addClass("disabled");	
+	// });
+
 	return {
 		"slideOut" : slideOut,
 		"slideIn"  : slideIn,

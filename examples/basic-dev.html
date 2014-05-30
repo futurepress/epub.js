@@ -107,20 +107,20 @@
          <script>
             "use strict";
             
-            var Book = ePub("../reader/moby-dick/", {restore: true, reload: true });
-
+            var book = ePub("../reader/moby-dick/", {restore: true, reload: true });
+            
         </script>
     </head>
     <body>
         <div id="main">
-          <div id="prev" onclick="Book.prevPage();" class="arrow">‹</div>
+          <div id="prev" onclick="book.prevPage();" class="arrow">‹</div>
           <div id="area"></div>
-          <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
+          <div id="next" onclick="book.nextPage();"class="arrow">›</div>
         </div>
 
         <script>            
             
-            Book.renderTo("area");
+            book.renderTo("area");
 
 
         </script>

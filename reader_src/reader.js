@@ -33,17 +33,6 @@ EPUBJS.Reader = function(bookPath, _options) {
 	var $viewer = $("#viewer");
 	var search = window.location.search;
 	var parameters;
-	
-	// Overide options with search parameters
-	if(search) {
-		parameters = search.slice(1).split("&");
-		parameters.forEach(function(p){
-			var split = p.split("=");
-			var name = split[0];
-			var value = split[1] || '';
-			_options[name] = value;
-		});
-	}
 
 	this.settings = _.defaults(_options || {}, {
 		bookPath : bookPath,
@@ -58,8 +47,19 @@ EPUBJS.Reader = function(bookPath, _options) {
 		generatePagination: false,
 		history: true
 	});
-	
-	this.setBookKey(bookPath); //-- This could be username + path or any unique string
+
+	// Overide options with search parameters
+	if(search) {
+		parameters = search.slice(1).split("&");
+		parameters.forEach(function(p){
+			var split = p.split("=");
+			var name = split[0];
+			var value = split[1] || '';
+			reader.settings[name] = value;
+		});
+	}
+
+	this.setBookKey(this.settings.bookPath); //-- This could be username + path or any unique string
 	
 	if(this.settings.restore && this.isSaved()) {
 		this.applySavedSettings();

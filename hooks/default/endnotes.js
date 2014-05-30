@@ -5,7 +5,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").endnotes = function(callback, rend
 			attr = "epub:type",
 			type = "noteref",
 			folder = EPUBJS.core.folder(location.pathname),
-			cssPath = folder + EPUBJS.cssPath || folder,
+			cssPath = (folder + EPUBJS.cssPath) || folder,
 			popups = {};
 			
 		EPUBJS.core.addCss(cssPath + "popup.css", false, renderer.render.document.head);
