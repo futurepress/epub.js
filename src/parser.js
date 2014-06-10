@@ -331,8 +331,8 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	if(!navMap) return [];
 	
 	function getTOC(parent){
+		var nodes = (parent.querySelectorAll("navMap > navPoint").length > 0 ? parent.querySelectorAll("navMap > navPoint") : parent.querySelectorAll("navPoint"));
 		var list = [],
-				nodes = parent.querySelectorAll("navPoint"),
 				items = Array.prototype.slice.call(nodes).reverse(),
 				length = items.length,
 				iter = length,
