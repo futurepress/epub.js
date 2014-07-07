@@ -332,15 +332,14 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	
 	function getTOC(parent){
 		var list = [],
-				nodes = parent.querySelectorAll("navPoint"),
-				items = Array.prototype.slice.call(nodes).reverse(),
-				length = items.length,
-				iter = length,
-				node;
+		snapshot = tocXml.evaluate("*[local-name()='navPoint']", parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null),
+        length = snapshot.snapshotLength;
 		
 		if(length === 0) return [];
 
-		items.forEach(function(item){
+	    for ( var i=length-1 ; i >= 0; i-- ) {
+			var item = snapshot.snapshotItem(i);
+
 			var id = item.getAttribute('id') || false,
 					content = item.querySelector("content"),
 					src = content.getAttribute('src'),
@@ -362,8 +361,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}
 			}
-			
-			
+
 			list.unshift({
 						"id": id,
 						"href": src,
@@ -374,7 +372,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 						"cfi" : cfi
 			});
 
-		});
+		}
 
 		return list;
 	}
