@@ -153,7 +153,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	render.then(function(contents) {
 		var formated;
-		this.currentChapter.contents = this.render.document;
+		this.currentChapter.setDocument(this.render.document);
 		this.contents = contents;
 		this.doc = this.render.document;
 

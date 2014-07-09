@@ -1129,6 +1129,19 @@ EPUBJS.Book.prototype.setGap = function(gap) {
 	}
 };
 
+EPUBJS.Book.prototype.chapter = function(path) {
+	var spinePos = this.spineIndexByURL[path];
+	var spineItem;
+	var chapter;
+
+	if(spinePos){
+		spineItem = this.spine[spinePos];
+		chapter = new EPUBJS.Chapter(spineItem, this.store);
+		chapter.load();
+	}
+	return chapter;
+};
+
 EPUBJS.Book.prototype.unload = function(){
 
 	if(this.settings.restore && localStorage) {
