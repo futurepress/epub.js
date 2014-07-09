@@ -3379,6 +3379,19 @@ EPUBJS.Book.prototype.setGap = function(gap) {
 	}
 };
 
+EPUBJS.Book.prototype.chapter = function(path) {
+	var spinePos = this.spineIndexByURL[path];
+	var spineItem;
+	var chapter;
+
+	if(spinePos){
+		spineItem = this.spine[spinePos];
+		chapter = new EPUBJS.Chapter(spineItem, this.store);
+		chapter.load();
+	}
+	return chapter;
+};
+
 EPUBJS.Book.prototype.unload = function(){
 
 	if(this.settings.restore && localStorage) {
@@ -3509,18 +3522,26 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.pages = 1;
 	this.store = store;
 	this.epubcfi = new EPUBJS.EpubCFI();
+	this.deferred = new RSVP.defer();
+	this.loaded = this.deferred.promise;
 };
 
 
-EPUBJS.Chapter.prototype.contents = function(_store){
+EPUBJS.Chapter.prototype.load = function(_store){
 	var store = _store || this.store;
+	var promise;
 	// if(this.store && (!this.book.online || this.book.contained))
 	if(store){
-		return store.get(href);
+		promise = store.get(this.href);
 	}else{
-		return EPUBJS.core.request(href, 'xml');
+		promise = EPUBJS.core.request(this.absolute, 'xml');
 	}
-
+	
+	promise.then(function(xml){
+		this.setDocument(xml);
+	}.bind(this));
+	
+	return promise;
 };
 
 EPUBJS.Chapter.prototype.url = function(_store){
@@ -3570,11 +3591,25 @@ EPUBJS.Chapter.prototype.getID = function(){
 };
 
 EPUBJS.Chapter.prototype.unload = function(store){
-	this.contents = null;
+	this.document = null;
 	if(this.tempUrl && store) {
 		store.revokeUrl(this.tempUrl);
 		this.tempUrl = false;
 	}
+};
+
+EPUBJS.Chapter.prototype.setDocument = function(_document){
+	this.document = _document.implementation.createDocument(
+			_document.namespaceURI, //namespace to use
+			null,                   //empty document
+			_document.doctype       //doctype (null for XML)
+	);
+	this.contents = this.document.importNode(
+			_document.documentElement, //node to import
+			true                         //clone its descendants
+	);
+	this.document.appendChild(this.contents);
+	this.deferred.resolve(this.contents);
 };
 
 EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
@@ -3584,17 +3619,17 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var cleanTextContent, cleanEndTextContent;
 	
 	// Check for Contents
-	if(!this.contents) return;
+	if(!this.document) return;
 	startXpath = EPUBJS.core.getElementXPath(_range.startContainer);
 	// console.log(startContainer)
 	endXpath = EPUBJS.core.getElementXPath(_range.endContainer);
-	startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	startContainer = this.document.evaluate(startXpath, this.document, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 	
 	if(!_range.collapsed) {
-		endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+		endContainer = this.document.evaluate(endXpath, this.document, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 	}
 	
-	range = this.contents.createRange();
+	range = this.document.createRange();
 	// Find Exact Range in original document
 	if(startContainer) {
 		try {
@@ -3615,7 +3650,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 		cleanStartTextContent = EPUBJS.core.cleanStringForXpath(_range.startContainer.textContent);
 		startXpath = "//text()[contains(.," + cleanStartTextContent + ")]";
 		
-		startContainer = this.contents.evaluate(startXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+		startContainer = this.document.evaluate(startXpath, this.document, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
 		if(startContainer){
 			// console.log("Found with Fuzzy");
@@ -3624,7 +3659,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 			if(!_range.collapsed) {
 				cleanEndTextContent = EPUBJS.core.cleanStringForXpath(_range.endContainer.textContent);
 				endXpath = "//text()[contains(.," + cleanEndTextContent + ")]";
-				endContainer = this.contents.evaluate(endXpath, this.contents, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+				endContainer = this.document.evaluate(endXpath, this.document, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 				if(endContainer) {
 					range.setEnd(endContainer, _range.endOffset);
 				}
@@ -3637,6 +3672,73 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	return this.epubcfi.generateCfiFromRange(range, this.cfiBase);
 };
 
+EPUBJS.Chapter.prototype.find = function(_query){
+	var chapter = this;
+	var matches = [];
+	var query = _query.toLowerCase();
+	//var xpath = this.document.evaluate(".//text()[contains(translate(., '"+query.toUpperCase()+"', '"+query+"'),'"+query+"')]", this.document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+	var find = function(node){
+		// Search String
+		var text = node.textContent.toLowerCase();
+		var range = chapter.document.createRange();
+		var cfi;
+		var pos;
+		var last = -1;
+		
+		while (pos != -1) {
+			pos = text.indexOf(query, last + 1);
+			
+			if(pos != -1) {
+				// If Found, Create Range
+				range = chapter.document.createRange();
+				range.setStart(node, pos);
+				range.setEnd(node, pos + query.length);
+				
+				//Generate CFI
+				cfi = chapter.cfiFromRange(range);
+				//Add CFI to list
+				matches.push(cfi);
+			}
+			
+			last = pos;
+		}
+
+	};
+	
+	// Grab text nodes
+	
+	/*
+	for ( var i=0 ; i < xpath.snapshotLength; i++ ) {
+		find(xpath.snapshotItem(i));
+	}
+	*/
+	
+	this.textSprint(this.document, function(node){
+		find(node);
+	});
+	
+	
+	// Return List of CFIs
+	return matches;
+};
+
+
+EPUBJS.Chapter.prototype.textSprint = function(root, func) {
+	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: function (node) {
+					if ( ! /^\s*$/.test(node.data) ) {
+						return NodeFilter.FILTER_ACCEPT;
+					} else {
+						return NodeFilter.FILTER_REJECT;
+					}
+			}
+	}, false);
+	var node;
+	while ((node = treeWalker.nextNode())) {
+		func(node);
+	}
+
+};
 var EPUBJS = EPUBJS || {};
 EPUBJS.core = {};
 
@@ -5918,7 +6020,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	render.then(function(contents) {
 		var formated;
-		this.currentChapter.contents = this.render.document;
+		this.currentChapter.setDocument(this.render.document);
 		this.contents = contents;
 		this.doc = this.render.document;
 
