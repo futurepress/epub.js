@@ -30,6 +30,26 @@ asyncTest("Open using ePub(/path/to/epub/package.opf)", 1, function() {
 
 });
 
+asyncTest("Open Remote ePub", 1, function() {
+
+  var book = ePub("https://s3.amazonaws.com/moby-dick/");
+  book.opened.then(function(){
+    equal( book.packageUrl, "https://s3.amazonaws.com/moby-dick/OPS/package.opf", "packageUrl is set" );
+    start();
+  });
+
+});
+
+asyncTest("Open Remote ePub from Package", 1, function() {
+
+  var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
+  book.opened.then(function(){
+    equal( book.packageUrl, "https://s3.amazonaws.com/moby-dick/OPS/package.opf", "packageUrl is set" );
+    start();
+  });
+
+});
+
 asyncTest("Find Epub Package", 1, function() {
 
   var book = ePub("../books/moby-dick/OPS/package.opf");
@@ -126,8 +146,8 @@ asyncTest("Find Item by Href", 2, function() {
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.opened.then(function(){
     var section = book.spine.get("chapter_001.xhtml");
-    equal( section.href, "epigraph_001.xhtml", "chap 1 spine item href found" );
-    equal( section.cfiBase, "/6/12[xepigraph_001]", "chap 1 spine item cfi found" );
+    equal( section.href, "chapter_001.xhtml", "chap 1 spine item href found" );
+    equal( section.cfiBase, "/6/14[xchapter_001]", "chap 1 spine item cfi found" );
 
     start();
   });
@@ -139,8 +159,8 @@ asyncTest("Find Item by ID", 2, function() {
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.opened.then(function(){
     var section = book.spine.get("#xchapter_050");
-    equal( section.href, "chapter_049.xhtml", "chap 50 spine item href found" );
-    equal( section.cfiBase, "/6/110[xchapter_049]", "chap 50 spine item cfi found" );
+    equal( section.href, "chapter_050.xhtml", "chap 50 spine item href found" );
+    equal( section.cfiBase, "/6/112[xchapter_050]", "chap 50 spine item cfi found" );
 
     start();
   });
@@ -153,7 +173,7 @@ asyncTest("Render Spine Item", 1, function() {
   book.opened.then(function(){
     var section = book.spine.get("#xchapter_050");
     section.render().then(function(content){
-      equal( content.substring(303, 334), "<h1>Chapter 49. The Hyena.</h1>", "Chapter text rendered as string" );
+      equal( content.substring(303, 355), "<h1>Chapter 50. Ahab’s Boat and Crew. Fedallah.</h1>", "Chapter text rendered as string" );
     });
 
     start();

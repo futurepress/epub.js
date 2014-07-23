@@ -79,7 +79,7 @@
     var currentSection;
     var currentSectionIndex = 7;
 
-    var book = ePub("../books/moby-dick/OPS/package.opf");
+    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
     book.loaded.navigation.then(function(nav){
       var toc = nav.get();
       var $select = document.getElementById("toc"),
