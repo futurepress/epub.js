@@ -10,14 +10,9 @@
 // Need to split out rendering and book completely
 // Something like
 var epub = ePub("moby-dick.epub");
-var epub = ePub("s3path/ip/moby-dick.opf");
-
-var rendition = ePub.Paginate(epub);
-
-var rendition = ePub.Render.Paginated(book);
-var rendition = ePub.Render.Scrolling(book);
-
-ePub.renderer.register(EPUBJS.Paginate);
+var epub = ePub("http://s3path/ip/moby-dick.opf");
+// or
+var epub = new EPUBJS.Book("http://s3path/ip/moby-dick.opf");
 
 // Returns a Scroll Controller, Attachs to a document (or window?)
 var epub = ePub("moby-dick.epub");
@@ -69,9 +64,20 @@ book.navigation.get("chap1.html")
 //-- When does the chapter content processing happen?
 section.render() 
 
-// Returns a new renderer
-var rendition = epub.renderer(book, type);
-    return new Renderer(book, type)
+// Create a new renderer
+var rendition = ePub.Render(book, EPUBJS.Paginated, {options: true});
+// is the same as
+var rendition = new EPUBJS.Paginated(book, {options: true});
+
+var rendition = ePub.Render(book); // Defaults
+var rendition = ePub.Render(book, EPUBJS.Render.Paginated, options);
+var rendition = ePub.Render.Paginated(book);
+var rendition = ePub.Render.Scrolling(book);
+
+rendition.render(book) // if not passed
+
+ePub.renderer.register("Paginated", EPUBJS.Render.Paginated);
+
 
 // Render to a div
 rendition.attachTo("elementID");
