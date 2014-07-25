@@ -27,6 +27,7 @@ EPUBJS.Chapter.prototype.load = function(_store){
 	
 	promise.then(function(xml){
 		this.setDocument(xml);
+		this.deferred.resolve(this);
 	}.bind(this));
 	
 	return promise;
@@ -87,17 +88,21 @@ EPUBJS.Chapter.prototype.unload = function(store){
 };
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
+	var uri = _document.namespaceURI;
+	// var doctype = _document.doctype;
+	
+	// Creates an empty document
 	this.document = _document.implementation.createDocument(
-			_document.namespaceURI, //namespace to use
-			null,                   //empty document
-			_document.doctype       //doctype (null for XML)
+			uri,
+			null 
 	);
 	this.contents = this.document.importNode(
 			_document.documentElement, //node to import
 			true                         //clone its descendants
 	);
+
 	this.document.appendChild(this.contents);
-	this.deferred.resolve(this.contents);
+	// this.deferred.resolve(this.contents);
 };
 
 EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
@@ -214,7 +219,7 @@ EPUBJS.Chapter.prototype.find = function(_query){
 EPUBJS.Chapter.prototype.textSprint = function(root, func) {
 	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
 			acceptNode: function (node) {
-					if ( ! /^\s*$/.test(node.data) ) {
+					if (node.data && ! /^\s*$/.test(node.data) ) {
 						return NodeFilter.FILTER_ACCEPT;
 					} else {
 						return NodeFilter.FILTER_REJECT;
