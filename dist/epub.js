@@ -4083,8 +4083,8 @@ EPUBJS.Renderer.prototype.initialize = function(_options){
   this.container = document.createElement("div");
   this.infinite = new EPUBJS.Infinite(this.container, this);
 
-  this.container.style.width = height;
-  this.container.style.height = width;
+  this.container.style.width = width;
+  this.container.style.height = height;
   this.container.style.overflow = "scroll";
 
   if(options.hidden) {
@@ -4160,12 +4160,21 @@ EPUBJS.Renderer.prototype.attachTo = function(_element){
 
 };
 
+EPUBJS.Renderer.prototype.clear = function(){
+  this.views.forEach(function(view){
+    view.destroy();
+  });
+  
+  this.views = [];
+};
 
 EPUBJS.Renderer.prototype.display = function(what){
   var displaying = new RSVP.defer();
   var displayed = displaying.promise;
-  var view = new EPUBJS.View();
-
+  
+  // Clear views
+  this.clear();
+  
   this.book.opened.then(function(){
     var section = this.book.spine.get(what);
     var rendered = this.render(section);
@@ -4261,9 +4270,11 @@ EPUBJS.Renderer.prototype.backwards = function(view){
 
 // -- this might want to be in infinite
 EPUBJS.Renderer.prototype.fill = function() {
-  console.log("filling")
   var filling = this.backwards();
   var height = this.container.getBoundingClientRect().height;
+  
+  if(!filling) return;
+  
   filling.then(function(){
     var bottom = this.last().bounds().bottom;
     while (height && bottom && bottom < height) {
@@ -4456,7 +4467,10 @@ EPUBJS.View.prototype.load = function(contents) {
     this.document.body.style.display = "inline-block";    
 
     this.layout();
-
+    
+    // This needs to run twice to get to the correct size sometimes?
+    this.layout();
+    
     this.iframe.style.visibility = "visible";
 
     loading.resolve(this);
@@ -4500,35 +4514,39 @@ EPUBJS.View.prototype.resized = function() {
 EPUBJS.View.prototype.layout = function() {
   var bounds = {}, content, width = 0, height = 0;
 
-  // This needs to run twice to get to the correct size
-  while(bounds.height != height || bounds.width != width) {
-      this.resizing = true;
+  this.resizing = true;
+  // Check bounds
+  bounds = this.document.body.getBoundingClientRect();
 
-      // Check bounds
-      bounds = this.document.body.getBoundingClientRect();
+  // Apply Changes
+  this.iframe.style.height = bounds.height + "px";
+  this.iframe.style.width = bounds.width + "px";
 
-      // Apply Changes
-      this.iframe.style.height = bounds.height + "px";
-      this.iframe.style.width = bounds.width + "px";
+  // Check again
+  content = this.document.body.getBoundingClientRect();
 
-      // Check again
-      content = this.document.body.getBoundingClientRect();
+  height = content.height;
+  width = content.width;
 
-      height = content.height;
-      width = content.width;
-
-      this.width = width;
-      this.height = height;
-  }
+  this.width = width;
+  this.height = height;
+  
+  
+  // if(bounds.height != content.height || bounds.width != content.width) {
+  //   // this.layout();
+  //   console.log(bounds, content)
+  // }
   
 
 };
 
 EPUBJS.View.prototype.appendTo = function(element) {
-  element.appendChild(this.iframe);
+  this.element = element;
+  this.element.appendChild(this.iframe);
 };
 
 EPUBJS.View.prototype.prependTo = function(element) {
+  this.element = element;
   element.insertBefore(this.iframe, element.firstChild);
 };
 
@@ -4537,6 +4555,6 @@ EPUBJS.View.prototype.bounds = function() {
 };
 
 EPUBJS.View.prototype.destroy = function() {
-
+  this.element.removeChild(this.iframe);
 };
 

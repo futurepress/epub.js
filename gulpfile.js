@@ -24,7 +24,7 @@ gulp.task('minify', function(){
 
 // Watch Our Files
 gulp.task('watch', function() {
-  gulp.watch('lib/*/*.js', ['lint', 'minify']);
+  gulp.watch('lib/*/*.js', ['minify']);
 });
 
 // Default
