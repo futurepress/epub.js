@@ -3690,6 +3690,8 @@ EPUBJS.Chapter.prototype.find = function(_query){
 		var cfi;
 		var pos;
 		var last = -1;
+		var excerpt;
+		var limit = 150;
 		
 		while (pos != -1) {
 			pos = text.indexOf(query, last + 1);
@@ -3702,8 +3704,20 @@ EPUBJS.Chapter.prototype.find = function(_query){
 				
 				//Generate CFI
 				cfi = chapter.cfiFromRange(range);
+				
+				// Generate Excerpt
+				if(node.textContent.length < limit) {
+					excerpt = node.textContent;
+				} else {
+					excerpt = node.textContent.substring(pos-limit/2,pos+limit/2);
+					excerpt = "..." + excerpt + "...";
+				}
+				
 				//Add CFI to list
-				matches.push(cfi);
+				matches.push({
+					cfi: cfi,
+					excerpt: excerpt
+				});
 			}
 			
 			last = pos;
