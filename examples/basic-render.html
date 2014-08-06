@@ -4,32 +4,19 @@
   <meta charset="utf-8">
   <title>EPUB.js Basic Example</title>
 
-  <script src="../bower_components/rsvp/rsvp.js"></script>
-
-  <script src="../lib/epub.js"></script>
-  <script src="../lib/epubjs/core.js"></script>
-  <script src="../lib/epubjs/hooks.js"></script>
-  <script src="../lib/epubjs/book.js"></script>
-  <script src="../lib/epubjs/parser.js"></script>
-  <script src="../lib/epubjs/spine.js"></script>
-  <script src="../lib/epubjs/navigation.js"></script>
-  <script src="../lib/epubjs/epubcfi.js"></script>
-  <script src="../lib/epubjs/renderer.js"></script>
-  <script src="../lib/epubjs/view.js"></script>
-  <script src="../lib/epubjs/infinite.js"></script>
+  <script src="../dist/epub.js"></script>
 
   <style type="text/css">
     body {
       margin: 0;
-      height: 100%;
     }
 
-    #viewer { 
-      display: block;
-      margin: 5% auto;
+    #viewer {
+      position: absolute;
+      left: 10%;
       width: 80%;
-      height: 80%;
-      border: none;
+      height: 100%;
+      overflow: hidden;
     }
 
     #prev {
@@ -70,57 +57,26 @@
   </style>
 </head>
 <body>
-  <!-- <select id="toc"></select> -->
-  <!-- <iframe id="viewer"></iframe> -->
   <div id="viewer"></div>
-  <div id="prev" class="arrow">‹</div>
-  <div id="next" class="arrow">›</div>
 
   <script>
-    var $viewer = document.getElementById("viewer");
-    var $next = document.getElementById("next");
-    var $prev = document.getElementById("prev");
-    var currentSection;
-    var currentSectionIndex = 0;
-
+    var currentSectionIndex = 10;
+    // Load the opf
     var book = ePub("../books/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer");
-    rendition.display(currentSectionIndex);
+    var displayed = rendition.display(currentSectionIndex);
+    
 
-    // Navigations Drop Down
+    displayed.then(function(renderer){
+      // -- do stuff
+    });
+
+    // Navigation loaded
     book.loaded.navigation.then(function(toc){
-      var $select = document.getElementById("toc"),
-          docfrag = document.createDocumentFragment();
-
-      toc.forEach(function(chapter) {
-        var option = document.createElement("option");
-        option.textContent = chapter.label;
-        option.ref = chapter.href;
-
-        docfrag.appendChild(option);
+      // console.log(toc);
     });
 
-    // $select.appendChild(docfrag);
 
-    // $select.onchange = function(){
-    //     var index = $select.selectedIndex;
-    //     var url = $select.options[index].ref;
-    //     rendition.display(url);
-    //     return false;
-    // };
-
-    $next.addEventListener("click", function(){
-      rendition.display(currentSectionIndex+1);
-       currentSectionIndex++;
-    }, false);
-
-    $prev.addEventListener("click", function(){
-      rendition.display(currentSectionIndex-1);
-       currentSectionIndex--;
-    }, false);
-
-
-    });
   </script>
 
 </body>
