@@ -33,9 +33,7 @@ Get the minified code from the build folder:
 Setup a element to render to:
 
 ```html
-<div onclick="Book.prevPage();">‹</div>
 <div id="area"></div>
-<div onclick="Book.nextPage();">›</div>
 ```
 
 Create the new ePub, and then render it to that element:
