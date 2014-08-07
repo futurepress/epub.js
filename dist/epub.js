@@ -4401,6 +4401,7 @@ EPUBJS.SpineItem.prototype.load = function(_request){
     request(this.url, 'xml').then(function(xml){
       var base;
       var directory = EPUBJS.core.folder(this.url);
+
       this.document = xml;
       this.contents = xml.documentElement;
 
@@ -4449,17 +4450,12 @@ EPUBJS.View.prototype.load = function(contents) {
   var loaded = loading.promise;
 
   this.document = this.iframe.contentDocument;
-
-  // this.iframe.srcdoc = contents;
-  this.document.open();
-  this.document.write(contents);
-  this.document.close();
-
+  
   this.iframe.onload = function(e) {
     this.window = this.iframe.contentWindow;
     this.window.addEventListener("resize", this.resized.bind(this), false);
     this.document = this.iframe.contentDocument;
-
+  
     this.iframe.style.display = "block";
 
     // Reset Body Styles
@@ -4476,6 +4472,11 @@ EPUBJS.View.prototype.load = function(contents) {
     loading.resolve(this);
     this.loading.resolve(this);
   }.bind(this);
+  
+  // this.iframe.srcdoc = contents;
+  this.document.open();
+  this.document.write(contents);
+  this.document.close();
 
   return loaded;
 };

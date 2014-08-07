@@ -66,7 +66,7 @@
 		var $prev = document.getElementById("prev");
 		var currentSectionIndex = 10;
 		// Load the opf
-		var book = ePub("../books/moby-dick/OPS/package.opf");
+		var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
 		var rendition = book.renderTo("viewer", {width: 600, height: 400});
 		var displayed = rendition.display(currentSectionIndex);
 		
