@@ -3,7 +3,11 @@ var jshint = require('gulp-jshint');
 var concat = require('gulp-concat');
 var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
-
+var gutil = require('gulp-util');
+var plumber = require('gulp-plumber');
+var onError = function (err) {
+  gutil.log(gutil.colors.green(err));
+};
 
 // Lint JS
 gulp.task('lint', function() {
@@ -15,6 +19,7 @@ gulp.task('lint', function() {
 // Concat & Minify JS
 gulp.task('minify', function(){
   return gulp.src(['lib/*.js', 'bower_components/rsvp/rsvp.js', 'lib/epubjs/*.js'])
+    .pipe(plumber({ errorHandler: onError }))
     .pipe(concat('epub.js'))
     .pipe(gulp.dest('dist'))
     .pipe(rename('epub.min.js'))

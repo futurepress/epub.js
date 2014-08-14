@@ -3371,19 +3371,18 @@ EPUBJS.Infinite.prototype.check = function(){
 
   if(this.scrolled && !this.displaying) {
 
-    // var scrollTop = window.pageYOffset || document.documentElement.scrollTop
-    // var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
     var scrollTop = this.container.scrollTop;
+    var scrollLeft = this.container.scrollLeft;
 
-    // var scrollTop = document.body.scrollTop;//TODO: make document.body a variable
-    // var scrollHeight = document.documentElement.scrollHeight;
     var scrollHeight = this.container.scrollHeight;
+    var scrollWidth = this.container.scrollWidth;
+
     var direction = scrollTop - this.prevScrollTop;
     var height = this.container.getBoundingClientRect().height;
 
-    var up = height - (scrollHeight - scrollTop) > -this.offset;
+    var up = scrollTop + this.offset > scrollHeight-height;
     var down = scrollTop < this.offset;
-
+    // console.debug("scroll", scrollTop)
     if(up && direction > 0) {
       this.forwards();
     }
@@ -3391,14 +3390,33 @@ EPUBJS.Infinite.prototype.check = function(){
       this.backwards();
     }
 
-    // console.log(document.body.scrollTop)
+    // console.log(scrollTop)
     this.prevScrollTop = scrollTop;
 
+    this.scrolled = false;
+  } else {
+    this.displaying = false;
     this.scrolled = false;
   }
 
   this.tick.call(window, this.check.bind(this));
 }
+
+EPUBJS.Infinite.prototype.scrollBy = function(x, y, silent){
+  if(silent) {
+    this.displaying = true;
+  }
+  this.container.scrollLeft += x;
+  this.container.scrollTop += y;
+};
+
+EPUBJS.Infinite.prototype.scroll = function(x, y, silent){
+  if(silent) {
+    this.displaying = true;
+  }
+  this.container.scrollLeft = x;
+  this.container.scrollTop = y;
+};
 
 RSVP.EventTarget.mixin(EPUBJS.Infinite.prototype);
 EPUBJS.Layout = function(){};
@@ -4030,7 +4048,7 @@ EPUBJS.Renderer = function(book, _options) {
   var options = _options || {};
   this.settings = {
     hidden: options.hidden || false,
-    viewLimit: 3,
+    viewsLimit: 4,
     width: options.width || false, 
     height: options.height || false, 
   };
@@ -4153,8 +4171,13 @@ EPUBJS.Renderer.prototype.attachTo = function(_element){
 
   this.infinite.start();
 
-  this.infinite.on("forwards", this.forwards.bind(this));
-  this.infinite.on("backwards", this.backwards.bind(this));
+  this.infinite.on("forwards", function(){
+    if(!this.rendering) this.forwards();
+  }.bind(this));
+  
+  this.infinite.on("backwards", function(){
+    if(!this.rendering) this.backwards();
+  }.bind(this));
 
   window.addEventListener("resize", this.onResized.bind(this), false);
 
@@ -4179,10 +4202,11 @@ EPUBJS.Renderer.prototype.display = function(what){
     var section = this.book.spine.get(what);
     var rendered = this.render(section);
 
-    rendered.then(function(){
-      this.fill();
-      displaying.resolve(this);
-    }.bind(this));
+    rendered.
+      then(this.fill.bind(this)).
+      then(function(){
+        displaying.resolve(this);
+      }.bind(this));
   
   }.bind(this));
 
@@ -4201,12 +4225,19 @@ EPUBJS.Renderer.prototype.render = function(section){
   rendered = section.render();
   view.index = section.index;
 
-  // Place view in correct position
-  this.insert(view, section.index);
+  
 
-  return rendered.then(function(contents){
-    return view.load(contents);
-  });
+  return rendered.
+    then(function(contents){
+      // Place view in correct position
+      this.insert(view, section.index);
+
+      return view.load(contents);
+    }.bind(this))
+    .then(function(){
+      this.rendering = false;
+      return view;
+    }.bind(this));
 
 };
 
@@ -4216,23 +4247,36 @@ EPUBJS.Renderer.prototype.forwards = function(){
   var rendered;
   var section;
 
-  if(this.rendering) return;
-  console.log("going forwards")
-
   next = this.last().index + 1;
 
-  if(next === this.book.spine.length){
-    return;
+  if(this.rendering || next === this.book.spine.length){
+    rendered = new RSVP.defer();
+    rendered.reject({message: "reject forwards"});
+    return rendered.promise;
   }
+  console.log("going forwards")
+
+  this.rendering = true;
 
   section = this.book.spine.get(next);
   rendered = this.render(section);
-  this.rendering = true;
 
   rendered.then(function(){
-    console.log("last:", this.last().height)
+    // this.rendering = false;
+    var first = this.first();
+    var bounds = first.bounds();
+    var container = this.container.getBoundingClientRect();
+    var offset;
+    var prev = this.container.scrollTop;
+    if(this.views.length > this.settings.viewsLimit) {
+      
+      // Remove the item
+      this.remove(first);
 
-    this.rendering = false;
+      // Reset Position
+      this.infinite.scroll(0, prev - bounds.height, true)
+
+    }
   }.bind(this));
   
   return rendered;
@@ -4243,23 +4287,28 @@ EPUBJS.Renderer.prototype.backwards = function(view){
   var rendered;
   var section;
 
-  if(this.rendering) return;
-  console.log("going backwards")
 
   prev = this.first().index - 1;
-  if(prev < 0){
-    return; //TODO: should reject
+  if(this.rendering || prev < 0){
+    rendered = new RSVP.defer();
+    rendered.reject({message: "reject backwards"});
+    return rendered.promise;
   }
+  console.log("going backwards")
+
+  this.rendering = true;
 
   section = this.book.spine.get(prev);
   rendered = this.render(section);
-  this.rendering = true;
 
   rendered.then(function(){
-    this.rendering = false;
-    // -- this might want to be in infinite
-    this.container.scrollTop += this.first().height;
+    // this.container.scrollTop += this.first().height;
+    this.infinite.scrollBy(0, this.first().height, true);
 
+    if(this.views.length > this.settings.viewsLimit) {
+      last = this.last();
+      this.remove(last);
+    }
   }.bind(this));
 
   return rendered;
@@ -4270,31 +4319,45 @@ EPUBJS.Renderer.prototype.backwards = function(view){
 
 // -- this might want to be in infinite
 EPUBJS.Renderer.prototype.fill = function() {
-  var filling = this.backwards();
   var height = this.container.getBoundingClientRect().height;
-  
-  if(!filling) return;
-  
-  filling.then(function(){
+  var next = function(){
     var bottom = this.last().bounds().bottom;
-    while (height && bottom && bottom < height) {
-      this.forwards();
-    };
-  }.bind(this));
-};
+    var defer = new RSVP.defer();
+    var promise = defer.promise;
 
-EPUBJS.Renderer.prototype.jump = function(view){
-  this.views.push(view);
+    if (height && bottom && (bottom < height) && (this.last().index + 1 < this.book.spine.length)) {
+      return this.forwards().then(next);
+    } else {
+      this.rendering = false;
+      defer.resolve();
+      return promise;
+    }
+  }.bind(this);
+
+  
+  return next().
+    then(this.backwards.bind(this)).
+    then(function(){
+      this.rendering = false;
+    }.bind(this));
+
+
 };
 
 EPUBJS.Renderer.prototype.append = function(view){
+  var first, prevTop, prevHeight, offset;
+
   this.views.push(view);
   view.appendTo(this.container);
+
 };
 
 EPUBJS.Renderer.prototype.prepend = function(view){
+  var last;
+
   this.views.unshift(view);
   view.prependTo(this.container);
+
 };
 
 // Simple Insert
@@ -4307,13 +4370,17 @@ EPUBJS.Renderer.prototype.insert = function(view, index){
   } else if(index - this.last().index <= 0) {
     this.prepend(view);
   }
-
+  console.log("insert")
   // return position;
 };
 
 // Remove the render element and clean up listeners
-EPUBJS.Renderer.prototype.destroy = function() {
-  
+EPUBJS.Renderer.prototype.remove = function(view) {
+  var index = this.views.indexOf(view);
+  view.destroy();
+  if(index > -1) {
+    this.views.splice(index, 1);
+  }
 };
 
 EPUBJS.Renderer.prototype.first = function() {
@@ -4436,7 +4503,7 @@ EPUBJS.SpineItem.prototype.render = function(){
 EPUBJS.SpineItem.prototype.find = function(_query){
 
 };
-EPUBJS.View = function(options) {
+EPUBJS.View = function(width, height) {
   this.id = "epubjs-view:" + EPUBJS.core.uuid();
   this.loading = new RSVP.defer();
   this.loaded = this.loading.promise;
@@ -4451,9 +4518,10 @@ EPUBJS.View.prototype.load = function(contents) {
 
   this.document = this.iframe.contentDocument;
   
-  this.iframe.onload = function(e) {
+  this.iframe.addEventListener("load", function(event) {
+    var layout;
+    
     this.window = this.iframe.contentWindow;
-    this.window.addEventListener("resize", this.resized.bind(this), false);
     this.document = this.iframe.contentDocument;
   
     this.iframe.style.display = "block";
@@ -4463,15 +4531,25 @@ EPUBJS.View.prototype.load = function(contents) {
     this.document.body.style.display = "inline-block";    
 
     this.layout();
-    
-    // This needs to run twice to get to the correct size sometimes?
-    this.layout();
-    
+
     this.iframe.style.visibility = "visible";
+
+    setTimeout(function(){
+      this.window.addEventListener("resize", this.resized.bind(this), false);
+    }.bind(this), 10); // Wait to listen for resize events
+
+    this.document.fonts.onloading = function(){
+      console.log("loaded fonts");
+      // this.layout();
+    }.bind(this);
+
+    // this.observer = this.observe(this.document);
 
     loading.resolve(this);
     this.loading.resolve(this);
-  }.bind(this);
+    
+  }.bind(this));
+  
   
   // this.iframe.srcdoc = contents;
   this.document.open();
@@ -4481,11 +4559,6 @@ EPUBJS.View.prototype.load = function(contents) {
   return loaded;
 };
 
-
-EPUBJS.View.prototype.unload = function() {
-
-};
-
 EPUBJS.View.prototype.create = function() {
   this.iframe = document.createElement('iframe');
   this.iframe.id = this.id;
@@ -4493,16 +4566,19 @@ EPUBJS.View.prototype.create = function() {
   this.iframe.seamless = "seamless";
   // Back up if seamless isn't supported
   this.iframe.style.border = "none";
+
+  this.resizing = true;
   this.iframe.width = "100%";
-  this.iframe.style.height = "0";
+  this.iframe.style.height = "100%";
 
   this.iframe.style.display = "none";
   this.iframe.style.visibility = "hidden";
 
+
   return this.iframe;
 };
 
-EPUBJS.View.prototype.resized = function() {
+EPUBJS.View.prototype.resized = function(e) {
 
   if (!this.resizing) {
     this.layout();
@@ -4513,32 +4589,48 @@ EPUBJS.View.prototype.resized = function() {
 };
 
 EPUBJS.View.prototype.layout = function() {
-  var bounds = {}, content, width = 0, height = 0;
-
-  this.resizing = true;
+  var bounds;
+  console.log("layout")
   // Check bounds
   bounds = this.document.body.getBoundingClientRect();
 
+  if(!bounds || (bounds.height == 0 && bounds.width == 0)) {
+    console.error("View not shown");
+  }
+
   // Apply Changes
+  this.resizing = true;
   this.iframe.style.height = bounds.height + "px";
-  this.iframe.style.width = bounds.width + "px";
+  // this.iframe.style.width = bounds.width + "px";
 
   // Check again
-  content = this.document.body.getBoundingClientRect();
+  bounds = this.document.body.getBoundingClientRect();
+  this.resizing = true;
+  this.iframe.style.height = bounds.height + "px";
+  // this.iframe.style.width = bounds.width + "px";
 
-  height = content.height;
-  width = content.width;
+  this.width = bounds.width;
+  this.height = bounds.height;
 
-  this.width = width;
-  this.height = height;
-  
-  
-  // if(bounds.height != content.height || bounds.width != content.width) {
-  //   // this.layout();
-  //   console.log(bounds, content)
-  // }
-  
+};
 
+EPUBJS.View.prototype.observe = function(target) {
+  var renderer = this;
+
+  // create an observer instance
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      renderer.layout();
+    });    
+  });
+
+  // configuration of the observer:
+  var config = { attributes: true, childList: true, characterData: true, subtree: true };
+
+  // pass in the target node, as well as the observer options
+  observer.observe(target, config);
+
+  return observer;
 };
 
 EPUBJS.View.prototype.appendTo = function(element) {
@@ -4556,6 +4648,9 @@ EPUBJS.View.prototype.bounds = function() {
 };
 
 EPUBJS.View.prototype.destroy = function() {
+  // Stop observing
+  // this.observer.disconnect();
+  
   this.element.removeChild(this.iframe);
 };
 

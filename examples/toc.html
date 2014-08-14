@@ -64,9 +64,9 @@
 		var $viewer = document.getElementById("viewer");
 		var $next = document.getElementById("next");
 		var $prev = document.getElementById("prev");
-		var currentSectionIndex = 10;
+		var currentSectionIndex = 9;
 		// Load the opf
-		var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
+		var book = ePub("../books/moby-dick/OPS/package.opf"); // https://s3.amazonaws.com/moby-dick/OPS/package.opf
 		var rendition = book.renderTo("viewer", {width: 600, height: 400});
 		var displayed = rendition.display(currentSectionIndex);
 		
