@@ -9,18 +9,25 @@
   <style type="text/css">
     body {
       margin: 0;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
     }
 
-    #viewer {
-      position: absolute;
-      left: 10%;
-      width: 80%;
+    #viewer { 
+      display: block;
+      margin: 0;
+      width: 100%;
       height: 100%;
-      overflow: hidden; 
-/*      display: block;
-      margin: 50px auto;
-      width: 600px;*/
     }
+
+    #viewer iframe {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        width: 590px;
+        margin: 10px auto;
+    }
+
 
     #prev {
       left: 40px;
@@ -65,7 +72,7 @@
   <script>
     var currentSectionIndex = 10;
     // Load the opf
-    var book = ePub("../books/moby-dick/OPS/package.opf");
+    var book = ePub("../books/accessible_epub_3-20121024.epub/package.opf");
     var rendition = book.renderTo("viewer");
     var displayed = rendition.display(currentSectionIndex);
     

@@ -28,8 +28,10 @@ EPUBJS.Render = {};
 	} else {
 		root.ePub = ePub;
 	}
-
+	
 })(this);
+
+
 (function(global) {
 /**
   @class RSVP
@@ -2228,6 +2230,2013 @@ define('rsvp', [
 });
 global.RSVP = require('rsvp');
 }(self));
+/*!
+ * URI.js - Mutating URLs
+ *
+ * Version: 1.13.2
+ *
+ * Author: Rodney Rehm
+ * Web: http://medialize.github.io/URI.js/
+ *
+ * Licensed under
+ *   MIT License http://www.opensource.org/licenses/mit-license
+ *   GPL v3 http://opensource.org/licenses/GPL-3.0
+ *
+ */
+(function (root, factory) {
+  'use strict';
+  // https://github.com/umdjs/umd/blob/master/returnExports.js
+  if (typeof exports === 'object') {
+    // Node
+    module.exports = factory(require('./punycode'), require('./IPv6'), require('./SecondLevelDomains'));
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(['./punycode', './IPv6', './SecondLevelDomains'], factory);
+  } else {
+    // Browser globals (root is window)
+    root.URI = factory(root.punycode, root.IPv6, root.SecondLevelDomains, root);
+  }
+}(this, function (punycode, IPv6, SLD, root) {
+  'use strict';
+  /*global location, escape, unescape */
+  // FIXME: v2.0.0 renamce non-camelCase properties to uppercase
+  /*jshint camelcase: false */
+
+  // save current URI variable, if any
+  var _URI = root && root.URI;
+
+  function URI(url, base) {
+    // Allow instantiation without the 'new' keyword
+    if (!(this instanceof URI)) {
+      return new URI(url, base);
+    }
+
+    if (url === undefined) {
+      if (typeof location !== 'undefined') {
+        url = location.href + '';
+      } else {
+        url = '';
+      }
+    }
+
+    this.href(url);
+
+    // resolve to base according to http://dvcs.w3.org/hg/url/raw-file/tip/Overview.html#constructor
+    if (base !== undefined) {
+      return this.absoluteTo(base);
+    }
+
+    return this;
+  }
+
+  URI.version = '1.13.2';
+
+  var p = URI.prototype;
+  var hasOwn = Object.prototype.hasOwnProperty;
+
+  function escapeRegEx(string) {
+    // https://github.com/medialize/URI.js/commit/85ac21783c11f8ccab06106dba9735a31a86924d#commitcomment-821963
+    return string.replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1');
+  }
+
+  function getType(value) {
+    // IE8 doesn't return [Object Undefined] but [Object Object] for undefined value
+    if (value === undefined) {
+      return 'Undefined';
+    }
+
+    return String(Object.prototype.toString.call(value)).slice(8, -1);
+  }
+
+  function isArray(obj) {
+    return getType(obj) === 'Array';
+  }
+
+  function filterArrayValues(data, value) {
+    var lookup = {};
+    var i, length;
+
+    if (isArray(value)) {
+      for (i = 0, length = value.length; i < length; i++) {
+        lookup[value[i]] = true;
+      }
+    } else {
+      lookup[value] = true;
+    }
+
+    for (i = 0, length = data.length; i < length; i++) {
+      if (lookup[data[i]] !== undefined) {
+        data.splice(i, 1);
+        length--;
+        i--;
+      }
+    }
+
+    return data;
+  }
+
+  function arrayContains(list, value) {
+    var i, length;
+
+    // value may be string, number, array, regexp
+    if (isArray(value)) {
+      // Note: this can be optimized to O(n) (instead of current O(m * n))
+      for (i = 0, length = value.length; i < length; i++) {
+        if (!arrayContains(list, value[i])) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    var _type = getType(value);
+    for (i = 0, length = list.length; i < length; i++) {
+      if (_type === 'RegExp') {
+        if (typeof list[i] === 'string' && list[i].match(value)) {
+          return true;
+        }
+      } else if (list[i] === value) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function arraysEqual(one, two) {
+    if (!isArray(one) || !isArray(two)) {
+      return false;
+    }
+
+    // arrays can't be equal if they have different amount of content
+    if (one.length !== two.length) {
+      return false;
+    }
+
+    one.sort();
+    two.sort();
+
+    for (var i = 0, l = one.length; i < l; i++) {
+      if (one[i] !== two[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  URI._parts = function() {
+    return {
+      protocol: null,
+      username: null,
+      password: null,
+      hostname: null,
+      urn: null,
+      port: null,
+      path: null,
+      query: null,
+      fragment: null,
+      // state
+      duplicateQueryParameters: URI.duplicateQueryParameters,
+      escapeQuerySpace: URI.escapeQuerySpace
+    };
+  };
+  // state: allow duplicate query parameters (a=1&a=1)
+  URI.duplicateQueryParameters = false;
+  // state: replaces + with %20 (space in query strings)
+  URI.escapeQuerySpace = true;
+  // static properties
+  URI.protocol_expression = /^[a-z][a-z0-9.+-]*$/i;
+  URI.idn_expression = /[^a-z0-9\.-]/i;
+  URI.punycode_expression = /(xn--)/i;
+  // well, 333.444.555.666 matches, but it sure ain't no IPv4 - do we care?
+  URI.ip4_expression = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+  // credits to Rich Brown
+  // source: http://forums.intermapper.com/viewtopic.php?p=1096#1096
+  // specification: http://www.ietf.org/rfc/rfc4291.txt
+  URI.ip6_expression = /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
+  // expression used is "gruber revised" (@gruber v2) determined to be the
+  // best solution in a regex-golf we did a couple of ages ago at
+  // * http://mathiasbynens.be/demo/url-regex
+  // * http://rodneyrehm.de/t/url-regex.html
+  URI.find_uri_expression = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
+  URI.findUri = {
+    // valid "scheme://" or "www."
+    start: /\b(?:([a-z][a-z0-9.+-]*:\/\/)|www\.)/gi,
+    // everything up to the next whitespace
+    end: /[\s\r\n]|$/,
+    // trim trailing punctuation captured by end RegExp
+    trim: /[`!()\[\]{};:'".,<>?«»“”„‘’]+$/
+  };
+  // http://www.iana.org/assignments/uri-schemes.html
+  // http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Well-known_ports
+  URI.defaultPorts = {
+    http: '80',
+    https: '443',
+    ftp: '21',
+    gopher: '70',
+    ws: '80',
+    wss: '443'
+  };
+  // allowed hostname characters according to RFC 3986
+  // ALPHA DIGIT "-" "." "_" "~" "!" "$" "&" "'" "(" ")" "*" "+" "," ";" "=" %encoded
+  // I've never seen a (non-IDN) hostname other than: ALPHA DIGIT . -
+  URI.invalid_hostname_characters = /[^a-zA-Z0-9\.-]/;
+  // map DOM Elements to their URI attribute
+  URI.domAttributes = {
+    'a': 'href',
+    'blockquote': 'cite',
+    'link': 'href',
+    'base': 'href',
+    'script': 'src',
+    'form': 'action',
+    'img': 'src',
+    'area': 'href',
+    'iframe': 'src',
+    'embed': 'src',
+    'source': 'src',
+    'track': 'src',
+    'input': 'src' // but only if type="image"
+  };
+  URI.getDomAttribute = function(node) {
+    if (!node || !node.nodeName) {
+      return undefined;
+    }
+
+    var nodeName = node.nodeName.toLowerCase();
+    // <input> should only expose src for type="image"
+    if (nodeName === 'input' && node.type !== 'image') {
+      return undefined;
+    }
+
+    return URI.domAttributes[nodeName];
+  };
+
+  function escapeForDumbFirefox36(value) {
+    // https://github.com/medialize/URI.js/issues/91
+    return escape(value);
+  }
+
+  // encoding / decoding according to RFC3986
+  function strictEncodeURIComponent(string) {
+    // see https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/encodeURIComponent
+    return encodeURIComponent(string)
+      .replace(/[!'()*]/g, escapeForDumbFirefox36)
+      .replace(/\*/g, '%2A');
+  }
+  URI.encode = strictEncodeURIComponent;
+  URI.decode = decodeURIComponent;
+  URI.iso8859 = function() {
+    URI.encode = escape;
+    URI.decode = unescape;
+  };
+  URI.unicode = function() {
+    URI.encode = strictEncodeURIComponent;
+    URI.decode = decodeURIComponent;
+  };
+  URI.characters = {
+    pathname: {
+      encode: {
+        // RFC3986 2.1: For consistency, URI producers and normalizers should
+        // use uppercase hexadecimal digits for all percent-encodings.
+        expression: /%(24|26|2B|2C|3B|3D|3A|40)/ig,
+        map: {
+          // -._~!'()*
+          '%24': '$',
+          '%26': '&',
+          '%2B': '+',
+          '%2C': ',',
+          '%3B': ';',
+          '%3D': '=',
+          '%3A': ':',
+          '%40': '@'
+        }
+      },
+      decode: {
+        expression: /[\/\?#]/g,
+        map: {
+          '/': '%2F',
+          '?': '%3F',
+          '#': '%23'
+        }
+      }
+    },
+    reserved: {
+      encode: {
+        // RFC3986 2.1: For consistency, URI producers and normalizers should
+        // use uppercase hexadecimal digits for all percent-encodings.
+        expression: /%(21|23|24|26|27|28|29|2A|2B|2C|2F|3A|3B|3D|3F|40|5B|5D)/ig,
+        map: {
+          // gen-delims
+          '%3A': ':',
+          '%2F': '/',
+          '%3F': '?',
+          '%23': '#',
+          '%5B': '[',
+          '%5D': ']',
+          '%40': '@',
+          // sub-delims
+          '%21': '!',
+          '%24': '$',
+          '%26': '&',
+          '%27': '\'',
+          '%28': '(',
+          '%29': ')',
+          '%2A': '*',
+          '%2B': '+',
+          '%2C': ',',
+          '%3B': ';',
+          '%3D': '='
+        }
+      }
+    }
+  };
+  URI.encodeQuery = function(string, escapeQuerySpace) {
+    var escaped = URI.encode(string + '');
+    if (escapeQuerySpace === undefined) {
+      escapeQuerySpace = URI.escapeQuerySpace;
+    }
+
+    return escapeQuerySpace ? escaped.replace(/%20/g, '+') : escaped;
+  };
+  URI.decodeQuery = function(string, escapeQuerySpace) {
+    string += '';
+    if (escapeQuerySpace === undefined) {
+      escapeQuerySpace = URI.escapeQuerySpace;
+    }
+
+    try {
+      return URI.decode(escapeQuerySpace ? string.replace(/\+/g, '%20') : string);
+    } catch(e) {
+      // we're not going to mess with weird encodings,
+      // give up and return the undecoded original string
+      // see https://github.com/medialize/URI.js/issues/87
+      // see https://github.com/medialize/URI.js/issues/92
+      return string;
+    }
+  };
+  URI.recodePath = function(string) {
+    var segments = (string + '').split('/');
+    for (var i = 0, length = segments.length; i < length; i++) {
+      segments[i] = URI.encodePathSegment(URI.decode(segments[i]));
+    }
+
+    return segments.join('/');
+  };
+  URI.decodePath = function(string) {
+    var segments = (string + '').split('/');
+    for (var i = 0, length = segments.length; i < length; i++) {
+      segments[i] = URI.decodePathSegment(segments[i]);
+    }
+
+    return segments.join('/');
+  };
+  // generate encode/decode path functions
+  var _parts = {'encode':'encode', 'decode':'decode'};
+  var _part;
+  var generateAccessor = function(_group, _part) {
+    return function(string) {
+      return URI[_part](string + '').replace(URI.characters[_group][_part].expression, function(c) {
+        return URI.characters[_group][_part].map[c];
+      });
+    };
+  };
+
+  for (_part in _parts) {
+    URI[_part + 'PathSegment'] = generateAccessor('pathname', _parts[_part]);
+  }
+
+  URI.encodeReserved = generateAccessor('reserved', 'encode');
+
+  URI.parse = function(string, parts) {
+    var pos;
+    if (!parts) {
+      parts = {};
+    }
+    // [protocol"://"[username[":"password]"@"]hostname[":"port]"/"?][path]["?"querystring]["#"fragment]
+
+    // extract fragment
+    pos = string.indexOf('#');
+    if (pos > -1) {
+      // escaping?
+      parts.fragment = string.substring(pos + 1) || null;
+      string = string.substring(0, pos);
+    }
+
+    // extract query
+    pos = string.indexOf('?');
+    if (pos > -1) {
+      // escaping?
+      parts.query = string.substring(pos + 1) || null;
+      string = string.substring(0, pos);
+    }
+
+    // extract protocol
+    if (string.substring(0, 2) === '//') {
+      // relative-scheme
+      parts.protocol = null;
+      string = string.substring(2);
+      // extract "user:pass@host:port"
+      string = URI.parseAuthority(string, parts);
+    } else {
+      pos = string.indexOf(':');
+      if (pos > -1) {
+        parts.protocol = string.substring(0, pos) || null;
+        if (parts.protocol && !parts.protocol.match(URI.protocol_expression)) {
+          // : may be within the path
+          parts.protocol = undefined;
+        } else if (parts.protocol === 'file') {
+          // the file scheme: does not contain an authority
+          string = string.substring(pos + 3);
+        } else if (string.substring(pos + 1, pos + 3) === '//') {
+          string = string.substring(pos + 3);
+
+          // extract "user:pass@host:port"
+          string = URI.parseAuthority(string, parts);
+        } else {
+          string = string.substring(pos + 1);
+          parts.urn = true;
+        }
+      }
+    }
+
+    // what's left must be the path
+    parts.path = string;
+
+    // and we're done
+    return parts;
+  };
+  URI.parseHost = function(string, parts) {
+    // extract host:port
+    var pos = string.indexOf('/');
+    var bracketPos;
+    var t;
+
+    if (pos === -1) {
+      pos = string.length;
+    }
+
+    if (string.charAt(0) === '[') {
+      // IPv6 host - http://tools.ietf.org/html/draft-ietf-6man-text-addr-representation-04#section-6
+      // I claim most client software breaks on IPv6 anyways. To simplify things, URI only accepts
+      // IPv6+port in the format [2001:db8::1]:80 (for the time being)
+      bracketPos = string.indexOf(']');
+      parts.hostname = string.substring(1, bracketPos) || null;
+      parts.port = string.substring(bracketPos + 2, pos) || null;
+      if (parts.port === '/') {
+        parts.port = null;
+      }
+    } else if (string.indexOf(':') !== string.lastIndexOf(':')) {
+      // IPv6 host contains multiple colons - but no port
+      // this notation is actually not allowed by RFC 3986, but we're a liberal parser
+      parts.hostname = string.substring(0, pos) || null;
+      parts.port = null;
+    } else {
+      t = string.substring(0, pos).split(':');
+      parts.hostname = t[0] || null;
+      parts.port = t[1] || null;
+    }
+
+    if (parts.hostname && string.substring(pos).charAt(0) !== '/') {
+      pos++;
+      string = '/' + string;
+    }
+
+    return string.substring(pos) || '/';
+  };
+  URI.parseAuthority = function(string, parts) {
+    string = URI.parseUserinfo(string, parts);
+    return URI.parseHost(string, parts);
+  };
+  URI.parseUserinfo = function(string, parts) {
+    // extract username:password
+    var firstSlash = string.indexOf('/');
+    /*jshint laxbreak: true */
+    var pos = firstSlash > -1
+      ? string.lastIndexOf('@', firstSlash)
+      : string.indexOf('@');
+    /*jshint laxbreak: false */
+    var t;
+
+    // authority@ must come before /path
+    if (pos > -1 && (firstSlash === -1 || pos < firstSlash)) {
+      t = string.substring(0, pos).split(':');
+      parts.username = t[0] ? URI.decode(t[0]) : null;
+      t.shift();
+      parts.password = t[0] ? URI.decode(t.join(':')) : null;
+      string = string.substring(pos + 1);
+    } else {
+      parts.username = null;
+      parts.password = null;
+    }
+
+    return string;
+  };
+  URI.parseQuery = function(string, escapeQuerySpace) {
+    if (!string) {
+      return {};
+    }
+
+    // throw out the funky business - "?"[name"="value"&"]+
+    string = string.replace(/&+/g, '&').replace(/^\?*&*|&+$/g, '');
+
+    if (!string) {
+      return {};
+    }
+
+    var items = {};
+    var splits = string.split('&');
+    var length = splits.length;
+    var v, name, value;
+
+    for (var i = 0; i < length; i++) {
+      v = splits[i].split('=');
+      name = URI.decodeQuery(v.shift(), escapeQuerySpace);
+      // no "=" is null according to http://dvcs.w3.org/hg/url/raw-file/tip/Overview.html#collect-url-parameters
+      value = v.length ? URI.decodeQuery(v.join('='), escapeQuerySpace) : null;
+
+      if (items[name]) {
+        if (typeof items[name] === 'string') {
+          items[name] = [items[name]];
+        }
+
+        items[name].push(value);
+      } else {
+        items[name] = value;
+      }
+    }
+
+    return items;
+  };
+
+  URI.build = function(parts) {
+    var t = '';
+
+    if (parts.protocol) {
+      t += parts.protocol + ':';
+    }
+
+    if (!parts.urn && (t || parts.hostname)) {
+      t += '//';
+    }
+
+    t += (URI.buildAuthority(parts) || '');
+
+    if (typeof parts.path === 'string') {
+      if (parts.path.charAt(0) !== '/' && typeof parts.hostname === 'string') {
+        t += '/';
+      }
+
+      t += parts.path;
+    }
+
+    if (typeof parts.query === 'string' && parts.query) {
+      t += '?' + parts.query;
+    }
+
+    if (typeof parts.fragment === 'string' && parts.fragment) {
+      t += '#' + parts.fragment;
+    }
+    return t;
+  };
+  URI.buildHost = function(parts) {
+    var t = '';
+
+    if (!parts.hostname) {
+      return '';
+    } else if (URI.ip6_expression.test(parts.hostname)) {
+      t += '[' + parts.hostname + ']';
+    } else {
+      t += parts.hostname;
+    }
+
+    if (parts.port) {
+      t += ':' + parts.port;
+    }
+
+    return t;
+  };
+  URI.buildAuthority = function(parts) {
+    return URI.buildUserinfo(parts) + URI.buildHost(parts);
+  };
+  URI.buildUserinfo = function(parts) {
+    var t = '';
+
+    if (parts.username) {
+      t += URI.encode(parts.username);
+
+      if (parts.password) {
+        t += ':' + URI.encode(parts.password);
+      }
+
+      t += '@';
+    }
+
+    return t;
+  };
+  URI.buildQuery = function(data, duplicateQueryParameters, escapeQuerySpace) {
+    // according to http://tools.ietf.org/html/rfc3986 or http://labs.apache.org/webarch/uri/rfc/rfc3986.html
+    // being »-._~!$&'()*+,;=:@/?« %HEX and alnum are allowed
+    // the RFC explicitly states ?/foo being a valid use case, no mention of parameter syntax!
+    // URI.js treats the query string as being application/x-www-form-urlencoded
+    // see http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type
+
+    var t = '';
+    var unique, key, i, length;
+    for (key in data) {
+      if (hasOwn.call(data, key) && key) {
+        if (isArray(data[key])) {
+          unique = {};
+          for (i = 0, length = data[key].length; i < length; i++) {
+            if (data[key][i] !== undefined && unique[data[key][i] + ''] === undefined) {
+              t += '&' + URI.buildQueryParameter(key, data[key][i], escapeQuerySpace);
+              if (duplicateQueryParameters !== true) {
+                unique[data[key][i] + ''] = true;
+              }
+            }
+          }
+        } else if (data[key] !== undefined) {
+          t += '&' + URI.buildQueryParameter(key, data[key], escapeQuerySpace);
+        }
+      }
+    }
+
+    return t.substring(1);
+  };
+  URI.buildQueryParameter = function(name, value, escapeQuerySpace) {
+    // http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type -- application/x-www-form-urlencoded
+    // don't append "=" for null values, according to http://dvcs.w3.org/hg/url/raw-file/tip/Overview.html#url-parameter-serialization
+    return URI.encodeQuery(name, escapeQuerySpace) + (value !== null ? '=' + URI.encodeQuery(value, escapeQuerySpace) : '');
+  };
+
+  URI.addQuery = function(data, name, value) {
+    if (typeof name === 'object') {
+      for (var key in name) {
+        if (hasOwn.call(name, key)) {
+          URI.addQuery(data, key, name[key]);
+        }
+      }
+    } else if (typeof name === 'string') {
+      if (data[name] === undefined) {
+        data[name] = value;
+        return;
+      } else if (typeof data[name] === 'string') {
+        data[name] = [data[name]];
+      }
+
+      if (!isArray(value)) {
+        value = [value];
+      }
+
+      data[name] = data[name].concat(value);
+    } else {
+      throw new TypeError('URI.addQuery() accepts an object, string as the name parameter');
+    }
+  };
+  URI.removeQuery = function(data, name, value) {
+    var i, length, key;
+
+    if (isArray(name)) {
+      for (i = 0, length = name.length; i < length; i++) {
+        data[name[i]] = undefined;
+      }
+    } else if (typeof name === 'object') {
+      for (key in name) {
+        if (hasOwn.call(name, key)) {
+          URI.removeQuery(data, key, name[key]);
+        }
+      }
+    } else if (typeof name === 'string') {
+      if (value !== undefined) {
+        if (data[name] === value) {
+          data[name] = undefined;
+        } else if (isArray(data[name])) {
+          data[name] = filterArrayValues(data[name], value);
+        }
+      } else {
+        data[name] = undefined;
+      }
+    } else {
+      throw new TypeError('URI.addQuery() accepts an object, string as the first parameter');
+    }
+  };
+  URI.hasQuery = function(data, name, value, withinArray) {
+    if (typeof name === 'object') {
+      for (var key in name) {
+        if (hasOwn.call(name, key)) {
+          if (!URI.hasQuery(data, key, name[key])) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    } else if (typeof name !== 'string') {
+      throw new TypeError('URI.hasQuery() accepts an object, string as the name parameter');
+    }
+
+    switch (getType(value)) {
+      case 'Undefined':
+        // true if exists (but may be empty)
+        return name in data; // data[name] !== undefined;
+
+      case 'Boolean':
+        // true if exists and non-empty
+        var _booly = Boolean(isArray(data[name]) ? data[name].length : data[name]);
+        return value === _booly;
+
+      case 'Function':
+        // allow complex comparison
+        return !!value(data[name], name, data);
+
+      case 'Array':
+        if (!isArray(data[name])) {
+          return false;
+        }
+
+        var op = withinArray ? arrayContains : arraysEqual;
+        return op(data[name], value);
+
+      case 'RegExp':
+        if (!isArray(data[name])) {
+          return Boolean(data[name] && data[name].match(value));
+        }
+
+        if (!withinArray) {
+          return false;
+        }
+
+        return arrayContains(data[name], value);
+
+      case 'Number':
+        value = String(value);
+        /* falls through */
+      case 'String':
+        if (!isArray(data[name])) {
+          return data[name] === value;
+        }
+
+        if (!withinArray) {
+          return false;
+        }
+
+        return arrayContains(data[name], value);
+
+      default:
+        throw new TypeError('URI.hasQuery() accepts undefined, boolean, string, number, RegExp, Function as the value parameter');
+    }
+  };
+
+
+  URI.commonPath = function(one, two) {
+    var length = Math.min(one.length, two.length);
+    var pos;
+
+    // find first non-matching character
+    for (pos = 0; pos < length; pos++) {
+      if (one.charAt(pos) !== two.charAt(pos)) {
+        pos--;
+        break;
+      }
+    }
+
+    if (pos < 1) {
+      return one.charAt(0) === two.charAt(0) && one.charAt(0) === '/' ? '/' : '';
+    }
+
+    // revert to last /
+    if (one.charAt(pos) !== '/' || two.charAt(pos) !== '/') {
+      pos = one.substring(0, pos).lastIndexOf('/');
+    }
+
+    return one.substring(0, pos + 1);
+  };
+
+  URI.withinString = function(string, callback, options) {
+    options || (options = {});
+    var _start = options.start || URI.findUri.start;
+    var _end = options.end || URI.findUri.end;
+    var _trim = options.trim || URI.findUri.trim;
+    var _attributeOpen = /[a-z0-9-]=["']?$/i;
+
+    _start.lastIndex = 0;
+    while (true) {
+      var match = _start.exec(string);
+      if (!match) {
+        break;
+      }
+
+      var start = match.index;
+      if (options.ignoreHtml) {
+        // attribut(e=["']?$)
+        var attributeOpen = string.slice(Math.max(start - 3, 0), start);
+        if (attributeOpen && _attributeOpen.test(attributeOpen)) {
+          continue;
+        }
+      }
+
+      var end = start + string.slice(start).search(_end);
+      var slice = string.slice(start, end).replace(_trim, '');
+      if (options.ignore && options.ignore.test(slice)) {
+        continue;
+      }
+
+      end = start + slice.length;
+      var result = callback(slice, start, end, string);
+      string = string.slice(0, start) + result + string.slice(end);
+      _start.lastIndex = start + result.length;
+    }
+
+    _start.lastIndex = 0;
+    return string;
+  };
+
+  URI.ensureValidHostname = function(v) {
+    // Theoretically URIs allow percent-encoding in Hostnames (according to RFC 3986)
+    // they are not part of DNS and therefore ignored by URI.js
+
+    if (v.match(URI.invalid_hostname_characters)) {
+      // test punycode
+      if (!punycode) {
+        throw new TypeError('Hostname "' + v + '" contains characters other than [A-Z0-9.-] and Punycode.js is not available');
+      }
+
+      if (punycode.toASCII(v).match(URI.invalid_hostname_characters)) {
+        throw new TypeError('Hostname "' + v + '" contains characters other than [A-Z0-9.-]');
+      }
+    }
+  };
+
+  // noConflict
+  URI.noConflict = function(removeAll) {
+    if (removeAll) {
+      var unconflicted = {
+        URI: this.noConflict()
+      };
+
+      if (root.URITemplate && typeof root.URITemplate.noConflict === 'function') {
+        unconflicted.URITemplate = root.URITemplate.noConflict();
+      }
+
+      if (root.IPv6 && typeof root.IPv6.noConflict === 'function') {
+        unconflicted.IPv6 = root.IPv6.noConflict();
+      }
+
+      if (root.SecondLevelDomains && typeof root.SecondLevelDomains.noConflict === 'function') {
+        unconflicted.SecondLevelDomains = root.SecondLevelDomains.noConflict();
+      }
+
+      return unconflicted;
+    } else if (root.URI === this) {
+      root.URI = _URI;
+    }
+
+    return this;
+  };
+
+  p.build = function(deferBuild) {
+    if (deferBuild === true) {
+      this._deferred_build = true;
+    } else if (deferBuild === undefined || this._deferred_build) {
+      this._string = URI.build(this._parts);
+      this._deferred_build = false;
+    }
+
+    return this;
+  };
+
+  p.clone = function() {
+    return new URI(this);
+  };
+
+  p.valueOf = p.toString = function() {
+    return this.build(false)._string;
+  };
+
+  // generate simple accessors
+  _parts = {protocol: 'protocol', username: 'username', password: 'password', hostname: 'hostname',  port: 'port'};
+  generateAccessor = function(_part){
+    return function(v, build) {
+      if (v === undefined) {
+        return this._parts[_part] || '';
+      } else {
+        this._parts[_part] = v || null;
+        this.build(!build);
+        return this;
+      }
+    };
+  };
+
+  for (_part in _parts) {
+    p[_part] = generateAccessor(_parts[_part]);
+  }
+
+  // generate accessors with optionally prefixed input
+  _parts = {query: '?', fragment: '#'};
+  generateAccessor = function(_part, _key){
+    return function(v, build) {
+      if (v === undefined) {
+        return this._parts[_part] || '';
+      } else {
+        if (v !== null) {
+          v = v + '';
+          if (v.charAt(0) === _key) {
+            v = v.substring(1);
+          }
+        }
+
+        this._parts[_part] = v;
+        this.build(!build);
+        return this;
+      }
+    };
+  };
+
+  for (_part in _parts) {
+    p[_part] = generateAccessor(_part, _parts[_part]);
+  }
+
+  // generate accessors with prefixed output
+  _parts = {search: ['?', 'query'], hash: ['#', 'fragment']};
+  generateAccessor = function(_part, _key){
+    return function(v, build) {
+      var t = this[_part](v, build);
+      return typeof t === 'string' && t.length ? (_key + t) : t;
+    };
+  };
+
+  for (_part in _parts) {
+    p[_part] = generateAccessor(_parts[_part][1], _parts[_part][0]);
+  }
+
+  p.pathname = function(v, build) {
+    if (v === undefined || v === true) {
+      var res = this._parts.path || (this._parts.hostname ? '/' : '');
+      return v ? URI.decodePath(res) : res;
+    } else {
+      this._parts.path = v ? URI.recodePath(v) : '/';
+      this.build(!build);
+      return this;
+    }
+  };
+  p.path = p.pathname;
+  p.href = function(href, build) {
+    var key;
+
+    if (href === undefined) {
+      return this.toString();
+    }
+
+    this._string = '';
+    this._parts = URI._parts();
+
+    var _URI = href instanceof URI;
+    var _object = typeof href === 'object' && (href.hostname || href.path || href.pathname);
+    if (href.nodeName) {
+      var attribute = URI.getDomAttribute(href);
+      href = href[attribute] || '';
+      _object = false;
+    }
+
+    // window.location is reported to be an object, but it's not the sort
+    // of object we're looking for:
+    // * location.protocol ends with a colon
+    // * location.query != object.search
+    // * location.hash != object.fragment
+    // simply serializing the unknown object should do the trick
+    // (for location, not for everything...)
+    if (!_URI && _object && href.pathname !== undefined) {
+      href = href.toString();
+    }
+
+    if (typeof href === 'string') {
+      this._parts = URI.parse(href, this._parts);
+    } else if (_URI || _object) {
+      var src = _URI ? href._parts : href;
+      for (key in src) {
+        if (hasOwn.call(this._parts, key)) {
+          this._parts[key] = src[key];
+        }
+      }
+    } else {
+      throw new TypeError('invalid input');
+    }
+
+    this.build(!build);
+    return this;
+  };
+
+  // identification accessors
+  p.is = function(what) {
+    var ip = false;
+    var ip4 = false;
+    var ip6 = false;
+    var name = false;
+    var sld = false;
+    var idn = false;
+    var punycode = false;
+    var relative = !this._parts.urn;
+
+    if (this._parts.hostname) {
+      relative = false;
+      ip4 = URI.ip4_expression.test(this._parts.hostname);
+      ip6 = URI.ip6_expression.test(this._parts.hostname);
+      ip = ip4 || ip6;
+      name = !ip;
+      sld = name && SLD && SLD.has(this._parts.hostname);
+      idn = name && URI.idn_expression.test(this._parts.hostname);
+      punycode = name && URI.punycode_expression.test(this._parts.hostname);
+    }
+
+    switch (what.toLowerCase()) {
+      case 'relative':
+        return relative;
+
+      case 'absolute':
+        return !relative;
+
+      // hostname identification
+      case 'domain':
+      case 'name':
+        return name;
+
+      case 'sld':
+        return sld;
+
+      case 'ip':
+        return ip;
+
+      case 'ip4':
+      case 'ipv4':
+      case 'inet4':
+        return ip4;
+
+      case 'ip6':
+      case 'ipv6':
+      case 'inet6':
+        return ip6;
+
+      case 'idn':
+        return idn;
+
+      case 'url':
+        return !this._parts.urn;
+
+      case 'urn':
+        return !!this._parts.urn;
+
+      case 'punycode':
+        return punycode;
+    }
+
+    return null;
+  };
+
+  // component specific input validation
+  var _protocol = p.protocol;
+  var _port = p.port;
+  var _hostname = p.hostname;
+
+  p.protocol = function(v, build) {
+    if (v !== undefined) {
+      if (v) {
+        // accept trailing ://
+        v = v.replace(/:(\/\/)?$/, '');
+
+        if (!v.match(URI.protocol_expression)) {
+          throw new TypeError('Protocol "' + v + '" contains characters other than [A-Z0-9.+-] or doesn\'t start with [A-Z]');
+        }
+      }
+    }
+    return _protocol.call(this, v, build);
+  };
+  p.scheme = p.protocol;
+  p.port = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v !== undefined) {
+      if (v === 0) {
+        v = null;
+      }
+
+      if (v) {
+        v += '';
+        if (v.charAt(0) === ':') {
+          v = v.substring(1);
+        }
+
+        if (v.match(/[^0-9]/)) {
+          throw new TypeError('Port "' + v + '" contains characters other than [0-9]');
+        }
+      }
+    }
+    return _port.call(this, v, build);
+  };
+  p.hostname = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v !== undefined) {
+      var x = {};
+      URI.parseHost(v, x);
+      v = x.hostname;
+    }
+    return _hostname.call(this, v, build);
+  };
+
+  // compound accessors
+  p.host = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined) {
+      return this._parts.hostname ? URI.buildHost(this._parts) : '';
+    } else {
+      URI.parseHost(v, this._parts);
+      this.build(!build);
+      return this;
+    }
+  };
+  p.authority = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined) {
+      return this._parts.hostname ? URI.buildAuthority(this._parts) : '';
+    } else {
+      URI.parseAuthority(v, this._parts);
+      this.build(!build);
+      return this;
+    }
+  };
+  p.userinfo = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined) {
+      if (!this._parts.username) {
+        return '';
+      }
+
+      var t = URI.buildUserinfo(this._parts);
+      return t.substring(0, t.length -1);
+    } else {
+      if (v[v.length-1] !== '@') {
+        v += '@';
+      }
+
+      URI.parseUserinfo(v, this._parts);
+      this.build(!build);
+      return this;
+    }
+  };
+  p.resource = function(v, build) {
+    var parts;
+
+    if (v === undefined) {
+      return this.path() + this.search() + this.hash();
+    }
+
+    parts = URI.parse(v);
+    this._parts.path = parts.path;
+    this._parts.query = parts.query;
+    this._parts.fragment = parts.fragment;
+    this.build(!build);
+    return this;
+  };
+
+  // fraction accessors
+  p.subdomain = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    // convenience, return "www" from "www.example.org"
+    if (v === undefined) {
+      if (!this._parts.hostname || this.is('IP')) {
+        return '';
+      }
+
+      // grab domain and add another segment
+      var end = this._parts.hostname.length - this.domain().length - 1;
+      return this._parts.hostname.substring(0, end) || '';
+    } else {
+      var e = this._parts.hostname.length - this.domain().length;
+      var sub = this._parts.hostname.substring(0, e);
+      var replace = new RegExp('^' + escapeRegEx(sub));
+
+      if (v && v.charAt(v.length - 1) !== '.') {
+        v += '.';
+      }
+
+      if (v) {
+        URI.ensureValidHostname(v);
+      }
+
+      this._parts.hostname = this._parts.hostname.replace(replace, v);
+      this.build(!build);
+      return this;
+    }
+  };
+  p.domain = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (typeof v === 'boolean') {
+      build = v;
+      v = undefined;
+    }
+
+    // convenience, return "example.org" from "www.example.org"
+    if (v === undefined) {
+      if (!this._parts.hostname || this.is('IP')) {
+        return '';
+      }
+
+      // if hostname consists of 1 or 2 segments, it must be the domain
+      var t = this._parts.hostname.match(/\./g);
+      if (t && t.length < 2) {
+        return this._parts.hostname;
+      }
+
+      // grab tld and add another segment
+      var end = this._parts.hostname.length - this.tld(build).length - 1;
+      end = this._parts.hostname.lastIndexOf('.', end -1) + 1;
+      return this._parts.hostname.substring(end) || '';
+    } else {
+      if (!v) {
+        throw new TypeError('cannot set domain empty');
+      }
+
+      URI.ensureValidHostname(v);
+
+      if (!this._parts.hostname || this.is('IP')) {
+        this._parts.hostname = v;
+      } else {
+        var replace = new RegExp(escapeRegEx(this.domain()) + '$');
+        this._parts.hostname = this._parts.hostname.replace(replace, v);
+      }
+
+      this.build(!build);
+      return this;
+    }
+  };
+  p.tld = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (typeof v === 'boolean') {
+      build = v;
+      v = undefined;
+    }
+
+    // return "org" from "www.example.org"
+    if (v === undefined) {
+      if (!this._parts.hostname || this.is('IP')) {
+        return '';
+      }
+
+      var pos = this._parts.hostname.lastIndexOf('.');
+      var tld = this._parts.hostname.substring(pos + 1);
+
+      if (build !== true && SLD && SLD.list[tld.toLowerCase()]) {
+        return SLD.get(this._parts.hostname) || tld;
+      }
+
+      return tld;
+    } else {
+      var replace;
+
+      if (!v) {
+        throw new TypeError('cannot set TLD empty');
+      } else if (v.match(/[^a-zA-Z0-9-]/)) {
+        if (SLD && SLD.is(v)) {
+          replace = new RegExp(escapeRegEx(this.tld()) + '$');
+          this._parts.hostname = this._parts.hostname.replace(replace, v);
+        } else {
+          throw new TypeError('TLD "' + v + '" contains characters other than [A-Z0-9]');
+        }
+      } else if (!this._parts.hostname || this.is('IP')) {
+        throw new ReferenceError('cannot set TLD on non-domain host');
+      } else {
+        replace = new RegExp(escapeRegEx(this.tld()) + '$');
+        this._parts.hostname = this._parts.hostname.replace(replace, v);
+      }
+
+      this.build(!build);
+      return this;
+    }
+  };
+  p.directory = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined || v === true) {
+      if (!this._parts.path && !this._parts.hostname) {
+        return '';
+      }
+
+      if (this._parts.path === '/') {
+        return '/';
+      }
+
+      var end = this._parts.path.length - this.filename().length - 1;
+      var res = this._parts.path.substring(0, end) || (this._parts.hostname ? '/' : '');
+
+      return v ? URI.decodePath(res) : res;
+
+    } else {
+      var e = this._parts.path.length - this.filename().length;
+      var directory = this._parts.path.substring(0, e);
+      var replace = new RegExp('^' + escapeRegEx(directory));
+
+      // fully qualifier directories begin with a slash
+      if (!this.is('relative')) {
+        if (!v) {
+          v = '/';
+        }
+
+        if (v.charAt(0) !== '/') {
+          v = '/' + v;
+        }
+      }
+
+      // directories always end with a slash
+      if (v && v.charAt(v.length - 1) !== '/') {
+        v += '/';
+      }
+
+      v = URI.recodePath(v);
+      this._parts.path = this._parts.path.replace(replace, v);
+      this.build(!build);
+      return this;
+    }
+  };
+  p.filename = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined || v === true) {
+      if (!this._parts.path || this._parts.path === '/') {
+        return '';
+      }
+
+      var pos = this._parts.path.lastIndexOf('/');
+      var res = this._parts.path.substring(pos+1);
+
+      return v ? URI.decodePathSegment(res) : res;
+    } else {
+      var mutatedDirectory = false;
+
+      if (v.charAt(0) === '/') {
+        v = v.substring(1);
+      }
+
+      if (v.match(/\.?\//)) {
+        mutatedDirectory = true;
+      }
+
+      var replace = new RegExp(escapeRegEx(this.filename()) + '$');
+      v = URI.recodePath(v);
+      this._parts.path = this._parts.path.replace(replace, v);
+
+      if (mutatedDirectory) {
+        this.normalizePath(build);
+      } else {
+        this.build(!build);
+      }
+
+      return this;
+    }
+  };
+  p.suffix = function(v, build) {
+    if (this._parts.urn) {
+      return v === undefined ? '' : this;
+    }
+
+    if (v === undefined || v === true) {
+      if (!this._parts.path || this._parts.path === '/') {
+        return '';
+      }
+
+      var filename = this.filename();
+      var pos = filename.lastIndexOf('.');
+      var s, res;
+
+      if (pos === -1) {
+        return '';
+      }
+
+      // suffix may only contain alnum characters (yup, I made this up.)
+      s = filename.substring(pos+1);
+      res = (/^[a-z0-9%]+$/i).test(s) ? s : '';
+      return v ? URI.decodePathSegment(res) : res;
+    } else {
+      if (v.charAt(0) === '.') {
+        v = v.substring(1);
+      }
+
+      var suffix = this.suffix();
+      var replace;
+
+      if (!suffix) {
+        if (!v) {
+          return this;
+        }
+
+        this._parts.path += '.' + URI.recodePath(v);
+      } else if (!v) {
+        replace = new RegExp(escapeRegEx('.' + suffix) + '$');
+      } else {
+        replace = new RegExp(escapeRegEx(suffix) + '$');
+      }
+
+      if (replace) {
+        v = URI.recodePath(v);
+        this._parts.path = this._parts.path.replace(replace, v);
+      }
+
+      this.build(!build);
+      return this;
+    }
+  };
+  p.segment = function(segment, v, build) {
+    var separator = this._parts.urn ? ':' : '/';
+    var path = this.path();
+    var absolute = path.substring(0, 1) === '/';
+    var segments = path.split(separator);
+
+    if (segment !== undefined && typeof segment !== 'number') {
+      build = v;
+      v = segment;
+      segment = undefined;
+    }
+
+    if (segment !== undefined && typeof segment !== 'number') {
+      throw new Error('Bad segment "' + segment + '", must be 0-based integer');
+    }
+
+    if (absolute) {
+      segments.shift();
+    }
+
+    if (segment < 0) {
+      // allow negative indexes to address from the end
+      segment = Math.max(segments.length + segment, 0);
+    }
+
+    if (v === undefined) {
+      /*jshint laxbreak: true */
+      return segment === undefined
+        ? segments
+        : segments[segment];
+      /*jshint laxbreak: false */
+    } else if (segment === null || segments[segment] === undefined) {
+      if (isArray(v)) {
+        segments = [];
+        // collapse empty elements within array
+        for (var i=0, l=v.length; i < l; i++) {
+          if (!v[i].length && (!segments.length || !segments[segments.length -1].length)) {
+            continue;
+          }
+
+          if (segments.length && !segments[segments.length -1].length) {
+            segments.pop();
+          }
+
+          segments.push(v[i]);
+        }
+      } else if (v || (typeof v === 'string')) {
+        if (segments[segments.length -1] === '') {
+          // empty trailing elements have to be overwritten
+          // to prevent results such as /foo//bar
+          segments[segments.length -1] = v;
+        } else {
+          segments.push(v);
+        }
+      }
+    } else {
+      if (v || (typeof v === 'string' && v.length)) {
+        segments[segment] = v;
+      } else {
+        segments.splice(segment, 1);
+      }
+    }
+
+    if (absolute) {
+      segments.unshift('');
+    }
+
+    return this.path(segments.join(separator), build);
+  };
+  p.segmentCoded = function(segment, v, build) {
+    var segments, i, l;
+
+    if (typeof segment !== 'number') {
+      build = v;
+      v = segment;
+      segment = undefined;
+    }
+
+    if (v === undefined) {
+      segments = this.segment(segment, v, build);
+      if (!isArray(segments)) {
+        segments = segments !== undefined ? URI.decode(segments) : undefined;
+      } else {
+        for (i = 0, l = segments.length; i < l; i++) {
+          segments[i] = URI.decode(segments[i]);
+        }
+      }
+
+      return segments;
+    }
+
+    if (!isArray(v)) {
+      v = typeof v === 'string' ? URI.encode(v) : v;
+    } else {
+      for (i = 0, l = v.length; i < l; i++) {
+        v[i] = URI.decode(v[i]);
+      }
+    }
+
+    return this.segment(segment, v, build);
+  };
+
+  // mutating query string
+  var q = p.query;
+  p.query = function(v, build) {
+    if (v === true) {
+      return URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+    } else if (typeof v === 'function') {
+      var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+      var result = v.call(this, data);
+      this._parts.query = URI.buildQuery(result || data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
+      this.build(!build);
+      return this;
+    } else if (v !== undefined && typeof v !== 'string') {
+      this._parts.query = URI.buildQuery(v, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
+      this.build(!build);
+      return this;
+    } else {
+      return q.call(this, v, build);
+    }
+  };
+  p.setQuery = function(name, value, build) {
+    var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+
+    if (typeof name === 'object') {
+      for (var key in name) {
+        if (hasOwn.call(name, key)) {
+          data[key] = name[key];
+        }
+      }
+    } else if (typeof name === 'string') {
+      data[name] = value !== undefined ? value : null;
+    } else {
+      throw new TypeError('URI.addQuery() accepts an object, string as the name parameter');
+    }
+
+    this._parts.query = URI.buildQuery(data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
+    if (typeof name !== 'string') {
+      build = value;
+    }
+
+    this.build(!build);
+    return this;
+  };
+  p.addQuery = function(name, value, build) {
+    var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+    URI.addQuery(data, name, value === undefined ? null : value);
+    this._parts.query = URI.buildQuery(data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
+    if (typeof name !== 'string') {
+      build = value;
+    }
+
+    this.build(!build);
+    return this;
+  };
+  p.removeQuery = function(name, value, build) {
+    var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+    URI.removeQuery(data, name, value);
+    this._parts.query = URI.buildQuery(data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
+    if (typeof name !== 'string') {
+      build = value;
+    }
+
+    this.build(!build);
+    return this;
+  };
+  p.hasQuery = function(name, value, withinArray) {
+    var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+    return URI.hasQuery(data, name, value, withinArray);
+  };
+  p.setSearch = p.setQuery;
+  p.addSearch = p.addQuery;
+  p.removeSearch = p.removeQuery;
+  p.hasSearch = p.hasQuery;
+
+  // sanitizing URLs
+  p.normalize = function() {
+    if (this._parts.urn) {
+      return this
+        .normalizeProtocol(false)
+        .normalizeQuery(false)
+        .normalizeFragment(false)
+        .build();
+    }
+
+    return this
+      .normalizeProtocol(false)
+      .normalizeHostname(false)
+      .normalizePort(false)
+      .normalizePath(false)
+      .normalizeQuery(false)
+      .normalizeFragment(false)
+      .build();
+  };
+  p.normalizeProtocol = function(build) {
+    if (typeof this._parts.protocol === 'string') {
+      this._parts.protocol = this._parts.protocol.toLowerCase();
+      this.build(!build);
+    }
+
+    return this;
+  };
+  p.normalizeHostname = function(build) {
+    if (this._parts.hostname) {
+      if (this.is('IDN') && punycode) {
+        this._parts.hostname = punycode.toASCII(this._parts.hostname);
+      } else if (this.is('IPv6') && IPv6) {
+        this._parts.hostname = IPv6.best(this._parts.hostname);
+      }
+
+      this._parts.hostname = this._parts.hostname.toLowerCase();
+      this.build(!build);
+    }
+
+    return this;
+  };
+  p.normalizePort = function(build) {
+    // remove port of it's the protocol's default
+    if (typeof this._parts.protocol === 'string' && this._parts.port === URI.defaultPorts[this._parts.protocol]) {
+      this._parts.port = null;
+      this.build(!build);
+    }
+
+    return this;
+  };
+  p.normalizePath = function(build) {
+    if (this._parts.urn) {
+      return this;
+    }
+
+    if (!this._parts.path || this._parts.path === '/') {
+      return this;
+    }
+
+    var _was_relative;
+    var _path = this._parts.path;
+    var _leadingParents = '';
+    var _parent, _pos;
+
+    // handle relative paths
+    if (_path.charAt(0) !== '/') {
+      _was_relative = true;
+      _path = '/' + _path;
+    }
+
+    // resolve simples
+    _path = _path
+      .replace(/(\/(\.\/)+)|(\/\.$)/g, '/')
+      .replace(/\/{2,}/g, '/');
+
+    // remember leading parents
+    if (_was_relative) {
+      _leadingParents = _path.substring(1).match(/^(\.\.\/)+/) || '';
+      if (_leadingParents) {
+        _leadingParents = _leadingParents[0];
+      }
+    }
+
+    // resolve parents
+    while (true) {
+      _parent = _path.indexOf('/..');
+      if (_parent === -1) {
+        // no more ../ to resolve
+        break;
+      } else if (_parent === 0) {
+        // top level cannot be relative, skip it
+        _path = _path.substring(3);
+        continue;
+      }
+
+      _pos = _path.substring(0, _parent).lastIndexOf('/');
+      if (_pos === -1) {
+        _pos = _parent;
+      }
+      _path = _path.substring(0, _pos) + _path.substring(_parent + 3);
+    }
+
+    // revert to relative
+    if (_was_relative && this.is('relative')) {
+      _path = _leadingParents + _path.substring(1);
+    }
+
+    _path = URI.recodePath(_path);
+    this._parts.path = _path;
+    this.build(!build);
+    return this;
+  };
+  p.normalizePathname = p.normalizePath;
+  p.normalizeQuery = function(build) {
+    if (typeof this._parts.query === 'string') {
+      if (!this._parts.query.length) {
+        this._parts.query = null;
+      } else {
+        this.query(URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace));
+      }
+
+      this.build(!build);
+    }
+
+    return this;
+  };
+  p.normalizeFragment = function(build) {
+    if (!this._parts.fragment) {
+      this._parts.fragment = null;
+      this.build(!build);
+    }
+
+    return this;
+  };
+  p.normalizeSearch = p.normalizeQuery;
+  p.normalizeHash = p.normalizeFragment;
+
+  p.iso8859 = function() {
+    // expect unicode input, iso8859 output
+    var e = URI.encode;
+    var d = URI.decode;
+
+    URI.encode = escape;
+    URI.decode = decodeURIComponent;
+    this.normalize();
+    URI.encode = e;
+    URI.decode = d;
+    return this;
+  };
+
+  p.unicode = function() {
+    // expect iso8859 input, unicode output
+    var e = URI.encode;
+    var d = URI.decode;
+
+    URI.encode = strictEncodeURIComponent;
+    URI.decode = unescape;
+    this.normalize();
+    URI.encode = e;
+    URI.decode = d;
+    return this;
+  };
+
+  p.readable = function() {
+    var uri = this.clone();
+    // removing username, password, because they shouldn't be displayed according to RFC 3986
+    uri.username('').password('').normalize();
+    var t = '';
+    if (uri._parts.protocol) {
+      t += uri._parts.protocol + '://';
+    }
+
+    if (uri._parts.hostname) {
+      if (uri.is('punycode') && punycode) {
+        t += punycode.toUnicode(uri._parts.hostname);
+        if (uri._parts.port) {
+          t += ':' + uri._parts.port;
+        }
+      } else {
+        t += uri.host();
+      }
+    }
+
+    if (uri._parts.hostname && uri._parts.path && uri._parts.path.charAt(0) !== '/') {
+      t += '/';
+    }
+
+    t += uri.path(true);
+    if (uri._parts.query) {
+      var q = '';
+      for (var i = 0, qp = uri._parts.query.split('&'), l = qp.length; i < l; i++) {
+        var kv = (qp[i] || '').split('=');
+        q += '&' + URI.decodeQuery(kv[0], this._parts.escapeQuerySpace)
+          .replace(/&/g, '%26');
+
+        if (kv[1] !== undefined) {
+          q += '=' + URI.decodeQuery(kv[1], this._parts.escapeQuerySpace)
+            .replace(/&/g, '%26');
+        }
+      }
+      t += '?' + q.substring(1);
+    }
+
+    t += URI.decodeQuery(uri.hash(), true);
+    return t;
+  };
+
+  // resolving relative and absolute URLs
+  p.absoluteTo = function(base) {
+    var resolved = this.clone();
+    var properties = ['protocol', 'username', 'password', 'hostname', 'port'];
+    var basedir, i, p;
+
+    if (this._parts.urn) {
+      throw new Error('URNs do not have any generally defined hierarchical components');
+    }
+
+    if (!(base instanceof URI)) {
+      base = new URI(base);
+    }
+
+    if (!resolved._parts.protocol) {
+      resolved._parts.protocol = base._parts.protocol;
+    }
+
+    if (this._parts.hostname) {
+      return resolved;
+    }
+
+    for (i = 0; (p = properties[i]); i++) {
+      resolved._parts[p] = base._parts[p];
+    }
+
+    if (!resolved._parts.path) {
+      resolved._parts.path = base._parts.path;
+      if (!resolved._parts.query) {
+        resolved._parts.query = base._parts.query;
+      }
+    } else if (resolved._parts.path.substring(-2) === '..') {
+      resolved._parts.path += '/';
+    }
+
+    if (resolved.path().charAt(0) !== '/') {
+      basedir = base.directory();
+      resolved._parts.path = (basedir ? (basedir + '/') : '') + resolved._parts.path;
+      resolved.normalizePath();
+    }
+
+    resolved.build();
+    return resolved;
+  };
+  p.relativeTo = function(base) {
+    var relative = this.clone().normalize();
+    var relativeParts, baseParts, common, relativePath, basePath;
+
+    if (relative._parts.urn) {
+      throw new Error('URNs do not have any generally defined hierarchical components');
+    }
+
+    base = new URI(base).normalize();
+    relativeParts = relative._parts;
+    baseParts = base._parts;
+    relativePath = relative.path();
+    basePath = base.path();
+
+    if (relativePath.charAt(0) !== '/') {
+      throw new Error('URI is already relative');
+    }
+
+    if (basePath.charAt(0) !== '/') {
+      throw new Error('Cannot calculate a URI relative to another relative URI');
+    }
+
+    if (relativeParts.protocol === baseParts.protocol) {
+      relativeParts.protocol = null;
+    }
+
+    if (relativeParts.username !== baseParts.username || relativeParts.password !== baseParts.password) {
+      return relative.build();
+    }
+
+    if (relativeParts.protocol !== null || relativeParts.username !== null || relativeParts.password !== null) {
+      return relative.build();
+    }
+
+    if (relativeParts.hostname === baseParts.hostname && relativeParts.port === baseParts.port) {
+      relativeParts.hostname = null;
+      relativeParts.port = null;
+    } else {
+      return relative.build();
+    }
+
+    if (relativePath === basePath) {
+      relativeParts.path = '';
+      return relative.build();
+    }
+
+    // determine common sub path
+    common = URI.commonPath(relative.path(), base.path());
+
+    // If the paths have nothing in common, return a relative URL with the absolute path.
+    if (!common) {
+      return relative.build();
+    }
+
+    var parents = baseParts.path
+      .substring(common.length)
+      .replace(/[^\/]*$/, '')
+      .replace(/.*?\//g, '../');
+
+    relativeParts.path = parents + relativeParts.path.substring(common.length);
+
+    return relative.build();
+  };
+
+  // comparing URIs
+  p.equals = function(uri) {
+    var one = this.clone();
+    var two = new URI(uri);
+    var one_map = {};
+    var two_map = {};
+    var checked = {};
+    var one_query, two_query, key;
+
+    one.normalize();
+    two.normalize();
+
+    // exact match
+    if (one.toString() === two.toString()) {
+      return true;
+    }
+
+    // extract query string
+    one_query = one.query();
+    two_query = two.query();
+    one.query('');
+    two.query('');
+
+    // definitely not equal if not even non-query parts match
+    if (one.toString() !== two.toString()) {
+      return false;
+    }
+
+    // query parameters have the same length, even if they're permuted
+    if (one_query.length !== two_query.length) {
+      return false;
+    }
+
+    one_map = URI.parseQuery(one_query, this._parts.escapeQuerySpace);
+    two_map = URI.parseQuery(two_query, this._parts.escapeQuerySpace);
+
+    for (key in one_map) {
+      if (hasOwn.call(one_map, key)) {
+        if (!isArray(one_map[key])) {
+          if (one_map[key] !== two_map[key]) {
+            return false;
+          }
+        } else if (!arraysEqual(one_map[key], two_map[key])) {
+          return false;
+        }
+
+        checked[key] = true;
+      }
+    }
+
+    for (key in two_map) {
+      if (hasOwn.call(two_map, key)) {
+        if (!checked[key]) {
+          // two contains a parameter not present in one
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  // state
+  p.duplicateQueryParameters = function(v) {
+    this._parts.duplicateQueryParameters = !!v;
+    return this;
+  };
+
+  p.escapeQuerySpace = function(v) {
+    this._parts.escapeQuerySpace = !!v;
+    return this;
+  };
+
+  return URI;
+}));
+
 EPUBJS.Book = function(_url){  
   // Promises
   this.opening = new RSVP.defer();
@@ -2236,7 +4245,7 @@ EPUBJS.Book = function(_url){
 
   this.url = undefined;
 
-  this.spine = undefined;
+  this.spine = new EPUBJS.Spine(this.request);
 
   this.loading = {
     manifest: new RSVP.defer(),
@@ -2262,6 +4271,8 @@ EPUBJS.Book = function(_url){
   this.isRendered = false;
   this._q = EPUBJS.core.queue(this);
 
+  this.request = this.requestMethod.bind(this);
+
   if(_url) {
     this.open(_url);
   }
@@ -2274,6 +4285,11 @@ EPUBJS.Book.prototype.open = function(_url){
   var book = this;
   var containerPath = "META-INF/container.xml";
   var location;
+
+  if(!_url) {
+    this.opening.resolve(this);
+    return this.opened;
+  }
 
   // Reuse parsed url or create a new uri object
   if(typeof(_url) === "object") {
@@ -2363,7 +4379,7 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
   book.package = parse.packageContents(packageXml); // Extract info from contents
   book.package.baseUrl = book.url; // Provides a url base for resolving paths
 
-  book.spine = new EPUBJS.Spine(book.package, this.request);
+  this.spine.load(book.package);
 
   book.navigation = new EPUBJS.Navigation(book.package, this.request);
   book.navigation.load().then(function(toc){
@@ -2390,20 +4406,23 @@ EPUBJS.Book.prototype.renderTo = function(element, options) {
   return rendition;
 };
 
-EPUBJS.Book.prototype.request = function(_url) {
+EPUBJS.Book.prototype.requestMethod = function(_url) {
   // Switch request methods
   if(this.archived) {
     // TODO: handle archived 
   } else {
-    return EPUBJS.core.request(_url, 'xml', this.credentials);
+    return EPUBJS.core.request(_url, 'xml', this.requestCredentials, this.requestHeaders);
   }
 
 };
 
-EPUBJS.Book.prototype.setCredentials = function(_credentials) {
-  this.credentials = _credentials;
+EPUBJS.Book.prototype.setRequestCredentials = function(_credentials) {
+  this.requestCredentials = _credentials;
 };
 
+EPUBJS.Book.prototype.setRequestHeaders = function(_headers) {
+  this.requestHeaders = _headers;
+};
 //-- Enable binding events to book
 RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
@@ -2421,7 +4440,7 @@ RSVP.on('rejected', function(event){
 });
 EPUBJS.core = {};
 
-EPUBJS.core.request = function(url, type, withCredentials) {
+EPUBJS.core.request = function(url, type, withCredentials, headers) {
   var supportsURL = window.URL;
   var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
@@ -2433,6 +4452,8 @@ EPUBJS.core.request = function(url, type, withCredentials) {
   //   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
   var xhrPrototype = XMLHttpRequest.prototype;
   
+  var header;
+  
   if (!('overrideMimeType' in xhrPrototype)) {
     // IE10 might have response, but not overrideMimeType
     Object.defineProperty(xhrPrototype, 'overrideMimeType', {
@@ -2442,7 +4463,13 @@ EPUBJS.core.request = function(url, type, withCredentials) {
   if(withCredentials) {
     xhr.withCredentials = true;
   }
+
   xhr.open("GET", url, true);
+
+  for(header in headers) {
+    xhr.setRequestHeader(header, headers[header]);
+  }
+
   xhr.onreadystatechange = handler;
   
   if(type == 'blob'){
@@ -2486,6 +4513,7 @@ EPUBJS.core.request = function(url, type, withCredentials) {
         deferred.resolve(r);
       } else {
         deferred.reject({
+          status: this.status,
           message : this.response,
           stack : new Error().stack
         });
@@ -2654,28 +4682,52 @@ EPUBJS.core.values = function(object) {
 };
 
 EPUBJS.core.resolveUrl = function(base, path) {
-  var url,
+  var url = [],
     segments = [],
-    // uri = EPUBJS.core.uri(path),
-    folders = base.split("/"),
+    baseUri = EPUBJS.core.uri(base),
+    pathUri = EPUBJS.core.uri(path),
+    baseDirectory = baseUri.directory,
+    pathDirectory = pathUri.directory,
+    // folders = base.split("/"),
     paths;
   
   // if(uri.host) {
   //   return path;
   // }
-  
-  folders.pop();
 
-  paths = path.split("/");
-  paths.forEach(function(p){
-    if(p === ".."){
-      folders.pop();
-    }else{
-      segments.push(p);
+  if(baseDirectory[0] === "/") {
+    baseDirectory = baseDirectory.substring(1);
+  }
+
+  if(pathDirectory[pathDirectory.length-1] === "/") {
+    baseDirectory = baseDirectory.substring(0, baseDirectory.length-1);
+  }
+
+  if(pathDirectory[0] === "/") {
+    pathDirectory = pathDirectory.substring(1);
+  }
+
+  if(pathDirectory[pathDirectory.length-1] === "/") {
+    pathDirectory = pathDirectory.substring(0, pathDirectory.length-1);
+  }
+
+
+  directories = baseDirectory.split("/");
+
+  paths = pathDirectory.split("/");
+
+  paths.reverse().forEach(function(part, index){
+    if(part === ".."){
+      directories.pop();
+    } else if(part === directories[directories.length-1]) {
+      directories.pop();
+      segments.unshift(part);
+    } else {
+      segments.push(part);
     }
   });
 
-  url = folders.concat(segments);
+  url = url.concat(baseUri.origin, directories, segments, pathUri.filename);
 
   return url.join("/");
 };
@@ -2689,6 +4741,10 @@ EPUBJS.core.documentHeight = function() {
       document.documentElement.offsetHeight
   );
 };
+
+EPUBJS.core.isNumber = function(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
 EPUBJS.EpubCFI = function(cfiStr){
   if(cfiStr) return this.parse(cfiStr);
 };
@@ -3193,94 +5249,48 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
   return range;
 };
 
-EPUBJS.hooks = {};
-EPUBJS.Hooks = (function(){
-  function hooks(){}
-  
-  //-- Get pre-registered hooks
-  hooks.prototype.getHooks = function(){
-    var plugs, hooks;
-    this.hooks = {};
-    Array.prototype.slice.call(arguments).forEach(function(arg){
-      this.hooks[arg] = [];
-    }, this);
+EPUBJS.Hook = function(context){
+  this.context = context || this;
+  this.hooks = [];
+};
 
-    for (var plugType in this.hooks) {
-      hooks = EPUBJS.hooks[plugType];
-      if(hooks){
-        plugs = EPUBJS.core.values();
-  
-        plugs.forEach(function(hook){
-          this.registerHook(plugType, hook);
-        }, this);
+//-- Hooks allow for injecting async functions that must all complete in order before finishing 
+//   Functions must return a promise.
+
+// this.beforeDisplay = new EPUBJS.Hook();
+// this.beforeDisplay.register(function(){});
+// this.beforeDisplay.trigger(args).then(function(){});
+
+// Adds a function to be run before a hook completes
+EPUBJS.Hook.prototype.register = function(func){
+  this.hooks.push(func);
+};
+
+// Triggers a hook to run all functions
+EPUBJS.Hook.prototype.trigger = function(){
+  var length = this.hooks.length;
+  var current = 0;
+  var executing;
+  var defer = new RSVP.defer();
+  var args = arguments;
+
+  if(length) {
+
+    executing = this.hooks[current].apply(this.context, args);
+    executing.then(function(){
+      current += 1;
+      if(current < length) {
+        return this.hooks[current].apply(this.context, args);
       }
-    }
-  };
-  
-  //-- Hooks allow for injecting async functions that must all complete before continuing 
-  //   Functions must have a callback as their first argument.
-  hooks.prototype.registerHook = function(type, toAdd, toFront){
-  
-    if(typeof(this.hooks[type]) != "undefined"){
-  
-      if(typeof(toAdd) === "function"){
-        if(toFront) {
-          this.hooks[type].unshift(toAdd);
-        }else{
-          this.hooks[type].push(toAdd);
-        }
-      }else if(Array.isArray(toAdd)){
-        toAdd.forEach(function(hook){
-          if(toFront) {
-            this.hooks[type].unshift(hook);
-          }else{
-            this.hooks[type].push(hook);
-          }
-        }, this);
-      }
-    }else{
-      //-- Allows for undefined hooks, but maybe this should error?
-      this.hooks[type] = [func];
-    }
-  };
-  
-  hooks.prototype.triggerHooks = function(type, callback, passed){
-    var hooks, count;
-  
-    if(typeof(this.hooks[type]) == "undefined") return false;
-  
-    hooks = this.hooks[type];
-  
-    count = hooks.length;
-    if(count === 0 && callback) {
-      callback();
-    }
+    }.bind(this));
+    
+  } else {
+    executing = defer.promise;
+    defer.resolve();
+  }
 
-    function countdown(){
-      count--;
-      if(count <= 0 && callback) callback();
-    }
-  
-    hooks.forEach(function(hook){
-      hook(countdown, passed);
-    });
-  };
-  
-  return {
-    register: function(name) {
-      if(EPUBJS.hooks[name] === undefined) { EPUBJS.hooks[name] = {}; }
-      if(typeof EPUBJS.hooks[name] !== 'object') { throw "Already registered: "+name; }
-      return EPUBJS.hooks[name];
-    },
-    mixin: function(object) {
-      for (var prop in hooks.prototype) {
-        object[prop] = hooks.prototype[prop];
-      }
-    }
-  };
-})();
-
-
+  return executing;
+};
 EPUBJS.Infinite = function(container, renderer){
   this.container = container;
   this.windowHeight = window.innerHeight;
@@ -3288,7 +5298,7 @@ EPUBJS.Infinite = function(container, renderer){
   this.scrolled = false;
   this.ignore = false;
   this.displaying = false;
-  this.offset = 250;
+  this.offset = 350;
   this.views = [];
   this.renderer = renderer;
   this.prevScrollTop = 0;
@@ -3304,7 +5314,6 @@ EPUBJS.Infinite.prototype.start = function() {
     } else {
       this.ignore = false;
     }
-    // console.log("scroll", this.container.scrollTop)
   }.bind(this));
   
   // Reset to prevent jump
@@ -3328,44 +5337,6 @@ EPUBJS.Infinite.prototype.backwards = function() {
   this.trigger("backwards");
 };
 
-/*
-
-// Manage Views
-EPUBJS.Infinite.prototype.jump = function(view){
-  this.views.push(view);
-};
-
-EPUBJS.Infinite.prototype.append = function(view){
-  this.views.push(view);
-  view.appendTo(this.container);
-};
-
-EPUBJS.Infinite.prototype.prepend = function(view){
-  this.views.unshift(view);
-  view.prependTo(this.container);
-};
-
-// Simple Insert
-EPUBJS.Infinite.prototype.insert = function(view, index){
-
-  var position;
-  var distanceFront = index - this.positions[0];
-  var distanceRear = index - this.positions[this.positions.length-1];
-
-  if(distanceFront >= 0 || !this.positions.length) {
-    position = this.append(view);
-    this.positions.push(index);
-  } else if(distanceRear <= 0) {
-    position = this.prepend(view);
-    this.positions.unshift(index);
-  }
-
-  
-
-  return position;
-};
-
-*/
 
 EPUBJS.Infinite.prototype.check = function(){
 
@@ -3382,10 +5353,12 @@ EPUBJS.Infinite.prototype.check = function(){
 
     var up = scrollTop + this.offset > scrollHeight-height;
     var down = scrollTop < this.offset;
-    // console.debug("scroll", scrollTop)
+
+    // Add to bottom
     if(up && direction > 0) {
       this.forwards();
     }
+    // Add to top
     else if(down && direction < 0) {
       this.backwards();
     }
@@ -3640,12 +5613,16 @@ EPUBJS.Navigation = function(_package, _request){
 // Load the navigation
 EPUBJS.Navigation.prototype.load = function(_request) {
   var request = _request || EPUBJS.core.request;
-  var loading;
+  var loading, loaded;
 
   if(this.nav) {
     loading = this.nav.load();
   } else if(this.ncx) {
     loading = this.ncx.load();
+  } else {
+    loaded = new RSVP.defer();
+    loaded.resolve([]);
+    loading = loaded.promise;
   }
 
   return loading;
@@ -3868,7 +5845,7 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
       'type' : type,
       'properties' : properties
     };
-  
+
   });
   
   return manifest;
@@ -3891,6 +5868,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
     var propArray = props.length ? props.split(' ') : [];
     // var manifestProps = manifest[Id].properties;
     // var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
+
     var itemref = {
       'idref' : idref,
       'linear' : item.getAttribute('linear') || '',
@@ -4048,27 +6026,17 @@ EPUBJS.Renderer = function(book, _options) {
   var options = _options || {};
   this.settings = {
     hidden: options.hidden || false,
-    viewsLimit: 4,
+    viewsLimit: 6,
     width: options.width || false, 
     height: options.height || false, 
   };
 
   this.book = book;
 
-  // Listen for load events
-  // this.on("render:loaded", this.loaded.bind(this));
-
   // Blank Cfi for Parsing
   this.epubcfi = new EPUBJS.EpubCFI();
 
   this.layoutSettings = {};
-
-  //-- Adds Hook methods to the Book prototype
-  //   Hooks will all return before triggering the callback.
-  EPUBJS.Hooks.mixin(this);
-
-  //-- Get pre-registered hooks for events
-  this.getHooks("beforeChapterDisplay");
 
   //-- Queue up page changes if page map isn't ready
   this._q = EPUBJS.core.queue(this);
@@ -4077,13 +6045,17 @@ EPUBJS.Renderer = function(book, _options) {
 
   this.initialize({
     "width"  : this.settings.width,
-    "height" : this.settings.height,
-    "hidden" : true
+    "height" : this.settings.height
   });
 
   this.rendering = false;
   this.views = [];
   this.positions = [];
+
+  //-- Adds Hook methods to the Renderer prototype
+  this.hooks = {};
+  this.hooks.display = new EPUBJS.Hook(this);
+  this.hooks.replacements = new EPUBJS.Hook(this);
 
 };
 
@@ -4096,7 +6068,6 @@ EPUBJS.Renderer.prototype.initialize = function(_options){
   var height  = options.height ? options.height + "px" : "100%";
   var width   = options.width ? options.width + "px" : "100%";
   var hidden  = options.hidden || false;
-
 
   this.container = document.createElement("div");
   this.infinite = new EPUBJS.Infinite(this.container, this);
@@ -4115,7 +6086,7 @@ EPUBJS.Renderer.prototype.initialize = function(_options){
     this.wrapper.appendChild(this.container);
     return this.wrapper;
   }
-
+  
   return this.container;
 };
 
@@ -4172,14 +6143,26 @@ EPUBJS.Renderer.prototype.attachTo = function(_element){
   this.infinite.start();
 
   this.infinite.on("forwards", function(){
-    if(!this.rendering) this.forwards();
+    var next = this.last().section.index + 1;
+
+    if(!this.rendering && next < this.book.spine.length){
+      this.forwards();
+    }
+
   }.bind(this));
   
   this.infinite.on("backwards", function(){
-    if(!this.rendering) this.backwards();
+    var prev = this.first().section.index - 1;
+
+    if(!this.rendering && prev > 0){
+      this.backwards();
+    }
+
   }.bind(this));
 
   window.addEventListener("resize", this.onResized.bind(this), false);
+
+  this.hooks.replacements.register(this.replacements.bind(this));
 
 };
 
@@ -4200,14 +6183,20 @@ EPUBJS.Renderer.prototype.display = function(what){
   
   this.book.opened.then(function(){
     var section = this.book.spine.get(what);
-    var rendered = this.render(section);
+    var rendered;
 
-    rendered.
-      then(this.fill.bind(this)).
-      then(function(){
-        displaying.resolve(this);
-      }.bind(this));
-  
+    if(section){
+      rendered = this.render(section);
+
+      rendered
+        .then(this.fill.bind(this))
+        .then(function(){
+          displaying.resolve(this);
+        }.bind(this));
+    } else {
+      displaying.reject(new Error("No Section Found"));
+    }
+    
   }.bind(this));
 
   return displayed;
@@ -4215,28 +6204,35 @@ EPUBJS.Renderer.prototype.display = function(what){
 
 EPUBJS.Renderer.prototype.render = function(section){
   var rendered;
-  var view = new EPUBJS.View();
+  var view;
 
   if(!section) {
-    rendered.reject();
-    return;
-  };
+    rendered = new RSVP.defer();
+    rendered.reject(new Error("No Section Provided"));
+    return rendered.promise;
+  }; 
 
-  rendered = section.render();
-  view.index = section.index;
-
+  view = new EPUBJS.View(section);
   
+  // Place view in correct position
+  this.insert(view, section.index);
 
-  return rendered.
-    then(function(contents){
-      // Place view in correct position
-      this.insert(view, section.index);
+  rendered = view.render(this.book.request);
 
-      return view.load(contents);
+  return rendered
+    .then(function(){
+      return this.hooks.display.trigger(view);
+    }.bind(this))
+    .then(function(){
+      return this.hooks.replacements.trigger(view, this);
     }.bind(this))
     .then(function(){
       this.rendering = false;
+      view.show();
       return view;
+    }.bind(this))
+    .catch(function(e){
+      this.trigger("loaderror", e);
     }.bind(this));
 
 };
@@ -4247,14 +6243,13 @@ EPUBJS.Renderer.prototype.forwards = function(){
   var rendered;
   var section;
 
-  next = this.last().index + 1;
-
+  next = this.last().section.index + 1;
   if(this.rendering || next === this.book.spine.length){
     rendered = new RSVP.defer();
-    rendered.reject({message: "reject forwards"});
+    rendered.reject(new Error("Reject Forwards"));
     return rendered.promise;
   }
-  console.log("going forwards")
+  // console.log("going forwards")
 
   this.rendering = true;
 
@@ -4262,11 +6257,8 @@ EPUBJS.Renderer.prototype.forwards = function(){
   rendered = this.render(section);
 
   rendered.then(function(){
-    // this.rendering = false;
     var first = this.first();
     var bounds = first.bounds();
-    var container = this.container.getBoundingClientRect();
-    var offset;
     var prev = this.container.scrollTop;
     if(this.views.length > this.settings.viewsLimit) {
       
@@ -4278,6 +6270,7 @@ EPUBJS.Renderer.prototype.forwards = function(){
 
     }
   }.bind(this));
+
   
   return rendered;
 };
@@ -4288,13 +6281,14 @@ EPUBJS.Renderer.prototype.backwards = function(view){
   var section;
 
 
-  prev = this.first().index - 1;
+  prev = this.first().section.index - 1;
+
   if(this.rendering || prev < 0){
     rendered = new RSVP.defer();
-    rendered.reject({message: "reject backwards"});
+    rendered.reject(new Error("Reject Backwards"));
     return rendered.promise;
   }
-  console.log("going backwards")
+  // console.log("going backwards")
 
   this.rendering = true;
 
@@ -4303,6 +6297,7 @@ EPUBJS.Renderer.prototype.backwards = function(view){
 
   rendered.then(function(){
     // this.container.scrollTop += this.first().height;
+
     this.infinite.scrollBy(0, this.first().height, true);
 
     if(this.views.length > this.settings.viewsLimit) {
@@ -4323,21 +6318,25 @@ EPUBJS.Renderer.prototype.fill = function() {
   var next = function(){
     var bottom = this.last().bounds().bottom;
     var defer = new RSVP.defer();
-    var promise = defer.promise;
 
-    if (height && bottom && (bottom < height) && (this.last().index + 1 < this.book.spine.length)) {
+    if (height && bottom && (bottom < height)) { //&& (this.last().section.index + 1 < this.book.spine.length)) {
       return this.forwards().then(next);
     } else {
       this.rendering = false;
       defer.resolve();
-      return promise;
+      return defer.promise;
     }
   }.bind(this);
+  var prev = this.first().section.index - 1;
+  var filling = next();
+
+  if(prev > 0){
+    filling.then(this.backwards.bind(this));
+  }
 
   
-  return next().
-    then(this.backwards.bind(this)).
-    then(function(){
+  return filling
+    .then(function(){
       this.rendering = false;
     }.bind(this));
 
@@ -4365,12 +6364,11 @@ EPUBJS.Renderer.prototype.insert = function(view, index){
   
   if(!this.first()) {
     this.append(view);
-  } else if(index - this.first().index >= 0) {
+  } else if(index - this.first().section.index >= 0) {
     this.append(view);
-  } else if(index - this.last().index <= 0) {
+  } else if(index - this.last().section.index <= 0) {
     this.prepend(view);
   }
-  console.log("insert")
   // return position;
 };
 
@@ -4391,36 +6389,152 @@ EPUBJS.Renderer.prototype.last = function() {
   return this.views[this.views.length-1];
 };
 
+EPUBJS.Renderer.prototype.replacements = function(view, renderer) {
+  var task = new RSVP.defer();
+  var links = view.document.querySelectorAll("a[href]");
+  var replaceLinks = function(link){
+    var href = link.getAttribute("href");
+    var isRelative = href.search("://");
+    // var directory = EPUBJS.core.uri(view.window.location.href).directory;
+    // var relative;
+
+    if(isRelative != -1){
+
+      link.setAttribute("target", "_blank");
+
+    }else{
+      
+      // relative = EPUBJS.core.resolveUrl(directory, href);
+      
+      link.onclick = function(){
+        renderer.display(href);
+        return false;
+      };
+
+    }
+  };
+
+  for (var i = 0; i < links.length; i++) {
+    replaceLinks(links[i]);
+  };
+
+  task.resolve();
+  return task.promise;
+};
+
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);
-EPUBJS.Spine = function(_package, _request){
-  this.items = _package.spine;
-  this.manifest = _package.manifest;
-  this.spineNodeIndex = _package.spineNodeIndex;
-  this.baseUrl = _package.baseUrl || '';
+EPUBJS.Section = function(item){
+    this.idref = item.idref;
+    this.linear = item.linear;
+    this.properties = item.properties;
+    this.index = item.index;
+    this.href = item.href;
+    this.url = item.url;
+    this.cfiBase = item.cfiBase;
+
+    this.hooks = {};
+    this.hooks.replacements = new EPUBJS.Hook(this);
+
+    // Register replacements
+    this.hooks.replacements.register(this.replacements);
+};
+
+
+EPUBJS.Section.prototype.load = function(_request){
+  var request = _request || this.request || EPUBJS.core.request;
+  var loading = new RSVP.defer();
+  var loaded = loading.promise;
+
+  if(this.contents) {
+    loading.resolve(this.contents);
+  } else {
+    request(this.url, 'xml')
+      .then(function(xml){
+        var base;
+        var directory = EPUBJS.core.folder(this.url);
+
+        this.document = xml;
+        this.contents = xml.documentElement;
+
+        return this.hooks.replacements.trigger(this.document);
+      }.bind(this))
+      .then(function(){
+        loading.resolve(this.contents);
+      }.bind(this))
+      .catch(function(error){
+        loading.reject(error);
+      });
+  }
+  
+  return loaded;
+};
+
+EPUBJS.Section.prototype.replacements = function(_document){
+    var task = new RSVP.defer();
+    var base = _document.createElement("base"); // TODO: check if exists
+    
+    base.setAttribute("href", this.url);
+    _document.head.insertBefore(base, _document.head.firstChild);
+    
+    task.resolve();
+
+    return task.promise;
+};
+
+EPUBJS.Section.prototype.beforeSectionLoad = function(){
+  // Stub for a hook - replace me for now
+}
+
+EPUBJS.Section.prototype.render = function(_request){
+  var rendering = new RSVP.defer();
+  var rendered = rendering.promise;
+  
+  this.load(_request).then(function(contents){
+    var serializer = new XMLSerializer();
+    var output = serializer.serializeToString(contents);
+    rendering.resolve(output);
+  })
+  .catch(function(error){
+    rendering.reject(error);
+  });
+
+  return rendered;
+};
+
+EPUBJS.Section.prototype.find = function(_query){
+
+};
+EPUBJS.Spine = function(_request){
   this.request = _request;
-  this.length = this.items.length;
-  this.epubcfi = new EPUBJS.EpubCFI();
   this.spineItems = [];
   this.spineByHref = {};
   this.spineById = {};
 
+};
+
+EPUBJS.Spine.prototype.load = function(_package) {
+
+  this.items = _package.spine;
+  this.manifest = _package.manifest;
+  this.spineNodeIndex = _package.spineNodeIndex;
+  this.baseUrl = _package.baseUrl || '';
+  this.length = this.items.length;
+  this.epubcfi = new EPUBJS.EpubCFI();
+
   this.items.forEach(function(item, index){
-    var cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
     var href, url;
     var manifestItem = this.manifest[item.idref];
     var spineItem;
+    item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
     if(manifestItem) {
-      href = manifestItem.href;
-      url = this.baseUrl + href;
+      item.href = manifestItem.href;
+      item.url = this.baseUrl + item.href;
     }
 
-    spineItem = new EPUBJS.SpineItem(item, href, url, cfiBase);
-    this.spineItems.push(spineItem);
-
-    this.spineByHref[spineItem.href] = index;
-    this.spineById[spineItem.idref] = index;
+    spineItem = new EPUBJS.Section(item);
+    this.append(spineItem);
 
 
   }.bind(this));
@@ -4445,118 +6559,51 @@ EPUBJS.Spine.prototype.get = function(target) {
   return this.spineItems[index];
 };
 
+EPUBJS.Spine.prototype.append = function(section) {
+  var index = this.spineItems.length;
+  section.index = index;
 
-EPUBJS.SpineItem = function(item, href, url, cfiBase){
-    this.idref = item.idref;
-    this.linear = item.linear;
-    this.properties = item.properties;
-    this.index = item.index;
-    this.href = href;
-    this.url = url;
-    this.cfiBase = cfiBase;
+  this.spineItems.push(section);
+
+  this.spineByHref[section.href] = index;
+  this.spineById[section.idref] = index;
+
+  return index;
 };
 
+EPUBJS.Spine.prototype.prepend = function(section) {
+  var index = this.spineItems.unshift(section);
+  this.spineByHref[section.href] = 0;
+  this.spineById[section.idref] = 0;
 
-EPUBJS.SpineItem.prototype.load = function(_request){
-  var request = _request || this.request || EPUBJS.core.request;
-  var loading = new RSVP.defer();
-  var loaded = loading.promise;
-
-  if(this.contents) {
-    loading.resolve(this.contents);
-  } else {  
-    request(this.url, 'xml').then(function(xml){
-      var base;
-      var directory = EPUBJS.core.folder(this.url);
-
-      this.document = xml;
-      this.contents = xml.documentElement;
-
-      this.replacements(this.document);
-
-      loading.resolve(this.contents);
-    }.bind(this));
-  }
-  
-  return loaded;
-};
-
-EPUBJS.SpineItem.prototype.replacements = function(_document){
-      var base = _document.createElement("base");
-      base.setAttribute("href", this.url);
-      _document.head.insertBefore(base, _document.head.firstChild);
-};
-
-EPUBJS.SpineItem.prototype.render = function(){
-  var rendering = new RSVP.defer();
-  var rendered = rendering.promise;
-  
-  this.load().then(function(contents){
-    var serializer = new XMLSerializer();
-    var output = serializer.serializeToString(contents);
-    rendering.resolve(output);
+  // Re-index
+  this.spineItems.forEach(function(item, index){
+    item.index = index;
   });
-  
-  return rendered;
+
+  return 0;
 };
 
-EPUBJS.SpineItem.prototype.find = function(_query){
+EPUBJS.Spine.prototype.insert = function(section, index) {
 
 };
-EPUBJS.View = function(width, height) {
+
+EPUBJS.Spine.prototype.remove = function(section) {
+  var index = this.spineItems.indexOf(section);
+
+  if(index > -1) {
+    delete this.spineByHref[section.href];
+    delete this.spineById[section.idref];
+
+    return this.spineItems.splice(index, 1);
+  }
+};
+EPUBJS.View = function(section) {
   this.id = "epubjs-view:" + EPUBJS.core.uuid();
-  this.loading = new RSVP.defer();
-  this.loaded = this.loading.promise;
+  this.rendering = new RSVP.defer();
+  this.rendered = this.rendering.promise;
   this.iframe = this.create();
-  this.height;
-  this.width;
-};
-
-EPUBJS.View.prototype.load = function(contents) {
-  var loading = new RSVP.defer();
-  var loaded = loading.promise;
-
-  this.document = this.iframe.contentDocument;
-  
-  this.iframe.addEventListener("load", function(event) {
-    var layout;
-    
-    this.window = this.iframe.contentWindow;
-    this.document = this.iframe.contentDocument;
-  
-    this.iframe.style.display = "block";
-
-    // Reset Body Styles
-    this.document.body.style.margin = "0";
-    this.document.body.style.display = "inline-block";    
-
-    this.layout();
-
-    this.iframe.style.visibility = "visible";
-
-    setTimeout(function(){
-      this.window.addEventListener("resize", this.resized.bind(this), false);
-    }.bind(this), 10); // Wait to listen for resize events
-
-    this.document.fonts.onloading = function(){
-      console.log("loaded fonts");
-      // this.layout();
-    }.bind(this);
-
-    // this.observer = this.observe(this.document);
-
-    loading.resolve(this);
-    this.loading.resolve(this);
-    
-  }.bind(this));
-  
-  
-  // this.iframe.srcdoc = contents;
-  this.document.open();
-  this.document.write(contents);
-  this.document.close();
-
-  return loaded;
+  this.section = section;
 };
 
 EPUBJS.View.prototype.create = function() {
@@ -4588,9 +6635,81 @@ EPUBJS.View.prototype.resized = function(e) {
 
 };
 
+EPUBJS.View.prototype.render = function(_request) {
+    return this.section.render(_request)
+      .then(function(contents){
+        return this.load(contents);
+      }.bind(this))
+      .then(this.display.bind(this))
+      .then(function(){
+        this.rendering.resolve(this);
+      }.bind(this));
+};
+
+EPUBJS.View.prototype.load = function(contents) {
+  var loading = new RSVP.defer();
+  var loaded = loading.promise;
+
+  this.document = this.iframe.contentDocument;
+  
+  this.iframe.addEventListener("load", function(event) {
+    var layout;
+    
+    this.window = this.iframe.contentWindow;
+    this.document = this.iframe.contentDocument;
+
+    loading.resolve(this);
+    
+  }.bind(this));
+  
+  
+  // this.iframe.srcdoc = contents;
+  this.document.open();
+  this.document.write(contents);
+  this.document.close();
+
+  return loaded;
+};
+
+EPUBJS.View.prototype.display = function(contents) {
+  var displaying = new RSVP.defer();
+  var displayed = displaying.promise;
+  
+  this.iframe.style.display = "block";
+
+  // Reset Body Styles
+  this.document.body.style.margin = "0";
+  this.document.body.style.display = "inline-block";  
+
+    // Set Padding -> TODO: apply these from a function
+  this.document.body.style.padding = "0 20px 20px 20px";
+  
+
+  setTimeout(function(){
+    this.window.addEventListener("resize", this.resized.bind(this), false);
+  }.bind(this), 10); // Wait to listen for resize events
+
+
+
+  if(this.document.fonts.status !== "loading") {
+    this.layout();
+    displaying.resolve(this);
+  } else {
+    this.document.fonts.onloading = function(){
+      this.layout();
+      displaying.resolve(this);
+    }.bind(this);
+  }
+
+  // this.observer = this.observe(this.document);
+
+  return displayed
+
+};
+
 EPUBJS.View.prototype.layout = function() {
   var bounds;
-  console.log("layout")
+
   // Check bounds
   bounds = this.document.body.getBoundingClientRect();
 
@@ -4598,13 +6717,8 @@ EPUBJS.View.prototype.layout = function() {
     console.error("View not shown");
   }
 
-  // Apply Changes
-  this.resizing = true;
-  this.iframe.style.height = bounds.height + "px";
-  // this.iframe.style.width = bounds.width + "px";
 
-  // Check again
-  bounds = this.document.body.getBoundingClientRect();
+  // Apply Changes
   this.resizing = true;
   this.iframe.style.height = bounds.height + "px";
   // this.iframe.style.width = bounds.width + "px";
@@ -4647,10 +6761,20 @@ EPUBJS.View.prototype.bounds = function() {
   return this.iframe.getBoundingClientRect();
 };
 
+EPUBJS.View.prototype.show = function() {
+  this.iframe.style.display = "block";
+  this.iframe.style.visibility = "visible"; 
+};
+
+EPUBJS.View.prototype.hide = function() {
+  this.iframe.style.display = "none";
+  this.iframe.style.visibility = "hidden"; 
+};
+
 EPUBJS.View.prototype.destroy = function() {
   // Stop observing
   // this.observer.disconnect();
-  
+
   this.element.removeChild(this.iframe);
 };
 

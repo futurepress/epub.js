@@ -1,10 +1,52 @@
+var domain = window.location.origin;
+
+module('Core');
+
+test("EPUBJS.core.resolveUrl", 1, function() {
+  var a = "http://example.com/fred/chasen/";
+  var b = "/chasen/derf.html";
+
+  var resolved = EPUBJS.core.resolveUrl(a, b);
+
+  equal( resolved, "http://example.com/fred/chasen/derf.html", "resolved" );
+
+});
+
+test("EPUBJS.core.resolveUrl ../", 1, function() {
+  var a = "http://example.com/fred/chasen/";
+  var b = "../derf.html";
+
+  var resolved = EPUBJS.core.resolveUrl(a, b);
+
+  equal( resolved, "http://example.com/fred/derf.html", "resolved" );
+});
+
+
+test("EPUBJS.core.resolveUrl folders", 1, function() {
+  var a = "/fred/chasen/";
+  var b = "/fred/chasen/derf.html";
+
+  var resolved = EPUBJS.core.resolveUrl(a, b);
+
+  equal( resolved, "/fred/chasen/derf.html", "resolved" );
+});
+
+test("EPUBJS.core.resolveUrl ../folders", 1, function() {
+  var a = "/fred/chasen/";
+  var b = "../../derf.html";
+
+  var resolved = EPUBJS.core.resolveUrl(a, b);
+
+  equal( resolved, "/derf.html", "resolved" );
+});
+
 module('Create');
 
 asyncTest("Create new ePub(/path/to/epub/)", 1, function() {
   
   var book = ePub("../books/moby-dick/");
   book.opened.then(function(){
-    equal( book.url, "../books/moby-dick/OPS/", "bookPath is passed to new EPUBJS.Book" );
+    equal( book.url, "../books/moby-dick/OPS/", "book url is passed to new EPUBJS.Book" );
     start();
   });
 
@@ -14,7 +56,7 @@ asyncTest("Create new ePub(/path/to/epub/package.opf)", 1, function() {
 
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.opened.then(function(){
-    equal( book.url, "../books/moby-dick/OPS/", "bookPath is passed to new EPUBJS.Book" );
+    equal( book.url, domain + "/books/moby-dick/OPS/", "bookPath is passed to new EPUBJS.Book" );
     start();
   });
 
@@ -98,7 +140,7 @@ asyncTest("Spine", 1, function() {
 
 asyncTest("Cover", 1, function() {
 
-  var book = ePub("../books/moby-dick/OPS/package.opf");
+  var book = ePub("../books/moby-dick/");
   book.opened.then(function(){
     equal( book.cover, "../books/moby-dick/OPS/images/9780316000000.jpg", "Cover is set" );
     start();
@@ -132,7 +174,7 @@ asyncTest("First Item", 2, function() {
 
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.opened.then(function(){
-    var section = book.spine.get(1);
+    var section = book.spine.get(0);
     equal( section.href, "cover.xhtml", "First spine item href found" );
     equal( section.cfiBase, "/6/2[cover]", "First spine item cfi found" );
 
@@ -173,7 +215,7 @@ asyncTest("Render Spine Item", 1, function() {
   book.opened.then(function(){
     var section = book.spine.get("#xchapter_050");
     section.render().then(function(content){
-      equal( content.substring(303, 355), "<h1>Chapter 50. Ahab’s Boat and Crew. Fedallah.</h1>", "Chapter text rendered as string" );
+      equal( content.substring(377, 429), "<h1>Chapter 50. Ahab’s Boat and Crew. Fedallah.</h1>", "Chapter text rendered as string" );
     });
 
     start();
@@ -185,7 +227,7 @@ module('Navigation');
 
 asyncTest("NCX & Nav", 2, function() {
 
-  var book = ePub("../books/moby-dick/OPS/package.opf");
+  var book = ePub("../books/moby-dick/");
   book.opened.then(function(){
     equal( book.navigation.navUrl, "../books/moby-dick/OPS/toc.xhtml", "Nav URL found" );
     equal( book.navigation.ncxUrl, "../books/moby-dick/OPS/toc.ncx", "NCX URL found" );
@@ -198,7 +240,7 @@ asyncTest("NCX & Nav", 2, function() {
 
 asyncTest("Load TOC Auto Pick", 1, function() {
 
-  var book = ePub("../books/moby-dick/OPS/package.opf");
+  var book = ePub("../books/moby-dick/");
   book.opened.then(function(){
     book.navigation.load().then(function(toc){
       equal( toc.length, 141, "Full Nav toc parsed" );
@@ -263,5 +305,67 @@ asyncTest("Get TOC time by ID", 1, function() {
     equal( item.href, "chapter_001.xhtml", "Found TOC item" );
     start();
   });
+
+});
+
+module('Hooks');
+
+asyncTest("Register a new hook", 1, function() {
+
+  var beforeDisplay = new EPUBJS.Hook();
+  beforeDisplay.register(function(args){
+    var defer = new RSVP.defer();
+    console.log("ran", 1);
+    defer.resolve();
+    return defer.promise;
+  });
+  equal( beforeDisplay.hooks.length, 1, "Registered a hook" );
+  start();
+
+// this.beforeDisplay.trigger(args).then(function(){});
+
+});
+
+asyncTest("Trigger all new hook", 4, function() {
+
+  var beforeDisplay = new EPUBJS.Hook(this);
+  this.testerObject = {tester: 1};
+
+  beforeDisplay.register(function(testerObject){
+    var defer = new RSVP.defer();
+
+    start();
+    equal( testerObject.tester, 1, "tester is 1" );
+    stop();
+
+    testerObject.tester += 1;
+
+    defer.resolve();
+    return defer.promise;
+  });
+
+  beforeDisplay.register(function(testerObject){
+    var defer = new RSVP.defer();
+
+    start();
+    equal(testerObject.tester, 2, "tester is 2" );
+    stop();
+
+    testerObject.tester += 1;
+
+    defer.resolve();
+    return defer.promise;
+  });
+
+  start();
+  equal( beforeDisplay.hooks.length, 2, "Added two hooks" );
+  stop();
+
+  beforeDisplay.trigger(this.testerObject).then(function(){
+   
+    start();
+    equal( this.testerObject.tester, 3, "tester is 3" );
+
+  }.bind(this));
 
 });

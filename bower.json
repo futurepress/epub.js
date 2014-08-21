@@ -26,6 +26,7 @@
   "devDependencies": {
     "qunit": "~1.14.0",
     "jquery": "~2.1.1",
-    "rsvp": "~3.0.8"
+    "rsvp": "~3.0.8",
+    "uri.js": "~1.13.2"
   }
 }
