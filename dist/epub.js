@@ -4453,7 +4453,7 @@ EPUBJS.core.request = function(url, type, withCredentials, headers) {
   var xhrPrototype = XMLHttpRequest.prototype;
   
   var header;
-  
+
   if (!('overrideMimeType' in xhrPrototype)) {
     // IE10 might have response, but not overrideMimeType
     Object.defineProperty(xhrPrototype, 'overrideMimeType', {
@@ -4723,7 +4723,7 @@ EPUBJS.core.resolveUrl = function(base, path) {
       directories.pop();
       segments.unshift(part);
     } else {
-      segments.push(part);
+      segments.unshift(part);
     }
   });
 
@@ -6716,7 +6716,6 @@ EPUBJS.View.prototype.layout = function() {
   if(!bounds || (bounds.height == 0 && bounds.width == 0)) {
     console.error("View not shown");
   }
-
 
   // Apply Changes
   this.resizing = true;
