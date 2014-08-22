@@ -127,7 +127,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-			return this.load(url);
+			return this.load(chapter);
 
 		}.bind(this));
 

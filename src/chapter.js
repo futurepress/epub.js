@@ -33,6 +33,24 @@ EPUBJS.Chapter.prototype.load = function(_store){
 	return promise;
 };
 
+EPUBJS.Chapter.prototype.render = function(_store){
+	
+	return this.load().then(function(doc){
+		
+		var serializer = new XMLSerializer();
+		var contents;
+		var head = doc.head;
+		var base = doc.createElement("base");
+		
+		base.setAttribute("href", window.location.origin + this.absolute);
+		head.insertBefore(base, head.firstChild);
+		contents = serializer.serializeToString(doc);
+		
+		return contents;
+		
+	}.bind(this));
+};
+
 EPUBJS.Chapter.prototype.url = function(_store){
 	var deferred = new RSVP.defer();
 	var store = _store || this.store;
