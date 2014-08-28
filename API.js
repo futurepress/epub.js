@@ -117,3 +117,14 @@ section.find("query");
 epub.on("noAuth", function(){
 
 });
+
+rendition = epub.renderTo("elementID", {});
+
+pagination = rendition.paginate({});
+pagination = new EPUBJS.Paginate(rendition, {spreads: true, minwidth: 800, layout: {} });
+  layout = new EPUBJS.Layout(global);
+
+pagination.next();
+pagination.prev();
+pagination.page();
+pagination.map();
