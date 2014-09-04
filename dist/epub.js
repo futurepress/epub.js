@@ -6859,11 +6859,19 @@ EPUBJS.Section.prototype.load = function(_request){
 EPUBJS.Section.prototype.replacements = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
-    
+    var head;
     base.setAttribute("href", this.url);
-    _document.head.insertBefore(base, _document.head.firstChild);
+
+    if(_document) {
+      head = _document.querySelector("head");
+    }
+    if(head) {
+      head.insertBefore(base, head.firstChild);
+      task.resolve();
+    } else {
+      task.reject(new Error("No head to insert into"));
+    }
     
-    task.resolve();
 
     return task.promise;
 };
@@ -7001,8 +7009,8 @@ EPUBJS.View.prototype.create = function() {
   this.iframe.style.border = "none";
 
   this.resizing = true;
-  this.iframe.style.width = "100%";
-  this.iframe.style.height = "100%";
+  // this.iframe.style.width = "100%";
+  // this.iframe.style.height = "100%";
 
   this.iframe.style.display = "none";
   this.iframe.style.visibility = "hidden";
