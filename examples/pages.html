@@ -24,7 +24,7 @@
 
     #viewer { 
       width: 900px;
-      height: 400px;
+      height: 600px;
       background: white;
       box-shadow: 0 0 4px #ccc;
       border-radius: 5px;
@@ -114,10 +114,10 @@
     var currentSectionIndex = 10;
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer", {axis: "horizontal", width: 900, height: 400});
+    var rendition = book.renderTo("viewer", {axis: "horizontal", width: 900, height: 600});
     var pagination = rendition.paginate();
 
-    var displayed = rendition.display(currentSectionIndex);
+    var displayed = pagination.display(currentSectionIndex);
     
 
     displayed.then(function(renderer){

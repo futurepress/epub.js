@@ -5948,6 +5948,10 @@ EPUBJS.Paginate.prototype.prev = function(){
   console.log("prev", this.formated.pageWidth)
   this.renderer.infinite.scrollBy(-this.formated.pageWidth, 0);
 };
+
+EPUBJS.Paginate.prototype.display = function(what){
+  return this.renderer.display(what)
+};
 EPUBJS.Parser = function(){};
 
 EPUBJS.Parser.prototype.container = function(containerXml){
@@ -6497,6 +6501,8 @@ EPUBJS.Renderer.prototype.display = function(what){
   var displaying = new RSVP.defer();
   var displayed = displaying.promise;
   
+  // TODO: check for fragments
+
   // Clear views
   this.clear();
   
@@ -6761,22 +6767,27 @@ EPUBJS.Renderer.prototype.replacements = function(view, renderer) {
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
-    var isRelative = href.search("://");
-    // var directory = EPUBJS.core.uri(view.window.location.href).directory;
-    // var relative;
+    var uri = new EPUBJS.core.uri(href);
 
-    if(isRelative != -1){
+    if(uri.protocol){
 
       link.setAttribute("target", "_blank");
 
     }else{
       
       // relative = EPUBJS.core.resolveUrl(directory, href);
+      // if(uri.fragment && !base) {
+      //   link.onclick = function(){
+      //     renderer.fragment(href);
+      //     return false;
+      //   };
+      // } else {
+        link.onclick = function(){
+          renderer.display(href);
+          return false;
+        };
+      //}
       
-      link.onclick = function(){
-        renderer.display(href);
-        return false;
-      };
 
     }
   };
@@ -7053,7 +7064,7 @@ EPUBJS.View.prototype.display = function(contents) {
 
   // Reset Body Styles
   this.document.body.style.margin = "0";
-  // this.document.body.style.display = "inline-block";  
+  this.document.body.style.display = "inline-block";  
   this.document.documentElement.style.width = "auto";
   
   setTimeout(function(){
