@@ -622,7 +622,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
 					// map[page-1].start = cfi;
-					map.push({ start: cfi, end: null })
+					map.push({ start: cfi, end: null });
 				}
 			} else {
 				if(prevRange){
@@ -667,7 +667,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 		cfi = renderer.currentChapter.cfiFromRange(range);
 		
-		map.push({ start: cfi, end: cfi })
+		map.push({ start: cfi, end: cfi });
 
 	}
 
