@@ -564,7 +564,7 @@ EPUBJS.Renderer.prototype.sprint = function(root, func) {
 
 EPUBJS.Renderer.prototype.mapPage = function(){
 	var renderer = this;
-	var map = [{ start: null, end: null }];
+	var map = [];
 	var root = this.render.getBaseElement();
 	var page = 1;
 	var width = this.layout.colWidth + this.layout.gap;
@@ -617,18 +617,18 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			if(!pos || (pos.width === 0 && pos.height === 0)) {
 				return;
 			}
-
 			if(pos.left + pos.width < limit) {
-				if(!map[page-1].start){
+				if(!map[page-1]){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
-					map[page-1].start = cfi;
+					// map[page-1].start = cfi;
+					map.push({ start: cfi, end: null })
 				}
 			} else {
 				if(prevRange){
 					prevRange.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[page-1].end = cfi;
+					map[map.length-1].end = cfi;
 				}
 
 				range.collapse(true);
@@ -656,18 +656,19 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 		prevRange.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
-		map[page-1].end = cfi;
+		map[map.length-1].end = cfi;
 	}
 
 	// Handle empty map
-	if(map.length === 1 && !map[0].start) {
+	if(!map.length) {
 		range = this.doc.createRange();
 		range.selectNodeContents(root);
 		range.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(range);
-		map[0].start = cfi;
-		map[0].end = cfi;
+		
+		map.push({ start: cfi, end: cfi })
+
 	}
 
 	// clean up

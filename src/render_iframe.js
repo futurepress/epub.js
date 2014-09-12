@@ -49,7 +49,6 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 			render.bodyEl = render.document.body;
 			render.window = render.iframe.contentWindow;
 			
-			
 			render.window.addEventListener("resize", render.resized.bind(render), false);
 		
 			//-- Clear Margins
