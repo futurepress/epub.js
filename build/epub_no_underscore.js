@@ -5720,11 +5720,7 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 	var render = this,
 			deferred = new RSVP.defer();
 	
-	render.document = render.iframe.contentDocument;
-
-	// this.iframe.contentWindow.location.replace(url);
-	chapter.render().then(function(contents){
-		
+	chapter.url().then(function(url){
 		// Reset the scroll position
 		render.leftPos = 0;
 	
@@ -5733,6 +5729,7 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 		}
 		
 		this.iframe.onload = function(e) {
+			render.document = render.iframe.contentDocument;
 			render.docEl = render.document.documentElement;
 			render.headEl = render.document.head;
 			render.bodyEl = render.document.body;
@@ -5756,10 +5753,7 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 				});
 		};
 		
-		
-		this.document.open();
-		this.document.write(contents);
-		this.document.close();
+		this.iframe.contentWindow.location.replace(url);
 		
 	}.bind(this));
 	
