@@ -119,7 +119,7 @@
          <script>
             "use strict";
 
-            var book = ePub("../books/bkb_9781609949914/", { width: 1076, height: 588 });
+            var book = ePub("../books/georgia-cfi-20120521/", { width: 1076, height: 588 });
 
         </script>
     </head>
@@ -149,12 +149,11 @@
 
             // Load in stored pageList from json or local storage
             ///*
-            EPUBJS.core.request("../books/bkb_9781609949914/page_list.json").then(function(storedPageList){
-                pageList = storedPageList;
-                // console.log(storedPageList)
-                book.loadPagination(pageList);
-            });
-            
+            // EPUBJS.core.request("page_list.json").then(function(storedPageList){
+            //     pageList = storedPageList;
+            //     console.log(storedPageList)
+            //     book.loadPagination(pageList);
+            // });
 
             // Or generate the pageList on the fly
             // book.ready.all.then(function(){
