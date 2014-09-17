@@ -3709,7 +3709,7 @@ EPUBJS.Chapter.prototype.find = function(_query){
 		var pos;
 		var last = -1;
 		var excerpt;
-		var limit = 150;
+		var limit = 80;
 		
 		while (pos != -1) {
 			pos = text.indexOf(query, last + 1);
