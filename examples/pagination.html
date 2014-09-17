@@ -119,7 +119,7 @@
          <script>
             "use strict";
 
-            var book = ePub("../reader/moby-dick/", { width: 1076, height: 588 });
+            var book = ePub("../books/georgia-cfi-20120521/", { width: 1076, height: 588 });
 
         </script>
     </head>
@@ -158,7 +158,7 @@
 
             // Or generate the pageList on the fly
             book.ready.all.then(function(){
-                book.generatePagination();
+                // book.generatePagination();
             });
 
             // Wait for the pageList to be ready and then show slider
