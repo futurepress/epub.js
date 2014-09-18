@@ -111,7 +111,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 	var displayedPages = Math.ceil(totalWidth / this.spreadWidth);
 
 	//-- Add a page to the width of the document to account an for odd number of pages
-	this.documentElement.style.width = totalWidth + this.spreadWidth + "px";
+	this.documentElement.style.width = ((displayedPages * this.spreadWidth) - this.gap) + "px";
+
 	return {
 		displayedPages : displayedPages,
 		pageCount : displayedPages * 2
