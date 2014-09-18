@@ -3327,10 +3327,10 @@ EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
 	this.renderer.setStyle(style, val, prefixed);
 	
 	if(noreflow.indexOf(style) === -1) {
-		clearTimeout(this.reformatTimeout);
-		this.reformatTimeout = setTimeout(function(){
-			this.renderer.reformat();
-		}.bind(this), 10);
+		// clearTimeout(this.reformatTimeout);
+		// this.reformatTimeout = setTimeout(function(){
+		this.renderer.reformat();
+		// }.bind(this), 10);
 	}
 };
 
@@ -3355,9 +3355,11 @@ EPUBJS.Book.prototype.useSpreads = function(use) {
 	}
 };
 
-EPUBJS.Book.prototype.forceSingle = function(use) {
-	this.renderer.forceSingle(use);
-	this.settings.forceSingle = use;
+EPUBJS.Book.prototype.forceSingle = function(_use) {
+	var force = typeof _use === "undefined" ? true : _use;
+	
+	this.renderer.forceSingle(force);
+	this.settings.forceSingle = force;
 	if(this.isRendered) {
 		this.renderer.reformat();
 	}
@@ -5071,7 +5073,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 	var displayedPages = Math.ceil(totalWidth / this.spreadWidth);
 
 	//-- Add a page to the width of the document to account an for odd number of pages
-	this.documentElement.style.width = totalWidth + this.spreadWidth + "px";
+	this.documentElement.style.width = ((displayedPages * this.spreadWidth) - this.gap) + "px";
+
 	return {
 		displayedPages : displayedPages,
 		pageCount : displayedPages * 2
@@ -6212,28 +6215,33 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
+
 	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
 		this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	}
+	
+	// Reset pages
+	this.chapterPos = 1;
+	this.render.page(1);
 
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
-
+	// Give the css styles time to update
+	// clearTimeout(this.timeoutTillCfi);
+	// this.timeoutTillCfi = setTimeout(function(){
+		
+	renderer.formated = renderer.layout.format(renderer.contents, renderer.render.width, renderer.render.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+			
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
 
-	// Give the css styles time to update
-	clearTimeout(this.timeoutTillCfi);
-	this.timeoutTillCfi = setTimeout(function(){
-		//-- Go to current page after formating
-		if(renderer.currentLocationCfi){
-			renderer.gotoCfi(renderer.currentLocationCfi);
-		}
-		this.timeoutTillCfi = null;
-	}, 10);
+	//-- Go to current page after formating
+	if(renderer.currentLocationCfi){
+		renderer.gotoCfi(renderer.currentLocationCfi);
+	}
+		// renderer.timeoutTillCfi = null;
 
 };
 

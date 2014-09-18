@@ -302,28 +302,33 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
+
 	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
 		this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	}
+	
+	// Reset pages
+	this.chapterPos = 1;
+	this.render.page(1);
 
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
-
+	// Give the css styles time to update
+	// clearTimeout(this.timeoutTillCfi);
+	// this.timeoutTillCfi = setTimeout(function(){
+		
+	renderer.formated = renderer.layout.format(renderer.contents, renderer.render.width, renderer.render.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+			
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
 
-	// Give the css styles time to update
-	clearTimeout(this.timeoutTillCfi);
-	this.timeoutTillCfi = setTimeout(function(){
-		//-- Go to current page after formating
-		if(renderer.currentLocationCfi){
-			renderer.gotoCfi(renderer.currentLocationCfi);
-		}
-		this.timeoutTillCfi = null;
-	}, 10);
+	//-- Go to current page after formating
+	if(renderer.currentLocationCfi){
+		renderer.gotoCfi(renderer.currentLocationCfi);
+	}
+		// renderer.timeoutTillCfi = null;
 
 };
 
