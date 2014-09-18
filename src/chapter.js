@@ -112,7 +112,8 @@ EPUBJS.Chapter.prototype.setDocument = function(_document){
 	// Creates an empty document
 	this.document = _document.implementation.createDocument(
 			uri,
-			null 
+			null,
+			_document.doctype
 	);
 	this.contents = this.document.importNode(
 			_document.documentElement, //node to import
@@ -120,6 +121,12 @@ EPUBJS.Chapter.prototype.setDocument = function(_document){
 	);
 
 	this.document.appendChild(this.contents);
+
+	// Fix to apply wgxpath to new document in IE
+	if(!this.document.evaluate && document.evaluate) {
+		this.document.evaluate = document.evaluate;
+	}
+
 	// this.deferred.resolve(this.contents);
 };
 
