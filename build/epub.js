@@ -3622,13 +3622,13 @@ EPUBJS.Chapter.prototype.unload = function(store){
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
 	var uri = _document.namespaceURI;
-	// var doctype = _document.doctype;
-	
+	var doctype = _document.doctype;
+
 	// Creates an empty document
 	this.document = _document.implementation.createDocument(
 			uri,
 			null,
-			_document.doctype
+			null
 	);
 	this.contents = this.document.importNode(
 			_document.documentElement, //node to import
@@ -3656,6 +3656,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	startXpath = EPUBJS.core.getElementXPath(_range.startContainer);
 	// console.log(startContainer)
 	endXpath = EPUBJS.core.getElementXPath(_range.endContainer);
+
 	startContainer = this.document.evaluate(startXpath, this.document, EPUBJS.core.nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 	
 	if(!_range.collapsed) {
