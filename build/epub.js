@@ -2185,7 +2185,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.1";
+EPUBJS.VERSION = "0.2.2";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -3080,12 +3080,13 @@ EPUBJS.Book.prototype.prevPage = function() {
 
 EPUBJS.Book.prototype.nextChapter = function() {
 	var next;
-	if (this.spinePos < this.spine.length ) {
+	if (this.spinePos < this.spine.length - 1) {
 		next = this.spinePos + 1;
+		// Skip non linear chapters
 		while (this.spine[next] && this.spine[next].linear && this.spine[next].linear == 'no') {
 			next++;
 		}
-		if (next < this.spine.length ) {
+		if (next < this.spine.length) {
 			return this.displayChapter(next);
 		} else {
 			this.trigger("book:atEnd");
@@ -5566,15 +5567,14 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	
 	function getTOC(parent){
 		var list = [],
-				nodes = parent.querySelectorAll("navPoint"),
-				items = Array.prototype.slice.call(nodes).reverse(),
-				length = items.length,
-				iter = length,
-				node;
+			snapshot = tocXml.evaluate("*[local-name()='navPoint']", parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null),
+			length = snapshot.snapshotLength;
 		
 		if(length === 0) return [];
 
-		items.forEach(function(item){
+		for ( var i=length-1 ; i >= 0; i-- ) {
+			var item = snapshot.snapshotItem(i);
+
 			var id = item.getAttribute('id') || false,
 					content = item.querySelector("content"),
 					src = content.getAttribute('src'),
@@ -5596,8 +5596,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 					id = 'epubjs-autogen-toc-id-' + (idCounter++);
 				}
 			}
-			
-			
+
 			list.unshift({
 						"id": id,
 						"href": src,
@@ -5608,7 +5607,7 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 						"cfi" : cfi
 			});
 
-		});
+		}
 
 		return list;
 	}

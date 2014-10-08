@@ -831,10 +831,11 @@ EPUBJS.Book.prototype.nextChapter = function() {
 	var next;
 	if (this.spinePos < this.spine.length - 1) {
 		next = this.spinePos + 1;
+		// Skip non linear chapters
 		while (this.spine[next] && this.spine[next].linear && this.spine[next].linear == 'no') {
 			next++;
 		}
-		if (next < this.spine.length - 1) {
+		if (next < this.spine.length) {
 			return this.displayChapter(next);
 		} else {
 			this.trigger("book:atEnd");
