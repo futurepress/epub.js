@@ -87,7 +87,8 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 	} else {
 		this.render.resize('100%', '100%');
 	}
-
+ 
+	document.addEventListener("orientationchange", this.onResized);
 };
 
 /**
@@ -127,7 +128,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-			return this.load(url);
+			return this.load(chapter);
 
 		}.bind(this));
 
@@ -153,7 +154,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	render.then(function(contents) {
 		var formated;
-		this.currentChapter.contents = this.render.document;
+		this.currentChapter.setDocument(this.render.document);
 		this.contents = contents;
 		this.doc = this.render.document;
 
@@ -302,28 +303,33 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
+
 	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
 		this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	}
+	
+	// Reset pages
+	this.chapterPos = 1;
+	this.render.page(1);
 
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
-
+	// Give the css styles time to update
+	// clearTimeout(this.timeoutTillCfi);
+	// this.timeoutTillCfi = setTimeout(function(){
+		
+	renderer.formated = renderer.layout.format(renderer.contents, renderer.render.width, renderer.render.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+			
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
 
-	// Give the css styles time to update
-	clearTimeout(this.timeoutTillCfi);
-	this.timeoutTillCfi = setTimeout(function(){
-		//-- Go to current page after formating
-		if(renderer.currentLocationCfi){
-			renderer.gotoCfi(renderer.currentLocationCfi);
-		}
-		this.timeoutTillCfi = null;
-	}, 10);
+	//-- Go to current page after formating
+	if(renderer.currentLocationCfi){
+		renderer.gotoCfi(renderer.currentLocationCfi);
+	}
+		// renderer.timeoutTillCfi = null;
 
 };
 
@@ -564,7 +570,7 @@ EPUBJS.Renderer.prototype.sprint = function(root, func) {
 
 EPUBJS.Renderer.prototype.mapPage = function(){
 	var renderer = this;
-	var map = [{ start: null, end: null }];
+	var map = [];
 	var root = this.render.getBaseElement();
 	var page = 1;
 	var width = this.layout.colWidth + this.layout.gap;
@@ -617,18 +623,18 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			if(!pos || (pos.width === 0 && pos.height === 0)) {
 				return;
 			}
-
 			if(pos.left + pos.width < limit) {
-				if(!map[page-1].start){
+				if(!map[page-1]){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
-					map[page-1].start = cfi;
+					// map[page-1].start = cfi;
+					map.push({ start: cfi, end: null });
 				}
 			} else {
 				if(prevRange){
 					prevRange.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[page-1].end = cfi;
+					map[map.length-1].end = cfi;
 				}
 
 				range.collapse(true);
@@ -656,18 +662,19 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 		prevRange.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
-		map[page-1].end = cfi;
+		map[map.length-1].end = cfi;
 	}
 
 	// Handle empty map
-	if(map.length === 1 && !map[0].start) {
+	if(!map.length) {
 		range = this.doc.createRange();
 		range.selectNodeContents(root);
 		range.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(range);
-		map[0].start = cfi;
-		map[0].end = cfi;
+		
+		map.push({ start: cfi, end: cfi });
+
 	}
 
 	// clean up
