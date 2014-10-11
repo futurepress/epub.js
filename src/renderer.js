@@ -945,6 +945,9 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 		if(range) {
 			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
 			this.page(pg);
+			
+			// Reset the current location cfi to requested cfi
+			this.currentLocationCfi = cfi.str;
 		}
 	}
 };
