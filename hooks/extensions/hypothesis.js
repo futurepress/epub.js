@@ -14,7 +14,9 @@ EPUBJS.Hooks.register("beforeChapterDisplay").hypothesis = function(callback, re
 		
 		if(!renderer) return;
 
-		EPUBJS.core.addScript("https://hypothes.is/app/embed.js?role=guest&light=true", null, renderer.doc.head);
+		EPUBJS.core.addScript("/hooks/extensions/embedh.js", null, renderer.doc.head);
+
+		EPUBJS.core.addScript("https://hypothes.is/embed.js", null, renderer.doc.head);
 
 		EPUBJS.core.addCss( cssPath + "annotations.css", null, renderer.doc.head);
 
