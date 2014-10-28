@@ -286,7 +286,7 @@ asyncTest("Get all TOC", 1, function() {
 
 });
 
-asyncTest("Get TOC time by href", 1, function() {
+asyncTest("Get TOC item by href", 1, function() {
 
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.loaded.navigation.then(function(){
@@ -297,7 +297,7 @@ asyncTest("Get TOC time by href", 1, function() {
 
 });
 
-asyncTest("Get TOC time by ID", 1, function() {
+asyncTest("Get TOC item by ID", 1, function() {
 
   var book = ePub("../books/moby-dick/OPS/package.opf");
   book.loaded.navigation.then(function(){
