@@ -1897,7 +1897,14 @@ EPUBJS.core.request = function(url, type, withCredentials, headers) {
         var r;
         
         if(type == 'xml'){
-          r = this.responseXML;
+          
+          // If this.responseXML wasn't set, try to parse using a DOMParser from text
+          if(!this.responseXML){
+            r = new DOMParser().parseFromString(this.response, "text/xml");
+          } else {
+            r = this.responseXML;
+          }
+          
         }else
         if(type == 'json'){
           r = JSON.parse(this.response);
@@ -2810,7 +2817,7 @@ EPUBJS.Infinite.prototype.check = function(){
 
   this.tick.call(window, this.check.bind(this));
   // setTimeout(this.check.bind(this), 100);
-}
+};
 
 EPUBJS.Infinite.prototype.checkTop = function(){
     
@@ -3221,7 +3228,7 @@ EPUBJS.Navigation.prototype.loaded = function(toc) {
     item = toc[i];
     this.tocByHref[item.href] = i;
     this.tocById[item.id] = i;
-  };
+  }
 
 };
 
@@ -3371,7 +3378,6 @@ EPUBJS.Paginate.prototype.registerLayoutMethod = function(view) {
 EPUBJS.Paginate.prototype.page = function(pg){
   
   this.currentPage = pg;
-  console.log("page", this.currentPage * this.formated.pageWidth)
   this.renderer.infinite.scrollTo(this.currentPage * this.formated.pageWidth, 0);
 
   //-- Return false if page is greater than the total
@@ -3387,7 +3393,7 @@ EPUBJS.Paginate.prototype.prev = function(){
 };
 
 EPUBJS.Paginate.prototype.display = function(what){
-  return this.renderer.display(what)
+  return this.renderer.display(what);
 };
 EPUBJS.Parser = function(){};
 
@@ -3930,9 +3936,13 @@ EPUBJS.Renderer.prototype.attachTo = function(_element){
     this.infinite.on("forwards", function(){
       var next = this.last().section.index + 1;
 
-      if(!this.rendering && !this.filling && !this.displaying
-         && next < this.book.spine.length){
+      if(!this.rendering && 
+         !this.filling && 
+         !this.displaying &&
+         next < this.book.spine.length){
+        
         this.forwards();
+      
       }
 
     }.bind(this));
@@ -3940,9 +3950,13 @@ EPUBJS.Renderer.prototype.attachTo = function(_element){
     this.infinite.on("backwards", function(){
       var prev = this.first().section.index - 1;
 
-      if(!this.rendering && !this.filling && !this.displaying
-       && prev > 0){
+      if(!this.rendering &&
+         !this.filling &&
+         !this.displaying &&
+         prev > 0){
+        
         this.backwards();
+      
       }
 
     }.bind(this));
@@ -4017,7 +4031,7 @@ EPUBJS.Renderer.prototype.render = function(section){
     right: parseFloat(styles["padding-right"]) || 0,
     top: parseFloat(styles["padding-top"]) || 0,
     bottom: parseFloat(styles["padding-bottom"]) || 0
-  }; 
+  };
   var width = bounds.width - padding.left - padding.right;
   var height = bounds.height - padding.top - padding.bottom;
 
@@ -4026,7 +4040,7 @@ EPUBJS.Renderer.prototype.render = function(section){
     rendered = new RSVP.defer();
     rendered.reject(new Error("No Section Provided"));
     return rendered.promise;
-  }; 
+  } 
 
   view = new EPUBJS.View(section);
 
@@ -4076,7 +4090,7 @@ EPUBJS.Renderer.prototype.forwards = function(){
     rendered.reject(new Error("Reject Forwards"));
     return rendered.promise;
   }
-  console.log("going forwards")
+  // console.log("going forwards")
 
   this.rendering = true;
 
@@ -4132,7 +4146,7 @@ EPUBJS.Renderer.prototype.backwards = function(view){
     rendered.reject(new Error("Reject Backwards"));
     return rendered.promise;
   }
-  console.log("going backwards")
+  // console.log("going backwards")
 
   this.rendering = true;
 
@@ -4314,7 +4328,7 @@ EPUBJS.Renderer.prototype.replacements = function(view, renderer) {
 
   for (var i = 0; i < links.length; i++) {
     replaceLinks(links[i]);
-  };
+  }
 
   task.resolve();
   return task.promise;
@@ -4358,10 +4372,10 @@ EPUBJS.Renderer.prototype.checkCurrent = function(position) {
         }
 
         this.current = view.section;
-        this.trigger("current", this.current)
+        this.trigger("current", this.current);
         break;
       }
-    };
+    }
 
   }
 
@@ -4440,7 +4454,7 @@ EPUBJS.Section.prototype.replacements = function(_document){
 
 EPUBJS.Section.prototype.beforeSectionLoad = function(){
   // Stub for a hook - replace me for now
-}
+};
 
 EPUBJS.Section.prototype.render = function(_request){
   var rendering = new RSVP.defer();
@@ -4685,7 +4699,7 @@ EPUBJS.View.prototype.display = function(contents) {
   displaying.resolve(this);
   // this.observer = this.observe(this.document.body);
 
-  return displayed
+  return displayed;
 
 };
 
