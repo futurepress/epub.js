@@ -25,13 +25,17 @@
       position: absolute;
       top: 0;
       left: 0;
+      
+    }
+    
+    #viewer > div {
+      padding: 0 25% 0 25%;
     }
 
-    #viewer iframe {
+    #viewer .epub-view {
         background: white;
         box-shadow: 0 0 4px #ccc;
         margin: 10px;
-        width: calc(60% - 60px) !important;
         padding: 20px;
     }
 
@@ -79,8 +83,8 @@
   <script>
     var currentSectionIndex = 0;
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer");
+    var book = ePub("../books/moby-dick/OPS/package.opf");
+    var rendition = book.renderTo("viewer", { width: "50%" });
     var displayed = rendition.display(currentSectionIndex);
     
 
