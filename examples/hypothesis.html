@@ -11,14 +11,19 @@
         <link rel="stylesheet" href="../reader/css/normalize.css">
         <link rel="stylesheet" href="../reader/css/main.css">
         <link rel="stylesheet" href="../reader/css/popup.css">
-        <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script> 
-        <script>window.jQuery || document.write('<script src="epubjs/libs/jquery-1.9.0.min.js"><\/script>')</script>
-        -->
         <script src="../libs/jquery/jquery-2.1.0.js"></script>
         
         <script>
             "use strict";
-        
+
+            var reader = null;
+
+            window.hypothesisConfig = function () {
+              return {
+                "app": "https://hypothes.is/app.html"
+              }
+            };
+
             document.onreadystatechange = function () {  
               if (document.readyState == "complete") {
                 EPUBJS.VERSION = "0.1.6";
@@ -53,41 +58,10 @@
         <script src="../hooks/extensions/highlight.js"></script>
         
         <!-- Hypothes.is -->
-        <!-- Hypothes.is -->
-        <!-- // <script src="https://hypothes.is/app/embed.js?role=host"></script> -->
-
-        <!-- <script src="https://static.hypothes.is/lib/jquery-21.10.2.min.js"</script>-->
-        <script src="https://static.hypothes.is/lib/jquery.scrollintoview.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.widget.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.autocomplete.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.core.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.menu.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.position.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.effect.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.effect-blind.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.effect-highlight.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jquery.ui.effect-forecolor-highlight.min.js"></script>
-        <script src="https://static.hypothes.is/lib/jschannel.min.js"></script>
-        <script src="https://static.hypothes.is/lib/gettext.min.js"></script>
-        <script src="https://static.hypothes.is/locale/data.min.js"></script>
-        <script src="https://static.hypothes.is/lib/annotator.min.js"></script>
-        <script src="https://static.hypothes.is/js/plugin/bridge.js"></script>
-        <script src="https://static.hypothes.is/lib/annotator.document.min.js"></script>
-        <!-- <script src="https://static.hypothes.is/js/plugin/heatmap.js"></script> -->
-        <script src="https://static.hypothes.is/lib/annotator.texthighlights.min.js"></script>
-        <script src="https://static.hypothes.is/lib/annotator.dtm.min.js"></script>
-        <script src="https://static.hypothes.is/lib/annotator.textanchors.min.js"></script>
-        <script src="https://static.hypothes.is/lib/annotator.fuzzytextanchors.min.js"></script>
-        <!-- <script src="https://static.hypothes.is/lib/annotator.pdf.min.js"></script> -->
-        <script src="https://static.hypothes.is/js/plugin/toolbar.js"></script>
-        <script src="https://static.hypothes.is/js/inject.min.js"></script>
-        
-        <link rel="stylesheet" href="https://static.hypothes.is/lib/jquery-ui-smoothness.min.css"></link>
-        <link rel="stylesheet" href="https://static.hypothes.is/css/inject.css">
-
-
         <script async src="../hooks/extensions/hypothesis.js"></script>
         <script src="../reader_src/plugins/hypothesis.js"></script>
+        <script src="https://hypothes.is/app/embed.js"></script>
+
         
         <style>
           #annotator-toolbar {
@@ -103,7 +77,11 @@
             top: auto;
             right: auto;
             left: auto;
-            /* z-index: 100; */
+          }
+
+          #annotator-toolbar .annotator-toolbar.annotator-hide {
+            display: block;
+            visibility: visible;
           }
           
           #annotator-toolbar .annotator-toolbar li {
@@ -112,6 +90,7 @@
             box-shadow: none;
             list-style: none;
           }
+
           
           #hypothesis {
             position: absolute;
@@ -155,6 +134,15 @@
             width: 34%
           }
           
+          .noselect {
+              -webkit-touch-callout: none;
+              -webkit-user-select: none;
+              -khtml-user-select: none;
+              -moz-user-select: none;
+              -ms-user-select: none;
+              user-select: none;
+          }
+
         </style>
 
     </head>
@@ -200,14 +188,14 @@
             <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
             <a id="setting" class="icon-cog">Settings</a>
             <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
-            <div id="annotator-toolbar"></div>
+            <a id="annotations" class="h-icon-comment">Annotations</a>
           </div>
         </div>
         
         <div id="divider"></div>
-        <div id="prev" class="arrow">‹</div>
+        <div id="prev" class="arrow noselect">‹</div>
         <div id="viewer"></div>
-        <div id="next" class="arrow">›</div>
+        <div id="next" class="arrow noselect">›</div>
         
         <div id="loader"><img src="../reader/img/loader.gif"></div>
       </div>
