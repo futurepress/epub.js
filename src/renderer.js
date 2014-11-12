@@ -943,7 +943,20 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 	} else {
 		range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
 		if(range) {
-			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
+			// jaroslaw.bielski@7bulls.com
+			// It seems that sometimes getBoundingClientRect() returns null for first page CFI in chapter.
+			// It is always reproductible if few consecutive chapters have only one page.
+			// NOTE: This is only workaround and the issue needs an deeper investigation.
+			// NOTE: Observed on Android 4.2.1 using WebView widget as HTML renderer (Asus TF300T).
+			var rect = range.getBoundingClientRect();
+			if (rect) {
+				pg = this.render.getPageNumberByRect(rect);
+				
+			} else {				
+				// Goto first page in chapter
+				pg = 1;
+			}
+
 			this.page(pg);
 			
 			// Reset the current location cfi to requested cfi
