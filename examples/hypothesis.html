@@ -64,34 +64,6 @@
 
         
         <style>
-          #annotator-toolbar {
-            display: inline-block;
-            position: relative;
-            width: 18px;
-            height: 27px;
-            margin-right: 12px;
-          }
-          
-          #annotator-toolbar .annotator-toolbar {
-            position: absolute;
-            top: auto;
-            right: auto;
-            left: auto;
-          }
-
-          #annotator-toolbar .annotator-toolbar.annotator-hide {
-            display: block;
-            visibility: visible;
-          }
-          
-          #annotator-toolbar .annotator-toolbar li {
-            background: none;
-            border: 0;
-            box-shadow: none;
-            list-style: none;
-          }
-
-          
           #hypothesis {
             position: absolute;
             right: 0;
@@ -188,7 +160,7 @@
             <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
             <a id="setting" class="icon-cog">Settings</a>
             <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
-            <a id="annotations" class="h-icon-comment">Annotations</a>
+            <a id="annotations" class="h-icon-comment"></a>
           </div>
         </div>
         
@@ -204,11 +176,6 @@
               <h3>Settings</h3>
               <div>
                   <p>
-                    <!-- <input type='radio' name='fontSize' value='x-small'><span class='xsmall'>Extra Small</span><br>
-                    <input type='radio' name='fontSize' value='small'><span class='small'>Small</span><br>
-                    <input type='radio' name='fontSize' value='medium'><span class='medium'>Medium</span><br>
-                    <input type='radio' name='fontSize' value='large'><span class='large'>Large</span><br>
-                    <input type='radio' name='fontSize' value='x-large'><span class='xlarge'>Extra Large</span> -->
                     <input type="checkbox" id="sidebarReflow" name="sidebarReflow">Reflow text when sidebars are open.</input>
                   </p>
               </div>

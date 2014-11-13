@@ -67,7 +67,7 @@ EPUBJS.reader.plugins.HypothesisController = function(Book) {
 			});
 		});
 		
-		$(".tri-icon").on("click", function () {
+		$(".h-icon-comment").on("click", function () {
 			if ($main.hasClass("single")) {
 				showAnnotations(false);
 			} else {
