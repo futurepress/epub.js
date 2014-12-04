@@ -969,7 +969,10 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 EPUBJS.Renderer.prototype.findFirstVisible = function(startEl){
 	var el = startEl || this.render.getBaseElement();
 	var	found;
-	found = this.walk(el);
+	// kgolunski@7bulls.com
+	// Looks like an old API usage
+	// Set x and y as 0 to fullfill walk method API.
+	found = this.walk(el, 0, 0);
 
 	if(found) {
 		return found;
