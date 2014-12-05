@@ -5351,12 +5351,14 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 
 //-- Find TOC NAV
 EPUBJS.Parser.prototype.findNavPath = function(manifestNode){
-  var node = manifestNode.querySelector("item[properties^='nav']");
+	// Find item with property 'nav'
+	// Should catch nav irregardless of order
+  var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
   return node ? node.getAttribute('href') : false;
 };
 
 //-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
-EPUBJS.Parser.prototype.findTocPath = function(manifestNode){
+EPUBJS.Parser.prototype.findTocPath = function(manifestNode, spineNode){
 	var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
 	var tocId;
 	
