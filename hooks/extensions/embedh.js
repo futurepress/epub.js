@@ -1,11 +1,9 @@
-EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, chapter){
+EpubGuest = function (element, options) {
+	return new Annotator.Guest(element, options);
+}
 
+window.hypothesisRole = EpubGuest;
 
-			var s = document.createElement("script");
-			s.type = 'text/javascript';
-			s.src ="https://test.hypothes.is/app/embed.js"
-			
-			chapter.doc.body.appendChild(s);
-			
-			//-- Continue to other hooks
-			if(callback) callback();}
+window.hypothesisConfig = function () {
+	return {};
+};
