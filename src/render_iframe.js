@@ -43,7 +43,7 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 			render.document = render.iframe.contentDocument;
 			render.docEl = render.document.documentElement;
 			render.headEl = render.document.head;
-			render.bodyEl = render.document.body;
+			render.bodyEl = render.document.body || render.document.querySelector("body");
 			render.window = render.iframe.contentWindow;
 			
 			render.window.addEventListener("resize", render.resized.bind(render), false);
