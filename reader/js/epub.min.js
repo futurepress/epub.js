@@ -2485,9 +2485,11 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 
 	//-- Set Globbal Layout setting based on metadata
 	book.globalLayoutProperties = book.parseLayoutProperties(book.metadata);
-
-	book.cover = book.contents.cover = book.settings.contentsPath + book.contents.coverPath;
-
+	
+	if(book.contents.coverPath) {
+		book.cover = book.contents.cover = book.settings.contentsPath + book.contents.coverPath;
+	}
+	
 	book.spineNodeIndex = book.contents.spineNodeIndex;
 
 	book.ready.manifest.resolve(book.contents.manifest);
@@ -3905,13 +3907,20 @@ EPUBJS.core.uri = function(url){
 				fragment : '',
 				href : url
 			},
+			blob = url.indexOf('blob:'),
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
 			fragment = url.indexOf("#"),
 			withoutProtocol,
 			dot,
 			firstSlash;
-
+	
+	if(blob === 0) {
+		uri.protocol = "blob";
+		uri.base = url.indexOf(0, fragment);
+		return uri;
+	}
+	
 	if(fragment != -1) {
 		uri.fragment = url.slice(fragment + 1);
 		url = url.slice(0, fragment);
@@ -5753,7 +5762,7 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 			render.document = render.iframe.contentDocument;
 			render.docEl = render.document.documentElement;
 			render.headEl = render.document.head;
-			render.bodyEl = render.document.body;
+			render.bodyEl = render.document.body || render.document.querySelector("body");
 			render.window = render.iframe.contentWindow;
 			
 			render.window.addEventListener("resize", render.resized.bind(render), false);
@@ -7192,17 +7201,22 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 		var href = link.getAttribute("href"),
 				isRelative = href.search("://"),
 				directory,
-				relative;
+				relative,
+				location;
 
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-			
+			// Links may need to be resolved, such as ../chp1.xhtml
 			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
-			relative = EPUBJS.core.resolveUrl(directory, href);
-			
+			if(directory) {
+				relative = EPUBJS.core.resolveUrl(directory, href);
+			} else {
+				relative = href;
+			}
+
 			link.onclick = function(){
 				book.goto(relative);
 				return false;
@@ -7357,7 +7371,7 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	return this.getText(url, encoding).
 			then(function(text){
 				var parser = new DOMParser();
-				return parser.parseFromString(text, "application/xml");
+				return parser.parseFromString(text, "text/xml");
 			});
 
 };

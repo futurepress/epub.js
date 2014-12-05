@@ -123,7 +123,7 @@ EPUBJS.core.uri = function(url){
 			dot,
 			firstSlash;
 	
-	if(blob == 0) {
+	if(blob === 0) {
 		uri.protocol = "blob";
 		uri.base = url.indexOf(0, fragment);
 		return uri;
