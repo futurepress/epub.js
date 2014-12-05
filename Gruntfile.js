@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 		'build/epub_no_underscore.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js'],
 		'build/epub.js': ['<banner>', 'libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.js', 'src/*.js'],
 		'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
-		'build/hooks.js': ['<banner>', 'hooks/default/*.js']
+		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		},
 		uglify: {
 			my_target: {
@@ -23,8 +23,7 @@ module.exports = function(grunt) {
 					'build/epub.min.js': ['build/epub.js'],
 					'build/reader.min.js': ['build/reader.js'],
 					'build/hooks.min.js': ['build/hooks.js'],
-					'build/libs/zip.min.js': ['libs/zip/zip.js', 'libs/zip/zip-fs.js', 'libs/zip/zip-ext.js', 'libs/zip/mime-types.js'],
-					'build/libs/inflate.js': ['libs/zip/inflate.js']
+					'build/libs/zip.min.js': ['libs/jszip/jszip.min.js', 'libs/jszip/mime-types.js'],
 				}
 			}
 		},
@@ -37,7 +36,8 @@ module.exports = function(grunt) {
 					{src: 'build/epub.min.map', dest: 'reader/js/epub.js.map'},
 					{src: 'build/hooks.min.map', dest: 'reader/js/hooks.js.map'},
 					{src: 'build/reader.js.map', dest: 'reader/js/hooks.js.map'},
-					{src: 'build/zip/*', dest: 'reader/js/libs/', filter: 'isFile'},
+					{src: 'build/libs/zip.min.js', dest: 'reader/js/libs/zip.min.js'},
+					// {src: 'build/libs/zip.min.js', dest: 'reader/js/libs/zip.min.map'},
 					{src: 'libs/jquery/jquery-2.1.0.min.js', dest:'reader/js/libs/jquery-2.1.0.min.js'},
 				  {src: 'libs/screenfull.min.js', dest: 'reader/js/libs/screenfull.min.js'},
 					{src: 'reader_src/plugins/search.js', dest: 'reader/js/plugins/search.js'},

@@ -87,7 +87,8 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 	} else {
 		this.render.resize('100%', '100%');
 	}
-
+ 
+	document.addEventListener("orientationchange", this.onResized);
 };
 
 /**
@@ -127,7 +128,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-			return this.load(url);
+			return this.load(chapter);
 
 		}.bind(this));
 
@@ -153,7 +154,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	render.then(function(contents) {
 		var formated;
-		this.currentChapter.contents = this.render.document;
+		this.currentChapter.setDocument(this.render.document);
 		this.contents = contents;
 		this.doc = this.render.document;
 
@@ -302,28 +303,33 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
+
 	// Only re-layout if the spreads have switched
 	if(spreads != this.spreads){
 		this.spreads = spreads;
 		this.layoutMethod = this.determineLayout(this.layoutSettings);
 		this.layout = new EPUBJS.Layout[this.layoutMethod]();
 	}
+	
+	// Reset pages
+	this.chapterPos = 1;
+	this.render.page(1);
 
-	this.formated = this.layout.format(this.contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
-
+	// Give the css styles time to update
+	// clearTimeout(this.timeoutTillCfi);
+	// this.timeoutTillCfi = setTimeout(function(){
+		
+	renderer.formated = renderer.layout.format(renderer.contents, renderer.render.width, renderer.render.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+			
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
 
-	// Give the css styles time to update
-	clearTimeout(this.timeoutTillCfi);
-	this.timeoutTillCfi = setTimeout(function(){
-		//-- Go to current page after formating
-		if(renderer.currentLocationCfi){
-			renderer.gotoCfi(renderer.currentLocationCfi);
-		}
-		this.timeoutTillCfi = null;
-	}, 10);
+	//-- Go to current page after formating
+	if(renderer.currentLocationCfi){
+		renderer.gotoCfi(renderer.currentLocationCfi);
+	}
+		// renderer.timeoutTillCfi = null;
 
 };
 
@@ -564,7 +570,7 @@ EPUBJS.Renderer.prototype.sprint = function(root, func) {
 
 EPUBJS.Renderer.prototype.mapPage = function(){
 	var renderer = this;
-	var map = [{ start: null, end: null }];
+	var map = [];
 	var root = this.render.getBaseElement();
 	var page = 1;
 	var width = this.layout.colWidth + this.layout.gap;
@@ -617,18 +623,18 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			if(!pos || (pos.width === 0 && pos.height === 0)) {
 				return;
 			}
-
 			if(pos.left + pos.width < limit) {
-				if(!map[page-1].start){
+				if(!map[page-1]){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
-					map[page-1].start = cfi;
+					// map[page-1].start = cfi;
+					map.push({ start: cfi, end: null });
 				}
 			} else {
 				if(prevRange){
 					prevRange.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[page-1].end = cfi;
+					map[map.length-1].end = cfi;
 				}
 
 				range.collapse(true);
@@ -656,18 +662,19 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 		prevRange.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
-		map[page-1].end = cfi;
+		map[map.length-1].end = cfi;
 	}
 
 	// Handle empty map
-	if(map.length === 1 && !map[0].start) {
+	if(!map.length) {
 		range = this.doc.createRange();
 		range.selectNodeContents(root);
 		range.collapse(true);
 
 		cfi = renderer.currentChapter.cfiFromRange(range);
-		map[0].start = cfi;
-		map[0].end = cfi;
+		
+		map.push({ start: cfi, end: cfi });
+
 	}
 
 	// clean up
@@ -680,13 +687,35 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 };
 
 
+EPUBJS.Renderer.prototype.indexOfBreakableChar = function (text, startPosition) {
+	var whiteCharacters = "\x2D\x20\t\r\n\b\f";
+	// '-' \x2D
+	// ' ' \x20
+	
+	if (! startPosition) {
+		startPosition = 0;
+	}
+	
+	for (var i = startPosition; i < text.length; i++) {
+		if (whiteCharacters.indexOf(text.charAt(i)) != -1) {
+			return i;
+		}
+	}
+	
+	return -1;
+};
+
+
 EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	var ranges = [];
 	var text = node.textContent.trim();
 	var range;
 	var rect;
 	var list;
-	pos = text.indexOf(" ");
+	// jaroslaw.bielski@7bulls.com
+	// Usage of indexOf() function for space character as word delimiter 
+	// is not sufficient in case of other breakable characters like \r\n- etc
+	pos = this.indexOfBreakableChar(text);
 
 	if(pos === -1) {
 		range = this.doc.createRange();
@@ -698,11 +727,15 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	range.setStart(node, 0);
 	range.setEnd(node, pos);
 	ranges.push(range);
-	range = false;
+
+	// jaroslaw.bielski@7bulls.com
+	// there was a word miss in case of one letter words
+	range = this.doc.createRange();
+	range.setStart(node, pos+1);
 
 	while ( pos != -1 ) {
 
-		pos = text.indexOf(" ", pos + 1);
+		pos = this.indexOfBreakableChar(text, pos + 1);
 		if(pos > 0) {
 
 			if(range) {
@@ -936,8 +969,24 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 	} else {
 		range = this.epubcfi.generateRangeFromCfi(cfi, this.doc);
 		if(range) {
-			pg = this.render.getPageNumberByRect(range.getBoundingClientRect());
+			// jaroslaw.bielski@7bulls.com
+			// It seems that sometimes getBoundingClientRect() returns null for first page CFI in chapter.
+			// It is always reproductible if few consecutive chapters have only one page.
+			// NOTE: This is only workaround and the issue needs an deeper investigation.
+			// NOTE: Observed on Android 4.2.1 using WebView widget as HTML renderer (Asus TF300T).
+			var rect = range.getBoundingClientRect();
+			if (rect) {
+				pg = this.render.getPageNumberByRect(rect);
+				
+			} else {				
+				// Goto first page in chapter
+				pg = 1;
+			}
+
 			this.page(pg);
+			
+			// Reset the current location cfi to requested cfi
+			this.currentLocationCfi = cfi.str;
 		}
 	}
 };
@@ -946,7 +995,10 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 EPUBJS.Renderer.prototype.findFirstVisible = function(startEl){
 	var el = startEl || this.render.getBaseElement();
 	var	found;
-	found = this.walk(el);
+	// kgolunski@7bulls.com
+	// Looks like an old API usage
+	// Set x and y as 0 to fullfill walk method API.
+	found = this.walk(el, 0, 0);
 
 	if(found) {
 		return found;

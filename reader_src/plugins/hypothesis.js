@@ -37,12 +37,7 @@ EPUBJS.reader.plugins.HypothesisController = function(Book) {
 	};
 	
 	var attach = function(){
-		
-		annotator = window.annotator = new window.Annotator.Host(body, {
-				"app": "https://hypothes.is/app/",
-				"Toolbar": {container:"#annotator-toolbar"}
-		});
-		
+		annotator = window.annotator;
 		annotator.frame.appendTo(element);
 		
 		annotator.subscribe('annotationEditorShown', function () {
@@ -72,7 +67,7 @@ EPUBJS.reader.plugins.HypothesisController = function(Book) {
 			});
 		});
 		
-		$(".tri-icon").on("click", function () {
+		$(".h-icon-comment").on("click", function () {
 			if ($main.hasClass("single")) {
 				showAnnotations(false);
 			} else {
@@ -83,7 +78,7 @@ EPUBJS.reader.plugins.HypothesisController = function(Book) {
 		reader.book.on("renderer:locationChanged", function(){
 			updateAnnotations();
 		});
-		
+
 	}
 	
 	var showAnnotations = function(single) {
@@ -106,9 +101,9 @@ EPUBJS.reader.plugins.HypothesisController = function(Book) {
 	
 	book.ready.all.then(function() {
 		reader.HypothesisController.attach();
-	}); 
-	
+	});
+
 	return {
-		"attach" : attach
+        'attach': attach
 	};
 };

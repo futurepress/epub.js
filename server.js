@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var connect = require('connect'),
 	colors = require('colors'),
 	argv = require('optimist').argv,

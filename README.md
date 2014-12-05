@@ -30,17 +30,11 @@ Get the minified code from the build folder:
 <script src="../build/epub.min.js"></script>
 ```
 
-If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [zip.js](http://gildas-lormeau.github.io/zip.js/)
-
-Also make sure to set ```EPUBJS.filePath``` to the directory containing ```inflate.js```
+If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/)
 
 ```html
 <!-- Zip JS -->
 <script src="/build/libs/zip.min.js"></script>  
-
-<script>
-    EPUBJS.filePath = "../build/libs/";
-</script>
 ```
 
 Setup a element to render to:

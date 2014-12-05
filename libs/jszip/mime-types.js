@@ -27,6 +27,7 @@
  */
 
 (function() {
+	"use strict";
 	var table = {
 		"application" : {
 			"andrew-inset" : "ez",
@@ -835,7 +836,7 @@
 			"x-pict" : [ "pic", "pct" ],
 			"x-tga" : "tga",
 			"cis-cod" : "cod",
-			"pipeg" : "jfif",			
+			"pipeg" : "jfif"
 		},
 		"message" : {
 			"rfc822" : [ "eml", "mime", "mht", "mhtml", "nws" ]
@@ -993,7 +994,7 @@
 		return mimeTypes;
 	})();
 
-	zip.getMimeType = function(filename) {
+	JSZip.prototype.getMimeType = function(filename) {
 		var defaultValue = "application/octet-stream";
 		return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || defaultValue;
 	};

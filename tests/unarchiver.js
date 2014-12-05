@@ -1,10 +1,10 @@
 module('EPUBJS.Unarchiver');
 
-test("zip.workerScriptsPath is set correctly", 1, function() {
-	var Book = ePub("/reader/moby-dick.epub");
-	equal( zip.workerScriptsPath, EPUBJS.filePath, "zip workerScriptsPath is set from EPUBJS.filePath");
-});
-
+// test("zip.workerScriptsPath is set correctly", 1, function() {
+// 	var Book = ePub("/reader/moby-dick.epub");
+// 	equal( zip.workerScriptsPath, EPUBJS.filePath, "zip workerScriptsPath is set from EPUBJS.filePath");
+// });
+/*
 asyncTest("openZip method returns a zip file object", 3, function(){
 
 	var unarchiver = new EPUBJS.Unarchiver(),
@@ -35,6 +35,8 @@ asyncTest("getXml method returns valid xml", 1, function(){
 		});
 	});
 });
+
+*/
 
 // TODO Tests for:
 //

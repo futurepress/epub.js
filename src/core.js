@@ -46,6 +46,10 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	if(type == 'xml') {
 		xhr.overrideMimeType('text/xml');
 	}
+
+	if(type == "binary") {
+		xhr.responseType = "arraybuffer";
+	}
 	
 	xhr.send();
 	
@@ -115,13 +119,20 @@ EPUBJS.core.uri = function(url){
 				fragment : '',
 				href : url
 			},
+			blob = url.indexOf('blob:'),
 			doubleSlash = url.indexOf('://'),
 			search = url.indexOf('?'),
 			fragment = url.indexOf("#"),
 			withoutProtocol,
 			dot,
 			firstSlash;
-
+	
+	if(blob === 0) {
+		uri.protocol = "blob";
+		uri.base = url.indexOf(0, fragment);
+		return uri;
+	}
+	
 	if(fragment != -1) {
 		uri.fragment = url.slice(fragment + 1);
 		url = url.slice(0, fragment);

@@ -8,17 +8,22 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 		var href = link.getAttribute("href"),
 				isRelative = href.search("://"),
 				directory,
-				relative;
+				relative,
+				location;
 
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-			
+			// Links may need to be resolved, such as ../chp1.xhtml
 			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
-			relative = EPUBJS.core.resolveUrl(directory, href);
-			
+			if(directory) {
+				relative = EPUBJS.core.resolveUrl(directory, href);
+			} else {
+				relative = href;
+			}
+
 			link.onclick = function(){
 				book.goto(relative);
 				return false;
