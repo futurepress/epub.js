@@ -2184,7 +2184,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.2";
+EPUBJS.VERSION = "0.2.3";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -5094,13 +5094,12 @@ EPUBJS.Layout.Fixed = function(){
 	this.documentElement = null;
 };
 
-EPUBJS.Layout.Fixed = function(documentElement, _width, _height, _gap){
+EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	var viewport = documentElement.querySelector("[name=viewport");
 	var content;
 	var contents;
 	var width, height;
-
 	this.documentElement = documentElement;
 	/**
 	* check for the viewport size
@@ -5317,7 +5316,7 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	
 	manifest = parse.manifest(manifestNode);
 	navPath = parse.findNavPath(manifestNode);
-	tocPath = parse.findTocPath(manifestNode);
+	tocPath = parse.findTocPath(manifestNode, spineNode);
 	coverPath = parse.findCoverPath(manifestNode);
 
 	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
@@ -5341,7 +5340,7 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	};
 };
 
-//-- Find TOC NAV: media-type="application/xhtml+xml" href="toc.ncx"
+//-- Find TOC NAV
 EPUBJS.Parser.prototype.findNavPath = function(manifestNode){
   var node = manifestNode.querySelector("item[properties^='nav']");
   return node ? node.getAttribute('href') : false;
@@ -5350,6 +5349,18 @@ EPUBJS.Parser.prototype.findNavPath = function(manifestNode){
 //-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 EPUBJS.Parser.prototype.findTocPath = function(manifestNode){
 	var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
+	var tocId;
+	
+	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
+	// according to http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2, 
+	// "The item that describes the NCX must be referenced by the spine toc attribute."
+	if (!node) {
+		tocId = spineNode.getAttribute("toc");
+		if(tocId) {
+			node = manifestNode.querySelector("item[id='" + tocId + "']");
+		}
+	}
+	
 	return node ? node.getAttribute('href') : false;
 };
 
