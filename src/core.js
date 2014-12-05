@@ -46,6 +46,10 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	if(type == 'xml') {
 		xhr.overrideMimeType('text/xml');
 	}
+
+	if(type == "binary") {
+		xhr.responseType = "arraybuffer";
+	}
 	
 	xhr.send();
 	
