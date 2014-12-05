@@ -42,7 +42,7 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	return this.getText(url, encoding).
 			then(function(text){
 				var parser = new DOMParser();
-				return parser.parseFromString(text, "application/xml");
+				return parser.parseFromString(text, "text/xml");
 			});
 
 };
