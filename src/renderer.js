@@ -124,7 +124,9 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			}
 			
 			this.currentChapter = chapter;
+			
 			this.chapterPos = 1;
+
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
@@ -178,7 +180,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 			this._moving = false;
 
 			this.updatePages(pages);
-			
+
 			this.visibleRangeCfi = this.getVisibleRangeCfi();
 			this.currentLocationCfi = this.visibleRangeCfi.start;
 
@@ -289,7 +291,7 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 	} else {
 		this.displayedPages = this.pageMap.length;
 	}
-	
+
 	// this.currentChapter.pages = layout.pageCount;
 	this.currentChapter.pages = this.pageMap.length;
 	
@@ -313,8 +315,8 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	
 	// Reset pages
 	this.chapterPos = 1;
-	this.render.page(1);
 
+	this.render.page(this.chapterPos);
 	// Give the css styles time to update
 	// clearTimeout(this.timeoutTillCfi);
 	// this.timeoutTillCfi = setTimeout(function(){
@@ -445,12 +447,16 @@ EPUBJS.Renderer.prototype.lastPage = function(){
 	if(this._moving) {
 		return this._q.enqueue("lastPage", arguments);
 	}
-	
+
 	this.page(this.displayedPages);
 };
 
 // Jump to the first page of the chapter
 EPUBJS.Renderer.prototype.firstPage = function(){
+	if(this._moving) {
+		return this._q.enqueue("firstPage", arguments);
+	}
+
 	this.page(1);
 };
 
@@ -654,8 +660,11 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 
 	};
+	var dir = root.dir;
 
+	root.dir = "ltr";
 	this.sprint(root, check);
+	root.dir = dir;
 	// this.textSprint(root, checkText);
 
 	if(prevRange){
@@ -1142,6 +1151,11 @@ EPUBJS.Renderer.prototype.forceSingle = function(bool){
 
 EPUBJS.Renderer.prototype.setGap = function(gap){
 	this.gap = gap; //-- False == auto gap
+};
+
+EPUBJS.Renderer.prototype.setDirection = function(direction){
+	this.direction = direction;
+	this.render.setDirection(this.direction);
 };
 
 //-- Content Replacements

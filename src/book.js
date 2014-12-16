@@ -659,6 +659,11 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 				then(function(){
 					// book.render = new EPUBJS.Renderer[this.settings.renderer](book);
 					book.renderer.initialize(book.element, book.settings.width, book.settings.height);
+
+					if(book.metadata.direction) {
+						book.renderer.setDirection(book.metadata.direction);
+					}
+
 					book._rendered();
 					return book.startDisplay();
 				});

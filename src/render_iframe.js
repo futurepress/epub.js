@@ -52,7 +52,11 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 			if(render.bodyEl) {
 				render.bodyEl.style.margin = "0";
 			}
-		
+			
+			if(render.direction && render.bodyEl.dir != "rtl"){
+				render.bodyEl.dir = "rtl";
+			}
+
 			deferred.resolve(render.docEl);
 		};
 		
@@ -120,6 +124,10 @@ EPUBJS.Render.Iframe.prototype.setPageDimensions = function(pageWidth, pageHeigh
 	// this.docEl.style.width = this.docEl.scrollWidth + pageWidth + "px";
 };
 
+EPUBJS.Render.Iframe.prototype.setDirection = function(direction){
+	this.direction = direction;
+};
+
 EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 	// this.bodyEl.style.marginLeft = -leftPos + "px";
 	// this.docEl.style.marginLeft = -leftPos + "px";
@@ -155,6 +163,12 @@ EPUBJS.Render.Iframe.prototype.addHeadTag = function(tag, attrs, _doc) {
 
 EPUBJS.Render.Iframe.prototype.page = function(pg){
 	this.leftPos = this.pageWidth * (pg-1); //-- pages start at 1
+	
+	// Reverse for rtl langs
+	if(this.direction === "rtl"){
+		this.leftPos = this.leftPos * -1;
+	}
+
 	this.setLeft(this.leftPos);
 };
 

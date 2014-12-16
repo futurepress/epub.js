@@ -859,7 +859,13 @@ EPUBJS.reader.ReaderController = function(book) {
 
 	var arrowKeys = function(e) {		
 		if(e.keyCode == 37) { 
-			book.prevPage();
+			
+			if(book.metadata.direction === "rtl") {
+				book.nextPage();
+			} else {
+				book.prevPage();
+			}
+
 			$prev.addClass("active");
 
 			keylock = true;
@@ -870,8 +876,14 @@ EPUBJS.reader.ReaderController = function(book) {
 
 			 e.preventDefault();
 		}
-		if(e.keyCode == 39) { 
-			book.nextPage();
+		if(e.keyCode == 39) {
+
+			if(book.metadata.direction === "rtl") {
+				book.prevPage();
+			} else {
+				book.nextPage();
+			}
+			
 			$next.addClass("active");
 
 			keylock = true;
@@ -887,12 +899,24 @@ EPUBJS.reader.ReaderController = function(book) {
 	document.addEventListener('keydown', arrowKeys, false);
 
 	$next.on("click", function(e){
-		book.nextPage();
+		
+		if(book.metadata.direction === "rtl") {
+			book.prevPage();
+		} else {
+			book.nextPage();
+		}
+
 		e.preventDefault();
 	});
 
 	$prev.on("click", function(e){
-		book.prevPage();
+		
+		if(book.metadata.direction === "rtl") {
+			book.nextPage();
+		} else {
+			book.prevPage();
+		}
+
 		e.preventDefault();
 	});
 	

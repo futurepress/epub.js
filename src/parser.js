@@ -55,6 +55,7 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	var spineNodeIndex;
 	var spine;
 	var spineIndexByURL;
+	var metadata;
 	
 	if(baseUrl) this.baseUrl = baseUrl;
 	
@@ -95,8 +96,12 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 		spineIndexByURL[item.href] = item.index;
 	});
 
+	metadata = parse.metadata(metadataNode);
+
+	metadata.direction = spineNode.getAttribute("page-progression-direction");
+
 	return {
-		'metadata' : parse.metadata(metadataNode),
+		'metadata' : metadata,
 		'spine'    : spine,
 		'manifest' : manifest,
 		'navPath'  : navPath,
@@ -160,7 +165,6 @@ EPUBJS.Parser.prototype.metadata = function(xml){
 	metadata.layout = p.querySelectorText(xml, "meta[property='rendition:layout']");
 	metadata.orientation = p.querySelectorText(xml, "meta[property='rendition:orientation']");
 	metadata.spread = p.querySelectorText(xml, "meta[property='rendition:spread']");
-	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 	
 	return metadata;
 };
