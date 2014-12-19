@@ -53,8 +53,13 @@ EPUBJS.Render.Iframe.prototype.load = function(chapter){
 				render.bodyEl.style.margin = "0";
 			}
 			
-			if(render.direction && render.bodyEl.dir != "rtl"){
-				render.bodyEl.dir = "rtl";
+			// HTML element must have direction set if RTL or columnns will
+			// not be in the correct direction in Firefox
+			// Firefox also need the html element to be position right
+			if(render.direction == "rtl" && render.docEl.dir != "rtl"){
+				render.docEl.dir = "rtl";
+				render.docEl.style.position = "absolute";
+				render.docEl.style.right = "0";
 			}
 
 			deferred.resolve(render.docEl);
@@ -125,7 +130,16 @@ EPUBJS.Render.Iframe.prototype.setPageDimensions = function(pageWidth, pageHeigh
 };
 
 EPUBJS.Render.Iframe.prototype.setDirection = function(direction){
+	
 	this.direction = direction;
+	
+	// Undo previous changes if needed
+	if(this.docEl && this.docEl.dir == "rtl"){
+		this.docEl.dir = "rtl";
+		this.docEl.style.position = "static";
+		this.docEl.style.right = "auto";
+	}
+	
 };
 
 EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
@@ -197,6 +211,11 @@ EPUBJS.Render.Iframe.prototype.getPageNumberByRect = function(boundingClientRect
 // Return the root element of the content
 EPUBJS.Render.Iframe.prototype.getBaseElement = function(){
 	return this.bodyEl;
+};
+
+// Return the document element
+EPUBJS.Render.Iframe.prototype.getDocumentElement = function(){
+	return this.docEl;
 };
 
 // Checks if an element is on the screen

@@ -660,11 +660,24 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 
 	};
-	var dir = root.dir;
-
-	root.dir = "ltr";
+	var docEl = this.render.getDocumentElement();
+	var dir = docEl.dir;
+	
+	// Set back to ltr before sprinting to get correct order
+	if(dir == "rtl") {
+		docEl.dir = "ltr";
+		docEl.style.position = "static";
+	}
+	
 	this.sprint(root, check);
-	root.dir = dir;
+	
+	// Reset back to previous RTL settings
+	if(dir == "rtl") {
+		docEl.dir = dir;
+		docEl.style.left = "auto";
+		docEl.style.right = "0";
+	}
+
 	// this.textSprint(root, checkText);
 
 	if(prevRange){
