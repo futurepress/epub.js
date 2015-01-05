@@ -478,7 +478,7 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
 	
 	// Get the terminal step
 	lastStep = cfi.steps[cfi.steps.length-1];
-	startContainer = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	startContainer = document.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
 	if(!startContainer) {
 		return null;
