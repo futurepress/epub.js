@@ -484,6 +484,16 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 	return false;
 };
 
+EPUBJS.Renderer.prototype.isGoodNode = function(node) {
+	"use strict";
+	var embeddedElements = ["audio", "canvas", "embed", "iframe", "img", "math", "object", "svg", "video"];
+	if (embeddedElements.indexOf(node.tagName.toLowerCase()) !== -1) {
+		// Embedded elements usually do not have a text node as first element, but are also good nodes
+		return true;
+	}
+	return this.firstElementisTextNode(node);
+};
+
 // Walk the node tree from a start element to next visible element
 EPUBJS.Renderer.prototype.walk = function(node, x, y) {
 	var r, children, leng,
@@ -495,7 +505,7 @@ EPUBJS.Renderer.prototype.walk = function(node, x, y) {
 
 	while(!r && stack.length) {
 		node = stack.shift();
-		if( this.containsPoint(node, x, y) && this.firstElementisTextNode(node)) {
+		if( this.containsPoint(node, x, y) && this.isGoodNode(node)) {
 			r = node;
 		}
 
