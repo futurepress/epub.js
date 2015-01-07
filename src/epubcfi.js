@@ -40,8 +40,14 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
 		// Start of Chapter
 		return "epubcfi(" + chapter + "!/4/)";
 	} else {
+		var offset = "";
+		var embeddedElements = ["audio", "canvas", "embed", "iframe", "img", "math", "object", "svg", "video"];
+		if (embeddedElements.indexOf(element.tagName.toLowerCase()) === -1) {
+			// if the element could contain text, set the character offset;
+			offset += "/1:0";
+		}
 		// First Text Node
-		return "epubcfi(" + chapter + "!" + path + "/1:0)";
+		return "epubcfi(" + chapter + "!" + path + offset + ")";
 	}
 };
 
