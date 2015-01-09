@@ -485,7 +485,6 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 };
 
 EPUBJS.Renderer.prototype.isGoodNode = function(node) {
-	"use strict";
 	var embeddedElements = ["audio", "canvas", "embed", "iframe", "img", "math", "object", "svg", "video"];
 	if (embeddedElements.indexOf(node.tagName.toLowerCase()) !== -1) {
 		// Embedded elements usually do not have a text node as first element, but are also good nodes
