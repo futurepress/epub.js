@@ -269,8 +269,12 @@ EPUBJS.Reader.prototype.applySavedSettings = function() {
 		if(!localStorage) {
 			return false;
 		}
-		
+
+	try {
 		stored = JSON.parse(localStorage.getItem(this.settings.bookKey));
+	} catch (e) { // parsing error of localStorage
+		return false;
+	}
 		
 		if(stored) {
 			this.settings = _.defaults(this.settings, stored);

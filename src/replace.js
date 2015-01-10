@@ -77,7 +77,10 @@ EPUBJS.replace.links = function(_store, full, done, link){
 			}, 5); //-- Allow for css to apply before displaying chapter
 		});
 	}else{
-		_store.getUrl(full).then(done);
+		_store.getUrl(full).then(done, function(reason) {
+			// we were unable to get the url, signal to upper layer
+			done(null);
+		});
 	}
 };
 
