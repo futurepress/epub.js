@@ -68,7 +68,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
 	if(!entry) {
-		console.warn("File not found in the contained epub:", url);
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
 		return deferred.promise;
 	}
 

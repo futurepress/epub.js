@@ -75,6 +75,9 @@ EPUBJS.replace.links = function(_store, full, done, link){
 			setTimeout(function(){
 				done(url, full);
 			}, 5); //-- Allow for css to apply before displaying chapter
+		},  function(reason) {
+			// we were unable to replace the style sheets
+			done(null);
 		});
 	}else{
 		_store.getUrl(full).then(done, function(reason) {
@@ -100,10 +103,12 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 			deferred.resolve(url);
 
-		}, function(e) {
-			console.error(e);
+		}, function(reason) {
+			deferred.reject(reason);
 		});
 		
+	}, function(reason) {
+		deferred.reject(reason);
 	});
 
 	return deferred.promise;
