@@ -30,7 +30,7 @@ Get the minified code from the build folder:
 <script src="../build/epub.min.js"></script>
 ```
 
-If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/)
+If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/) + Mime-types which can be found in [build/libs](https://raw.githubusercontent.com/futurepress/epub.js/master/build/libs/zip.min.js)
 
 ```html
 <!-- Zip JS -->
