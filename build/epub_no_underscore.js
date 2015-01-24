@@ -4371,8 +4371,14 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
 		// Start of Chapter
 		return "epubcfi(" + chapter + "!/4/)";
 	} else {
+		var offset = "";
+		var embeddedElements = ["audio", "canvas", "embed", "iframe", "img", "math", "object", "svg", "video"];
+		if (embeddedElements.indexOf(element.tagName.toLowerCase()) === -1) {
+			// if the element could contain text, set the character offset;
+			offset += "/1:0";
+		}
 		// First Text Node
-		return "epubcfi(" + chapter + "!" + path + "/1:0)";
+		return "epubcfi(" + chapter + "!" + path + offset + ")";
 	}
 };
 
@@ -5114,7 +5120,7 @@ EPUBJS.Layout.Fixed = function(){
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
-	var viewport = documentElement.querySelector("[name=viewport");
+	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
 	var contents;
 	var width, height;
@@ -6478,6 +6484,15 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 	return false;
 };
 
+EPUBJS.Renderer.prototype.isGoodNode = function(node) {
+	var embeddedElements = ["audio", "canvas", "embed", "iframe", "img", "math", "object", "svg", "video"];
+	if (embeddedElements.indexOf(node.tagName.toLowerCase()) !== -1) {
+		// Embedded elements usually do not have a text node as first element, but are also good nodes
+		return true;
+	}
+	return this.firstElementisTextNode(node);
+};
+
 // Walk the node tree from a start element to next visible element
 EPUBJS.Renderer.prototype.walk = function(node, x, y) {
 	var r, children, leng,
@@ -6489,7 +6504,7 @@ EPUBJS.Renderer.prototype.walk = function(node, x, y) {
 
 	while(!r && stack.length) {
 		node = stack.shift();
-		if( this.containsPoint(node, x, y) && this.firstElementisTextNode(node)) {
+		if( this.containsPoint(node, x, y) && this.isGoodNode(node)) {
 			r = node;
 		}
 
@@ -7348,9 +7363,15 @@ EPUBJS.replace.links = function(_store, full, done, link){
 			setTimeout(function(){
 				done(url, full);
 			}, 5); //-- Allow for css to apply before displaying chapter
+		},  function(reason) {
+			// we were unable to replace the style sheets
+			done(null);
 		});
 	}else{
-		_store.getUrl(full).then(done);
+		_store.getUrl(full).then(done, function(reason) {
+			// we were unable to get the url, signal to upper layer
+			done(null);
+		});
 	}
 };
 
@@ -7370,10 +7391,12 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 			deferred.resolve(url);
 
-		}, function(e) {
-			console.error(e);
+		}, function(reason) {
+			deferred.reject(reason);
 		});
 		
+	}, function(reason) {
+		deferred.reject(reason);
 	});
 
 	return deferred.promise;
@@ -7394,9 +7417,11 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 	matches.forEach(function(str){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
 		var replaced = _store.getUrl(full).then(function(url){
-				text = text.replace(str, 'url("'+url+'")');
-			});
-		
+			text = text.replace(str, 'url("'+url+'")');
+		}, function(reason) {
+			deferred.reject(reason);
+		});
+                       		
 		promises.push(replaced);
 	});
 	
@@ -7477,7 +7502,10 @@ EPUBJS.Unarchiver.prototype.getText = function(url, encoding){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 
 	if(!entry) {
-		console.warn("File not found in the contained epub:", url);
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
 		return deferred.promise;
 	}
 

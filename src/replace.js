@@ -75,9 +75,15 @@ EPUBJS.replace.links = function(_store, full, done, link){
 			setTimeout(function(){
 				done(url, full);
 			}, 5); //-- Allow for css to apply before displaying chapter
+		},  function(reason) {
+			// we were unable to replace the style sheets
+			done(null);
 		});
 	}else{
-		_store.getUrl(full).then(done);
+		_store.getUrl(full).then(done, function(reason) {
+			// we were unable to get the url, signal to upper layer
+			done(null);
+		});
 	}
 };
 
@@ -97,10 +103,12 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 			deferred.resolve(url);
 
-		}, function(e) {
-			console.error(e);
+		}, function(reason) {
+			deferred.reject(reason);
 		});
 		
+	}, function(reason) {
+		deferred.reject(reason);
 	});
 
 	return deferred.promise;
@@ -121,9 +129,11 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 	matches.forEach(function(str){
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]/g, ''));
 		var replaced = _store.getUrl(full).then(function(url){
-				text = text.replace(str, 'url("'+url+'")');
-			});
-		
+			text = text.replace(str, 'url("'+url+'")');
+		}, function(reason) {
+			deferred.reject(reason);
+		});
+                       		
 		promises.push(replaced);
 	});
 	
