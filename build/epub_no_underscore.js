@@ -2184,7 +2184,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.4";
+EPUBJS.VERSION = "0.2.5";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -5879,7 +5879,13 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 	// this.bodyEl.style.marginLeft = -leftPos + "px";
 	// this.docEl.style.marginLeft = -leftPos + "px";
 	// this.docEl.style[EPUBJS.Render.Iframe.transform] = 'translate('+ (-leftPos) + 'px, 0)';
-	this.document.defaultView.scrollTo(leftPos, 0);
+	
+	if (navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g)) {
+		this.docEl.style["-webkit-transform"] = 'translate('+ (-leftPos) + 'px, 0)';
+	} else {
+		this.document.defaultView.scrollTo(leftPos, 0);
+	}
+	
 };
 
 EPUBJS.Render.Iframe.prototype.setStyle = function(style, val, prefixed){
