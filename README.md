@@ -34,7 +34,7 @@ If you plan on using compressed (zipped) epubs (any .epub file) include the mini
 
 ```html
 <!-- Zip JS -->
-<script src="/build/libs/zip.min.js"></script>  
+<script src="/build/libs/zip.min.js"></script>
 ```
 
 Setup a element to render to:
@@ -58,6 +58,29 @@ See the [Documentation](https://github.com/futurepress/epub.js/blob/master/docum
 
 The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
 
+Internet Explore
+-------------------------
+
+Compatibility with IE requires wicked-good-xpath, a Google-authored pure JavaScript implementation of the DOM Level 3 XPath specification. More info at https://code.google.com/p/wicked-good-xpath/
+
+You can download the latest wgxpath [here](https://wicked-good-xpath.googlecode.com/svn/trunk/build/wgxpath.install.js) or from the examples folder.
+
+```html
+<script src="/examples/wgxpath.install.js"></script>
+```
+
+Then install wgxpath via a hook like the one below:
+
+```javascript
+EPUBJS.Hooks.register("beforeChapterDisplay").wgxpath = function(callback, renderer){
+
+  wgxpath.install(renderer.render.window);
+
+  if(callback) callback();
+};
+
+wgxpath.install(window);   
+```
 
 Recent Updates
 -------------------------
