@@ -58,7 +58,7 @@ See the [Documentation](https://github.com/futurepress/epub.js/blob/master/docum
 
 The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
 
-Internet Explore
+Internet Explorer
 -------------------------
 
 Compatibility with IE requires wicked-good-xpath, a Google-authored pure JavaScript implementation of the DOM Level 3 XPath specification. More info at https://code.google.com/p/wicked-good-xpath/
