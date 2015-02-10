@@ -25,7 +25,9 @@
                 EPUBJS.cssPath = "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                var reader = ePubReader("moby-dick/");
+                var qs = {};
+                window.location.search.substring(1).split('&').forEach(function(el) {el = el.split('=');qs[el[0]] = decodeURIComponent(el[1]);});
+                var reader = ePubReader(qs.file || "moby-dick/");
               }  
             };
         
