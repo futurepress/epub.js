@@ -55,7 +55,7 @@ EPUBJS.Reader = function(bookPath, _options) {
 			var split = p.split("=");
 			var name = split[0];
 			var value = split[1] || '';
-			reader.settings[name] = value;
+			reader.settings[name] = decodeURIComponent(value);
 		});
 	}
 
