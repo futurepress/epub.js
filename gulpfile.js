@@ -8,6 +8,7 @@ var plumber = require('gulp-plumber');
 var onError = function (err) {
   gutil.log(gutil.colors.green(err));
 };
+var server = require("./tools/serve.js");
 
 // Lint JS
 gulp.task('lint', function() {
@@ -30,6 +31,10 @@ gulp.task('minify', function(){
 // Watch Our Files
 gulp.task('watch', function() {
   gulp.watch('lib/*/*.js', ['minify']);
+});
+
+gulp.task('serve', ["watch"], function() {
+  server();
 });
 
 // Default

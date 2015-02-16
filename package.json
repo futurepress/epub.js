@@ -3,6 +3,7 @@
   "version": "0.3.0",
   "description": "Render Epubs",
   "main": "/lib/epub.js",
+  "repository" : "https://github.com/futurepress/epub.js"
   "directories": {
     "test": "test"
   },
@@ -23,6 +24,7 @@
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.3.1",
     "gulp-util": "^3.0.0",
+    "gulp-webserver": "^0.9.0",
     "morgan": "^1.1.1",
     "optimist": "^0.6.1",
     "portfinder": "^0.2.1",
