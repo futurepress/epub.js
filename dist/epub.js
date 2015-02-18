@@ -3652,6 +3652,10 @@ EPUBJS.Infinite.prototype.start = function() {
   var firstScroll = true;
 
   this.container.addEventListener("scroll", function(e){
+    
+    // this.top = this.container.scrollTop;
+    // this.left = this.container.scrollLeft;
+    
     if(!this.ignore) {
       this.scrolled = true;
     } else {
@@ -5647,25 +5651,31 @@ EPUBJS.Rendition.prototype.afterDisplayed = function(currView){
 
 EPUBJS.Rendition.prototype.afterDisplayedAbove = function(currView){
 
-	var bounds, style, marginTopBottom, marginLeftRight;
-	var prevTop = this.container.scrollTop;
-	var prevLeft = this.container.scrollLeft;
-
-	this.afterDisplayed(currView);
+	var bounds = currView.bounds(); //, style, marginTopBottom, marginLeftRight;
+	// var prevTop = this.container.scrollTop;
+	// var prevLeft = this.container.scrollLeft;
 
 	if(currView.countered) return;
 
-	bounds = currView.bounds();
+	// bounds = currView.bounds();
 
 	if(this.settings.axis === "vertical") {
-		this.infinite.scrollTo(0, prevTop + bounds.height, true)
+		this.infinite.scrollBy(0, bounds.height, true);
 	} else {
-		this.infinite.scrollTo(prevLeft + bounds.width, 0, true);
+		this.infinite.scrollBy(bounds.width, 0, true);
 	}
-
+	// if(this.settings.axis === "vertical") {
+	// 	currView.countered = bounds.height - (currView.countered || 0);
+	// 	this.infinite.scrollTo(0, prevTop + bounds.height, true)
+	// } else {
+	// 	currView.countered = bounds.width - (currView.countered || 0);
+	// 	this.infinite.scrollTo(prevLeft + bounds.width, 0, true);
+	// }
 	currView.countered = true;
 
-	this.removeShownListeners(currView);
+	// this.removeShownListeners(currView);
+
+	this.afterDisplayed(currView);
 
 	if(this.afterDisplayedAboveHook) this.afterDisplayedAboveHook(currView);
 
@@ -5674,8 +5684,9 @@ EPUBJS.Rendition.prototype.afterDisplayedAbove = function(currView){
 // Remove Previous Listeners if present
 EPUBJS.Rendition.prototype.removeShownListeners = function(view){
 
-	view.off("shown", this.afterDisplayed);
-	view.off("shown", this.afterDisplayedAbove);
+	// view.off("shown", this.afterDisplayed);
+	// view.off("shown", this.afterDisplayedAbove);
+	view.onShown = function(){};
 
 };
 
@@ -5685,7 +5696,8 @@ EPUBJS.Rendition.prototype.append = function(view){
 	this.container.appendChild(view.element);
 
 
-	view.on("shown", this.afterDisplayed.bind(this));
+	// view.on("shown", this.afterDisplayed.bind(this));
+	view.onShown = this.afterDisplayed.bind(this);
 	// this.resizeView(view);
 };
 
@@ -5694,7 +5706,8 @@ EPUBJS.Rendition.prototype.prepend = function(view){
 	// view.prependTo(this.container);
 	this.container.insertBefore(view.element, this.container.firstChild);
 	
-	view.on("shown", this.afterDisplayedAbove.bind(this));
+	view.onShown = this.afterDisplayedAbove.bind(this);
+	// view.on("shown", this.afterDisplayedAbove.bind(this));
 
 	// this.resizeView(view);
 	
@@ -5710,7 +5723,8 @@ EPUBJS.Rendition.prototype.fill = function(view){
 
 	this.container.appendChild(view.element);
 
-	view.on("shown", this.afterDisplayed.bind(this));
+	// view.on("shown", this.afterDisplayed.bind(this));
+	view.onShown = this.afterDisplayed.bind(this);
 
 };
 
@@ -6202,7 +6216,8 @@ EPUBJS.View = function(section) {
   this.element.style.height = 0;
   this.element.style.width = 0;
   this.element.style.overflow = "hidden";
-
+  
+  
   this.shown = false;
   this.rendered = false;
 
@@ -6228,8 +6243,8 @@ EPUBJS.View.prototype.create = function(width, height) {
     this.resize(width, height);
   }
 
-  this.iframe.style.display = "none";
-  this.iframe.style.visibility = "hidden";
+  // this.iframe.style.display = "none";
+  // this.iframe.style.visibility = "hidden";
   
   this.element.appendChild(this.iframe);
   this.rendered = true;
@@ -6237,18 +6252,23 @@ EPUBJS.View.prototype.create = function(width, height) {
   return this.iframe;
 };
 
+// TODO: minimize resizes
 EPUBJS.View.prototype.resize = function(width, height) {
 
   if(width){
     if(this.iframe) {
       this.iframe.style.width = width + "px";
-      this.element.style.width = width + "px";
+    }
+    if(this.shown) {
+      this.element.style.width = height + "px";
     }
   }
 
   if(height){
     if(this.iframe) {
       this.iframe.style.height = height + "px";
+    }
+    if(this.shown) {
       this.element.style.height = height + "px";
     }
   }
@@ -6334,7 +6354,7 @@ EPUBJS.View.prototype.afterLoad = function() {
   // Wait for fonts to load to finish
   if(this.document.fonts.status === "loading") {
     this.document.fonts.onloading = function(){
-      // this.expand();
+      this.expand();
     }.bind(this);
   }
 
@@ -6344,7 +6364,7 @@ EPUBJS.View.prototype.afterLoad = function() {
 
 };
 
-EPUBJS.View.prototype.expand = function(_defer, _count) {
+EPUBJS.View.prototype.expand = function(_defer, _count, _func) {
   var bounds;
   var width, height;
   var expanding = _defer || new RSVP.defer();
@@ -6354,8 +6374,6 @@ EPUBJS.View.prototype.expand = function(_defer, _count) {
   var MAX = 10;
   var count = _count || 1;
   var TIMEOUT = 10 * _count;
-
-  // console.log("expand", count, this.index)
 
   // Flag Changes
   this.resizing = true;
@@ -6375,11 +6393,15 @@ EPUBJS.View.prototype.expand = function(_defer, _count) {
   height = bounds.height; //this.document.documentElement.scrollHeight; //window.getComputedStyle?
 
   width = this.document.documentElement.scrollWidth;
+  console.log("expand", count, this.index, height, width)
 
   if(count <= MAX && (this.width != width || this.height != height)) {
     setTimeout(function(){
       count += 1;
-      this.expand(expanding, count);
+      if(_func){
+        _func(this);
+      }
+      this.expand(expanding, count, _func);
     }.bind(this), TIMEOUT);
 
   } else {
@@ -6428,12 +6450,22 @@ EPUBJS.View.prototype.observe = function(target) {
 
 EPUBJS.View.prototype.show = function() {
   // this.iframe.style.display = "block";
+  
+  this.style = window.getComputedStyle(this.element);
+  this.paddingTopBottom = parseInt(this.style.paddingTop) +  parseInt(this.style.paddingBottom) || 0;
+  this.paddingLeftRight = parseInt(this.style.paddingLeft) +  parseInt(this.style.paddingRight) || 0;
+  this.marginTopBottom = parseInt(this.style.marginTop) +  parseInt(this.style.marginBottom) || 0;
+  this.marginLeftRight = parseInt(this.style.marginLeft) +  parseInt(this.style.marginRight) || 0;
+  this.borderTopBottom = parseInt(this.style.borderTop) + parseInt(this.style.borderBottom) || 0;
+  this.borderLeftRight = parseInt(this.style.borderLeft) + parseInt(this.style.borderRight) || 0;
+  
   this.element.style.width = this.width + "px";
   this.element.style.height = this.height + "px";
 
-  this.iframe.style.display = "inline-block";
-  this.iframe.style.visibility = "visible";
+  // this.iframe.style.display = "inline-block";
+  // this.iframe.style.visibility = "visible";
   
+  this.onShown(this);
   this.trigger("shown", this);
 
   this.shown = true;
@@ -6441,8 +6473,8 @@ EPUBJS.View.prototype.show = function() {
 };
 
 EPUBJS.View.prototype.hide = function() {
-  this.iframe.style.display = "none";
-  this.iframe.style.visibility = "hidden";
+  // this.iframe.style.display = "none";
+  // this.iframe.style.visibility = "hidden";
   this.trigger("hidden");
 };
 
@@ -6450,17 +6482,19 @@ EPUBJS.View.prototype.position = function() {
   return this.element.getBoundingClientRect();
 };
 
-EPUBJS.View.prototype.bounds = function() {
-  var bounds = this.element.getBoundingClientRect();
-  var style = window.getComputedStyle(this.element);
-  var marginTopBottom = parseInt(style.marginTop) +  parseInt(style.marginBottom) || 0;
-  var marginLeftRight = parseInt(style.marginLeft) +  parseInt(style.marginLeft) || 0;
-  var borderTopBottom = parseInt(style.borderTop) + parseInt(style.borderBottom) || 0;
-  var borderLeftRight = parseInt(style.borderLeft) + parseInt(style.borderRight) || 0;
+EPUBJS.View.prototype.onShown = function(view) {
+  // Stub, override with a custom functions
+};
 
+EPUBJS.View.prototype.bounds = function() {
+  // var bounds = this.element.getBoundingClientRect();
+  // var bounds = {
+  //   width: this.element.offsetWidth,
+  //   height: this.element.offsetHeight
+  // };
   return {
-    height: bounds.height + marginTopBottom + borderTopBottom,
-    width: bounds.width + marginLeftRight + borderLeftRight
+    height: this.height + this.paddingTopBottom + this.marginTopBottom + this.borderTopBottom,
+    width: this.width + this.paddingLeftRight + this.marginLeftRight + this.borderLeftRight
   }
 };
 
