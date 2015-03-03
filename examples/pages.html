@@ -139,6 +139,21 @@
     prev.addEventListener("click", function(){
       pagination.prev();
     }, false);
+    
+    document.addEventListener("keyup", function(e){
+      
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        pagination.prev();
+      }
+      
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        pagination.next();
+      }
+      
+    }, false);
+    
 
   </script>
 
