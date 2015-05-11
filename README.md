@@ -51,9 +51,15 @@ Render Methods
 
 Single: `book.renderTo("area");`
 
+[View example](https://s3.amazonaws.com/epubjs/examples/single.html)
+
 Continuous: `book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });`
 
+[View example](https://s3.amazonaws.com/epubjs/examples/continuous.html)
+
 Paginate: `book.renderTo("area", { method: "paginate", width: "900", height: "600" });`
+
+[View example](https://s3.amazonaws.com/epubjs/examples/pages.html)
 
 
 Documentation

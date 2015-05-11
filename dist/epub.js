@@ -2589,10 +2589,10 @@ EPUBJS.core.defaults = function(obj) {
 EPUBJS.core.extend = function(target) {
     var sources = [].slice.call(arguments, 1);
     sources.forEach(function (source) {
-        Object.getOwnPropertyNames(source).forEach(function(propName) {
-            Object.defineProperty(target, propName,
-                Object.getOwnPropertyDescriptor(source, propName));
-        });
+      if(!source) return;
+      Object.getOwnPropertyNames(source).forEach(function(propName) {
+        Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+      });
     });
     return target;
 };
@@ -4895,6 +4895,7 @@ EPUBJS.Infinite.prototype.scrollTo = function(x, y, silent){
 
 RSVP.EventTarget.mixin(EPUBJS.Infinite.prototype);
 EPUBJS.Rendition = function(book, options) {
+	
 	this.settings = EPUBJS.core.extend(this.settings || {}, {
 		infinite: true,
 		hidden: false,
@@ -5280,7 +5281,7 @@ EPUBJS.Continuous = function(book, options) {
 EPUBJS.Continuous.prototype = Object.create(EPUBJS.Rendition.prototype);
 EPUBJS.Continuous.prototype.constructor = EPUBJS.Continuous;
 
-EPUBJS.Rendition.prototype.attachListeners = function(){
+EPUBJS.Continuous.prototype.attachListeners = function(){
 
 	// Listen to window for resize event
 	window.addEventListener("resize", this.onResized.bind(this), false);
