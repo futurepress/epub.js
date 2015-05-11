@@ -4261,6 +4261,20 @@ EPUBJS.View = function(section) {
   
   this.width  = 0;
   this.height = 0;
+
+  this.paddingTopBottom = 0;
+  this.paddingLeftRight = 0;
+  this.marginTopBottom = 0;
+  this.marginLeftRight = 0;
+  this.borderTopBottom = 0;
+  this.borderLeftRight = 0;
+
+  this.elpaddingTopBottom = 0;
+  this.elpaddingLeftRight = 0;
+  this.elmarginTopBottom  = 0;
+  this.elmarginLeftRight  = 0;
+  this.elborderTopBottom  = 0;
+  this.elborderLeftRight  = 0;
   
 };
 
@@ -4531,24 +4545,24 @@ EPUBJS.View.prototype.borders = function() {
   if(this.iframe && !this.iframeStyle) {
     this.iframeStyle = window.getComputedStyle(this.iframe);
     
-    this.paddingTopBottom = parseInt(this.iframeStyle.paddingTop) +  parseInt(this.iframeStyle.paddingBottom) || 0;
-    this.paddingLeftRight = parseInt(this.iframeStyle.paddingLeft) +  parseInt(this.iframeStyle.paddingRight) || 0;
-    this.marginTopBottom = parseInt(this.iframeStyle.marginTop) +  parseInt(this.iframeStyle.marginBottom) || 0;
-    this.marginLeftRight = parseInt(this.iframeStyle.marginLeft) +  parseInt(this.iframeStyle.marginRight) || 0;
-    this.borderTopBottom = parseInt(this.iframeStyle.borderTop) + parseInt(this.iframeStyle.borderBottom) || 0;
-    this.borderLeftRight = parseInt(this.iframeStyle.borderLeft) + parseInt(this.iframeStyle.borderRight) || 0;
+    this.paddingTopBottom = (parseInt(this.iframeStyle.paddingTop) +  parseInt(this.iframeStyle.paddingBottom)) || 0;
+    this.paddingLeftRight = (parseInt(this.iframeStyle.paddingLeft) +  parseInt(this.iframeStyle.paddingRight)) || 0;
+    this.marginTopBottom = (parseInt(this.iframeStyle.marginTop) +  parseInt(this.iframeStyle.marginBottom)) || 0;
+    this.marginLeftRight = (parseInt(this.iframeStyle.marginLeft) +  parseInt(this.iframeStyle.marginRight)) || 0;
+    this.borderTopBottom = (parseInt(this.iframeStyle.borderTop) + parseInt(this.iframeStyle.borderBottom)) || 0;
+    this.borderLeftRight = (parseInt(this.iframeStyle.borderLeft) + parseInt(this.iframeStyle.borderRight)) || 0;
   }
   
   if(this.element && !this.elementStyle) {
 
     this.elementStyle = window.getComputedStyle(this.element);
     
-    this.elpaddingTopBottom = parseInt(this.elementStyle.paddingTop)  +  parseInt(this.elementStyle.paddingBottom) || 0;
-    this.elpaddingLeftRight = parseInt(this.elementStyle.paddingLeft) +  parseInt(this.elementStyle.paddingRight) || 0;
-    this.elmarginTopBottom  = parseInt(this.elementStyle.marginTop)   +  parseInt(this.elementStyle.marginBottom) || 0;
-    this.elmarginLeftRight  = parseInt(this.elementStyle.marginLeft)  +  parseInt(this.elementStyle.marginRight) || 0;
-    this.elborderTopBottom  = parseInt(this.elementStyle.borderTop)   +  parseInt(this.elementStyle.borderBottom) || 0;
-    this.elborderLeftRight  = parseInt(this.elementStyle.borderLeft)  +  parseInt(this.elementStyle.borderRight) || 0;
+    this.elpaddingTopBottom = (parseInt(this.elementStyle.paddingTop)  +  parseInt(this.elementStyle.paddingBottom)) || 0;
+    this.elpaddingLeftRight = (parseInt(this.elementStyle.paddingLeft) +  parseInt(this.elementStyle.paddingRight)) || 0;
+    this.elmarginTopBottom  = (parseInt(this.elementStyle.marginTop)   +  parseInt(this.elementStyle.marginBottom)) || 0;
+    this.elmarginLeftRight  = (parseInt(this.elementStyle.marginLeft)  +  parseInt(this.elementStyle.marginRight)) || 0;
+    this.elborderTopBottom  = (parseInt(this.elementStyle.borderTop)   +  parseInt(this.elementStyle.borderBottom)) || 0;
+    this.elborderLeftRight  = (parseInt(this.elementStyle.borderLeft)  +  parseInt(this.elementStyle.borderRight)) || 0;
   }
 
   return {
@@ -4563,6 +4577,7 @@ EPUBJS.View.prototype.bounds = function() {
   //   width: this.element.offsetWidth,
   //   height: this.element.offsetHeight
   // };
+
   return {
     height: this.height + this.paddingTopBottom + this.marginTopBottom + this.borderTopBottom + this.elpaddingTopBottom + this.elmarginTopBottom + this.elborderTopBottom,
     width: this.width + this.paddingLeftRight + this.marginLeftRight + this.borderLeftRight + this.elpaddingLeftRight + this.elmarginLeftRight + this.elborderLeftRight
@@ -5290,7 +5305,7 @@ EPUBJS.Continuous.prototype.attachListeners = function(){
 		this.infinite = new EPUBJS.Infinite(this.container);
 		this.infinite.on("scroll", this.check.bind(this));
 	}
-	
+
 };
 
 EPUBJS.Continuous.prototype.display = function(what){
