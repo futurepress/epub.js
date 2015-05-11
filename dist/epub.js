@@ -4398,7 +4398,7 @@ EPUBJS.View.prototype.afterLoad = function() {
 
 
   // Wait for fonts to load to finish
-  if(this.document.fonts.status === "loading") {
+  if(this.document.fonts && this.document.fonts.status === "loading") {
     this.document.fonts.onloading = function(){
       this.expand();
     }.bind(this);
