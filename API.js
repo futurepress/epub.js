@@ -65,34 +65,16 @@ book.navigation.get("chap1.html")
 section.render() 
 
 // Create a new renderer
-var rendition = ePub.Render(book, EPUBJS.Paginated, {options: true});
+var rendition = book.renderTo("viewer", {method: "paginate", options: true});
 // is the same as
-var rendition = new EPUBJS.Paginated(book, {options: true});
-
-var rendition = ePub.Render(book); // Defaults
-var rendition = ePub.Render(book, EPUBJS.Render.Paginated, options);
-var rendition = ePub.Render.Paginated(book);
-var rendition = ePub.Render.Scrolling(book);
-
-rendition.render(book) // if not passed
-
-ePub.renderer.register("Paginated", EPUBJS.Render.Paginated);
-
+var rendition = new EPUBJS.Paginate(book, {options: true});
+rendition.attachTo("viewer");
 
 // Render to a div
 rendition.attachTo("elementID");
-// or
-body.appendChild(rendition.container);
 
 // Display the provided chapter
 rendition.display(chapter);
-
-// Rendering sugar ?
-epub.renderTo("elementID", _type);
-  rendition = epub.renderer(book, _type);
-  rendition.attachTo("elementID");
-  epub.display();
-  return rendition;
 
 epub.display();
 epub.display(1);
@@ -118,13 +100,9 @@ epub.on("noAuth", function(){
 
 });
 
-rendition = epub.renderTo("elementID", {});
+rendition = epub.renderTo("elementID", { method: "paginate", width: "900", height: "600" });
 
-pagination = rendition.paginate({});
-pagination = new EPUBJS.Paginate(rendition, {spreads: true, minwidth: 800, layout: {} });
-  layout = new EPUBJS.Layout(global);
-
-pagination.next();
-pagination.prev();
-pagination.page();
-pagination.map();
+rendition.next();
+rendition.prev();
+rendition.page();
+rendition.map();

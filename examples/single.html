@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>EPUB.js Basic Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <style type="text/css">
+    body {
+      margin: 20px;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
+      height: 100%;
+      height: 100%;
+     /*  position: absolute; */
+    }
+
+    #viewer { 
+      text-align: center;
+    }
+    
+    #viewer > div {
+      /*padding: 0 25% 0 25%;*/
+
+    }
+
+    #viewer .epub-view {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        margin: 10px;
+        padding: 20px;
+        width: 50% !important;
+    }
+
+    #viewer .epub-view iframe {
+      width: 100% !important;
+    }
+
+    .arrow {
+      margin: 14px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: #ccc;
+    }
+
+    .arrow:hover {
+      color: #777;
+    }
+     
+    .arrow:active {
+      color: #000;
+    }
+
+    #toc {
+      display: block;
+      margin: 10px auto;
+    }
+
+  </style>
+</head>
+<body>
+  <a id="prev" href="#prev" class="arrow">...</a>
+  <div id="viewer"></div>
+  <a id="next" href="#next" class="arrow">...</a>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("../books/moby-dick/OPS/package.opf");
+    var rendition = book.renderTo("viewer");
+    var displayed = rendition.display(currentSectionIndex);
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        nextNav = book.navigation.get(nextSection.href);
+        
+        if(nextNav) {
+          nextLabel = nextNav.label;
+        } else {
+          nextLabel = "next";
+        }
+
+        next.textContent = nextLabel + " »";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prevNav = book.navigation.get(prevSection.href);
+        
+        if(prevNav) {
+          prevLabel = prevNav.label;
+        } else {
+          prevLabel = "previous";
+        }
+
+        prev.textContent = "« " + prevLabel;
+      } else {
+        prev.textContent = "";
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>

@@ -19,7 +19,24 @@ gulp.task('lint', function() {
 
 // Concat & Minify JS
 gulp.task('minify', function(){
-  return gulp.src(['lib/*.js', 'bower_components/rsvp/rsvp.js', 'lib/epubjs/*.js'])
+  return gulp.src(['lib/*.js', 'bower_components/rsvp/rsvp.js', 
+      'lib/epubjs/core.js',
+      'lib/epubjs/queue.js',
+      'lib/epubjs/hooks.js',
+      'lib/epubjs/parser.js',
+      'lib/epubjs/epubcfi.js',
+      'lib/epubjs/navigation.js',
+      'lib/epubjs/section.js',
+      'lib/epubjs/spine.js',
+      'lib/epubjs/replacements.js',
+      'lib/epubjs/book.js',
+      'lib/epubjs/view.js',
+      'lib/epubjs/layout.js',
+      'lib/epubjs/infinite.js',
+      'lib/epubjs/rendition.js',
+      'lib/epubjs/continuous.js',
+      'lib/epubjs/paginate.js'
+    ])
     .pipe(plumber({ errorHandler: onError }))
     .pipe(concat('epub.js'))
     .pipe(gulp.dest('dist'))

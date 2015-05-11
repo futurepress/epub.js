@@ -46,6 +46,21 @@ Create the new ePub, and then render it to that element:
 </script>
 ```
 
+Render Methods
+-------------------------
+
+Single: `book.renderTo("area");`
+
+Continuous: `book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });`
+
+Paginate: `book.renderTo("area", { method: "paginate", width: "900", height: "600" });`
+
+
+Documentation
+-------------------------
+
+Work in progress documentation at [API.js](https://github.com/futurepress/epub.js/blob/v0.3/API.js)
+
 Running Locally
 -------------------------
 

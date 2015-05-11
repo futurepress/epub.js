@@ -68,7 +68,6 @@
         margin: 10px auto;*/
     }
 
-
     #prev {
       left: 40px;
     }
@@ -115,10 +114,15 @@
     // Load the opf
     // var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
     var book = ePub("../books/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer", {axis: "horizontal", width: 900, height: 600});
-    var pagination = rendition.paginate();
+    var rendition = book.renderTo("viewer", { 
+      method: "paginate", 
+//      overflow: "auto", 
+      width: 900,
+      height: 600
+    });
+    // var pagination = rendition.paginate();
 
-    var displayed = pagination.display(currentSectionIndex);
+    var displayed = rendition.display(currentSectionIndex);
     
 
     displayed.then(function(renderer){
@@ -132,24 +136,24 @@
 
     var next = document.getElementById("next");
     next.addEventListener("click", function(){
-      pagination.next();
+      rendition.next();
     }, false);
 
     var prev = document.getElementById("prev");
     prev.addEventListener("click", function(){
-      pagination.prev();
+      rendition.prev();
     }, false);
     
     document.addEventListener("keyup", function(e){
       
       // Left Key
       if ((e.keyCode || e.which) == 37) {
-        pagination.prev();
+        rendition.prev();
       }
       
       // Right Key
       if ((e.keyCode || e.which) == 39) {
-        pagination.next();
+        rendition.next();
       }
       
     }, false);
