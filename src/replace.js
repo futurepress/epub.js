@@ -16,13 +16,24 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			link.setAttribute("target", "_blank");
 
 		}else{
-			// Links may need to be resolved, such as ../chp1.xhtml
-			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
-			if(directory) {
-				relative = EPUBJS.core.resolveUrl(directory, href);
-			} else {
-				relative = href;
-			}
+		    // Links may need to be resolved, such as ../chp1.xhtml
+            var uri = EPUBJS.core.uri(renderer.render.window.location.href);
+
+            directory = uri.directory;
+
+            if(directory) {
+                // We must ensure that the file:// protocol is preserved for
+                // local file links, as in certain contexts (such as under
+                // Titanium), file links without the file:// protocol will not
+                // work
+                if (uri.protocol === "file") {
+                    relative = EPUBJS.core.resolveUrl(uri.base, href);
+                } else {
+                    relative = EPUBJS.core.resolveUrl(directory, href);
+                }
+            } else {
+                relative = href;
+            }
 
 			link.onclick = function(){
 				book.goto(relative);
