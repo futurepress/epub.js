@@ -16,6 +16,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			link.setAttribute("target", "_blank");
 
 		}else{
+		    // Links may need to be resolved, such as ../chp1.xhtml
             var uri = EPUBJS.core.uri(renderer.render.window.location.href);
 
             directory = uri.directory;
