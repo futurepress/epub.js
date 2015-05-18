@@ -2745,9 +2745,8 @@ EPUBJS.Queue.prototype.dequeue = function(){
   if(this._q.length) {
     inwait = this._q.shift();
     task = inwait.task;
-
+    //console.log(task)
     if(task){
-
       // Task is a function that returns a promise
       return task.apply(this.context, inwait.args).then(function(){
         inwait.deferred.resolve.apply(inwait.context || this.context, arguments);
@@ -5307,7 +5306,7 @@ EPUBJS.Continuous.prototype.afterDisplayedAbove = function(currView){
 		return;
 	}
 	// bounds = currView.bounds();
-	console.log("afterDisplayedAbove")
+
 	if(this.settings.axis === "vertical") {
 		this.scrollBy(0, bounds.height, true);
 	} else {
@@ -5481,7 +5480,7 @@ EPUBJS.Continuous.prototype.check = function(){
 	
 	clearTimeout(this.trimTimeout);
 	this.trimTimeout = setTimeout(function(){
-		this.trim();
+		this.q.enqueue(this.trim);
 	}.bind(this), 250);
 
 	checking.resolve();
@@ -5490,6 +5489,7 @@ EPUBJS.Continuous.prototype.check = function(){
 };
 
 EPUBJS.Continuous.prototype.trim = function(){
+	var task = new RSVP.defer();
 	var above = true;
 
 	this.views.forEach(function(view, i){
@@ -5498,17 +5498,19 @@ EPUBJS.Continuous.prototype.trim = function(){
 		var nextShown = (i+1 < this.views.length) ? this.views[i+1].shown : false;
 		if(!view.shown && !prevShown && !nextShown) {
 			// Remove
-			//this.q.enqueue(this.erase, view, above);
 			this.erase(view, above);
 		}
 		if(nextShown) {
 			above = false;
 		}
 	}.bind(this));
+
+	task.resolve();
+	return task.promise;
 };
 
 EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
-	// remove from dom
+	
 	var prevTop = this.container.scrollTop;
 	var prevLeft = this.container.scrollLeft;
 	var bounds = view.bounds();
@@ -5516,16 +5518,13 @@ EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
 	this.remove(view);
 	
 	if(above) {
-		console.log("erase")
+
 		if(this.settings.axis === "vertical") {
 			this.scrollTo(0, prevTop - bounds.height, true);
 		} else {
-			this.scrollTo(prevLeft -bounds.width, 0, true);
+			this.scrollTo(prevLeft - bounds.width, 0, true);
 		}
 	}
-
-	// task.resolve();
-	// return task.promise;
 	
 };
 
@@ -5593,6 +5592,11 @@ EPUBJS.Continuous.prototype.start = function() {
   
   this.tick = EPUBJS.core.requestAnimationFrame;
 
+  this.prevScrollTop = this.container.scrollTop;
+  this.prevScrollLeft = this.container.scrollLeft;
+  this.scrollDeltaVert = 0;
+  this.scrollDeltaHorz = 0;
+
   this.container.addEventListener("scroll", function(e){
     if(!this.ignore) {
       this.scrolled = true;
@@ -5613,24 +5617,47 @@ EPUBJS.Continuous.prototype.start = function() {
 
 EPUBJS.Continuous.prototype.onScroll = function(){
 
-  if(this.scrolled && !this.ignore) {
+  if(this.scrolled) {
   	
     scrollTop = this.container.scrollTop;
     scrollLeft = this.container.scrollLeft;
 
-    this.trigger("scroll", {
-      top: scrollTop,
-      left: scrollLeft
-    });
+    if(!this.ignore) {
 
-    this.q.enqueue(this.check);
+	    this.trigger("scroll", {
+	      top: scrollTop,
+	      left: scrollLeft
+	    });
 
-    //this.prevScrollTop = scrollTop;
-    //this.prevScrollLeft = scrollLeft;
+	    if(this.scrollDeltaVert === 0 || 
+	    	 this.scrollDeltaHorz === 0 ||
+	    	 this.scrollDeltaVert > this.settings.offset / 2 ||
+	    	 this.scrollDeltaHorz > this.settings.offset / 2) {
+				
+				this.q.enqueue(this.check);
+				
+				this.scrollDeltaVert = 0;
+	    	this.scrollDeltaHorz = 0;
 
-    this.scrolled = false;
-  } else {
-    this.ignore = false;
+			}
+
+		} else {
+	    this.ignore = false;
+		}
+
+    this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
+    this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
+
+    this.prevScrollTop = this.container.scrollTop;
+  	this.prevScrollLeft = this.container.scrollLeft;
+
+  	clearTimeout(this.scrollTimeout);
+		this.scrollTimeout = setTimeout(function(){
+			this.scrollDeltaVert = 0;
+	    this.scrollDeltaHorz = 0;
+		}.bind(this), 150);
+
+
     this.scrolled = false;
   }
 
