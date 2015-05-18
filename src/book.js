@@ -1171,7 +1171,7 @@ EPUBJS.Book.prototype.destroy = function() {
 
 	this.unload();
 
-	if(this.render) this.render.remove();
+	if(this.renderer) this.renderer.remove();
 
 };
 
