@@ -32,7 +32,6 @@ gulp.task('minify', function(){
       'lib/epubjs/book.js',
       'lib/epubjs/view.js',
       'lib/epubjs/layout.js',
-      'lib/epubjs/infinite.js',
       'lib/epubjs/rendition.js',
       'lib/epubjs/continuous.js',
       'lib/epubjs/paginate.js'

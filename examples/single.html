@@ -71,7 +71,8 @@
     // Load the opf
     var book = ePub("../books/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer");
-    var displayed = rendition.display(currentSectionIndex);
+    
+    rendition.display("chapter_008.xhtml");
 
 
     var next = document.getElementById("next");
