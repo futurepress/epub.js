@@ -8,22 +8,18 @@
 
   <style type="text/css">
     body {
-      margin: 20px;
+      margin: 0;
       background: #fafafa;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       color: #333;
-      height: 100%;
-      height: 100%;
-     /*  position: absolute; */
     }
 
     #viewer { 
-      text-align: center;
-    }
-    
-    #viewer > div {
-      /*padding: 0 25% 0 25%;*/
 
+      overflow: hidden;
+      width: 800px;
+      margin: 0 auto;
+      
     }
 
     #viewer .epub-view {
@@ -31,11 +27,6 @@
         box-shadow: 0 0 4px #ccc;
         margin: 10px;
         padding: 20px;
-        width: 50% !important;
-    }
-
-    #viewer .epub-view iframe {
-      width: 100% !important;
     }
 
     .arrow {
