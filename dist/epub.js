@@ -4184,9 +4184,18 @@ EPUBJS.Book.prototype.open = function(_url){
       then(function(paths){
         var packageUri = EPUBJS.core.uri(paths.packagePath);
         book.packageUrl = _url + paths.packagePath;
-        book.url = _url + packageUri.directory; // Set Url relative to the content
         book.encoding = paths.encoding;
-
+        
+        // Set Url relative to the content
+        if(packageUri.origin) {
+          book.url = packageUri.base;
+        } else if(window){
+          location = EPUBJS.core.uri(window.location.href);
+          book.url = EPUBJS.core.resolveUrl(location.base, _url + packageUri.directory);
+        } else {
+          book.url = packageUri.directory;
+        }
+        
         return book.request(book.packageUrl); 
       }).catch(function(error) {
         // handle errors in either of the two requests
@@ -4496,8 +4505,8 @@ EPUBJS.View.prototype.afterLoad = function() {
   if(this.section.properties.indexOf("scripted") > -1){
     this.observer = this.observe(this.document.body);
   }
-  
 
+  this.imageLoadListeners();
 };
 
 EPUBJS.View.prototype.expand = function(_defer, _count, _func) {
@@ -4586,6 +4595,19 @@ EPUBJS.View.prototype.observe = function(target) {
 //   this.element = element;
 //   element.insertBefore(this.iframe, element.firstChild);
 // };
+
+EPUBJS.View.prototype.imageLoadListeners = function(target) {
+  var images = this.document.body.querySelectorAll("img");
+  var img;
+  for (var i = 0; i < images.length; i++) {
+    img = images[i];
+
+    if (typeof img.naturalWidth !== "undefined" &&
+        img.naturalWidth === 0) {
+      img.onload = this.expand.bind(this);
+    }
+  }
+};
 
 EPUBJS.View.prototype.show = function() {
 

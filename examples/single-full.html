@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Basic Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+
+
+  <style type="text/css">
+    body {
+      margin: 0;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
+      display: flex;
+      justify-content: center;
+    }
+
+    #navigation {
+      width: 200px;
+      margin-top: 60px;
+    }
+
+    #navigation h1 {
+      font-size: 16px;
+      font-weight: normal;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    #navigation h2 {
+      font-size: 14px;
+      font-weight: normal;
+      color: #B0B0B0;
+      margin-bottom: 20px;
+    }
+
+    #navigation ul {
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    #navigation ul li {
+      list-style: decimal;
+      margin-bottom: 10px;
+      color: #cccddd;
+      font-size: 12px;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    #navigation ul li a {
+      color: #ccc;
+      text-decoration: none;
+    }
+
+    #navigation ul li a:hover {
+      color: #777;
+      text-decoration: underline;
+    }
+     
+    #navigation ul li a.active {
+      color: #000;
+    }
+
+    #viewer { 
+
+      overflow: hidden;
+      width: 800px;
+      margin: 0 50px;
+      background: url('ajax-loader.gif') center center no-repeat;
+      
+    }
+
+    #viewer .epub-view {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .arrow {
+      margin: 14px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: #ccc;
+    }
+
+    .arrow:hover {
+      color: #777;
+    }
+     
+    .arrow:active {
+      color: #000;
+    }
+
+    #toc {
+      display: block;
+      margin: 10px auto;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="navigation">
+    <h1 id="title">...</h1>
+    <h2 id="author">...</h2>
+    <ul id="toc"></ul>
+  </div>
+  <div id="main">
+    <a id="prev" href="#prev" class="arrow">...</a>
+    <div id="viewer"></div>
+    <a id="next" href="#next" class="arrow">...</a>
+  </div>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("../books/alice/");
+    var rendition = book.renderTo("viewer");
+    
+    var hash = window.location.hash.slice(2);
+    rendition.display(hash || 1);
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        nextNav = book.navigation.get(nextSection.href);
+        
+        if(nextNav) {
+          nextLabel = nextNav.label;
+        } else {
+          nextLabel = "next";
+        }
+
+        next.textContent = nextLabel + " »";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prevNav = book.navigation.get(prevSection.href);
+        
+        if(prevNav) {
+          prevLabel = prevNav.label;
+        } else {
+          prevLabel = "previous";
+        }
+
+        prev.textContent = "« " + prevLabel;
+      } else {
+        prev.textContent = "";
+      }
+
+      // Add CFI fragment to the history
+      //history.pushState({}, '', section.href);
+      window.location.hash = "#/"+section.href
+    });
+
+    book.loaded.navigation.then(function(toc){
+      var $nav = document.getElementById("toc"),
+          docfrag = document.createDocumentFragment();
+
+      toc.forEach(function(chapter) {
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        link.textContent = chapter.label;
+        link.href = chapter.href;
+        item.appendChild(link);
+        docfrag.appendChild(item);
+      
+        link.onclick = function(){
+          var url = link.getAttribute("href");
+          console.log(url)
+          rendition.display(url);
+          return false;
+        };
+
+      });
+
+      $nav.appendChild(docfrag);
+
+
+    });
+
+    book.loaded.metadata.then(function(meta){
+      var $title = document.getElementById("title");
+      var $author = document.getElementById("author");
+      $title.textContent = meta.title;
+      $author.textContent = meta.creator;
+    });
+  </script>
+
+</body>
+</html>
