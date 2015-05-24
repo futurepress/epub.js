@@ -24,7 +24,8 @@
     }
 
     #viewer { 
-      width: 900px;
+      /*width: 900px;*/
+      width: 80%;
       height: 600px;
       background: white;
       box-shadow: 0 0 4px #ccc;
@@ -38,19 +39,7 @@
       margin: 40px auto;
     }
 
-    #viewer:after {
-      position: absolute;
-      width: 1px;
-      border-right: 1px #000 solid;
-      height: 90%;
-      z-index: 1;
-      left: 50%;
-      margin-left: -1px;
-      top: 5%;
-      opacity: .15;
-      box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
-      content:  ""; 
-    }
+    
 
     /*
     #viewer > iframe {
@@ -105,6 +94,22 @@
       margin: 10px auto;
     }
 
+    @media (min-width: 1000px) {
+      #viewer:after {
+        position: absolute;
+        width: 1px;
+        border-right: 1px #000 solid;
+        height: 90%;
+        z-index: 1;
+        left: 50%;
+        margin-left: -1px;
+        top: 5%;
+        opacity: .15;
+        box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
+        content:  ""; 
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -118,8 +123,7 @@
     var book = ePub("../books/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer", { 
       method: "paginate", 
-//      overflow: "auto", 
-      width: 900,
+      width: "100%",
       height: 600
     });
     // var pagination = rendition.paginate();

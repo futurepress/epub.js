@@ -13,38 +13,32 @@
       background: #fafafa;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       color: #333;
-/*      height: 100%;
+      height: 100%;
       width: 100%;
-      overflow: hidden;*/
      /*  position: absolute; */
     }
 
-    #viewer { 
-      display: block;
-      width: 100%;
-      height: 100%;
-      text-align: center;
-      position: absolute;
+    .epub-container { 
+/*      display: block;
+*/      /*width: 100%;*/
+      /*height: 100%;*/
+/*      text-align: center;
+*/      /*position: absolute;
       top: 0;
-      left: 0;
-      
+      left: 0;*/
+      min-width: 320px;
+      margin: 0 auto;
     }
     
-    #viewer > div {
-      padding: 0 20% 0 20%;
-
-    }
-
-    #viewer .epub-view {
+      /*.epub-container > div {
+        padding: 0 20% 0 20%;
+      }*/
+    
+    .epub-container .epub-view > iframe {
         background: white;
         box-shadow: 0 0 4px #ccc;
         margin: 10px;
         padding: 20px;
-        /*width: 50% !important;*/
-    }
-
-    #viewer .epub-view iframe {
-      /*width: 100% !important;*/
     }
 
 
@@ -92,8 +86,8 @@
     var currentSectionIndex = 8;
     // Load the opf
     var book = ePub("../books/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer", { method: "continuous", width: "60%", height: "100%" });
-    var displayed = rendition.display();
+    var rendition = book.renderTo(document.body, { method: "continuous", width: "60%" });
+    var displayed = rendition.display("chapter_008.xhtml");
     
 
     displayed.then(function(renderer){
