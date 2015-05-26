@@ -34,7 +34,8 @@ gulp.task('minify', function(){
       'lib/epubjs/layout.js',
       'lib/epubjs/rendition.js',
       'lib/epubjs/continuous.js',
-      'lib/epubjs/paginate.js'
+      'lib/epubjs/paginate.js',
+      'lib/epubjs/map.js'
     ])
     .pipe(plumber({ errorHandler: onError }))
     .pipe(concat('epub.js'))
