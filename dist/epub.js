@@ -2716,6 +2716,22 @@ EPUBJS.core.borders = function(el) {
   }
 
 };
+
+EPUBJS.core.windowBounds = function() {
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  
+  return {
+    top: 0,
+    left: 0,
+    right: width,
+    bottom: height,
+    width: width,
+    height: height
+  }
+
+};
 EPUBJS.Queue = function(_context){
   this._q = [];
   this.context = _context;
@@ -5605,18 +5621,8 @@ EPUBJS.Continuous.prototype.check = function(){
 	var checking = new RSVP.defer();
 	var container;//this.container.getBoundingClientRect();
 
-	// Temp
 	if(!this.settings.height) {
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-		container = {
-			top: 0,
-			left: 0,
-			right: width,
-			bottom: height,
-			width: width,
-			height: height
-		}
+		container = EPUBJS.core.windowBounds();
 	} else {
 		container = this.container.getBoundingClientRect();
 	}
@@ -5634,7 +5640,7 @@ EPUBJS.Continuous.prototype.check = function(){
 							.then(function(){
 							
 								// Check to see if anything new is on screen after rendering
-								return this.check();
+								this.q.enqueue(this.check);
 
 							}.bind(this));
 				});
