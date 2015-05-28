@@ -5461,9 +5461,6 @@ EPUBJS.Continuous = function(book, options) {
 
 	this.settings = EPUBJS.core.extend(this.settings || {}, {
 		infinite: true,
-		hidden: false,
-		width: false,
-		height: false,
 		overflow: "auto",
 		axis: "vertical",
 		offset: 500,
@@ -6298,7 +6295,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
   var stack = [root];
   var $el;
   var found;
-  var $prev;
+  var $prev = root;
   while (stack.length) {
 
     $el = stack.shift();
@@ -6336,7 +6333,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
     }
 
   }
-
+  
   // Return last element
   return this.findTextStartRange($prev, start, end);
 };
@@ -6344,7 +6341,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
 EPUBJS.Map.prototype.findEnd = function(root, start, end){
   var stack = [root];
   var $el;
-  var $prev;
+  var $prev = root;
   var found;
 
   while (stack.length) {
@@ -6442,7 +6439,8 @@ EPUBJS.Map.prototype.findTextEndRange = function(node, start, end){
 
 EPUBJS.Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
   var ranges = [];
-  var text = node.textContent.trim();
+  var textContent = node.textContent || "";
+  var text = textContent.trim();
   var range;
   var rect;
   var list;
