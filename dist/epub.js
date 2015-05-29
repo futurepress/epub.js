@@ -2818,7 +2818,7 @@ EPUBJS.Queue.prototype.dequeue = function(){
     inwait = this._q.shift();
     task = inwait.task;
     if(task){
-
+      // console.log(task)
 
       result = task.apply(this.context, inwait.args);
 
@@ -4403,8 +4403,6 @@ EPUBJS.View = function(section, options) {
   this.settings = options || {};
 
   this.id = "epubjs-view:" + EPUBJS.core.uuid();
-  this.displaying = new RSVP.defer();
-  this.displayed = this.displaying.promise;
   this.section = section;
   this.index = section.index;
 
@@ -4501,6 +4499,14 @@ EPUBJS.View.prototype.lock = function(width, height) {
     this.resize(null, this.lockedHeight);  
   }
 
+  if(EPUBJS.core.isNumber(width) &&
+     EPUBJS.core.isNumber(height)){
+    
+    this.lockedWidth = width - elBorders.width - iframeBorders.width;
+    this.lockedHeight = height - elBorders.height - iframeBorders.height;
+
+    this.resize(this.lockedWidth, this.lockedHeight);
+  }
 
   if(this.shown && this.iframe) {
 
@@ -4570,6 +4576,15 @@ EPUBJS.View.prototype.resized = function(e) {
 };
 
 EPUBJS.View.prototype.display = function(_request) {
+
+  if(this.rendering){
+    return this.displayed;
+  }
+  
+  this.rendering = true;
+  this.displaying = new RSVP.defer();
+  this.displayed = this.displaying.promise;
+
   return this.section.render(_request)
     .then(function(contents){
       return this.load(contents);
@@ -4592,7 +4607,7 @@ EPUBJS.View.prototype.load = function(contents) {
     
     this.window = this.iframe.contentWindow;
     this.document = this.iframe.contentDocument;
-
+    this.rendering = false;
     loading.resolve(this);
     
   }.bind(this));
@@ -5192,7 +5207,6 @@ EPUBJS.Rendition.prototype.render = function(view) {
 		.then(function(view){
 
 			// this.map = new EPUBJS.Map(view, this.layout);
-
 			this.trigger("rendered", view.section);
 
 		}.bind(this))
@@ -5587,7 +5601,8 @@ EPUBJS.Continuous.prototype.append = function(view){
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onShown = this.afterDisplayed.bind(this);
 
-	return this.check();
+  //this.q.enqueue(this.check);
+  return this.check();
 };
 
 EPUBJS.Continuous.prototype.prepend = function(view){
@@ -5597,9 +5612,10 @@ EPUBJS.Continuous.prototype.prepend = function(view){
 	// view.on("shown", this.afterDisplayedAbove.bind(this));
 	view.onShown = this.afterDisplayed.bind(this);
 
-	//might need to enqueue
 	view.on("resized", this.counter.bind(this));
-	return this.check();
+
+  // this.q.enqueue(this.check);
+  return this.check();
 };
 
 EPUBJS.Continuous.prototype.counter = function(bounds){
@@ -5637,7 +5653,8 @@ EPUBJS.Continuous.prototype.insert = function(view, index) {
 		this.container.appendChild(view.element);
 	}
 
-	return this.check();
+	// this.q.enqueue(this.check);
+  return this.check();
 };
 
 // Remove the render element and clean up listeners
@@ -5683,6 +5700,7 @@ EPUBJS.Continuous.prototype.each = function(func) {
 EPUBJS.Continuous.prototype.check = function(){
 	var checking = new RSVP.defer();
 	var container;//this.container.getBoundingClientRect();
+  var promises = [];
 
 	if(!this.settings.height) {
 		container = EPUBJS.core.windowBounds();
@@ -5695,38 +5713,39 @@ EPUBJS.Continuous.prototype.check = function(){
 		
 		if(visible) {
 			
-			if(!view.shown && !this.rendering) {
-				
-				this.q.enqueue(function(){
-
-						return this.render(view)
-							.then(function(){
-							
-								// Check to see if anything new is on screen after rendering
-								this.q.enqueue(this.check);
-
-							}.bind(this));
-				});
-				
+			if(!view.shown && !view.rendering) {
+					promises.push(this.render(view));
 			}
 
 		} else {
 			
 			if(view.shown) {
-				view.destroy();
+        view.destroy();
 			}
 
 		}
 
 	}.bind(this));
-	
-	clearTimeout(this.trimTimeout);
-	this.trimTimeout = setTimeout(function(){
-		this.q.enqueue(this.trim);
-	}.bind(this), 250);
 
-	checking.resolve();
-	return checking.promise;
+  clearTimeout(this.trimTimeout);
+  this.trimTimeout = setTimeout(function(){
+    this.q.enqueue(this.trim);
+  }.bind(this), 250);
+
+  if(promises.length){
+
+    return RSVP.all(promises)
+      .then(function(posts) {
+    
+        // Check to see if anything new is on screen after rendering
+        this.q.enqueue(this.check);
+
+      }.bind(this));
+
+  } else {
+    checking.resolve();
+    return checking.promise;
+  }
 
 };
 
@@ -5927,7 +5946,6 @@ EPUBJS.Continuous.prototype.scrollBy = function(x, y, silent){
   } else {
   	window.scrollBy(x,y);
   }
-
   this.scrolled = true;
 };
 
@@ -5944,7 +5962,6 @@ EPUBJS.Continuous.prototype.scrollTo = function(x, y, silent){
   }
   
   this.scrolled = true;
-
   // if(this.container.scrollLeft != x){
   //   setTimeout(function() {
   //     this.scrollTo(x, y, silent);
@@ -6172,7 +6189,7 @@ EPUBJS.Paginate.prototype.next = function(){
   return this.q.enqueue(function(){
     this.scrollBy(this.layout.delta, 0);
     this.reportLocation();
-    this.check();
+    return this.check();
   });
 
   // return this.page(this.currentPage + 1);
@@ -6183,7 +6200,7 @@ EPUBJS.Paginate.prototype.prev = function(){
   return this.q.enqueue(function(){
     this.scrollBy(-this.layout.delta, 0);
     this.reportLocation();
-    this.check();
+    return this.check();
   });
   // return this.page(this.currentPage - 1);
 };
