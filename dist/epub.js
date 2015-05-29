@@ -4577,9 +4577,9 @@ EPUBJS.View.prototype.resized = function(e) {
 
 EPUBJS.View.prototype.display = function(_request) {
 
-  if(this.rendering){
-    return this.displayed;
-  }
+  // if(this.rendering){
+  //   return this.displayed;
+  // }
   
   this.rendering = true;
   this.displaying = new RSVP.defer();
@@ -5597,7 +5597,6 @@ EPUBJS.Continuous.prototype.append = function(view){
 	this.views.push(view);
 	this.container.appendChild(view.element);
 
-
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onShown = this.afterDisplayed.bind(this);
 
@@ -5712,31 +5711,33 @@ EPUBJS.Continuous.prototype.check = function(){
 		var visible = this.isVisible(view, this.settings.offset, container);
 		
 		if(visible) {
-			
+
 			if(!view.shown && !view.rendering) {
+          // console.log("render",view.section.index)
 					promises.push(this.render(view));
 			}
 
 		} else {
 			
 			if(view.shown) {
+        // console.log("destroy", view.section.index)
         view.destroy();
+        this.q.enqueue(this.trim);
 			}
 
 		}
 
 	}.bind(this));
 
-  clearTimeout(this.trimTimeout);
-  this.trimTimeout = setTimeout(function(){
-    this.q.enqueue(this.trim);
-  }.bind(this), 250);
+  // clearTimeout(this.trimTimeout);
+  // this.trimTimeout = setTimeout(function(){
+  //   this.q.enqueue(this.trim);
+  // }.bind(this), 250);
 
   if(promises.length){
 
     return RSVP.all(promises)
       .then(function(posts) {
-    
         // Check to see if anything new is on screen after rendering
         this.q.enqueue(this.check);
 
