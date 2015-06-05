@@ -4512,7 +4512,7 @@ EPUBJS.View.prototype.create = function() {
 };
 
 
-EPUBJS.View.prototype.lock = function(width, height) {
+EPUBJS.View.prototype.lock = function(what, width, height) {
   
   var elBorders = EPUBJS.core.borders(this.element);
   var iframeBorders;
@@ -4523,17 +4523,18 @@ EPUBJS.View.prototype.lock = function(width, height) {
     iframeBorders = {width: 0, height: 0};
   }
 
-  if(EPUBJS.core.isNumber(width)){
+  if(what == "width" && EPUBJS.core.isNumber(width)){
     this.lockedWidth = width - elBorders.width - iframeBorders.width;
     this.resize(this.lockedWidth, width); //  width keeps ratio correct
   }
 
-  if(EPUBJS.core.isNumber(height)){
+  if(what == "height" && EPUBJS.core.isNumber(height)){
     this.lockedHeight = height - elBorders.height - iframeBorders.height;
-    this.resize(null, this.lockedHeight);  
+    this.resize(width, this.lockedHeight);  
   }
 
-  if(EPUBJS.core.isNumber(width) &&
+  if(what === "both" && 
+     EPUBJS.core.isNumber(width) &&
      EPUBJS.core.isNumber(height)){
     
     this.lockedWidth = width - elBorders.width - iframeBorders.width;
@@ -4957,6 +4958,7 @@ EPUBJS.Layout.Reflowable.prototype.calculate = function(_width, _height, _gap, _
   this.column = colWidth;
   this.gap = gap;
   this.divisor = divisor;
+
 };
 
 EPUBJS.Layout.Reflowable.prototype.format = function(view){
@@ -4980,7 +4982,6 @@ EPUBJS.Layout.Reflowable.prototype.format = function(view){
 
   // Add extra padding for the gap between this and the next view
   view.iframe.style.marginRight = this.gap+"px";
-
 };
 
 EPUBJS.Layout.Reflowable.prototype.count = function(view) {
@@ -5372,9 +5373,9 @@ EPUBJS.Rendition.prototype._remove = function(view) {
 EPUBJS.Rendition.prototype.resizeView = function(view) {
 	
 	if(this.globalLayoutProperties.layout === "pre-paginated") {
-		view.lock(this.stage.width, this.stage.height);
+		view.lock("both", this.stage.width, this.stage.height);
 	} else {
-		view.lock(this.stage.width, null);
+		view.lock("width", this.stage.width, this.stage.height);
 	}
 
 };
@@ -6207,9 +6208,9 @@ EPUBJS.Continuous.prototype.scrollTo = function(x, y, silent){
  EPUBJS.Continuous.prototype.resizeView = function(view) {
 
 	if(this.settings.axis === "horizontal") {
-		view.lock(null, this.stage.height);
+		view.lock("height", this.stage.width, this.stage.height);
 	} else {
-		view.lock(this.stage.width, null);
+		view.lock("width", this.stage.width, this.stage.height);
 	}
 
 };
