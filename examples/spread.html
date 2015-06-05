@@ -2,10 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EPUB.js Pagination Example</title>
-
-
+  <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/detect_swipe/2.1.1/jquery.detect_swipe.min.js"></script>
   <script src="../dist/epub.js"></script>
 
   <style type="text/css">
@@ -24,13 +25,14 @@
     }
 
     #viewer { 
-      width: 300px;
-      height: 568px;
+      width: 290px;
+      height: 440px;
       background: white;
       box-shadow: 0 0 4px #ccc;
-      border-radius: 5px;
-      padding: 5px 10px;
+      padding: 10px 10px 0px 10px;
+      margin: 5px auto;
       background: white;
+      pointer-events: none;
     }
 
     #prev {
@@ -63,7 +65,17 @@
       color: #000;
     }
 
-    
+    #viewer iframe {
+      pointer-events: none;
+    }
+
+    @media only screen 
+      and (min-device-width : 320px) 
+      and (max-device-width : 667px) { 
+        .arrow {
+          display: none;
+        }
+    }
 
   </style>
 </head>
@@ -78,8 +90,8 @@
     var book = ePub("../books/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer", { 
       method: "paginate", 
-      width: 300,
-      height: 558
+      width: "100%",
+      height: "100%"
     });
     // var pagination = rendition.paginate();
 
@@ -118,6 +130,14 @@
       }
       
     }, false);
+
+    $(window).on( "swipeleft", function( event ) { 
+      rendition.prev();
+    });
+
+    $(window).on( "swiperight", function( event ) { 
+      rendition.next();
+    });
     
 
   </script>
