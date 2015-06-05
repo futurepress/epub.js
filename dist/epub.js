@@ -3832,6 +3832,14 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
   return range;
 };
 
+EPUBJS.EpubCFI.prototype.isCfiString = function(target) {
+  if(typeof target === "string" &&
+    target.indexOf("epubcfi(") === 0) {
+      return true;
+  }
+
+  return false;
+}
 EPUBJS.Navigation = function(_package, _request){
   var navigation = this;
   var parse = new EPUBJS.Parser();
@@ -4111,8 +4119,8 @@ EPUBJS.Spine.prototype.load = function(_package) {
 EPUBJS.Spine.prototype.get = function(target) {
   var index = 0;
 
-  if(typeof target === "string" && target.indexOf("epubcfi(") === 0) {
-    cfi = new EPUBJS.EpubCFI(target);
+  if(this.epubcfi.isCfiString(target)) {
+    cfi = this.epubcfi.parse(target);
     index = cfi.spinePos;
   } if(target && (typeof target === "number" || isNaN(target) === false)){
     index = target;
@@ -4869,7 +4877,7 @@ EPUBJS.View.prototype.locationOf = function(target) {
   
   if(!this.document) return;
 
-  if(target.indexOf("epubcfi(") === 0) {
+  if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
 
     if(typeof document.evaluate === 'undefined') {
@@ -4886,7 +4894,8 @@ EPUBJS.View.prototype.locationOf = function(target) {
         return range.getBoundingClientRect();
       }
     }
-  } else if(target.indexOf("#") > -1) {
+  } else if(typeof target === "string" &&
+    target.indexOf("#") > -1) {
 
     id = target.substring(target.indexOf("#"));
     el = this.document.getElementById(id);
@@ -5084,6 +5093,8 @@ EPUBJS.Rendition = function(book, options) {
 	this.hooks.replacements.register(EPUBJS.replace.links.bind(this));
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
+  this.epubcfi = new EPUBJS.EpubCFI();
+
 	this.q = new EPUBJS.Queue(this);
 
 	this.q.enqueue(this.book.opened);
@@ -5227,9 +5238,8 @@ EPUBJS.Rendition.prototype._display = function(target){
   var view;
   var cfi, spinePos;
 
-  if(typeof target === "string" && 
-  	target.indexOf("epubcfi(") === 0) {
-    cfi = new EPUBJS.EpubCFI(target);
+  if(this.epubcfi.isCfiString(target)) {
+    cfi = this.epubcfi.parse(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {
@@ -5704,9 +5714,8 @@ EPUBJS.Continuous.prototype._display = function(target){
   var view;
   var cfi, spinePos;
 
-  if(typeof target === "string" &&
-    target.indexOf("epubcfi(") === 0) {
-    cfi = new EPUBJS.EpubCFI(target);
+  if(this.epubcfi.isCfiString(target)) {
+    cfi = this.epubcfi.parse(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {
