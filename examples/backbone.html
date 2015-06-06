@@ -10,8 +10,9 @@
 
         <link rel="stylesheet" href="basic.css">
 
-        <script src="../libs/underscore/underscore-min.js"></script>
-        <script src="../libs/backbone/backbone-min.js"></script>
+        <script src="../bower_components/jquery/dist/jquery.js"></script>
+        <script src="../bower_components/underscore/underscore.js"></script>
+        <script src="../bower_components/backbone/backbone.js"></script>
 
         <!-- EPUBJS Renderer -->
         <script src="/build/epub.min.js"></script>
@@ -19,19 +20,24 @@
         <script>
             "use strict";
             
-            var Book = ePub("/reader/moby-dick/", { restore: true });
+            //var Book = ePub("/reader/moby-dick/", { restore: true });
             
             
         </script>
     </head>
     <body>
         <div id="main">
-          <div id="prev" onclick="Book.prevPage();" class="arrow">‹</div>
-          <div id="area"></div>
-          <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
+
           <div id="loader"><img src="../reader/img/loader.gif"></div>
           <select id="toc"></select>
         </div>
+
+        <script type="text/template" id="abcdef">
+            <div id="prev" class="arrow">‹</div>
+            <div id="area"></div>
+            <div id="next" class="arrow">›</div>
+            <label><%= test %></label>
+        </script>
 
         <script>            
             
@@ -73,6 +79,8 @@
             // Book.renderTo("area");
 
             var BB = {};
+
+            var Library = new Backbone.Model({test: 'test hey ho!'});
  
             // Router
             BB.Router = Backbone.Router.extend({
@@ -89,28 +97,71 @@
             });
            
             // Instantiate Router
-            var router = new Book.Router();
+            var router = new BB.Router();
+
+            BB.Views = {};
            
             // This will fetch the book template and render it.
             BB.Views.Details = Backbone.View.extend({
-              template: "app/templates/books/details.html",
+
+              el: '#main',
+
+              book: ePub("/reader/moby-dick/", { restore: true }),
+
+              model: Library,
+
+              events: {
+                  'click #next': 'nextPage',
+                  'click #previous': 'previousPage'
+              },
+
+              template: _.template( $('#abcdef').html() ),
+
+              initialize: function() {
+
+              },
            
               render: function(done) {
                 var view = this;
-           
-                // Fetch the template, render it to the View element and call done.
-                namespace.fetchTemplate(this.template, function(tmpl) {
-                  view.el.innerHTML = tmpl(view.model.toJSON());
-           
-                  if (_.isFunction(done)) {
-                    done(view.el);
-                  }
-                });
+
+                  this.$el.html(this.template(this.model.toJSON()));
+
+                  this.book.renderTo("area").then(function(){
+                      view.bindIframe();
+                  });
+
+                  this.bindIframe();
+
+                  return this;
+              },
+
+              bindIframe: function(){
+                  $('#area iframe').contents().find('body').bind('mouseup', function(){
+
+                      var selection = $('iframe').contents()[0].getSelection().toString();
+                      debugger;
+                  });
+              },
+
+              nextPage: function(e){
+                  var view = this;
+                  e.preventDefault();
+
+                  this.book.nextPage().then(function(){
+                      view.bindIframe();
+                  })
+              },
+
+              previousPage: function(e){
+                  e.preventDefault();
+
+                  this.book.prevPage()
               }
             });
            
-            
- 
+            var view = new BB.Views.Details();
+
+            view.render();
 
         </script>
     </body>

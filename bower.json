@@ -1,0 +1,10 @@
+{
+    "name": "epub.js",
+    "version": "0.0.1",
+    "dependencies": {
+        "jquery": "~2.1.0",
+        "backbone": "~1.1.0",
+        "handlebars": "~2.0.0"
+    },
+    "devDependencies": {}
+}
