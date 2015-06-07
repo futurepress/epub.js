@@ -14,6 +14,8 @@
         <script src="../bower_components/underscore/underscore.js"></script>
         <script src="../bower_components/backbone/backbone.js"></script>
 
+        <script src="../build/libs/zip.min.js"></script>
+
         <!-- EPUBJS Renderer -->
         <script src="/build/epub.min.js"></script>
 
@@ -36,7 +38,6 @@
             <div id="prev" class="arrow">‹</div>
             <div id="area"></div>
             <div id="next" class="arrow">›</div>
-            <label><%= test %></label>
         </script>
 
         <script>            
@@ -80,7 +81,7 @@
 
             var BB = {};
 
-            var Library = new Backbone.Model({test: 'test hey ho!'});
+            var Library = new Backbone.Model();
  
             // Router
             BB.Router = Backbone.Router.extend({
@@ -106,13 +107,13 @@
 
               el: '#main',
 
-              book: ePub("/reader/moby-dick/", { restore: true }),
+              book: ePub("/reader/moby-dick.epub", { restore: true }),
 
               model: Library,
 
               events: {
                   'click #next': 'nextPage',
-                  'click #previous': 'previousPage'
+                  'click #prev': 'previousPage'
               },
 
               template: _.template( $('#abcdef').html() ),
