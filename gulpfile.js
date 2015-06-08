@@ -12,30 +12,30 @@ var server = require("./tools/serve.js");
 
 // Lint JS
 gulp.task('lint', function() {
-  return gulp.src('lib/*/*.js')
+  return gulp.src('src/*/*.js')
     .pipe(jshint())
     .pipe(jshint.reporter('default'));
 });
 
 // Concat & Minify JS
 gulp.task('minify', function(){
-  return gulp.src(['lib/*.js', 'bower_components/rsvp/rsvp.js', 
-      'lib/epubjs/core.js',
-      'lib/epubjs/queue.js',
-      'lib/epubjs/hooks.js',
-      'lib/epubjs/parser.js',
-      'lib/epubjs/epubcfi.js',
-      'lib/epubjs/navigation.js',
-      'lib/epubjs/section.js',
-      'lib/epubjs/spine.js',
-      'lib/epubjs/replacements.js',
-      'lib/epubjs/book.js',
-      'lib/epubjs/view.js',
-      'lib/epubjs/layout.js',
-      'lib/epubjs/rendition.js',
-      'lib/epubjs/continuous.js',
-      'lib/epubjs/paginate.js',
-      'lib/epubjs/map.js'
+  return gulp.src(['src/*.js', 'bower_components/rsvp/rsvp.js', 
+      'src/epubjs/core.js',
+      'src/epubjs/queue.js',
+      'src/epubjs/hooks.js',
+      'src/epubjs/parser.js',
+      'src/epubjs/epubcfi.js',
+      'src/epubjs/navigation.js',
+      'src/epubjs/section.js',
+      'src/epubjs/spine.js',
+      'src/epubjs/replacements.js',
+      'src/epubjs/book.js',
+      'src/epubjs/view.js',
+      'src/epubjs/layout.js',
+      'src/epubjs/rendition.js',
+      'src/epubjs/continuous.js',
+      'src/epubjs/paginate.js',
+      'src/epubjs/map.js'
     ])
     .pipe(plumber({ errorHandler: onError }))
     .pipe(concat('epub.js'))
@@ -47,7 +47,7 @@ gulp.task('minify', function(){
 
 // Watch Our Files
 gulp.task('watch', function() {
-  gulp.watch('lib/*/*.js', ['minify']);
+  gulp.watch('src/*/*.js', ['minify']);
 });
 
 gulp.task('serve', ["watch"], function() {
