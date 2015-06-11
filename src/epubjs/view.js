@@ -40,10 +40,11 @@ EPUBJS.View.prototype.create = function() {
   this.iframe = document.createElement('iframe');
   this.iframe.id = this.id;
   // this.iframe.scrolling = "no"; // Removed: breaks ios width calculations
+  this.iframe.style.overflow = "hidden";
   this.iframe.seamless = "seamless";
   // Back up if seamless isn't supported
   this.iframe.style.border = "none";
-
+  
   this.resizing = true;
 
   // this.iframe.style.display = "none";
