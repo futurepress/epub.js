@@ -266,18 +266,18 @@ EPUBJS.Continuous.prototype.check = function(_offset){
         // console.log("destroy", view.section.index)
         this.q.enqueue(view.destroy.bind(view));
         // view.destroy();
-        //this.q.enqueue(this.trim);
+        // this.q.enqueue(this.trim);
+        clearTimeout(this.trimTimeout);
+        this.trimTimeout = setTimeout(function(){
+          this.q.enqueue(this.trim);
+        }.bind(this), 250);
 			}
 
 		}
 
 	}.bind(this));
 
-  clearTimeout(this.trimTimeout);
-  this.trimTimeout = setTimeout(function(){
-    this.q.enqueue(this.trim);
-  }.bind(this), 250);
-
+  
   if(promises.length){
 
     return RSVP.all(promises)
@@ -289,6 +289,7 @@ EPUBJS.Continuous.prototype.check = function(_offset){
 
   } else {
     checking.resolve();
+
     return checking.promise;
   }
 

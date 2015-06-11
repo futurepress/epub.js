@@ -96,7 +96,7 @@ EPUBJS.View.prototype.lock = function(what, width, height) {
 
   if(what == "height" && EPUBJS.core.isNumber(height)){
     this.lockedHeight = height - elBorders.height - iframeBorders.height;
-    this.resize(width, this.lockedHeight);  
+    this.resize(width, this.lockedHeight);
   }
 
   if(what === "both" && 
@@ -430,7 +430,6 @@ EPUBJS.View.prototype.destroy = function() {
     this.displayed = false;
     this.iframe = null;
   }
-
   // this.element.style.height = "0px";
   // this.element.style.width = "0px";
 };
