@@ -18,6 +18,7 @@
 
         <!-- EPUBJS Renderer -->
         <script src="/build/epub.min.js"></script>
+        <!--<script src="/build/hooks.js"></script>-->
 
         <script>
             "use strict";
@@ -101,6 +102,11 @@
             var router = new BB.Router();
 
             BB.Views = {};
+
+            EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
+                console.log('test');
+                callback();
+            };
            
             // This will fetch the book template and render it.
             BB.Views.Details = Backbone.View.extend({
@@ -119,17 +125,21 @@
               template: _.template( $('#abcdef').html() ),
 
               initialize: function() {
+                  this.area = $('<div></div>');
+
+                  this.book.renderTo(this.area[0]).then(function(){
+//                      view.bindIframe();
+                  });
+
 
               },
            
               render: function(done) {
                 var view = this;
 
-                  this.$el.html(this.template(this.model.toJSON()));
+                  this.$el.html(this.template());
 
-                  this.book.renderTo("area").then(function(){
-                      view.bindIframe();
-                  });
+                  this.$('#area').html(this.area);
 
                   this.bindIframe();
 
@@ -149,7 +159,7 @@
                   e.preventDefault();
 
                   this.book.nextPage().then(function(){
-                      view.bindIframe();
+//                      view.bindIframe();
                   })
               },
 
