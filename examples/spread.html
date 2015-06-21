@@ -70,7 +70,7 @@
       and (min-device-width : 320px) 
       and (max-device-width : 667px) {
         #viewer {
-          /* height: 96.5%; */
+          height: 96.5%;
         }
         #viewer iframe {
           pointer-events: none;
@@ -97,8 +97,8 @@
       height: "100%"
     });
 
-    var displayed = rendition.display("chapter_001.xhtml");
-    
+    // var displayed = rendition.display("chapter_001.xhtml");
+    var displayed = rendition.display();
 
     displayed.then(function(renderer){
       // -- do stuff
