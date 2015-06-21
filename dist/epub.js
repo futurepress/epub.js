@@ -2242,7 +2242,7 @@ EPUBJS.Queue.prototype.dequeue = function(){
           inwait.deferred.resolve.apply(this.context, arguments);
         }.bind(this));
       } else {
-        // Task is resolves immediately
+        // Task resolves immediately
         inwait.deferred.resolve.apply(this.context, result);
         return inwait.promise;
       }
@@ -2350,21 +2350,31 @@ EPUBJS.Hook.prototype.register = function(func){
 
 // Triggers a hook to run all functions
 EPUBJS.Hook.prototype.trigger = function(){
-  var length = this.hooks.length;
+  var hooks = this.hooks;
+  var length = hooks.length;
   var current = 0;
   var executing;
   var defer = new RSVP.defer();
   var args = arguments;
-
+  var next = function(){
+    current += 1;
+    if(current < length) {
+      return hooks[current].apply(this.context, args);
+    }
+  }.bind(this);
   if(length) {
 
     executing = this.hooks[current].apply(this.context, args);
-    executing.then(function(){
-      current += 1;
-      if(current < length) {
-        return this.hooks[current].apply(this.context, args);
-      }
-    }.bind(this));
+    
+    if(executing && typeof executing["then"] === "function") {
+      // Task is a function that returns a promise
+      executing.then(next);
+    } else {
+      // Task resolves immediately
+      next();
+    }
+    
+    
     
   } else {
     executing = defer.promise;
@@ -4027,7 +4037,7 @@ EPUBJS.View.prototype.contentWidth = function(min) {
   // Save previous width
   prev = this.iframe.style.width;
   // Set the iframe size to min, width will only ever be greater
-  this.iframe.style.width = (min || 0) + "px";
+  this.iframe.style.width = 0 + "px";
   // Get the scroll overflow width
   width = this.document.body.scrollWidth;
   // Reset iframe size back
@@ -4254,7 +4264,7 @@ EPUBJS.View.prototype.mediaQueryListeners = function() {
 
     for (var i = 0; i < sheets.length; i += 1) {
         var rules = sheets[i].cssRules;
-
+        if(!rules) return; // Stylesheets changed
         for (var j = 0; j < rules.length; j += 1) {
             //if (rules[j].constructor === CSSMediaRule) {
             if(rules[j].media){
@@ -4424,6 +4434,64 @@ EPUBJS.View.prototype.locationOf = function(target) {
   return {"left": 0, "top": 0};
 };
 
+EPUBJS.View.prototype.addCss = function(src) {
+  var $stylesheet = document.createElement('link');
+  var ready = false;
+ 
+  return new RSVP.Promise(function(resolve, reject){
+    if(!this.document) {
+      resolve(false);
+      return;
+    }
+    
+    $stylesheet.type = 'text/css';
+    $stylesheet.rel = "stylesheet";
+    $stylesheet.href = src;
+    $stylesheet.onload = $stylesheet.onreadystatechange = function() {
+      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+        ready = true;
+        // Let apply
+        setTimeout(function(){
+          resolve(true);
+        }, 1);
+      }
+    };
+    
+    this.document.head.appendChild($stylesheet);
+
+  }.bind(this));
+};
+
+// https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
+EPUBJS.View.prototype.addStylesheetRules = function(rules) {
+  var styleEl = document.createElement('style'),
+      styleSheet;
+  
+  if(!this.document) return;
+  
+  // Append style element to head
+  this.document.head.appendChild(styleEl);
+
+  // Grab style sheet
+  styleSheet = styleEl.sheet;
+
+  for (var i = 0, rl = rules.length; i < rl; i++) {
+    var j = 1, rule = rules[i], selector = rules[i][0], propStr = '';
+    // If the second argument of a rule is an array of arrays, correct our variables.
+    if (Object.prototype.toString.call(rule[1][0]) === '[object Array]') {
+      rule = rule[1];
+      j = 0;
+    }
+
+    for (var pl = rule.length; j < pl; j++) {
+      var prop = rule[j];
+      propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+    }
+
+    // Insert CSS Rule
+    styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
+  }
+};
 
 RSVP.EventTarget.mixin(EPUBJS.View.prototype);
 EPUBJS.Layout = EPUBJS.Layout || {};
@@ -4608,6 +4676,7 @@ EPUBJS.Rendition = function(book, options) {
 	this.hooks.replacements = new EPUBJS.Hook(this);
 	
 	this.hooks.replacements.register(EPUBJS.replace.links.bind(this));
+
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
   this.epubcfi = new EPUBJS.EpubCFI();
@@ -4716,7 +4785,7 @@ EPUBJS.Rendition.prototype.attachTo = function(_element){
 	this.stageSize();
 
 	// Add Layout method
-	this.layoutMethod();
+	this.applyLayoutMethod();
 	
 	// Trigger Attached
 	this.trigger("attached");
@@ -4955,15 +5024,15 @@ EPUBJS.Rendition.prototype.stageSize = function(_width, _height){
 
 };
 
-EPUBJS.Rendition.prototype.layoutMethod = function() {
+EPUBJS.Rendition.prototype.applyLayoutMethod = function() {
 	
 	this.layout = new EPUBJS.Layout.Scroll();
-	this.layoutUpdate();
+	this.updateLayout();
 
 	this.map = new EPUBJS.Map(this.layout);
 };
 
-EPUBJS.Rendition.prototype.layoutUpdate = function() {
+EPUBJS.Rendition.prototype.updateLayout = function() {
 	
 	this.layout.calculate(this.stage.width, this.stage.height);
 
@@ -4973,7 +5042,7 @@ EPUBJS.Rendition.prototype.resize = function(width, height){
 
 	this.stageSize(width, height);
 
-	this.layoutUpdate();
+	this.updateLayout();
 
 	this.views.forEach(this.resizeView.bind(this));
 
@@ -5817,7 +5886,7 @@ EPUBJS.Paginate = function(book, options) {
 
   EPUBJS.core.extend(this.settings, options);
 
-  this.isForcedSingle = false;
+  this.isForcedSingle = this.settings.forceSingle;
 
   this.viewSettings = {
     axis: this.settings.axis
@@ -5839,13 +5908,14 @@ EPUBJS.Paginate.prototype.determineSpreads = function(cutoff){
 };
 
 EPUBJS.Paginate.prototype.forceSingle = function(bool){
-  if(bool) {
-    this.isForcedSingle = true;
+  if(bool === false) {
+    this.isForcedSingle = false;
     // this.spreads = false;
   } else {
-    this.isForcedSingle = false;
+    this.isForcedSingle = true;
     // this.spreads = this.determineSpreads(this.minSpreadWidth);
   }
+  this.applyLayoutMethod();
 };
 
 /**
@@ -5854,35 +5924,35 @@ EPUBJS.Paginate.prototype.forceSingle = function(bool){
 * Takes: Layout settings object
 * Returns: String of appropriate for EPUBJS.Layout function
 */
-EPUBJS.Paginate.prototype.determineLayout = function(settings){
-  // Default is layout: reflowable & spread: auto
-  var spreads = this.determineSpreads(this.settings.minSpreadWidth);
-  console.log("spreads", spreads, this.settings.minSpreadWidth)
-  var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
-  var scroll = false;
-
-  if(settings.layout === "pre-paginated") {
-    layoutMethod = "Fixed";
-    scroll = true;
-    spreads = false;
-  }
-
-  if(settings.layout === "reflowable" && settings.spread === "none") {
-    layoutMethod = "Reflowable";
-    scroll = false;
-    spreads = false;
-  }
-
-  if(settings.layout === "reflowable" && settings.spread === "both") {
-    layoutMethod = "ReflowableSpreads";
-    scroll = false;
-    spreads = true;
-  }
-
-  this.spreads = spreads;
-
-  return layoutMethod;
-};
+// EPUBJS.Paginate.prototype.determineLayout = function(settings){
+//   // Default is layout: reflowable & spread: auto
+//   var spreads = this.determineSpreads(this.settings.minSpreadWidth);
+//   console.log("spreads", spreads, this.settings.minSpreadWidth)
+//   var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
+//   var scroll = false;
+// 
+//   if(settings.layout === "pre-paginated") {
+//     layoutMethod = "Fixed";
+//     scroll = true;
+//     spreads = false;
+//   }
+// 
+//   if(settings.layout === "reflowable" && settings.spread === "none") {
+//     layoutMethod = "Reflowable";
+//     scroll = false;
+//     spreads = false;
+//   }
+// 
+//   if(settings.layout === "reflowable" && settings.spread === "both") {
+//     layoutMethod = "ReflowableSpreads";
+//     scroll = false;
+//     spreads = true;
+//   }
+// 
+//   this.spreads = spreads;
+// 
+//   return layoutMethod;
+// };
 
 EPUBJS.Paginate.prototype.start = function(){  
   // On display
@@ -5891,6 +5961,7 @@ EPUBJS.Paginate.prototype.start = function(){
   // this.layout = new EPUBJS.Layout[this.layoutMethod]();
   //this.hooks.display.register(this.registerLayoutMethod.bind(this));
   this.hooks.display.register(this.reportLocation);
+  this.hooks.replacements.register(this.adjustImages.bind(this));
 
   this.currentPage = 0;
 
@@ -5908,14 +5979,14 @@ EPUBJS.Paginate.prototype.start = function(){
 //   return view;
 // };
 
-EPUBJS.Paginate.prototype.layoutMethod = function() {
+EPUBJS.Paginate.prototype.applyLayoutMethod = function() {
   //var task = new RSVP.defer();
 
   // this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
   this.layout = new EPUBJS.Layout.Reflowable();
 
-  this.layoutUpdate();
+  this.updateLayout();
 
   // Set the look ahead offset for what is visible
 
@@ -5928,7 +5999,7 @@ EPUBJS.Paginate.prototype.layoutMethod = function() {
   // return layout;
 };
 
-EPUBJS.Paginate.prototype.layoutUpdate = function() {
+EPUBJS.Paginate.prototype.updateLayout = function() {
   
   this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
@@ -6026,7 +6097,7 @@ EPUBJS.Paginate.prototype.resize = function(width, height){
 
   this.stageSize(width, height);
 
-  this.layoutUpdate();
+  this.updateLayout();
 
   this.display(this.location.start);
 
@@ -6045,6 +6116,22 @@ EPUBJS.Paginate.prototype.onResized = function(e) {
   this.resizeTimeout = setTimeout(function(){
     this.resize();
   }.bind(this), 150);
+};
+
+EPUBJS.Paginate.prototype.adjustImages = function(view) {
+  
+  view.addStylesheetRules([
+      ["img", 
+        ["max-width", (this.layout.spread) + "px"],
+        ["max-height", (this.layout.height) + "px"]
+      ]
+  ]);
+  return new RSVP.Promise(function(resolve, reject){
+    // Wait to apply
+    setTimeout(function() {
+      resolve();
+    }, 1);
+  });
 };
 
 // EPUBJS.Paginate.prototype.display = function(what){

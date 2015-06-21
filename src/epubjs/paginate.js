@@ -15,7 +15,7 @@ EPUBJS.Paginate = function(book, options) {
 
   EPUBJS.core.extend(this.settings, options);
 
-  this.isForcedSingle = false;
+  this.isForcedSingle = this.settings.forceSingle;
 
   this.viewSettings = {
     axis: this.settings.axis
@@ -37,13 +37,14 @@ EPUBJS.Paginate.prototype.determineSpreads = function(cutoff){
 };
 
 EPUBJS.Paginate.prototype.forceSingle = function(bool){
-  if(bool) {
-    this.isForcedSingle = true;
+  if(bool === false) {
+    this.isForcedSingle = false;
     // this.spreads = false;
   } else {
-    this.isForcedSingle = false;
+    this.isForcedSingle = true;
     // this.spreads = this.determineSpreads(this.minSpreadWidth);
   }
+  this.applyLayoutMethod();
 };
 
 /**
@@ -52,35 +53,35 @@ EPUBJS.Paginate.prototype.forceSingle = function(bool){
 * Takes: Layout settings object
 * Returns: String of appropriate for EPUBJS.Layout function
 */
-EPUBJS.Paginate.prototype.determineLayout = function(settings){
-  // Default is layout: reflowable & spread: auto
-  var spreads = this.determineSpreads(this.settings.minSpreadWidth);
-  console.log("spreads", spreads, this.settings.minSpreadWidth)
-  var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
-  var scroll = false;
-
-  if(settings.layout === "pre-paginated") {
-    layoutMethod = "Fixed";
-    scroll = true;
-    spreads = false;
-  }
-
-  if(settings.layout === "reflowable" && settings.spread === "none") {
-    layoutMethod = "Reflowable";
-    scroll = false;
-    spreads = false;
-  }
-
-  if(settings.layout === "reflowable" && settings.spread === "both") {
-    layoutMethod = "ReflowableSpreads";
-    scroll = false;
-    spreads = true;
-  }
-
-  this.spreads = spreads;
-
-  return layoutMethod;
-};
+// EPUBJS.Paginate.prototype.determineLayout = function(settings){
+//   // Default is layout: reflowable & spread: auto
+//   var spreads = this.determineSpreads(this.settings.minSpreadWidth);
+//   console.log("spreads", spreads, this.settings.minSpreadWidth)
+//   var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
+//   var scroll = false;
+// 
+//   if(settings.layout === "pre-paginated") {
+//     layoutMethod = "Fixed";
+//     scroll = true;
+//     spreads = false;
+//   }
+// 
+//   if(settings.layout === "reflowable" && settings.spread === "none") {
+//     layoutMethod = "Reflowable";
+//     scroll = false;
+//     spreads = false;
+//   }
+// 
+//   if(settings.layout === "reflowable" && settings.spread === "both") {
+//     layoutMethod = "ReflowableSpreads";
+//     scroll = false;
+//     spreads = true;
+//   }
+// 
+//   this.spreads = spreads;
+// 
+//   return layoutMethod;
+// };
 
 EPUBJS.Paginate.prototype.start = function(){  
   // On display
@@ -89,6 +90,7 @@ EPUBJS.Paginate.prototype.start = function(){
   // this.layout = new EPUBJS.Layout[this.layoutMethod]();
   //this.hooks.display.register(this.registerLayoutMethod.bind(this));
   this.hooks.display.register(this.reportLocation);
+  this.hooks.replacements.register(this.adjustImages.bind(this));
 
   this.currentPage = 0;
 
@@ -106,14 +108,14 @@ EPUBJS.Paginate.prototype.start = function(){
 //   return view;
 // };
 
-EPUBJS.Paginate.prototype.layoutMethod = function() {
+EPUBJS.Paginate.prototype.applyLayoutMethod = function() {
   //var task = new RSVP.defer();
 
   // this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
   this.layout = new EPUBJS.Layout.Reflowable();
 
-  this.layoutUpdate();
+  this.updateLayout();
 
   // Set the look ahead offset for what is visible
 
@@ -126,7 +128,7 @@ EPUBJS.Paginate.prototype.layoutMethod = function() {
   // return layout;
 };
 
-EPUBJS.Paginate.prototype.layoutUpdate = function() {
+EPUBJS.Paginate.prototype.updateLayout = function() {
   
   this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
@@ -224,7 +226,7 @@ EPUBJS.Paginate.prototype.resize = function(width, height){
 
   this.stageSize(width, height);
 
-  this.layoutUpdate();
+  this.updateLayout();
 
   this.display(this.location.start);
 
@@ -243,6 +245,22 @@ EPUBJS.Paginate.prototype.onResized = function(e) {
   this.resizeTimeout = setTimeout(function(){
     this.resize();
   }.bind(this), 150);
+};
+
+EPUBJS.Paginate.prototype.adjustImages = function(view) {
+  
+  view.addStylesheetRules([
+      ["img", 
+        ["max-width", (this.layout.spread) + "px"],
+        ["max-height", (this.layout.height) + "px"]
+      ]
+  ]);
+  return new RSVP.Promise(function(resolve, reject){
+    // Wait to apply
+    setTimeout(function() {
+      resolve();
+    }, 1);
+  });
 };
 
 // EPUBJS.Paginate.prototype.display = function(what){

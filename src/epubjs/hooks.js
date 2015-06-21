@@ -17,21 +17,31 @@ EPUBJS.Hook.prototype.register = function(func){
 
 // Triggers a hook to run all functions
 EPUBJS.Hook.prototype.trigger = function(){
-  var length = this.hooks.length;
+  var hooks = this.hooks;
+  var length = hooks.length;
   var current = 0;
   var executing;
   var defer = new RSVP.defer();
   var args = arguments;
-
+  var next = function(){
+    current += 1;
+    if(current < length) {
+      return hooks[current].apply(this.context, args);
+    }
+  }.bind(this);
   if(length) {
 
     executing = this.hooks[current].apply(this.context, args);
-    executing.then(function(){
-      current += 1;
-      if(current < length) {
-        return this.hooks[current].apply(this.context, args);
-      }
-    }.bind(this));
+    
+    if(executing && typeof executing["then"] === "function") {
+      // Task is a function that returns a promise
+      executing.then(next);
+    } else {
+      // Task resolves immediately
+      next();
+    }
+    
+    
     
   } else {
     executing = defer.promise;

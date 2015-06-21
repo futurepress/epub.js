@@ -24,6 +24,7 @@ EPUBJS.Rendition = function(book, options) {
 	this.hooks.replacements = new EPUBJS.Hook(this);
 	
 	this.hooks.replacements.register(EPUBJS.replace.links.bind(this));
+
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
   this.epubcfi = new EPUBJS.EpubCFI();
@@ -132,7 +133,7 @@ EPUBJS.Rendition.prototype.attachTo = function(_element){
 	this.stageSize();
 
 	// Add Layout method
-	this.layoutMethod();
+	this.applyLayoutMethod();
 	
 	// Trigger Attached
 	this.trigger("attached");
@@ -371,15 +372,15 @@ EPUBJS.Rendition.prototype.stageSize = function(_width, _height){
 
 };
 
-EPUBJS.Rendition.prototype.layoutMethod = function() {
+EPUBJS.Rendition.prototype.applyLayoutMethod = function() {
 	
 	this.layout = new EPUBJS.Layout.Scroll();
-	this.layoutUpdate();
+	this.updateLayout();
 
 	this.map = new EPUBJS.Map(this.layout);
 };
 
-EPUBJS.Rendition.prototype.layoutUpdate = function() {
+EPUBJS.Rendition.prototype.updateLayout = function() {
 	
 	this.layout.calculate(this.stage.width, this.stage.height);
 
@@ -389,7 +390,7 @@ EPUBJS.Rendition.prototype.resize = function(width, height){
 
 	this.stageSize(width, height);
 
-	this.layoutUpdate();
+	this.updateLayout();
 
 	this.views.forEach(this.resizeView.bind(this));
 

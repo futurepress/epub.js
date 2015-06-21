@@ -181,7 +181,7 @@ EPUBJS.View.prototype.contentWidth = function(min) {
   // Save previous width
   prev = this.iframe.style.width;
   // Set the iframe size to min, width will only ever be greater
-  this.iframe.style.width = (min || 0) + "px";
+  this.iframe.style.width = 0 + "px";
   // Get the scroll overflow width
   width = this.document.body.scrollWidth;
   // Reset iframe size back
@@ -408,7 +408,7 @@ EPUBJS.View.prototype.mediaQueryListeners = function() {
 
     for (var i = 0; i < sheets.length; i += 1) {
         var rules = sheets[i].cssRules;
-
+        if(!rules) return; // Stylesheets changed
         for (var j = 0; j < rules.length; j += 1) {
             //if (rules[j].constructor === CSSMediaRule) {
             if(rules[j].media){
@@ -578,5 +578,63 @@ EPUBJS.View.prototype.locationOf = function(target) {
   return {"left": 0, "top": 0};
 };
 
+EPUBJS.View.prototype.addCss = function(src) {
+  var $stylesheet = document.createElement('link');
+  var ready = false;
+ 
+  return new RSVP.Promise(function(resolve, reject){
+    if(!this.document) {
+      resolve(false);
+      return;
+    }
+    
+    $stylesheet.type = 'text/css';
+    $stylesheet.rel = "stylesheet";
+    $stylesheet.href = src;
+    $stylesheet.onload = $stylesheet.onreadystatechange = function() {
+      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+        ready = true;
+        // Let apply
+        setTimeout(function(){
+          resolve(true);
+        }, 1);
+      }
+    };
+    
+    this.document.head.appendChild($stylesheet);
+
+  }.bind(this));
+};
+
+// https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
+EPUBJS.View.prototype.addStylesheetRules = function(rules) {
+  var styleEl = document.createElement('style'),
+      styleSheet;
+  
+  if(!this.document) return;
+  
+  // Append style element to head
+  this.document.head.appendChild(styleEl);
+
+  // Grab style sheet
+  styleSheet = styleEl.sheet;
+
+  for (var i = 0, rl = rules.length; i < rl; i++) {
+    var j = 1, rule = rules[i], selector = rules[i][0], propStr = '';
+    // If the second argument of a rule is an array of arrays, correct our variables.
+    if (Object.prototype.toString.call(rule[1][0]) === '[object Array]') {
+      rule = rule[1];
+      j = 0;
+    }
+
+    for (var pl = rule.length; j < pl; j++) {
+      var prop = rule[j];
+      propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+    }
+
+    // Insert CSS Rule
+    styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
+  }
+};
 
 RSVP.EventTarget.mixin(EPUBJS.View.prototype);

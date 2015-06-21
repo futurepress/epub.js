@@ -64,7 +64,7 @@ EPUBJS.Queue.prototype.dequeue = function(){
           inwait.deferred.resolve.apply(this.context, arguments);
         }.bind(this));
       } else {
-        // Task is resolves immediately
+        // Task resolves immediately
         inwait.deferred.resolve.apply(this.context, result);
         return inwait.promise;
       }
