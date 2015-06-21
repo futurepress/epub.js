@@ -189,7 +189,7 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
   var startA, startB, endA, endB;
   var pageLeft, pageRight;
   var container = this.container.getBoundingClientRect()
-  
+
   if(visible.length === 1) {
     startA = container.left - visible[0].position().left;
     endA = startA + this.layout.spread;

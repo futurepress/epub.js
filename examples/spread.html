@@ -64,16 +64,17 @@
       color: #000;
     }
 
-    #viewer iframe {
-      pointer-events: none;
-    }
+    
 
     @media only screen 
       and (min-device-width : 320px) 
       and (max-device-width : 667px) {
         #viewer {
-          height: 96.5%;
-        } 
+          /* height: 96.5%; */
+        }
+        #viewer iframe {
+          pointer-events: none;
+        }
         .arrow {
           position: inherit;
           display: none;

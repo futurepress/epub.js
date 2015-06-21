@@ -56,7 +56,8 @@ EPUBJS.Layout.Reflowable.prototype.format = function(view){
   $doc.style.overflow = "hidden";
 
   // Must be set to the new calculated width or the columns will be off
-  $body.style.width = this.width + "px";
+  // $body.style.width = this.width + "px";
+  $doc.style.width = this.width + "px";
 
   //-- Adjust height
   $body.style.height = this.height + "px";

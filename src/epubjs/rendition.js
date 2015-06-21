@@ -476,13 +476,13 @@ EPUBJS.Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _c
 	var container = _container || this.container.getBoundingClientRect();
 
 	if(this.settings.axis === "horizontal" && 
-		(position.right >= container.left - offsetPrev) &&
+		(position.right > container.left - offsetPrev) &&
 		!(position.left >= container.right + offsetNext)) {
 
 		return true;
 		
   } else if(this.settings.axis === "vertical" &&
-  		(position.bottom >= container.top - offsetPrev) &&
+  		(position.bottom > container.top - offsetPrev) &&
 		!(position.top >= container.bottom + offsetNext)) {
 
 		return true;
