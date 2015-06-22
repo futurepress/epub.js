@@ -132,9 +132,11 @@ EPUBJS.View.prototype.expand = function(force) {
   var height = this.lockedHeight;
   
   var textWidth, textHeight;
+
+  if(!this.iframe || this._expanding) return;
   
-  if(!this.iframe) return;
-  
+  this._expanding = true;
+
   // Expand Horizontally
   if(height && !width) {
     // Get the width of the text
@@ -172,6 +174,7 @@ EPUBJS.View.prototype.expand = function(force) {
     this.resize(width, height);
   }
 
+  this._expanding = false;
 };
 
 EPUBJS.View.prototype.contentWidth = function(min) {
@@ -401,7 +404,7 @@ EPUBJS.View.prototype.resizeListenters = function() {
 EPUBJS.View.prototype.mediaQueryListeners = function() {
     var sheets = this.document.styleSheets;
     var mediaChangeHandler = function(m){
-      if(m.matches) {
+      if(m.matches && !this._expanding) {
         this.expand();
       }
     }.bind(this);
@@ -425,7 +428,9 @@ EPUBJS.View.prototype.observe = function(target) {
 
   // create an observer instance
   var observer = new MutationObserver(function(mutations) {
-    renderer.expand();
+    if(renderer._expanding) {
+      renderer.expand();
+    }
     // mutations.forEach(function(mutation) {
     //   console.log(mutation);
     // });
