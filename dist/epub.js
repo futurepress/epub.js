@@ -2350,38 +2350,22 @@ EPUBJS.Hook.prototype.register = function(func){
 
 // Triggers a hook to run all functions
 EPUBJS.Hook.prototype.trigger = function(){
-  var hooks = this.hooks;
-  var length = hooks.length;
-  var current = 0;
-  var executing;
-  var defer = new RSVP.defer();
   var args = arguments;
-  var next = function(){
-    current += 1;
-    if(current < length) {
-      return hooks[current].apply(this.context, args);
-    }
-  }.bind(this);
-  if(length) {
-
-    executing = this.hooks[current].apply(this.context, args);
+  var context = this.context;
+  var promises = []
+    
+  this.hooks.forEach(function(task, i) {
+    var executing = task.apply(context, args);
     
     if(executing && typeof executing["then"] === "function") {
       // Task is a function that returns a promise
-      executing.then(next);
-    } else {
-      // Task resolves immediately
-      next();
+      promises.push(executing);
     }
+    // Otherwise Task resolves immediately, continue
+  });
     
-    
-    
-  } else {
-    executing = defer.promise;
-    defer.resolve();
-  }
 
-  return executing;
+  return RSVP.all(promises);
 };
 EPUBJS.Parser = function(){};
 
@@ -3598,7 +3582,7 @@ EPUBJS.Spine.prototype.remove = function(section) {
 };
 EPUBJS.replace = {};
 EPUBJS.replace.links = function(view, renderer) {
-  var task = new RSVP.defer();
+  
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
@@ -3637,8 +3621,7 @@ EPUBJS.replace.links = function(view, renderer) {
     replaceLinks(links[i]);
   }
 
-  task.resolve();
-  return task.promise;
+
 };
 EPUBJS.Book = function(_url){  
   // Promises
