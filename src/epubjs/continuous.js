@@ -78,7 +78,13 @@ EPUBJS.Continuous.prototype._display = function(target){
 
       this.q.enqueue(this.show);
 
-      this.hooks.display.trigger(view);          
+      // This hook doesn't prevent showing, but waits to resolve until
+      // all the hooks have finished. Might want to block showing.
+      this.hooks.display.trigger(view)
+      .then(function(){
+        this.trigger("displayed", section);
+        displaying.resolve(this);
+      }.bind(this));          
 
     }.bind(this));
 
@@ -132,7 +138,7 @@ EPUBJS.Continuous.prototype.afterDisplayed = function(currView){
 	// this.removeShownListeners(currView);
 	// currView.onShown = this.afterDisplayed.bind(this);
 
-	this.trigger("displayed", currView.section);
+	this.trigger("added", currView.section);
 
 };
 

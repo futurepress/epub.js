@@ -20,10 +20,12 @@ EPUBJS.Rendition = function(book, options) {
 	//-- Adds Hook methods to the Rendition prototype
 	this.hooks = {};
 	this.hooks.display = new EPUBJS.Hook(this);
+	this.hooks.content = new EPUBJS.Hook(this);
 	this.hooks.layout = new EPUBJS.Hook(this);
-	this.hooks.replacements = new EPUBJS.Hook(this);
-	
-	this.hooks.replacements.register(EPUBJS.replace.links.bind(this));
+	this.hooks.render = new EPUBJS.Hook(this);
+	this.hooks.show = new EPUBJS.Hook(this);
+
+	this.hooks.content.register(EPUBJS.replace.links.bind(this));
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
@@ -196,10 +198,14 @@ EPUBJS.Rendition.prototype._display = function(target){
 
 		// Show views
 		this.show();
-
-		this.hooks.display.trigger(view);
-
-		displaying.resolve(this);
+		
+		// This hook doesn't prevent showing, but waits to resolve until
+		// all the hooks have finished. Might want to block showing.
+		this.hooks.display.trigger(view)
+		.then(function(){
+			this.trigger("displayed", section);
+			displaying.resolve(this);
+		}.bind(this));
 
 	} else {
 		displaying.reject(new Error("No Section Found"));
@@ -225,15 +231,18 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 	// Render Chain
 	return view.render(this.book.request)
 		.then(function(){
-			return this.hooks.replacements.trigger(view, this);
+			return this.hooks.content.trigger(view, this);
 		}.bind(this))
 		.then(function(){
-			return this.hooks.layout.trigger(view);
+			return this.hooks.layout.trigger(view, this);
 		}.bind(this))
 		.then(function(){
 			return view.display()
 		}.bind(this))
-		.then(function(view){
+		.then(function(){
+			return this.hooks.render.trigger(view, this);
+		}.bind(this))
+		.then(function(){
 			
 			if(show != false && this.hidden === false) {
 				this.q.enqueue(function(view){
@@ -254,7 +263,7 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 
 
 EPUBJS.Rendition.prototype.afterDisplayed = function(view){
-	this.trigger("displayed", view.section);
+	this.trigger("added", view.section);
 };
 
 EPUBJS.Rendition.prototype.append = function(view){

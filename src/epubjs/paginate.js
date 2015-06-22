@@ -89,8 +89,10 @@ EPUBJS.Paginate.prototype.start = function(){
   // this.layoutMethod = this.determineLayout(this.layoutSettings);
   // this.layout = new EPUBJS.Layout[this.layoutMethod]();
   //this.hooks.display.register(this.registerLayoutMethod.bind(this));
-  this.hooks.display.register(this.reportLocation);
-  this.hooks.replacements.register(this.adjustImages.bind(this));
+  // this.hooks.display.register(this.reportLocation);
+  this.on('displayed', this.reportLocation.bind(this));
+  
+  this.hooks.content.register(this.adjustImages.bind(this));
 
   this.currentPage = 0;
 
