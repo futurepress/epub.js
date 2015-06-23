@@ -3,19 +3,12 @@ if (typeof EPUBJS === 'undefined') {
 }
 
 EPUBJS.VERSION = "0.3.0";
-EPUBJS.Render = {};
 
 (function(root) {
 	"use strict";
 	var ePub = function(_url) {
 		return new EPUBJS.Book(_url);
 	};
-
-	ePub.Render = {
-		register: function(name, renderer) {
-			ePub.Render[name] = renderer;
-		}
-	}
 
 	// CommonJS
 	if (typeof exports === "object") {

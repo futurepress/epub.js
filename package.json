@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "Render Epubs",
   "main": "/lib/epub.js",
-  "repository" : "https://github.com/futurepress/epub.js",
+  "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
   },
@@ -20,6 +20,7 @@
     "gulp-concat": "^2.3.4",
     "gulp-connect": "~2.0.6",
     "gulp-jshint": "^1.8.4",
+    "gulp-order": "^1.1.1",
     "gulp-plumber": "^0.6.4",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.3.1",
