@@ -10,7 +10,7 @@ EPUBJS.Queue.prototype.enqueue = function() {
   var deferred, promise;
   var queued;
   var task = [].shift.call(arguments);
-  var args = arguments
+  var args = arguments;
   
   // Handle single args without context
   // if(args && !Array.isArray(args)) {

@@ -448,16 +448,16 @@ EPUBJS.core.bounds = function(el) {
 
   widthProps.forEach(function(prop){
     width += parseFloat(style[prop]) || 0;
-  })
+  });
 
   heightProps.forEach(function(prop){
     height += parseFloat(style[prop]) || 0;
-  })
+  });
 
   return {
     height: height,
     width: width
-  }
+  };
 
 };
 
@@ -472,16 +472,16 @@ EPUBJS.core.borders = function(el) {
 
   widthProps.forEach(function(prop){
     width += parseFloat(style[prop]) || 0;
-  })
+  });
 
   heightProps.forEach(function(prop){
     height += parseFloat(style[prop]) || 0;
-  })
+  });
 
   return {
     height: height,
     width: width
-  }
+  };
 
 };
 
@@ -497,7 +497,7 @@ EPUBJS.core.windowBounds = function() {
     bottom: height,
     width: width,
     height: height
-  }
+  };
 
 };
 

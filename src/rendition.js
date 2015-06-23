@@ -237,14 +237,14 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 			return this.hooks.layout.trigger(view, this);
 		}.bind(this))
 		.then(function(){
-			return view.display()
+			return view.display();
 		}.bind(this))
 		.then(function(){
 			return this.hooks.render.trigger(view, this);
 		}.bind(this))
 		.then(function(){
 			
-			if(show != false && this.hidden === false) {
+			if(show !== false && this.hidden === false) {
 				this.q.enqueue(function(view){
 					view.show();
 				}, view);
@@ -516,7 +516,7 @@ EPUBJS.Rendition.prototype.visible = function(){
       visible.push(view);
     }
 
-  };
+  }
 
   return visible;
   
@@ -542,7 +542,7 @@ EPUBJS.Rendition.prototype.displayed = function(){
     if(view.displayed){
       displayed.push(view);
     }
-  };
+  }
   return displayed;
 };
 
@@ -553,7 +553,7 @@ EPUBJS.Rendition.prototype.show = function(){
     if(view.displayed){
       view.show();
     }
-  };
+  }
   this.hidden = false;
 };
 
@@ -564,7 +564,7 @@ EPUBJS.Rendition.prototype.hide = function(){
     if(view.displayed){
       view.hide();
     }
-  };
+  }
   this.hidden = true;
 };
 

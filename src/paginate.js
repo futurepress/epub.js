@@ -192,7 +192,7 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
   var visible = this.visible();
   var startA, startB, endA, endB;
   var pageLeft, pageRight;
-  var container = this.container.getBoundingClientRect()
+  var container = this.container.getBoundingClientRect();
 
   if(visible.length === 1) {
     startA = container.left - visible[0].position().left;
@@ -217,7 +217,7 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
     return {
       start: pageLeft.start,
       end: pageRight.end
-    }
+    };
   }
   
 };

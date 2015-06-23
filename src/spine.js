@@ -27,7 +27,7 @@ EPUBJS.Spine.prototype.load = function(_package) {
 
 
       if(manifestItem.properties.length){
-        item.properties.push.apply(item.properties, manifestItem.properties)
+        item.properties.push.apply(item.properties, manifestItem.properties);
       }
     }
     

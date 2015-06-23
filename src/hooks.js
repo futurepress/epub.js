@@ -19,7 +19,7 @@ EPUBJS.Hook.prototype.register = function(func){
 EPUBJS.Hook.prototype.trigger = function(){
   var args = arguments;
   var context = this.context;
-  var promises = []
+  var promises = [];
     
   this.hooks.forEach(function(task, i) {
     var executing = task.apply(context, args);

@@ -154,7 +154,7 @@ EPUBJS.View.prototype.expand = function(force) {
       // Otherwise assume content height hasn't changed
       width = this._contentWidth;
     }
-  };
+  }
   
   // Expand Vertically
   if(width && !height) {
@@ -190,7 +190,7 @@ EPUBJS.View.prototype.contentWidth = function(min) {
   // Reset iframe size back
   this.iframe.style.width = prev;
   return width;
-}
+};
 
 EPUBJS.View.prototype.contentHeight = function(min) {
   var prev;
@@ -201,7 +201,7 @@ EPUBJS.View.prototype.contentHeight = function(min) {
   height = this.document.body.scrollHeight;
   this.iframe.style.height = prev;
   return height;
-}
+};
 
 EPUBJS.View.prototype.textWidth = function() {
   var width;
