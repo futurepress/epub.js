@@ -3,7 +3,6 @@ var jshint = require('gulp-jshint');
 var concat = require('gulp-concat');
 var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
-var order = require('gulp-order');
 var gutil = require('gulp-util');
 var plumber = require('gulp-plumber');
 var onError = function (err) {
@@ -12,7 +11,7 @@ var onError = function (err) {
 var server = require("./tools/serve.js");
 
 var files = [
-  'bower_components/rsvp/rsvp.js',
+  'node_modules/rsvp/dist/rsvp.js',
   'src/epub.js',
   'src/core.js',
   'src/queue.js',
@@ -43,7 +42,6 @@ gulp.task('lint', function() {
 gulp.task('minify', function(){
   return gulp.src(files)
     .pipe(plumber({ errorHandler: onError }))
-    .pipe(order(files))
     .pipe(concat('epub.js'))
     .pipe(gulp.dest('dist'))
     .pipe(rename('epub.min.js'))
