@@ -132,9 +132,9 @@ EPUBJS.View.prototype.expand = function(force) {
   var height = this.lockedHeight;
   
   var textWidth, textHeight;
-
+  // console.log("expanding a")
   if(!this.iframe || this._expanding) return;
-  
+
   this._expanding = true;
 
   // Expand Horizontally
@@ -184,7 +184,8 @@ EPUBJS.View.prototype.contentWidth = function(min) {
   // Save previous width
   prev = this.iframe.style.width;
   // Set the iframe size to min, width will only ever be greater
-  this.iframe.style.width = 0 + "px";
+  // Will preserve the aspect ratio
+  this.iframe.style.width = (min || 0) + "px";
   // Get the scroll overflow width
   width = this.document.body.scrollWidth;
   // Reset iframe size back
@@ -397,7 +398,7 @@ EPUBJS.View.prototype.listeners = function() {
 EPUBJS.View.prototype.resizeListenters = function() {
   // Test size again
   clearTimeout(this.expanding);
-  this.expanding = setTimeout(this.expand.bind(this), 350);  
+  // this.expanding = setTimeout(this.expand.bind(this), 350);  
 };
 
 //https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
@@ -405,7 +406,8 @@ EPUBJS.View.prototype.mediaQueryListeners = function() {
     var sheets = this.document.styleSheets;
     var mediaChangeHandler = function(m){
       if(m.matches && !this._expanding) {
-        this.expand();
+        setTimeout(this.expand.bind(this), 1);
+        // this.expand();
       }
     }.bind(this);
 
