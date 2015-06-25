@@ -30,12 +30,11 @@
     </head>
     <body>
         <div id="main">
-
           <div id="loader"><img src="../reader/img/loader.gif"></div>
           <select id="toc"></select>
         </div>
 
-        <script type="text/template" id="abcdef">
+        <script type="text/template" id="test-template">
             <div id="prev" class="arrow">‹</div>
             <div id="area"></div>
             <div id="next" class="arrow">›</div>
@@ -104,70 +103,56 @@
             BB.Views = {};
 
             EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
-                console.log('test');
+                $(renderer.element).contents().find('body').bind('mouseup', function(){
+
+                    var selection = $('iframe').contents()[0].getSelection().toString();
+                    debugger;
+                });
                 callback();
             };
            
             // This will fetch the book template and render it.
             BB.Views.Details = Backbone.View.extend({
 
-              el: '#main',
+                el: '#main',
 
-              book: ePub("/reader/moby-dick.epub", { restore: true }),
+                model: Library,
 
-              model: Library,
+                book: null,
 
-              events: {
-                  'click #next': 'nextPage',
-                  'click #prev': 'previousPage'
-              },
+                events: {
+                    'click #next': 'nextPage',
+                    'click #prev': 'previousPage'
+                },
 
-              template: _.template( $('#abcdef').html() ),
+                template: _.template( $('#test-template').html() ),
 
-              initialize: function() {
-                  this.area = $('<div></div>');
+                //eventually pass book url as a param to initialize
+                initialize: function() {
+                    this.area = $('<div style="height:100%;"></div>');
 
-                  this.book.renderTo(this.area[0]).then(function(){
-//                      view.bindIframe();
-                  });
+                    this.book = ePub("/reader/moby-dick.epub", { restore: true });
 
+                    this.book.renderTo(this.area[0]);
+                },
 
-              },
-           
-              render: function(done) {
-                var view = this;
+                render: function() {
+                    this.$el.html(this.template());
 
-                  this.$el.html(this.template());
+                    this.$('#area').html(this.area);
 
-                  this.$('#area').html(this.area);
+                    return this;
+                },
 
-                  this.bindIframe();
+                nextPage: function(e){
+                    e.preventDefault();
+                    this.book.nextPage();
+                },
 
-                  return this;
-              },
-
-              bindIframe: function(){
-                  $('#area iframe').contents().find('body').bind('mouseup', function(){
-
-                      var selection = $('iframe').contents()[0].getSelection().toString();
-                      debugger;
-                  });
-              },
-
-              nextPage: function(e){
-                  var view = this;
-                  e.preventDefault();
-
-                  this.book.nextPage().then(function(){
-//                      view.bindIframe();
-                  })
-              },
-
-              previousPage: function(e){
-                  e.preventDefault();
-
-                  this.book.prevPage()
-              }
+                previousPage: function(e){
+                    e.preventDefault();
+                    this.book.prevPage();
+                }
             });
            
             var view = new BB.Views.Details();
