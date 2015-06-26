@@ -2201,7 +2201,7 @@ EPUBJS.Render = {};
 
 		//-- var book = ePub("path/to/book.epub", { restore: true })
 		if(typeof(arguments[0]) != 'undefined' &&
-			typeof arguments[0] === 'string') {
+			(typeof arguments[0] === 'string' || arguments[0] instanceof ArrayBuffer)) {
 
 			bookPath = arguments[0];
 
@@ -2223,7 +2223,7 @@ EPUBJS.Render = {};
 		*   book.open("path/to/book.epub");
 		*/
 
-		if( arguments[0] && typeof arguments[0] === 'object' ) {
+		if( arguments[0] && typeof arguments[0] === 'object' && !(arguments[0] instanceof ArrayBuffer)) {
 			options = arguments[0];
 		}
 
@@ -2360,7 +2360,7 @@ EPUBJS.Book = function(options){
 	this.defer_opened = new RSVP.defer();
 	this.opened = this.defer_opened.promise;
 	// BookUrl is optional, but if present start loading process
-	if(typeof this.settings.bookPath === 'string') {
+	if(typeof this.settings.bookPath === 'string' || this.settings.bookPath instanceof ArrayBuffer) {
 		this.open(this.settings.bookPath, this.settings.reload);
 	}
 
@@ -2379,9 +2379,6 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 
 	this.settings.bookPath = bookPath;
 
-	//-- Get a absolute URL from the book path
-	this.bookUrl = this.urlFrom(bookPath);
-
 	if(this.settings.contained || this.isContained(bookPath)){
 
 		this.settings.contained = this.contained = true;
@@ -2394,6 +2391,9 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 			});
 
 	}	else {
+		//-- Get a absolute URL from the book path
+		this.bookUrl = this.urlFrom(bookPath);
+		
 		epubpackage = this.loadPackage();
 	}
 
@@ -2579,7 +2579,7 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
 	renderer.setGap(this.settings.gap);
 
-  this._registerReplacements(renderer);
+	this._registerReplacements(renderer);
 	if(this.settings.forceSingle) {
 		renderer.forceSingle(true);
 	}
@@ -2841,8 +2841,11 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 	return this.zip.openZip(bookPath);
 };
 
-//-- Checks if url has a .epub or .zip extension
+//-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
 EPUBJS.Book.prototype.isContained = function(bookUrl){
+	if (bookUrl instanceof ArrayBuffer) {
+		return true;
+	}
 	var uri = EPUBJS.core.uri(bookUrl);
 
 	if(uri.extension && (uri.extension == "epub" || uri.extension == "zip")){
@@ -3351,7 +3354,7 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 
 EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
 	if(!this.isRendered) return this._q.enqueue("addHeadTag", arguments);
-    this.settings.headTags[tag] = attrs;
+	this.settings.headTags[tag] = attrs;
 };
 
 EPUBJS.Book.prototype.useSpreads = function(use) {
@@ -3421,7 +3424,7 @@ EPUBJS.Book.prototype.destroy = function() {
 
 	this.unload();
 
-	if(this.render) this.render.remove();
+	if(this.renderer) this.renderer.remove();
 
 };
 
@@ -7304,13 +7307,24 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			link.setAttribute("target", "_blank");
 
 		}else{
-			// Links may need to be resolved, such as ../chp1.xhtml
-			directory = EPUBJS.core.uri(renderer.render.window.location.href).directory;
-			if(directory) {
-				relative = EPUBJS.core.resolveUrl(directory, href);
-			} else {
-				relative = href;
-			}
+		    // Links may need to be resolved, such as ../chp1.xhtml
+            var uri = EPUBJS.core.uri(renderer.render.window.location.href);
+
+            directory = uri.directory;
+
+            if(directory) {
+                // We must ensure that the file:// protocol is preserved for
+                // local file links, as in certain contexts (such as under
+                // Titanium), file links without the file:// protocol will not
+                // work
+                if (uri.protocol === "file") {
+                    relative = EPUBJS.core.resolveUrl(uri.base, href);
+                } else {
+                    relative = EPUBJS.core.resolveUrl(directory, href);
+                }
+            } else {
+                relative = href;
+            }
 
 			link.onclick = function(){
 				book.goto(relative);
@@ -7434,6 +7448,7 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 
 
 
+
 EPUBJS.Unarchiver = function(url){
 	
 	this.loadLib();
@@ -7447,11 +7462,16 @@ EPUBJS.Unarchiver.prototype.loadLib = function(callback){
 };
 
 EPUBJS.Unarchiver.prototype.openZip = function(zipUrl, callback){
-	var deferred = new RSVP.defer();
-
-	return EPUBJS.core.request(zipUrl, "binary").then(function(data){
-		this.zip = new JSZip(data);
-	}.bind(this));
+	if (zipUrl instanceof ArrayBuffer) {
+		this.zip = new JSZip(zipUrl);
+		var deferred = new RSVP.defer();
+		deferred.resolve();
+		return deferred.promise;
+	} else {
+		return EPUBJS.core.request(zipUrl, "binary").then(function(data){
+			this.zip = new JSZip(data);
+		}.bind(this));
+	}
 };
 
 EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
