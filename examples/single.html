@@ -15,12 +15,12 @@
       color: #333;
     }
 
-    #viewer { 
+    #viewer {
 
       overflow: hidden;
       width: 800px;
       margin: 0 auto;
-      
+
     }
 
     #viewer .epub-view {
@@ -41,7 +41,7 @@
     .arrow:hover {
       color: #777;
     }
-     
+
     .arrow:active {
       color: #000;
     }
@@ -61,9 +61,9 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/moby-dick/OPS/package.opf");
+    var book = ePub("../books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer");
-    
+
     rendition.display("chapter_008.xhtml");
 
 
@@ -87,7 +87,7 @@
 
       if(nextSection) {
         nextNav = book.navigation.get(nextSection.href);
-        
+
         if(nextNav) {
           nextLabel = nextNav.label;
         } else {
@@ -101,7 +101,7 @@
 
       if(prevSection) {
         prevNav = book.navigation.get(prevSection.href);
-        
+
         if(prevNav) {
           prevLabel = prevNav.label;
         } else {

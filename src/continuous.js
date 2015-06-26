@@ -1,5 +1,5 @@
 EPUBJS.Continuous = function(book, options) {
-	
+
 	EPUBJS.Rendition.apply(this, arguments); // call super constructor.
 
 	this.settings = EPUBJS.core.extend(this.settings || {}, {
@@ -9,14 +9,14 @@ EPUBJS.Continuous = function(book, options) {
 		offset: 500,
 		offsetDelta: 250
 	});
-	
+
 	EPUBJS.core.extend(this.settings, options);
-	
+
 	if(this.settings.hidden) {
 		this.wrapper = this.wrap(this.container);
 	}
-		
-	
+
+
 };
 
 // subclass extends superclass
@@ -26,7 +26,7 @@ EPUBJS.Continuous.prototype.constructor = EPUBJS.Continuous;
 EPUBJS.Continuous.prototype.attachListeners = function(){
 
 	// Listen to window for resize event if width or height is set to a percent
-	if(!EPUBJS.core.isNumber(this.settings.width) || 
+	if(!EPUBJS.core.isNumber(this.settings.width) ||
 		 !EPUBJS.core.isNumber(this.settings.height) ) {
 		window.addEventListener("resize", this.onResized.bind(this), false);
 	}
@@ -40,13 +40,15 @@ EPUBJS.Continuous.prototype.attachListeners = function(){
 };
 
 EPUBJS.Continuous.prototype._display = function(target){
-			
+
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
- 
+
 	var section;
   var view;
   var cfi, spinePos;
+
+  var visible;
 
   if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
@@ -56,12 +58,48 @@ EPUBJS.Continuous.prototype._display = function(target){
     section = this.book.spine.get(target);
   }
 
-	this.displaying = true;
-  this.hide();
+
+
+
 
 	if(section){
+
+    this.displaying = true;
+
+    // Check to make sure the section we want isn't already shown
+    visible = this.visible();
+    for (var i = 0; i < visible.length; i++) {
+      if(visible.length &&
+          section.index === visible[i].section.index){
+        // Section already has a visible view
+        view = visible[i];
+        // Move to target location
+        this.q.enqueue(function(){
+
+          var offset = view.locationOf(target);
+
+          return this.moveTo(offset);
+
+        });
+
+        this.q.enqueue(this.check);
+        // Trigger display hooks
+        this.hooks.display.trigger(view)
+        .then(function(){
+          this.trigger("displayed", section);
+          displaying.resolve(this);
+        }.bind(this));
+
+        // Finished, no need to fill
+        return displayed;
+
+      }
+    }
+
+    this.hide();
+
 		view = new EPUBJS.View(section, this.viewSettings);
-		
+
 		// This will clear all previous views
 		this.q.enqueue(this.fill, view).then(function(){
 
@@ -73,18 +111,18 @@ EPUBJS.Continuous.prototype._display = function(target){
         return this.moveTo(offset);
 
       });
-            
+
       this.q.enqueue(this.check);
 
       this.q.enqueue(this.show);
 
-      // This hook doesn't prevent showing, but waits to resolve until
-      // all the hooks have finished. Might want to block showing.
-      this.hooks.display.trigger(view)
-      .then(function(){
-        this.trigger("displayed", section);
-        displaying.resolve(this);
-      }.bind(this));          
+      // // This hook doesn't prevent showing, but waits to resolve until
+      // // all the hooks have finished. Might want to block showing.
+      // this.hooks.display.trigger(view)
+      // .then(function(){
+      //   this.trigger("displayed", section);
+      //   // displaying.resolve(this);
+      // }.bind(this));
 
     }.bind(this));
 
@@ -93,7 +131,14 @@ EPUBJS.Continuous.prototype._display = function(target){
     //  this.displaying = false;
     // displaying.resolve(this);
     //}.bind(this));
-    displaying.resolve(this);
+
+    // This hook doesn't prevent showing, but waits to resolve until
+    // all the hooks have finished. Might want to block showing.
+    this.hooks.display.trigger(view)
+    .then(function(){
+      this.trigger("displayed", section);
+      displaying.resolve(this);
+    }.bind(this));
 
 	} else {
 		displaying.reject(new Error("No Section Found"));
@@ -104,18 +149,20 @@ EPUBJS.Continuous.prototype._display = function(target){
 
 
 EPUBJS.Continuous.prototype.moveTo = function(offset){
-  var bounds = this.bounds();
-  var dist = Math.floor(offset.top / bounds.height) * bounds.height;
+  // var bounds = this.bounds();
+  // var dist = Math.floor(offset.top / bounds.height) * bounds.height;
+  return this.check(
+		offset.left+this.settings.offset,
+		offset.top+this.settings.offset)
+		.then(function(){
 
-  return this.check(0, dist+this.settings.offset).then(function(){
-    
-    if(this.settings.axis === "vertical") {
-      this.scrollBy(0, dist);
-    } else {
-      this.scrollBy(dist, 0);
-    }
+	    if(this.settings.axis === "vertical") {
+	      this.scrollBy(0, offset.top);
+	    } else {
+	      this.scrollBy(offset.left, 0);
+	    }
 
-  }.bind(this)); 
+	  }.bind(this));
 };
 
 EPUBJS.Continuous.prototype.afterDisplayed = function(currView){
@@ -166,7 +213,7 @@ EPUBJS.Continuous.prototype.append = function(view){
 EPUBJS.Continuous.prototype.prepend = function(view){
 	this.views.unshift(view);
 	this.container.insertBefore(view.element, this.container.firstChild);
-	
+
 	// view.on("shown", this.afterDisplayedAbove.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
 
@@ -226,15 +273,15 @@ EPUBJS.Continuous.prototype.insert = function(view, index) {
 // 	}
 
 // 	this.container.removeChild(view.element);
-	
+
 // 	view.off("resized");
 
 // 	if(view.displayed){
 // 		view.destroy();
 // 	}
-	
+
 // 	view = null;
-	
+
 // };
 
 EPUBJS.Continuous.prototype.first = function() {
@@ -267,7 +314,7 @@ EPUBJS.Continuous.prototype.check = function(_offset){
 			}
 
 		} else {
-			
+
 			if(view.displayed) {
         // console.log("destroy", view.section.index)
         this.q.enqueue(view.destroy.bind(view));
@@ -283,7 +330,7 @@ EPUBJS.Continuous.prototype.check = function(_offset){
 
 	}.bind(this));
 
-  
+
   if(promises.length){
 
     return RSVP.all(promises)
@@ -331,12 +378,12 @@ EPUBJS.Continuous.prototype.trim = function(){
   var lastIndex = this.views.indexOf(last);
   var above = this.views.slice(0, firstIndex);
   var below = this.views.slice(lastIndex+1);
-  
+
   // Erase all but last above
   for (var i = 0; i < above.length-1; i++) {
     this.erase(above[i], above);
   }
-  
+
   // Erase all except first below
   for (var j = 1; j < below.length; j++) {
     this.erase(below[j]);
@@ -347,7 +394,7 @@ EPUBJS.Continuous.prototype.trim = function(){
 };
 
 EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
-	
+
 	var prevTop;
 	var prevLeft;
 
@@ -362,7 +409,7 @@ EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
 	var bounds = view.bounds();
 
 	this.remove(view);
-	
+
 	if(above) {
 
 		if(this.settings.axis === "vertical") {
@@ -371,7 +418,7 @@ EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
 			this.scrollTo(prevLeft - bounds.width, 0, true);
 		}
 	}
-	
+
 };
 
 
@@ -387,12 +434,12 @@ EPUBJS.Continuous.prototype.checkCurrent = function(position) {
   if(this.settings.axis === "horizontal") {
     // TODO: Check for current horizontal
   } else {
-    
+
     for (var i = length; i >= 0; i--) {
       view = this.views[i];
       top = view.bounds().top;
       if(top < container.bottom) {
-        
+
         if(this.current == view.section) {
           break;
         }
@@ -436,7 +483,7 @@ EPUBJS.Continuous.prototype.start = function() {
       this.ignore = false;
     }
   }.bind(this));
-  
+
   window.addEventListener('unload', function(e){
     this.ignore = true;
     this.destroy();
@@ -467,13 +514,13 @@ EPUBJS.Continuous.prototype.onScroll = function(){
 	    //   left: scrollLeft
 	    // });
 
-	    if((this.scrollDeltaVert === 0 && 
+	    if((this.scrollDeltaVert === 0 &&
 	    	 this.scrollDeltaHorz === 0) ||
 	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
 	    	 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
 				this.q.enqueue(this.check);
-				
+
 				this.scrollDeltaVert = 0;
 	    	this.scrollDeltaHorz = 0;
 
@@ -509,43 +556,6 @@ EPUBJS.Continuous.prototype.onScroll = function(){
 
 };
 
-EPUBJS.Continuous.prototype.scrollBy = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
-
-  if(this.settings.height) {
-
-    if(x) this.container.scrollLeft += x;
-  	if(y) this.container.scrollTop += y;
-
-  } else {
-  	window.scrollBy(x,y);
-  }
-  // console.log("scrollBy", x, y);
-  this.scrolled = true;
-};
-
-EPUBJS.Continuous.prototype.scrollTo = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
-
-  if(this.settings.height) {
-  	this.container.scrollLeft = x;
-  	this.container.scrollTop = y;
-  } else {
-  	window.scrollTo(x,y);
-  }
-  // console.log("scrollTo", x, y);
-  this.scrolled = true;
-  // if(this.container.scrollLeft != x){
-  //   setTimeout(function() {
-  //     this.scrollTo(x, y, silent);
-  //   }.bind(this), 10);
-  //   return;
-  // };
- };
 
  EPUBJS.Continuous.prototype.resizeView = function(view) {
 
@@ -562,7 +572,7 @@ EPUBJS.Continuous.prototype.currentLocation = function(){
   var startPage, endPage;
 
   var container = this.container.getBoundingClientRect();
-  
+
   if(visible.length === 1) {
     return this.map.page(visible[0]);
   }
@@ -577,7 +587,7 @@ EPUBJS.Continuous.prototype.currentLocation = function(){
       end: endPage.end
     };
   }
-  
+
 };
 
 /*
@@ -587,13 +597,13 @@ EPUBJS.Continuous.prototype.current = function(what){
   var length = this.views.length - 1;
 
   if(this.settings.axis === "horizontal") {
-    
+
     for (var i = length; i >= 0; i--) {
       view = this.views[i];
       left = view.position().left;
 
       if(left < container.right) {
-        
+
         if(this._current == view) {
           break;
         }
@@ -604,12 +614,12 @@ EPUBJS.Continuous.prototype.current = function(what){
     }
 
   } else {
-    
+
     for (var i = length; i >= 0; i--) {
       view = this.views[i];
       top = view.bounds().top;
       if(top < container.bottom) {
-        
+
         if(this._current == view) {
           break;
         }
