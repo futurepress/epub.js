@@ -591,15 +591,16 @@ EPUBJS.View.prototype.locationOf = function(target) {
 };
 
 EPUBJS.View.prototype.addCss = function(src) {
-  var $stylesheet = document.createElement('link');
-  var ready = false;
-
   return new RSVP.Promise(function(resolve, reject){
+    var $stylesheet;
+    var ready = false;
+
     if(!this.document) {
       resolve(false);
       return;
     }
 
+    $stylesheet = this.document.createElement('link');
     $stylesheet.type = 'text/css';
     $stylesheet.rel = "stylesheet";
     $stylesheet.href = src;
@@ -620,10 +621,12 @@ EPUBJS.View.prototype.addCss = function(src) {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
 EPUBJS.View.prototype.addStylesheetRules = function(rules) {
-  var styleEl = document.createElement('style'),
-      styleSheet;
+  var styleEl;
+  var styleSheet;
 
   if(!this.document) return;
+
+  var styleEl = this.document.createElement('style');
 
   // Append style element to head
   this.document.head.appendChild(styleEl);
@@ -647,6 +650,35 @@ EPUBJS.View.prototype.addStylesheetRules = function(rules) {
     // Insert CSS Rule
     styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
   }
+};
+
+EPUBJS.View.prototype.addScript = function(src) {
+
+  return new RSVP.Promise(function(resolve, reject){
+    var $script;
+    var ready = false;
+
+    if(!this.document) {
+      resolve(false);
+      return;
+    }
+
+    $script = this.document.createElement('script');
+    $script.type = 'text/javascript';
+    $script.async = true;
+    $script.src = src;
+    $script.onload = $script.onreadystatechange = function() {
+      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+        ready = true;
+        setTimeout(function(){
+          resolve(true);
+        }, 1);
+      }
+    };
+
+    this.document.head.appendChild($script);
+
+  }.bind(this));
 };
 
 RSVP.EventTarget.mixin(EPUBJS.View.prototype);

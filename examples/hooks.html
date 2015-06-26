@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Single Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <style type="text/css">
+    body {
+      margin: 0;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
+    }
+
+    #viewer {
+
+      overflow: hidden;
+      width: 800px;
+      margin: 0 auto;
+
+    }
+
+    #viewer .epub-view {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .arrow {
+      margin: 14px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: #ccc;
+    }
+
+    .arrow:hover {
+      color: #777;
+    }
+
+    .arrow:active {
+      color: #000;
+    }
+
+    #toc {
+      display: block;
+      margin: 10px auto;
+    }
+
+  </style>
+</head>
+<body>
+  <a id="prev" href="#prev" class="arrow">...</a>
+  <div id="viewer"></div>
+  <a id="next" href="#next" class="arrow">...</a>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("../books/alice/OPS/package.opf");
+    var rendition = book.renderTo("viewer");
+
+    rendition.display("chapter_001.xhtml");
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        nextNav = book.navigation.get(nextSection.href);
+
+        if(nextNav) {
+          nextLabel = nextNav.label;
+        } else {
+          nextLabel = "next";
+        }
+
+        next.textContent = nextLabel + " »";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prevNav = book.navigation.get(prevSection.href);
+
+        if(prevNav) {
+          prevLabel = prevNav.label;
+        } else {
+          prevLabel = "previous";
+        }
+
+        prev.textContent = "« " + prevLabel;
+      } else {
+        prev.textContent = "";
+      }
+
+    });
+
+    // Hooks
+
+    // Add a single script
+    rendition.hooks.content.register(function(view){
+     return view.addScript("https://code.jquery.com/jquery-2.1.4.min.js")
+       .then(function(){
+            // init code
+       });
+    });
+
+    // Add several scripts / css
+    rendition.hooks.content.register(function(view){
+
+        var loaded = RSVP.all([
+            view.addScript("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"),
+            view.addCss("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css")
+        ]);
+
+        // return loaded promise
+        return loaded;
+    });
+
+  </script>
+
+</body>
+</html>

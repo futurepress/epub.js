@@ -2329,12 +2329,13 @@ EPUBJS.Hook = function(context){
   this.hooks = [];
 };
 
-//-- Hooks allow for injecting async functions that must all complete in order before finishing 
-//   Functions must return a promise.
+//-- Hooks allow for injecting functions that must all complete in order before finishing
+//   They will execute in parallel but all must finish before continuing 
+//   Functions may return a promise if they are asycn.
 
-// this.beforeDisplay = new EPUBJS.Hook();
-// this.beforeDisplay.register(function(){});
-// this.beforeDisplay.trigger(args).then(function(){});
+// this.content = new EPUBJS.Hook();
+// this.content.register(function(){});
+// this.content.trigger(args).then(function(){});
 
 // Adds a function to be run before a hook completes
 EPUBJS.Hook.prototype.register = function(func){
@@ -2346,20 +2347,21 @@ EPUBJS.Hook.prototype.trigger = function(){
   var args = arguments;
   var context = this.context;
   var promises = [];
-    
+
   this.hooks.forEach(function(task, i) {
     var executing = task.apply(context, args);
-    
+
     if(executing && typeof executing["then"] === "function") {
       // Task is a function that returns a promise
       promises.push(executing);
     }
     // Otherwise Task resolves immediately, continue
   });
-    
+
 
   return RSVP.all(promises);
 };
+
 EPUBJS.Parser = function(){};
 
 EPUBJS.Parser.prototype.container = function(containerXml){
@@ -4423,15 +4425,16 @@ EPUBJS.View.prototype.locationOf = function(target) {
 };
 
 EPUBJS.View.prototype.addCss = function(src) {
-  var $stylesheet = document.createElement('link');
-  var ready = false;
-
   return new RSVP.Promise(function(resolve, reject){
+    var $stylesheet;
+    var ready = false;
+
     if(!this.document) {
       resolve(false);
       return;
     }
 
+    $stylesheet = this.document.createElement('link');
     $stylesheet.type = 'text/css';
     $stylesheet.rel = "stylesheet";
     $stylesheet.href = src;
@@ -4452,10 +4455,12 @@ EPUBJS.View.prototype.addCss = function(src) {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
 EPUBJS.View.prototype.addStylesheetRules = function(rules) {
-  var styleEl = document.createElement('style'),
-      styleSheet;
+  var styleEl;
+  var styleSheet;
 
   if(!this.document) return;
+
+  var styleEl = this.document.createElement('style');
 
   // Append style element to head
   this.document.head.appendChild(styleEl);
@@ -4479,6 +4484,35 @@ EPUBJS.View.prototype.addStylesheetRules = function(rules) {
     // Insert CSS Rule
     styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
   }
+};
+
+EPUBJS.View.prototype.addScript = function(src) {
+
+  return new RSVP.Promise(function(resolve, reject){
+    var $script;
+    var ready = false;
+
+    if(!this.document) {
+      resolve(false);
+      return;
+    }
+
+    $script = this.document.createElement('script');
+    $script.type = 'text/javascript';
+    $script.async = true;
+    $script.src = src;
+    $script.onload = $script.onreadystatechange = function() {
+      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+        ready = true;
+        setTimeout(function(){
+          resolve(true);
+        }, 1);
+      }
+    };
+
+    this.document.head.appendChild($script);
+
+  }.bind(this));
 };
 
 RSVP.EventTarget.mixin(EPUBJS.View.prototype);
