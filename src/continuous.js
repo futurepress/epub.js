@@ -70,7 +70,6 @@ EPUBJS.Continuous.prototype.afterDisplayed = function(currView){
 	var next = currView.section.next();
 	var prev = currView.section.prev();
 	var index = this.views.indexOf(currView);
-
 	var prevView, nextView;
 
 	if(index + 1 === this.views.length && next) {
@@ -101,24 +100,23 @@ EPUBJS.Continuous.prototype.removeShownListeners = function(view){
 };
 
 EPUBJS.Continuous.prototype.append = function(view){
-	this.views.push(view);
-	this.container.appendChild(view.element);
 
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
+
+	this.views.append(view);
 
   //this.q.enqueue(this.check);
   return this.check();
 };
 
 EPUBJS.Continuous.prototype.prepend = function(view){
-	this.views.unshift(view);
-	this.container.insertBefore(view.element, this.container.firstChild);
-
 	// view.on("shown", this.afterDisplayedAbove.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
 
 	view.on("resized", this.counter.bind(this));
+
+	this.views.prepend(view);
 
   // this.q.enqueue(this.check);
   return this.check();
@@ -134,58 +132,13 @@ EPUBJS.Continuous.prototype.counter = function(bounds){
 
 };
 
-EPUBJS.Continuous.prototype.insert = function(view, index) {
-	this.views.splice(index, 0, view);
-
-	if(index < this.cotainer.children.length){
-		this.container.insertBefore(view.element, this.container.children[index]);
-	} else {
-		this.container.appendChild(view.element);
-	}
-
-	// this.q.enqueue(this.check);
-  return this.check();
-};
-
-// // Remove the render element and clean up listeners
-// EPUBJS.Continuous.prototype.remove = function(view) {
-// 	var index = this.views.indexOf(view);
-// 	if(index > -1) {
-// 		this.views.splice(index, 1);
-// 	}
-
-// 	this.container.removeChild(view.element);
-
-// 	view.off("resized");
-
-// 	if(view.displayed){
-// 		view.destroy();
-// 	}
-
-// 	view = null;
-
-// };
-
-EPUBJS.Continuous.prototype.first = function() {
-	return this.views[0];
-};
-
-EPUBJS.Continuous.prototype.last = function() {
-	return this.views[this.views.length-1];
-};
-
-EPUBJS.Continuous.prototype.each = function(func) {
-	return this.views.forEach(func);
-};
-
 EPUBJS.Continuous.prototype.check = function(_offset){
 	var checking = new RSVP.defer();
 	var container = this.bounds();
   var promises = [];
   var offset = _offset || this.settings.offset;
 
-
-	this.views.forEach(function(view){
+	this.views.each(function(view){
 		var visible = this.isVisible(view, offset, offset, container);
 
 		if(visible) {
@@ -230,30 +183,9 @@ EPUBJS.Continuous.prototype.check = function(_offset){
 
 };
 
-// EPUBJS.Continuous.prototype.trim = function(){
-// 	var task = new RSVP.defer();
-// 	var above = true;
-
-// 	this.views.forEach(function(view, i){
-// 		// var view = this.views[i];
-// 		var prevShown = i > 0 ? this.views[i-1].displayed : false;
-// 		var nextShown = (i+1 < this.views.length) ? this.views[i+1].displayed : false;
-// 		if(!view.displayed && !prevShown && !nextShown) {
-// 			// Remove
-// 			this.erase(view, above);
-// 		}
-// 		if(nextShown) {
-// 			above = false;
-// 		}
-// 	}.bind(this));
-
-// 	task.resolve();
-// 	return task.promise;
-// };
-
 EPUBJS.Continuous.prototype.trim = function(){
   var task = new RSVP.defer();
-  var displayed = this.displayed();
+  var displayed = this.views.displayed();
   var first = displayed[0];
   var last = displayed[displayed.length-1];
   var firstIndex = this.views.indexOf(first);
@@ -290,7 +222,7 @@ EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
 
 	var bounds = view.bounds();
 
-	this.remove(view);
+	this.views.remove(view);
 
 	if(above) {
 
@@ -300,39 +232,6 @@ EPUBJS.Continuous.prototype.erase = function(view, above){ //Trim
 			this.scrollTo(prevLeft - bounds.width, 0, true);
 		}
 	}
-
-};
-
-
-EPUBJS.Continuous.prototype.checkCurrent = function(position) {
-  var view, top;
-  var container = this.container.getBoundingClientRect();
-  var length = this.views.length - 1;
-
-  if(this.rendering) {
-    return;
-  }
-
-  if(this.settings.axis === "horizontal") {
-    // TODO: Check for current horizontal
-  } else {
-
-    for (var i = length; i >= 0; i--) {
-      view = this.views[i];
-      top = view.bounds().top;
-      if(top < container.bottom) {
-
-        if(this.current == view.section) {
-          break;
-        }
-
-        this.current = view.section;
-        this.trigger("current", this.current);
-        break;
-      }
-    }
-
-  }
 
 };
 

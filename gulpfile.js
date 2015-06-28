@@ -24,6 +24,7 @@ var files = [
   'src/replacements.js',
   'src/book.js',
   'src/view.js',
+  'src/views.js',
   'src/layout.js',
   'src/rendition.js',
   'src/continuous.js',

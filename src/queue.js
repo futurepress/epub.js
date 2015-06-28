@@ -11,17 +11,20 @@ EPUBJS.Queue.prototype.enqueue = function() {
   var queued;
   var task = [].shift.call(arguments);
   var args = arguments;
-  
+
   // Handle single args without context
   // if(args && !Array.isArray(args)) {
   //   args = [args];
   // }
-  
+  if(!task) {
+    return console.error("No Task Provided");
+  }
+
   if(typeof task === "function"){
-    
+
     deferred = new RSVP.defer();
     promise = deferred.promise;
-    
+
     queued = {
       "task" : task,
       "args"     : args,
@@ -29,15 +32,15 @@ EPUBJS.Queue.prototype.enqueue = function() {
       "deferred" : deferred,
       "promise" : promise
     };
-    
+
   } else {
     // Task is a promise
     queued = {
       "promise" : task
     };
-    
+
   }
-  
+
   this._q.push(queued);
 
   // Wait to start queue flush
@@ -69,8 +72,8 @@ EPUBJS.Queue.prototype.dequeue = function(){
         return inwait.promise;
       }
 
-      
-      
+
+
     } else if(inwait.promise) {
       // Task is a promise
       return inwait.promise;
@@ -100,7 +103,7 @@ EPUBJS.Queue.prototype.run = function(){
       this.running = false;
     }.bind(this));
   }
-  
+
   this.tick.call(window, this.run.bind(this));
 };
 
@@ -137,7 +140,7 @@ EPUBJS.Task = function(task, args, context){
 
   return function(){
     var toApply = arguments || [];
-    
+
     return new RSVP.Promise(function(resolve, reject) {
       var callback = function(value){
         resolve(value);
@@ -147,7 +150,7 @@ EPUBJS.Task = function(task, args, context){
 
       // Apply all arguments to the functions
       task.apply(this, toApply);
-    
+
   }.bind(this));
 
   };
