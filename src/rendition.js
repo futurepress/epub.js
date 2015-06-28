@@ -26,6 +26,7 @@ EPUBJS.Rendition = function(book, options) {
 	this.hooks.show = new EPUBJS.Hook(this);
 
 	this.hooks.content.register(EPUBJS.replace.links.bind(this));
+	this.hooks.content.register(this.passViewEvents.bind(this));
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
@@ -595,6 +596,16 @@ EPUBJS.Rendition.prototype.scrollTo = function(x, y, silent){
   //   return;
   // };
  };
+
+EPUBJS.Rendition.prototype.passViewEvents = function(view){
+  view.listenedEvents.forEach(function(e){
+		view.on(e, this.triggerViewEvent.bind(this));
+	}.bind(this));
+};
+
+EPUBJS.Rendition.prototype.triggerViewEvent = function(e){
+  this.trigger(e.type, e);
+};
 
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Rendition.prototype);

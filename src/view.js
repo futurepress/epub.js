@@ -30,6 +30,9 @@ EPUBJS.View = function(section, options) {
     this.element.style.display = "block";
   }
 
+  // Dom events to listen for
+  this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+
 };
 
 EPUBJS.View.prototype.create = function() {
@@ -391,14 +394,24 @@ EPUBJS.View.prototype.listeners = function() {
 
   this.mediaQueryListeners();
 
-  this.resizeListenters();
+  // this.resizeListenters();
 
+  this.addEventListeners();
+
+  this.addSelectionListeners();
+};
+
+EPUBJS.View.prototype.removeListeners = function() {
+
+  this.removeEventListeners();
+
+  this.removeSelectionListeners();
 };
 
 EPUBJS.View.prototype.resizeListenters = function() {
   // Test size again
   clearTimeout(this.expanding);
-  // this.expanding = setTimeout(this.expand.bind(this), 350);
+  this.expanding = setTimeout(this.expand.bind(this), 350);
 };
 
 //https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
@@ -531,6 +544,8 @@ EPUBJS.View.prototype.destroy = function() {
   }
 
   if(this.displayed){
+    this.removeListeners();
+
     this.stopExpanding = true;
     this.element.removeChild(this.iframe);
     this.displayed = false;
@@ -679,6 +694,55 @@ EPUBJS.View.prototype.addScript = function(src) {
     this.document.head.appendChild($script);
 
   }.bind(this));
+};
+
+EPUBJS.View.prototype.addEventListeners = function(){
+  if(!this.document) {
+    return;
+  }
+  this.listenedEvents.forEach(function(eventName){
+    this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
+  }, this);
+
+};
+
+EPUBJS.View.prototype.removeEventListeners = function(){
+  if(!this.document) {
+    return;
+  }
+  this.listenedEvents.forEach(function(eventName){
+    this.document.removeEventListener(eventName, this.triggerEvent, false);
+  }, this);
+
+};
+
+// Pass browser events
+EPUBJS.View.prototype.triggerEvent = function(e){
+  this.trigger(e.type, e);
+};
+
+EPUBJS.View.prototype.addSelectionListeners = function(){
+  if(!this.document) {
+    return;
+  }
+  this.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
+};
+
+EPUBJS.View.prototype.removeSelectionListeners = function(){
+  if(!this.document) {
+    return;
+  }
+  this.document.removeEventListener("selectionchange", this.onSelectionChange, false);
+};
+
+EPUBJS.View.prototype.onSelectionChange = function(e){
+  if (this.selectionEndTimeout) {
+    clearTimeout(this.selectionEndTimeout);
+  }
+  this.selectionEndTimeout = setTimeout(function() {
+    this.selectedRange = this.window.getSelection();
+    this.trigger("selected", this.selectedRange);
+  }.bind(this), 500);
 };
 
 RSVP.EventTarget.mixin(EPUBJS.View.prototype);
