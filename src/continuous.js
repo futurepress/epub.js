@@ -39,114 +39,15 @@ EPUBJS.Continuous.prototype.attachListeners = function(){
 
 };
 
-EPUBJS.Continuous.prototype._display = function(target){
-
-	var displaying = new RSVP.defer();
-	var displayed = displaying.promise;
-
-	var section;
-  var view;
-  var cfi, spinePos;
-
-  var visible;
-
-  if(this.epubcfi.isCfiString(target)) {
+EPUBJS.Continuous.prototype.parseTarget = function(target){
+	if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {
     section = this.book.spine.get(target);
   }
-
-
-
-
-
-	if(section){
-
-    this.displaying = true;
-
-    // Check to make sure the section we want isn't already shown
-    visible = this.visible();
-    for (var i = 0; i < visible.length; i++) {
-      if(visible.length &&
-          section.index === visible[i].section.index){
-        // Section already has a visible view
-        view = visible[i];
-        // Move to target location
-        this.q.enqueue(function(){
-
-          var offset = view.locationOf(target);
-
-          return this.moveTo(offset);
-
-        });
-
-        this.q.enqueue(this.check);
-        // Trigger display hooks
-        this.hooks.display.trigger(view)
-        .then(function(){
-          this.trigger("displayed", section);
-          displaying.resolve(this);
-        }.bind(this));
-
-        // Finished, no need to fill
-        return displayed;
-
-      }
-    }
-
-    this.hide();
-
-		view = new EPUBJS.View(section, this.viewSettings);
-
-		// This will clear all previous views
-		this.q.enqueue(this.fill, view).then(function(){
-
-      // Move to correct place within the section, if needed
-      this.q.enqueue(function(){
-
-        var offset = view.locationOf(target);
-
-        return this.moveTo(offset);
-
-      });
-
-      this.q.enqueue(this.check);
-
-      this.q.enqueue(this.show);
-
-      // // This hook doesn't prevent showing, but waits to resolve until
-      // // all the hooks have finished. Might want to block showing.
-      // this.hooks.display.trigger(view)
-      // .then(function(){
-      //   this.trigger("displayed", section);
-      //   // displaying.resolve(this);
-      // }.bind(this));
-
-    }.bind(this));
-
-    // view.displayed.then(function(){
-    //  this.trigger("displayed", section);
-    //  this.displaying = false;
-    // displaying.resolve(this);
-    //}.bind(this));
-
-    // This hook doesn't prevent showing, but waits to resolve until
-    // all the hooks have finished. Might want to block showing.
-    this.hooks.display.trigger(view)
-    .then(function(){
-      this.trigger("displayed", section);
-      displaying.resolve(this);
-    }.bind(this));
-
-	} else {
-		displaying.reject(new Error("No Section Found"));
-	}
-
-	return displayed;
 };
-
 
 EPUBJS.Continuous.prototype.moveTo = function(offset){
   // var bounds = this.bounds();
@@ -231,25 +132,6 @@ EPUBJS.Continuous.prototype.counter = function(bounds){
 		this.scrollBy(bounds.widthDelta, 0, true);
 	}
 
-};
-
-EPUBJS.Continuous.prototype.fill = function(view){
-
-	if(this.views.length){
-		this.clear();
-	}
-
-	this.views.push(view);
-
-	this.container.appendChild(view.element);
-
-	// view.on("shown", this.afterDisplayed.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
-
-	return this.render(view)
-    .then(function(){
-      return this.check();
-    }.bind(this));
 };
 
 EPUBJS.Continuous.prototype.insert = function(view, index) {

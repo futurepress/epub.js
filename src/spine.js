@@ -30,15 +30,15 @@ EPUBJS.Spine.prototype.load = function(_package) {
         item.properties.push.apply(item.properties, manifestItem.properties);
       }
     }
-    
+
     // if(index > 0) {
       item.prev = function(){ return this.get(index-1); }.bind(this);
     // }
-    
+
     // if(index+1 < this.items.length) {
       item.next = function(){ return this.get(index+1); }.bind(this);
     // }
-    
+
     spineItem = new EPUBJS.Section(item);
     this.append(spineItem);
 
@@ -57,7 +57,7 @@ EPUBJS.Spine.prototype.get = function(target) {
   if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
     index = cfi.spinePos;
-  } if(target && (typeof target === "number" || isNaN(target) === false)){
+  } else if(target && (typeof target === "number" || isNaN(target) === false)){
     index = target;
   } else if(target && target.indexOf("#") === 0) {
     index = this.spineById[target.substring(1)];

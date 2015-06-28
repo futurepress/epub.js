@@ -3496,15 +3496,15 @@ EPUBJS.Spine.prototype.load = function(_package) {
         item.properties.push.apply(item.properties, manifestItem.properties);
       }
     }
-    
+
     // if(index > 0) {
       item.prev = function(){ return this.get(index-1); }.bind(this);
     // }
-    
+
     // if(index+1 < this.items.length) {
       item.next = function(){ return this.get(index+1); }.bind(this);
     // }
-    
+
     spineItem = new EPUBJS.Section(item);
     this.append(spineItem);
 
@@ -3523,7 +3523,7 @@ EPUBJS.Spine.prototype.get = function(target) {
   if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
     index = cfi.spinePos;
-  } if(target && (typeof target === "number" || isNaN(target) === false)){
+  } else if(target && (typeof target === "number" || isNaN(target) === false)){
     index = target;
   } else if(target && target.indexOf("#") === 0) {
     index = this.spineById[target.substring(1)];
@@ -3575,6 +3575,7 @@ EPUBJS.Spine.prototype.remove = function(section) {
     return this.spineItems.splice(index, 1);
   }
 };
+
 EPUBJS.replace = {};
 EPUBJS.replace.links = function(view, renderer) {
   
@@ -4847,56 +4848,73 @@ EPUBJS.Rendition.prototype._display = function(target){
 
 	var section;
   var view;
-  var cfi, spinePos;
+  var offset;
+	var fragment;
+	var cfi = this.epubcfi.isCfiString(target);
 
-  if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
-    spinePos = cfi.spinePos;
-    section = this.book.spine.get(spinePos);
-  } else {
-    section = this.book.spine.get(target);
-  }
+	var visible;
 
-	this.displaying = true;
+	section = this.book.spine.get(target);
 
-	// Hide current views
-	this.hide();
-
-	if(section){
-		view = this.createView(section);
-
-		// Show view
-		this.q.enqueue(this.append, view);
-
-		// Move to correct place within the section, if needed
-		this.q.enqueue(function(){
-
-			var offset = view.locationOf(target);
-
-			if(offset.top > 250 || offset.left > 250){ // Terrible temp fix to prevent unneeded jumps
-				return this.moveTo(offset);
-			}
-
-		});
-
-		// Show views
-		this.show();
-
-		// This hook doesn't prevent showing, but waits to resolve until
-		// all the hooks have finished. Might want to block showing.
-		this.hooks.display.trigger(view)
-		.then(function(){
-			this.trigger("displayed", section);
-			displaying.resolve(this);
-		}.bind(this));
-
-	} else {
+	if(!section){
 		displaying.reject(new Error("No Section Found"));
+		return displayed;
 	}
 
-	return displayed;
+	// Check to make sure the section we want isn't already shown
+	visible = this.find(section);
 
+	if(visible) {
+		offset = view.locationOf(target);
+		this.q.enqueue(this.moveTo, offset);
+		this.q.enqueue(this.check);
+	} else {
+
+		// Hide all current views
+		this.hide();
+
+		// Create a new view
+		view = new EPUBJS.View(section, this.viewSettings);
+
+		// This will clear all previous views
+		this.fill(view)
+			.then(function(){
+
+				// Parse the target fragment
+				if(typeof target === "string" &&
+					target.indexOf("#") > -1) {
+						fragment = target.substring(target.indexOf("#")+1);
+				}
+
+				// Move to correct place within the section, if needed
+				if(cfi || fragment) {
+					offset = view.locationOf(target);
+					this.q.enqueue(this.moveTo, offset);
+				}
+
+				if(typeof this.check === 'function') {
+					this.q.enqueue(this.check);
+				}
+
+				this.q.enqueue(this.show);
+
+			}.bind(this));
+	}
+
+
+	// This hook doesn't prevent showing, but waits to resolve until
+	// all the hooks have finished. Might want to block showing.
+	this.hooks.display.trigger(view)
+	.then(function(){
+	  this.trigger("displayed", section);
+	  displaying.resolve(this);
+	}.bind(this));
+
+
+
+	return displayed;
 };
+
 // Takes a cfi, fragment or page?
 EPUBJS.Rendition.prototype.moveTo = function(offset){
 	this.scrollBy(offset.left, offset.top);
@@ -4949,17 +4967,18 @@ EPUBJS.Rendition.prototype.afterDisplayed = function(view){
 	this.trigger("added", view.section);
 };
 
-EPUBJS.Rendition.prototype.append = function(view){
-	// Clear existing views
-	this.clear();
+EPUBJS.Rendition.prototype.fill = function(view){
+
+	if(this.views.length){
+		this.clear();
+	}
 
 	this.views.push(view);
-	// view.appendTo(this.container);
+
 	this.container.appendChild(view.element);
 
-	// view.on("displayed", this.afterDisplayed.bind(this));
+	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
-	// this.resizeView(view);
 
 	return this.render(view);
 };
@@ -5205,6 +5224,19 @@ EPUBJS.Rendition.prototype.visible = function(){
 
 };
 
+EPUBJS.Rendition.prototype.find = function(section){
+
+  var view;
+
+  for (var i = 0; i < this.views.length; i++) {
+    view = this.views[i];
+		if(view.displayed && view.section.index == section.index) {
+			return view;
+		}
+  }
+
+};
+
 EPUBJS.Rendition.prototype.bounds = function(func) {
   var bounds;
 
@@ -5369,114 +5401,15 @@ EPUBJS.Continuous.prototype.attachListeners = function(){
 
 };
 
-EPUBJS.Continuous.prototype._display = function(target){
-
-	var displaying = new RSVP.defer();
-	var displayed = displaying.promise;
-
-	var section;
-  var view;
-  var cfi, spinePos;
-
-  var visible;
-
-  if(this.epubcfi.isCfiString(target)) {
+EPUBJS.Continuous.prototype.parseTarget = function(target){
+	if(this.epubcfi.isCfiString(target)) {
     cfi = this.epubcfi.parse(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {
     section = this.book.spine.get(target);
   }
-
-
-
-
-
-	if(section){
-
-    this.displaying = true;
-
-    // Check to make sure the section we want isn't already shown
-    visible = this.visible();
-    for (var i = 0; i < visible.length; i++) {
-      if(visible.length &&
-          section.index === visible[i].section.index){
-        // Section already has a visible view
-        view = visible[i];
-        // Move to target location
-        this.q.enqueue(function(){
-
-          var offset = view.locationOf(target);
-
-          return this.moveTo(offset);
-
-        });
-
-        this.q.enqueue(this.check);
-        // Trigger display hooks
-        this.hooks.display.trigger(view)
-        .then(function(){
-          this.trigger("displayed", section);
-          displaying.resolve(this);
-        }.bind(this));
-
-        // Finished, no need to fill
-        return displayed;
-
-      }
-    }
-
-    this.hide();
-
-		view = new EPUBJS.View(section, this.viewSettings);
-
-		// This will clear all previous views
-		this.q.enqueue(this.fill, view).then(function(){
-
-      // Move to correct place within the section, if needed
-      this.q.enqueue(function(){
-
-        var offset = view.locationOf(target);
-
-        return this.moveTo(offset);
-
-      });
-
-      this.q.enqueue(this.check);
-
-      this.q.enqueue(this.show);
-
-      // // This hook doesn't prevent showing, but waits to resolve until
-      // // all the hooks have finished. Might want to block showing.
-      // this.hooks.display.trigger(view)
-      // .then(function(){
-      //   this.trigger("displayed", section);
-      //   // displaying.resolve(this);
-      // }.bind(this));
-
-    }.bind(this));
-
-    // view.displayed.then(function(){
-    //  this.trigger("displayed", section);
-    //  this.displaying = false;
-    // displaying.resolve(this);
-    //}.bind(this));
-
-    // This hook doesn't prevent showing, but waits to resolve until
-    // all the hooks have finished. Might want to block showing.
-    this.hooks.display.trigger(view)
-    .then(function(){
-      this.trigger("displayed", section);
-      displaying.resolve(this);
-    }.bind(this));
-
-	} else {
-		displaying.reject(new Error("No Section Found"));
-	}
-
-	return displayed;
 };
-
 
 EPUBJS.Continuous.prototype.moveTo = function(offset){
   // var bounds = this.bounds();
@@ -5561,25 +5494,6 @@ EPUBJS.Continuous.prototype.counter = function(bounds){
 		this.scrollBy(bounds.widthDelta, 0, true);
 	}
 
-};
-
-EPUBJS.Continuous.prototype.fill = function(view){
-
-	if(this.views.length){
-		this.clear();
-	}
-
-	this.views.push(view);
-
-	this.container.appendChild(view.element);
-
-	// view.on("shown", this.afterDisplayed.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
-
-	return this.render(view)
-    .then(function(){
-      return this.check();
-    }.bind(this));
 };
 
 EPUBJS.Continuous.prototype.insert = function(view, index) {

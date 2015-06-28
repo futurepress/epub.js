@@ -172,56 +172,73 @@ EPUBJS.Rendition.prototype._display = function(target){
 
 	var section;
   var view;
-  var cfi, spinePos;
+  var offset;
+	var fragment;
+	var cfi = this.epubcfi.isCfiString(target);
 
-  if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
-    spinePos = cfi.spinePos;
-    section = this.book.spine.get(spinePos);
-  } else {
-    section = this.book.spine.get(target);
-  }
+	var visible;
 
-	this.displaying = true;
+	section = this.book.spine.get(target);
 
-	// Hide current views
-	this.hide();
-
-	if(section){
-		view = this.createView(section);
-
-		// Show view
-		this.q.enqueue(this.append, view);
-
-		// Move to correct place within the section, if needed
-		this.q.enqueue(function(){
-
-			var offset = view.locationOf(target);
-
-			if(offset.top > 250 || offset.left > 250){ // Terrible temp fix to prevent unneeded jumps
-				return this.moveTo(offset);
-			}
-
-		});
-
-		// Show views
-		this.show();
-
-		// This hook doesn't prevent showing, but waits to resolve until
-		// all the hooks have finished. Might want to block showing.
-		this.hooks.display.trigger(view)
-		.then(function(){
-			this.trigger("displayed", section);
-			displaying.resolve(this);
-		}.bind(this));
-
-	} else {
+	if(!section){
 		displaying.reject(new Error("No Section Found"));
+		return displayed;
 	}
 
-	return displayed;
+	// Check to make sure the section we want isn't already shown
+	visible = this.find(section);
 
+	if(visible) {
+		offset = view.locationOf(target);
+		this.q.enqueue(this.moveTo, offset);
+		this.q.enqueue(this.check);
+	} else {
+
+		// Hide all current views
+		this.hide();
+
+		// Create a new view
+		view = new EPUBJS.View(section, this.viewSettings);
+
+		// This will clear all previous views
+		this.fill(view)
+			.then(function(){
+
+				// Parse the target fragment
+				if(typeof target === "string" &&
+					target.indexOf("#") > -1) {
+						fragment = target.substring(target.indexOf("#")+1);
+				}
+
+				// Move to correct place within the section, if needed
+				if(cfi || fragment) {
+					offset = view.locationOf(target);
+					this.q.enqueue(this.moveTo, offset);
+				}
+
+				if(typeof this.check === 'function') {
+					this.q.enqueue(this.check);
+				}
+
+				this.q.enqueue(this.show);
+
+			}.bind(this));
+	}
+
+
+	// This hook doesn't prevent showing, but waits to resolve until
+	// all the hooks have finished. Might want to block showing.
+	this.hooks.display.trigger(view)
+	.then(function(){
+	  this.trigger("displayed", section);
+	  displaying.resolve(this);
+	}.bind(this));
+
+
+
+	return displayed;
 };
+
 // Takes a cfi, fragment or page?
 EPUBJS.Rendition.prototype.moveTo = function(offset){
 	this.scrollBy(offset.left, offset.top);
@@ -274,17 +291,18 @@ EPUBJS.Rendition.prototype.afterDisplayed = function(view){
 	this.trigger("added", view.section);
 };
 
-EPUBJS.Rendition.prototype.append = function(view){
-	// Clear existing views
-	this.clear();
+EPUBJS.Rendition.prototype.fill = function(view){
+
+	if(this.views.length){
+		this.clear();
+	}
 
 	this.views.push(view);
-	// view.appendTo(this.container);
+
 	this.container.appendChild(view.element);
 
-	// view.on("displayed", this.afterDisplayed.bind(this));
+	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
-	// this.resizeView(view);
 
 	return this.render(view);
 };
@@ -527,6 +545,19 @@ EPUBJS.Rendition.prototype.visible = function(){
   }
 
   return visible;
+
+};
+
+EPUBJS.Rendition.prototype.find = function(section){
+
+  var view;
+
+  for (var i = 0; i < this.views.length; i++) {
+    view = this.views[i];
+		if(view.displayed && view.section.index == section.index) {
+			return view;
+		}
+  }
 
 };
 
