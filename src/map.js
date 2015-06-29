@@ -52,7 +52,7 @@ EPUBJS.Map.prototype.findRanges = function(view){
       start: this.findStart(view.document.body, start, end),
       end: this.findEnd(view.document.body, start, end)
     });
-  };
+  }
   
   return columns;
 };
@@ -68,7 +68,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
 
     found = this.walk($el, function(node){
       var left, right;
-      var elPos
+      var elPos;
       var elRange;
       
 
@@ -117,7 +117,7 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
     found = this.walk($el, function(node){
       
       var left, right;
-      var elPos
+      var elPos;
       var elRange;
       
       
@@ -133,7 +133,7 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
       right = elPos.right;
       
       if(left > end && $prev) {
-        return $prev
+        return $prev;
       } else if(right > end) {
         return node;
       } else {
@@ -172,7 +172,7 @@ EPUBJS.Map.prototype.findTextStartRange = function(node, start, end){
 
     prev = range;
 
-  };
+  }
 
   return ranges[0];
 };
@@ -196,7 +196,7 @@ EPUBJS.Map.prototype.findTextEndRange = function(node, start, end){
   
     prev = range;
 
-  };
+  }
 
   // Ends before limit
   return ranges[ranges.length-1];
@@ -266,7 +266,7 @@ EPUBJS.Map.prototype.rangePairToCfiPair = function(section, rangePair){
   return {
     start: startCfi,
     end: endCfi
-  }
+  };
 
 };
 
@@ -279,7 +279,7 @@ EPUBJS.Map.prototype.rangeListToCfiList = function(view, columns){
 
     map.push(cifPair);
 
-  };
+  }
   
   return map;
 };

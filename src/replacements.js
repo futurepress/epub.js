@@ -1,6 +1,6 @@
 EPUBJS.replace = {};
 EPUBJS.replace.links = function(view, renderer) {
-  var task = new RSVP.defer();
+  
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
@@ -39,6 +39,5 @@ EPUBJS.replace.links = function(view, renderer) {
     replaceLinks(links[i]);
   }
 
-  task.resolve();
-  return task.promise;
+
 };

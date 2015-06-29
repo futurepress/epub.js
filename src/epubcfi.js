@@ -509,4 +509,4 @@ EPUBJS.EpubCFI.prototype.isCfiString = function(target) {
   }
 
   return false;
-}
+};
