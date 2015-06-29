@@ -18,7 +18,7 @@ EPUBJS.Layout.Reflowable.prototype.calculate = function(_width, _height, _gap, _
   var colWidth;
   var spreadWidth;
   var delta;
-  
+
   //-- Double Page
   if(divisor > 1) {
     colWidth = Math.floor((width - gap) / divisor);
@@ -29,7 +29,7 @@ EPUBJS.Layout.Reflowable.prototype.calculate = function(_width, _height, _gap, _
   spreadWidth = colWidth * divisor;
 
   delta = (colWidth + gap) * divisor;
-  
+
 
 
   this.columnAxis = EPUBJS.core.prefixed('columnAxis');
@@ -64,7 +64,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(view){
 
   //-- Add columns
   $body.style[this.columnAxis] = "horizontal";
-  $body.style[this.columnFill] = "auto";
+  $body.style[this.columnFill] = "balance";
   $body.style[this.columnGap] = this.gap+"px";
   $body.style[this.columnWidth] = this.column+"px";
 
