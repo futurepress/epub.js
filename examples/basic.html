@@ -4,19 +4,7 @@
   <meta charset="utf-8">
   <title>EPUB.js Basic Example</title>
 
-  <script src="../bower_components/rsvp/rsvp.js"></script>
-
-  <script src="../src/epub.js"></script>
-  <script src="../src/core.js"></script>
-  <script src="../src/hooks.js"></script>
-  <script src="../src/book.js"></script>
-  <script src="../src/parser.js"></script>
-  <script src="../src/spine.js"></script>
-  <script src="../src/section.js"></script>
-  <script src="../src/navigation.js"></script>
-  <script src="../src/epubcfi.js"></script>
-  <script src="../src/rendition.js"></script>
-  <script src="../src/view.js"></script>
+  <script src="../dist/epub.min.js"></script>
 
   <style type="text/css">
     body {
@@ -124,7 +112,6 @@
         if(section) {
           currentSection = section;
           section.render().then(function(html){
-            // $viewer.srcdoc = html;
             $viewer.innerHTML = html;
           });
         }
