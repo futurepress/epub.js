@@ -420,7 +420,7 @@ EPUBJS.Rendition.prototype.next = function(){
 
 		if(next) {
 			view = this.createView(next);
-			return this.append(view);
+			return this.views.append(view);
 		}
 
 	});
@@ -439,7 +439,7 @@ EPUBJS.Rendition.prototype.prev = function(){
 		prev = this.views.first().section.prev();
 		if(prev) {
 			view = this.createView(prev);
-			return this.append(view);
+			return this.views.append(view);
 		}
 
 	});
