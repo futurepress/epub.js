@@ -641,7 +641,7 @@ EPUBJS.View.prototype.addStylesheetRules = function(rules) {
 
   if(!this.document) return;
 
-  var styleEl = this.document.createElement('style');
+  styleEl = this.document.createElement('style');
 
   // Append style element to head
   this.document.head.appendChild(styleEl);
