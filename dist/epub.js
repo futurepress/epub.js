@@ -4480,7 +4480,7 @@ EPUBJS.View.prototype.addStylesheetRules = function(rules) {
 
   if(!this.document) return;
 
-  var styleEl = this.document.createElement('style');
+  styleEl = this.document.createElement('style');
 
   // Append style element to head
   this.document.head.appendChild(styleEl);
@@ -5322,7 +5322,7 @@ EPUBJS.Rendition.prototype.next = function(){
 
 		if(next) {
 			view = this.createView(next);
-			return this.append(view);
+			return this.fill(view);
 		}
 
 	});
@@ -5341,7 +5341,7 @@ EPUBJS.Rendition.prototype.prev = function(){
 		prev = this.views.first().section.prev();
 		if(prev) {
 			view = this.createView(prev);
-			return this.append(view);
+			return this.fill(view);
 		}
 
 	});
@@ -5377,14 +5377,14 @@ EPUBJS.Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _c
 	var container = _container || this.container.getBoundingClientRect();
 
 	if(this.settings.axis === "horizontal" &&
-		(position.right > container.left - offsetPrev) &&
-		!(position.left >= container.right + offsetNext)) {
+		position.right > container.left - offsetPrev &&
+		position.left < container.right + offsetNext) {
 
 		return true;
 
   } else if(this.settings.axis === "vertical" &&
-  		(position.bottom > container.top - offsetPrev) &&
-		!(position.top >= container.bottom + offsetNext)) {
+  	position.bottom > container.top - offsetPrev &&
+		position.top < container.bottom + offsetNext) {
 
 		return true;
   }
