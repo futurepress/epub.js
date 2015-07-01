@@ -64,7 +64,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(view){
 
   //-- Add columns
   $body.style[this.columnAxis] = "horizontal";
-  $body.style[this.columnFill] = "balance";
+  $body.style[this.columnFill] = "auto";
   $body.style[this.columnGap] = this.gap+"px";
   $body.style[this.columnWidth] = this.column+"px";
 

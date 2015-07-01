@@ -4805,7 +4805,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(view){
 
   //-- Add columns
   $body.style[this.columnAxis] = "horizontal";
-  $body.style[this.columnFill] = "balance";
+  $body.style[this.columnFill] = "auto";
   $body.style[this.columnGap] = this.gap+"px";
   $body.style[this.columnWidth] = this.column+"px";
 
@@ -5090,8 +5090,10 @@ EPUBJS.Rendition.prototype._display = function(target){
 
 	if(visible) {
 		offset = view.locationOf(target);
-		this.q.enqueue(this.moveTo, offset);
-		this.q.enqueue(this.check);
+		displayed = this.moveTo(offset)
+			.then(function(){
+				return this.check();
+			});
 	} else {
 
 		// Hide all current views
@@ -5101,7 +5103,7 @@ EPUBJS.Rendition.prototype._display = function(target){
 		view = new EPUBJS.View(section, this.viewSettings);
 
 		// This will clear all previous views
-		this.fill(view)
+		displayed = this.fill(view)
 			.then(function(){
 
 				// Parse the target fragment
@@ -5113,24 +5115,27 @@ EPUBJS.Rendition.prototype._display = function(target){
 				// Move to correct place within the section, if needed
 				if(cfi || fragment) {
 					offset = view.locationOf(target);
-					return this.q.enqueue(this.moveTo, offset);
+					return this.moveTo(offset);
 				}
 
 				if(typeof this.check === 'function') {
-					return this.q.enqueue(this.check);
+					return this.check();
 				}
 			}.bind(this))
-			.then(this.views.show.bind(this.views));
+			.then(function(){
+				return this.hooks.display.trigger(view);
+			}.bind(this))
+			.then(function(){
+				this.views.show();
+			}.bind(this));
 	}
 
+	displayed.then(function(){
 
-	// This hook doesn't prevent showing, but waits to resolve until
-	// all the hooks have finished. Might want to block showing.
-	this.hooks.display.trigger(view)
-	.then(function(){
-	  this.trigger("displayed", section);
-	  displaying.resolve(this);
+		this.trigger("displayed", section);
+
 	}.bind(this));
+
 
 	return displayed;
 };
@@ -6020,7 +6025,7 @@ EPUBJS.Paginate.prototype.start = function(){
   // this.hooks.display.register(this.reportLocation);
   this.on('displayed', this.reportLocation.bind(this));
 
-  this.hooks.content.register(this.adjustImages.bind(this));
+  // this.hooks.content.register(this.adjustImages.bind(this));
 
   this.currentPage = 0;
 
@@ -6116,12 +6121,12 @@ EPUBJS.Paginate.prototype.prev = function(){
   // return this.page(this.currentPage - 1);
 };
 
-EPUBJS.Paginate.prototype.reportLocation = function(){
-  return this.q.enqueue(function(){
-    this.location = this.currentLocation();
-    this.trigger("locationChanged", this.location);
-  }.bind(this));
-};
+// EPUBJS.Paginate.prototype.reportLocation = function(){
+//   return this.q.enqueue(function(){
+//     this.location = this.currentLocation();
+//     this.trigger("locationChanged", this.location);
+//   }.bind(this));
+// };
 
 EPUBJS.Paginate.prototype.currentLocation = function(){
   var visible = this.visible();
@@ -6154,7 +6159,6 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
       end: pageRight.end
     };
   }
-
 };
 
 EPUBJS.Paginate.prototype.resize = function(width, height){
@@ -6165,7 +6169,9 @@ EPUBJS.Paginate.prototype.resize = function(width, height){
 
   this.updateLayout();
 
-  this.display(this.location.start);
+  if(this.location) {
+    this.display(this.location.start);
+  }
 
   this.trigger("resized", {
     width: this.stage.width,

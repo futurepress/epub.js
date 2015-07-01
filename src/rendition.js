@@ -193,8 +193,10 @@ EPUBJS.Rendition.prototype._display = function(target){
 
 	if(visible) {
 		offset = view.locationOf(target);
-		this.q.enqueue(this.moveTo, offset);
-		this.q.enqueue(this.check);
+		displayed = this.moveTo(offset)
+			.then(function(){
+				return this.check();
+			});
 	} else {
 
 		// Hide all current views
@@ -204,7 +206,7 @@ EPUBJS.Rendition.prototype._display = function(target){
 		view = new EPUBJS.View(section, this.viewSettings);
 
 		// This will clear all previous views
-		this.fill(view)
+		displayed = this.fill(view)
 			.then(function(){
 
 				// Parse the target fragment
@@ -216,24 +218,27 @@ EPUBJS.Rendition.prototype._display = function(target){
 				// Move to correct place within the section, if needed
 				if(cfi || fragment) {
 					offset = view.locationOf(target);
-					return this.q.enqueue(this.moveTo, offset);
+					return this.moveTo(offset);
 				}
 
 				if(typeof this.check === 'function') {
-					return this.q.enqueue(this.check);
+					return this.check();
 				}
 			}.bind(this))
-			.then(this.views.show.bind(this.views));
+			.then(function(){
+				return this.hooks.display.trigger(view);
+			}.bind(this))
+			.then(function(){
+				this.views.show();
+			}.bind(this));
 	}
 
+	displayed.then(function(){
 
-	// This hook doesn't prevent showing, but waits to resolve until
-	// all the hooks have finished. Might want to block showing.
-	this.hooks.display.trigger(view)
-	.then(function(){
-	  this.trigger("displayed", section);
-	  displaying.resolve(this);
+		this.trigger("displayed", section);
+
 	}.bind(this));
+
 
 	return displayed;
 };

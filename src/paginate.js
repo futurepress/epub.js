@@ -92,7 +92,7 @@ EPUBJS.Paginate.prototype.start = function(){
   // this.hooks.display.register(this.reportLocation);
   this.on('displayed', this.reportLocation.bind(this));
 
-  this.hooks.content.register(this.adjustImages.bind(this));
+  // this.hooks.content.register(this.adjustImages.bind(this));
 
   this.currentPage = 0;
 
@@ -188,12 +188,12 @@ EPUBJS.Paginate.prototype.prev = function(){
   // return this.page(this.currentPage - 1);
 };
 
-EPUBJS.Paginate.prototype.reportLocation = function(){
-  return this.q.enqueue(function(){
-    this.location = this.currentLocation();
-    this.trigger("locationChanged", this.location);
-  }.bind(this));
-};
+// EPUBJS.Paginate.prototype.reportLocation = function(){
+//   return this.q.enqueue(function(){
+//     this.location = this.currentLocation();
+//     this.trigger("locationChanged", this.location);
+//   }.bind(this));
+// };
 
 EPUBJS.Paginate.prototype.currentLocation = function(){
   var visible = this.visible();
@@ -226,7 +226,6 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
       end: pageRight.end
     };
   }
-
 };
 
 EPUBJS.Paginate.prototype.resize = function(width, height){
@@ -237,7 +236,9 @@ EPUBJS.Paginate.prototype.resize = function(width, height){
 
   this.updateLayout();
 
-  this.display(this.location.start);
+  if(this.location) {
+    this.display(this.location.start);
+  }
 
   this.trigger("resized", {
     width: this.stage.width,
