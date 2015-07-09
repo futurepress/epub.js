@@ -29,7 +29,8 @@ var files = [
   'src/rendition.js',
   'src/continuous.js',
   'src/paginate.js',
-  'src/map.js'
+  'src/map.js',
+  'src/locations.js'
 ];
 
 // Lint JS

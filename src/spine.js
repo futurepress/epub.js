@@ -109,3 +109,7 @@ EPUBJS.Spine.prototype.remove = function(section) {
     return this.spineItems.splice(index, 1);
   }
 };
+
+EPUBJS.Spine.prototype.each = function() {
+	return this.spineItems.forEach.apply(this.spineItems, arguments);
+};

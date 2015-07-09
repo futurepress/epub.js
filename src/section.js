@@ -7,7 +7,7 @@ EPUBJS.Section = function(item){
     this.url = item.url;
     this.next = item.next;
     this.prev = item.prev;
-    
+
     this.epubcfi = new EPUBJS.EpubCFI();
     this.cfiBase = item.cfiBase;
 
@@ -44,7 +44,7 @@ EPUBJS.Section.prototype.load = function(_request){
         loading.reject(error);
       });
   }
-  
+
   return loaded;
 };
 
@@ -64,7 +64,7 @@ EPUBJS.Section.prototype.replacements = function(_document){
     } else {
       task.reject(new Error("No head to insert into"));
     }
-    
+
 
     return task.promise;
 };
@@ -76,7 +76,7 @@ EPUBJS.Section.prototype.beforeSectionLoad = function(){
 EPUBJS.Section.prototype.render = function(_request){
   var rendering = new RSVP.defer();
   var rendered = rendering.promise;
-  
+
   this.load(_request).then(function(contents){
     var serializer = new XMLSerializer();
     var output = serializer.serializeToString(contents);
@@ -125,4 +125,8 @@ EPUBJS.Section.prototype.reconcileLayoutSettings = function(global){
 
 EPUBJS.Section.prototype.cfiFromRange = function(_range) {
   return this.epubcfi.generateCfiFromRange(_range, this.cfiBase);
+};
+
+EPUBJS.Section.prototype.cfiFromElement = function(el) {
+  return this.epubcfi.generateCfiFromElement(el, this.cfiBase);
 };

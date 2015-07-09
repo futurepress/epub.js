@@ -3,6 +3,7 @@ EPUBJS.Queue = function(_context){
   this.context = _context;
   this.tick = EPUBJS.core.requestAnimationFrame;
   this.running = false;
+  this.paused = false;
 };
 
 // Add an item to the queue
@@ -44,7 +45,11 @@ EPUBJS.Queue.prototype.enqueue = function() {
   this._q.push(queued);
 
   // Wait to start queue flush
-  setTimeout(this.flush.bind(this), 0);
+  if (this.paused == false && !this.running) {
+    // setTimeout(this.flush.bind(this), 0);
+    // this.tick.call(window, this.run.bind(this));
+    this.run();
+  }
 
   return queued.promise;
 };
@@ -97,25 +102,46 @@ EPUBJS.Queue.prototype.dump = function(){
 // Run all sequentially, at convince
 
 EPUBJS.Queue.prototype.run = function(){
-  if(!this.running && this._q.length) {
+
+  if(!this.running){
     this.running = true;
-    this.dequeue().then(function(){
-      this.running = false;
-    }.bind(this));
+    this.defered = new RSVP.defer();
   }
 
-  this.tick.call(window, this.run.bind(this));
+  this.tick.call(window, function() {
+
+    if(this._q.length) {
+
+      this.dequeue()
+        .then(function(){
+          this.run();
+        }.bind(this));
+
+    } else {
+      this.defered.resolve();
+      this.running = undefined;
+    }
+
+  }.bind(this));
+
+  // Unpause
+  if(this.paused == true) {
+    this.paused = false;
+  }
+
+  return this.defered.promise;
 };
 
 // Flush all, as quickly as possible
 EPUBJS.Queue.prototype.flush = function(){
+
   if(this.running){
     return this.running;
   }
 
   if(this._q.length) {
-    this.running = this.dequeue().
-      then(function(){
+    this.running = this.dequeue()
+      .then(function(){
         this.running = undefined;
         return this.flush();
       }.bind(this));
@@ -133,6 +159,10 @@ EPUBJS.Queue.prototype.clear = function(){
 
 EPUBJS.Queue.prototype.length = function(){
   return this._q.length;
+};
+
+EPUBJS.Queue.prototype.pause = function(){
+  this.paused = true;
 };
 
 // Create a new task from a callback

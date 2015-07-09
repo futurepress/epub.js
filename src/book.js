@@ -1,12 +1,10 @@
-EPUBJS.Book = function(_url){  
+EPUBJS.Book = function(_url, options){
   // Promises
   this.opening = new RSVP.defer();
   this.opened = this.opening.promise;
   this.isOpen = false;
 
   this.url = undefined;
-
-  this.spine = new EPUBJS.Spine(this.request);
 
   this.loading = {
     manifest: new RSVP.defer(),
@@ -33,6 +31,9 @@ EPUBJS.Book = function(_url){
   this._q = EPUBJS.core.queue(this);
 
   this.request = this.requestMethod.bind(this);
+
+  this.spine = new EPUBJS.Spine(this.request);
+  this.locations = new EPUBJS.Locations(this.spine, this.request);
 
   if(_url) {
     this.open(_url);
@@ -64,7 +65,7 @@ EPUBJS.Book.prototype.open = function(_url){
     // Direct link to package, no container
     this.packageUrl = uri.href;
     this.containerUrl = '';
-    
+
     if(uri.origin) {
       this.url = uri.base;
     } else if(window){
@@ -82,9 +83,9 @@ EPUBJS.Book.prototype.open = function(_url){
       this.url = '';
   }
 
-  // Find the path to the Package from the container 
+  // Find the path to the Package from the container
   else if (!uri.extension) {
-    
+
     this.containerUrl = _url + containerPath;
 
     epubPackage = this.request(this.containerUrl).
@@ -95,7 +96,7 @@ EPUBJS.Book.prototype.open = function(_url){
         var packageUri = EPUBJS.core.uri(paths.packagePath);
         book.packageUrl = _url + paths.packagePath;
         book.encoding = paths.encoding;
-        
+
         // Set Url relative to the content
         if(packageUri.origin) {
           book.url = packageUri.base;
@@ -106,7 +107,7 @@ EPUBJS.Book.prototype.open = function(_url){
           book.url = packageUri.directory;
         }
 
-        return book.request(book.packageUrl); 
+        return book.request(book.packageUrl);
       }).catch(function(error) {
         // handle errors in either of the two requests
         console.error("Could not load book at: " + (this.packageUrl || this.containerPath));
@@ -156,7 +157,7 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
     book.toc = toc;
     book.loading.navigation.resolve(book.toc);
   });
-  
+
   // //-- Set Global Layout setting based on metadata
   // MOVE TO RENDER
   // book.globalLayoutProperties = book.parseLayoutProperties(book.package.metadata);
@@ -171,7 +172,7 @@ EPUBJS.Book.prototype.section = function(target) {
 
 // Sugar to render a book
 EPUBJS.Book.prototype.renderTo = function(element, options) {
-  var renderer = (options && options.method) ? 
+  var renderer = (options && options.method) ?
       options.method.charAt(0).toUpperCase() + options.method.substr(1) :
       "Rendition";
 
@@ -183,7 +184,7 @@ EPUBJS.Book.prototype.renderTo = function(element, options) {
 EPUBJS.Book.prototype.requestMethod = function(_url) {
   // Switch request methods
   if(this.archived) {
-    // TODO: handle archived 
+    // TODO: handle archived
   } else {
     return EPUBJS.core.request(_url, 'xml', this.requestCredentials, this.requestHeaders);
   }
@@ -197,6 +198,7 @@ EPUBJS.Book.prototype.setRequestCredentials = function(_credentials) {
 EPUBJS.Book.prototype.setRequestHeaders = function(_headers) {
   this.requestHeaders = _headers;
 };
+
 //-- Enable binding events to book
 RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
