@@ -234,11 +234,11 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 
 	//-- Set Globbal Layout setting based on metadata
 	book.globalLayoutProperties = book.parseLayoutProperties(book.metadata);
-	
+
 	if(book.contents.coverPath) {
 		book.cover = book.contents.cover = book.settings.contentsPath + book.contents.coverPath;
 	}
-	
+
 	book.spineNodeIndex = book.contents.spineNodeIndex;
 
 	book.ready.manifest.resolve(book.contents.manifest);
@@ -246,6 +246,7 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 	book.ready.metadata.resolve(book.contents.metadata);
 	book.ready.cover.resolve(book.contents.cover);
 
+	book.locations = new EPUBJS.Locations(book.spine);
 
 	//-- Load the TOC, optional; either the EPUB3 XHTML Navigation file or the EPUB2 NCX file
 	if(book.contents.navPath) {
@@ -512,11 +513,11 @@ EPUBJS.Book.prototype.listenToRenderer = function(renderer){
 EPUBJS.Book.prototype.loadChange = function(url){
 	var uri = EPUBJS.core.uri(url);
 	var chapter;
-	
+
 	if(this.currentChapter) {
 		chapter = EPUBJS.core.uri(this.currentChapter.absolute);
 	}
-	
+
 	if(!this._rendering && this.currentChapter && uri.path != chapter.path){
 		console.warn("Miss Match", uri.path, this.currentChapter.absolute);
 		this.goto(uri.filename);
@@ -1077,13 +1078,13 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
 	var noreflow = ["color", "background", "background-color"];
-	
+
 	if(!this.isRendered) return this._q.enqueue("setStyle", arguments);
 
 	this.settings.styles[style] = val;
 
 	this.renderer.setStyle(style, val, prefixed);
-	
+
 	if(noreflow.indexOf(style) === -1) {
 		// clearTimeout(this.reformatTimeout);
 		// this.reformatTimeout = setTimeout(function(){
@@ -1115,7 +1116,7 @@ EPUBJS.Book.prototype.useSpreads = function(use) {
 
 EPUBJS.Book.prototype.forceSingle = function(_use) {
 	var force = typeof _use === "undefined" ? true : _use;
-	
+
 	this.renderer.forceSingle(force);
 	this.settings.forceSingle = force;
 	if(this.isRendered) {
