@@ -56,9 +56,9 @@ EPUBJS.Book = function(options){
 
 	//-- Determine storage method
 	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
-
 	if(this.settings.storage !== false){
-		this.storage = new fileStorage.storage(this.settings.storage);
+		// this.storage = new fileStorage.storage(this.settings.storage);
+		this.storage = new EPUBJS.Storage(this.settings.storage);
 	}
 
 	this.ready = {
@@ -172,7 +172,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 
 	//-- If there is network connection, store the books contents
 	if(this.online && this.settings.storage && !this.settings.contained){
-		if(!this.settings.stored) opened.then(book.storeOffline());
+		if(!this.settings.stored) opened.promise.then(book.storeOffline.bind(book));
 	}
 
 	this._registerReplacements(this.renderer);
@@ -457,14 +457,19 @@ EPUBJS.Book.prototype.getToc = function() {
 //-- Listeners for browser events
 EPUBJS.Book.prototype.networkListeners = function(){
 	var book = this;
-
 	window.addEventListener("offline", function(e) {
 		book.online = false;
+		if (book.settings.storage) {
+			book.fromStorage(true);
+		}
 		book.trigger("book:offline");
 	}, false);
 
 	window.addEventListener("online", function(e) {
 		book.online = true;
+		if (book.settings.storage) {
+			book.fromStorage(false);
+		}
 		book.trigger("book:online");
 	}, false);
 
@@ -589,7 +594,7 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 
 	this.zip = new EPUBJS.Unarchiver();
 	this.store = this.zip; // Use zip storaged in ram
-	return this.zip.openZip(bookPath);
+	return this.zip.open(bookPath);
 };
 
 //-- Checks if url has a .epub or .zip extension
@@ -1040,7 +1045,7 @@ EPUBJS.Book.prototype.storeOffline = function() {
 		assets = _.values(this.manifest);
 
 	//-- Creates a queue of all items to load
-	return EPUBJS.storage.batch(assets).
+	return this.storage.put(assets).
 			then(function(){
 				book.settings.stored = true;
 				book.trigger("book:stored");
@@ -1051,30 +1056,40 @@ EPUBJS.Book.prototype.availableOffline = function() {
 	return this.settings.stored > 0 ? true : false;
 };
 
-/*
+
 EPUBJS.Book.prototype.fromStorage = function(stored) {
 
 	if(this.contained) return;
 
-	if(!stored){
-		this.online = true;
-		this.tell("book:online");
+	if(stored === false){
+		this.settings.fromStorage = true;
+		this.store = false;
+
+		this.renderer.removeHook("beforeChapterDisplay", [
+			EPUBJS.replace.head,
+			EPUBJS.replace.resources,
+			EPUBJS.replace.svg
+		], true);
+
 	}else{
 		if(!this.availableOffline){
-			//-- If book hasn't been cached yet, store offline
-			this.storeOffline(function(){
-				this.online = false;
-				this.tell("book:offline");
-			}.bind(this));
-
+			//-- If book hasn't been cached yet
+			console.error("Not available from Storage");
 		}else{
-			this.online = false;
-			this.tell("book:offline");
+			this.settings.fromStorage = true;
+			this.store = this.storage;
+
+			this.renderer.registerHook("beforeChapterDisplay", [
+				EPUBJS.replace.head,
+				EPUBJS.replace.resources,
+				EPUBJS.replace.svg
+			], true);
+
 		}
+
 	}
 
-}
-*/
+};
 
 EPUBJS.Book.prototype.setStyle = function(style, val, prefixed) {
 	var noreflow = ["color", "background", "background-color"];
@@ -1225,9 +1240,9 @@ EPUBJS.Book.prototype._needsAssetReplacement = function(){
 	if(this.settings.fromStorage) {
 
 		//-- Filesystem api links are relative, so no need to replace them
-		if(this.storage.getStorageType() == "filesystem") {
-			return false;
-		}
+		// if(this.storage.getStorageType() == "filesystem") {
+		// 	return false;
+		// }
 
 		return true;
 

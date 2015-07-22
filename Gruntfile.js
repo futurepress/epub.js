@@ -23,7 +23,8 @@ module.exports = function(grunt) {
 					'build/epub.min.js': ['build/epub.js'],
 					'build/reader.min.js': ['build/reader.js'],
 					'build/hooks.min.js': ['build/hooks.js'],
-					'build/libs/zip.min.js': ['libs/jszip/jszip.min.js', 'libs/jszip/mime-types.js'],
+					'build/libs/zip.min.js': ['libs/jszip/jszip.min.js', 'libs/mime-types/mime-types.js'],
+					'build/libs/localforage.min.js': ['libs/localforage/localforage.min.js', 'libs/mime-types/mime-types.js']
 				}
 			}
 		},
@@ -43,7 +44,7 @@ module.exports = function(grunt) {
 					{src: 'reader_src/plugins/search.js', dest: 'reader/js/plugins/search.js'},
 					{src: 'reader_src/plugins/hypothesis.js', dest: 'reader/js/plugins/hypothesis.js'},
 					{src: 'hooks/extensions/highlight.js', dest: 'reader/js/hooks/extensions/highlight.js'}
-		
+
 				]
 			},
 		},
@@ -54,13 +55,13 @@ module.exports = function(grunt) {
 				"browser": true,
 				"devel": true,
 				"worker": true,
-				
+
 				// Enforcing
 				//"maxlen": 80,
 				//"quotmark": "single",
 				"trailing": true,
 				"strict": false,
-				
+
 				// Relaxing
 				"boss": true,
 				"funcscope": true,
@@ -70,22 +71,32 @@ module.exports = function(grunt) {
 				"nonstandard": true,
 				"sub": true,
 				"validthis": true,
-				
-				"globals": { 
+
+				"globals": {
 					"_": false,
 					"define" : false,
 					"module" : false
 				}
 			}
+		},
+		watch: {
+			scripts: {
+				files: ['src/**/*.js', 'reader/**/*.js'],
+				tasks: ['concat_sourcemap'],
+				options: {
+					interrupt: true,
+				}
+			},
 		}
 	});
-	
+
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-concat-sourcemap');
 	grunt.loadNpmTasks('grunt-contrib-copy');
-	
+	grunt.loadNpmTasks('grunt-contrib-watch');
+
 	// Default task(s).
 	grunt.registerTask('default', ['jshint', 'concat_sourcemap', 'uglify', 'copy']);
 };
