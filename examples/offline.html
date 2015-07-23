@@ -88,6 +88,13 @@
 							storage: true
 						});
 
+						// Name may appear during storage limit prompts
+						// and used as a key prefix for all keys stored in localStorage
+						// Change to the name of your app
+						localforage.config({
+							name: 'epubjs'
+						});
+
 				</script>
 		</head>
 		<body>
