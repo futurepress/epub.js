@@ -2303,15 +2303,6 @@ EPUBJS.Book = function(options){
 	this.online = this.settings.online || navigator.onLine;
 	this.networkListeners();
 
-	this.store = false; //-- False if not using storage;
-
-	//-- Determine storage method
-	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
-	if(this.settings.storage !== false){
-		// this.storage = new fileStorage.storage(this.settings.storage);
-		this.storage = new EPUBJS.Storage(this.settings.storage);
-	}
-
 	this.ready = {
 		manifest: new RSVP.defer(),
 		spine: new RSVP.defer(),
@@ -2360,6 +2351,16 @@ EPUBJS.Book = function(options){
 
 	this.defer_opened = new RSVP.defer();
 	this.opened = this.defer_opened.promise;
+
+	this.store = false; //-- False if not using storage;
+
+	//-- Determine storage method
+	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
+	if(this.settings.storage !== false){
+		// this.storage = new fileStorage.storage(this.settings.storage);
+		this.fromStorage(true);
+	}
+
 	// BookUrl is optional, but if present start loading process
 	if(typeof this.settings.bookPath === 'string') {
 		this.open(this.settings.bookPath, this.settings.reload);
@@ -2419,11 +2420,6 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 			opened.resolve();
 			book.defer_opened.resolve();
 		});
-	}
-
-	//-- If there is network connection, store the books contents
-	if(this.online && this.settings.storage && !this.settings.contained){
-		if(!this.settings.stored) opened.promise.then(book.storeOffline.bind(book));
 	}
 
 	this._registerReplacements(this.renderer);
@@ -2789,7 +2785,7 @@ EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 //-- Choose between a request from store or a request from network
 EPUBJS.Book.prototype.loadXml = function(url){
 	if(this.settings.fromStorage) {
-		return this.storage.getXml(url, this.settings.encoding);
+		return this.store.getXml(url, this.settings.encoding);
 	} else if(this.settings.contained) {
 		return this.zip.getXml(url, this.settings.encoding);
 	}else{
@@ -3290,13 +3286,12 @@ EPUBJS.Book.prototype.preloadNextChapter = function() {
 	}
 };
 
-
 EPUBJS.Book.prototype.storeOffline = function() {
 	var book = this,
 		assets = _.values(this.manifest);
 
 	//-- Creates a queue of all items to load
-	return this.storage.put(assets).
+	return this.store.put(assets).
 			then(function(){
 				book.settings.stored = true;
 				book.trigger("book:stored");
@@ -3307,36 +3302,58 @@ EPUBJS.Book.prototype.availableOffline = function() {
 	return this.settings.stored > 0 ? true : false;
 };
 
+EPUBJS.Book.prototype.toStorage = function () {
+	var key = this.settings.bookKey;
+	this.store.isStored(key).then(function(stored) {
 
-EPUBJS.Book.prototype.fromStorage = function(stored) {
-
-	if(this.contained) return;
-
-	if(stored === false){
-		this.settings.fromStorage = true;
-		this.store = false;
-
-		this.renderer.removeHook("beforeChapterDisplay", [
-			EPUBJS.replace.head,
-			EPUBJS.replace.resources,
-			EPUBJS.replace.svg
-		], true);
-
-	}else{
-		if(!this.availableOffline){
-			//-- If book hasn't been cached yet
-			console.error("Not available from Storage");
-		}else{
-			this.settings.fromStorage = true;
-			this.store = this.storage;
-
-			this.renderer.registerHook("beforeChapterDisplay", [
-				EPUBJS.replace.head,
-				EPUBJS.replace.resources,
-				EPUBJS.replace.svg
-			], true);
-
+		if (stored === true) {
+			this.settings.stored = true;
+			return true;
 		}
+
+		return this.storeOffline()
+			.then(function() {
+				this.store.token(key, true);
+			}.bind(this));
+
+	}.bind(this));
+
+};
+EPUBJS.Book.prototype.fromStorage = function(stored) {
+	var hooks = [
+		EPUBJS.replace.head,
+		EPUBJS.replace.resources,
+		EPUBJS.replace.svg
+	];
+
+	if(this.contained || this.settings.contained) return;
+
+	//-- If there is network connection, store the books contents
+	if(this.online){
+		this.opened.then(this.toStorage.bind(this));
+	}
+
+	if(this.store && this.settings.fromStorage && stored === false){
+		this.settings.fromStorage = true;
+		this.store.off("offline");
+		this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+		this.store = false;
+	}else if(!this.settings.fromStorage){
+
+		this.store = new EPUBJS.Storage(this.settings.storage);
+		this.store.on("offline", function (offline) {
+			if (!offline) {
+				this.offline = true;
+				this.settings.fromStorage = true;
+				this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+				this.trigger("book:online");
+			} else {
+				this.offline = false;
+				this.settings.fromStorage = false;
+				this.renderer.registerHook("beforeChapterDisplay", hooks, true);
+				this.trigger("book:offline");
+			}
+		}.bind(this));
 
 	}
 
@@ -3529,13 +3546,13 @@ RSVP.on('error', function(event) {
 	//console.error(event, event.detail);
 });
 
-RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
-RSVP.on('rejected', function(event){
-	console.error(event.detail.message, event.detail.stack);
-});
+// RSVP.on('rejected', function(event){
+// 	console.error(event.detail.message, event.detail.stack);
+// });
 
 EPUBJS.Chapter = function(spineObject, store){
 	this.href = spineObject.href;
@@ -7706,11 +7723,13 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 };
 
 
-EPUBJS.Storage = function(url){
+EPUBJS.Storage = function(withCredentials){
 
 	this.checkRequirements();
 	this.urlCache = {};
-
+	this.withCredentials = withCredentials;
+	this.URL = window.URL || window.webkitURL || window.mozURL;
+	this.offline = false;
 };
 
 //-- Load the zip lib and set the workerScriptsPath
@@ -7760,91 +7779,157 @@ EPUBJS.Storage.prototype.put = function(assets, store) {
 	return deferred.promise;
 };
 
-EPUBJS.Storage.prototype.getText = function(url){
-	var deferred = new RSVP.defer();
+EPUBJS.Storage.prototype.token = function(url, value){
 	var encodedUrl = window.encodeURIComponent(url);
-	var entry = localforage.getItem(encodedUrl);
-
-	if(!entry) {
-		deferred.reject({
-			message : "File not found in the storage: " + url,
-			stack : new Error().stack
+	return localforage.setItem(encodedUrl, value)
+		.then(function (result) {
+			if (result === null) {
+				return false;
+			} else {
+				return true;
+			}
 		});
-		return deferred.promise;
-	}
+};
 
-	entry.then(function(data) {
-		var mimeType = EPUBJS.core.getMimeType(url);
-		var blob = new Blob([data], {type : mimeType});
-		var reader = new FileReader();
-		reader.addEventListener("loadend", function() {
-			deferred.resolve(reader.result);
+EPUBJS.Storage.prototype.isStored = function(url){
+	var encodedUrl = window.encodeURIComponent(url);
+	return localforage.getItem(encodedUrl)
+		.then(function (result) {
+			if (result === null) {
+				return false;
+			} else {
+				return true;
+			}
 		});
-		reader.readAsText(blob, mimeType);
-	});
+};
 
-	return deferred.promise;
+EPUBJS.Storage.prototype.getText = function(url){
+	var encodedUrl = window.encodeURIComponent(url);
+
+	return EPUBJS.core.request(url, 'arraybuffer', this.withCredentials)
+		.then(function(buffer){
+			if(this.offline){
+				this.offline = false;
+				this.trigger("offline", false);
+			}
+			localforage.setItem(encodedUrl, buffer);
+			return url;
+		}.bind(this))
+		.catch(function() {
+
+			var deferred = new RSVP.defer();
+			var entry = localforage.getItem(encodedUrl);
+
+			if(!entry) {
+				deferred.reject({
+					message : "File not found in the storage: " + url,
+					stack : new Error().stack
+				});
+				return deferred.promise;
+			}
+
+			entry.then(function(data) {
+				var mimeType = EPUBJS.core.getMimeType(url);
+				var blob = new Blob([data], {type : mimeType});
+				var reader = new FileReader();
+				reader.addEventListener("loadend", function() {
+					deferred.resolve(reader.result);
+				});
+				reader.readAsText(blob, mimeType);
+			});
+
+			return deferred.promise;
+		}.bind(this));
 };
 
 EPUBJS.Storage.prototype.getUrl = function(url){
-	var deferred = new RSVP.defer();
 	var encodedUrl = window.encodeURIComponent(url);
-	var entry;
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var tempUrl;
 
-	if(encodedUrl in this.urlCache) {
-		deferred.resolve(this.urlCache[encodedUrl]);
-		return deferred.promise;
-	}
+	return EPUBJS.core.request(url, 'arraybuffer', this.withCredentials)
+		.then(function(buffer){
+			if(this.offline){
+				this.offline = false;
+				this.trigger("offline", false);
+			}
+			localforage.setItem(encodedUrl, buffer);
+			return url;
+		}.bind(this))
+		.catch(function() {
+			var deferred = new RSVP.defer();
+			var entry;
+			var _URL = window.URL || window.webkitURL || window.mozURL;
+			var tempUrl;
 
-	entry = localforage.getItem(encodedUrl);
+			if(!this.offline){
+				this.offline = true;
+				this.trigger("offline", true);
+			}
 
-	if(!entry) {
-		deferred.reject({
-			message : "File not found in the storage: " + url,
-			stack : new Error().stack
-		});
-		return deferred.promise;
-	}
+			if(encodedUrl in this.urlCache) {
+				deferred.resolve(this.urlCache[encodedUrl]);
+				return deferred.promise;
+			}
 
-	entry.then(function(data) {
-		var blob = new Blob([data], {type : EPUBJS.core.getMimeType(url)});
-		tempUrl = _URL.createObjectURL(blob);
-		deferred.resolve(tempUrl);
-		this.urlCache[encodedUrl] = tempUrl;
+			entry = localforage.getItem(encodedUrl);
+
+			if(!entry) {
+				deferred.reject({
+					message : "File not found in the storage: " + url,
+					stack : new Error().stack
+				});
+				return deferred.promise;
+			}
+
+			entry.then(function(data) {
+				var blob = new Blob([data], {type : EPUBJS.core.getMimeType(url)});
+				tempUrl = _URL.createObjectURL(blob);
+				deferred.resolve(tempUrl);
+				this.urlCache[encodedUrl] = tempUrl;
+			}.bind(this));
+
+
+			return deferred.promise;
 	}.bind(this));
-
-
-	return deferred.promise;
 };
 
 EPUBJS.Storage.prototype.getXml = function(url){
-	var deferred = new RSVP.defer();
 	var encodedUrl = window.encodeURIComponent(url);
-	var entry = localforage.getItem(encodedUrl);
 
-	if(!entry) {
-		deferred.reject({
-			message : "File not found in the storage: " + url,
-			stack : new Error().stack
-		});
-		return deferred.promise;
-	}
+	return EPUBJS.core.request(url, 'arraybuffer', this.withCredentials)
+		.then(function(buffer){
+			if(this.offline){
+				this.offline = false;
+				this.trigger("offline", false);
+			}
+			localforage.setItem(encodedUrl, buffer);
+			return url;
+		}.bind(this))
+		.catch(function() {
+			var deferred = new RSVP.defer();
+			var entry = localforage.getItem(encodedUrl);
 
-	entry.then(function(data) {
-		var mimeType = EPUBJS.core.getMimeType(url);
-		var blob = new Blob([data], {type : mimeType});
-		var reader = new FileReader();
-		reader.addEventListener("loadend", function() {
-			var parser = new DOMParser();
-			var doc = parser.parseFromString(text, "text/xml");
-			deferred.resolve(doc);
-		});
-		reader.readAsText(blob, mimeType);
-	});
+			if(!entry) {
+				deferred.reject({
+					message : "File not found in the storage: " + url,
+					stack : new Error().stack
+				});
+				return deferred.promise;
+			}
 
-	return deferred.promise;
+			entry.then(function(data) {
+				var mimeType = EPUBJS.core.getMimeType(url);
+				var blob = new Blob([data], {type : mimeType});
+				var reader = new FileReader();
+				reader.addEventListener("loadend", function() {
+					var parser = new DOMParser();
+					var doc = parser.parseFromString(text, "text/xml");
+					deferred.resolve(doc);
+				});
+				reader.readAsText(blob, mimeType);
+			});
+
+			return deferred.promise;
+		}.bind(this));
 };
 
 EPUBJS.Storage.prototype.revokeUrl = function(url){
@@ -7856,6 +7941,8 @@ EPUBJS.Storage.prototype.revokeUrl = function(url){
 EPUBJS.Storage.prototype.failed = function(error){
 	console.error(error);
 };
+
+RSVP.EventTarget.mixin(EPUBJS.Storage.prototype);
 EPUBJS.Unarchiver = function(url){
 
 	this.checkRequirements();

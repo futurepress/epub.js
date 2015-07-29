@@ -52,15 +52,6 @@ EPUBJS.Book = function(options){
 	this.online = this.settings.online || navigator.onLine;
 	this.networkListeners();
 
-	this.store = false; //-- False if not using storage;
-
-	//-- Determine storage method
-	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
-	if(this.settings.storage !== false){
-		// this.storage = new fileStorage.storage(this.settings.storage);
-		this.storage = new EPUBJS.Storage(this.settings.storage);
-	}
-
 	this.ready = {
 		manifest: new RSVP.defer(),
 		spine: new RSVP.defer(),
@@ -109,6 +100,16 @@ EPUBJS.Book = function(options){
 
 	this.defer_opened = new RSVP.defer();
 	this.opened = this.defer_opened.promise;
+
+	this.store = false; //-- False if not using storage;
+
+	//-- Determine storage method
+	//-- Override options: none | ram | websqldatabase | indexeddb | filesystem
+	if(this.settings.storage !== false){
+		// this.storage = new fileStorage.storage(this.settings.storage);
+		this.fromStorage(true);
+	}
+
 	// BookUrl is optional, but if present start loading process
 	if(typeof this.settings.bookPath === 'string') {
 		this.open(this.settings.bookPath, this.settings.reload);
@@ -168,11 +169,6 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 			opened.resolve();
 			book.defer_opened.resolve();
 		});
-	}
-
-	//-- If there is network connection, store the books contents
-	if(this.online && this.settings.storage && !this.settings.contained){
-		if(!this.settings.stored) opened.promise.then(book.storeOffline.bind(book));
 	}
 
 	this._registerReplacements(this.renderer);
@@ -538,7 +534,7 @@ EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 //-- Choose between a request from store or a request from network
 EPUBJS.Book.prototype.loadXml = function(url){
 	if(this.settings.fromStorage) {
-		return this.storage.getXml(url, this.settings.encoding);
+		return this.store.getXml(url, this.settings.encoding);
 	} else if(this.settings.contained) {
 		return this.zip.getXml(url, this.settings.encoding);
 	}else{
@@ -1039,13 +1035,12 @@ EPUBJS.Book.prototype.preloadNextChapter = function() {
 	}
 };
 
-
 EPUBJS.Book.prototype.storeOffline = function() {
 	var book = this,
 		assets = _.values(this.manifest);
 
 	//-- Creates a queue of all items to load
-	return this.storage.put(assets).
+	return this.store.put(assets).
 			then(function(){
 				book.settings.stored = true;
 				book.trigger("book:stored");
@@ -1056,36 +1051,58 @@ EPUBJS.Book.prototype.availableOffline = function() {
 	return this.settings.stored > 0 ? true : false;
 };
 
+EPUBJS.Book.prototype.toStorage = function () {
+	var key = this.settings.bookKey;
+	this.store.isStored(key).then(function(stored) {
 
-EPUBJS.Book.prototype.fromStorage = function(stored) {
-
-	if(this.contained) return;
-
-	if(stored === false){
-		this.settings.fromStorage = true;
-		this.store = false;
-
-		this.renderer.removeHook("beforeChapterDisplay", [
-			EPUBJS.replace.head,
-			EPUBJS.replace.resources,
-			EPUBJS.replace.svg
-		], true);
-
-	}else{
-		if(!this.availableOffline){
-			//-- If book hasn't been cached yet
-			console.error("Not available from Storage");
-		}else{
-			this.settings.fromStorage = true;
-			this.store = this.storage;
-
-			this.renderer.registerHook("beforeChapterDisplay", [
-				EPUBJS.replace.head,
-				EPUBJS.replace.resources,
-				EPUBJS.replace.svg
-			], true);
-
+		if (stored === true) {
+			this.settings.stored = true;
+			return true;
 		}
+
+		return this.storeOffline()
+			.then(function() {
+				this.store.token(key, true);
+			}.bind(this));
+
+	}.bind(this));
+
+};
+EPUBJS.Book.prototype.fromStorage = function(stored) {
+	var hooks = [
+		EPUBJS.replace.head,
+		EPUBJS.replace.resources,
+		EPUBJS.replace.svg
+	];
+
+	if(this.contained || this.settings.contained) return;
+
+	//-- If there is network connection, store the books contents
+	if(this.online){
+		this.opened.then(this.toStorage.bind(this));
+	}
+
+	if(this.store && this.settings.fromStorage && stored === false){
+		this.settings.fromStorage = true;
+		this.store.off("offline");
+		this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+		this.store = false;
+	}else if(!this.settings.fromStorage){
+
+		this.store = new EPUBJS.Storage(this.settings.storage);
+		this.store.on("offline", function (offline) {
+			if (!offline) {
+				this.offline = true;
+				this.settings.fromStorage = true;
+				this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+				this.trigger("book:online");
+			} else {
+				this.offline = false;
+				this.settings.fromStorage = false;
+				this.renderer.registerHook("beforeChapterDisplay", hooks, true);
+				this.trigger("book:offline");
+			}
+		}.bind(this));
 
 	}
 
@@ -1278,10 +1295,10 @@ RSVP.on('error', function(event) {
 	//console.error(event, event.detail);
 });
 
-RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
-RSVP.on('rejected', function(event){
-	console.error(event.detail.message, event.detail.stack);
-});
+// RSVP.on('rejected', function(event){
+// 	console.error(event.detail.message, event.detail.stack);
+// });
