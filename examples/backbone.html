@@ -1,111 +1,156 @@
 <!DOCTYPE html>
 <html class="no-js">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>ePubJS Promises Example</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>ePubJS Promises Example</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <link rel="stylesheet" href="basic.css">
+    <link rel="stylesheet" href="basic.css">
 
-        <script src="../bower_components/jquery/dist/jquery.js"></script>
-        <script src="../bower_components/underscore/underscore.js"></script>
-        <script src="../bower_components/backbone/backbone.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/underscore/underscore.js"></script>
+    <script src="../bower_components/backbone/backbone.js"></script>
 
-        <script src="../build/libs/zip.min.js"></script>
+    <script src="../build/libs/zip.min.js"></script>
 
-        <!-- EPUBJS Renderer -->
-        <script src="/build/epub.min.js"></script>
-    </head>
-    <body>
-        <div id="main">
-          <div id="loader"><img src="../reader/img/loader.gif"></div>
-          <select id="toc"></select>
-        </div>
+    <!-- EPUBJS Renderer -->
+    <script src="/build/epub.min.js"></script>
+    <!--<script src="/build/hooks.js"></script>-->
 
-        <script type="text/template" id="template">
-            <div id="prev" class="arrow">‹</div>
-            <div id="area"></div>
-            <div id="next" class="arrow">›</div>
-        </script>
+</head>
+<body>
+<div id="main">
+    <div id="loader"><img src="../reader/img/loader.gif"></div>
+    <select id="toc"></select>
+</div>
 
-        <script>
-            var BB = {};
+<script type="text/template" id="test-template">
+    <div id="prev" class="arrow">‹</div>
+    <div id="area"></div>
+    <div id="next" class="arrow">›</div>
+</script>
 
-            var Library = new Backbone.Model();
- 
-            // Router
-            BB.Router = Backbone.Router.extend({
-              routes: {
-                "book/:p"   : "details"
-              },
-           
-              details: function(hash){
-                var view = new Book.Views.Details({model: Library.get(hash)});
-                view.render(function(el){
-                  $("#main").html(el);
-                });
-              }
+<script>
+
+    // Book.getMetadata().then(function(meta){
+
+    //     document.title = meta.bookTitle+" – "+meta.creator;
+
+    // });
+
+    // Book.getToc().then(function(toc){
+
+    //   var $select = document.getElementById("toc"),
+    //       docfrag = document.createDocumentFragment();
+
+    //   toc.forEach(function(chapter) {
+    //     var option = document.createElement("option");
+    //     option.textContent = chapter.label;
+    //     option.ref = chapter.href;
+
+    //     docfrag.appendChild(option);
+    //   });
+
+    //   $select.appendChild(docfrag);
+
+    //   $select.onchange = function(){
+    //       var index = $select.selectedIndex,
+    //           url = $select.options[index].ref;
+
+    //       Book.goto(url);
+    //       return false;
+    //   }
+
+    // });
+
+    // Book.ready.all.then(function(){
+    //   document.getElementById("loader").style.display = "none";
+    // });
+
+    // Book.renderTo("area");
+
+    var BB = {};
+
+    var Library = new Backbone.Model();
+
+    // Router
+    BB.Router = Backbone.Router.extend({
+        routes: {
+            "book/:p"   : "details"
+        },
+
+        details: function(hash){
+            var view = new Book.Views.Details({model: Library.get(hash)});
+            view.render(function(el){
+                $("#main").html(el);
             });
-           
-            // Instantiate Router
-            var router = new BB.Router();
+        }
+    });
 
-            BB.Views = {};
+    // Instantiate Router
+    var router = new BB.Router();
 
-            // This will fetch the book template and render it.
-            BB.Views.Details = Backbone.View.extend({
+    BB.Views = {};
 
-              el: '#main',
+    EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
+        $(renderer.element).contents().find('body').bind('mouseup', function(){
 
-              book: ePub("/reader/moby-dick.epub", { restore: true }),
+            var selection = $('iframe').contents()[0].getSelection().toString();
+        });
+        callback();
+    };
 
-              model: Library,
+    // This will fetch the book template and render it.
+    BB.Views.Details = Backbone.View.extend({
 
-              events: {
-                  'click #next': 'nextPage',
-                  'click #prev': 'previousPage'
-              },
+        el: '#main',
 
-              template: _.template( $('#template').html() ),
+        model: Library,
 
-              initialize: function() {
-                  this.area = $('<div></div>');
+        book: null,
 
-                  this.book.renderTo(this.area[0]);
-              },
-           
-              render: function(done) {
-                var view = this;
+        events: {
+            'click #next': 'nextPage',
+            'click #prev': 'previousPage'
+        },
 
-                  this.$el.html(this.template());
+        template: _.template( $('#test-template').html() ),
 
-                  this.$('#area').html(this.area);
+        //eventually pass book url as a param to initialize
+        initialize: function() {
+            this.area = $('<div style="height:100%;"></div>');
 
-                  this.bindIframe();
+            this.book = ePub("/reader/moby-dick.epub", { restore: true });
 
-                  return this;
-              },
+            this.book.renderTo(this.area[0]);
+        },
 
-              nextPage: function(e){
-                  e.preventDefault();
+        render: function() {
+            this.$el.html(this.template());
 
-                  this.book.nextPage();
-              },
+            this.$('#area').html(this.area);
 
-              previousPage: function(e){
-                  e.preventDefault();
+            return this;
+        },
 
-                  this.book.prevPage()
-              }
-            });
-           
-            var view = new BB.Views.Details();
+        nextPage: function(e){
+            e.preventDefault();
+            this.book.nextPage();
+        },
 
-            view.render();
+        previousPage: function(e){
+            e.preventDefault();
+            this.book.prevPage();
+        }
+    });
 
-        </script>
-    </body>
+    var view = new BB.Views.Details();
+
+    view.render();
+
+</script>
+</body>
 </html>
