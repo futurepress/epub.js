@@ -18,68 +18,20 @@
 
         <!-- EPUBJS Renderer -->
         <script src="/build/epub.min.js"></script>
-        <!--<script src="/build/hooks.js"></script>-->
-
-        <script>
-            "use strict";
-            
-            //var Book = ePub("/reader/moby-dick/", { restore: true });
-            
-            
-        </script>
     </head>
     <body>
         <div id="main">
-
           <div id="loader"><img src="../reader/img/loader.gif"></div>
           <select id="toc"></select>
         </div>
 
-        <script type="text/template" id="abcdef">
+        <script type="text/template" id="template">
             <div id="prev" class="arrow">‹</div>
             <div id="area"></div>
             <div id="next" class="arrow">›</div>
         </script>
 
-        <script>            
-            
-            // Book.getMetadata().then(function(meta){
-
-            //     document.title = meta.bookTitle+" – "+meta.creator;
-                
-            // });
-
-            // Book.getToc().then(function(toc){
-
-            //   var $select = document.getElementById("toc"),
-            //       docfrag = document.createDocumentFragment();
-
-            //   toc.forEach(function(chapter) {
-            //     var option = document.createElement("option");
-            //     option.textContent = chapter.label;
-            //     option.ref = chapter.href;
-
-            //     docfrag.appendChild(option);
-            //   });
-
-            //   $select.appendChild(docfrag);
-
-            //   $select.onchange = function(){
-            //       var index = $select.selectedIndex,
-            //           url = $select.options[index].ref;
-                  
-            //       Book.goto(url);
-            //       return false;
-            //   }
-
-            // });
-            
-            // Book.ready.all.then(function(){
-            //   document.getElementById("loader").style.display = "none";
-            // });
-
-            // Book.renderTo("area");
-
+        <script>
             var BB = {};
 
             var Library = new Backbone.Model();
@@ -103,11 +55,6 @@
 
             BB.Views = {};
 
-            EPUBJS.Hooks.register("beforeChapterDisplay").transculsions = function(callback, renderer){
-                console.log('test');
-                callback();
-            };
-           
             // This will fetch the book template and render it.
             BB.Views.Details = Backbone.View.extend({
 
@@ -122,16 +69,12 @@
                   'click #prev': 'previousPage'
               },
 
-              template: _.template( $('#abcdef').html() ),
+              template: _.template( $('#template').html() ),
 
               initialize: function() {
                   this.area = $('<div></div>');
 
-                  this.book.renderTo(this.area[0]).then(function(){
-//                      view.bindIframe();
-                  });
-
-
+                  this.book.renderTo(this.area[0]);
               },
            
               render: function(done) {
@@ -146,21 +89,10 @@
                   return this;
               },
 
-              bindIframe: function(){
-                  $('#area iframe').contents().find('body').bind('mouseup', function(){
-
-                      var selection = $('iframe').contents()[0].getSelection().toString();
-                      debugger;
-                  });
-              },
-
               nextPage: function(e){
-                  var view = this;
                   e.preventDefault();
 
-                  this.book.nextPage().then(function(){
-//                      view.bindIframe();
-                  })
+                  this.book.nextPage();
               },
 
               previousPage: function(e){
