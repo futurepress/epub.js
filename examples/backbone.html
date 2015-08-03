@@ -17,8 +17,8 @@
     <script src="../build/libs/zip.min.js"></script>
 
     <!-- EPUBJS Renderer -->
-    <script src="/build/epub.min.js"></script>
-    <!--<script src="/build/hooks.js"></script>-->
+    <script src="../build/epub.min.js"></script>
+    <script src="../build/hooks.js"></script>
 
 </head>
 <body>
@@ -123,7 +123,7 @@
         initialize: function() {
             this.area = $('<div style="height:100%;"></div>');
 
-            this.book = ePub("/reader/moby-dick.epub", { restore: true });
+            this.book = ePub("../reader/moby-dick.epub", { restore: true });
 
             this.book.renderTo(this.area[0]);
         },
