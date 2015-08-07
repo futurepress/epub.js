@@ -150,7 +150,7 @@ EPUBJS.Locations.prototype.percentageFromLocation = function(loc) {
   if (!loc || !this.total) {
     return 0;
   }
-  return Math.floor((loc / this.total ) * 100);
+  return (loc / this.total);
 };
 
 EPUBJS.Locations.prototype.cfiFromLocation = function(loc){
@@ -167,8 +167,9 @@ EPUBJS.Locations.prototype.cfiFromLocation = function(loc){
 	return cfi;
 };
 
-EPUBJS.Locations.prototype.cfiFromPercentage = function(percent){
-	var loc = Math.ceil(this.total * (percent/100));
+EPUBJS.Locations.prototype.cfiFromPercentage = function(value){
+  var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
+	var loc = Math.ceil(this.total * percentage);
 
 	return this.cfiFromLocation(loc);
 };

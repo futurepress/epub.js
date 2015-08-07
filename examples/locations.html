@@ -125,7 +125,7 @@
             book.ready.all.then(function(){
               // Load in stored locations from json or local storage
               var key = book.generateBookKey()+'-locations';
-              var stored = false;//localStorage.getItem(key);
+              var stored = localStorage.getItem(key);
               if (stored) {
                  return book.locations.load(stored);
               } else {
@@ -166,17 +166,18 @@
                 controls.appendChild(slider);
 
                 currentPage.addEventListener("change", function(){
-                  var cfi = book.locations.cfiFromPercentage(currentPage.value);
+                  var cfi = book.locations.cfiFromPercentage(currentPage.value/100);
                   book.gotoCfi(cfi);
                 }, false);
 
                 // Listen for location changed event, get percentage from CFI
                 book.on('renderer:locationChanged', function(location){
                     var percent = book.locations.percentageFromCfi(location);
+                    var percentage = Math.floor(percent * 100);
                     if(!mouseDown) {
-                        slider.value = percent;
+                        slider.value = percentage;
                     }
-                    currentPage.value = percent;
+                    currentPage.value = percentage;
                 });
 
                 // Save out the generated locations to JSON
