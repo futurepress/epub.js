@@ -1,7 +1,17 @@
 {
-  "name": "EpubJS",
+  "name": "epub.js",
   "version": "0.2.8",
   "repository": "https://github.com/futurepress/epub.js",
+  "description": "Render ePub documents in the browser, across many devices",
+  "main": "server.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "server": "tools/server"
+  },
+  "author": "fchasen@gmail.com",
+  "license": "FreeBSD",
   "devDependencies": {
     "colors": "~0.6.2",
     "connect": "~2.14.4",
