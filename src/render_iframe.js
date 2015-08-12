@@ -66,11 +66,6 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 			render.docEl.style.right = "0";
 		}
 
-		if(typeof(render.window.history.pushState) != "undefined") {
-			title = render.headEl.querySelector('title');
-			render.window.history.pushState(null, title ? title.textContent : '', null);
-		}
-
 		deferred.resolve(render.docEl);
 	};
 

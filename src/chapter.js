@@ -44,14 +44,14 @@ EPUBJS.Chapter.prototype.render = function(_store){
 
 	return this.load().then(function(doc){
 
-		var head = doc.head;
+		var head = doc.querySelector('head');
 		var base = doc.createElement("base");
 
 		base.setAttribute("href", this.absolute);
 		head.insertBefore(base, head.firstChild);
 
 		this.contents = doc;
-		
+
 		return new RSVP.Promise(function (resolve, reject) {
 			this.triggerHooks("beforeChapterRender", function () {
 				resolve(doc);
