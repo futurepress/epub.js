@@ -82,6 +82,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").wgxpath = function(callback, rende
 wgxpath.install(window);   
 ```
 
+There are currently a [number of open issues for Internet Explorer](https://github.com/futurepress/epub.js/labels/Internet%20Explorer) any help addressing them would be greatly appreciated.
+
 Recent Updates
 -------------------------
 + v2 splits the render method from the layout and renderer. Currently only iframe rendering is supported, but this change will allow for new render methods in the future. See the breaking changes to the renderer [here](https://github.com/futurepress/epub.js/blob/master/documentation/README.md#renderer).
