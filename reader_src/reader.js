@@ -277,7 +277,7 @@ EPUBJS.Reader.prototype.applySavedSettings = function() {
 	}
 		
 		if(stored) {
-			this.settings = _.defaults(this.settings, stored);
+			this.settings = $.extend(true, this.settings, stored);
 			return true;
 		} else {
 			return false;
