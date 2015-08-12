@@ -20,7 +20,7 @@ EPUBJS.Chapter.prototype.load = function(_store){
 	var promise;
 	// if(this.store && (!this.book.online || this.book.contained))
 	if(store){
-		promise = store.getXml(this.href);
+		promise = store.getXml(this.absolute);
 	}else{
 		promise = EPUBJS.core.request(this.absolute, 'xml');
 	}
@@ -42,7 +42,7 @@ EPUBJS.Chapter.prototype.render = function(_store){
 		var head = doc.head;
 		var base = doc.createElement("base");
 
-		base.setAttribute("href", window.location.origin + this.absolute);
+		base.setAttribute("href", this.absolute);
 		head.insertBefore(base, head.firstChild);
 		contents = serializer.serializeToString(doc);
 

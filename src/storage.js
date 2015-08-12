@@ -83,17 +83,34 @@ EPUBJS.Storage.prototype.getText = function(url){
 
 	return EPUBJS.core.request(url, 'arraybuffer', this.withCredentials)
 		.then(function(buffer){
+
 			if(this.offline){
 				this.offline = false;
 				this.trigger("offline", false);
 			}
 			localforage.setItem(encodedUrl, buffer);
-			return url;
+			return buffer;
 		}.bind(this))
+		.then(function(data) {
+			var deferred = new RSVP.defer();
+			var mimeType = EPUBJS.core.getMimeType(url);
+			var blob = new Blob([data], {type : mimeType});
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function() {
+				deferred.resolve(reader.result);
+			});
+			reader.readAsText(blob, mimeType);
+			return deferred.promise;
+		})
 		.catch(function() {
 
 			var deferred = new RSVP.defer();
 			var entry = localforage.getItem(encodedUrl);
+
+			if(!this.offline){
+				this.offline = true;
+				this.trigger("offline", true);
+			}
 
 			if(!entry) {
 				deferred.reject({
@@ -177,11 +194,29 @@ EPUBJS.Storage.prototype.getXml = function(url){
 				this.trigger("offline", false);
 			}
 			localforage.setItem(encodedUrl, buffer);
-			return url;
+			return buffer;
 		}.bind(this))
+		.then(function(data) {
+			var deferred = new RSVP.defer();
+			var mimeType = EPUBJS.core.getMimeType(url);
+			var blob = new Blob([data], {type : mimeType});
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function() {
+				var parser = new DOMParser();
+				var doc = parser.parseFromString(reader.result, "text/xml");
+				deferred.resolve(doc);
+			});
+			reader.readAsText(blob, mimeType);
+			return deferred.promise;
+		})
 		.catch(function() {
 			var deferred = new RSVP.defer();
 			var entry = localforage.getItem(encodedUrl);
+
+			if(!this.offline){
+				this.offline = true;
+				this.trigger("offline", true);
+			}
 
 			if(!entry) {
 				deferred.reject({
@@ -197,7 +232,7 @@ EPUBJS.Storage.prototype.getXml = function(url){
 				var reader = new FileReader();
 				reader.addEventListener("loadend", function() {
 					var parser = new DOMParser();
-					var doc = parser.parseFromString(text, "text/xml");
+					var doc = parser.parseFromString(reader.result, "text/xml");
 					deferred.resolve(doc);
 				});
 				reader.readAsText(blob, mimeType);

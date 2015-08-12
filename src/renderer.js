@@ -104,8 +104,8 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 	}
 	this._moving = true;
 	// Get the url string from the chapter (may be from storage)
-	return chapter.url().
-		then(function(url) {
+	return chapter.render().
+		then(function(contents) {
 
 			// Unload the previous chapter listener
 			if(this.currentChapter) {
@@ -130,7 +130,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-			return this.load(url);
+			return this.load(contents, chapter.href);
 
 		}.bind(this));
 
@@ -1217,7 +1217,7 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 			_uri = EPUBJS.core.uri(this.currentChapter.absolute),
 			_chapterBase = _uri.base,
 			_attr = attr,
-			_wait = 2000,
+			_wait = 5,
 			progress = function(url, full, count) {
 				_newUrls[full] = url;
 			},
@@ -1261,14 +1261,15 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
 					//-- Only Stylesheet links seem to have a load events, just continue others
 					done(url, full);
+				} else {
+					timeout = setTimeout(function(){
+						done(url, full);
+					}, _wait);
 				}
 
 				link.setAttribute(_attr, url);
 
-				//-- If elements never fire Load Event, should continue anyways
-				timeout = setTimeout(function(){
-					done(url, full);
-				}, _wait);
+
 
 			};
 

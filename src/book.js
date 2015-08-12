@@ -789,8 +789,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 
 		defer.resolve(book.renderer);
 
-		if(!book.settings.fromStorage &&
-			 !book.settings.contained) {
+		if(book.settings.fromStorage === false &&
+			book.settings.contained === false) {
 			book.preloadNextChapter();
 		}
 
@@ -1083,7 +1083,7 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	}
 
 	if(this.store && this.settings.fromStorage && stored === false){
-		this.settings.fromStorage = true;
+		this.settings.fromStorage = false;
 		this.store.off("offline");
 		this.renderer.removeHook("beforeChapterDisplay", hooks, true);
 		this.store = false;
@@ -1092,13 +1092,15 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 		this.store = new EPUBJS.Storage(this.settings.storage);
 		this.store.on("offline", function (offline) {
 			if (!offline) {
-				this.offline = true;
-				this.settings.fromStorage = true;
+				// Online
+				this.offline = false;
+				this.settings.fromStorage = false;
 				this.renderer.removeHook("beforeChapterDisplay", hooks, true);
 				this.trigger("book:online");
 			} else {
-				this.offline = false;
-				this.settings.fromStorage = false;
+				// Offline
+				this.offline = true;
+				this.settings.fromStorage = true;
 				this.renderer.registerHook("beforeChapterDisplay", hooks, true);
 				this.trigger("book:offline");
 			}

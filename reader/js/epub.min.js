@@ -2185,7 +2185,7 @@ global.RSVP = requireModule('rsvp');
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.5";
+EPUBJS.VERSION = "0.2.7";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -3040,8 +3040,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 
 		defer.resolve(book.renderer);
 
-		if(!book.settings.fromStorage &&
-			 !book.settings.contained) {
+		if(book.settings.fromStorage === false &&
+			book.settings.contained === false) {
 			book.preloadNextChapter();
 		}
 
@@ -3334,7 +3334,7 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	}
 
 	if(this.store && this.settings.fromStorage && stored === false){
-		this.settings.fromStorage = true;
+		this.settings.fromStorage = false;
 		this.store.off("offline");
 		this.renderer.removeHook("beforeChapterDisplay", hooks, true);
 		this.store = false;
@@ -3343,13 +3343,15 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 		this.store = new EPUBJS.Storage(this.settings.storage);
 		this.store.on("offline", function (offline) {
 			if (!offline) {
-				this.offline = true;
-				this.settings.fromStorage = true;
+				// Online
+				this.offline = false;
+				this.settings.fromStorage = false;
 				this.renderer.removeHook("beforeChapterDisplay", hooks, true);
 				this.trigger("book:online");
 			} else {
-				this.offline = false;
-				this.settings.fromStorage = false;
+				// Offline
+				this.offline = true;
+				this.settings.fromStorage = true;
 				this.renderer.registerHook("beforeChapterDisplay", hooks, true);
 				this.trigger("book:offline");
 			}
@@ -3576,7 +3578,7 @@ EPUBJS.Chapter.prototype.load = function(_store){
 	var promise;
 	// if(this.store && (!this.book.online || this.book.contained))
 	if(store){
-		promise = store.getXml(this.href);
+		promise = store.getXml(this.absolute);
 	}else{
 		promise = EPUBJS.core.request(this.absolute, 'xml');
 	}
@@ -3598,7 +3600,7 @@ EPUBJS.Chapter.prototype.render = function(_store){
 		var head = doc.head;
 		var base = doc.createElement("base");
 
-		base.setAttribute("href", window.location.origin + this.absolute);
+		base.setAttribute("href", this.absolute);
 		head.insertBefore(base, head.firstChild);
 		contents = serializer.serializeToString(doc);
 
@@ -3834,6 +3836,7 @@ EPUBJS.Chapter.prototype.textSprint = function(root, func) {
 	}
 
 };
+
 var EPUBJS = EPUBJS || {};
 EPUBJS.core = {};
 
@@ -6061,21 +6064,20 @@ EPUBJS.Render.Iframe.prototype.create = function(){
 
 /**
 * Sets the source of the iframe with the given URL string
-* Takes:  URL string
+* Takes:  Document Contents String
 * Returns: promise with document element
 */
-EPUBJS.Render.Iframe.prototype.load = function(url){
+EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 	var render = this,
 			deferred = new RSVP.defer();
-
-	// Reset the scroll position
-	render.leftPos = 0;
 
 	if(this.window) {
 		this.unload();
 	}
 
 	this.iframe.onload = function(e) {
+		var title;
+
 		render.document = render.iframe.contentDocument;
 		render.docEl = render.document.documentElement;
 		render.headEl = render.document.head;
@@ -6083,7 +6085,11 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 		render.window = render.iframe.contentWindow;
 
 		render.window.addEventListener("resize", render.resized.bind(render), false);
-	
+
+		// Reset the scroll position
+		render.leftPos = 0;
+		render.setLeft(0);
+
 		//-- Clear Margins
 		if(render.bodyEl) {
 			render.bodyEl.style.margin = "0";
@@ -6098,6 +6104,11 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 			render.docEl.style.right = "0";
 		}
 
+		if(typeof render.window.history.pushState != "undefined") {
+			title = render.headEl.querySelector('title');
+			render.window.history.pushState(null, title ? title.textContent : '', url);
+		}
+
 		deferred.resolve(render.docEl);
 	};
 
@@ -6109,7 +6120,17 @@ EPUBJS.Render.Iframe.prototype.load = function(url){
 			});
 	};
 
-	this.iframe.contentWindow.location.replace(url);
+	// this.iframe.contentWindow.location.replace(url);
+	this.document = this.iframe.contentDocument;
+
+  if(!this.document) {
+    deferred.reject(new Error("No Document Available"));
+    return deferred;
+  }
+
+  this.document.open();
+  this.document.write(contents);
+  this.document.close();
 
 	return deferred.promise;
 };
@@ -6293,6 +6314,7 @@ EPUBJS.Render.Iframe.prototype.unload = function(){
 
 //-- Enable binding events to Render
 RSVP.EventTarget.mixin(EPUBJS.Render.Iframe.prototype);
+
 EPUBJS.Renderer = function(renderMethod, hidden) {
 	// Dom events to listen for
 	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click"];
@@ -6399,8 +6421,8 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 	}
 	this._moving = true;
 	// Get the url string from the chapter (may be from storage)
-	return chapter.url().
-		then(function(url) {
+	return chapter.render().
+		then(function(contents) {
 
 			// Unload the previous chapter listener
 			if(this.currentChapter) {
@@ -6425,7 +6447,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
-			return this.load(url);
+			return this.load(contents, chapter.href);
 
 		}.bind(this));
 
@@ -7512,7 +7534,7 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 			_uri = EPUBJS.core.uri(this.currentChapter.absolute),
 			_chapterBase = _uri.base,
 			_attr = attr,
-			_wait = 2000,
+			_wait = 5,
 			progress = function(url, full, count) {
 				_newUrls[full] = url;
 			},
@@ -7556,14 +7578,15 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
 					//-- Only Stylesheet links seem to have a load events, just continue others
 					done(url, full);
+				} else {
+					timeout = setTimeout(function(){
+						done(url, full);
+					}, _wait);
 				}
 
 				link.setAttribute(_attr, url);
 
-				//-- If elements never fire Load Event, should continue anyways
-				timeout = setTimeout(function(){
-					done(url, full);
-				}, _wait);
+
 
 			};
 
@@ -7627,7 +7650,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 		done();
 
 	};
-	
+
 	renderer.replace("a[href]", replacments, callback);
 
 };
@@ -7647,7 +7670,7 @@ EPUBJS.replace.resources = function(callback, renderer){
 };
 
 EPUBJS.replace.svg = function(callback, renderer) {
-	
+
 	renderer.replaceWithStored("image", "xlink:href", function(_store, full, done){
 		_store.getUrl(full).then(done);
 	}, callback);
@@ -7657,7 +7680,7 @@ EPUBJS.replace.svg = function(callback, renderer) {
 EPUBJS.replace.srcs = function(_store, full, done){
 
 	_store.getUrl(full).then(done);
-	
+
 };
 
 //-- Replaces links in head, such as stylesheets - link[href]
@@ -7666,9 +7689,7 @@ EPUBJS.replace.links = function(_store, full, done, link){
 	if(link.getAttribute("rel") === "stylesheet") {
 		EPUBJS.replace.stylesheets(_store, full).then(function(url, full){
 			// done
-			setTimeout(function(){
-				done(url, full);
-			}, 5); //-- Allow for css to apply before displaying chapter
+			done(url, full);
 		},  function(reason) {
 			// we were unable to replace the style sheets
 			done(null);
@@ -7700,7 +7721,7 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 		}, function(reason) {
 			deferred.reject(reason);
 		});
-		
+
 	}, function(reason) {
 		deferred.reject(reason);
 	});
@@ -7712,7 +7733,7 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
 		promises = [],
 		matches = text.match(/url\(\'?\"?([^\'|^\"^\)]*)\'?\"?\)/g);
-	
+
 	if(!_store) return;
 
 	if(!matches){
@@ -7727,14 +7748,14 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		}, function(reason) {
 			deferred.reject(reason);
 		});
-                       		
+
 		promises.push(replaced);
 	});
-	
+
 	RSVP.all(promises).then(function(){
 		deferred.resolve(text);
 	});
-	
+
 	return deferred.promise;
 };
 
@@ -7824,17 +7845,34 @@ EPUBJS.Storage.prototype.getText = function(url){
 
 	return EPUBJS.core.request(url, 'arraybuffer', this.withCredentials)
 		.then(function(buffer){
+
 			if(this.offline){
 				this.offline = false;
 				this.trigger("offline", false);
 			}
 			localforage.setItem(encodedUrl, buffer);
-			return url;
+			return buffer;
 		}.bind(this))
+		.then(function(data) {
+			var deferred = new RSVP.defer();
+			var mimeType = EPUBJS.core.getMimeType(url);
+			var blob = new Blob([data], {type : mimeType});
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function() {
+				deferred.resolve(reader.result);
+			});
+			reader.readAsText(blob, mimeType);
+			return deferred.promise;
+		})
 		.catch(function() {
 
 			var deferred = new RSVP.defer();
 			var entry = localforage.getItem(encodedUrl);
+
+			if(!this.offline){
+				this.offline = true;
+				this.trigger("offline", true);
+			}
 
 			if(!entry) {
 				deferred.reject({
@@ -7918,11 +7956,29 @@ EPUBJS.Storage.prototype.getXml = function(url){
 				this.trigger("offline", false);
 			}
 			localforage.setItem(encodedUrl, buffer);
-			return url;
+			return buffer;
 		}.bind(this))
+		.then(function(data) {
+			var deferred = new RSVP.defer();
+			var mimeType = EPUBJS.core.getMimeType(url);
+			var blob = new Blob([data], {type : mimeType});
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function() {
+				var parser = new DOMParser();
+				var doc = parser.parseFromString(reader.result, "text/xml");
+				deferred.resolve(doc);
+			});
+			reader.readAsText(blob, mimeType);
+			return deferred.promise;
+		})
 		.catch(function() {
 			var deferred = new RSVP.defer();
 			var entry = localforage.getItem(encodedUrl);
+
+			if(!this.offline){
+				this.offline = true;
+				this.trigger("offline", true);
+			}
 
 			if(!entry) {
 				deferred.reject({
@@ -7938,7 +7994,7 @@ EPUBJS.Storage.prototype.getXml = function(url){
 				var reader = new FileReader();
 				reader.addEventListener("loadend", function() {
 					var parser = new DOMParser();
-					var doc = parser.parseFromString(text, "text/xml");
+					var doc = parser.parseFromString(reader.result, "text/xml");
 					deferred.resolve(doc);
 				});
 				reader.readAsText(blob, mimeType);
@@ -7959,6 +8015,7 @@ EPUBJS.Storage.prototype.failed = function(error){
 };
 
 RSVP.EventTarget.mixin(EPUBJS.Storage.prototype);
+
 EPUBJS.Unarchiver = function(url){
 
 	this.checkRequirements();
