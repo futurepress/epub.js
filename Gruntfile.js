@@ -82,7 +82,7 @@ module.exports = function(grunt) {
 		watch: {
 			scripts: {
 				files: ['src/**/*.js', 'reader/**/*.js'],
-				tasks: ['concat_sourcemap'],
+				tasks: ['concat_sourcemap', 'uglify'],
 				options: {
 					interrupt: true,
 				}
@@ -100,4 +100,3 @@ module.exports = function(grunt) {
 	// Default task(s).
 	grunt.registerTask('default', ['jshint', 'concat_sourcemap', 'uglify', 'copy']);
 };
-

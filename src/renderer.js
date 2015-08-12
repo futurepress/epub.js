@@ -130,6 +130,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 			this.currentChapterCfiBase = chapter.cfiBase;
 
 			this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
+
 			return this.load(contents, chapter.href);
 
 		}.bind(this));
@@ -142,7 +143,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 * Returns: Promise with the rendered contents.
 */
 
-EPUBJS.Renderer.prototype.load = function(url){
+EPUBJS.Renderer.prototype.load = function(contents, url){
 	var deferred = new RSVP.defer();
 	var loaded;
 
@@ -152,7 +153,7 @@ EPUBJS.Renderer.prototype.load = function(url){
 
 	this.visible(false);
 
-	render = this.render.load(url);
+	render = this.render.load(contents, url);
 
 	render.then(function(contents) {
 		var formated;
@@ -1209,6 +1210,8 @@ EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 
 };
 
+/* Moved to chapter
+
 EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callback) {
 	var _oldUrls,
 			_newUrls = {},
@@ -1283,6 +1286,7 @@ EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callba
 
 	}, finished, progress);
 };
+*/
 
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);

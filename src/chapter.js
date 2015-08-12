@@ -12,6 +12,13 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.epubcfi = new EPUBJS.EpubCFI();
 	this.deferred = new RSVP.defer();
 	this.loaded = this.deferred.promise;
+
+	EPUBJS.Hooks.mixin(this);
+	//-- Get pre-registered hooks for events
+	this.getHooks("beforeChapterRender");
+
+	// Cached for replacement urls from storage
+	this.caches = {};
 };
 
 
@@ -37,17 +44,25 @@ EPUBJS.Chapter.prototype.render = function(_store){
 
 	return this.load().then(function(doc){
 
-		var serializer = new XMLSerializer();
-		var contents;
 		var head = doc.head;
 		var base = doc.createElement("base");
 
 		base.setAttribute("href", this.absolute);
 		head.insertBefore(base, head.firstChild);
-		contents = serializer.serializeToString(doc);
 
+		this.contents = doc;
+		
+		return new RSVP.Promise(function (resolve, reject) {
+			this.triggerHooks("beforeChapterRender", function () {
+				resolve(doc);
+			}.bind(this), this);
+		}.bind(this));
+
+	}.bind(this))
+	.then(function(doc) {
+		var serializer = new XMLSerializer();
+		var contents = serializer.serializeToString(doc);
 		return contents;
-
 	}.bind(this));
 };
 
@@ -277,4 +292,106 @@ EPUBJS.Chapter.prototype.textSprint = function(root, func) {
 		func(node);
 	}
 
+};
+
+EPUBJS.Chapter.prototype.replace = function(query, func, finished, progress){
+	var items = this.contents.querySelectorAll(query),
+		resources = Array.prototype.slice.call(items),
+		count = resources.length;
+
+
+	if(count === 0) {
+		finished(false);
+		return;
+	}
+	resources.forEach(function(item){
+		var called = false;
+		var after = function(result, full){
+			if(called === false) {
+				count--;
+				if(progress) progress(result, full, count);
+				if(count <= 0 && finished) finished(true);
+				called = true;
+			}
+		};
+
+		func(item, after);
+
+	}.bind(this));
+
+};
+
+EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callback) {
+	var _oldUrls,
+			_newUrls = {},
+			_store = this.store,
+			_cache = this.caches[query],
+			_uri = EPUBJS.core.uri(this.absolute),
+			_chapterBase = _uri.base,
+			_attr = attr,
+			_wait = 5,
+			progress = function(url, full, count) {
+				_newUrls[full] = url;
+			},
+			finished = function(notempty) {
+				if(callback) callback();
+
+				_.each(_oldUrls, function(url){
+					_store.revokeUrl(url);
+				});
+
+				_cache = _newUrls;
+			};
+
+	if(!_store) return;
+
+	if(!_cache) _cache = {};
+	_oldUrls = _.clone(_cache);
+
+	this.replace(query, function(link, done){
+		var src = link.getAttribute(_attr),
+				full = EPUBJS.core.resolveUrl(_chapterBase, src);
+
+		var replaceUrl = function(url) {
+				var timeout;
+				link.onload = function(){
+					clearTimeout(timeout);
+					done(url, full);
+				};
+
+				link.onerror = function(e){
+					clearTimeout(timeout);
+					done(url, full);
+					console.error(e);
+				};
+
+				if(query == "image") {
+					//-- SVG needs this to trigger a load event
+					link.setAttribute("externalResourcesRequired", "true");
+				}
+
+				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
+					//-- Only Stylesheet links seem to have a load events, just continue others
+					done(url, full);
+				} else {
+					timeout = setTimeout(function(){
+						done(url, full);
+					}, _wait);
+				}
+
+				link.setAttribute(_attr, url);
+
+
+
+			};
+
+		if(full in _oldUrls){
+			replaceUrl(_oldUrls[full]);
+			_newUrls[full] = _oldUrls[full];
+			delete _oldUrls[full];
+		}else{
+			func(_store, full, replaceUrl, link);
+		}
+
+	}, finished, progress);
 };

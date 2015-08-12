@@ -775,6 +775,16 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 
 	this._rendering = true;
 
+	if(this._needsAssetReplacement()) {
+
+		chapter.registerHook("beforeChapterRender", [
+			EPUBJS.replace.head,
+			EPUBJS.replace.resources,
+			EPUBJS.replace.svg
+		], true);
+
+	}
+
 	render = book.renderer.displayChapter(chapter, this.globalLayoutProperties);
 	if(cfi) {
 		book.renderer.gotoCfi(cfi);
@@ -1085,23 +1095,23 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	if(this.store && this.settings.fromStorage && stored === false){
 		this.settings.fromStorage = false;
 		this.store.off("offline");
-		this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+		// this.renderer.removeHook("beforeChapterRender", hooks, true);
 		this.store = false;
 	}else if(!this.settings.fromStorage){
 
-		this.store = new EPUBJS.Storage(this.settings.storage);
+		this.store = new EPUBJS.Storage(this.settings.credentials);
 		this.store.on("offline", function (offline) {
 			if (!offline) {
 				// Online
 				this.offline = false;
 				this.settings.fromStorage = false;
-				this.renderer.removeHook("beforeChapterDisplay", hooks, true);
+				// this.renderer.removeHook("beforeChapterRender", hooks, true);
 				this.trigger("book:online");
 			} else {
 				// Offline
 				this.offline = true;
 				this.settings.fromStorage = true;
-				this.renderer.registerHook("beforeChapterDisplay", hooks, true);
+				// this.renderer.registerHook("beforeChapterRender", hooks, true);
 				this.trigger("book:offline");
 			}
 		}.bind(this));
@@ -1242,17 +1252,6 @@ EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs.bind(this), true);
-
-	if(this._needsAssetReplacement()) {
-
-		renderer.registerHook("beforeChapterDisplay", [
-			EPUBJS.replace.head,
-			EPUBJS.replace.resources,
-			EPUBJS.replace.svg
-		], true);
-
-	}
-
 };
 
 EPUBJS.Book.prototype._needsAssetReplacement = function(){

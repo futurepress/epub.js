@@ -41,8 +41,18 @@ EPUBJS.Hooks = (function(){
 				}, this);
 			}
 		}else{
-			//-- Allows for undefined hooks, but maybe this should error?
-			this.hooks[type] = [func];
+			//-- Allows for undefined hooks
+			this.hooks[type] = [toAdd];
+
+			if(typeof(toAdd) === "function"){
+				this.hooks[type] = [toAdd];
+			}else if(Array.isArray(toAdd)){
+				this.hooks[type] = [];
+				toAdd.forEach(function(hook){
+					this.hooks[type].push(hook);
+				}, this);
+			}
+
 		}
 	};
 
@@ -102,4 +112,3 @@ EPUBJS.Hooks = (function(){
 		}
 	};
 })();
-
