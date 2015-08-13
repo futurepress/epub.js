@@ -4,7 +4,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, render
     if(renderer.currentChapter.manifestProperties.indexOf("mathml") !== -1 ){
         
         // Assign callback to be inside iframe window
-        renderer.iframe.contentWindow.mathmlCallback = callback;
+        renderer.render.iframe.contentWindow.mathmlCallback = callback;
         
         // add MathJax config script tag to the renderer body
         var s = document.createElement("script");

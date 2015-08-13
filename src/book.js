@@ -111,7 +111,7 @@ EPUBJS.Book = function(options){
 	}
 
 	// BookUrl is optional, but if present start loading process
-	if(typeof this.settings.bookPath === 'string') {
+	if(typeof this.settings.bookPath === 'string' || this.settings.bookPath instanceof ArrayBuffer) {
 		this.open(this.settings.bookPath, this.settings.reload);
 	}
 
@@ -130,9 +130,6 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 
 	this.settings.bookPath = bookPath;
 
-	//-- Get a absolute URL from the book path
-	this.bookUrl = this.urlFrom(bookPath);
-
 	if(this.settings.contained || this.isContained(bookPath)){
 
 		this.settings.contained = this.contained = true;
@@ -145,6 +142,9 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 			});
 
 	}	else {
+		//-- Get a absolute URL from the book path
+		this.bookUrl = this.urlFrom(bookPath);
+		
 		epubpackage = this.loadPackage();
 	}
 
@@ -326,7 +326,7 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	renderer.setMinSpreadWidth(this.settings.minSpreadWidth);
 	renderer.setGap(this.settings.gap);
 
-  this._registerReplacements(renderer);
+	this._registerReplacements(renderer);
 	if(this.settings.forceSingle) {
 		renderer.forceSingle(true);
 	}
@@ -593,8 +593,11 @@ EPUBJS.Book.prototype.unarchive = function(bookPath){
 	return this.zip.open(bookPath);
 };
 
-//-- Checks if url has a .epub or .zip extension
+//-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
 EPUBJS.Book.prototype.isContained = function(bookUrl){
+	if (bookUrl instanceof ArrayBuffer) {
+		return true;
+	}
 	var uri = EPUBJS.core.uri(bookUrl);
 
 	if(uri.extension && (uri.extension == "epub" || uri.extension == "zip")){
@@ -1146,7 +1149,7 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 
 EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
 	if(!this.isRendered) return this._q.enqueue("addHeadTag", arguments);
-    this.settings.headTags[tag] = attrs;
+	this.settings.headTags[tag] = attrs;
 };
 
 EPUBJS.Book.prototype.useSpreads = function(use) {
