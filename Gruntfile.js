@@ -81,7 +81,7 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			scripts: {
-				files: ['src/**/*.js', 'reader/**/*.js'],
+				files: ['src/**/*.js', 'reader/**/*.js', 'reader_src/**/*.js'],
 				tasks: ['concat_sourcemap', 'uglify'],
 				options: {
 					interrupt: true,
