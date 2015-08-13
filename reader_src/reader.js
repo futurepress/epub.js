@@ -185,7 +185,7 @@ EPUBJS.Reader.prototype.removeBookmark = function(cfi) {
 	var bookmark = this.isBookmarked(cfi);
 	if( bookmark === -1 ) return;
 	
-	delete this.settings.bookmarks[bookmark];
+	this.settings.bookmarks.splice(bookmark, 1);
 	
 	this.trigger("reader:unbookmarked", bookmark);
 };
