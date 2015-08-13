@@ -1,7 +1,7 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.5";
+EPUBJS.VERSION = "0.2.7";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 

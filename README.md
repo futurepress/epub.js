@@ -82,6 +82,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").wgxpath = function(callback, rende
 wgxpath.install(window);   
 ```
 
+There are currently a [number of open issues for Internet Explorer](https://github.com/futurepress/epub.js/labels/Internet%20Explorer) any help addressing them would be greatly appreciated.
+
 Recent Updates
 -------------------------
 + v2 splits the render method from the layout and renderer. Currently only iframe rendering is supported, but this change will allow for new render methods in the future. See the breaking changes to the renderer [here](https://github.com/futurepress/epub.js/blob/master/documentation/README.md#renderer).
@@ -102,21 +104,33 @@ Recent Updates
 Running Locally
 -------------------------
 
-install [node.js](http://nodejs.org/)
+Install [node.js](http://nodejs.org/)
 
-install the project dependences with npm
+Then install the project dependences with npm
+
 ```javascript
 npm install
 ```
 
-then you can run the reader locally with the command
+You can run the reader locally with the command
 
 ```javascript
 node server.js
 ```
 
-* [dev.html](http://localhost:8080/reader/dev.html) will pull from the source files and should be used during development.
-* [index.html](http://localhost:8080/reader/index.html) will use the minified production libraries in the build/ folder.
+Builds are concatenated and minified using [gruntjs](http://gruntjs.com/getting-started)
+
+To generate a new build run
+
+```javascript
+grunt
+```
+
+Or, to generate builds as you make changes run
+
+```
+grunt watch
+```
 
 Examples
 -------------------------
@@ -146,17 +160,6 @@ git submodule update --init --recursive
 Then you can pull the latest with:
 ```
 git submodule foreach git pull origin master
-```
-
-Building for Distribution
--------------------------
-
-Builds are concatenated and minified using [gruntjs](http://gruntjs.com/getting-started)
-
-To generate a new build run
-
-```javascript
-grunt
 ```
 
 Hooks

@@ -2,3 +2,6 @@
 */**/.DS_Store
 node_modules/
 components
+bower_components/
+reader/js/
+build/
