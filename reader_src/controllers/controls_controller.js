@@ -38,11 +38,11 @@ EPUBJS.reader.ControlsController = function(book) {
 		}
 	});
 
-	$fullscreen.on("click", function() {
-		screenfull.toggle($('#container')[0]);
-	});
+	if(typeof screenfull !== 'undefined') {
+		$fullscreen.on("click", function() {
+			screenfull.toggle($('#container')[0]);
+		});
 
-	if(screenfull) {
 		document.addEventListener(screenfull.raw.fullscreenchange, function() {
 				fullscreen = screenfull.isFullscreen;
 				if(fullscreen) {
