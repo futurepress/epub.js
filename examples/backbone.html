@@ -79,12 +79,12 @@
     // Router
     BB.Router = Backbone.Router.extend({
         routes: {
-            "book/:p": "details"
+            "book/:p"   : "details"
         },
 
-        details: function (hash) {
+        details: function(hash){
             var view = new Book.Views.Details({model: Library.get(hash)});
-            view.render(function (el) {
+            view.render(function(el){
                 $("#main").html(el);
             });
         }
@@ -99,7 +99,6 @@
         $(renderer.element).contents().find('body').bind('mouseup', function(){
 
             var selection = $('iframe').contents()[0].getSelection().toString();
-            debugger;
         });
         callback();
     };
