@@ -2,44 +2,19 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Basic ePubJS Example</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
-        <meta name="apple-mobile-web-app-capable" content="yes">    
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <!-- EPUBJS Renderer -->
-        <!-- zip -->
-        <script src="../libs/zip/zip.js"></script>
-        <script src="../libs/zip/zip-fs.js"></script>
-        <script src="../libs/zip/zip-ext.js"></script>
-        <script src="../libs/zip/inflate.js"></script>
-        <script src="../libs/zip/mime-types.js"></script>
+        <meta name="apple-mobile-web-app-capable" content="yes"> 
         
-        
-        <!-- Render -->
+        <script src="../libs/jquery-2.1.0.js"></script>
         <script src="../libs/underscore/underscore.js"></script>
         <script src="../libs/rsvp/rsvp.js"></script>
-        <script src="../libs/fileStorage/fileStorage.min.js"></script>
-
-        <script src="../src/base.js"></script>
-        <script src="../src/core.js"></script>
-        <script src="../src/unarchiver.js"></script>
-        <script src="../src/parser.js"></script>
-        <script src="../src/hooks.js"></script>
-        <script src="../src/book.js"></script>
-        <script src="../src/chapter.js"></script>
-        <script src="../src/renderer.js"></script>
-        <script src="../src/replace.js"></script>
-        <script src="../src/epubcfi.js"></script>
-        <script src="../src/render_iframe.js"></script>
-        <script src="../src/layout.js"></script>
-        <script src="../src/pagination.js"></script>
+        <script src="../libs/fileStorage/fileStorage.js"></script>
         
-        <!-- Hooks -->
-        <!-- <script src="../hooks/default/transculsions.js"></script> -->
-        <!-- <script src="../hooks/default/endnotes.js"></script> -->
-        <script src="../hooks/default/smartimages.js"></script>
+        <script src="../build/epub.js"></script>
+        <script src="../build/libs/zip.min.js"></script>
         
         <script>
             
@@ -118,7 +93,7 @@
         <div id="main">
           <div id="prev" onclick="book.prevPage();" class="arrow">‹</div>
           <div id="area"></div>
-          <div id="next" onclick="book.nextPage();"class="arrow">›</div>
+          <div id="next" onclick="book.nextPage();" class="arrow">›</div>
         </div>
 
         <script>            
