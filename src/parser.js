@@ -348,54 +348,56 @@ EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
 	var navMap = tocXml.querySelector("navMap");
 	if(!navMap) return [];
 	
-	function getTOC(parent){
-		var list = [],
-			snapshot = tocXml.evaluate("*[local-name()='navPoint']", parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null),
-			length = snapshot.snapshotLength;
-		
-		if(length === 0) return [];
+	function extract(parent, item, list){
+		if (!item) return;
+		var id = item.getAttribute('id') || false,
+			content = item.querySelector("content"),
+			src = content.getAttribute('src'),
+			navLabel = item.querySelector("navLabel"),
+			text = navLabel.textContent ? navLabel.textContent : "",
+			split = src.split("#"),
+			baseUrl = split[0],
+			spinePos = spineIndexByURL[baseUrl],
+			spineItem = bookSpine[spinePos],
+			cfi = spineItem ? spineItem.cfi : '';
 
-		for ( var i=length-1 ; i >= 0; i-- ) {
-			var item = snapshot.snapshotItem(i);
+		var subitems = getTOC(item);
 
-			var id = item.getAttribute('id') || false,
-					content = item.querySelector("content"),
-					src = content.getAttribute('src'),
-					navLabel = item.querySelector("navLabel"),
-					text = navLabel.textContent ? navLabel.textContent : "",
-					split = src.split("#"),
-					baseUrl = split[0],
-					spinePos = spineIndexByURL[baseUrl],
-					spineItem = bookSpine[spinePos],
-					subitems = getTOC(item),
-					cfi = 	spineItem ? spineItem.cfi : '';
-
-			if(!id) {
-				if(spinePos) {
-					spineItem = bookSpine[spinePos];
-					id = spineItem.id;
-					cfi = 	spineItem.cfi;
-				} else {
-					id = 'epubjs-autogen-toc-id-' + (idCounter++);
-				}
+		if(!id) {
+			if(spinePos) {
+				spineItem = bookSpine[spinePos];
+				id = spineItem.id;
+				cfi = 	spineItem.cfi;
+			} else {
+				id = 'epubjs-autogen-toc-id-' + (idCounter++);
 			}
+		}
 
-			list.unshift({
-						"id": id,
-						"href": src,
-						"label": text,
-						"spinePos": spinePos,
-						"subitems" : subitems,
-						"parent" : parent ? parent.getAttribute('id') : null,
-						"cfi" : cfi
-			});
+		list.push({
+			"id": id,
+			"href": src,
+			"label": text,
+			"spinePos": spinePos,
+			"subitems" : subitems,
+			"parent" : parent ? parent.getAttribute('id') : null,
+			"cfi" : cfi
+		});
+	}
 
+	function getTOC(parent){
+		var item = parent.querySelector("navPoint");
+		var list = [];
+		extract(parent, item, list);
+		while(item && item.nextElementSibling){
+			item = item.nextElementSibling;
+			extract(parent, item, list);
 		}
 
 		return list;
 	}
 
-	return getTOC(navMap);
+	var a = getTOC(navMap);
+	return a;
 };
 
 EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
