@@ -156,51 +156,66 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 	render = this.render.load(contents, url);
 
 	render.then(function(contents) {
-		var formated;
-		this.currentChapter.setDocument(this.render.document);
-		this.contents = contents;
-		this.doc = this.render.document;
 
-		// Format the contents using the current layout method
-		this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
-		this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
-
-		// window.addEventListener("orientationchange", this.onResized.bind(this), false);
-		if(!this.initWidth && !this.initHeight){
-			this.render.window.addEventListener("resize", this.resized, false);
-		}
-
-		this.addEventListeners();
-		this.addSelectionListeners();
+		this.afterLoad(contents);
 
 		//-- Trigger registered hooks before displaying
 		this.beforeDisplay(function(){
-			var pages = this.layout.calculatePages();
-			var msg = this.currentChapter;
-			var queued = this._q.length();
-			this._moving = false;
 
-			this.updatePages(pages);
-
-			this.visibleRangeCfi = this.getVisibleRangeCfi();
-			this.currentLocationCfi = this.visibleRangeCfi.start;
-
-			if(queued === 0) {
-				this.trigger("renderer:locationChanged", this.currentLocationCfi);
-				this.trigger("renderer:visibleRangeChanged", this.visibleRangeCfi);
-			}
-
-			msg.cfi = this.currentLocationCfi; //TODO: why is this cfi passed to chapterDisplayed
-			this.trigger("renderer:chapterDisplayed", msg);
+			this.afterDisplay();
 
 			this.visible(true);
 
+
 			deferred.resolve(this); //-- why does this return the renderer?
+
 		}.bind(this));
 
 	}.bind(this));
 
 	return deferred.promise;
+};
+
+EPUBJS.Renderer.prototype.afterLoad = function(contents) {
+	var formated;
+	this.currentChapter.setDocument(this.render.document);
+	this.contents = contents;
+	this.doc = this.render.document;
+
+	// Format the contents using the current layout method
+	this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
+	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
+
+	// window.addEventListener("orientationchange", this.onResized.bind(this), false);
+	if(!this.initWidth && !this.initHeight){
+		this.render.window.addEventListener("resize", this.resized, false);
+	}
+
+	this.addEventListeners();
+	this.addSelectionListeners();
+
+};
+
+EPUBJS.Renderer.prototype.afterDisplay = function(contents) {
+
+	var pages = this.layout.calculatePages();
+	var msg = this.currentChapter;
+	var queued = this._q.length();
+	this._moving = false;
+
+	this.updatePages(pages);
+
+	this.visibleRangeCfi = this.getVisibleRangeCfi();
+	this.currentLocationCfi = this.visibleRangeCfi.start;
+
+	if(queued === 0) {
+		this.trigger("renderer:locationChanged", this.currentLocationCfi);
+		this.trigger("renderer:visibleRangeChanged", this.visibleRangeCfi);
+	}
+
+	msg.cfi = this.currentLocationCfi; //TODO: why is this cfi passed to chapterDisplayed
+	this.trigger("renderer:chapterDisplayed", msg);
+
 };
 
 EPUBJS.Renderer.prototype.loaded = function(url){
@@ -321,8 +336,7 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	// Give the css styles time to update
 	// clearTimeout(this.timeoutTillCfi);
 	// this.timeoutTillCfi = setTimeout(function(){
-
-	renderer.formated = renderer.layout.format(renderer.contents, renderer.render.width, renderer.render.height, renderer.gap);
+	renderer.formated = renderer.layout.format(renderer.render.docEl, renderer.render.width, renderer.render.height, renderer.gap);
 	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
 
 	pages = renderer.layout.calculatePages();

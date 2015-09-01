@@ -95,8 +95,18 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 
 EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	var url = this.iframe.contentWindow.location.href;
+	var baseEl, base;
+
+	this.document = this.iframe.contentDocument;
+	this.docEl = this.document.documentElement;
+	this.headEl = this.document.head;
+	this.bodyEl = this.document.body || this.document.querySelector("body");
+	this.window = this.iframe.contentWindow;
+
 	if(url != "about:blank"){
-		this.trigger("render:loaded", url);
+		baseEl = this.iframe.contentDocument.querySelector("base");
+		base = baseEl.getAttribute('href');
+		this.trigger("render:loaded", base);
 	}
 };
 
