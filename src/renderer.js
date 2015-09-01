@@ -454,7 +454,6 @@ EPUBJS.Renderer.prototype.pageByElement = function(el){
 	if(!el) return;
 
 	pg = this.render.getPageNumberByElement(el);
-	console.log("pg", pg)
 	this.page(pg);
 };
 

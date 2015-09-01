@@ -222,7 +222,7 @@ EPUBJS.Render.Iframe.prototype.getPageNumberByElement = function(el){
 	left = this.leftPos + el.getBoundingClientRect().left; //-- Calculate left offset compaired to scrolled position
 
 	pg = Math.floor(left / this.pageWidth) + 1; //-- pages start at 1
-	console.log(this.leftPos, el.getBoundingClientRect());
+
 	return pg;
 };
 
