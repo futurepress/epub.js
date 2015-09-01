@@ -75,7 +75,8 @@ EPUBJS.Reader = function(bookPath, _options) {
 		reload: this.settings.reload,
 		contained: this.settings.contained,
 		bookKey: this.settings.bookKey,
-		styles: this.settings.styles
+		styles: this.settings.styles,
+		withCredentials: this.settings.withCredentials
 	});
 	
 	if(this.settings.previousLocationCfi) {
