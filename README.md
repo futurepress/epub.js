@@ -5,7 +5,7 @@ Epub.js
 
 Epub.js is a JavaScript library for rendering ePub documents in the browser, across many devices.
 
-Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license. 
+Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license.
 
 [Try it while reading Moby Dick](http://futurepress.github.com/epub.js/reader/)
 
@@ -30,7 +30,7 @@ Get the minified code from the build folder:
 <script src="../build/epub.min.js"></script>
 ```
 
-If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/) + Mime-types which can be found in [build/libs](https://raw.githubusercontent.com/futurepress/epub.js/master/build/libs/zip.min.js)
+If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/) which can be found in [build/libs](https://raw.githubusercontent.com/futurepress/epub.js/master/build/libs/zip.min.js)
 
 ```html
 <!-- Zip JS -->
@@ -61,7 +61,7 @@ The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are 
 Internet Explorer
 -------------------------
 
-Compatibility with IE requires wicked-good-xpath, a Google-authored pure JavaScript implementation of the DOM Level 3 XPath specification. More info at https://code.google.com/p/wicked-good-xpath/
+Compatibility with IE is best with wicked-good-xpath, a Google-authored pure JavaScript implementation of the DOM Level 3 XPath specification (but not required). More info at https://code.google.com/p/wicked-good-xpath/
 
 You can download the latest wgxpath [here](https://wicked-good-xpath.googlecode.com/svn/trunk/build/wgxpath.install.js) or from the examples folder.
 
@@ -79,7 +79,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").wgxpath = function(callback, rende
   if(callback) callback();
 };
 
-wgxpath.install(window);   
+wgxpath.install(window);
 ```
 
 There are currently a [number of open issues for Internet Explorer](https://github.com/futurepress/epub.js/labels/Internet%20Explorer) any help addressing them would be greatly appreciated.
@@ -175,21 +175,23 @@ Example hook:
 
 ```javascript
 EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, renderer){
-    
+
     var elements = render.doc.querySelectorAll('[video]'),
         items = Array.prototype.slice.call(elements);
-    
+
     items.forEach(function(item){
       //-- do something with the video item
     }
-    
+
     if(callback) callback();
-		
+
 }
 ```
 
 Additional Resources
 -------------------------
+
+[![Gitter Chat](https://badges.gitter.im/futurepress/epub.js.png)](https://gitter.im/futurepress/epub.js "Gitter Chat")
 
 [Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
@@ -202,5 +204,5 @@ Follow us on twitter: @Epubjs
 Other
 -------------------------
 
-EPUB is a registered trademark of the [IDPF](http://idpf.org/). 
+EPUB is a registered trademark of the [IDPF](http://idpf.org/).
 
