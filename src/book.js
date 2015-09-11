@@ -528,7 +528,9 @@ EPUBJS.Book.prototype.loadChange = function(url){
 		// setup the renderer with the displayed chapter
 		this.renderer.currentChapter = chapter;
 		this.renderer.afterLoad(this.renderer.render.docEl);
-		this.renderer.afterDisplay();
+		this.renderer.beforeDisplay(function () {
+			this.renderer.afterDisplay();
+		}.bind(this));
 
 	} else if(!this._rendering) {
 		this.renderer.reformat();

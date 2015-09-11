@@ -1033,6 +1033,9 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 
 			// Reset the current location cfi to requested cfi
 			this.currentLocationCfi = cfi.str;
+		} else {
+			// Failed to find a range, go to first page
+			this.page(1);
 		}
 	}
 };

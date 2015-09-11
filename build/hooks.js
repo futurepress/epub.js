@@ -243,11 +243,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 			renderer.on("renderer:resized", size);
 			
 			renderer.on("renderer:chapterUnloaded", function(){
-				try {
-					item.removeEventListener('load', size);
-				} catch (e) {
-					// console.log(e);
-				}
+				item.removeEventListener('load', size);
 				renderer.off("renderer:resized", size);
 			});
 			

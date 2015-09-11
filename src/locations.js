@@ -57,7 +57,7 @@ EPUBJS.Locations.prototype.process = function(chapter) {
 
       var range;
       var doc = _doc;
-      var contents = doc.documentElement;
+      var contents = doc.documentElement.querySelector("body");
       var counter = 0;
       var prev;
 
