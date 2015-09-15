@@ -6219,6 +6219,7 @@ EPUBJS.Render.Iframe = function() {
 	this.pageWidth = 0;
 
 	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
+	this.transform = EPUBJS.core.prefixed('transform');
 };
 
 //-- Build up any html needed
@@ -6380,7 +6381,7 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 	// this.docEl.style[EPUBJS.Render.Iframe.transform] = 'translate('+ (-leftPos) + 'px, 0)';
 
 	if (this.isMobile) {
-		this.docEl.style["-webkit-transform"] = 'translate('+ (-leftPos) + 'px, 0)';
+		this.docEl.style[this.transform] = 'translate('+ (-leftPos) + 'px, 0)';
 	} else {
 		this.document.defaultView.scrollTo(leftPos, 0);
 	}
