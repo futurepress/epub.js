@@ -5447,7 +5447,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 			'url' :  manifest[Id].url,
 			'index' : index,
 			'cfiBase' : cfiBase,
-			'cfi' : "epub(" + cfiBase + ")"
+			'cfi' : "epubcfi(" + cfiBase + ")"
 		};
 		spine.push(vert);
 	});
