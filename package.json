@@ -1,6 +1,6 @@
 {
   "name": "epub.js",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "repository": "https://github.com/futurepress/epub.js",
   "description": "Render ePub documents in the browser, across many devices",
   "main": "server.js",
@@ -27,6 +27,7 @@
     "portfinder": "~0.2.1"
   },
   "dependencies": {
+    "jquery": "^2.1.4",
     "jszip": "^2.5.0",
     "localforage": "^1.2.10",
     "rsvp": "^3.1.0",

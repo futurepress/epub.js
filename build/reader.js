@@ -10,12 +10,13 @@ EPUBJS.reader.plugins = {}; //-- Attach extra Controllers as plugins (like searc
 	};
 
 	//exports to multiple environments
-	if (typeof define === 'function' && define.amd)
-	//AMD
-	define(function(){ return Reader; });
-	else if (typeof module != "undefined" && module.exports)
-	//Node
-	module.exports = ePubReader;
+	if (typeof define === 'function' && define.amd) {
+		//AMD
+		define(function(){ return Reader; });
+	} else if (typeof module != "undefined" && module.exports) {
+		//Node
+		module.exports = ePubReader;
+	}
 
 })(window, jQuery);
 
@@ -264,8 +265,8 @@ EPUBJS.Reader.prototype.applySavedSettings = function() {
 
 		if(stored) {
 			// Merge styles
-			if(store.styles) {
-				this.settings.styles = EPUBJS.core.defaults(this.settings.styles, store.styles);
+			if(stored.styles) {
+				this.settings.styles = EPUBJS.core.defaults(this.settings.styles || {}, stored.styles);
 			}
 			// Merge the rest
 			this.settings = EPUBJS.core.defaults(this.settings, stored);

@@ -25,6 +25,9 @@
   ],
   "dependencies": {
     "rsvp": "~3.0.8",
-    "underscore": "~1.8.3"
+    "underscore": "~1.8.3",
+    "polymer": "Polymer/polymer#^1.0.0",
+    "backbone": "~1.2.3",
+    "jquery-highlight": "~3.3.0"
   }
 }

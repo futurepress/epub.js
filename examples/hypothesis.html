@@ -11,8 +11,8 @@
         <link rel="stylesheet" href="../reader/css/normalize.css">
         <link rel="stylesheet" href="../reader/css/main.css">
         <link rel="stylesheet" href="../reader/css/popup.css">
-        <script src="../libs/jquery/jquery-2.1.0.js"></script>
-        
+        <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+
         <script>
             "use strict";
 
@@ -24,45 +24,45 @@
               }
             };
 
-            document.onreadystatechange = function () {  
+            document.onreadystatechange = function () {
               if (document.readyState == "complete") {
                 EPUBJS.VERSION = "0.1.6";
-        
+
                 EPUBJS.filePath = "js/libs/";
                 EPUBJS.cssPath = "../reader/css/";
                 // fileStorage.filePath = EPUBJS.filePath;
-        
+
                 ePubReader("../reader/moby-dick/");
-              }  
+              }
             };
-        
+
         </script>
-        
+
         <!-- Render -->
         <script src="../reader/js/epub.min.js"></script>
-        
+
         <!-- Hooks -->
-        <script src="../reader/js/hooks.min.js"></script> 
-        
+        <script src="../reader/js/hooks.min.js"></script>
+
         <!-- Reader -->
         <script src="../reader/js/reader.min.js"></script>
-        
+
         <!-- Plugins -->
-        <script src="../reader/plugins/search.js"></script>
-        
+        <!-- <script src="../reader/plugins/search.js"></script> -->
+
         <!-- Full Screen -->
         <script src="../reader/js/libs/screenfull.min.js"></script>
-        
+
         <!-- Highlights -->
-        <script src="../reader/js/libs/jquery.highlight.js"></script>
+        <script src="./bower_components/jquery-highlight/jquery.highlight.js"></script>
         <script src="../hooks/extensions/highlight.js"></script>
-        
+
         <!-- Hypothes.is -->
         <script async src="../hooks/extensions/hypothesis.js"></script>
         <script src="../reader_src/plugins/hypothesis.js"></script>
         <script src="https://hypothes.is/app/embed.js"></script>
 
-        
+
         <style>
           #hypothesis {
             position: absolute;
@@ -75,7 +75,7 @@
             z-index: 0;
             background: #4e4e4e;
           }
-          
+
           #hypothesis .annotator-frame {
             background: none;
             position: absolute;
@@ -84,28 +84,28 @@
             width: 100%;
             z-index: auto;
           }
-          
+
           #annotator-notice {
             display: none;
           }
-          
+
           #main {
             left: 0;
           }
-          
+
           #main.single {
             width: 66%;
           }
-          
+
           #main.single.closed {
             -webkit-transform: translate(51.6%, 0);
             -moz-transform: translate(51.6%, 0);
           }
-          
+
           #sidebar {
             width: 34%
           }
-          
+
           .noselect {
               -webkit-touch-callout: none;
               -webkit-user-select: none;
@@ -122,7 +122,7 @@
       <div id="sidebar">
         <div id="panels">
           <input id="searchBox" placeholder="search" type="search">
-          
+
           <a id="show-Search" class="show_view icon-search" data-view="Search">Search</a>
           <a id="show-Toc" class="show_view icon-list-1 active" data-view="Toc">TOC</a>
           <a id="show-Bookmarks" class="show_view icon-bookmark" data-view="Bookmarks">Bookmarks</a>
@@ -146,7 +146,7 @@
       </div>
       <div id="hypothesis"></div>
       <div id="main">
-        
+
         <div id="titlebar">
           <div id="opener">
             <a id="slider" class="icon-menu">Menu</a>
@@ -163,12 +163,12 @@
             <a id="annotations" class="h-icon-comment"></a>
           </div>
         </div>
-        
+
         <div id="divider"></div>
         <div id="prev" class="arrow noselect">‹</div>
         <div id="viewer"></div>
         <div id="next" class="arrow noselect">›</div>
-        
+
         <div id="loader"><img src="../reader/img/loader.gif"></div>
       </div>
       <div class="modal md-effect-1" id="settings-modal">
