@@ -1647,12 +1647,13 @@ EPUBJS.Render = {};
 	};
 
 	//exports to multiple environments
-	if (typeof define === 'function' && define.amd)
-	//AMD
-	define(function(){ return ePub; });
-	else if (typeof module != "undefined" && module.exports)
-	//Node
-	module.exports = ePub;
+	if (typeof define === 'function' && define.amd) {
+		//AMD
+		define(['rsvp'], function(){ return ePub; });
+	} else if (typeof module != "undefined" && module.exports) {
+		//Node
+		module.exports = ePub;
+	}
 
 })(window);
 
