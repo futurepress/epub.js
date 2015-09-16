@@ -15,7 +15,7 @@ EPUBJS.Book = function(options){
 		height: undefined,
 		layoutOveride : undefined, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
 		orientation : undefined,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
+		minSpreadWidth: 768, //-- overridden by spread: none (never) / both (always)
 		gap: "auto", //-- "auto" or int
 		version: 1,
 		restore: false,
