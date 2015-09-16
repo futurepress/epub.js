@@ -172,14 +172,50 @@ book:online
 
 book:offline
 
+book:pageChanged
+``` javascript
+{
+  anchorPage: 2
+  percentage: 0.5
+  pageRange: [1, 2, 3]
+}
+```
+Reports the currently shown page of the rendering. 
+Book must include a pageList.
+
+```javascript
+book.on('book:pageChanged', function(location){
+    console.log(location.anchorPage, location.pageRange)
+});
+```
 
 renderer:resized
-
-renderer:pageChanged
 
 renderer:chapterDisplayed
 
 renderer:chapterUnloaded
+
+renderer:locationChanged
+```javascript
+  "epubcfi(...)"
+```
+Reports the current location of the rendering.
+
+Can be used to restore a rendition to the current location.
+Same as `book.renderer.currentLocationCfi()`
+
+```javascript
+book.on('renderer:locationChanged', function(locationCfi){
+    console.log(locationCfi)
+});
+```
+
+renderer:visibleRangeChanged
+
+
+
+
+
 
 
 

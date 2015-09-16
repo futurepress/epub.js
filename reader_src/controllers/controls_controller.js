@@ -20,7 +20,7 @@ EPUBJS.reader.ControlsController = function(book) {
 		reader.offline = true;
 		// $store.attr("src", $icon.data("saved"));
 	};
-	
+
 	var fullscreen = false;
 
 	book.on("book:online", goOnline);
@@ -38,25 +38,26 @@ EPUBJS.reader.ControlsController = function(book) {
 		}
 	});
 
-	$fullscreen.on("click", function() {
-		screenfull.toggle($('#container')[0]);
-	});
-
-	if(screenfull) {
-		document.addEventListener(screenfull.raw.fullscreenchange, function() {
-				fullscreen = screenfull.isFullscreen;
-				if(fullscreen) {
-					$fullscreen
-						.addClass("icon-resize-small")
-						.removeClass("icon-resize-full");
-				} else {
-					$fullscreen
-						.addClass("icon-resize-full")
-						.removeClass("icon-resize-small");
-				}
+	if(typeof screenfull !== 'undefined') {
+		$fullscreen.on("click", function() {
+			screenfull.toggle($('#container')[0]);
 		});
+		if(screenfull.raw) {
+			document.addEventListener(screenfull.raw.fullscreenchange, function() {
+					fullscreen = screenfull.isFullscreen;
+					if(fullscreen) {
+						$fullscreen
+							.addClass("icon-resize-small")
+							.removeClass("icon-resize-full");
+					} else {
+						$fullscreen
+							.addClass("icon-resize-full")
+							.removeClass("icon-resize-small");
+					}
+			});
+		}
 	}
-	
+
 	$settings.on("click", function() {
 		reader.SettingsController.show();
 	});
@@ -64,17 +65,17 @@ EPUBJS.reader.ControlsController = function(book) {
 	$bookmark.on("click", function() {
 		var cfi = reader.book.getCurrentLocationCfi();
 		var bookmarked = reader.isBookmarked(cfi);
-		
+
 		if(bookmarked === -1) { //-- Add bookmark
 			reader.addBookmark(cfi);
 			$bookmark
 				.addClass("icon-bookmark")
-				.removeClass("icon-bookmark-empty"); 
+				.removeClass("icon-bookmark-empty");
 		} else { //-- Remove Bookmark
 			reader.removeBookmark(cfi);
 			$bookmark
 				.removeClass("icon-bookmark")
-				.addClass("icon-bookmark-empty"); 
+				.addClass("icon-bookmark-empty");
 		}
 
 	});
@@ -86,15 +87,15 @@ EPUBJS.reader.ControlsController = function(book) {
 		if(bookmarked === -1) { //-- Not bookmarked
 			$bookmark
 				.removeClass("icon-bookmark")
-				.addClass("icon-bookmark-empty"); 
+				.addClass("icon-bookmark-empty");
 		} else { //-- Bookmarked
 			$bookmark
 				.addClass("icon-bookmark")
-				.removeClass("icon-bookmark-empty"); 
+				.removeClass("icon-bookmark-empty");
 		}
-		
+
 		reader.currentLocationCfi = cfi;
-		
+
 		// Update the History Location
 		if(reader.settings.history &&
 				window.location.hash != cfiFragment) {
@@ -102,7 +103,7 @@ EPUBJS.reader.ControlsController = function(book) {
 			history.pushState({}, '', cfiFragment);
 		}
 	});
-	
+
 	book.on('book:pageChanged', function(location){
 		// console.log("page", location.page, location.percentage)
 	});

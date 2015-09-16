@@ -8,25 +8,25 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
 
         <link rel="stylesheet" href="basic.css">
-                
+
         <!-- EPUBJS Renderer -->
-        <script src="../build/epub.min.js"></script>
-        
+        <script src="../build/epub.js"></script>
+
         <!-- Zip JS -->
-        <script src="../build/libs/zip.min.js"></script>  
+        <script src="../build/libs/zip.min.js"></script>
 
         <script>
-            
+
             // EPUBJS.filePath = "../build/libs/zip/";
             EPUBJS.cssPath = "../reader/css/";
 
         </script>
-        
+
         <script>
             "use strict";
-            
+
             var Book = ePub("../reader/moby-dick.epub");
-            
+
         </script>
     </head>
     <body>
@@ -36,8 +36,8 @@
           <div id="next" onclick="Book.nextPage();" class="arrow">›</div>
         </div>
 
-        <script>            
-            
+        <script>
+
             Book.renderTo("area");
 
         </script>

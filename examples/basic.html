@@ -8,10 +8,10 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-                
+
         <!-- EPUBJS Renderer -->
-        <script src="../build/epub.min.js"></script>
-        
+        <script src="../build/epub.js"></script>
+
         <style type="text/css">
 
           body {
@@ -39,7 +39,7 @@
             left: 40px;
           }
 
-          #next {  
+          #next {
             right: 40px;
           }
 
@@ -60,17 +60,17 @@
           .arrow:hover {
             color: #777;
           }
-           
+
           .arrow:active {
             color: #000;
           }
         </style>
-        
+
          <script>
             "use strict";
-            
-            var Book = ePub("../reader/moby-dick/");
-            
+
+            var Book = ePub("https://s3.amazonaws.com/moby-dick/");
+
         </script>
     </head>
     <body>
@@ -80,8 +80,8 @@
           <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
         </div>
 
-        <script>            
-            
+        <script>
+
             Book.renderTo("area");
 
         </script>

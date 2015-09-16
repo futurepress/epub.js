@@ -7,13 +7,8 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 
-        <!-- Zip Support -->
-        <script src="../build/libs/zip.min.js"></script>
-
-        <!-- EPUBJS Renderer -->
-        <script src="../build/epub.js"></script>
+        <script src="../build/epub.min.js"></script>
 
         <!-- Hooks -->
         <!-- <script src="../hooks/default/transculsions.js"></script> -->
@@ -99,7 +94,7 @@
          <script>
             "use strict";
 
-            var book = ePub("../books/georgia-cfi-20120521/", { width: 1076, height: 588 });
+            var book = ePub("../books/moby-dick/", { width: 1076, height: 588 });
 
         </script>
     </head>
@@ -109,44 +104,44 @@
           <div id="area"></div>
           <div id="next" onclick="book.nextPage();"class="arrow">›</div>
           <div id="controls">
-              <input id="currentpg" size="3" maxlength="3"/> / <span id="totalpg">0</span>
+              <input id="current-percent" size="3" value="0" /> %
           </div>
         </div>
 
         <script>
             var controls = document.getElementById("controls");
-            var currentPage = document.getElementById("currentpg");
-            var totalPages = document.getElementById("totalpg");
+            var currentPage = document.getElementById("current-percent");
             var slider = document.createElement("input");
-            var pageList;
             var slide = function(){
-                book.gotoPage(slider.value);
+                var cfi = book.locations.cfiFromPercentage(slider.value);
+                book.gotoCfi(cfi);
             };
             var throttledSlide = _.throttle(slide, 200);
             var mouseDown = false;
 
             var rendered = book.renderTo("area");
 
-            // Load in stored pageList from json or local storage
-            ///*
-            // EPUBJS.core.request("page_list.json").then(function(storedPageList){
-            //     pageList = storedPageList;
-            //     console.log(storedPageList)
-            //     book.loadPagination(pageList);
-            // });
 
-            // Or generate the pageList on the fly
-            // book.ready.all.then(function(){
-            //     book.generatePagination();
-            // });
+            book.ready.all.then(function(){
+              // Load in stored locations from json or local storage
+              var key = book.generateBookKey()+'-locations';
+              var stored = localStorage.getItem(key);
+              if (stored) {
+                 return book.locations.load(stored);
+              } else {
+                // Or generate the locations on the fly
+                // Can pass an option number of chars to break sections by
+                // default is 150 chars
+                return book.locations.generate(1600);
+              }
+            })
+            .then(function(locations){
 
-            // Wait for the pageList to be ready and then show slider
-            book.pageListReady.then(function(pageList){
                 controls.style.display = "block";
-                // console.log(JSON.stringify(pageList)); // Save the result
                 slider.setAttribute("type", "range");
-                slider.setAttribute("min", book.pagination.firstPage);
-                slider.setAttribute("max", book.pagination.lastPage);
+                slider.setAttribute("min", 0);
+                slider.setAttribute("max", 100);
+                // slider.setAttribute("max", book.locations.total+1);
                 slider.setAttribute("step", 1);
                 slider.setAttribute("value", 0);
 
@@ -160,27 +155,37 @@
 
                 // Wait for book to be rendered to get current page
                 rendered.then(function(){
+                    // Get the current CFI
                     var currentLocation = book.getCurrentLocationCfi();
-                    var currentPage = book.pagination.pageFromCfi(currentLocation);
+                    // Get the Percentage (or location) from that CFI
+                    var currentPage = book.locations.percentageFromCfi(currentLocation);
                     slider.value = currentPage;
                     currentPage.value = currentPage;
                 });
 
                 controls.appendChild(slider);
 
-                totalPages.innerText = book.pagination.totalPages;
                 currentPage.addEventListener("change", function(){
-                    book.gotoPage(currentPage.value);
+                  var cfi = book.locations.cfiFromPercentage(currentPage.value/100);
+                  book.gotoCfi(cfi);
                 }, false);
+
+                // Listen for location changed event, get percentage from CFI
+                book.on('renderer:locationChanged', function(location){
+                    var percent = book.locations.percentageFromCfi(location);
+                    var percentage = Math.floor(percent * 100);
+                    if(!mouseDown) {
+                        slider.value = percentage;
+                    }
+                    currentPage.value = percentage;
+                });
+
+                // Save out the generated locations to JSON
+                localStorage.setItem(book.generateBookKey()+'-locations', book.locations.save());
+
             });
 
-            book.on('book:pageChanged', function(location){
-                if(!mouseDown) {
-                    slider.value = location.anchorPage;
-                }
-                currentPage.value = location.anchorPage;
-                console.log(location.pageRange)
-            });
+
         </script>
     </body>
 </html>

@@ -1,27 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html class="no-js">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Basic ePubJS Example</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <script src="../build/epub.js"></script>
-        <script src="../build/libs/zip.min.js"></script>
-
+                
+        <!-- EPUBJS Renderer -->
+        <script src="../build/epub.min.js"></script>
+        
         <style type="text/css">
 
           body {
-
+            overflow: hidden;
           }
 
           #main {
             position: absolute;
             width: 100%;
             height: 100%;
-            overflow: hidden;
           }
 
           #area {
@@ -29,7 +29,6 @@
             height: 80%;
             margin: 5% auto;
             max-width: 1250px;
-
           }
 
           #area iframe {
@@ -40,7 +39,7 @@
             left: 40px;
           }
 
-          #next {
+          #next {  
             right: 40px;
           }
 
@@ -61,30 +60,29 @@
           .arrow:hover {
             color: #777;
           }
-
+           
           .arrow:active {
             color: #000;
           }
         </style>
-
+        
          <script>
             "use strict";
-
-            window.book = ePub("https://s3.amazonaws.com/moby-dick/", {restore: true, reload: true });
-
+            
+            var Book = ePub("../books/israelsailing-20130127/");
+            
         </script>
     </head>
     <body>
         <div id="main">
-          <div id="prev" onclick="book.prevPage();" class="arrow">‹</div>
+          <div id="prev" onclick="Book.nextPage();" class="arrow">‹</div>
           <div id="area"></div>
-          <div id="next" onclick="book.nextPage();" class="arrow">›</div>
+          <div id="next" onclick="Book.prevPage();"class="arrow">›</div>
         </div>
 
-        <script>
-
-            book.renderTo("area");
-
+        <script>            
+            
+            Book.renderTo("area");
 
         </script>
     </body>

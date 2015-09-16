@@ -125,7 +125,7 @@ EPUBJS.Layout.Fixed = function(){
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
-	var viewport = documentElement.querySelector("[name=viewport");
+	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
 	var contents;
 	var width, height;

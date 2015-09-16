@@ -55,7 +55,7 @@ EPUBJS.Reader = function(bookPath, _options) {
 			var split = p.split("=");
 			var name = split[0];
 			var value = split[1] || '';
-			reader.settings[name] = value;
+			reader.settings[name] = decodeURIComponent(value);
 		});
 	}
 
@@ -75,7 +75,8 @@ EPUBJS.Reader = function(bookPath, _options) {
 		reload: this.settings.reload,
 		contained: this.settings.contained,
 		bookKey: this.settings.bookKey,
-		styles: this.settings.styles
+		styles: this.settings.styles,
+		withCredentials: this.settings.withCredentials
 	});
 	
 	if(this.settings.previousLocationCfi) {
@@ -185,7 +186,7 @@ EPUBJS.Reader.prototype.removeBookmark = function(cfi) {
 	var bookmark = this.isBookmarked(cfi);
 	if( bookmark === -1 ) return;
 	
-	delete this.settings.bookmarks[bookmark];
+	this.settings.bookmarks.splice(bookmark, 1);
 	
 	this.trigger("reader:unbookmarked", bookmark);
 };
@@ -269,8 +270,12 @@ EPUBJS.Reader.prototype.applySavedSettings = function() {
 		if(!localStorage) {
 			return false;
 		}
-		
+
+	try {
 		stored = JSON.parse(localStorage.getItem(this.settings.bookKey));
+	} catch (e) { // parsing error of localStorage
+		return false;
+	}
 		
 		if(stored) {
 			this.settings = _.defaults(this.settings, stored);
@@ -409,7 +414,7 @@ EPUBJS.reader.ControlsController = function(book) {
 		reader.offline = true;
 		// $store.attr("src", $icon.data("saved"));
 	};
-	
+
 	var fullscreen = false;
 
 	book.on("book:online", goOnline);
@@ -427,25 +432,26 @@ EPUBJS.reader.ControlsController = function(book) {
 		}
 	});
 
-	$fullscreen.on("click", function() {
-		screenfull.toggle($('#container')[0]);
-	});
-
-	if(screenfull) {
-		document.addEventListener(screenfull.raw.fullscreenchange, function() {
-				fullscreen = screenfull.isFullscreen;
-				if(fullscreen) {
-					$fullscreen
-						.addClass("icon-resize-small")
-						.removeClass("icon-resize-full");
-				} else {
-					$fullscreen
-						.addClass("icon-resize-full")
-						.removeClass("icon-resize-small");
-				}
+	if(typeof screenfull !== 'undefined') {
+		$fullscreen.on("click", function() {
+			screenfull.toggle($('#container')[0]);
 		});
+		if(screenfull.raw) {
+			document.addEventListener(screenfull.raw.fullscreenchange, function() {
+					fullscreen = screenfull.isFullscreen;
+					if(fullscreen) {
+						$fullscreen
+							.addClass("icon-resize-small")
+							.removeClass("icon-resize-full");
+					} else {
+						$fullscreen
+							.addClass("icon-resize-full")
+							.removeClass("icon-resize-small");
+					}
+			});
+		}
 	}
-	
+
 	$settings.on("click", function() {
 		reader.SettingsController.show();
 	});
@@ -453,17 +459,17 @@ EPUBJS.reader.ControlsController = function(book) {
 	$bookmark.on("click", function() {
 		var cfi = reader.book.getCurrentLocationCfi();
 		var bookmarked = reader.isBookmarked(cfi);
-		
+
 		if(bookmarked === -1) { //-- Add bookmark
 			reader.addBookmark(cfi);
 			$bookmark
 				.addClass("icon-bookmark")
-				.removeClass("icon-bookmark-empty"); 
+				.removeClass("icon-bookmark-empty");
 		} else { //-- Remove Bookmark
 			reader.removeBookmark(cfi);
 			$bookmark
 				.removeClass("icon-bookmark")
-				.addClass("icon-bookmark-empty"); 
+				.addClass("icon-bookmark-empty");
 		}
 
 	});
@@ -475,15 +481,15 @@ EPUBJS.reader.ControlsController = function(book) {
 		if(bookmarked === -1) { //-- Not bookmarked
 			$bookmark
 				.removeClass("icon-bookmark")
-				.addClass("icon-bookmark-empty"); 
+				.addClass("icon-bookmark-empty");
 		} else { //-- Bookmarked
 			$bookmark
 				.addClass("icon-bookmark")
-				.removeClass("icon-bookmark-empty"); 
+				.removeClass("icon-bookmark-empty");
 		}
-		
+
 		reader.currentLocationCfi = cfi;
-		
+
 		// Update the History Location
 		if(reader.settings.history &&
 				window.location.hash != cfiFragment) {
@@ -491,7 +497,7 @@ EPUBJS.reader.ControlsController = function(book) {
 			history.pushState({}, '', cfiFragment);
 		}
 	});
-	
+
 	book.on('book:pageChanged', function(location){
 		// console.log("page", location.page, location.percentage)
 	});
@@ -500,6 +506,7 @@ EPUBJS.reader.ControlsController = function(book) {
 
 	};
 };
+
 EPUBJS.reader.MetaController = function(meta) {
 	var title = meta.bookTitle,
 			author = meta.creator;
@@ -859,7 +866,13 @@ EPUBJS.reader.ReaderController = function(book) {
 
 	var arrowKeys = function(e) {		
 		if(e.keyCode == 37) { 
-			book.prevPage();
+			
+			if(book.metadata.direction === "rtl") {
+				book.nextPage();
+			} else {
+				book.prevPage();
+			}
+
 			$prev.addClass("active");
 
 			keylock = true;
@@ -870,8 +883,14 @@ EPUBJS.reader.ReaderController = function(book) {
 
 			 e.preventDefault();
 		}
-		if(e.keyCode == 39) { 
-			book.nextPage();
+		if(e.keyCode == 39) {
+
+			if(book.metadata.direction === "rtl") {
+				book.prevPage();
+			} else {
+				book.nextPage();
+			}
+			
 			$next.addClass("active");
 
 			keylock = true;
@@ -887,12 +906,24 @@ EPUBJS.reader.ReaderController = function(book) {
 	document.addEventListener('keydown', arrowKeys, false);
 
 	$next.on("click", function(e){
-		book.nextPage();
+		
+		if(book.metadata.direction === "rtl") {
+			book.prevPage();
+		} else {
+			book.nextPage();
+		}
+
 		e.preventDefault();
 	});
 
 	$prev.on("click", function(e){
-		book.prevPage();
+		
+		if(book.metadata.direction === "rtl") {
+			book.nextPage();
+		} else {
+			book.prevPage();
+		}
+
 		e.preventDefault();
 	});
 	

@@ -5,7 +5,7 @@ Epub.js
 
 Epub.js is a JavaScript library for rendering ePub documents in the browser, across many devices.
 
-Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license. 
+Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license.
 
 [Try it while reading Moby Dick](http://futurepress.github.com/epub.js/reader/)
 
@@ -30,11 +30,11 @@ Get the minified code from the build folder:
 <script src="../build/epub.min.js"></script>
 ```
 
-If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/)
+If you plan on using compressed (zipped) epubs (any .epub file) include the minified version of [JSZip.js](http://stuk.github.io/jszip/) which can be found in [build/libs](https://raw.githubusercontent.com/futurepress/epub.js/master/build/libs/zip.min.js)
 
 ```html
 <!-- Zip JS -->
-<script src="/build/libs/zip.min.js"></script>  
+<script src="/build/libs/zip.min.js"></script>
 ```
 
 Setup a element to render to:
@@ -58,6 +58,31 @@ See the [Documentation](https://github.com/futurepress/epub.js/blob/master/docum
 
 The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
 
+Internet Explorer
+-------------------------
+
+Compatibility with IE is best with wicked-good-xpath, a Google-authored pure JavaScript implementation of the DOM Level 3 XPath specification (but not required). More info at https://code.google.com/p/wicked-good-xpath/
+
+You can download the latest wgxpath [here](https://wicked-good-xpath.googlecode.com/svn/trunk/build/wgxpath.install.js) or from the examples folder.
+
+```html
+<script src="/examples/wgxpath.install.js"></script>
+```
+
+Then install wgxpath via a hook like the one below:
+
+```javascript
+EPUBJS.Hooks.register("beforeChapterDisplay").wgxpath = function(callback, renderer){
+
+  wgxpath.install(renderer.render.window);
+
+  if(callback) callback();
+};
+
+wgxpath.install(window);
+```
+
+There are currently a [number of open issues for Internet Explorer](https://github.com/futurepress/epub.js/labels/Internet%20Explorer) any help addressing them would be greatly appreciated.
 
 Recent Updates
 -------------------------
@@ -79,21 +104,33 @@ Recent Updates
 Running Locally
 -------------------------
 
-install [node.js](http://nodejs.org/)
+Install [node.js](http://nodejs.org/)
 
-install the project dependences with npm
+Then install the project dependences with npm
+
 ```javascript
 npm install
 ```
 
-then you can run the reader locally with the command
+You can run the reader locally with the command
 
 ```javascript
 node server.js
 ```
 
-* [dev.html](http://localhost:8080/reader/dev.html) will pull from the source files and should be used during development.
-* [index.html](http://localhost:8080/reader/index.html) will use the minified production libraries in the build/ folder.
+Builds are concatenated and minified using [gruntjs](http://gruntjs.com/getting-started)
+
+To generate a new build run
+
+```javascript
+grunt
+```
+
+Or, to generate builds as you make changes run
+
+```
+grunt watch
+```
 
 Examples
 -------------------------
@@ -125,17 +162,6 @@ Then you can pull the latest with:
 git submodule foreach git pull origin master
 ```
 
-Building for Distribution
--------------------------
-
-Builds are concatenated and minified using [gruntjs](http://gruntjs.com/getting-started)
-
-To generate a new build run
-
-```javascript
-grunt
-```
-
 Hooks
 -------------------------
 
@@ -149,21 +175,23 @@ Example hook:
 
 ```javascript
 EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, renderer){
-    
+
     var elements = render.doc.querySelectorAll('[video]'),
         items = Array.prototype.slice.call(elements);
-    
+
     items.forEach(function(item){
       //-- do something with the video item
     }
-    
+
     if(callback) callback();
-		
+
 }
 ```
 
 Additional Resources
 -------------------------
+
+[![Gitter Chat](https://badges.gitter.im/futurepress/epub.js.png)](https://gitter.im/futurepress/epub.js "Gitter Chat")
 
 [Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
@@ -176,5 +204,5 @@ Follow us on twitter: @Epubjs
 Other
 -------------------------
 
-EPUB is a registered trademark of the [IDPF](http://idpf.org/). 
+EPUB is a registered trademark of the [IDPF](http://idpf.org/).
 
