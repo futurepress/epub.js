@@ -7,9 +7,6 @@ EPUBJS.Render.Iframe = function() {
 
 	this.leftPos = 0;
 	this.pageWidth = 0;
-
-	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
-	this.transform = EPUBJS.core.prefixed('transform');
 };
 
 //-- Build up any html needed
@@ -22,6 +19,10 @@ EPUBJS.Render.Iframe.prototype.create = function(){
 	this.iframe.style.border = "none";
 
 	this.iframe.addEventListener("load", this.loaded.bind(this), false);
+
+	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
+	this.transform = EPUBJS.core.prefixed('transform');
+	
 	return this.iframe;
 };
 

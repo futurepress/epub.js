@@ -8,8 +8,7 @@ module.exports = function(grunt) {
 			'<%= grunt.template.today("yyyy-mm-dd") %> */'
 		},
 		concat_sourcemap : {
-		'build/epub_no_underscore.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
-		'build/epub.js': ['<banner>', 'libs/underscore/underscore-min.js', 'libs/rsvp/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
+		'build/epub.js': ['<banner>', 'libs/rsvp/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
 		'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
 		'build/hooks.js': ['<banner>', 'hooks/default/*.js'],
 		},

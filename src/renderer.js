@@ -29,7 +29,7 @@ EPUBJS.Renderer = function(renderMethod, hidden) {
 
 	this.spreads = true;
 	this.isForcedSingle = false;
-	this.resized = _.debounce(this.onResized.bind(this), 100);
+	this.resized = this.onResized.bind(this);
 
 	this.layoutSettings = {};
 
@@ -1000,7 +1000,7 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 		return this._q.enqueue("gotoCfi", arguments);
 	}
 
-	if(_.isString(cfi)){
+	if(EPUBJS.core.isString(cfi)){
 		cfi = this.epubcfi.parse(cfi);
 	}
 
@@ -1226,84 +1226,6 @@ EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 	}.bind(this));
 
 };
-
-/* Moved to chapter
-
-EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callback) {
-	var _oldUrls,
-			_newUrls = {},
-			_store = this.currentChapter.store,
-			_cache = this.caches[query],
-			_uri = EPUBJS.core.uri(this.currentChapter.absolute),
-			_chapterBase = _uri.base,
-			_attr = attr,
-			_wait = 5,
-			progress = function(url, full, count) {
-				_newUrls[full] = url;
-			},
-			finished = function(notempty) {
-				if(callback) callback();
-
-				_.each(_oldUrls, function(url){
-					_store.revokeUrl(url);
-				});
-
-				_cache = _newUrls;
-			};
-
-	if(!_store) return;
-
-	if(!_cache) _cache = {};
-	_oldUrls = _.clone(_cache);
-
-	this.replace(query, function(link, done){
-		var src = link.getAttribute(_attr),
-				full = EPUBJS.core.resolveUrl(_chapterBase, src);
-
-		var replaceUrl = function(url) {
-				var timeout;
-				link.onload = function(){
-					clearTimeout(timeout);
-					done(url, full);
-				};
-
-				link.onerror = function(e){
-					clearTimeout(timeout);
-					done(url, full);
-					console.error(e);
-				};
-
-				if(query == "image") {
-					//-- SVG needs this to trigger a load event
-					link.setAttribute("externalResourcesRequired", "true");
-				}
-
-				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
-					//-- Only Stylesheet links seem to have a load events, just continue others
-					done(url, full);
-				} else {
-					timeout = setTimeout(function(){
-						done(url, full);
-					}, _wait);
-				}
-
-				link.setAttribute(_attr, url);
-
-
-
-			};
-
-		if(full in _oldUrls){
-			replaceUrl(_oldUrls[full]);
-			_newUrls[full] = _oldUrls[full];
-			delete _oldUrls[full];
-		}else{
-			func(_store, full, replaceUrl, link);
-		}
-
-	}, finished, progress);
-};
-*/
 
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);

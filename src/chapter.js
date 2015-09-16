@@ -336,7 +336,7 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 			finished = function(notempty) {
 				if(callback) callback();
 
-				_.each(_oldUrls, function(url){
+				_oldUrls.forEach(function(url){
 					_store.revokeUrl(url);
 				});
 
@@ -346,7 +346,7 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 	if(!_store) return;
 
 	if(!_cache) _cache = {};
-	_oldUrls = _.clone(_cache);
+	_oldUrls = EPUBJS.core.clone(_cache);
 
 	this.replace(query, function(link, done){
 		var src = link.getAttribute(_attr),

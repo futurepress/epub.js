@@ -2,19 +2,19 @@ EPUBJS.Book = function(options){
 
 	var book = this;
 
-	this.settings = _.defaults(options || {}, {
-		bookPath : null,
-		bookKey : null,
-		packageUrl : null,
+	this.settings = EPUBJS.core.defaults(options || {}, {
+		bookPath : undefined,
+		bookKey : undefined,
+		packageUrl : undefined,
 		storage: false, //-- true (auto) or false (none) | override: 'ram', 'websqldatabase', 'indexeddb', 'filesystem'
 		fromStorage : false,
 		saved : false,
 		online : true,
 		contained : false,
-		width : null,
-		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
-		orientation : null,
+		width : undefined,
+		height: undefined,
+		layoutOveride : undefined, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'}
+		orientation : undefined,
 		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
 		gap: "auto", //-- "auto" or int
 		version: 1,
@@ -660,7 +660,7 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 	var book = this,
 		rendered;
 
-	if(_.isElement(elem)) {
+	if(EPUBJS.core.isElement(elem)) {
 		this.element = elem;
 	} else if (typeof elem == "string") {
 		this.element = EPUBJS.core.getEl(elem);
@@ -768,7 +768,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		return defer.promise;
 	}
 
-	if(_.isNumber(chap)){
+	if(EPUBJS.core.isNumber(chap)){
 		pos = chap;
 	}else{
 		cfi = new EPUBJS.EpubCFI(chap);
@@ -1060,7 +1060,7 @@ EPUBJS.Book.prototype.preloadNextChapter = function() {
 
 EPUBJS.Book.prototype.storeOffline = function() {
 	var book = this,
-		assets = _.values(this.manifest);
+		assets = EPUBJS.core.values(this.manifest);
 
 	//-- Creates a queue of all items to load
 	return this.store.put(assets).

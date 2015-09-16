@@ -48,13 +48,6 @@ EPUBJS.Render = {};
 		return new EPUBJS.Book(options);
 	};
 
-	_.extend(ePub, {
-		noConflict : function() {
-			root.ePub = previousEpub;
-			return this;
-		}
-	});
-
 	//exports to multiple environments
 	if (typeof define === 'function' && define.amd)
 	//AMD

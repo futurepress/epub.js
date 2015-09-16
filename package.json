@@ -1,6 +1,6 @@
 {
   "name": "epub.js",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "repository": "https://github.com/futurepress/epub.js",
   "description": "Render ePub documents in the browser, across many devices",
   "main": "server.js",
@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "server": "tools/server"
+    "start": "node server.js"
   },
   "author": "fchasen@gmail.com",
   "license": "FreeBSD",
@@ -25,5 +25,11 @@
     "grunt-contrib-watch": "^0.6.1",
     "optimist": "~0.6.1",
     "portfinder": "~0.2.1"
+  },
+  "dependencies": {
+    "jszip": "^2.5.0",
+    "localforage": "^1.2.10",
+    "rsvp": "^3.1.0",
+    "screenfull": "^2.0.0"
   }
 }
