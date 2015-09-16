@@ -242,7 +242,7 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 	book.ready.metadata.resolve(book.contents.metadata);
 	book.ready.cover.resolve(book.contents.cover);
 
-	book.locations = new EPUBJS.Locations(book.spine);
+	book.locations = new EPUBJS.Locations(book.spine, book.store, book.settings.withCredentials);
 
 	//-- Load the TOC, optional; either the EPUB3 XHTML Navigation file or the EPUB2 NCX file
 	if(book.contents.navPath) {
@@ -1204,7 +1204,7 @@ EPUBJS.Book.prototype.chapter = function(path) {
 
 	if(spinePos){
 		spineItem = this.spine[spinePos];
-		chapter = new EPUBJS.Chapter(spineItem, this.store);
+		chapter = new EPUBJS.Chapter(spineItem, this.store, this.settings.withCredentials);
 		chapter.load();
 	}
 	return chapter;

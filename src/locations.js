@@ -1,7 +1,8 @@
-EPUBJS.Locations = function(spine, store) {
+EPUBJS.Locations = function(spine, store, credentials) {
   this.spine = spine;
   this.store = store;
-
+  this.credentials = credentials;
+  
   this.epubcfi = new EPUBJS.EpubCFI();
 
   this._locations = [];
@@ -26,7 +27,7 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 			done.resolve();
 		} else {
 			spinePos = next;
-			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
+			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store, this.credentials);
 
       this.process(chapter).then(function() {
         // Load up the next chapter
@@ -52,7 +53,7 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 };
 
 EPUBJS.Locations.prototype.process = function(chapter) {
-  return chapter.load(this.request)
+  return chapter.load()
     .then(function(_doc) {
 
       var range;

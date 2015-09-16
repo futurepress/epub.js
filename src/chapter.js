@@ -1,4 +1,4 @@
-EPUBJS.Chapter = function(spineObject, store){
+EPUBJS.Chapter = function(spineObject, store, credentials){
 	this.href = spineObject.href;
 	this.absolute = spineObject.url;
 	this.id = spineObject.id;
@@ -9,6 +9,7 @@ EPUBJS.Chapter = function(spineObject, store){
 	this.linear = spineObject.linear;
 	this.pages = 1;
 	this.store = store;
+	this.credentials = credentials;
 	this.epubcfi = new EPUBJS.EpubCFI();
 	this.deferred = new RSVP.defer();
 	this.loaded = this.deferred.promise;
@@ -22,14 +23,15 @@ EPUBJS.Chapter = function(spineObject, store){
 };
 
 
-EPUBJS.Chapter.prototype.load = function(_store){
+EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	var store = _store || this.store;
+	var credentials = _credentials || this.credentials;
 	var promise;
 	// if(this.store && (!this.book.online || this.book.contained))
 	if(store){
 		promise = store.getXml(this.absolute);
 	}else{
-		promise = EPUBJS.core.request(this.absolute, 'xml');
+		promise = EPUBJS.core.request(this.absolute, 'xml', credentials);
 	}
 
 	promise.then(function(xml){
