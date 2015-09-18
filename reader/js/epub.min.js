@@ -5702,7 +5702,7 @@ EPUBJS.Render.Iframe.prototype.create = function(){
 
 	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
 	this.transform = EPUBJS.core.prefixed('transform');
-	
+
 	return this.iframe;
 };
 
@@ -5959,6 +5959,7 @@ EPUBJS.Render.Iframe.prototype.scroll = function(bool){
 // Cleanup event listeners
 EPUBJS.Render.Iframe.prototype.unload = function(){
 	this.window.removeEventListener("resize", this.resized);
+	this.window.location.reload();
 };
 
 //-- Enable binding events to Render
