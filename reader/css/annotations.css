@@ -1,8 +1,3 @@
-.ui-loader {
-  display: none;
-}
-
-.annotator-hl {
-  box-shadow: none !important;
-  cursor: pointer !important;
+.annotator-adder {
+  width: 80px;
 }

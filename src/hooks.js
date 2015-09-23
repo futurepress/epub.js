@@ -11,7 +11,7 @@ EPUBJS.Hooks = (function(){
 		}, this);
 
 		for (var plugType in this.hooks) {
-			plugs = _.values(EPUBJS.hooks[plugType]);
+			plugs = EPUBJS.core.values(EPUBJS.hooks[plugType]);
 
 			plugs.forEach(function(hook){
 				this.registerHook(plugType, hook);

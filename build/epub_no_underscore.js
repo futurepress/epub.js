@@ -2231,7 +2231,7 @@ EPUBJS.Render = {};
 		return new EPUBJS.Book(options);
 	};
 
-	_.extend(ePub, {
+	EPUBJS.core.extend(ePub, {
 		noConflict : function() {
 			root.ePub = previousEpub;
 			return this;
@@ -2252,7 +2252,7 @@ EPUBJS.Book = function(options){
 
 	var book = this;
 
-	this.settings = _.defaults(options || {}, {
+	this.settings = EPUBJS.core.defaults(options || {}, {
 		bookPath : null,
 		bookKey : null,
 		packageUrl : null,
@@ -2910,7 +2910,7 @@ EPUBJS.Book.prototype.renderTo = function(elem){
 	var book = this,
 		rendered;
 
-	if(_.isElement(elem)) {
+	if(EPUBJS.core.isElement(elem)) {
 		this.element = elem;
 	} else if (typeof elem == "string") {
 		this.element = EPUBJS.core.getEl(elem);
@@ -3018,7 +3018,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		return defer.promise;
 	}
 
-	if(_.isNumber(chap)){
+	if(EPUBJS.core.isNumber(chap)){
 		pos = chap;
 	}else{
 		cfi = new EPUBJS.EpubCFI(chap);
@@ -3310,7 +3310,7 @@ EPUBJS.Book.prototype.preloadNextChapter = function() {
 
 EPUBJS.Book.prototype.storeOffline = function() {
 	var book = this,
-		assets = _.values(this.manifest);
+		assets = EPUBJS.core.values(this.manifest);
 
 	//-- Creates a queue of all items to load
 	return this.store.put(assets).
@@ -3905,7 +3905,7 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 			finished = function(notempty) {
 				if(callback) callback();
 
-				_.each(_oldUrls, function(url){
+				_oldUrls.forEach(function(url){
 					_store.revokeUrl(url);
 				});
 
@@ -3915,7 +3915,7 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 	if(!_store) return;
 
 	if(!_cache) _cache = {};
-	_oldUrls = _.clone(_cache);
+	_oldUrls = EPUBJS.core.clone(_cache);
 
 	this.replace(query, function(link, done){
 		var src = link.getAttribute(_attr),
@@ -4022,7 +4022,7 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 
 	function handler() {
 		if (this.readyState === this.DONE) {
-			if (this.status === 200) { // || this.responseXML-- Firefox is reporting 0 for blob urls
+			if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
 				var r;
 
 				if(type == 'xml'){
@@ -4243,12 +4243,12 @@ EPUBJS.core.prefixed = function(unprefixed) {
 		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
 		length = vendors.length;
 
-	if (typeof(document.body.style[unprefixed]) != 'undefined') {
+	if (typeof(document.documentElement.style[unprefixed]) != 'undefined') {
 		return unprefixed;
 	}
 
 	for ( var i=0; i < length; i++ ) {
-		if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
+		if (typeof(document.documentElement.style[vendors[i] + upper]) != 'undefined') {
 			return vendors[i] + upper;
 		}
 	}
@@ -4499,6 +4499,61 @@ EPUBJS.core.indexOfTextNode = function(textNode){
 	}
 
 	return index;
+};
+
+// Underscore
+EPUBJS.core.defaults = function(obj) {
+  for (var i = 1, length = arguments.length; i < length; i++) {
+    var source = arguments[i];
+    for (var prop in source) {
+      if (obj[prop] === void 0) obj[prop] = source[prop];
+    }
+  }
+  return obj;
+};
+
+EPUBJS.core.extend = function(target) {
+    var sources = [].slice.call(arguments, 1);
+    sources.forEach(function (source) {
+      if(!source) return;
+      Object.getOwnPropertyNames(source).forEach(function(propName) {
+        Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+      });
+    });
+    return target;
+};
+
+EPUBJS.core.clone = function(obj) {
+  return EPUBJS.core.isArray(obj) ? obj.slice() : EPUBJS.core.extend({}, obj);
+};
+
+EPUBJS.core.isElement = function(obj) {
+    return !!(obj && obj.nodeType == 1);
+};
+
+EPUBJS.core.isNumber = function(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
+EPUBJS.core.isString = function(str) {
+  return (typeof str === 'string' || str instanceof String);
+};
+
+EPUBJS.core.isArray = Array.isArray || function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+// Lodash
+EPUBJS.core.values = function(object) {
+  var index = -1,
+      props = Object.keys(object),
+      length = props.length,
+      result = Array(length);
+
+  while (++index < length) {
+    result[index] = object[props[index]];
+  }
+  return result;
 };
 EPUBJS.EpubCFI = function(cfiStr){
   if(cfiStr) return this.parse(cfiStr);
@@ -5134,7 +5189,7 @@ EPUBJS.Hooks = (function(){
 		}, this);
 
 		for (var plugType in this.hooks) {
-			plugs = _.values(EPUBJS.hooks[plugType]);
+			plugs = EPUBJS.core.values(EPUBJS.hooks[plugType]);
 
 			plugs.forEach(function(hook){
 				this.registerHook(plugType, hook);
@@ -6524,7 +6579,7 @@ EPUBJS.Renderer = function(renderMethod, hidden) {
 
 	this.spreads = true;
 	this.isForcedSingle = false;
-	this.resized = _.debounce(this.onResized.bind(this), 100);
+	this.resized = this.onResized.bind(this);
 
 	this.layoutSettings = {};
 
@@ -7495,7 +7550,7 @@ EPUBJS.Renderer.prototype.gotoCfi = function(cfi){
 		return this._q.enqueue("gotoCfi", arguments);
 	}
 
-	if(_.isString(cfi)){
+	if(EPUBJS.core.isString(cfi)){
 		cfi = this.epubcfi.parse(cfi);
 	}
 
@@ -7721,84 +7776,6 @@ EPUBJS.Renderer.prototype.replace = function(query, func, finished, progress){
 	}.bind(this));
 
 };
-
-/* Moved to chapter
-
-EPUBJS.Renderer.prototype.replaceWithStored = function(query, attr, func, callback) {
-	var _oldUrls,
-			_newUrls = {},
-			_store = this.currentChapter.store,
-			_cache = this.caches[query],
-			_uri = EPUBJS.core.uri(this.currentChapter.absolute),
-			_chapterBase = _uri.base,
-			_attr = attr,
-			_wait = 5,
-			progress = function(url, full, count) {
-				_newUrls[full] = url;
-			},
-			finished = function(notempty) {
-				if(callback) callback();
-
-				_.each(_oldUrls, function(url){
-					_store.revokeUrl(url);
-				});
-
-				_cache = _newUrls;
-			};
-
-	if(!_store) return;
-
-	if(!_cache) _cache = {};
-	_oldUrls = _.clone(_cache);
-
-	this.replace(query, function(link, done){
-		var src = link.getAttribute(_attr),
-				full = EPUBJS.core.resolveUrl(_chapterBase, src);
-
-		var replaceUrl = function(url) {
-				var timeout;
-				link.onload = function(){
-					clearTimeout(timeout);
-					done(url, full);
-				};
-
-				link.onerror = function(e){
-					clearTimeout(timeout);
-					done(url, full);
-					console.error(e);
-				};
-
-				if(query == "image") {
-					//-- SVG needs this to trigger a load event
-					link.setAttribute("externalResourcesRequired", "true");
-				}
-
-				if(query == "link[href]" && link.getAttribute("rel") !== "stylesheet") {
-					//-- Only Stylesheet links seem to have a load events, just continue others
-					done(url, full);
-				} else {
-					timeout = setTimeout(function(){
-						done(url, full);
-					}, _wait);
-				}
-
-				link.setAttribute(_attr, url);
-
-
-
-			};
-
-		if(full in _oldUrls){
-			replaceUrl(_oldUrls[full]);
-			_newUrls[full] = _oldUrls[full];
-			delete _oldUrls[full];
-		}else{
-			func(_store, full, replaceUrl, link);
-		}
-
-	}, finished, progress);
-};
-*/
 
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(EPUBJS.Renderer.prototype);

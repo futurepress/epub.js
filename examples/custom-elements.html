@@ -8,12 +8,12 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-      
-        <script src="../libs/polymer/custom-elements.min.js"></script>
+        <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+        <!-- <script src="../libs/polymer/custom-elements.min.js"></script> -->
 
         <!-- EPUBJS Renderer -->
         <script src="../build/epub.min.js"></script>
-        
+
         <link rel="stylesheet" href="basic.css">
 
         <style type="text/css">
@@ -40,7 +40,7 @@
             border: none;
             padding: 40px 40px;
           }
-          
+
           iframe {
             border: none;
           }
@@ -50,16 +50,16 @@
           }
 
         </style>
-        
+
          <script>
             "use strict";
-          
-            
+
+
             var epubPrototype = Object.create(HTMLElement.prototype);
-            
-            epubPrototype.readyCallback = function() {    
+
+            epubPrototype.readyCallback = function() {
               this.create();
-              this.Book.renderTo(this); 
+              this.Book.renderTo(this);
             };
 
             epubPrototype.create = function() {
@@ -102,10 +102,10 @@
           </div>
           <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
         </div>
-        
-        <script>            
-            
-            Book = document.getElementById("book"); 
+
+        <script>
+
+            Book = document.getElementById("book");
 
         </script>
     </body>

@@ -1,7 +1,7 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.7";
+EPUBJS.VERSION = "0.2.10";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -48,19 +48,13 @@ EPUBJS.Render = {};
 		return new EPUBJS.Book(options);
 	};
 
-	_.extend(ePub, {
-		noConflict : function() {
-			root.ePub = previousEpub;
-			return this;
-		}
-	});
-
 	//exports to multiple environments
-	if (typeof define === 'function' && define.amd)
-	//AMD
-	define(function(){ return ePub; });
-	else if (typeof module != "undefined" && module.exports)
-	//Node
-	module.exports = ePub;
+	if (typeof define === 'function' && define.amd) {
+		//AMD
+		define(['rsvp'], function(){ return ePub; });
+	} else if (typeof module != "undefined" && module.exports) {
+		//Node
+		module.exports = ePub;
+	}
 
 })(window);

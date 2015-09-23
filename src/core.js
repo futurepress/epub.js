@@ -55,7 +55,7 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 
 	function handler() {
 		if (this.readyState === this.DONE) {
-			if (this.status === 200) { // || this.responseXML-- Firefox is reporting 0 for blob urls
+			if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
 				var r;
 
 				if(type == 'xml'){
@@ -276,12 +276,12 @@ EPUBJS.core.prefixed = function(unprefixed) {
 		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
 		length = vendors.length;
 
-	if (typeof(document.body.style[unprefixed]) != 'undefined') {
+	if (typeof(document.documentElement.style[unprefixed]) != 'undefined') {
 		return unprefixed;
 	}
 
 	for ( var i=0; i < length; i++ ) {
-		if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
+		if (typeof(document.documentElement.style[vendors[i] + upper]) != 'undefined') {
 			return vendors[i] + upper;
 		}
 	}
@@ -532,4 +532,63 @@ EPUBJS.core.indexOfTextNode = function(textNode){
 	}
 
 	return index;
+};
+
+// Underscore
+EPUBJS.core.defaults = function(obj) {
+  for (var i = 1, length = arguments.length; i < length; i++) {
+    var source = arguments[i];
+    for (var prop in source) {
+      if (obj[prop] === void 0) obj[prop] = source[prop];
+    }
+  }
+  return obj;
+};
+
+EPUBJS.core.extend = function(target) {
+    var sources = [].slice.call(arguments, 1);
+    sources.forEach(function (source) {
+      if(!source) return;
+      Object.getOwnPropertyNames(source).forEach(function(propName) {
+        Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+      });
+    });
+    return target;
+};
+
+EPUBJS.core.clone = function(obj) {
+  return EPUBJS.core.isArray(obj) ? obj.slice() : EPUBJS.core.extend({}, obj);
+};
+
+EPUBJS.core.isElement = function(obj) {
+    return !!(obj && obj.nodeType == 1);
+};
+
+EPUBJS.core.isNumber = function(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
+EPUBJS.core.isString = function(str) {
+  return (typeof str === 'string' || str instanceof String);
+};
+
+EPUBJS.core.isArray = Array.isArray || function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+// Lodash
+EPUBJS.core.values = function(object) {
+	var index = -1;
+	var props, length, result;
+
+	if(!object) return [];
+
+  props = Object.keys(object);
+  length = props.length;
+  result = Array(length);
+
+  while (++index < length) {
+    result[index] = object[props[index]];
+  }
+  return result;
 };
