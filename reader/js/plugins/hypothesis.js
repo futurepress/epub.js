@@ -1,109 +1,46 @@
-EPUBJS.reader.plugins.HypothesisController = function(Book) {
+EPUBJS.reader.plugins.HypothesisController = function (Book) {
 	var reader = this;
-	var book = reader.book;
-	var element = document.getElementById("hypothesis");
-	var body = window.document.body;
-	var annotator;
 	var $main = $("#main");
-	
-	var updateAnnotations = function() {
-		var annotatations = [],
-				guestAnnotator = reader.book.renderer.render.window.annotator,
-				_$, 
-				$annotations, width;
-		
-		if(!guestAnnotator) {
-			if(annotator) annotator.updateViewer([]);
-			return;	
-		};
-		
-		_$ = guestAnnotator.constructor.$;
-		
-		$annotations = _$(".annotator-hl");
-		width = reader.book.renderer.render.iframe.clientWidth;
-		
-		//-- Find visible annotations
-		$annotations.each(function(){
-			var $this = _$(this),
-					left = this.getBoundingClientRect().left;
-					
-			if(left >= 0 && left <= width) {
-				annotatations.push($this.data('annotation'));
-			}
-		});
-		
-		//-- Update viewer
-		annotator.updateViewer(annotatations);
-	};
-	
-	var attach = function(){
-		annotator = window.annotator;
-		annotator.frame.appendTo(element);
-		
-		annotator.subscribe('annotationEditorShown', function () {
-			showAnnotations(true);
-		});
-		annotator.subscribe('annotationViewerShown', function () {
-			showAnnotations(true);
-		});
-		
-		annotator.subscribe("annotationsLoaded", function(e){
-			var _$ = reader.book.renderer.render.window.annotator.constructor.$; 
-			
-			
-			reader.annotator = annotator;
-			updateAnnotations();
-			
-			_$(reader.book.renderer.contents).on("click", ".annotator-hl", function(event){
-				var $this = _$(this);
-				
-				reader.annotator.updateViewer([$this.data('annotation')]);
-				
-				// $scope.$apply(function(){
-				// 	$scope.single = true;
-				// 	$scope.noUpdate = true;
-				// });
-				
-			});
-		});
-		
-		$(".h-icon-comment").on("click", function () {
-			if ($main.hasClass("single")) {
-				showAnnotations(false);
-			} else {
-				showAnnotations(true);
-			}
-		});
-		
-		reader.book.on("renderer:locationChanged", function(){
-			updateAnnotations();
-		});
 
-	}
-	
-	var showAnnotations = function(single) {
-		var currentPosition = reader.currentLocationCfi;
-		reader.settings.sidebarReflow = false;
-
-		if(single) {
-			$main.addClass("single");
-			window.annotator.setVisibleHighlights(true);
-		} else {
-			$main.removeClass("single");
-			window.annotator.setVisibleHighlights(false);
+	var updateAnnotations = function () {
+		var annotator = Book.renderer.render.window.annotator;
+		if (annotator && annotator.constructor.$) {
+			var annotations = getVisibleAnnotations(annotator.constructor.$);
+			annotator.showAnnotations(annotations)
 		}
-		
-		$main.one("transitionend", function(){
-			book.gotoCfi(currentPosition);
-		});
-		
 	};
-	
-	book.ready.all.then(function() {
-		reader.HypothesisController.attach();
+
+	var getVisibleAnnotations = function ($) {
+		var width = Book.renderer.render.iframe.clientWidth;
+		return $('.annotator-hl').map(function() {
+			var $this = $(this),
+					left = this.getBoundingClientRect().left;
+
+			if (left >= 0 && left <= width) {
+				return $this.data('annotation');
+			}
+		}).get();
+	};
+
+	$("#annotations").on("click", function () {
+		var annotator = Book.renderer.render.window.annotator;
+		var currentPosition = Book.getCurrentLocationCfi();
+
+		if ($main.hasClass("single")) {
+			$main.removeClass("single");
+			annotator.setVisibleHighlights(false);
+		} else {
+			$main.addClass("single");
+			annotator.setVisibleHighlights(true);
+		}
+
+		$main.one("transitionend", function(){
+			Book.gotoCfi(currentPosition);
+		});
 	});
 
-	return {
-        'attach': attach
-	};
+	Book.on("renderer:locationChanged", updateAnnotations);
+	Book.on("renderer:chapterDisplayed", updateAnnotations);
+
+	return {}
 };
