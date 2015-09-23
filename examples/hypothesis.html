@@ -18,12 +18,7 @@
 
             document.onreadystatechange = function () {
               if (document.readyState == "complete") {
-                EPUBJS.VERSION = "0.1.6";
-
-                EPUBJS.filePath = "js/libs/";
                 EPUBJS.cssPath = "../reader/css/";
-                // fileStorage.filePath = EPUBJS.filePath;
-
                 ePubReader("../reader/moby-dick/");
               }
             };

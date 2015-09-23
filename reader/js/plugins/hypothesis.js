@@ -40,7 +40,7 @@ EPUBJS.reader.plugins.HypothesisController = function (Book) {
 	});
 
 	Book.on("renderer:locationChanged", updateAnnotations);
-	Book.on("renderer:chapterDisplayed", updateAnnotations);
+	// Book.on("renderer:chapterDisplayed", updateAnnotations);
 
 	return {}
 };
