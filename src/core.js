@@ -59,7 +59,14 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 				var r;
 
 				if(type == 'xml'){
-					r = this.responseXML;
+
+          // If this.responseXML wasn't set, try to parse using a DOMParser from text
+          if(!this.responseXML){
+            r = new DOMParser().parseFromString(this.response, "text/xml");
+          } else {
+            r = this.responseXML;
+          }
+          
 				}else
 				if(type == 'json'){
 					r = JSON.parse(this.response);
