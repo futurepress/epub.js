@@ -12,13 +12,14 @@
 
         <!-- EPUBJS Renderer -->
         <script src="../build/epub.min.js"></script>
+        <script src="../build/libs/zip.min.js"></script>
 
         <script>
             "use strict";
-            
-            var Book = ePub("../reader/moby-dick/", { restore: true });
-            
-            
+
+            var Book = ePub("../reader/moby-dick/", { restore: false });
+
+
         </script>
     </head>
     <body>
@@ -30,12 +31,12 @@
           <select id="toc"></select>
         </div>
 
-        <script>            
-            
+        <script>
+
             Book.getMetadata().then(function(meta){
 
                 document.title = meta.bookTitle+" – "+meta.creator;
-                
+
             });
 
             Book.getToc().then(function(toc){
@@ -56,13 +57,13 @@
               $select.onchange = function(){
                   var index = $select.selectedIndex,
                       url = $select.options[index].ref;
-                  
+
                   Book.goto(url);
                   return false;
               }
 
             });
-            
+
             Book.ready.all.then(function(){
               document.getElementById("loader").style.display = "none";
             });
