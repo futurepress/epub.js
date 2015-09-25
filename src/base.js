@@ -18,7 +18,7 @@ EPUBJS.Render = {};
 
 		//-- var book = ePub("path/to/book.epub", { restore: true })
 		if(typeof(arguments[0]) != 'undefined' &&
-			typeof arguments[0] === 'string') {
+			(typeof arguments[0] === 'string' || arguments[0] instanceof ArrayBuffer)) {
 
 			bookPath = arguments[0];
 
@@ -40,7 +40,7 @@ EPUBJS.Render = {};
 		*   book.open("path/to/book.epub");
 		*/
 
-		if( arguments[0] && typeof arguments[0] === 'object' ) {
+		if( arguments[0] && typeof arguments[0] === 'object' && !(arguments[0] instanceof ArrayBuffer)) {
 			options = arguments[0];
 		}
 
