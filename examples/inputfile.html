@@ -10,11 +10,10 @@
 
         <!-- zip -->
         <script src="../libs/jszip/jszip.js"></script>
-        <script src="../libs/jszip/mime-types.js"></script>
 
         <!-- EPUBJS Renderer -->
         <script src="../build/epub.min.js"></script>
-        
+
         <style type="text/css">
 
           body {
@@ -43,7 +42,7 @@
             left: 40px;
           }
 
-          #next {  
+          #next {
             right: 40px;
           }
 
@@ -64,7 +63,7 @@
           .arrow:hover {
             color: #777;
           }
-           
+
           .arrow:active {
             color: #000;
           }
@@ -84,10 +83,10 @@
           <div id="next" onclick="book.nextPage();"class="arrow">›</div>
         </div>
 
-        <script>            
+        <script>
             "use strict";
-            
-            var book = ePub("../reader/moby-dick/");            
+
+            var book = ePub("../reader/moby-dick.epub");
             book.renderTo("area");
 
             document.getElementById('btnSelectBook').addEventListener('change', function (e) {
