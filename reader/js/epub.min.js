@@ -1803,7 +1803,7 @@ EPUBJS.Book.prototype.open = function(bookPath, forceReload){
 	}	else {
 		//-- Get a absolute URL from the book path
 		this.bookUrl = this.urlFrom(bookPath);
-		
+
 		epubpackage = this.loadPackage();
 	}
 
@@ -2953,9 +2953,9 @@ EPUBJS.Book.prototype._needsAssetReplacement = function(){
 
 //-- http://www.idpf.org/epub/fxl/
 EPUBJS.Book.prototype.parseLayoutProperties = function(metadata){
-	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
-	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
-	var orientation = (this.layoutOveride && this.layoutOveride.orientation) || metadata.orientation || "auto";
+	var layout = (this.settings.layoutOveride && this.settings.layoutOveride.layout) || metadata.layout || "reflowable";
+	var spread = (this.settings.layoutOveride && this.settings.layoutOveride.spread) || metadata.spread || "auto";
+	var orientation = (this.settings.layoutOveride && this.settings.layoutOveride.orientation) || metadata.orientation || "auto";
 	return {
 		layout : layout,
 		spread : spread,
