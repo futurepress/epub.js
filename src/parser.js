@@ -258,17 +258,34 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	return spine;
 };
 
+EPUBJS.Parser.prototype.querySelectorByType = function(html, element, type){
+	var query = html.querySelector(element+'[*|type="'+type+'"]');
+	// Handle IE not supporting namespaced epub:type in querySelector
+	if(query.length === 0) {
+		query = html.querySelectorAll(element);
+		for (var i = 0; i < query.length; i++) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+				return query[i];
+			}
+		}
+	} else {
+		return query;
+	}
+};
+
 EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
-	var navPoints = navHtml.querySelectorAll('nav[*|type="toc"] ol li');
-	var length = navPoints.length;
+	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
+	var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	var length = navItems.length;
 	var i;
 	var toc = {};
 	var list = [];
 	var item, parent;
 
-	if(!navPoints || length === 0) return list;
+	if(!navItems || length === 0) return list;
+
 	for (i = 0; i < length; ++i) {
-		item = this.navItem(navPoints[i], spineIndexByURL, bookSpine);
+		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
 		toc[item.id] = item;
 		if(!item.parent) {
 			list.push(item);
@@ -386,84 +403,51 @@ EPUBJS.Parser.prototype.tocItem = function(item, spineIndexByURL, bookSpine){
 	};
 };
 
+
 EPUBJS.Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
-	var navEl = navHtml.querySelector('nav[*|type="page-list"]'),
-			idCounter = 0;
+	var navElement = this.querySelectorByType(navHtml, "nav", "page-list");
+	var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item;
 
-	if(!navEl) return [];
+	if(!navItems || length === 0) return list;
 
-	// Implements `> ol > li`
-	function findListItems(parent){
-		var items = [];
-
-		Array.prototype.slice.call(parent.childNodes).forEach(function(node){
-			if('ol' == node.tagName){
-				Array.prototype.slice.call(node.childNodes).forEach(function(item){
-					if('li' == item.tagName){
-						items.push(item);
-					}
-				});
-			}
-		});
-
-		return items;
-
+	for (i = 0; i < length; ++i) {
+		item = this.pageListItem(navItems[i], spineIndexByURL, bookSpine);
+		list.push(item);
 	}
 
-	// Implements `> a, > span`
-	function findAnchorOrSpan(parent){
-		var item = null;
+	return list;
+};
 
-		Array.prototype.slice.call(parent.childNodes).forEach(function(node){
-			if('a' == node.tagName || 'span' == node.tagName){
-				item = node;
-			}
-		});
+EPUBJS.Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+		content = item.querySelector("a"),
+		href = content.getAttribute('href') || '',
+		text = content.textContent || "",
+		page = parseInt(text),
+		isCfi = href.indexOf("epubcfi"),
+		split,
+		packageUrl,
+		cfi;
 
-		return item;
+	if(isCfi != -1) {
+		split = href.split("#");
+		packageUrl = split[0];
+		cfi = split.length > 1 ? split[1] : false;
+		return {
+			"cfi" : cfi,
+			"href" : href,
+			"packageUrl" : packageUrl,
+			"page" : page
+		};
+	} else {
+		return {
+			"href" : href,
+			"page" : page
+		};
 	}
-
-	function getPages(parent){
-		var list = [],
-				nodes = findListItems(parent),
-				items = Array.prototype.slice.call(nodes),
-				length = items.length,
-				node;
-
-		if(length === 0) return false;
-
-		items.forEach(function(item){
-			var id = item.getAttribute('id') || false,
-				content = findAnchorOrSpan(item),
-				href = content.getAttribute('href') || '',
-				text = content.textContent || "",
-				page = parseInt(text),
-				isCfi = href.indexOf("epubcfi"),
-				split,
-				packageUrl,
-				cfi;
-
-			if(isCfi != -1) {
-				split = href.split("#");
-				packageUrl = split[0];
-				cfi = split.length > 1 ? split[1] : false;
-				list.push({
-					"cfi" : cfi,
-					"href" : href,
-					"packageUrl" : packageUrl,
-					"page" : page
-				});
-			} else {
-				list.push({
-					"href" : href,
-					"page" : page
-				});
-			}
-
-		});
-
-		return list;
-	}
-
-	return getPages(navEl);
 };
