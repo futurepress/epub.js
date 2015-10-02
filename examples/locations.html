@@ -124,7 +124,7 @@
 
             book.ready.all.then(function(){
               // Load in stored locations from json or local storage
-              var key = book.generateBookKey()+'-locations';
+              var key = book.settings.bookKey+'-locations'+'-locations';
               var stored = localStorage.getItem(key);
               if (stored) {
                  return book.locations.load(stored);
