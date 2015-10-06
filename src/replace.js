@@ -65,7 +65,7 @@ EPUBJS.replace.resources = function(callback, renderer){
 
 EPUBJS.replace.svg = function(callback, renderer) {
 
-	renderer.replaceWithStored("image", "xlink:href", function(_store, full, done){
+	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
 		_store.getUrl(full).then(done);
 	}, callback);
 
