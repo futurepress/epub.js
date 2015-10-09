@@ -64,6 +64,7 @@ EPUBJS.Chapter.prototype.render = function(_store){
 	.then(function(doc) {
 		var serializer = new XMLSerializer();
 		var contents = serializer.serializeToString(doc);
+		contents = contents.replace(/<script(.*)\/>/g, '<script$1></script>');
 		return contents;
 	}.bind(this));
 };
