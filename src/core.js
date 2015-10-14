@@ -82,6 +82,9 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 		});
 	}
 
+	xhr.open("GET", url, true);
+	xhr.onreadystatechange = handler;
+
 	if(withCredentials) {
 		xhr.withCredentials = true;
 	}
@@ -117,8 +120,6 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 		xhr.responseType = "arraybuffer";
 	}
 
-	xhr.open("GET", url, true);
-	xhr.onreadystatechange = handler;
 	xhr.send();
 
 	return deferred.promise;
