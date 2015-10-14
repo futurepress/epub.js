@@ -31,7 +31,7 @@ EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	if(store){
 		promise = store.getXml(this.absolute);
 	}else{
-		promise = EPUBJS.core.request(this.absolute, 'xml', credentials);
+		promise = EPUBJS.core.request(this.absolute, false, credentials);
 	}
 
 	promise.then(function(xml){
@@ -89,15 +89,6 @@ EPUBJS.Chapter.prototype.url = function(_store){
 		url = this.absolute;
 		deferred.resolve(url);
 	}
-	/*
-	loaded = EPUBJS.core.request(url, 'xml', false);
-	loaded.then(function(contents){
-		chapter.contents = contents;
-		deferred.resolve(chapter.absolute);
-	}, function(error){
-		deferred.reject(error);
-	});
-	*/
 
 	return deferred.promise;
 };
