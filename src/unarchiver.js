@@ -11,11 +11,16 @@ EPUBJS.Unarchiver.prototype.checkRequirements = function(callback){
 };
 
 EPUBJS.Unarchiver.prototype.open = function(zipUrl, callback){
-	var deferred = new RSVP.defer();
-
-	return EPUBJS.core.request(zipUrl, "binary").then(function(data){
-		this.zip = new JSZip(data);
-	}.bind(this));
+	if (zipUrl instanceof ArrayBuffer) {
+		this.zip = new JSZip(zipUrl);
+		var deferred = new RSVP.defer();
+		deferred.resolve();
+		return deferred.promise;
+	} else {
+		return EPUBJS.core.request(zipUrl, "binary").then(function(data){
+			this.zip = new JSZip(data);
+		}.bind(this));
+	}
 };
 
 EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){

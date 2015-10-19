@@ -366,7 +366,7 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					console.error(e);
 				};
 
-				if(query == "image") {
+				if(query == "svg image") {
 					//-- SVG needs this to trigger a load event
 					link.setAttribute("externalResourcesRequired", "true");
 				}
