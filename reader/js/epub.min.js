@@ -2199,7 +2199,7 @@ EPUBJS.Book.prototype.loadChange = function(url){
 EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 	renderer.Events.forEach(function(eventName){
 		renderer.off(eventName);
-	}	);
+	});
 };
 
 //-- Choose between a request from store or a request from network
@@ -3012,7 +3012,7 @@ EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	if(store){
 		promise = store.getXml(this.absolute);
 	}else{
-		promise = EPUBJS.core.request(this.absolute, 'xml', credentials);
+		promise = EPUBJS.core.request(this.absolute, false, credentials);
 	}
 
 	promise.then(function(xml){
@@ -3070,15 +3070,6 @@ EPUBJS.Chapter.prototype.url = function(_store){
 		url = this.absolute;
 		deferred.resolve(url);
 	}
-	/*
-	loaded = EPUBJS.core.request(url, 'xml', false);
-	loaded.then(function(contents){
-		chapter.contents = contents;
-		deferred.resolve(chapter.absolute);
-	}, function(error){
-		deferred.reject(error);
-	});
-	*/
 
 	return deferred.promise;
 };
@@ -3394,14 +3385,66 @@ EPUBJS.core.getEls = function(classes) {
 EPUBJS.core.request = function(url, type, withCredentials) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-
 	var deferred = new RSVP.defer();
-
 	var xhr = new XMLHttpRequest();
+	var uri;
 
 	//-- Check from PDF.js:
 	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
 	var xhrPrototype = XMLHttpRequest.prototype;
+
+	var handler = function() {
+		var r;
+
+		if (this.readyState != this.DONE) return;
+
+		if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
+			if(type == 'xml'){
+        // If this.responseXML wasn't set, try to parse using a DOMParser from text
+        if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "application/xml");
+        } else {
+          r = this.responseXML;
+        }
+			}else
+			if(type == 'xhtml'){
+        if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+        } else {
+          r = this.responseXML;
+        }
+			}else
+			if(type == 'html'){
+				if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "text/html");
+        } else {
+          r = this.responseXML;
+        }
+			} else
+			if(type == 'json'){
+				r = JSON.parse(this.response);
+			}else
+			if(type == 'blob'){
+
+				if(supportsURL) {
+					r = this.response;
+				} else {
+					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+					r = new Blob([this.response]);
+				}
+
+			}else{
+				r = this.response;
+			}
+
+			deferred.resolve(r);
+		} else {
+			deferred.reject({
+				message : this.response,
+				stack : new Error().stack
+			});
+		}
+	};
 
 	if (!('overrideMimeType' in xhrPrototype)) {
 		// IE10 might have response, but not overrideMimeType
@@ -3409,11 +3452,19 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
 		});
 	}
+
+	xhr.open("GET", url, true);
+	xhr.onreadystatechange = handler;
+
 	if(withCredentials) {
 		xhr.withCredentials = true;
 	}
-	xhr.open("GET", url, true);
-	xhr.onreadystatechange = handler;
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		uri = EPUBJS.core.uri(url);
+		type = uri.extension;
+	}
 
 	if(type == 'blob'){
 		xhr.responseType = BLOB_RESPONSE;
@@ -3424,55 +3475,23 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	}
 
 	if(type == 'xml') {
-		xhr.overrideMimeType('text/xml');
+		xhr.responseType = "document";
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
+
+	if(type == 'xhtml') {
+		xhr.responseType = "document";
+	}
+
+	if(type == 'html') {
+		xhr.responseType = "document";
+ 	}
 
 	if(type == "binary") {
 		xhr.responseType = "arraybuffer";
 	}
 
 	xhr.send();
-
-	function handler() {
-		if (this.readyState === this.DONE) {
-			if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
-				var r;
-
-				if(type == 'xml'){
-
-          // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          if(!this.responseXML){
-            r = new DOMParser().parseFromString(this.response, "text/xml");
-          } else {
-            r = this.responseXML;
-          }
-          
-				}else
-				if(type == 'json'){
-					r = JSON.parse(this.response);
-				}else
-				if(type == 'blob'){
-
-					if(supportsURL) {
-						r = this.response;
-					} else {
-						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-						r = new Blob([this.response]);
-					}
-
-				}else{
-					r = this.response;
-				}
-
-				deferred.resolve(r);
-			} else {
-				deferred.reject({
-					message : this.response,
-					stack : new Error().stack
-				});
-			}
-		}
-	}
 
 	return deferred.promise;
 };
@@ -3979,6 +3998,7 @@ EPUBJS.core.values = function(object) {
   }
   return result;
 };
+
 EPUBJS.EpubCFI = function(cfiStr){
   if(cfiStr) return this.parse(cfiStr);
 };
@@ -7624,7 +7644,8 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	return this.getText(decodededUrl, encoding).
 			then(function(text){
 				var parser = new DOMParser();
-				return parser.parseFromString(text, "text/xml");
+				var mimeType = EPUBJS.core.getMimeType(url);
+				return parser.parseFromString(text, mimeType);
 			});
 
 };
@@ -7637,7 +7658,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob;
-	
+
 	if(!entry) {
 		deferred.reject({
 			message : "File not found in the epub: " + url,
@@ -7743,7 +7764,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"rdf+xml" : "rdf",
 			"smil" : [ "smi", "smil" ],
 			"xhtml+xml" : [ "xhtml", "xht" ],
-			"xml" : [ "xml", "xsl", "xsd" ],
+			"xml" : [ "xml", "xsl", "xsd", "opf" ],
 			"zip" : "zip",
 			"x-httpd-eruby" : "rhtml",
 			"x-latex" : "latex",
@@ -7759,7 +7780,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"mathml+xml" : "mathml",
 			"metalink+xml" : "metalink",
 			"mp4" : "mp4s",
-			"oebps-package+xml" : "opf",
+			// "oebps-package+xml" : "opf",
 			"omdoc+xml" : "omdoc",
 			"oxps" : "oxps",
 			"vnd.amazon.ebook" : "azw",
@@ -7925,4 +7946,5 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 	};
 
 })();
+
 //# sourceMappingURL=epub.js.map

@@ -540,7 +540,7 @@ EPUBJS.Book.prototype.loadChange = function(url){
 EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 	renderer.Events.forEach(function(eventName){
 		renderer.off(eventName);
-	}	);
+	});
 };
 
 //-- Choose between a request from store or a request from network
