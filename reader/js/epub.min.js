@@ -4913,7 +4913,7 @@ EPUBJS.Locations = function(spine, store, credentials) {
   this.spine = spine;
   this.store = store;
   this.credentials = credentials;
-  
+
   this.epubcfi = new EPUBJS.EpubCFI();
 
   this._locations = [];
@@ -4929,6 +4929,7 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 	var deferred = new RSVP.defer();
 	var spinePos = -1;
 	var spineLength = this.spine.length;
+  var finished;
 	var nextChapter = function(deferred){
 		var chapter;
 		var next = spinePos + 1;
@@ -4951,7 +4952,11 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 		return done.promise;
 	}.bind(this);
 
-	var finished = nextChapter().then(function(){
+  if(typeof chars === 'number') {
+    this.break = chars;
+  }
+
+	finished = nextChapter().then(function(){
     this.total = this._locations.length-1;
 
     if (this._currentCfi) {
