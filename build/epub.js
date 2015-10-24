@@ -6813,15 +6813,8 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(){
-	var pg;
-	if (this.spreads) {
-		pg = this.chapterPos*2;
-		startRange = this.pageMap[pg-2];
-	} else {
-		pg = this.chapterPos;
-		startRange = this.pageMap[pg-1];
-	}
-	return this.pageMap[(this.chapterPos * 2) -1].start;
+	var pg = (this.chapterPos * 2)-1;
+	return this.pageMap[pg].start;
 };
 
 EPUBJS.Renderer.prototype.getRange = function(x, y, forceElement){
