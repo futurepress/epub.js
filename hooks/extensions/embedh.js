@@ -62,51 +62,75 @@ window.hypothesisInstall = function (inject) {
 
   window.hypothesisConfig = function() {
     var Annotator = window.Annotator;
-    function MySidebar(elem, options) {
+    function MyGuest(elem, options) {
       var self = this;
-      var $main = $("#main");
 
-      options = {
-      	showHighlights: true,
-      	Toolbar: {container: '#annotation-controls'}
-      }
+      // options = {
+      // 	showHighlights: true,
+      // 	Toolbar: {container: '#annotation-controls'}
+      // }
       
-      Annotator.Host.call(this, elem, options);
+      Annotator.Guest.call(this, elem, options);
 
-      self.show = function() {
-        self.frame.css({
-          'margin-left': (-1 * self.frame.width()) + "px"
-        });
-        self.frame.removeClass('annotator-collapsed');
-        self.toggleSidebar();
-      };
-
-      self.hide = function() {
-        self.frame.css({
-          'margin-left': ''
-        });
-        self.frame.addClass('annotator-collapsed');
-        self.toggleSidebar();
-      };
-
-      self.toggleSidebar = function () {
-        if ($main.hasClass("single")) {
-          $main.removeClass("single");
-          self.toolbar.find('[name=sidebar-toggle]').removeClass('h-icon-chevron-right').addClass('h-icon-chevron-left');
-          self.setVisibleHighlights(false);
-        } else {
-          $main.addClass("single");
-          self.toolbar.find('[name=sidebar-toggle]').removeClass('h-icon-chevron-left').addClass('h-icon-chevron-right');
-          self.setVisibleHighlights(true);
+      self.createAnnotation = function(annotation) {
+        var getSelectors, info, metadata, ranges, ref, root, selectors, self, setDocumentInfo, setTargets, targets;
+        if (annotation == null) {
+          annotation = {};
         }
-      };
+        self = this;
+        root = this.element[0];
+        ranges = (ref = this.selectedRanges) != null ? ref : [];
+        this.selectedRanges = null;
+        var toggleEpubjsSideBar = new Event('toggle-sidebar');
+        window.dispatchEvent(toggleEpubjsSideBar);
+        getSelectors = function(range) {
+          var options;
+          options = {
+            cache: self.anchoringCache,
+            ignoreSelector: '[class^="annotator-"]'
+          };
+          return self.anchoring.describe(root, range, options);
+        };
+        setDocumentInfo = function(info) {
+          annotation.document = info.metadata;
+          return annotation.uri = info.uri;
+        };
+        setTargets = function(arg) {
+          var info, selector, selectors, source;
+          info = arg[0], selectors = arg[1];
+          source = info.uri;
+          return annotation.target = (function() {
+            var i, len, results;
+            results = [];
+            for (i = 0, len = selectors.length; i < len; i++) {
+              selector = selectors[i];
+              results.push({
+                source: source,
+                selector: selector
+              });
+            }
+            return results;
+          })();
+        };
+        info = this.getDocumentInfo();
+        selectors = Promise.all(ranges.map(getSelectors));
+        metadata = info.then(setDocumentInfo);
+        targets = Promise.all([info, selectors]).then(setTargets);
+        targets.then(function() {
+          return self.publish('beforeAnnotationCreated', [annotation]);
+        });
+        targets.then(function() {
+          return self.anchor(annotation);
+        });
+        return annotation;
+      }
 
     }
 
-    MySidebar.prototype = Object.create(Annotator.Host.prototype);
+    MyGuest.prototype = Object.create(Annotator.Guest.prototype);
 
     return {
-      constructor: MySidebar,
+      constructor: MyGuest,
     }
   };
 
@@ -130,53 +154,3 @@ document.head.appendChild(baseUrl);
 
 window.hypothesisInstall();
 })();
-
-
-EPUBJS.reader.plugins.HypothesisController = function (Book) {
-	// var reader = this;
-	var $main = $("#main");
-
-	var updateAnnotations = function () {
-		var annotator = Book.renderer.render.window.annotator;
-		if (annotator && annotator.constructor.$) {
-			var annotations = getVisibleAnnotations(annotator.constructor.$);
-			annotator.showAnnotations(annotations)
-		}
-	};
-
-	var getVisibleAnnotations = function ($) {
-		var width = Book.renderer.render.iframe.clientWidth;
-		return $('.annotator-hl').map(function() {
-			var $this = $(this),
-					left = this.getBoundingClientRect().left;
-
-			if (left >= 0 && left <= width) {
-				return $this.data('annotation');
-			}
-		}).get();
-	};
-
-  // setTimeout(function () {
-  //   Book.renderer.render.window.addEventListener("toggle-sidebar", function () {x
-  //     var annotator = Book.renderer.render.window.annotator;
-  //     var currentPosition = Book.getCurrentLocationCfi();
-
-  //     if ($main.hasClass("single")) {
-  //       $main.removeClass("single");
-  //       annotator.setVisibleHighlights(false);
-  //     } else {
-  //       $main.addClass("single");
-  //       annotator.setVisibleHighlights(true);
-  //     }
-
-  //     $main.one("transitionend", function(){
-  //       Book.gotoCfi(currentPosition);
-  //     });
-  //   }, false);
-  // }, 1000);
-
-	Book.on("renderer:locationChanged", updateAnnotations);
-	// Book.on("renderer:chapterDisplayed", updateAnnotations);
-
-	return {}
-};

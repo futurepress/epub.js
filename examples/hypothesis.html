@@ -42,29 +42,115 @@
         <script src="../reader_src/plugins/hypothesis.js"></script>
 
         <style>
-            #hypothesis {
-                overflow: hidden;
-                position: absolute;
-                right: 0;
-                height: 100%;
-                width: 34%;
-                z-index: -2;
-            }
+          #hypothesis {
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 34%;
+            z-index: -2;
+          }
+          
+          #hypothesis .annotator-frame {
+            background: none;
+            position: absolute;
+            left: 0;
+            margin: auto !important;
+            width: 100%;
+            z-index: auto;
+          }
 
-            #hypothesis iframe {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-            }
+          .annotator-frame {
+            display: none;
+          }
 
-            #main {
-                left: 0;
-            }
+          #hypothesis .annotator-frame iframe html {
+            overflow: hidden;
+          }
 
-            #main.single {
-                right: 34%;
-                width: 66%;
-            }
+          #main.single {
+            width: 66%;
+          }
+          
+          #main.single.closed {
+            -webkit-transform: translate(51.6%, 0);
+            -moz-transform: translate(51.6%, 0);
+          }
+          
+          #searchBox {
+            width: 140px;
+          }
+          
+          #sidebar {
+            width: 34%
+          }
+          
+          .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+          }
+          
+          #annotation-controls {
+            position: absolute;
+            top: -7px;
+            right: 0;
+          }
+
+          #annotation-controls ul {
+            list-style-type: none;
+          }
+
+          #annotation-controls ul li button {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            background: #fff;
+            border: none;
+            opacity: .5;
+          }
+
+          #annotation-controls ul li button:hover {
+            opacity: .8;
+          }
+
+          #annotation-controls ul li button:focus {
+            border: none !important;
+          }
+
+          .topbar {
+            border: none !important;
+          }
+
+          .topbar .inner {
+            margin: 0px 1.72em 0 0.72em;
+          }
+
+          #hypothesis .annotator-frame body {
+            background: #fff !important;
+          }
+
+          #hypothesis iframe {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+          }
+
+          #main {
+            left: 0;
+            top: 0;
+            border: none !important;
+            border-radius: 0px !important;
+            box-shadow: none !important;
+          }
+
+          #main.single {
+            right: 34%;
+            width: 66%;
+          }
         </style>
     </head>
     <body>
@@ -74,19 +160,16 @@
 
           <a id="show-Search" class="show_view icon-search" data-view="Search">Search</a>
           <a id="show-Toc" class="show_view icon-list-1 active" data-view="Toc">TOC</a>
-          <a id="show-Bookmarks" class="show_view icon-bookmark" data-view="Bookmarks">Bookmarks</a>
           <a id="show-Notes" class="show_view icon-edit" data-view="Notes">Notes</a>
 
         </div>
-        <div id="tocView">
-        </div>
+        
+        <!-- Table of Contents -->
+        <div id="tocView"></div>
+        <!-- / Table of Contents -->
+
         <div id="searchView">
           <ul id="searchResults"></ul>
-        </div>
-        <div id="bookmarksView">
-          <ul id="bookmarks"></ul>
-        </div>
-        <div id="notesView">
         </div>
       </div>
       <div id="main">
@@ -100,12 +183,11 @@
             <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
             <span id="chapter-title"></span>
           </div>
-          <div id="title-controls">
-            <a id="bookmark" class="icon-bookmark-empty">Bookmark</a>
-            <a id="setting" class="icon-cog">Settings</a>
-            <a id="fullscreen" class="icon-resize-full">Fullscreen</a>
-            <a id="annotations" class="icon-edit"></a>
-          </div>
+
+          <!-- Annotation Controls -->
+          <div id="annotation-controls"></div>
+          <!-- / Annotation Controls -->
+
         </div>
 
         <div id="divider"></div>
