@@ -18,7 +18,7 @@
 
         <!-- Annotator -->
         <!-- <script src="../libs/annotator/annotator-full.js"></script>  -->
-        
+
         <script src="../libs/annotator/lib/util.js"></script>
         <script src="../libs/annotator/lib/console.js"></script>
         <script src="../libs/annotator/lib/class.js"></script>
@@ -35,7 +35,7 @@
         <script src="../libs/annotator/lib/plugin/auth.js"></script>
         <script src="../libs/annotator/lib/plugin/tags.js"></script>
         <script src="../libs/annotator/lib/plugin/unsupported.js"></script>
-        <script src="../libs/annotator/lib/plugin/filter.js"></script> 
+        <script src="../libs/annotator/lib/plugin/filter.js"></script>
 
         <script src="../hooks/extensions/annotate.js"></script>
 
@@ -43,27 +43,27 @@
 
         <script>
             "use strict";
-            
+
             var Book = ePub("../reader_src/moby-dick/", { restore: true });
-            
-            
+
+
         </script>
     </head>
     <body>
         <div id="main">
           <div id="prev" onclick="Book.prevPage();" class="arrow">‹</div>
           <div id="area"></div>
-          <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
+          <div id="next" onclick="Book.nextPage();" class="arrow">›</div>
           <div id="loader"><img src="../reader/img/loader.gif"></div>
           <select id="toc"></select>
         </div>
 
-        <script>            
-            
+        <script>
+
             Book.getMetadata().then(function(meta){
 
                 document.title = meta.bookTitle+" – "+meta.creator;
-                
+
             });
 
             Book.getToc().then(function(toc){
@@ -84,13 +84,13 @@
               $select.onchange = function(){
                   var index = $select.selectedIndex,
                       url = $select.options[index].ref;
-                  
+
                   Book.goto(url);
                   return false;
               }
 
             });
-            
+
             Book.ready.all.then(function(){
               document.getElementById("loader").style.display = "none";
             });
