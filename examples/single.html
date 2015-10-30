@@ -8,10 +8,10 @@
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-                
+
         <!-- EPUBJS Renderer -->
         <script src="../build/epub.min.js"></script>
-        
+
         <link rel="stylesheet" href="basic.css">
 
         <style type="text/css">
@@ -41,18 +41,18 @@
             padding: 40px 40px;
           }
 
-         
+
         </style>
-        
+
          <script>
             "use strict";
-            
+
             var Book = ePub("../reader/moby-dick/", {
               width: 400,
               height: 600,
               spreads : false
             });
-            
+
 
         </script>
     </head>
@@ -62,11 +62,11 @@
           <div id="wrapper">
             <div id="area"></div>
           </div>
-          <div id="next" onclick="Book.nextPage();"class="arrow">›</div>
+          <div id="next" onclick="Book.nextPage();" class="arrow">›</div>
         </div>
 
-        <script>            
-            
+        <script>
+
             Book.renderTo("area").then(function(){
               //Book.setStyle("width", "400px");
             });
