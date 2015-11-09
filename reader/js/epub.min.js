@@ -1599,7 +1599,7 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.11";
+EPUBJS.VERSION = "0.2.12";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -2199,7 +2199,7 @@ EPUBJS.Book.prototype.loadChange = function(url){
 EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 	renderer.Events.forEach(function(eventName){
 		renderer.off(eventName);
-	}	);
+	});
 };
 
 //-- Choose between a request from store or a request from network
@@ -3012,7 +3012,7 @@ EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	if(store){
 		promise = store.getXml(this.absolute);
 	}else{
-		promise = EPUBJS.core.request(this.absolute, 'xml', credentials);
+		promise = EPUBJS.core.request(this.absolute, false, credentials);
 	}
 
 	promise.then(function(xml){
@@ -3070,15 +3070,6 @@ EPUBJS.Chapter.prototype.url = function(_store){
 		url = this.absolute;
 		deferred.resolve(url);
 	}
-	/*
-	loaded = EPUBJS.core.request(url, 'xml', false);
-	loaded.then(function(contents){
-		chapter.contents = contents;
-		deferred.resolve(chapter.absolute);
-	}, function(error){
-		deferred.reject(error);
-	});
-	*/
 
 	return deferred.promise;
 };
@@ -3394,14 +3385,66 @@ EPUBJS.core.getEls = function(classes) {
 EPUBJS.core.request = function(url, type, withCredentials) {
 	var supportsURL = window.URL;
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-
 	var deferred = new RSVP.defer();
-
 	var xhr = new XMLHttpRequest();
+	var uri;
 
 	//-- Check from PDF.js:
 	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
 	var xhrPrototype = XMLHttpRequest.prototype;
+
+	var handler = function() {
+		var r;
+
+		if (this.readyState != this.DONE) return;
+
+		if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
+			if(type == 'xml'){
+        // If this.responseXML wasn't set, try to parse using a DOMParser from text
+        if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "application/xml");
+        } else {
+          r = this.responseXML;
+        }
+			}else
+			if(type == 'xhtml'){
+        if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+        } else {
+          r = this.responseXML;
+        }
+			}else
+			if(type == 'html'){
+				if(!this.responseXML){
+          r = new DOMParser().parseFromString(this.response, "text/html");
+        } else {
+          r = this.responseXML;
+        }
+			} else
+			if(type == 'json'){
+				r = JSON.parse(this.response);
+			}else
+			if(type == 'blob'){
+
+				if(supportsURL) {
+					r = this.response;
+				} else {
+					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+					r = new Blob([this.response]);
+				}
+
+			}else{
+				r = this.response;
+			}
+
+			deferred.resolve(r);
+		} else {
+			deferred.reject({
+				message : this.response,
+				stack : new Error().stack
+			});
+		}
+	};
 
 	if (!('overrideMimeType' in xhrPrototype)) {
 		// IE10 might have response, but not overrideMimeType
@@ -3409,11 +3452,19 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
 		});
 	}
+
+	xhr.open("GET", url, true);
+	xhr.onreadystatechange = handler;
+
 	if(withCredentials) {
 		xhr.withCredentials = true;
 	}
-	xhr.open("GET", url, true);
-	xhr.onreadystatechange = handler;
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		uri = EPUBJS.core.uri(url);
+		type = uri.extension;
+	}
 
 	if(type == 'blob'){
 		xhr.responseType = BLOB_RESPONSE;
@@ -3424,55 +3475,23 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	}
 
 	if(type == 'xml') {
-		xhr.overrideMimeType('text/xml');
+		xhr.responseType = "document";
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
+
+	if(type == 'xhtml') {
+		xhr.responseType = "document";
+	}
+
+	if(type == 'html') {
+		xhr.responseType = "document";
+ 	}
 
 	if(type == "binary") {
 		xhr.responseType = "arraybuffer";
 	}
 
 	xhr.send();
-
-	function handler() {
-		if (this.readyState === this.DONE) {
-			if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
-				var r;
-
-				if(type == 'xml'){
-
-          // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          if(!this.responseXML){
-            r = new DOMParser().parseFromString(this.response, "text/xml");
-          } else {
-            r = this.responseXML;
-          }
-          
-				}else
-				if(type == 'json'){
-					r = JSON.parse(this.response);
-				}else
-				if(type == 'blob'){
-
-					if(supportsURL) {
-						r = this.response;
-					} else {
-						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-						r = new Blob([this.response]);
-					}
-
-				}else{
-					r = this.response;
-				}
-
-				deferred.resolve(r);
-			} else {
-				deferred.reject({
-					message : this.response,
-					stack : new Error().stack
-				});
-			}
-		}
-	}
 
 	return deferred.promise;
 };
@@ -3979,6 +3998,7 @@ EPUBJS.core.values = function(object) {
   }
   return result;
 };
+
 EPUBJS.EpubCFI = function(cfiStr){
   if(cfiStr) return this.parse(cfiStr);
 };
@@ -4893,7 +4913,7 @@ EPUBJS.Locations = function(spine, store, credentials) {
   this.spine = spine;
   this.store = store;
   this.credentials = credentials;
-  
+
   this.epubcfi = new EPUBJS.EpubCFI();
 
   this._locations = [];
@@ -4909,6 +4929,7 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 	var deferred = new RSVP.defer();
 	var spinePos = -1;
 	var spineLength = this.spine.length;
+  var finished;
 	var nextChapter = function(deferred){
 		var chapter;
 		var next = spinePos + 1;
@@ -4931,7 +4952,11 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 		return done.promise;
 	}.bind(this);
 
-	var finished = nextChapter().then(function(){
+  if(typeof chars === 'number') {
+    this.break = chars;
+  }
+
+	finished = nextChapter().then(function(){
     this.total = this._locations.length-1;
 
     if (this._currentCfi) {
@@ -6788,15 +6813,8 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 
 // Get the cfi of the current page
 EPUBJS.Renderer.prototype.getPageCfi = function(){
-	var pg;
-	if (this.spreads) {
-		pg = this.chapterPos*2;
-		startRange = this.pageMap[pg-2];
-	} else {
-		pg = this.chapterPos;
-		startRange = this.pageMap[pg-1];
-	}
-	return this.pageMap[(this.chapterPos * 2) -1].start;
+	var pg = (this.chapterPos * 2)-1;
+	return this.pageMap[pg].start;
 };
 
 EPUBJS.Renderer.prototype.getRange = function(x, y, forceElement){
@@ -7189,31 +7207,35 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 				isRelative = href.search("://"),
 				directory,
 				relative,
-				location;
+				location,
+				base,
+				uri,
+				url;
 
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-		    // Links may need to be resolved, such as ../chp1.xhtml
-            var uri = EPUBJS.core.uri(renderer.render.window.location.href);
+			// Links may need to be resolved, such as ../chp1.xhtml
+			base = renderer.render.docEl.querySelector('base');
+			url = base.getAttribute("href");
+			uri = EPUBJS.core.uri(url);
+			directory = uri.directory;
 
-            directory = uri.directory;
-
-            if(directory) {
-                // We must ensure that the file:// protocol is preserved for
-                // local file links, as in certain contexts (such as under
-                // Titanium), file links without the file:// protocol will not
-                // work
-                if (uri.protocol === "file") {
-                    relative = EPUBJS.core.resolveUrl(uri.base, href);
-                } else {
-                    relative = EPUBJS.core.resolveUrl(directory, href);
-                }
-            } else {
-                relative = href;
-            }
+			if(directory) {
+				// We must ensure that the file:// protocol is preserved for
+				// local file links, as in certain contexts (such as under
+				// Titanium), file links without the file:// protocol will not
+				// work
+				if (uri.protocol === "file") {
+					relative = EPUBJS.core.resolveUrl(uri.base, href);
+				} else {
+					relative = EPUBJS.core.resolveUrl(directory, href);
+				}
+			} else {
+				relative = href;
+			}
 
 			link.onclick = function(){
 				book.goto(relative);
@@ -7620,7 +7642,8 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	return this.getText(decodededUrl, encoding).
 			then(function(text){
 				var parser = new DOMParser();
-				return parser.parseFromString(text, "text/xml");
+				var mimeType = EPUBJS.core.getMimeType(url);
+				return parser.parseFromString(text, mimeType);
 			});
 
 };
@@ -7633,7 +7656,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob;
-	
+
 	if(!entry) {
 		deferred.reject({
 			message : "File not found in the epub: " + url,
@@ -7739,7 +7762,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"rdf+xml" : "rdf",
 			"smil" : [ "smi", "smil" ],
 			"xhtml+xml" : [ "xhtml", "xht" ],
-			"xml" : [ "xml", "xsl", "xsd" ],
+			"xml" : [ "xml", "xsl", "xsd", "opf" ],
 			"zip" : "zip",
 			"x-httpd-eruby" : "rhtml",
 			"x-latex" : "latex",
@@ -7755,7 +7778,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"mathml+xml" : "mathml",
 			"metalink+xml" : "metalink",
 			"mp4" : "mp4s",
-			"oebps-package+xml" : "opf",
+			// "oebps-package+xml" : "opf",
 			"omdoc+xml" : "omdoc",
 			"oxps" : "oxps",
 			"vnd.amazon.ebook" : "azw",
@@ -7921,4 +7944,5 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 	};
 
 })();
+
 //# sourceMappingURL=epub.js.map

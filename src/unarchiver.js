@@ -28,7 +28,8 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 	return this.getText(decodededUrl, encoding).
 			then(function(text){
 				var parser = new DOMParser();
-				return parser.parseFromString(text, "text/xml");
+				var mimeType = EPUBJS.core.getMimeType(url);
+				return parser.parseFromString(text, mimeType);
 			});
 
 };
@@ -41,7 +42,7 @@ EPUBJS.Unarchiver.prototype.getUrl = function(url, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob;
-	
+
 	if(!entry) {
 		deferred.reject({
 			message : "File not found in the epub: " + url,
