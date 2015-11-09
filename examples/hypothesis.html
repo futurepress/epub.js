@@ -10,18 +10,17 @@
 
         <link rel="stylesheet" href="../reader/css/normalize.css">
         <link rel="stylesheet" href="../reader/css/main.css">
-        <link rel="stylesheet" href="../reader/css/popup.css">
         <script src="../reader/js/libs/jquery.min.js"></script>
 
         <script>
-            "use strict";
+          "use strict";
 
-            document.onreadystatechange = function () {
-              if (document.readyState == "complete") {
-                EPUBJS.cssPath = "../reader/css/";
-                ePubReader("../reader/moby-dick/");
-              }
-            };
+          document.onreadystatechange = function () {
+            if (document.readyState == "complete") {
+              EPUBJS.cssPath = "../reader/css/";
+              ePubReader("../reader/moby-dick/");
+            }
+          };
 
         </script>
 
@@ -40,6 +39,7 @@
         <!-- Hypothesis -->
         <script src="../hooks/extensions/hypothesis.js"></script>
         <script src="../reader_src/plugins/hypothesis.js"></script>
+        <script src="//hypothes.is/embed.js"></script>
 
         <style>
           #hypothesis {
