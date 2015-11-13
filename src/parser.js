@@ -85,7 +85,7 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 	manifest = parse.manifest(manifestNode);
 	navPath = parse.findNavPath(manifestNode);
 	tocPath = parse.findTocPath(manifestNode, spineNode);
-	coverPath = parse.findCoverPath(manifestNode);
+	coverPath = parse.findCoverPath(packageXml);
 
 	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
 
@@ -139,9 +139,17 @@ EPUBJS.Parser.prototype.findTocPath = function(manifestNode, spineNode){
 };
 
 //-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-EPUBJS.Parser.prototype.findCoverPath = function(manifestNode){
-	var node = manifestNode.querySelector("item[properties='cover-image']");
-	return node ? node.getAttribute('href') : false;
+//-- Fallback for Epub 2.0
+EPUBJS.Parser.prototype.findCoverPath = function(packageXml){
+	var epubVersion = packageXml.querySelector('package').getAttribute('version');
+	if (epubVersion === '2.0') {
+		var coverId = packageXml.querySelector('meta[name="cover"]').getAttribute('content');
+		return packageXml.querySelector("item[id='" + coverId + "']").getAttribute('href');
+	}
+	else {
+		var node = packageXml.querySelector("item[properties='cover-image']");
+		return node ? node.getAttribute('href') : false;
+	}
 };
 
 //-- Expanded to match Readium web components
