@@ -371,9 +371,9 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					}, _wait);
 				}
 
-				link.setAttribute(_attr, url);
-
-
+				if (url) {
+					link.setAttribute(_attr, url);
+				}
 
 			};
 
