@@ -93,6 +93,9 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	if(!type) {
 		uri = EPUBJS.core.uri(url);
 		type = uri.extension;
+		type = {
+			'htm': 'html'
+		}[type] || type;
 	}
 
 	if(type == 'blob'){
