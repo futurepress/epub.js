@@ -269,7 +269,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 EPUBJS.Parser.prototype.querySelectorByType = function(html, element, type){
 	var query = html.querySelector(element+'[*|type="'+type+'"]');
 	// Handle IE not supporting namespaced epub:type in querySelector
-	if(query.length === 0) {
+	if(query === null || query.length === 0) {
 		query = html.querySelectorAll(element);
 		for (var i = 0; i < query.length; i++) {
 			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
