@@ -5227,6 +5227,7 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 
 
 			// this.map = new EPUBJS.Map(view, this.layout);
+			this.hooks.show.trigger(view, this);
 			this.trigger("rendered", view.section);
 
 		}.bind(this))
@@ -5648,7 +5649,6 @@ EPUBJS.Continuous.prototype.afterDisplayed = function(currView){
 
 	// this.removeShownListeners(currView);
 	// currView.onShown = this.afterDisplayed.bind(this);
-
 	this.trigger("added", currView.section);
 
 };
@@ -5854,11 +5854,6 @@ EPUBJS.Continuous.prototype.onScroll = function(){
 
     if(!this.ignore) {
 
-	    // this.trigger("scroll", {
-	    //   top: scrollTop,
-	    //   left: scrollLeft
-	    // });
-
 	    if((this.scrollDeltaVert === 0 &&
 	    	 this.scrollDeltaHorz === 0) ||
 	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
@@ -5869,6 +5864,11 @@ EPUBJS.Continuous.prototype.onScroll = function(){
 				this.scrollDeltaVert = 0;
 	    	this.scrollDeltaHorz = 0;
 
+				this.trigger("scroll", {
+		      top: scrollTop,
+		      left: scrollLeft
+		    });
+
 			}
 
 		} else {
@@ -5878,15 +5878,9 @@ EPUBJS.Continuous.prototype.onScroll = function(){
     this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
     this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
 
-		if(this.settings.height) {
-			this.prevScrollTop = this.container.scrollTop;
-			this.prevScrollLeft = this.container.scrollLeft;
-		} else {
-			this.prevScrollTop = window.scrollY;
-			this.prevScrollLeft = window.scrollX;
-		}
-
-
+		this.prevScrollTop = scrollTop;
+		this.prevScrollLeft = scrollLeft;
+		
   	clearTimeout(this.scrollTimeout);
 		this.scrollTimeout = setTimeout(function(){
 			this.scrollDeltaVert = 0;

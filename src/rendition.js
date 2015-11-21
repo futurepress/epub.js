@@ -280,6 +280,7 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 
 
 			// this.map = new EPUBJS.Map(view, this.layout);
+			this.hooks.show.trigger(view, this);
 			this.trigger("rendered", view.section);
 
 		}.bind(this))
