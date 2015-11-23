@@ -531,10 +531,5 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
 };
 
 EPUBJS.EpubCFI.prototype.isCfiString = function(target) {
-  if(typeof target === "string" &&
-    target.indexOf("epubcfi(") === 0) {
-      return true;
-  }
-
-  return false;
+  return typeof target === 'string' && target.indexOf('epubcfi(') === 0;
 };
