@@ -1,6 +1,27 @@
 EPUBJS.Hooks.register("beforeChapterDisplay").hypothesis = function(callback, renderer, chapter) {
 	renderer.render.window.hypothesisConfig = function () {
 
+		this.Annotator.Guest.prototype.onHighlightClick = function(event) {
+		    var annotation, annotations, xor;
+		    if (!this.visibleHighlights) {
+		      return;
+		    }
+		    annotation = $(event.currentTarget).data('annotation');
+		    annotations = event.annotations != null ? event.annotations : event.annotations = [];
+		    annotations.push(annotation);
+		    // Open the sidebar.
+		    window.parent.annotator.show();
+		    if (event.target === event.currentTarget) {
+		      xor = event.metaKey || event.ctrlKey;
+		      return setTimeout((function(_this) {
+		        return function() {
+		          return _this.selectAnnotations(annotations, xor);
+		        };
+		      })(this));
+		    }
+		  }
+
+
 		this.Annotator.Guest.prototype.createAnnotation = function(annotation) {
 		    var getSelectors, info, metadata, ranges, ref, root, selectors, self, setDocumentInfo, setTargets, targets;
 		    if (annotation == null) {
@@ -49,6 +70,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").hypothesis = function(callback, re
 		    targets.then(function() {
 		      return self.anchor(annotation);
 		    });
+		    // Open the sidebar.
 		    window.parent.annotator.show();
 		    return annotation;		
 		}
@@ -67,7 +89,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").hypothesis = function(callback, re
 		}
 
 		// Must add after base css
-		EPUBJS.core.addCss("/reader/css/annotations.css", function() {
+		EPUBJS.core.addCss("../../css/annotations.css", function() {
 			callback();
 		}, renderer.doc.head);
 	}, renderer.doc.head);
