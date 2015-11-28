@@ -61,7 +61,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
-	"renderer:visibleLocationChanged",
+	"renderer:visibleRangeChanged",
 	"renderer:resized",
 	"renderer:spreads"
 ];
@@ -87,8 +87,6 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 	} else {
 		this.render.resize('100%', '100%');
 	}
-
-	document.addEventListener("orientationchange", this.onResized);
 };
 
 /**
