@@ -308,7 +308,6 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 		this.displayedPages = this.pageMap.length;
 	}
 
-	// this.currentChapter.pages = layout.pageCount;
 	this.currentChapter.pages = this.pageMap.length;
 
 	this._q.flush();
@@ -916,7 +915,7 @@ EPUBJS.Renderer.prototype.currentRenderedPage = function(){
 		return false;
 	}
 
-	if (this.spreads && this.layout.pageCount > 1) {
+	if (this.spreads && this.pageMap.length > 1) {
 		pg = this.chapterPos*2;
 	} else {
 		pg = this.chapterPos;
@@ -962,7 +961,7 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 		startRange = this.pageMap[pg-2];
 		endRange = startRange;
 
-		if(this.layout.pageCount > 1) {
+		if(this.pageMap.length > 1) {
 			endRange = this.pageMap[pg-1];
 		}
 	} else {
