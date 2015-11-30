@@ -608,7 +608,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var elLimit = 0;
 	var prevRange;
 	var cfi;
+	var lastChildren = null;
 	var check = function(node) {
+//                console.log( "check", node );
 		var elPos;
 		var elRange;
 		var children = Array.prototype.slice.call(node.childNodes);
@@ -622,6 +624,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 				return;
 			}
 
+			lastChildren = children; 
 			//-- Element starts new Col
 			if(elPos.left > elLimit) {
 				children.forEach(function(node){
@@ -630,6 +633,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 						checkText(node);
 					}
 				});
+				lastChildren = null;
 			}
 
 			//-- Element Spans new Col
@@ -640,11 +644,13 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 						checkText(node);
 					}
 				});
+				lastChildren = null;
 			}
 		}
 
 	};
 	var checkText = function(node){
+//                console.log( "checkText", node );
 		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
 		ranges.forEach(function(range){
 			var pos = range.getBoundingClientRect();
@@ -693,6 +699,17 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	}
 
 	this.sprint(root, check);
+
+	// Check the remaining children that fit on this page
+	// to ensure the end is correctly calculated
+	if (lastChildren !== null) {
+		lastChildren.forEach(function(node){
+			if(node.nodeType == Node.TEXT_NODE &&
+			   node.textContent.trim().length) {
+				checkText(node);
+			}
+		});
+	}
 
 	// Reset back to previous RTL settings
 	if(dir == "rtl") {
