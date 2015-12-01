@@ -6730,12 +6730,12 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 		startRange = this.doc.createRange();
 		startRange.selectNodeContents(root);
 		startRange.collapse(true);
-		startCfi = renderer.currentChapter.cfiFromRange(range);
+		startCfi = renderer.currentChapter.cfiFromRange(startRange);
 
 		endRange = this.doc.createRange();
 		endRange.selectNodeContents(root);
 		endRange.collapse(false);
-		endCfi = renderer.currentChapter.cfiFromRange(range);
+		endCfi = renderer.currentChapter.cfiFromRange(endRange);
 
 
 		map.push({ start: startCfi, end: endCfi });

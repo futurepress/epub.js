@@ -52,26 +52,6 @@
               height: 600
             });
 
-            Book.on("renderer:locationChanged", function(cfi) {
-              console.log("page start", Book.renderer.visibleRangeCfi.start);
-              console.log("page end", Book.renderer.visibleRangeCfi.end);
-            });
-            function cfiparse(s) {
-              return new EPUBJS.EpubCFI(s);
-            }
-            Book.on("renderer:selected", function(range) {
-              if (range != null && range.type == "Range" ) {
-                var cficmp = Book.locations.epubcfi.compare;
-                var epubcfi = new EPUBJS.EpubCFI();
-                var selectedCfi = epubcfi.generateCfiFromRangeAnchor(range, Book.renderer.currentChapter.cfiBase);
-                console.log("selected",selectedCfi);
-                var start = cfiparse(Book.renderer.visibleRangeCfi.start);
-                var sel = cfiparse(selectedCfi);
-                var end = cfiparse(Book.renderer.visibleRangeCfi.end);
-                console.log("in-page-range", cficmp(start, sel) <= 0 && cficmp(sel,end) <= 0);
-
-              }
-});
 
         </script>
     </head>
