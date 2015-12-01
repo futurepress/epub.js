@@ -543,6 +543,26 @@ EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 	});
 };
 
+//-- Returns the cover
+EPUBJS.Book.prototype.coverUrl = function(){
+	var retrieved = this.ready.cover.promise
+		.then(function(url) {
+			if(this.settings.fromStorage) {
+				return this.store.getUrl(this.contents.cover);
+			} else if(this.settings.contained) {
+				return this.zip.getUrl(this.contents.cover);
+			}else{
+				return this.contents.cover;
+			}
+		}.bind(this));
+
+	retrieved.then(function(url) {
+			this.cover = url;
+		}.bind(this));
+
+	return retrieved;
+};
+
 //-- Choose between a request from store or a request from network
 EPUBJS.Book.prototype.loadXml = function(url){
 	if(this.settings.fromStorage) {
