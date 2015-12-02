@@ -8,9 +8,16 @@ module.exports = function(grunt) {
 			'<%= grunt.template.today("yyyy-mm-dd") %> */'
 		},
 		concat_sourcemap : {
-		'build/epub.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
-		'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
-		'build/hooks.js': ['<banner>', 'hooks/default/*.js']
+			options: {
+				'sourceRoot': '../'
+			},
+			target: {
+      	files: {
+					'build/epub.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
+					'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
+					'build/hooks.js': ['<banner>', 'hooks/default/*.js']
+				}
+			}
 		},
 		uglify: {
 			my_target: {
