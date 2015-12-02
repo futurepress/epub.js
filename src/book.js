@@ -1329,10 +1329,10 @@ RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-	//console.error(event, event.detail);
+	console.error(event);
 });
 
-RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
+// RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);

@@ -3000,10 +3000,10 @@ RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-	//console.error(event, event.detail);
+	console.error(event);
 });
 
-RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
+// RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
@@ -6175,9 +6175,7 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 	this.visible(false);
 
-	render = this.render.load(contents, url);
-
-	render.then(function(contents) {
+	this.render.load(contents, url).then(function(contents) {
 
 		this.afterLoad(contents);
 
@@ -6629,6 +6627,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var limit = (width * page) - offset;// (width * page) - offset;
 	var elLimit = 0;
 	var prevRange;
+	var prevRanges;
 	var cfi;
 	var lastChildren = null;
 	var prevElement;
@@ -6669,7 +6668,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var checkText = function(node){
 		var result;
 		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
-		var prevRanges;
+
 		ranges.forEach(function(range){
 			var pos = range.getBoundingClientRect();
 
@@ -6764,8 +6763,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 	// clean up
 	prevRange = null;
-	prevRanges = null;
-	ranges = null;
+	prevRanges = undefined;
 	startRange = null;
 	endRange = null;
 	root = null;
@@ -6802,7 +6800,7 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 
 	// Usage of indexOf() function for space character as word delimiter
 	// is not sufficient in case of other breakable characters like \r\n- etc
-	pos = this.indexOfBreakableChar(text);
+	var pos = this.indexOfBreakableChar(text);
 
 	if(pos === -1) {
 		range = this.doc.createRange();

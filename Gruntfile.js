@@ -8,10 +8,10 @@ module.exports = function(grunt) {
 			'<%= grunt.template.today("yyyy-mm-dd") %> */'
 		},
 		concat_sourcemap : {
-			options: {
-				'sourceRoot': '../'
-			},
-			target: {
+			build: {
+				options: {
+					'sourceRoot': '../'
+				},
       	files: {
 					'build/epub.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
 					'build/reader.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
@@ -20,27 +20,32 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
-			my_target: {
+			build: {
 				options: {
 						preserveComments: 'some',
 						sourceMap: true
 				},
 				files: {
-					'build/epub.min.js': ['build/epub.js'],
-					'build/reader.min.js': ['build/reader.js'],
-					'build/hooks.min.js': ['build/hooks.js']
+					'build/epub.min.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
+					'build/reader.min.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
+					'build/hooks.min.js': ['<banner>', 'hooks/default/*.js']
+				}
+			},
+			reader: {
+				options: {
+						preserveComments: 'some',
+						sourceMap: true
+				},
+				files: {
+					'reader/js/epub.min.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
+					'reader/js/reader.min.js': ['<banner>', 'reader_src/reader.js', 'reader_src/controllers/*.js'],
+					'reader/js/hooks.min.js': ['<banner>', 'hooks/default/*.js']
 				}
 			}
 		},
 		copy: {
 			main: {
 				files: [
-					{src: 'build/epub.js', dest: 'reader/js/epub.min.js'},
-					{src: 'build/hooks.min.js', dest: 'reader/js/hooks.min.js'},
-					{src: 'build/reader.min.js', dest: 'reader/js/reader.min.js'},
-					{src: 'build/epub.min.map', dest: 'reader/js/epub.js.map'},
-					{src: 'build/hooks.min.map', dest: 'reader/js/hooks.js.map'},
-					{src: 'build/reader.js.map', dest: 'reader/js/hooks.js.map'},
 					{src: 'node_modules/localforage/dist/localforage.min.js', dest: 'build/libs/localforage.min.js'},
 					{src: 'libs/jszip/jszip.min.js', dest: 'build/libs/zip.min.js'},
 					{src: 'build/libs/zip.min.js', dest: 'reader/js/libs/zip.min.js'},
@@ -86,7 +91,7 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			scripts: {
-				files: ['src/**/*.js', 'reader/**/*.js', 'reader_src/**/*.js'],
+				files: ['src/**/*.js', 'reader_src/**/*.js'],
 				tasks: ['concat_sourcemap', 'uglify'],
 				options: {
 					interrupt: true,
