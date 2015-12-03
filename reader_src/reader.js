@@ -30,7 +30,7 @@ EPUBJS.Reader = function(bookPath, _options) {
 
 	this.settings = EPUBJS.core.defaults(_options || {}, {
 		bookPath : bookPath,
-		restore : true,
+		restore : false,
 		reload : false,
 		bookmarks : undefined,
 		annotations : undefined,

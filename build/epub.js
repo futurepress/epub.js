@@ -1963,6 +1963,8 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 		book.loadXml(book.settings.tocUrl).
 			then(function(tocXml){
 					return parse.toc(tocXml, book.spineIndexByURL, book.spine); // Grab Table of Contents
+			}, function(err) {
+				console.error(err);
 			}).then(function(toc){
 				book.toc = book.contents.toc = toc;
 				book.ready.toc.resolve(book.contents.toc);
@@ -6328,6 +6330,8 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 EPUBJS.Renderer.prototype.reformat = function(){
 	var renderer = this;
 	var formated, pages;
+	var spreads;
+	
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
@@ -7818,7 +7822,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"rdf+xml" : "rdf",
 			"smil" : [ "smi", "smil" ],
 			"xhtml+xml" : [ "xhtml", "xht" ],
-			"xml" : [ "xml", "xsl", "xsd", "opf" ],
+			"xml" : [ "xml", "xsl", "xsd", "opf", "ncx" ],
 			"zip" : "zip",
 			"x-httpd-eruby" : "rhtml",
 			"x-latex" : "latex",
@@ -7839,7 +7843,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"oxps" : "oxps",
 			"vnd.amazon.ebook" : "azw",
 			"widget" : "wgt",
-			"x-dtbncx+xml" : "ncx",
+			// "x-dtbncx+xml" : "ncx",
 			"x-dtbook+xml" : "dtb",
 			"x-dtbresource+xml" : "res",
 			"x-font-bdf" : "bdf",

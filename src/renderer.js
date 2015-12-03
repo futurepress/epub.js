@@ -315,6 +315,8 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 EPUBJS.Renderer.prototype.reformat = function(){
 	var renderer = this;
 	var formated, pages;
+	var spreads;
+	
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
