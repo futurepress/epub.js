@@ -22,10 +22,10 @@
             document.onreadystatechange = function () {
               if (document.readyState == "complete") {
                 EPUBJS.filePath = "js/libs/";
-                EPUBJS.cssPath =  window.location.href.replace(window.location.hash, '') + "css/";
+                EPUBJS.cssPath = window.location.href.replace(window.location.hash, '').replace('index.html', '') + "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                var reader = ePubReader("moby-dick/");
+                window.reader = ePubReader("moby-dick/");
               }
             };
 

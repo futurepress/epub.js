@@ -943,6 +943,8 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			spinePos,
 			spineItem,
 			rendered,
+			promise,
+			render,
 			deferred = defer || new RSVP.defer();
 
 	if(!this.isRendered) {
@@ -980,18 +982,13 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			spineItem = this.spine[spinePos];
 		}
 
-		this.currentChapter = new EPUBJS.Chapter(spineItem, this.store);
+		render = this.displayChapter(cfiString);
 
-		if(this.currentChapter) {
-			this.spinePos = spinePos;
-			render = this.renderer.displayChapter(this.currentChapter, this.globalLayoutProperties);
+		render.then(function(rendered){
+			this._moving = false;
+			deferred.resolve(rendered.currentLocationCfi);
+		}.bind(this));
 
-			this.renderer.gotoCfi(cfi);
-			render.then(function(rendered){
-					this._moving = false;
-					deferred.resolve(rendered.currentLocationCfi);
-			}.bind(this));
-		}
 	}
 
 	promise.then(function(){
