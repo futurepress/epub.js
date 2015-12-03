@@ -1599,7 +1599,7 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.12";
+EPUBJS.VERSION = "0.2.13";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 

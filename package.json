@@ -1,6 +1,6 @@
 {
   "name": "epub.js",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "repository": "https://github.com/futurepress/epub.js",
   "description": "Render ePub documents in the browser, across many devices",
   "main": "server.js",
