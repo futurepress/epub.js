@@ -3867,8 +3867,11 @@ Locations.prototype.precentageFromCfi = function(cfi) {
   return this.precentageFromLocation(loc);
 };
 
-Locations.prototype.precentageFromLocation = function(loc) {
-  return Math.ceil((loc / this.total ) * 1000) / 1000;
+Locations.prototype.percentageFromLocation = function(loc) {
+  if (!loc || !this.total) {
+    return 0;
+  }
+  return (loc / this.total);
 };
 
 Locations.prototype.cfiFromLocation = function(loc){
@@ -3885,8 +3888,10 @@ Locations.prototype.cfiFromLocation = function(loc){
 	return cfi;
 };
 
-Locations.prototype.cfiFromPercentage = function(percent){
-	var loc = Math.round(this.total * percent);
+EPUBJS.Locations.prototype.cfiFromPercentage = function(value){
+  var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
+	var loc = Math.ceil(this.total * percentage);
+
 	return this.cfiFromLocation(loc);
 };
 
@@ -3925,7 +3930,7 @@ Locations.prototype.setCurrent = function(curr){
   } else {
     loc = curr;
   }
-  console.log( this.precentageFromLocation(loc))
+
   this.trigger("changed", {
     percentage: this.precentageFromLocation(loc)
   });
