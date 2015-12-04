@@ -4,6 +4,13 @@ var request = require('./request');
 var mime = require('../libs/mime/mime');
 
 function Unarchive() {
+
+  this.checkRequirements();
+  this.urlCache = {};
+
+}
+
+Unarchive.prototype.checkRequirements = function(callback){
   try {
     if (typeof JSZip !== 'undefined') {
       this.zip = new JSZip();
@@ -14,7 +21,7 @@ function Unarchive() {
   } catch (e) {
     console.error("JSZip lib not loaded");
   }
-}
+};
 
 Unarchive.prototype.open = function(zipUrl){
 	if (zipUrl instanceof ArrayBuffer) {
@@ -115,7 +122,7 @@ Unarchive.prototype.createUrl = function(url, mime){
 		return deferred.promise;
 	}
 
-	blob = this.getText(url);
+	blob = this.getBlob(url);
 
   if (blob) {
     tempUrl = _URL.createObjectURL(blob);

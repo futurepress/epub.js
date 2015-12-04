@@ -186,7 +186,7 @@ Book.prototype.unpack = function(packageXml){
   // MOVE TO RENDER
   // book.globalLayoutProperties = book.parseLayoutProperties(book.package.metadata);
 
-  book.cover = book.url + book.package.coverPath;
+  book.cover = book.baseUrl + book.package.coverPath;
 };
 
 // Alias for book.spine.get
@@ -251,6 +251,21 @@ Book.prototype.isArchived = function(bookUrl){
 	return false;
 };
 
+//-- Returns the cover
+Book.prototype.coverUrl = function(){
+	var retrieved = this.loaded.cover
+		.then(function(url) {
+			if(this.archive) {
+				return this.archive.createUrl(this.cover);
+			}else{
+				return this.cover;
+			}
+		}.bind(this));
+
+
+
+	return retrieved;
+};
 module.exports = Book;
 
 //-- Enable binding events to book

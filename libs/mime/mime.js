@@ -166,4 +166,6 @@ function lookup(filename) {
 	return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || defaultValue;
 };
 
-module.exports = lookup
+module.exports = {
+	'lookup': lookup
+}
