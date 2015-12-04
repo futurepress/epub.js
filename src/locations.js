@@ -161,7 +161,7 @@ Locations.prototype.cfiFromLocation = function(loc){
 	return cfi;
 };
 
-EPUBJS.Locations.prototype.cfiFromPercentage = function(value){
+Locations.prototype.cfiFromPercentage = function(value){
   var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
 	var loc = Math.ceil(this.total * percentage);
 

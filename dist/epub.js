@@ -3460,6 +3460,25 @@ EpubCFI.prototype.generateXpathFromSteps = function(steps) {
   return xpath.join("/");
 };
 
+EpubCFI.prototype.generateQueryFromSteps = function(steps) {
+  var query = ["html"];
+
+  steps.forEach(function(step){
+    var position = step.index + 1;
+
+    if(step.id){
+      query.push("#" + step.id);
+    } else if(step.type === "text") {
+      // unsupported in querySelector
+      // query.push("text()[" + position + "]");
+    } else {
+      query.push("*:nth-child(" + position + ")");
+    }
+  });
+
+  return query.join(">");
+};
+
 
 EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
   var doc = _doc || document;
@@ -3468,6 +3487,8 @@ EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
   var xpath;
   var startContainer;
   var textLength;
+  var query;
+  var startContainerParent;
 
   if(typeof cfi === 'string') {
     cfi = this.parse(cfi);
@@ -3479,11 +3500,22 @@ EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
     return false;
   }
 
-  xpath = this.generateXpathFromSteps(cfi.steps);
-
   // Get the terminal step
   lastStep = cfi.steps[cfi.steps.length-1];
-  startContainer = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+  if(typeof document.evaluate != 'undefined') {
+    xpath = this.generateXpathFromSteps(cfi.steps);
+    startContainer = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  } else {
+      // Get the query string
+      query = this.generateQueryFromSteps(cfi.steps);
+      // Find the containing element
+      startContainerParent = doc.querySelector(query);
+      // Find the text node within that element
+      if(startContainerParent && lastStep.type == "text") {
+        startContainer = startContainerParent.childNodes[lastStep.index];
+      }
+  }
 
   if(!startContainer) {
     return null;
@@ -3888,7 +3920,7 @@ Locations.prototype.cfiFromLocation = function(loc){
 	return cfi;
 };
 
-EPUBJS.Locations.prototype.cfiFromPercentage = function(value){
+Locations.prototype.cfiFromPercentage = function(value){
   var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
 	var loc = Math.ceil(this.total * percentage);
 
