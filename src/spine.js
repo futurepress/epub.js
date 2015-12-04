@@ -1,4 +1,9 @@
-EPUBJS.Spine = function(_request){
+var RSVP = require('rsvp');
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
+var Section = require('./section');
+
+function Spine(_request){
   this.request = _request;
   this.spineItems = [];
   this.spineByHref = {};
@@ -6,14 +11,14 @@ EPUBJS.Spine = function(_request){
 
 };
 
-EPUBJS.Spine.prototype.load = function(_package) {
+Spine.prototype.load = function(_package) {
 
   this.items = _package.spine;
   this.manifest = _package.manifest;
   this.spineNodeIndex = _package.spineNodeIndex;
   this.baseUrl = _package.baseUrl || '';
   this.length = this.items.length;
-  this.epubcfi = new EPUBJS.EpubCFI();
+  this.epubcfi = new EpubCFI();
 
   this.items.forEach(function(item, index){
     var href, url;
@@ -39,7 +44,7 @@ EPUBJS.Spine.prototype.load = function(_package) {
       item.next = function(){ return this.get(index+1); }.bind(this);
     // }
 
-    spineItem = new EPUBJS.Section(item);
+    spineItem = new Section(item);
     this.append(spineItem);
 
 
@@ -51,7 +56,7 @@ EPUBJS.Spine.prototype.load = function(_package) {
 // book.spine.get(1);
 // book.spine.get("chap1.html");
 // book.spine.get("#id1234");
-EPUBJS.Spine.prototype.get = function(target) {
+Spine.prototype.get = function(target) {
   var index = 0;
 
   if(this.epubcfi.isCfiString(target)) {
@@ -70,7 +75,7 @@ EPUBJS.Spine.prototype.get = function(target) {
   return this.spineItems[index] || null;
 };
 
-EPUBJS.Spine.prototype.append = function(section) {
+Spine.prototype.append = function(section) {
   var index = this.spineItems.length;
   section.index = index;
 
@@ -82,7 +87,7 @@ EPUBJS.Spine.prototype.append = function(section) {
   return index;
 };
 
-EPUBJS.Spine.prototype.prepend = function(section) {
+Spine.prototype.prepend = function(section) {
   var index = this.spineItems.unshift(section);
   this.spineByHref[section.href] = 0;
   this.spineById[section.idref] = 0;
@@ -95,11 +100,11 @@ EPUBJS.Spine.prototype.prepend = function(section) {
   return 0;
 };
 
-EPUBJS.Spine.prototype.insert = function(section, index) {
+Spine.prototype.insert = function(section, index) {
 
 };
 
-EPUBJS.Spine.prototype.remove = function(section) {
+Spine.prototype.remove = function(section) {
   var index = this.spineItems.indexOf(section);
 
   if(index > -1) {
@@ -110,6 +115,8 @@ EPUBJS.Spine.prototype.remove = function(section) {
   }
 };
 
-EPUBJS.Spine.prototype.each = function() {
+Spine.prototype.each = function() {
 	return this.spineItems.forEach.apply(this.spineItems, arguments);
 };
+
+module.exports = Spine;

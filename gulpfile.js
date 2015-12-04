@@ -10,28 +10,14 @@ var onError = function (err) {
 };
 var server = require("./tools/serve.js");
 
-var files = [
-  'node_modules/rsvp/dist/rsvp.js',
-  'src/epub.js',
-  'src/core.js',
-  'src/queue.js',
-  'src/hooks.js',
-  'src/parser.js',
-  'src/epubcfi.js',
-  'src/navigation.js',
-  'src/section.js',
-  'src/spine.js',
-  'src/replacements.js',
-  'src/book.js',
-  'src/view.js',
-  'src/views.js',
-  'src/layout.js',
-  'src/rendition.js',
-  'src/continuous.js',
-  'src/paginate.js',
-  'src/map.js',
-  'src/locations.js'
-];
+var browserify = require('browserify');
+var watchify = require('watchify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var sourcemaps = require('gulp-sourcemaps');
+
+// https://github.com/mishoo/UglifyJS2/pull/265
+// uglify.AST_Node.warn_function = function() {};
 
 // Lint JS
 gulp.task('lint', function() {
@@ -40,20 +26,30 @@ gulp.task('lint', function() {
     .pipe(jshint.reporter('default'));
 });
 
-// Concat & Minify JS
-gulp.task('minify', function(){
-  return gulp.src(files)
+// set up the browserify instance on a task basis
+gulp.task('bundle', function () {
+  return bundle('epub.js');
+});
+
+// Minify JS
+gulp.task('minify', ['bundle'], function(){
+  var uglifyOptions = {
+      mangle: true,
+      preserveComments : "license"
+  };
+  return gulp.src('dist/epub.js')
     .pipe(plumber({ errorHandler: onError }))
-    .pipe(concat('epub.js'))
-    .pipe(gulp.dest('dist'))
     .pipe(rename('epub.min.js'))
-    .pipe(uglify())
+    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(uglify(uglifyOptions))
+    .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('dist'));
 });
 
 // Watch Our Files
 gulp.task('watch', function() {
-  gulp.watch('src/*.js', ['minify']);
+  // gulp.watch('src/*.js', ['watchify']);
+  return bundle('epub.js', true);
 });
 
 gulp.task('serve', ["watch"], function() {
@@ -61,8 +57,38 @@ gulp.task('serve', ["watch"], function() {
 });
 
 // Default
-gulp.task('default', ['lint', 'minify']);
+gulp.task('default', ['lint', 'build']);
 
 // gulp.task('default', function() {
 //   // place code for your default task here
 // });
+
+function bundle(file, watch) {
+  var opt = {
+    entries: ['src/'+file],
+    debug : true
+  };
+
+  // watchify() if watch requested, otherwise run browserify() once
+  var bundler = watch ? watchify(browserify(opt)) : browserify(opt);
+
+  function rebundle() {
+    var stream = bundler.bundle();
+    return stream
+      .on('error', gutil.log)
+      .pipe(source(file))
+      .pipe(buffer())
+      .pipe(sourcemaps.init({loadMaps: true}))
+      .pipe(sourcemaps.write('./'))
+      .pipe(gulp.dest('./dist/'));
+  }
+
+  // listen for an update and run rebundle
+  bundler.on('update', function() {
+    rebundle();
+    gutil.log('Rebundle...');
+  });
+
+  // run it once the first time buildScript is called
+  return rebundle();
+}

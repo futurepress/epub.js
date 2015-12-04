@@ -1,4 +1,9 @@
-EPUBJS.Section = function(item){
+var RSVP = require('rsvp');
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
+var Hook = require('./hook');
+
+function Section(item){
     this.idref = item.idref;
     this.linear = item.linear;
     this.properties = item.properties;
@@ -8,19 +13,19 @@ EPUBJS.Section = function(item){
     this.next = item.next;
     this.prev = item.prev;
 
-    this.epubcfi = new EPUBJS.EpubCFI();
+    this.epubcfi = new EpubCFI();
     this.cfiBase = item.cfiBase;
 
     this.hooks = {};
-    this.hooks.replacements = new EPUBJS.Hook(this);
+    this.hooks.replacements = new Hook(this);
 
     // Register replacements
     this.hooks.replacements.register(this.replacements);
 };
 
 
-EPUBJS.Section.prototype.load = function(_request){
-  var request = _request || this.request || EPUBJS.core.request;
+Section.prototype.load = function(_request){
+  var request = _request || this.request || core.request;
   var loading = new RSVP.defer();
   var loaded = loading.promise;
 
@@ -30,7 +35,7 @@ EPUBJS.Section.prototype.load = function(_request){
     request(this.url, 'xml')
       .then(function(xml){
         var base;
-        var directory = EPUBJS.core.folder(this.url);
+        var directory = core.folder(this.url);
 
         this.document = xml;
         this.contents = xml.documentElement;
@@ -48,7 +53,7 @@ EPUBJS.Section.prototype.load = function(_request){
   return loaded;
 };
 
-EPUBJS.Section.prototype.replacements = function(_document){
+Section.prototype.replacements = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
     var head;
@@ -69,11 +74,11 @@ EPUBJS.Section.prototype.replacements = function(_document){
     return task.promise;
 };
 
-EPUBJS.Section.prototype.beforeSectionLoad = function(){
+Section.prototype.beforeSectionLoad = function(){
   // Stub for a hook - replace me for now
 };
 
-EPUBJS.Section.prototype.render = function(_request){
+Section.prototype.render = function(_request){
   var rendering = new RSVP.defer();
   var rendered = rendering.promise;
 
@@ -89,7 +94,7 @@ EPUBJS.Section.prototype.render = function(_request){
   return rendered;
 };
 
-EPUBJS.Section.prototype.find = function(_query){
+Section.prototype.find = function(_query){
 
 };
 
@@ -99,7 +104,7 @@ EPUBJS.Section.prototype.find = function(_query){
 * Takes: global layout settings object, chapter properties string
 * Returns: Object with layout properties
 */
-EPUBJS.Section.prototype.reconcileLayoutSettings = function(global){
+Section.prototype.reconcileLayoutSettings = function(global){
   //-- Get the global defaults
   var settings = {
     layout : global.layout,
@@ -123,10 +128,12 @@ EPUBJS.Section.prototype.reconcileLayoutSettings = function(global){
  return settings;
 };
 
-EPUBJS.Section.prototype.cfiFromRange = function(_range) {
+Section.prototype.cfiFromRange = function(_range) {
   return this.epubcfi.generateCfiFromRange(_range, this.cfiBase);
 };
 
-EPUBJS.Section.prototype.cfiFromElement = function(el) {
+Section.prototype.cfiFromElement = function(el) {
   return this.epubcfi.generateCfiFromElement(el, this.cfiBase);
 };
+
+module.exports = Section;

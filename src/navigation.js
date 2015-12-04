@@ -1,7 +1,11 @@
-EPUBJS.Navigation = function(_package, _request){
+var core = require('./core');
+var Parser = require('./parser');
+var RSVP = require('rsvp');
+
+function Navigation(_package, _request){
   var navigation = this;
-  var parse = new EPUBJS.Parser();
-  var request = _request || EPUBJS.core.request;
+  var parse = new Parser();
+  var request = _request || core.request;
 
   this.package = _package;
   this.toc = [];
@@ -15,7 +19,7 @@ EPUBJS.Navigation = function(_package, _request){
     this.nav.load = function(_request){
       var loading = new RSVP.defer();
       var loaded = loading.promise;
-      
+
       request(navigation.navUrl, 'xml').then(function(xml){
         navigation.toc = parse.nav(xml);
         navigation.loaded(navigation.toc);
@@ -26,11 +30,11 @@ EPUBJS.Navigation = function(_package, _request){
     };
 
   }
-  
+
   if(_package.ncxPath) {
     this.ncxUrl = _package.baseUrl + _package.ncxPath;
     this.ncx = {};
-  
+
     this.ncx.load = function(_request){
       var loading = new RSVP.defer();
       var loaded = loading.promise;
@@ -43,13 +47,13 @@ EPUBJS.Navigation = function(_package, _request){
 
       return loaded;
     };
-    
+
   }
 };
 
 // Load the navigation
-EPUBJS.Navigation.prototype.load = function(_request) {
-  var request = _request || EPUBJS.core.request;
+Navigation.prototype.load = function(_request) {
+  var request = _request || core.request;
   var loading, loaded;
 
   if(this.nav) {
@@ -63,10 +67,10 @@ EPUBJS.Navigation.prototype.load = function(_request) {
   }
 
   return loading;
-  
+
 };
 
-EPUBJS.Navigation.prototype.loaded = function(toc) {
+Navigation.prototype.loaded = function(toc) {
   var item;
 
   for (var i = 0; i < toc.length; i++) {
@@ -78,7 +82,7 @@ EPUBJS.Navigation.prototype.loaded = function(toc) {
 };
 
 // Get an item from the navigation
-EPUBJS.Navigation.prototype.get = function(target) {
+Navigation.prototype.get = function(target) {
   var index;
 
   if(!target) {
@@ -93,3 +97,5 @@ EPUBJS.Navigation.prototype.get = function(target) {
 
   return this.toc[index];
 };
+
+module.exports = Navigation;

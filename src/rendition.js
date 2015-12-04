@@ -1,6 +1,17 @@
-EPUBJS.Rendition = function(book, options) {
+var RSVP = require('rsvp');
+var core = require('./core');
+var replace = require('./replacements');
+var Hook = require('./hook');
+var EpubCFI = require('./epubcfi');
+var Queue = require('./queue');
+var View = require('./view');
+var Views = require('./views');
+var Layout = require('./layout');
+var Map = require('./map');
 
-	this.settings = EPUBJS.core.extend(this.settings || {}, {
+function Rendition(book, options) {
+
+	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		hidden: false,
 		width: false,
@@ -9,7 +20,7 @@ EPUBJS.Rendition = function(book, options) {
 		axis: "vertical"
 	});
 
-	EPUBJS.core.extend(this.settings, options);
+	core.extend(this.settings, options);
 
 	this.viewSettings = {};
 
@@ -19,20 +30,20 @@ EPUBJS.Rendition = function(book, options) {
 
 	//-- Adds Hook methods to the Rendition prototype
 	this.hooks = {};
-	this.hooks.display = new EPUBJS.Hook(this);
-	this.hooks.content = new EPUBJS.Hook(this);
-	this.hooks.layout = new EPUBJS.Hook(this);
-	this.hooks.render = new EPUBJS.Hook(this);
-	this.hooks.show = new EPUBJS.Hook(this);
+	this.hooks.display = new Hook(this);
+	this.hooks.content = new Hook(this);
+	this.hooks.layout = new Hook(this);
+	this.hooks.render = new Hook(this);
+	this.hooks.show = new Hook(this);
 
-	this.hooks.content.register(EPUBJS.replace.links.bind(this));
+	this.hooks.content.register(replace.links.bind(this));
 	this.hooks.content.register(this.passViewEvents.bind(this));
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
-  this.epubcfi = new EPUBJS.EpubCFI();
+  this.epubcfi = new EpubCFI();
 
-	this.q = new EPUBJS.Queue(this);
+	this.q = new Queue(this);
 
 	this.q.enqueue(this.book.opened);
 
@@ -44,7 +55,7 @@ EPUBJS.Rendition = function(book, options) {
 * Creates an element to render to.
 * Resizes to passed width and height or to the elements size
 */
-EPUBJS.Rendition.prototype.initialize = function(_options){
+Rendition.prototype.initialize = function(_options){
 	var options = _options || {};
 	var height  = options.height;// !== false ? options.height : "100%";
 	var width   = options.width;// !== false ? options.width : "100%";
@@ -52,18 +63,18 @@ EPUBJS.Rendition.prototype.initialize = function(_options){
 	var container;
 	var wrapper;
 
-	if(options.height && EPUBJS.core.isNumber(options.height)) {
+	if(options.height && core.isNumber(options.height)) {
 		height = options.height + "px";
 	}
 
-	if(options.width && EPUBJS.core.isNumber(options.width)) {
+	if(options.width && core.isNumber(options.width)) {
 		width = options.width + "px";
 	}
 
 	// Create new container element
 	container = document.createElement("div");
 
-	container.id = "epubjs-container:" + EPUBJS.core.uuid();
+	container.id = "epubjs-container:" + core.uuid();
 	container.classList.add("epub-container");
 
 	// Style Element
@@ -89,7 +100,7 @@ EPUBJS.Rendition.prototype.initialize = function(_options){
 	return container;
 };
 
-EPUBJS.Rendition.wrap = function(container) {
+Rendition.wrap = function(container) {
 	var wrapper = document.createElement("div");
 
 	wrapper.style.visibility = "hidden";
@@ -103,7 +114,7 @@ EPUBJS.Rendition.wrap = function(container) {
 
 // Call to attach the container to an element in the dom
 // Container must be attached before rendering can begin
-EPUBJS.Rendition.prototype.attachTo = function(_element){
+Rendition.prototype.attachTo = function(_element){
 	var bounds;
 
 	this.container = this.initialize({
@@ -111,7 +122,7 @@ EPUBJS.Rendition.prototype.attachTo = function(_element){
 		"height" : this.settings.height
 	});
 
-	if(EPUBJS.core.isElement(_element)) {
+	if(core.isElement(_element)) {
 		this.element = _element;
 	} else if (typeof _element === "string") {
 		this.element = document.getElementById(_element);
@@ -129,7 +140,7 @@ EPUBJS.Rendition.prototype.attachTo = function(_element){
 		this.element.appendChild(this.container);
 	}
 
-	this.views = new EPUBJS.Views(this.container);
+	this.views = new Views(this.container);
 
 	// Attach Listeners
 	this.attachListeners();
@@ -148,27 +159,27 @@ EPUBJS.Rendition.prototype.attachTo = function(_element){
 
 };
 
-EPUBJS.Rendition.prototype.attachListeners = function(){
+Rendition.prototype.attachListeners = function(){
 
 	// Listen to window for resize event if width or height is set to 100%
-	if(!EPUBJS.core.isNumber(this.settings.width) ||
-		 !EPUBJS.core.isNumber(this.settings.height) ) {
+	if(!core.isNumber(this.settings.width) ||
+		 !core.isNumber(this.settings.height) ) {
 		window.addEventListener("resize", this.onResized.bind(this), false);
 	}
 
 };
 
-EPUBJS.Rendition.prototype.bounds = function() {
+Rendition.prototype.bounds = function() {
 	return this.container.getBoundingClientRect();
 };
 
-EPUBJS.Rendition.prototype.display = function(target){
+Rendition.prototype.display = function(target){
 
 	return this.q.enqueue(this._display, target);
 
 };
 
-EPUBJS.Rendition.prototype._display = function(target){
+Rendition.prototype._display = function(target){
 
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
@@ -203,7 +214,7 @@ EPUBJS.Rendition.prototype._display = function(target){
 		this.views.hide();
 
 		// Create a new view
-		view = new EPUBJS.View(section, this.viewSettings);
+		view = new View(section, this.viewSettings);
 
 		// This will clear all previous views
 		displayed = this.fill(view)
@@ -244,11 +255,11 @@ EPUBJS.Rendition.prototype._display = function(target){
 };
 
 // Takes a cfi, fragment or page?
-EPUBJS.Rendition.prototype.moveTo = function(offset){
+Rendition.prototype.moveTo = function(offset){
 	this.scrollBy(offset.left, offset.top);
 };
 
-EPUBJS.Rendition.prototype.render = function(view, show) {
+Rendition.prototype.render = function(view, show) {
 
 	view.create();
 
@@ -279,7 +290,7 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 			}
 
 
-			// this.map = new EPUBJS.Map(view, this.layout);
+			// this.map = new Map(view, this.layout);
 			this.hooks.show.trigger(view, this);
 			this.trigger("rendered", view.section);
 
@@ -291,11 +302,11 @@ EPUBJS.Rendition.prototype.render = function(view, show) {
 };
 
 
-EPUBJS.Rendition.prototype.afterDisplayed = function(view){
+Rendition.prototype.afterDisplayed = function(view){
 	this.trigger("added", view.section);
 };
 
-EPUBJS.Rendition.prototype.fill = function(view){
+Rendition.prototype.fill = function(view){
 
 	this.views.clear();
 
@@ -307,7 +318,7 @@ EPUBJS.Rendition.prototype.fill = function(view){
 	return this.render(view);
 };
 
-EPUBJS.Rendition.prototype.resizeView = function(view) {
+Rendition.prototype.resizeView = function(view) {
 
 	if(this.globalLayoutProperties.layout === "pre-paginated") {
 		view.lock("both", this.stage.width, this.stage.height);
@@ -317,7 +328,7 @@ EPUBJS.Rendition.prototype.resizeView = function(view) {
 
 };
 
-EPUBJS.Rendition.prototype.stageSize = function(_width, _height){
+Rendition.prototype.stageSize = function(_width, _height){
 	var bounds;
 	var width = _width || this.settings.width;
 	var height = _height || this.settings.height;
@@ -342,13 +353,13 @@ EPUBJS.Rendition.prototype.stageSize = function(_width, _height){
 
 	}
 
-	if(width && !EPUBJS.core.isNumber(width)) {
+	if(width && !core.isNumber(width)) {
 		bounds = this.container.getBoundingClientRect();
 		width = bounds.width;
 		//height = bounds.height;
 	}
 
-	if(height && !EPUBJS.core.isNumber(height)) {
+	if(height && !core.isNumber(height)) {
 		bounds = bounds || this.container.getBoundingClientRect();
 		//width = bounds.width;
 		height = bounds.height;
@@ -376,21 +387,21 @@ EPUBJS.Rendition.prototype.stageSize = function(_width, _height){
 
 };
 
-EPUBJS.Rendition.prototype.applyLayoutMethod = function() {
+Rendition.prototype.applyLayoutMethod = function() {
 
-	this.layout = new EPUBJS.Layout.Scroll();
+	this.layout = new Layout.Scroll();
 	this.updateLayout();
 
-	this.map = new EPUBJS.Map(this.layout);
+	this.map = new Map(this.layout);
 };
 
-EPUBJS.Rendition.prototype.updateLayout = function() {
+Rendition.prototype.updateLayout = function() {
 
 	this.layout.calculate(this.stage.width, this.stage.height);
 
 };
 
-EPUBJS.Rendition.prototype.resize = function(width, height){
+Rendition.prototype.resize = function(width, height){
 
 	this.stageSize(width, height);
 
@@ -405,15 +416,15 @@ EPUBJS.Rendition.prototype.resize = function(width, height){
 
 };
 
-EPUBJS.Rendition.prototype.onResized = function(e) {
+Rendition.prototype.onResized = function(e) {
 	this.resize();
 };
 
-EPUBJS.Rendition.prototype.createView = function(section) {
-	return new EPUBJS.View(section, this.viewSettings);
+Rendition.prototype.createView = function(section) {
+	return new View(section, this.viewSettings);
 };
 
-EPUBJS.Rendition.prototype.next = function(){
+Rendition.prototype.next = function(){
 
 	return this.q.enqueue(function(){
 
@@ -433,7 +444,7 @@ EPUBJS.Rendition.prototype.next = function(){
 
 };
 
-EPUBJS.Rendition.prototype.prev = function(){
+Rendition.prototype.prev = function(){
 
 	return this.q.enqueue(function(){
 
@@ -453,7 +464,7 @@ EPUBJS.Rendition.prototype.prev = function(){
 };
 
 //-- http://www.idpf.org/epub/fxl/
-EPUBJS.Rendition.prototype.parseLayoutProperties = function(_metadata){
+Rendition.prototype.parseLayoutProperties = function(_metadata){
 	var metadata = _metadata || this.book.package.metadata;
 	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
 	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
@@ -467,7 +478,7 @@ EPUBJS.Rendition.prototype.parseLayoutProperties = function(_metadata){
 };
 
 
-EPUBJS.Rendition.prototype.current = function(){
+Rendition.prototype.current = function(){
 	var visible = this.visible();
 	if(visible.length){
 		// Current is the last visible view
@@ -476,7 +487,7 @@ EPUBJS.Rendition.prototype.current = function(){
   return null;
 };
 
-EPUBJS.Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
+Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
 	var position = view.position();
 	var container = _container || this.container.getBoundingClientRect();
 
@@ -497,7 +508,7 @@ EPUBJS.Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _c
 
 };
 
-EPUBJS.Rendition.prototype.visible = function(){
+Rendition.prototype.visible = function(){
 	var container = this.bounds();
 	var displayedViews = this.views.displayed();
   var visible = [];
@@ -517,11 +528,11 @@ EPUBJS.Rendition.prototype.visible = function(){
 
 };
 
-EPUBJS.Rendition.prototype.bounds = function(func) {
+Rendition.prototype.bounds = function(func) {
   var bounds;
 
   if(!this.settings.height) {
-    bounds = EPUBJS.core.windowBounds();
+    bounds = core.windowBounds();
   } else {
     bounds = this.container.getBoundingClientRect();
   }
@@ -529,7 +540,7 @@ EPUBJS.Rendition.prototype.bounds = function(func) {
   return bounds;
 };
 
-EPUBJS.Rendition.prototype.destroy = function(){
+Rendition.prototype.destroy = function(){
   // Clear the queue
 	this.q.clear();
 
@@ -544,14 +555,14 @@ EPUBJS.Rendition.prototype.destroy = function(){
 
 };
 
-EPUBJS.Rendition.prototype.reportLocation = function(){
+Rendition.prototype.reportLocation = function(){
   return this.q.enqueue(function(){
     this.location = this.currentLocation();
     this.trigger("locationChanged", this.location);
   }.bind(this));
 };
 
-EPUBJS.Rendition.prototype.currentLocation = function(){
+Rendition.prototype.currentLocation = function(){
   var view;
   var start, end;
 
@@ -565,7 +576,7 @@ EPUBJS.Rendition.prototype.currentLocation = function(){
 
 };
 
-EPUBJS.Rendition.prototype.scrollBy = function(x, y, silent){
+Rendition.prototype.scrollBy = function(x, y, silent){
   if(silent) {
     this.ignore = true;
   }
@@ -582,7 +593,7 @@ EPUBJS.Rendition.prototype.scrollBy = function(x, y, silent){
   this.scrolled = true;
 };
 
-EPUBJS.Rendition.prototype.scrollTo = function(x, y, silent){
+Rendition.prototype.scrollTo = function(x, y, silent){
   if(silent) {
     this.ignore = true;
   }
@@ -603,15 +614,17 @@ EPUBJS.Rendition.prototype.scrollTo = function(x, y, silent){
   // };
  };
 
-EPUBJS.Rendition.prototype.passViewEvents = function(view){
+Rendition.prototype.passViewEvents = function(view){
   view.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
 	}.bind(this));
 };
 
-EPUBJS.Rendition.prototype.triggerViewEvent = function(e){
+Rendition.prototype.triggerViewEvent = function(e){
   this.trigger(e.type, e);
 };
 
 //-- Enable binding events to Renderer
-RSVP.EventTarget.mixin(EPUBJS.Rendition.prototype);
+RSVP.EventTarget.mixin(Rendition.prototype);
+
+module.exports = Rendition;

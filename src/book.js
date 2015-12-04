@@ -1,4 +1,14 @@
-EPUBJS.Book = function(_url, options){
+var RSVP = require('rsvp');
+var core = require('./core');
+var Spine = require('./spine');
+var Locations = require('./locations');
+var Parser = require('./parser');
+var Navigation = require('./navigation');
+var Rendition = require('./rendition');
+var Continuous = require('./continuous');
+var Paginate = require('./paginate');
+
+function Book(_url, options){
   // Promises
   this.opening = new RSVP.defer();
   this.opened = this.opening.promise;
@@ -28,21 +38,21 @@ EPUBJS.Book = function(_url, options){
 
   // Queue for methods used before opening
   this.isRendered = false;
-  this._q = EPUBJS.core.queue(this);
+  // this._q = core.queue(this);
 
   this.request = this.requestMethod.bind(this);
 
-  this.spine = new EPUBJS.Spine(this.request);
-  this.locations = new EPUBJS.Locations(this.spine, this.request);
+  this.spine = new Spine(this.request);
+  this.locations = new Locations(this.spine, this.request);
 
   if(_url) {
     this.open(_url);
   }
 };
 
-EPUBJS.Book.prototype.open = function(_url){
+Book.prototype.open = function(_url){
   var uri;
-  var parse = new EPUBJS.Parser();
+  var parse = new Parser();
   var epubPackage;
   var book = this;
   var containerPath = "META-INF/container.xml";
@@ -57,7 +67,7 @@ EPUBJS.Book.prototype.open = function(_url){
   if(typeof(_url) === "object") {
     uri = _url;
   } else {
-    uri = EPUBJS.core.uri(_url);
+    uri = core.uri(_url);
   }
 
   // Find path to the Container
@@ -69,8 +79,8 @@ EPUBJS.Book.prototype.open = function(_url){
     if(uri.origin) {
       this.url = uri.base;
     } else if(window){
-      location = EPUBJS.core.uri(window.location.href);
-      this.url = EPUBJS.core.resolveUrl(location.base, uri.directory);
+      location = core.uri(window.location.href);
+      this.url = core.resolveUrl(location.base, uri.directory);
     } else {
       this.url = uri.directory;
     }
@@ -93,7 +103,7 @@ EPUBJS.Book.prototype.open = function(_url){
         return parse.container(containerXml); // Container has path to content
       }).
       then(function(paths){
-        var packageUri = EPUBJS.core.uri(paths.packagePath);
+        var packageUri = core.uri(paths.packagePath);
         book.packageUrl = _url + paths.packagePath;
         book.encoding = paths.encoding;
 
@@ -101,8 +111,8 @@ EPUBJS.Book.prototype.open = function(_url){
         if(packageUri.origin) {
           book.url = packageUri.base;
         } else if(window){
-          location = EPUBJS.core.uri(window.location.href);
-          book.url = EPUBJS.core.resolveUrl(location.base, _url + packageUri.directory);
+          location = core.uri(window.location.href);
+          book.url = core.resolveUrl(location.base, _url + packageUri.directory);
         } else {
           book.url = packageUri.directory;
         }
@@ -143,16 +153,16 @@ EPUBJS.Book.prototype.open = function(_url){
   return this.opened;
 };
 
-EPUBJS.Book.prototype.unpack = function(packageXml){
+Book.prototype.unpack = function(packageXml){
   var book = this,
-      parse = new EPUBJS.Parser();
+      parse = new Parser();
 
   book.package = parse.packageContents(packageXml); // Extract info from contents
   book.package.baseUrl = book.url; // Provides a url base for resolving paths
 
   this.spine.load(book.package);
 
-  book.navigation = new EPUBJS.Navigation(book.package, this.request);
+  book.navigation = new Navigation(book.package, this.request);
   book.navigation.load().then(function(toc){
     book.toc = toc;
     book.loading.navigation.resolve(book.toc);
@@ -166,45 +176,48 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 };
 
 // Alias for book.spine.get
-EPUBJS.Book.prototype.section = function(target) {
+Book.prototype.section = function(target) {
   return this.spine.get(target);
 };
 
 // Sugar to render a book
-EPUBJS.Book.prototype.renderTo = function(element, options) {
-  var renderer = (options && options.method) ?
-      options.method.charAt(0).toUpperCase() + options.method.substr(1) :
-      "Rendition";
+Book.prototype.renderTo = function(element, options) {
+  var renderMethod = (options && options.method) ?
+      options.method :
+      "rendition";
+  var Renderer = require('./'+renderMethod);
 
-  this.rendition = new EPUBJS[renderer](this, options);
+  this.rendition = new Renderer(this, options);
   this.rendition.attachTo(element);
   return this.rendition;
 };
 
-EPUBJS.Book.prototype.requestMethod = function(_url) {
+Book.prototype.requestMethod = function(_url) {
   // Switch request methods
   if(this.archived) {
     // TODO: handle archived
   } else {
-    return EPUBJS.core.request(_url, 'xml', this.requestCredentials, this.requestHeaders);
+    return core.request(_url, 'xml', this.requestCredentials, this.requestHeaders);
   }
 
 };
 
-EPUBJS.Book.prototype.setRequestCredentials = function(_credentials) {
+Book.prototype.setRequestCredentials = function(_credentials) {
   this.requestCredentials = _credentials;
 };
 
-EPUBJS.Book.prototype.setRequestHeaders = function(_headers) {
+Book.prototype.setRequestHeaders = function(_headers) {
   this.requestHeaders = _headers;
 };
 
+module.exports = Book;
+
 //-- Enable binding events to book
-RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
+RSVP.EventTarget.mixin(Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-  //console.error(event, event.detail);
+  console.error(event);
 });
 
 RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections

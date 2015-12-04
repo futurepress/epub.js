@@ -1,9 +1,14 @@
-EPUBJS.Locations = function(spine, request) {
+var core = require('./core');
+var Queue = require('./queue');
+var EpubCFI = require('./epubcfi');
+var RSVP = require('rsvp');
+
+function Locations(spine, request) {
   this.spine = spine;
   this.request = request;
 
-  this.q = new EPUBJS.Queue(this);
-  this.epubcfi = new EPUBJS.EpubCFI();
+  this.q = new Queue(this);
+  this.epubcfi = new EpubCFI();
 
   this._locations = [];
   this.total = 0;
@@ -15,7 +20,7 @@ EPUBJS.Locations = function(spine, request) {
 };
 
 // Load all of sections in the book
-EPUBJS.Locations.prototype.generate = function(chars) {
+Locations.prototype.generate = function(chars) {
 
   if (chars) {
     this.break = chars;
@@ -42,7 +47,7 @@ EPUBJS.Locations.prototype.generate = function(chars) {
 
 };
 
-EPUBJS.Locations.prototype.process = function(section) {
+Locations.prototype.process = function(section) {
 
   return section.load(this.request)
     .then(function(contents) {
@@ -110,7 +115,7 @@ EPUBJS.Locations.prototype.process = function(section) {
 
 };
 
-EPUBJS.Locations.prototype.sprint = function(root, func) {
+Locations.prototype.sprint = function(root, func) {
 	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
 
 	while ((node = treeWalker.nextNode())) {
@@ -119,27 +124,27 @@ EPUBJS.Locations.prototype.sprint = function(root, func) {
 
 };
 
-EPUBJS.Locations.prototype.locationFromCfi = function(cfi){
+Locations.prototype.locationFromCfi = function(cfi){
   // Check if the location has not been set yet
 	if(this._locations.length === 0) {
 		return -1;
 	}
 
-  return EPUBJS.core.locationOf(cfi, this._locations, this.epubcfi.compare);
+  return core.locationOf(cfi, this._locations, this.epubcfi.compare);
 };
 
-EPUBJS.Locations.prototype.precentageFromCfi = function(cfi) {
+Locations.prototype.precentageFromCfi = function(cfi) {
   // Find closest cfi
   var loc = this.locationFromCfi(cfi);
   // Get percentage in total
   return this.precentageFromLocation(loc);
 };
 
-EPUBJS.Locations.prototype.precentageFromLocation = function(loc) {
+Locations.prototype.precentageFromLocation = function(loc) {
   return Math.ceil((loc / this.total ) * 1000) / 1000;
 };
 
-EPUBJS.Locations.prototype.cfiFromLocation = function(loc){
+Locations.prototype.cfiFromLocation = function(loc){
 	var cfi = -1;
 	// check that pg is an int
 	if(typeof loc != "number"){
@@ -153,26 +158,26 @@ EPUBJS.Locations.prototype.cfiFromLocation = function(loc){
 	return cfi;
 };
 
-EPUBJS.Locations.prototype.cfiFromPercentage = function(percent){
+Locations.prototype.cfiFromPercentage = function(percent){
 	var loc = Math.round(this.total * percent);
 	return this.cfiFromLocation(loc);
 };
 
-EPUBJS.Locations.prototype.load = function(locations){
+Locations.prototype.load = function(locations){
 	this._locations = JSON.parse(locations);
   this.total = this._locations.length-1;
   return this._locations;
 };
 
-EPUBJS.Locations.prototype.save = function(json){
+Locations.prototype.save = function(json){
 	return JSON.stringify(this._locations);
 };
 
-EPUBJS.Locations.prototype.getCurrent = function(json){
+Locations.prototype.getCurrent = function(json){
 	return this._current;
 };
 
-EPUBJS.Locations.prototype.setCurrent = function(curr){
+Locations.prototype.setCurrent = function(curr){
   var loc;
 
   if(typeof curr == "string"){
@@ -199,7 +204,7 @@ EPUBJS.Locations.prototype.setCurrent = function(curr){
   });
 };
 
-Object.defineProperty(EPUBJS.Locations.prototype, 'currentLocation', {
+Object.defineProperty(Locations.prototype, 'currentLocation', {
   get: function () {
     return this._current;
   },
@@ -208,4 +213,6 @@ Object.defineProperty(EPUBJS.Locations.prototype, 'currentLocation', {
   }
 });
 
-RSVP.EventTarget.mixin(EPUBJS.Locations.prototype);
+RSVP.EventTarget.mixin(Locations.prototype);
+
+module.exports = Locations;

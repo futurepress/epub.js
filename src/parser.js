@@ -1,23 +1,26 @@
-EPUBJS.Parser = function(){};
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
 
-EPUBJS.Parser.prototype.container = function(containerXml){
+function Parser(){};
+
+Parser.prototype.container = function(containerXml){
     //-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
     var rootfile, fullpath, folder, encoding;
-    
+
     if(!containerXml) {
       console.error("Container File Not Found");
       return;
     }
-    
+
     rootfile = containerXml.querySelector("rootfile");
-    
+
     if(!rootfile) {
       console.error("No RootFile Found");
       return;
     }
-    
+
     fullpath = rootfile.getAttribute('full-path');
-    folder = EPUBJS.core.uri(fullpath).directory;
+    folder = core.uri(fullpath).directory;
     encoding = containerXml.xmlEncoding;
 
     //-- Now that we have the path we can parse the contents
@@ -28,62 +31,62 @@ EPUBJS.Parser.prototype.container = function(containerXml){
     };
 };
 
-EPUBJS.Parser.prototype.identifier = function(packageXml){
+Parser.prototype.identifier = function(packageXml){
   var metadataNode;
-  
+
   if(!packageXml) {
     console.error("Package File Not Found");
     return;
   }
-  
+
   metadataNode = packageXml.querySelector("metadata");
-  
+
   if(!metadataNode) {
     console.error("No Metadata Found");
     return;
   }
-  
+
   return this.getElementText(metadataNode, "identifier");
 };
 
-EPUBJS.Parser.prototype.packageContents = function(packageXml){
+Parser.prototype.packageContents = function(packageXml){
   var parse = this;
   var metadataNode, manifestNode, spineNode;
   var manifest, navPath, ncxPath, coverPath;
   var spineNodeIndex;
   var spine;
   var spineIndexByURL;
-    
+
   if(!packageXml) {
     console.error("Package File Not Found");
     return;
   }
-  
+
   metadataNode = packageXml.querySelector("metadata");
   if(!metadataNode) {
     console.error("No Metadata Found");
     return;
   }
-  
+
   manifestNode = packageXml.querySelector("manifest");
   if(!manifestNode) {
     console.error("No Manifest Found");
     return;
   }
-  
+
   spineNode = packageXml.querySelector("spine");
   if(!spineNode) {
     console.error("No Spine Found");
     return;
   }
-  
+
   manifest = parse.manifest(manifestNode);
   navPath = parse.findNavPath(manifestNode);
   ncxPath = parse.findNcxPath(manifestNode);
   coverPath = parse.findCoverPath(manifestNode);
 
   spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
-  
+
   spine = parse.spine(spineNode, manifest);
 
   return {
@@ -98,55 +101,55 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml){
 };
 
 //-- Find TOC NAV: media-type="application/xhtml+xml" href="toc.ncx"
-EPUBJS.Parser.prototype.findNavPath = function(manifestNode){
+Parser.prototype.findNavPath = function(manifestNode){
   var node = manifestNode.querySelector("item[properties^='nav']");
   return node ? node.getAttribute('href') : false;
 };
 
 //-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
-EPUBJS.Parser.prototype.findNcxPath = function(manifestNode){
+Parser.prototype.findNcxPath = function(manifestNode){
   var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
   return node ? node.getAttribute('href') : false;
 };
 
 //-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-EPUBJS.Parser.prototype.findCoverPath = function(manifestNode){
+Parser.prototype.findCoverPath = function(manifestNode){
   var node = manifestNode.querySelector("item[properties='cover-image']");
   return node ? node.getAttribute('href') : false;
 };
 
 //-- Expanded to match Readium web components
-EPUBJS.Parser.prototype.metadata = function(xml){
+Parser.prototype.metadata = function(xml){
   var metadata = {},
       p = this;
-  
+
   metadata.title = p.getElementText(xml, 'title');
   metadata.creator = p.getElementText(xml, 'creator');
   metadata.description = p.getElementText(xml, 'description');
-  
+
   metadata.pubdate = p.getElementText(xml, 'date');
-  
+
   metadata.publisher = p.getElementText(xml, 'publisher');
-  
+
   metadata.identifier = p.getElementText(xml, "identifier");
   metadata.language = p.getElementText(xml, "language");
   metadata.rights = p.getElementText(xml, "rights");
-  
+
   metadata.modified_date = p.querySelectorText(xml, "meta[property='dcterms:modified']");
   metadata.layout = p.querySelectorText(xml, "meta[property='rendition:layout']");
   metadata.orientation = p.querySelectorText(xml, "meta[property='rendition:orientation']");
   metadata.spread = p.querySelectorText(xml, "meta[property='rendition:spread']");
   // metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
-  
+
   return metadata;
 };
 
-EPUBJS.Parser.prototype.getElementText = function(xml, tag){
+Parser.prototype.getElementText = function(xml, tag){
   var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
     el;
 
   if(!found || found.length === 0) return '';
-  
+
   el = found[0];
 
   if(el.childNodes.length){
@@ -154,10 +157,10 @@ EPUBJS.Parser.prototype.getElementText = function(xml, tag){
   }
 
   return '';
-  
+
 };
 
-EPUBJS.Parser.prototype.querySelectorText = function(xml, q){
+Parser.prototype.querySelectorText = function(xml, q){
   var el = xml.querySelector(q);
 
   if(el && el.childNodes.length){
@@ -167,13 +170,13 @@ EPUBJS.Parser.prototype.querySelectorText = function(xml, q){
   return '';
 };
 
-EPUBJS.Parser.prototype.manifest = function(manifestXml){
+Parser.prototype.manifest = function(manifestXml){
   var manifest = {};
-  
+
   //-- Turn items into an array
   var selected = manifestXml.querySelectorAll("item"),
     items = Array.prototype.slice.call(selected);
-    
+
   //-- Create an object with the id as key
   items.forEach(function(item){
     var id = item.getAttribute('id'),
@@ -189,18 +192,18 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
     };
 
   });
-  
+
   return manifest;
 
 };
 
-EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
+Parser.prototype.spine = function(spineXml, manifest){
   var spine = [];
-  
+
   var selected = spineXml.getElementsByTagName("itemref"),
       items = Array.prototype.slice.call(selected);
 
-  var epubcfi = new EPUBJS.EpubCFI();
+  var epubcfi = new EpubCFI();
 
   //-- Add to array to mantain ordering and cross reference with manifest
   items.forEach(function(item, index){
@@ -222,20 +225,20 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
     };
     spine.push(itemref);
   });
-  
+
   return spine;
 };
 
-EPUBJS.Parser.prototype.nav = function(navHtml){
+Parser.prototype.nav = function(navHtml){
   var navEl = navHtml.querySelector('nav[*|type="toc"]'), //-- [*|type="toc"] * Doesn't seem to work
       idCounter = 0;
-  
+
   if(!navEl) return [];
-  
+
   // Implements `> ol > li`
   function findListItems(parent){
     var items = [];
-  
+
     Array.prototype.slice.call(parent.childNodes).forEach(function(node){
       if('ol' == node.tagName){
         Array.prototype.slice.call(node.childNodes).forEach(function(item){
@@ -245,33 +248,33 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
         });
       }
     });
-    
+
     return items;
-  
+
   }
-  
+
   // Implements `> a, > span`
   function findAnchorOrSpan(parent){
     var item = null;
-    
+
     Array.prototype.slice.call(parent.childNodes).forEach(function(node){
       if('a' == node.tagName || 'span' == node.tagName){
         item = node;
       }
     });
-    
+
     return item;
   }
-  
+
   function getTOC(parent){
     var list = [],
         nodes = findListItems(parent),
         items = Array.prototype.slice.call(nodes),
         length = items.length,
         node;
-  
+
     if(length === 0) return false;
-    
+
     items.forEach(function(item){
       var id = item.getAttribute('id') || false,
         content = findAnchorOrSpan(item),
@@ -283,7 +286,7 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
         // spinePos = spineIndexByURL[baseUrl],
         // spineItem = bookSpine[spinePos],
         // cfi =   spineItem ? spineItem.cfi : '';
-        
+
       // if(!id) {
       //   if(spinePos) {
       //     spineItem = bookSpine[spinePos];
@@ -293,7 +296,7 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
       //     id = 'epubjs-autogen-toc-id-' + (idCounter++);
       //   }
       // }
-      
+
       // item.setAttribute('id', id); // Ensure all elements have an id
       list.push({
         "id": id,
@@ -303,24 +306,24 @@ EPUBJS.Parser.prototype.nav = function(navHtml){
         "parent" : parent ? parent.getAttribute('id') : null
         // "cfi" : cfi
       });
-    
+
     });
-  
+
     return list;
   }
-  
+
   return getTOC(navEl);
 };
 
-EPUBJS.Parser.prototype.ncx = function(tocXml){
+Parser.prototype.ncx = function(tocXml){
   var navMap = tocXml.querySelector("navMap");
   if(!navMap) return [];
-  
+
   function getTOC(parent){
     var list = [],
       snapshot = tocXml.evaluate("*[local-name()='navPoint']", parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null),
       length = snapshot.snapshotLength;
-    
+
     if(length === 0) return [];
 
     for ( var i=length-1 ; i >= 0; i-- ) {
@@ -365,3 +368,5 @@ EPUBJS.Parser.prototype.ncx = function(tocXml){
 
   return getTOC(navMap);
 };
+
+module.exports = Parser;

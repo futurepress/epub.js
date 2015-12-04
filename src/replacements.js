@@ -1,10 +1,11 @@
-EPUBJS.replace = {};
-EPUBJS.replace.links = function(view, renderer) {
-  
+var core = require('./core');
+
+function links(view, renderer) {
+
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
-    var uri = new EPUBJS.core.uri(href);
+    var uri = new core.uri(href);
 
 
     if(uri.protocol){
@@ -12,17 +13,17 @@ EPUBJS.replace.links = function(view, renderer) {
       link.setAttribute("target", "_blank");
 
     }else{
-      
-      // relative = EPUBJS.core.resolveUrl(directory, href);
+
+      // relative = core.resolveUrl(directory, href);
       // if(uri.fragment && !base) {
       //   link.onclick = function(){
       //     renderer.fragment(href);
       //     return false;
       //   };
       // } else {
-        
+
       //}
-      
+
       if(href.indexOf("#") === 0) {
         // do nothing with fragment yet
       } else {
@@ -40,4 +41,8 @@ EPUBJS.replace.links = function(view, renderer) {
   }
 
 
+};
+
+module.exports = {
+  'links': links
 };

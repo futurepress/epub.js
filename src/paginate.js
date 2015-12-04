@@ -1,8 +1,14 @@
-EPUBJS.Paginate = function(book, options) {
+var RSVP = require('rsvp');
+var core = require('./core');
+var Continuous = require('./continuous');
+var Map = require('./map');
+var Layout = require('./layout');
 
-  EPUBJS.Continuous.apply(this, arguments);
+function Paginate(book, options) {
 
-  this.settings = EPUBJS.core.extend(this.settings || {}, {
+  Continuous.apply(this, arguments);
+
+  this.settings = core.extend(this.settings || {}, {
     width: 600,
     height: 400,
     axis: "horizontal",
@@ -13,7 +19,7 @@ EPUBJS.Paginate = function(book, options) {
     infinite: false
   });
 
-  EPUBJS.core.extend(this.settings, options);
+  core.extend(this.settings, options);
 
   this.isForcedSingle = this.settings.forceSingle;
 
@@ -24,11 +30,11 @@ EPUBJS.Paginate = function(book, options) {
   this.start();
 };
 
-EPUBJS.Paginate.prototype = Object.create(EPUBJS.Continuous.prototype);
-EPUBJS.Paginate.prototype.constructor = EPUBJS.Paginate;
+Paginate.prototype = Object.create(Continuous.prototype);
+Paginate.prototype.constructor = Paginate;
 
 
-EPUBJS.Paginate.prototype.determineSpreads = function(cutoff){
+Paginate.prototype.determineSpreads = function(cutoff){
   if(this.isForcedSingle || !cutoff || this.bounds().width < cutoff) {
     return 1; //-- Single Page
   }else{
@@ -36,7 +42,7 @@ EPUBJS.Paginate.prototype.determineSpreads = function(cutoff){
   }
 };
 
-EPUBJS.Paginate.prototype.forceSingle = function(bool){
+Paginate.prototype.forceSingle = function(bool){
   if(bool === false) {
     this.isForcedSingle = false;
     // this.spreads = false;
@@ -53,7 +59,7 @@ EPUBJS.Paginate.prototype.forceSingle = function(bool){
 * Takes: Layout settings object
 * Returns: String of appropriate for EPUBJS.Layout function
 */
-// EPUBJS.Paginate.prototype.determineLayout = function(settings){
+// Paginate.prototype.determineLayout = function(settings){
 //   // Default is layout: reflowable & spread: auto
 //   var spreads = this.determineSpreads(this.settings.minSpreadWidth);
 //   console.log("spreads", spreads, this.settings.minSpreadWidth)
@@ -83,7 +89,7 @@ EPUBJS.Paginate.prototype.forceSingle = function(bool){
 //   return layoutMethod;
 // };
 
-EPUBJS.Paginate.prototype.start = function(){
+Paginate.prototype.start = function(){
   // On display
   // this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
   // this.layoutMethod = this.determineLayout(this.layoutSettings);
@@ -110,18 +116,18 @@ EPUBJS.Paginate.prototype.start = function(){
 //   return view;
 // };
 
-EPUBJS.Paginate.prototype.applyLayoutMethod = function() {
+Paginate.prototype.applyLayoutMethod = function() {
   //var task = new RSVP.defer();
 
   // this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
-  this.layout = new EPUBJS.Layout.Reflowable();
+  this.layout = new Layout.Reflowable();
 
   this.updateLayout();
 
   // Set the look ahead offset for what is visible
 
-  this.map = new EPUBJS.Map(this.layout);
+  this.map = new Map(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 
@@ -130,7 +136,7 @@ EPUBJS.Paginate.prototype.applyLayoutMethod = function() {
   // return layout;
 };
 
-EPUBJS.Paginate.prototype.updateLayout = function() {
+Paginate.prototype.updateLayout = function() {
 
   this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
@@ -145,14 +151,14 @@ EPUBJS.Paginate.prototype.updateLayout = function() {
 
 };
 
-EPUBJS.Paginate.prototype.moveTo = function(offset){
+Paginate.prototype.moveTo = function(offset){
   var dist = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
   return this.check(0, dist+this.settings.offset).then(function(){
     this.scrollBy(dist, 0);
   }.bind(this));
 };
 
-EPUBJS.Paginate.prototype.page = function(pg){
+Paginate.prototype.page = function(pg){
 
   // this.currentPage = pg;
   // this.renderer.infinite.scrollTo(this.currentPage * this.formated.pageWidth, 0);
@@ -160,7 +166,7 @@ EPUBJS.Paginate.prototype.page = function(pg){
   // return false;
 };
 
-EPUBJS.Paginate.prototype.next = function(){
+Paginate.prototype.next = function(){
 
   return this.q.enqueue(function(){
     // console.log(this.container.scrollWidth, this.container.scrollLeft + this.container.offsetWidth + this.layout.delta)
@@ -178,7 +184,7 @@ EPUBJS.Paginate.prototype.next = function(){
   // return this.page(this.currentPage + 1);
 };
 
-EPUBJS.Paginate.prototype.prev = function(){
+Paginate.prototype.prev = function(){
 
   return this.q.enqueue(function(){
     this.scrollBy(-this.layout.delta, 0);
@@ -188,14 +194,14 @@ EPUBJS.Paginate.prototype.prev = function(){
   // return this.page(this.currentPage - 1);
 };
 
-// EPUBJS.Paginate.prototype.reportLocation = function(){
+// Paginate.prototype.reportLocation = function(){
 //   return this.q.enqueue(function(){
 //     this.location = this.currentLocation();
 //     this.trigger("locationChanged", this.location);
 //   }.bind(this));
 // };
 
-EPUBJS.Paginate.prototype.currentLocation = function(){
+Paginate.prototype.currentLocation = function(){
   var visible = this.visible();
   var startA, startB, endA, endB;
   var pageLeft, pageRight;
@@ -228,7 +234,7 @@ EPUBJS.Paginate.prototype.currentLocation = function(){
   }
 };
 
-EPUBJS.Paginate.prototype.resize = function(width, height){
+Paginate.prototype.resize = function(width, height){
   // Clear the queue
   this.q.clear();
 
@@ -247,7 +253,7 @@ EPUBJS.Paginate.prototype.resize = function(width, height){
 
 };
 
-EPUBJS.Paginate.prototype.onResized = function(e) {
+Paginate.prototype.onResized = function(e) {
 
   this.views.clear();
 
@@ -257,7 +263,7 @@ EPUBJS.Paginate.prototype.onResized = function(e) {
   }.bind(this), 150);
 };
 
-EPUBJS.Paginate.prototype.adjustImages = function(view) {
+Paginate.prototype.adjustImages = function(view) {
 
   view.addStylesheetRules([
       ["img",
@@ -273,6 +279,8 @@ EPUBJS.Paginate.prototype.adjustImages = function(view) {
   });
 };
 
-// EPUBJS.Paginate.prototype.display = function(what){
+// Paginate.prototype.display = function(what){
 //   return this.display(what);
 // };
+
+module.exports = Paginate;

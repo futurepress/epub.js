@@ -1,15 +1,15 @@
-EPUBJS.Map = function(layout){
+function Map(layout){
   this.layout = layout;
 };
 
-EPUBJS.Map.prototype.section = function(view) {
+Map.prototype.section = function(view) {
   var ranges = this.findRanges(view);
   var map = this.rangeListToCfiList(view, ranges);
 
   return map;
 };
 
-EPUBJS.Map.prototype.page = function(view, start, end) {
+Map.prototype.page = function(view, start, end) {
   var root = view.document.body;
   return this.rangePairToCfiPair(view.section, {
     start: this.findStart(root, start, end),
@@ -17,7 +17,7 @@ EPUBJS.Map.prototype.page = function(view, start, end) {
   });
 };
 
-EPUBJS.Map.prototype.walk = function(root, func) {
+Map.prototype.walk = function(root, func) {
   //var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
   var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
@@ -34,11 +34,11 @@ EPUBJS.Map.prototype.walk = function(root, func) {
     result = func(node);
     if(result) break;
   }
-  
+
   return result;
 };
 
-EPUBJS.Map.prototype.findRanges = function(view){
+Map.prototype.findRanges = function(view){
   var columns = [];
   var count = this.layout.count(view);
   var column = this.layout.column;
@@ -53,11 +53,11 @@ EPUBJS.Map.prototype.findRanges = function(view){
       end: this.findEnd(view.document.body, start, end)
     });
   }
-  
+
   return columns;
 };
 
-EPUBJS.Map.prototype.findStart = function(root, start, end){
+Map.prototype.findStart = function(root, start, end){
   var stack = [root];
   var $el;
   var found;
@@ -70,7 +70,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
       var left, right;
       var elPos;
       var elRange;
-      
+
 
       if(node.nodeType == Node.TEXT_NODE){
         elRange = document.createRange();
@@ -84,7 +84,7 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
       right = elPos.right;
 
       if( left >= start && left <= end ) {
-        return node; 
+        return node;
       } else if (right > start) {
         return node;
       } else {
@@ -99,12 +99,12 @@ EPUBJS.Map.prototype.findStart = function(root, start, end){
     }
 
   }
-  
+
   // Return last element
   return this.findTextStartRange($prev, start, end);
 };
 
-EPUBJS.Map.prototype.findEnd = function(root, start, end){
+Map.prototype.findEnd = function(root, start, end){
   var stack = [root];
   var $el;
   var $prev = root;
@@ -115,12 +115,12 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
     $el = stack.shift();
 
     found = this.walk($el, function(node){
-      
+
       var left, right;
       var elPos;
       var elRange;
-      
-      
+
+
       if(node.nodeType == Node.TEXT_NODE){
         elRange = document.createRange();
         elRange.selectNodeContents(node);
@@ -131,7 +131,7 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
 
       left = elPos.left;
       right = elPos.right;
-      
+
       if(left > end && $prev) {
         return $prev;
       } else if(right > end) {
@@ -147,7 +147,7 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
     if(found){
       return this.findTextEndRange(found, start, end);
     }
-  
+
   }
 
   // end of chapter
@@ -155,7 +155,7 @@ EPUBJS.Map.prototype.findEnd = function(root, start, end){
 };
 
 
-EPUBJS.Map.prototype.findTextStartRange = function(node, start, end){
+Map.prototype.findTextStartRange = function(node, start, end){
   var ranges = this.splitTextNodeIntoRanges(node);
   var prev;
   var range;
@@ -177,7 +177,7 @@ EPUBJS.Map.prototype.findTextStartRange = function(node, start, end){
   return ranges[0];
 };
 
-EPUBJS.Map.prototype.findTextEndRange = function(node, start, end){
+Map.prototype.findTextEndRange = function(node, start, end){
   var ranges = this.splitTextNodeIntoRanges(node);
   var prev;
   var range;
@@ -187,13 +187,13 @@ EPUBJS.Map.prototype.findTextEndRange = function(node, start, end){
     range = ranges[i];
 
     pos = range.getBoundingClientRect();
-    
+
     if(pos.left > end && prev) {
       return prev;
     } else if(pos.right > end) {
       return range;
     }
-  
+
     prev = range;
 
   }
@@ -203,7 +203,7 @@ EPUBJS.Map.prototype.findTextEndRange = function(node, start, end){
 
 };
 
-EPUBJS.Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
+Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
   var ranges = [];
   var textContent = node.textContent || "";
   var text = textContent.trim();
@@ -252,7 +252,7 @@ EPUBJS.Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
 
 
 
-EPUBJS.Map.prototype.rangePairToCfiPair = function(section, rangePair){
+Map.prototype.rangePairToCfiPair = function(section, rangePair){
 
   var startRange = rangePair.start;
   var endRange = rangePair.end;
@@ -270,7 +270,7 @@ EPUBJS.Map.prototype.rangePairToCfiPair = function(section, rangePair){
 
 };
 
-EPUBJS.Map.prototype.rangeListToCfiList = function(view, columns){
+Map.prototype.rangeListToCfiList = function(view, columns){
   var map = [];
   var rangePair, cifPair;
 
@@ -280,6 +280,8 @@ EPUBJS.Map.prototype.rangeListToCfiList = function(view, columns){
     map.push(cifPair);
 
   }
-  
+
   return map;
 };
+
+module.exports = Map;

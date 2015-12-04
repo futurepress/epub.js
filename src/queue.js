@@ -1,13 +1,16 @@
-EPUBJS.Queue = function(_context){
+var RSVP = require('rsvp');
+var core = require('./core');
+
+function Queue(_context){
   this._q = [];
   this.context = _context;
-  this.tick = EPUBJS.core.requestAnimationFrame;
+  this.tick = core.requestAnimationFrame;
   this.running = false;
   this.paused = false;
 };
 
 // Add an item to the queue
-EPUBJS.Queue.prototype.enqueue = function() {
+Queue.prototype.enqueue = function() {
   var deferred, promise;
   var queued;
   var task = [].shift.call(arguments);
@@ -55,7 +58,7 @@ EPUBJS.Queue.prototype.enqueue = function() {
 };
 
 // Run one item
-EPUBJS.Queue.prototype.dequeue = function(){
+Queue.prototype.dequeue = function(){
   var inwait, task, result;
 
   if(this._q.length) {
@@ -93,7 +96,7 @@ EPUBJS.Queue.prototype.dequeue = function(){
 };
 
 // Run All Immediately
-EPUBJS.Queue.prototype.dump = function(){
+Queue.prototype.dump = function(){
   while(this._q.length) {
     this.dequeue();
   }
@@ -101,7 +104,7 @@ EPUBJS.Queue.prototype.dump = function(){
 
 // Run all sequentially, at convince
 
-EPUBJS.Queue.prototype.run = function(){
+Queue.prototype.run = function(){
 
   if(!this.running){
     this.running = true;
@@ -133,7 +136,7 @@ EPUBJS.Queue.prototype.run = function(){
 };
 
 // Flush all, as quickly as possible
-EPUBJS.Queue.prototype.flush = function(){
+Queue.prototype.flush = function(){
 
   if(this.running){
     return this.running;
@@ -152,21 +155,21 @@ EPUBJS.Queue.prototype.flush = function(){
 };
 
 // Clear all items in wait
-EPUBJS.Queue.prototype.clear = function(){
+Queue.prototype.clear = function(){
   this._q = [];
   this.running = false;
 };
 
-EPUBJS.Queue.prototype.length = function(){
+Queue.prototype.length = function(){
   return this._q.length;
 };
 
-EPUBJS.Queue.prototype.pause = function(){
+Queue.prototype.pause = function(){
   this.paused = true;
 };
 
 // Create a new task from a callback
-EPUBJS.Task = function(task, args, context){
+function Task(task, args, context){
 
   return function(){
     var toApply = arguments || [];
@@ -186,3 +189,5 @@ EPUBJS.Task = function(task, args, context){
   };
 
 };
+
+module.exports = Queue;

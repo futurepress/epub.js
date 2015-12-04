@@ -1,23 +1,25 @@
-EPUBJS.Hook = function(context){
-  this.context = context || this;
-  this.hooks = [];
-};
+var RSVP = require('rsvp');
 
 //-- Hooks allow for injecting functions that must all complete in order before finishing
-//   They will execute in parallel but all must finish before continuing 
+//   They will execute in parallel but all must finish before continuing
 //   Functions may return a promise if they are asycn.
 
 // this.content = new EPUBJS.Hook();
 // this.content.register(function(){});
 // this.content.trigger(args).then(function(){});
 
+function Hook(context){
+  this.context = context || this;
+  this.hooks = [];
+};
+
 // Adds a function to be run before a hook completes
-EPUBJS.Hook.prototype.register = function(func){
+Hook.prototype.register = function(func){
   this.hooks.push(func);
 };
 
 // Triggers a hook to run all functions
-EPUBJS.Hook.prototype.trigger = function(){
+Hook.prototype.trigger = function(){
   var args = arguments;
   var context = this.context;
   var promises = [];
@@ -35,3 +37,5 @@ EPUBJS.Hook.prototype.trigger = function(){
 
   return RSVP.all(promises);
 };
+
+module.exports = Hook;
