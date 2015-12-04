@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ePub = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1715,6 +1715,7 @@ var Navigation = require('./navigation');
 var Rendition = require('./rendition');
 var Continuous = require('./continuous');
 var Paginate = require('./paginate');
+var Unarchive = require('./unarchive');
 
 function Book(_url, options){
   // Promises
@@ -1936,7 +1937,7 @@ RSVP.on('rejected', function(event){
   console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./continuous":4,"./core":5,"./locations":10,"./navigation":12,"./paginate":13,"./parser":14,"./rendition":16,"./spine":19,"rsvp":2}],4:[function(require,module,exports){
+},{"./continuous":4,"./core":5,"./locations":9,"./navigation":11,"./paginate":12,"./parser":13,"./rendition":15,"./spine":19,"./unarchive":20,"rsvp":2}],4:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Rendition = require('./rendition');
@@ -2356,99 +2357,10 @@ Continuous.prototype.current = function(what){
 
 module.exports = Continuous;
 
-},{"./core":5,"./rendition":16,"./view":20,"rsvp":2}],5:[function(require,module,exports){
+},{"./core":5,"./rendition":15,"./view":21,"rsvp":2}],5:[function(require,module,exports){
+var RSVP = require('rsvp');
+
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
-function request(url, type, withCredentials, headers) {
-  var supportsURL = window.URL;
-  var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-
-  var deferred = new RSVP.defer();
-
-  var xhr = new XMLHttpRequest();
-
-  //-- Check from PDF.js:
-  //   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
-  var xhrPrototype = XMLHttpRequest.prototype;
-
-  var header;
-
-  if (!('overrideMimeType' in xhrPrototype)) {
-    // IE10 might have response, but not overrideMimeType
-    Object.defineProperty(xhrPrototype, 'overrideMimeType', {
-      value: function xmlHttpRequestOverrideMimeType(mimeType) {}
-    });
-  }
-  if(withCredentials) {
-    xhr.withCredentials = true;
-  }
-
-  xhr.open("GET", url, true);
-
-  for(header in headers) {
-    xhr.setRequestHeader(header, headers[header]);
-  }
-
-  xhr.onreadystatechange = handler;
-
-  if(type == 'blob'){
-    xhr.responseType = BLOB_RESPONSE;
-  }
-
-  if(type == "json") {
-    xhr.setRequestHeader("Accept", "application/json");
-  }
-
-  if(type == 'xml') {
-    xhr.overrideMimeType('text/xml');
-  }
-
-  xhr.send();
-
-  function handler() {
-    if (this.readyState === this.DONE) {
-      if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
-        var r;
-
-        if(type == 'xml'){
-
-          // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          if(!this.responseXML){
-            r = new DOMParser().parseFromString(this.response, "text/xml");
-          } else {
-            r = this.responseXML;
-          }
-
-        }else
-        if(type == 'json'){
-          r = JSON.parse(this.response);
-        }else
-        if(type == 'blob'){
-
-          if(supportsURL) {
-            r = this.response;
-          } else {
-            //-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-            r = new Blob([this.response]);
-          }
-
-        }else{
-          r = this.response;
-        }
-
-        deferred.resolve(r);
-      } else {
-        deferred.reject({
-          status: this.status,
-          message : this.response,
-          stack : new Error().stack
-        });
-      }
-    }
-  }
-
-  return deferred.promise;
-};
 
 //-- Parse the different parts of a url, returning a object
 function uri(url){
@@ -2842,7 +2754,7 @@ function indexOfTextNode(textNode){
 };
 
 module.exports = {
-  'request': request,
+  'request': require('./request'),
   'uri': uri,
   'folder': folder,
   'isElement': isElement,
@@ -2866,48 +2778,7 @@ module.exports = {
   'indexOfTextNode': indexOfTextNode,
 };
 
-},{}],6:[function(require,module,exports){
-if (typeof EPUBJS === 'undefined') {
-	(typeof window !== 'undefined' ? window : this).EPUBJS = {};
-}
-
-EPUBJS.VERSION = "0.3.0";
-
-var Book = require('./book');
-var RSVP = require("rsvp");
-
-function ePub(_url) {
-	return new Book(_url);
-};
-
-if (typeof window !== 'undefined') {
-	window.ePub = ePub;
-	window.RSVP = window.RSVP || RSVP;
-}
-
-module.exports = ePub;
-/*
-(function(root) {
-	"use strict";
-
-	module.exports = ePub;
-
-	// CommonJS
-	if (typeof exports === "object") {
-		// root.RSVP = require("rsvp");
-		module.exports = ePub;
-	// RequireJS
-	} else if (typeof define === "function" && define.amd) {
-		define(ePub);
-	// Global
-	} else {
-		root.ePub = ePub;
-	}
-
-})(this);
-*/
-
-},{"./book":3,"rsvp":2}],7:[function(require,module,exports){
+},{"./request":17,"rsvp":2}],6:[function(require,module,exports){
 var core = require('./core');
 
 function EpubCFI(cfiStr){
@@ -3432,7 +3303,7 @@ EpubCFI.prototype.isCfiString = function(target) {
 
 module.exports = EpubCFI;
 
-},{"./core":5}],8:[function(require,module,exports){
+},{"./core":5}],7:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 //-- Hooks allow for injecting functions that must all complete in order before finishing
@@ -3475,7 +3346,7 @@ Hook.prototype.trigger = function(){
 
 module.exports = Hook;
 
-},{"rsvp":2}],9:[function(require,module,exports){
+},{"rsvp":2}],8:[function(require,module,exports){
 var core = require('./core');
 
 function Reflowable(){
@@ -3638,7 +3509,7 @@ module.exports = {
   'Scroll': Scroll
 };
 
-},{"./core":5}],10:[function(require,module,exports){
+},{"./core":5}],9:[function(require,module,exports){
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
@@ -3858,7 +3729,7 @@ RSVP.EventTarget.mixin(Locations.prototype);
 
 module.exports = Locations;
 
-},{"./core":5,"./epubcfi":7,"./queue":15,"rsvp":2}],11:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6,"./queue":14,"rsvp":2}],10:[function(require,module,exports){
 function Map(layout){
   this.layout = layout;
 };
@@ -4147,7 +4018,7 @@ Map.prototype.rangeListToCfiList = function(view, columns){
 
 module.exports = Map;
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var core = require('./core');
 var Parser = require('./parser');
 var RSVP = require('rsvp');
@@ -4250,7 +4121,7 @@ Navigation.prototype.get = function(target) {
 
 module.exports = Navigation;
 
-},{"./core":5,"./parser":14,"rsvp":2}],13:[function(require,module,exports){
+},{"./core":5,"./parser":13,"rsvp":2}],12:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Continuous = require('./continuous');
@@ -4538,7 +4409,7 @@ Paginate.prototype.adjustImages = function(view) {
 
 module.exports = Paginate;
 
-},{"./continuous":4,"./core":5,"./layout":9,"./map":11,"rsvp":2}],14:[function(require,module,exports){
+},{"./continuous":4,"./core":5,"./layout":8,"./map":10,"rsvp":2}],13:[function(require,module,exports){
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 
@@ -4912,7 +4783,7 @@ Parser.prototype.ncx = function(tocXml){
 
 module.exports = Parser;
 
-},{"./core":5,"./epubcfi":7}],15:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6}],14:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 
@@ -5107,7 +4978,7 @@ function Task(task, args, context){
 
 module.exports = Queue;
 
-},{"./core":5,"rsvp":2}],16:[function(require,module,exports){
+},{"./core":5,"rsvp":2}],15:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var replace = require('./replacements');
@@ -5739,7 +5610,7 @@ RSVP.EventTarget.mixin(Rendition.prototype);
 
 module.exports = Rendition;
 
-},{"./core":5,"./epubcfi":7,"./hook":8,"./layout":9,"./map":11,"./queue":15,"./replacements":17,"./view":20,"./views":21,"rsvp":2}],17:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6,"./hook":7,"./layout":8,"./map":10,"./queue":14,"./replacements":16,"./view":21,"./views":22,"rsvp":2}],16:[function(require,module,exports){
 var core = require('./core');
 
 function links(view, renderer) {
@@ -5789,7 +5660,103 @@ module.exports = {
   'links': links
 };
 
-},{"./core":5}],18:[function(require,module,exports){
+},{"./core":5}],17:[function(require,module,exports){
+var RSVP = require('rsvp');
+
+function request(url, type, withCredentials, headers) {
+  var supportsURL = window.URL;
+  var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+
+  var deferred = new RSVP.defer();
+
+  var xhr = new XMLHttpRequest();
+
+  //-- Check from PDF.js:
+  //   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+  var xhrPrototype = XMLHttpRequest.prototype;
+
+  var header;
+
+  if (!('overrideMimeType' in xhrPrototype)) {
+    // IE10 might have response, but not overrideMimeType
+    Object.defineProperty(xhrPrototype, 'overrideMimeType', {
+      value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+    });
+  }
+  if(withCredentials) {
+    xhr.withCredentials = true;
+  }
+
+  xhr.open("GET", url, true);
+
+  for(header in headers) {
+    xhr.setRequestHeader(header, headers[header]);
+  }
+
+  xhr.onreadystatechange = handler;
+
+  if(type == 'blob'){
+    xhr.responseType = BLOB_RESPONSE;
+  }
+
+  if(type == "json") {
+    xhr.setRequestHeader("Accept", "application/json");
+  }
+
+  if(type == 'xml') {
+    xhr.overrideMimeType('text/xml');
+  }
+
+  xhr.send();
+
+  function handler() {
+    if (this.readyState === this.DONE) {
+      if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
+        var r;
+
+        if(type == 'xml'){
+
+          // If this.responseXML wasn't set, try to parse using a DOMParser from text
+          if(!this.responseXML){
+            r = new DOMParser().parseFromString(this.response, "text/xml");
+          } else {
+            r = this.responseXML;
+          }
+
+        }else
+        if(type == 'json'){
+          r = JSON.parse(this.response);
+        }else
+        if(type == 'blob'){
+
+          if(supportsURL) {
+            r = this.response;
+          } else {
+            //-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+            r = new Blob([this.response]);
+          }
+
+        }else{
+          r = this.response;
+        }
+
+        deferred.resolve(r);
+      } else {
+        deferred.reject({
+          status: this.status,
+          message : this.response,
+          stack : new Error().stack
+        });
+      }
+    }
+  }
+
+  return deferred.promise;
+};
+
+module.exports = request;
+
+},{"rsvp":2}],18:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -5930,7 +5897,7 @@ Section.prototype.cfiFromElement = function(el) {
 
 module.exports = Section;
 
-},{"./core":5,"./epubcfi":7,"./hook":8,"rsvp":2}],19:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6,"./hook":7,"rsvp":2}],19:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -6054,7 +6021,26 @@ Spine.prototype.each = function() {
 
 module.exports = Spine;
 
-},{"./core":5,"./epubcfi":7,"./section":18,"rsvp":2}],20:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6,"./section":18,"rsvp":2}],20:[function(require,module,exports){
+var Zip;
+
+function Unarchive() {
+  try {
+    if (typeof JSZip !== 'undefined') {
+      this.zip = new JSZip();
+    } else {
+      Zip = require('jszip');
+      this.zip = new Zip();
+    }
+    console.log('jszip loaded');
+  } catch (e) {
+    console.log('jszip not loaded');
+  }
+}
+
+module.exports = Unarchive;
+
+},{"jszip":"jszip"}],21:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -6810,7 +6796,7 @@ RSVP.EventTarget.mixin(View.prototype);
 
 module.exports = View;
 
-},{"./core":5,"./epubcfi":7,"rsvp":2}],21:[function(require,module,exports){
+},{"./core":5,"./epubcfi":6,"rsvp":2}],22:[function(require,module,exports){
 function Views(container) {
   this.container = container;
   this._views = [];
@@ -6966,7 +6952,26 @@ Views.prototype.hide = function(){
 
 module.exports = Views;
 
-},{}]},{},[6])
+},{}],"epub":[function(require,module,exports){
+(function (global){
+if (typeof EPUBJS === 'undefined') {
+	(typeof window !== 'undefined' ? window : global).EPUBJS = {};
+}
+
+EPUBJS.VERSION = "0.3.0";
+
+var Book = require('./book');
+
+function ePub(_url) {
+	return new Book(_url);
+};
+
+module.exports = ePub;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"./book":3}]},{},["epub"])("epub")
+});
 
 
 //# sourceMappingURL=epub.js.map

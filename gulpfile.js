@@ -47,9 +47,9 @@ gulp.task('minify', ['bundle'], function(){
 });
 
 // Watch Our Files
-gulp.task('watch', function() {
+gulp.task('watch', function(cb) {
   // gulp.watch('src/*.js', ['watchify']);
-  return bundle('epub.js', true);
+  bundle('epub.js', cb);
 });
 
 gulp.task('serve', ["watch"], function() {
@@ -66,11 +66,16 @@ gulp.task('default', ['lint', 'build']);
 function bundle(file, watch) {
   var opt = {
     entries: ['src/'+file],
+    standalone: 'ePub',
     debug : true
   };
 
+  var b = browserify(opt);
+  b.require('./src/'+file, {expose: 'epub'});
+  b.external('jszip');
+
   // watchify() if watch requested, otherwise run browserify() once
-  var bundler = watch ? watchify(browserify(opt)) : browserify(opt);
+  var bundler = watch ? watchify(b) : b;
 
   function rebundle() {
     var stream = bundler.bundle();

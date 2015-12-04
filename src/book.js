@@ -7,6 +7,7 @@ var Navigation = require('./navigation');
 var Rendition = require('./rendition');
 var Continuous = require('./continuous');
 var Paginate = require('./paginate');
+var Unarchive = require('./unarchive');
 
 function Book(_url, options){
   // Promises

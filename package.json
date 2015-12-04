@@ -36,6 +36,7 @@
     "watchify": "^3.6.1"
   },
   "dependencies": {
+    "jszip": "^2.5.0",
     "rsvp": "^3.0.18"
   }
 }
