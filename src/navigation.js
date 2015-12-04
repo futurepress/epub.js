@@ -5,7 +5,7 @@ var RSVP = require('rsvp');
 function Navigation(_package, _request){
   var navigation = this;
   var parse = new Parser();
-  var request = _request || core.request;
+  var request = _request || require('./request');
 
   this.package = _package;
   this.toc = [];
@@ -53,7 +53,7 @@ function Navigation(_package, _request){
 
 // Load the navigation
 Navigation.prototype.load = function(_request) {
-  var request = _request || core.request;
+  var request = _request || require('./request');
   var loading, loaded;
 
   if(this.nav) {

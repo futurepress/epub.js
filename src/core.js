@@ -393,8 +393,11 @@ function indexOfTextNode(textNode){
   return index;
 };
 
+function isXml(ext) {
+  return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
+}
+
 module.exports = {
-  'request': require('./request'),
   'uri': uri,
   'folder': folder,
   'isElement': isElement,
@@ -416,4 +419,5 @@ module.exports = {
   'windowBounds': windowBounds,
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
+  'isXml': isXml
 };

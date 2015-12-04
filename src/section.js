@@ -25,14 +25,14 @@ function Section(item){
 
 
 Section.prototype.load = function(_request){
-  var request = _request || this.request || core.request;
+  var request = _request || this.request || require('./request');
   var loading = new RSVP.defer();
   var loaded = loading.promise;
 
   if(this.contents) {
     loading.resolve(this.contents);
   } else {
-    request(this.url, 'xml')
+    request(this.url)
       .then(function(xml){
         var base;
         var directory = core.folder(this.url);

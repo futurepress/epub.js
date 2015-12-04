@@ -1,8 +1,10 @@
 var RSVP = require('rsvp');
+var core = require('./core');
 
 function request(url, type, withCredentials, headers) {
   var supportsURL = window.URL;
   var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+  var uri;
 
   var deferred = new RSVP.defer();
 
@@ -32,6 +34,12 @@ function request(url, type, withCredentials, headers) {
 
   xhr.onreadystatechange = handler;
 
+  // If type isn't set, determine it from the file extension
+	if(!type) {
+		uri = core.uri(url);
+		type = uri.extension;
+	}
+
   if(type == 'blob'){
     xhr.responseType = BLOB_RESPONSE;
   }
@@ -40,8 +48,21 @@ function request(url, type, withCredentials, headers) {
     xhr.setRequestHeader("Accept", "application/json");
   }
 
-  if(type == 'xml') {
-    xhr.overrideMimeType('text/xml');
+  if(core.isXml(type)) {
+		xhr.responseType = "document";
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
+	}
+
+	if(type == 'xhtml') {
+		xhr.responseType = "document";
+	}
+
+	if(type == 'html' || type == 'htm') {
+		xhr.responseType = "document";
+ 	}
+
+  if(type == "binary") {
+    xhr.responseType = "arraybuffer";
   }
 
   xhr.send();
@@ -51,15 +72,19 @@ function request(url, type, withCredentials, headers) {
       if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
         var r;
 
-        if(type == 'xml'){
-
+        if((this.responseType == '' || this.responseType == 'document')
+            && this.responseXML){
+          r = this.responseXML;
+        } else
+        if(core.isXml(type)){
           // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          if(!this.responseXML){
-            r = new DOMParser().parseFromString(this.response, "text/xml");
-          } else {
-            r = this.responseXML;
-          }
-
+          r = new DOMParser().parseFromString(this.response, "text/xml");
+        }else
+        if(type == 'xhtml'){
+          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+        }else
+        if(type == 'html' || type == 'htm'){
+          r = new DOMParser().parseFromString(this.response, "text/html");
         }else
         if(type == 'json'){
           r = JSON.parse(this.response);
