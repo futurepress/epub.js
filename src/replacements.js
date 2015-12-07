@@ -72,7 +72,9 @@ function links(view, renderer) {
 
 function substitute(content, urls, replacements) {
   urls.forEach(function(url, i){
-    content = content.replace(new RegExp(url, 'g'), replacements[i]);
+    if (url && replacements[i]) {
+      content = content.replace(new RegExp(url, 'g'), replacements[i]);
+    }
   });
   return content;
 }

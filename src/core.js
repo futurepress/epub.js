@@ -1,7 +1,7 @@
 var RSVP = require('rsvp');
 
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
+/*
 //-- Parse the different parts of a url, returning a object
 function uri(url){
   var uri = {
@@ -81,7 +81,7 @@ function folder(url){
   return folder;
 
 };
-
+*/
 function isElement(obj) {
     return !!(obj && obj.nodeType == 1);
 };
@@ -397,9 +397,19 @@ function isXml(ext) {
   return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
 }
 
+function createBlobUrl(content, mime){
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob = new Blob([content], {type : mime });
+
+  tempUrl = _URL.createObjectURL(blob);
+
+  return tempUrl;
+};
+
 module.exports = {
-  'uri': uri,
-  'folder': folder,
+  // 'uri': uri,
+  // 'folder': folder,
   'isElement': isElement,
   'uuid': uuid,
   'values': values,
@@ -419,5 +429,6 @@ module.exports = {
   'windowBounds': windowBounds,
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
-  'isXml': isXml
+  'isXml': isXml,
+  'createBlobUrl': createBlobUrl
 };

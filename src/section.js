@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
@@ -37,7 +38,7 @@ Section.prototype.load = function(_request){
     request(this.url)
       .then(function(xml){
         var base;
-        var directory = core.folder(this.url);
+        var directory = URI(this.url).directory();
 
         this.document = xml;
         this.contents = xml.documentElement;

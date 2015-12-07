@@ -4758,7 +4758,7 @@ module.exports = Continuous;
 var RSVP = require('rsvp');
 
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
+/*
 //-- Parse the different parts of a url, returning a object
 function uri(url){
   var uri = {
@@ -4838,7 +4838,7 @@ function folder(url){
   return folder;
 
 };
-
+*/
 function isElement(obj) {
     return !!(obj && obj.nodeType == 1);
 };
@@ -5154,9 +5154,19 @@ function isXml(ext) {
   return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
 }
 
+function createBlobUrl(content, mime){
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob = new Blob([content], {type : mime });
+
+  tempUrl = _URL.createObjectURL(blob);
+
+  return tempUrl;
+};
+
 module.exports = {
-  'uri': uri,
-  'folder': folder,
+  // 'uri': uri,
+  // 'folder': folder,
   'isElement': isElement,
   'uuid': uuid,
   'values': values,
@@ -5176,7 +5186,8 @@ module.exports = {
   'windowBounds': windowBounds,
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
-  'isXml': isXml
+  'isXml': isXml,
+  'createBlobUrl': createBlobUrl
 };
 
 },{"rsvp":4}],9:[function(require,module,exports){
@@ -8159,7 +8170,9 @@ Rendition.prototype.triggerViewEvent = function(e){
 };
 
 Rendition.prototype.replacements = function(){
+	// Wait for loading
 	return this.q.enqueue(function () {
+		// Get thes books manifest
 		var manifest = this.book.package.manifest;
 	  var manifestArray = Object.keys(manifest).
 	    map(function (key){
@@ -8178,17 +8191,23 @@ Rendition.prototype.replacements = function(){
 	  // Only CSS
 	  var css = items.
 	    filter(function (item){
-	      if (item.type != "text/css") {
+	      if (item.type === "text/css") {
 	        return true;
 	      }
 	    });
 
+		// Css Urls
+		var cssUrls = css.map(function(item) {
+			return item.href;
+		});
+
+		// All Assets Urls
 	  var urls = items.
 	    map(function(item) {
-				// return this.book.baseUrl + item.href;
 	      return item.href;
 	    }.bind(this));
 
+		// Create blob urls for all the assets
 	  var processing = urls.
 	    map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
@@ -8196,35 +8215,69 @@ Rendition.prototype.replacements = function(){
 	      return this.book.archive.createUrl(absolute);
 	    }.bind(this));
 
+		// After all the urls are created
 	  return RSVP.all(processing).
 	    then(function(replacementUrls) {
-	      this.hooks.serialize.register(function(content, section) {
-					// resolve file urls
-					var fileUri = URI(section.url);
-					// console.log(section.url);
-					// var fileDirectory = fileUri.directory();
-					// // // package urls
-					// var packageUri = URI(this.book.packageUrl);
-					// var packageDirectory = packageUri.directory();
-					//
-					// // Need to compare the directory of the current file
-					// // with the directory of the package file.
 
+				// Replace Asset Urls in the text of all css files
+				cssUrls.forEach(function(href) {
+					this.replaceCss(href, urls, replacementUrls);
+		    }.bind(this));
 
-					urls = urls.
-				    map(function(href) {
-							var assetUri = URI(href).absoluteTo(this.book.baseUrl);
-							var relative = assetUri.relativeTo(fileUri).toString();
-				      return relative;
-				    }.bind(this));
-
-
-	        section.output = replace.substitute(content, urls, replacementUrls);
+				// Replace Asset Urls in chapters
+				// by registering a hook after the sections contents has been serialized
+	      this.hooks.serialize.register(function(output, section) {
+					this.replaceAssets(section, urls, replacementUrls);
 	      }.bind(this));
+
 	    }.bind(this)).catch(function(reason){
 	      console.error(reason);
 	    });
 	}.bind(this));
+};
+
+Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
+		var newUrl;
+		var indexInUrls;
+
+		// Find the absolute url of the css file
+		var fileUri = URI(href);
+		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
+		// Get the text of the css file from the archive
+		var text = this.book.archive.getText(absolute);
+		// Get asset links relative to css file
+		var relUrls = urls.
+			map(function(assetHref) {
+				var assetUri = URI(assetHref).absoluteTo(this.book.baseUrl);
+				var relative = assetUri.relativeTo(absolute).toString();
+				return relative;
+			}.bind(this));
+
+		// Replacements in the css text
+		text = replace.substitute(text, relUrls, replacementUrls);
+
+		// Get the new url
+		newUrl = core.createBlobUrl(text, 'text/css');
+
+		// switch the url in the replacementUrls
+		indexInUrls = urls.indexOf(href);
+		if (indexInUrls > -1) {
+			replacementUrls[indexInUrls] = newUrl;
+		}
+};
+
+Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
+	var fileUri = URI(section.url);
+	// Get Urls relative to current sections
+	var relUrls = urls.
+		map(function(href) {
+			var assetUri = URI(href).absoluteTo(this.book.baseUrl);
+			var relative = assetUri.relativeTo(fileUri).toString();
+			return relative;
+		}.bind(this));
+
+
+	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(Rendition.prototype);
@@ -8306,7 +8359,9 @@ function links(view, renderer) {
 
 function substitute(content, urls, replacements) {
   urls.forEach(function(url, i){
-    content = content.replace(new RegExp(url, 'g'), replacements[i]);
+    if (url && replacements[i]) {
+      content = content.replace(new RegExp(url, 'g'), replacements[i]);
+    }
   });
   return content;
 }
@@ -8440,6 +8495,7 @@ module.exports = request;
 
 },{"./core":8,"rsvp":4,"urijs":5}],21:[function(require,module,exports){
 var RSVP = require('rsvp');
+var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
@@ -8478,7 +8534,7 @@ Section.prototype.load = function(_request){
     request(this.url)
       .then(function(xml){
         var base;
-        var directory = core.folder(this.url);
+        var directory = URI(this.url).directory();
 
         this.document = xml;
         this.contents = xml.documentElement;
@@ -8589,7 +8645,7 @@ Section.prototype.cfiFromElement = function(el) {
 
 module.exports = Section;
 
-},{"./core":8,"./epubcfi":9,"./hook":10,"./replacements":19,"./request":20,"rsvp":4}],22:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./hook":10,"./replacements":19,"./request":20,"rsvp":4,"urijs":5}],22:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
