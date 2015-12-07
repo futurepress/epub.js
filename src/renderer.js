@@ -87,6 +87,8 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 	} else {
 		this.render.resize('100%', '100%');
 	}
+
+//	document.addEventListener("orientationchange", this.onResized);
 };
 
 /**
@@ -179,8 +181,8 @@ EPUBJS.Renderer.prototype.afterLoad = function(contents) {
 	this.doc = this.render.document;
 
 	// Format the contents using the current layout method
-	this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
+	this.formated = this.layout.format(contents, this.width, this.height, this.gap);
+	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight, this.formated.isVertical);
 
 	// window.addEventListener("orientationchange", this.onResized.bind(this), false);
 	if(!this.initWidth && !this.initHeight){
@@ -282,6 +284,12 @@ EPUBJS.Renderer.prototype.determineLayout = function(settings){
 		spreads = true;
 	}
 
+	if(settings.layout === "scroll") {
+		layoutMethod = "Scroll";
+		scroll = true;
+		spreads = false;
+	}
+
 	this.spreads = spreads;
 	this.render.scroll(scroll);
 	this.trigger("renderer:spreads", spreads);
@@ -296,10 +304,11 @@ EPUBJS.Renderer.prototype.beforeDisplay = function(callback, renderer){
 // Update the renderer with the information passed by the layout
 EPUBJS.Renderer.prototype.updatePages = function(layout){
 	this.pageMap = this.mapPage();
+    this.pageDivisor = layout.pageCount / layout.displayedPages;
 	// this.displayedPages = layout.displayedPages;
 
-	if (this.spreads) {
-		this.displayedPages = Math.ceil(this.pageMap.length / 2);
+	if (this.pageDivisor > 1) {
+		this.displayedPages = Math.ceil(this.pageMap.length / this.pageDivisor);
 	} else {
 		this.displayedPages = this.pageMap.length;
 	}
@@ -333,8 +342,8 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	// Give the css styles time to update
 	// clearTimeout(this.timeoutTillCfi);
 	// this.timeoutTillCfi = setTimeout(function(){
-	renderer.formated = renderer.layout.format(renderer.render.docEl, renderer.render.width, renderer.render.height, renderer.gap);
-	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+	renderer.formated = renderer.layout.format(renderer.render.docEl, renderer.width, renderer.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight, renderer.formated.isVertical);
 
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
@@ -474,8 +483,7 @@ EPUBJS.Renderer.prototype.firstPage = function(){
 
 //-- Find a section by fragement id
 EPUBJS.Renderer.prototype.section = function(fragment){
-	var el = this.doc.getElementById(fragment),
-		left, pg;
+	var el = this.doc.getElementById(fragment);
 
 	if(el){
 		this.pageByElement(el);
@@ -558,12 +566,8 @@ EPUBJS.Renderer.prototype.containsPoint = function(el, x, y){
 		rect = el.getBoundingClientRect();
 		// console.log(el, rect, x, y);
 
-		if( rect.width !== 0 &&
-				rect.height !== 0 && // Element not visible
-				rect.left >= x &&
-				x <= rect.left + rect.width) {
-			return true;
-		}
+		return rect.left <= x && x <= rect.right &&
+                rect.top <= y && y <= rect.bottom;
 	}
 
 	return false;
@@ -600,9 +604,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var map = [];
 	var root = this.render.getBaseElement();
 	var page = 1;
-	var width = this.layout.colWidth + this.layout.gap;
-	var offset = this.formated.pageWidth * (this.chapterPos-1);
-	var limit = (width * page) - offset;// (width * page) - offset;
+	var stride = this.layout.pageStride;
+	var offset = stride * (this.chapterPos-1);
+	var limit = (stride * page) - offset;
 	var elLimit = 0;
 	var prevRange;
 	var prevRanges;
@@ -611,6 +615,11 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var prevElement;
 	var startRange, endRange;
 	var startCfi, endCfi;
+    
+    var doc = this.render.getDocumentElement();
+    var maxRight = doc.scrollWidth + doc.scrollLeft;
+    var isVertical = this.layout.isVertical;
+
 	var check = function(node) {
 		var elPos;
 		var elRange;
@@ -625,15 +634,37 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 				return;
 			}
 
-			//-- Element starts new Col
-			if(elPos.left > elLimit) {
-				found = checkText(node);
-			}
+            if (isVertical) {
+                //-- Element starts new Col
+                if (elPos.top > elLimit) {
+                    found = checkText(node);
+                }
 
-			//-- Element Spans new Col
-			if(elPos.right > elLimit) {
-				found = checkText(node);
-			}
+                //-- Element Spans new Col
+                if (elPos.bottom > elLimit) {
+                    found = checkText(node);
+                }
+            } else if (renderer.direction == "rtl") {
+                //-- Element starts new Col
+                if (maxRight - elPos.right > elLimit) {
+                    found = checkText(node);
+                }
+
+                //-- Element Spans new Col
+                if (maxRight - elPos.left > elLimit) {
+                    found = checkText(node);
+                }
+            } else {
+                //-- Element starts new Col
+                if (elPos.left > elLimit) {
+                    found = checkText(node);
+                }
+
+                //-- Element Spans new Col
+                if (elPos.right > elLimit) {
+                    found = checkText(node);
+                }
+            }
 
 			prevElement = node;
 
@@ -653,7 +684,17 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			if(!pos || (pos.width === 0 && pos.height === 0)) {
 				return;
 			}
-			if(pos.left + pos.width < limit) {
+            
+            var isInPage = false;
+            if (isVertical) {
+                isInPage = pos.bottom < limit;
+            } else if (renderer.direction == "rtl") {
+                isInPage = maxRight - pos.left < limit;
+            } else {
+                isInPage = pos.right < limit;
+            }
+            
+			if (isInPage) {
 				if(!map[page-1]){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
@@ -671,7 +712,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 				if(prevRange){
 					prevRange.collapse(false);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[map.length-1].end = cfi;
+                    if (map.length) {
+                        map[map.length-1].end = cfi;
+                    }
 				}
 
 				range.collapse(true);
@@ -682,7 +725,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 				});
 
 				page += 1;
-				limit = (width * page) - offset;
+				limit = (stride * page) - offset;
 				elLimit = limit;
 			}
 
@@ -691,23 +734,23 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 		return result;
 	};
-	var docEl = this.render.getDocumentElement();
-	var dir = docEl.dir;
-
-	// Set back to ltr before sprinting to get correct order
-	if(dir == "rtl") {
-		docEl.dir = "ltr";
-		docEl.style.position = "static";
-	}
+//	var docEl = this.render.getDocumentElement();
+//	var dir = docEl.dir;
+//
+//	// Set back to ltr before sprinting to get correct order
+//	if(dir == "rtl") {
+//		docEl.dir = "ltr";
+//		docEl.style.position = "static";
+//	}
 
 	this.textSprint(root, check);
 
-	// Reset back to previous RTL settings
-	if(dir == "rtl") {
-		docEl.dir = dir;
-		docEl.style.left = "auto";
-		docEl.style.right = "0";
-	}
+//	// Reset back to previous RTL settings
+//	if(dir == "rtl") {
+//		docEl.dir = dir;
+//		docEl.style.left = "auto";
+//		docEl.style.right = "0";
+//	}
 
 	// Check the remaining children that fit on this page
 	// to ensure the end is correctly calculated
@@ -719,7 +762,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	if(prevRange){
 		prevRange.collapse(false);
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
-		map[map.length-1].end = cfi;
+        if (map.length) {
+            map[map.length-1].end = cfi;
+        }
 	}
 
 	// Handle empty map
@@ -915,8 +960,8 @@ EPUBJS.Renderer.prototype.pagesInCurrentChapter = function() {
 
 	length = this.pageMap.length;
 
-	if(this.spreads){
-		pgs = Math.ceil(length / 2);
+	if(this.pageDivisor > 1){
+		pgs = Math.ceil(length / this.pageDivisor);
 	} else {
 		pgs = length;
 	}
@@ -932,8 +977,8 @@ EPUBJS.Renderer.prototype.currentRenderedPage = function(){
 		return false;
 	}
 
-	if (this.spreads && this.pageMap.length > 1) {
-		pg = this.chapterPos*2;
+	if (this.pageDivisor > 1 && this.pageMap.length > 1) {
+		pg = this.chapterPos*this.pageDivisor;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -953,8 +998,8 @@ EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
 
 	lastPage = this.pageMap.length;
 
-	if (this.spreads) {
-		pg = this.chapterPos*2;
+	if (this.pageDivisor > 1) {
+		pg = this.chapterPos*this.pageDivisor;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -973,9 +1018,9 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 		return false;
 	}
 
-	if (this.spreads) {
-		pg = this.chapterPos*2;
-		startRange = this.pageMap[pg-2];
+	if (this.pageDivisor > 1) {
+		pg = this.chapterPos*this.pageDivisor;
+		startRange = this.pageMap[pg-this.pageDivisor];
 		endRange = startRange;
 
 		if(this.pageMap.length > 1 && this.pageMap.length > pg-1) {
