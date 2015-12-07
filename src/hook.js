@@ -14,8 +14,17 @@ function Hook(context){
 };
 
 // Adds a function to be run before a hook completes
-Hook.prototype.register = function(func){
-  this.hooks.push(func);
+Hook.prototype.register = function(){
+  for(var i = 0; i < arguments.length; ++i) {
+    if (typeof arguments[i]  === "function") {
+      this.hooks.push(arguments[i]);
+    } else {
+      // unpack array
+      for(var j = 0; j < arguments[i].length; ++j) {
+        this.hooks.push(arguments[i][j]);
+      }
+    }
+  }
 };
 
 // Triggers a hook to run all functions
@@ -36,6 +45,11 @@ Hook.prototype.trigger = function(){
 
 
   return RSVP.all(promises);
+};
+
+// Adds a function to be run before a hook completes
+Hook.prototype.list = function(){
+  return this.hooks;
 };
 
 module.exports = Hook;

@@ -1,3 +1,4 @@
+var URI = require('urijs');
 var core = require('./core');
 
 function EpubCFI(cfiStr){
@@ -359,9 +360,9 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 };
 
 EpubCFI.prototype.generateCfiFromHref = function(href, book) {
-  var uri = core.uri(href);
-  var path = uri.path;
-  var fragment = uri.fragment;
+  var uri = URI(href);
+  var path = uri.path();
+  var fragment = uri.fragment();
   var spinePos = book.spineIndexByURL[path];
   var loaded;
   var deferred = new RSVP.defer();

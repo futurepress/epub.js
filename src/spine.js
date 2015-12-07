@@ -30,7 +30,6 @@ Spine.prototype.load = function(_package) {
       item.href = manifestItem.href;
       item.url = this.baseUrl + item.href;
 
-
       if(manifestItem.properties.length){
         item.properties.push.apply(item.properties, manifestItem.properties);
       }

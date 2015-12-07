@@ -2,8 +2,9 @@ var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
+var replacements = require('./replacements');
 
-function Section(item){
+function Section(item, hooks){
     this.idref = item.idref;
     this.linear = item.linear;
     this.properties = item.properties;
@@ -17,10 +18,11 @@ function Section(item){
     this.cfiBase = item.cfiBase;
 
     this.hooks = {};
-    this.hooks.replacements = new Hook(this);
+    this.hooks.serialize = new Hook(this);
+    this.hooks.content = new Hook(this);
 
     // Register replacements
-    this.hooks.replacements.register(this.replacements);
+    this.hooks.content.register(replacements.base);
 };
 
 
@@ -40,7 +42,7 @@ Section.prototype.load = function(_request){
         this.document = xml;
         this.contents = xml.documentElement;
 
-        return this.hooks.replacements.trigger(this.document);
+        return this.hooks.content.trigger(this.document, this);
       }.bind(this))
       .then(function(){
         loading.resolve(this.contents);
@@ -53,7 +55,7 @@ Section.prototype.load = function(_request){
   return loaded;
 };
 
-Section.prototype.replacements = function(_document){
+Section.prototype.base = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
     var head;
@@ -81,15 +83,23 @@ Section.prototype.beforeSectionLoad = function(){
 Section.prototype.render = function(_request){
   var rendering = new RSVP.defer();
   var rendered = rendering.promise;
+  this.output; // TODO: better way to return this from hooks?
 
-  this.load(_request).then(function(contents){
-    var serializer = new XMLSerializer();
-    var output = serializer.serializeToString(contents);
-    rendering.resolve(output);
-  })
-  .catch(function(error){
-    rendering.reject(error);
-  });
+  this.load(_request).
+    then(function(contents){
+      var serializer = new XMLSerializer();
+      this.output = serializer.serializeToString(contents);
+      return this.output;
+    }.bind(this)).
+    then(function(){
+      return this.hooks.serialize.trigger(this.output, this);
+    }.bind(this)).
+    then(function(){
+      rendering.resolve(this.output);
+    }.bind(this))
+    .catch(function(error){
+      rendering.reject(error);
+    });
 
   return rendered;
 };

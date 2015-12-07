@@ -1,34 +1,61 @@
+var URI = require('urijs');
 var core = require('./core');
+
+function base(doc, section){
+  var base;
+  var head;
+
+  if(!doc){
+    return;
+  }
+
+  head = doc.querySelector("head");
+  base = head.querySelector("base");
+
+  if(!base) {
+    base = doc.createElement("base");
+  }
+
+  base.setAttribute("href", section.url);
+  head.insertBefore(base, head.firstChild);
+
+}
 
 function links(view, renderer) {
 
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
-    var uri = new core.uri(href);
+    var linkUri = URI(href);
+    var absolute = linkUri.absoluteTo(view.section.url);
+    var relative = absolute.relativeTo(this.book.baseUrl).toString();
 
-
-    if(uri.protocol){
+    if(linkUri.protocol()){
 
       link.setAttribute("target", "_blank");
 
     }else{
+      /*
+      if(baseDirectory) {
+				// We must ensure that the file:// protocol is preserved for
+				// local file links, as in certain contexts (such as under
+				// Titanium), file links without the file:// protocol will not
+				// work
+				if (baseUri.protocol === "file") {
+					relative = core.resolveUrl(baseUri.base, href);
+				} else {
+					relative = core.resolveUrl(baseDirectory, href);
+				}
+			} else {
+				relative = href;
+			}
+      */
 
-      // relative = core.resolveUrl(directory, href);
-      // if(uri.fragment && !base) {
-      //   link.onclick = function(){
-      //     renderer.fragment(href);
-      //     return false;
-      //   };
-      // } else {
-
-      //}
-
-      if(href.indexOf("#") === 0) {
+      if(linkUri.fragment()) {
         // do nothing with fragment yet
       } else {
         link.onclick = function(){
-          renderer.display(href);
+          renderer.display(relative);
           return false;
         };
       }
@@ -43,6 +70,14 @@ function links(view, renderer) {
 
 };
 
+function substitute(content, urls, replacements) {
+  urls.forEach(function(url, i){
+    content = content.replace(new RegExp(url, 'g'), replacements[i]);
+  });
+  return content;
+}
 module.exports = {
-  'links': links
+  'base': base,
+  'links': links,
+  'substitute': substitute
 };

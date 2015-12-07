@@ -1,6 +1,7 @@
 var core = require('./core');
 var Parser = require('./parser');
 var RSVP = require('rsvp');
+var URI = require('urijs');
 
 function Navigation(_package, _request){
   var navigation = this;
@@ -13,7 +14,7 @@ function Navigation(_package, _request){
   this.tocById = {};
 
   if(_package.navPath) {
-    this.navUrl = _package.baseUrl + _package.navPath;
+    this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
     this.nav = {};
 
     this.nav.load = function(_request){
@@ -32,7 +33,7 @@ function Navigation(_package, _request){
   }
 
   if(_package.ncxPath) {
-    this.ncxUrl = _package.baseUrl + _package.ncxPath;
+    this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
     this.ncx = {};
 
     this.ncx.load = function(_request){

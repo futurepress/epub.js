@@ -1,3 +1,4 @@
+var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 
@@ -20,7 +21,7 @@ Parser.prototype.container = function(containerXml){
     }
 
     fullpath = rootfile.getAttribute('full-path');
-    folder = core.uri(fullpath).directory;
+    folder = URI(fullpath).directory();
     encoding = containerXml.xmlEncoding;
 
     //-- Now that we have the path we can parse the contents
@@ -310,8 +311,8 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 			content = item.querySelector("a, span"),
 			src = content.getAttribute('href') || '',
 			text = content.textContent || "",
-			split = src.split("#"),
-			baseUrl = split[0],
+			// split = src.split("#"),
+			// baseUrl = split[0],
 			// spinePos = spineIndexByURL[baseUrl],
 			// spineItem = bookSpine[spinePos],
 			subitems = [],
@@ -375,8 +376,8 @@ Parser.prototype.tocItem = function(item, spineIndexByURL, bookSpine){
 			src = content.getAttribute('src'),
 			navLabel = item.querySelector("navLabel"),
 			text = navLabel.textContent ? navLabel.textContent : "",
-			split = src.split("#"),
-			baseUrl = split[0],
+			// split = src.split("#"),
+			// baseUrl = split[0],
 			// spinePos = spineIndexByURL[baseUrl],
 			// spineItem = bookSpine[spinePos],
 			subitems = [],

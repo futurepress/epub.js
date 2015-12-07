@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var URI = require('urijs');
 var core = require('./core');
 var replace = require('./replacements');
 var Hook = require('./hook');
@@ -31,6 +32,7 @@ function Rendition(book, options) {
 	//-- Adds Hook methods to the Rendition prototype
 	this.hooks = {};
 	this.hooks.display = new Hook(this);
+	this.hooks.serialize = new Hook(this);
 	this.hooks.content = new Hook(this);
 	this.hooks.layout = new Hook(this);
 	this.hooks.render = new Hook(this);
@@ -49,6 +51,9 @@ function Rendition(book, options) {
 
 	this.q.enqueue(this.parseLayoutProperties);
 
+	if(this.book.archive) {
+		this.replacements();
+	}
 };
 
 /**
@@ -214,7 +219,8 @@ Rendition.prototype._display = function(target){
 		this.views.hide();
 
 		// Create a new view
-		view = new View(section, this.viewSettings);
+		// view = new View(section, this.viewSettings);
+		view = this.createView(section);
 
 		// This will clear all previous views
 		displayed = this.fill(view)
@@ -421,6 +427,9 @@ Rendition.prototype.onResized = function(e) {
 };
 
 Rendition.prototype.createView = function(section) {
+	// Transfer the existing hooks
+	section.hooks.serialize.register(this.hooks.serialize.list());
+
 	return new View(section, this.viewSettings);
 };
 
@@ -624,6 +633,74 @@ Rendition.prototype.triggerViewEvent = function(e){
   this.trigger(e.type, e);
 };
 
+Rendition.prototype.replacements = function(){
+	return this.q.enqueue(function () {
+		var manifest = this.book.package.manifest;
+	  var manifestArray = Object.keys(manifest).
+	    map(function (key){
+	      return manifest[key];
+	    });
+
+	  // Exclude HTML
+	  var items = manifestArray.
+	    filter(function (item){
+	      if (item.type != "application/xhtml+xml" &&
+	          item.type != "text/html") {
+	        return true;
+	      }
+	    });
+
+	  // Only CSS
+	  var css = items.
+	    filter(function (item){
+	      if (item.type != "text/css") {
+	        return true;
+	      }
+	    });
+
+	  var urls = items.
+	    map(function(item) {
+				// return this.book.baseUrl + item.href;
+	      return item.href;
+	    }.bind(this));
+
+	  var processing = urls.
+	    map(function(url) {
+				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
+				// Full url from archive base
+	      return this.book.archive.createUrl(absolute);
+	    }.bind(this));
+
+	  return RSVP.all(processing).
+	    then(function(replacementUrls) {
+	      this.hooks.serialize.register(function(content, section) {
+					// resolve file urls
+					var fileUri = URI(section.url);
+					// console.log(section.url);
+					// var fileDirectory = fileUri.directory();
+					// // // package urls
+					// var packageUri = URI(this.book.packageUrl);
+					// var packageDirectory = packageUri.directory();
+					//
+					// // Need to compare the directory of the current file
+					// // with the directory of the package file.
+
+
+					urls = urls.
+				    map(function(href) {
+							var assetUri = URI(href).absoluteTo(this.book.baseUrl);
+							var relative = assetUri.relativeTo(fileUri).toString();
+				      return relative;
+				    }.bind(this));
+
+
+	        section.output = replace.substitute(content, urls, replacementUrls);
+	      }.bind(this));
+	    }.bind(this)).catch(function(reason){
+	      console.error(reason);
+	    });
+	}.bind(this));
+};
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(Rendition.prototype);
 

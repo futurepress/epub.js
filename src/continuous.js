@@ -78,12 +78,12 @@ Continuous.prototype.afterDisplayed = function(currView){
 	var prevView, nextView;
 
 	if(index + 1 === this.views.length && next) {
-		nextView = new View(next, this.viewSettings);
+		nextView = this.createView(next);
 		this.q.enqueue(this.append, nextView);
 	}
 
 	if(index === 0 && prev) {
-		prevView = new View(prev, this.viewSettings);
+		prevView = this.createView(prev, this.viewSettings);
 		this.q.enqueue(this.prepend, prevView);
 	}
 

@@ -16,6 +16,9 @@ var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var sourcemaps = require('gulp-sourcemaps');
 
+var size = require('gulp-size');
+var URI = require('urijs');
+
 // https://github.com/mishoo/UglifyJS2/pull/265
 // uglify.AST_Node.warn_function = function() {};
 
@@ -43,6 +46,7 @@ gulp.task('minify', ['bundle'], function(){
     .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(uglify(uglifyOptions))
     .pipe(sourcemaps.write('./'))
+    .pipe(size({ showFiles: true }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -59,9 +63,6 @@ gulp.task('serve', ["watch"], function() {
 // Default
 gulp.task('default', ['lint', 'build']);
 
-// gulp.task('default', function() {
-//   // place code for your default task here
-// });
 
 function bundle(file, watch) {
   var opt = {
@@ -71,8 +72,20 @@ function bundle(file, watch) {
   };
 
   var b = browserify(opt);
+
+  // Expose epub module for require
   b.require('./src/'+file, {expose: 'epub'});
+
+  // Keep JSZip library seperate,
+  // must be loaded to use Unarchive or `require` will throw an error
   b.external('jszip');
+
+  // Ignore optional URI libraries
+  var urijsPath = URI(require.resolve('urijs'));
+  ['./punycode.js', './IPv6.js', './SecondLevelDomains.js'].forEach(function(lib) {
+    var libPath = URI(lib).absoluteTo(urijsPath).toString();
+    b.ignore(libPath);
+  });
 
   // watchify() if watch requested, otherwise run browserify() once
   var bundler = watch ? watchify(b) : b;
@@ -85,6 +98,7 @@ function bundle(file, watch) {
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}))
       .pipe(sourcemaps.write('./'))
+      .pipe(size({ showFiles: true }))
       .pipe(gulp.dest('./dist/'));
   }
 

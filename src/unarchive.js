@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var URI = require('urijs');
 var core = require('./core');
 var request = require('./request');
 var mime = require('../libs/mime/mime');
@@ -45,8 +46,8 @@ Unarchive.prototype.request = function(url, type){
 
   // If type isn't set, determine it from the file extension
 	if(!type) {
-		uri = core.uri(url);
-		type = uri.extension;
+		uri = URI(url);
+		type = uri.suffix();
 	}
 
   if(type == 'blob'){
@@ -92,7 +93,7 @@ Unarchive.prototype.handleResponse = function(response, type){
 };
 
 Unarchive.prototype.getBlob = function(url, _mimeType){
-	var decodededUrl = window.decodeURIComponent(url);
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
   var mimeType;
 
@@ -103,7 +104,7 @@ Unarchive.prototype.getBlob = function(url, _mimeType){
 };
 
 Unarchive.prototype.getText = function(url, encoding){
-	var decodededUrl = window.decodeURIComponent(url);
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
 
 	if(entry) {
