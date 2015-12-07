@@ -118,14 +118,15 @@ Book.prototype.open = function(_url){
       }).
       then(function(paths){
         var packageUri = URI(paths.packagePath);
-        book.packageUrl = packageUri.absoluteTo(book.url).toString();
+        var absPackageUri = packageUri.absoluteTo(book.url);
+        book.packageUrl = absPackageUri.toString();
         book.encoding = paths.encoding;
 
         // Set Url relative to the content
         if(packageUri.origin()) {
           book.baseUrl = packageUri.origin() + "/" + packageUri.directory() + "/";
         } else if(window && !book.isArchivedUrl(uri)){
-          book.baseUrl = packageUri.absoluteTo(window.location.href).directory() + "/";
+          book.baseUrl = absPackageUri.absoluteTo(window.location.href).directory() + "/";
         } else {
           book.baseUrl = "/" + packageUri.directory() + "/";
         }
