@@ -30,7 +30,7 @@ EPUBJS.Reader = function(bookPath, _options) {
 
 	this.settings = EPUBJS.core.defaults(_options || {}, {
 		bookPath : bookPath,
-		restore : true,
+		restore : false,
 		reload : false,
 		bookmarks : undefined,
 		annotations : undefined,
@@ -1052,7 +1052,7 @@ EPUBJS.reader.TocController = function(toc) {
 
 			link.textContent = chapter.label;
 			link.href = chapter.href;
-			
+
 			link.classList.add('toc_link');
 
 			listitem.appendChild(link);
@@ -1098,7 +1098,7 @@ EPUBJS.reader.TocController = function(toc) {
 
 			// $open.removeClass("openChapter");
 			$item.parents('li').addClass("openChapter");
-		}	  
+		}
 	};
 
 	book.on('renderer:chapterDisplayed', chapterChange);
