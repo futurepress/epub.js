@@ -5495,7 +5495,7 @@ EpubCFI.prototype.findParent = function(cfi, _doc) {
       element = children[part.index];
     }
     // Element can't be found
-    if(typeof element === "undefined") {
+    if(!element || typeof element === "undefined") {
       console.error("No Element For", part, cfi.str);
       return false;
     }
@@ -5582,6 +5582,23 @@ EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base) {
   var steps = this.pathTo(parent);
   var path = this.generatePathComponent(steps);
   var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
+
+  var ignoreClass = 'annotator-hl';
+  var needsIgnoring = parent.classList.contains(ignoreClass);
+  var sibling = parent.previousSibling;
+
+  if (!needsIgnoring) {
+    parent = parent.parentNode;
+    if (sibling.nodeType === Node.TEXT_NODE) {
+      // If the previous sibling is a text node, join the offset
+      offset = sibling.textContent.length + offset
+      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, sibling));
+    } else {
+      // Otherwise just ignore the node by getting the path to its parent
+      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor.parentNode));
+    }
+  }
+
   return "epubcfi(" + base + "!" + path + "/"+index+":"+(offset || 0)+")";
 };
 

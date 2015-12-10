@@ -56,7 +56,7 @@ gulp.task('watch', function(cb) {
   bundle('epub.js', cb);
 });
 
-gulp.task('serve', ["watch"], function() {
+gulp.task('serve', function() {
   server();
 });
 
