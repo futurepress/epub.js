@@ -99,8 +99,13 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 	var store = false;
 	if(this._moving) {
-		console.error("Rendering In Progress");
-		return;
+		console.warning("Rendering In Progress");
+        var deferred = new RSVP.defer();
+        deferred.reject({
+            message : "Rendering In Progress",
+            stack : new Error().stack
+        });
+		return deferred.promise;
 	}
 	this._moving = true;
 	// Get the url string from the chapter (may be from storage)
@@ -133,7 +138,9 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			return this.load(contents, chapter.href);
 
-		}.bind(this));
+		}.bind(this), function() {
+            this._moving = false;
+        });
 
 };
 
@@ -469,7 +476,7 @@ EPUBJS.Renderer.prototype.lastPage = function(){
 		return this._q.enqueue("lastPage", arguments);
 	}
 
-	this.page(this.displayedPages);
+	return this.page(this.displayedPages);
 };
 
 // Jump to the first page of the chapter
@@ -478,7 +485,7 @@ EPUBJS.Renderer.prototype.firstPage = function(){
 		return this._q.enqueue("firstPage", arguments);
 	}
 
-	this.page(1);
+	return this.page(1);
 };
 
 //-- Find a section by fragement id
