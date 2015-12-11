@@ -142,7 +142,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 		}.bind(this), function() {
             this._moving = false;
-        });
+        }.bind(this));
 
 };
 

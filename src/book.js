@@ -975,7 +975,7 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 
 	spineItem = this.spine[spinePos];
 	promise = deferred.promise;
-	this._moving = true;
+    this._moving = true;
 	//-- If same chapter only stay on current chapter
 	if(this.currentChapter && this.spinePos === spinePos){
 		this.renderer.gotoCfi(cfi);
@@ -995,7 +995,7 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			deferred.resolve(rendered.currentLocationCfi);
 		}.bind(this), function() {
 			this._moving = false;
-        });
+        }.bind(this));
 
 	}
 
