@@ -4324,7 +4324,7 @@ EPUBJS.EpubCFI.prototype.findParent = function(cfi, _doc) {
       element = children[part.index];
     }
     // Element can't be found
-    if(typeof element === "undefined") {
+    if(!element || typeof element === "undefined") {
       console.error("No Element For", part, cfi.str);
       return false;
     }
@@ -6073,6 +6073,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:touchstart",
 	"renderer:touchend",
 	"renderer:selected",
+	"renderer:chapterUnload",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
@@ -6124,6 +6125,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			// Unload the previous chapter listener
 			if(this.currentChapter) {
+				this.trigger("renderer:chapterUnload");
 				this.currentChapter.unload(); // Remove stored blobs
 
 				if(this.render.window){
@@ -6598,7 +6600,7 @@ EPUBJS.Renderer.prototype.textSprint = function(root, func) {
 	var node;
 
 	try {
-		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
 			acceptNode: filterEmpty
 		}, false);
 		while ((node = treeWalker.nextNode())) {
@@ -6607,7 +6609,7 @@ EPUBJS.Renderer.prototype.textSprint = function(root, func) {
 	} catch (e) {
 		// IE doesn't accept the object, just wants a function
 		// https://msdn.microsoft.com/en-us/library/ff974820(v=vs.85).aspx
-		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, filterEmpty, false);
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, filterEmpty, false);
 		while ((node = treeWalker.nextNode())) {
 			func(node);
 		}

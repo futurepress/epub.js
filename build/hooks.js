@@ -196,8 +196,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 		}
 
 		items.forEach(function(item){
-			
-			function size() {
+
+			var size = function() {
 				var itemRect = item.getBoundingClientRect(),
 					rectHeight = itemRect.height,
 					top = itemRect.top,
@@ -206,12 +206,12 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 					newHeight,
 					fontSize = Number(getComputedStyle(item, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]),
 					fontAdjust = fontSize ? fontSize / 2 : 0;
-					
+
 				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
-		
+
 				if(height + top >= iheight) {
-				
+
 					if(top < iheight/2) {
 						// Remove top and half font-size from height to keep container from overflowing
 						newHeight = iheight - top - fontAdjust;
@@ -227,26 +227,29 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 						item.style.display = "block";
 						item.style["WebkitColumnBreakBefore"] = "always";
 						item.style["breakBefore"] = "column";
-						
+
 					}
-					
+
 					item.setAttribute('data-height', newHeight);
-					
+
 				}else{
 					item.style.removeProperty('max-height');
 					item.style.removeProperty('margin-top');
 				}
 			}
-			
-			item.addEventListener('load', size, false);
-			
-			renderer.on("renderer:resized", size);
-			
-			renderer.on("renderer:chapterUnloaded", function(){
-				item.removeEventListener('load', size);
+
+			var unloaded = function(){
+				// item.removeEventListener('load', size); // crashes in IE
 				renderer.off("renderer:resized", size);
-			});
-			
+				renderer.off("renderer:chapterUnload", this);
+			};
+
+			item.addEventListener('load', size, false);
+
+			renderer.on("renderer:resized", size);
+
+			renderer.on("renderer:chapterUnload", unloaded);
+
 			size();
 
 		});
