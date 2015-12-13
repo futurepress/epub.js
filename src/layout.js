@@ -2,7 +2,7 @@ EPUBJS.Layout = EPUBJS.Layout || {};
 
 EPUBJS.Layout.Reflowable = function(){
 	this.documentElement = null;
-	this.pageStride = null;
+    this.pageStride = 0;
     this.isVertical = false;
 };
 
@@ -40,8 +40,8 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 	return {
 		pageWidth : this.isVertical ? width : this.pageStride,
 		pageHeight : this.isVertical ? this.pageStride : height,
-        pageStride: this.pageStride,
-        isVertical : this.isVertical
+        isVertical : this.isVertical,
+        spreads : false
 	};
 };
 
@@ -54,7 +54,7 @@ EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
         this.documentElement.style.height = ((displayedPages * this.pageStride) - this.gap) + "px";
     } else {
         var totalWidth = this.documentElement.scrollWidth;
-        displayedPages = Math.ceil(totalWidth / this.spreadWidth);
+        displayedPages = Math.ceil(totalWidth / this.pageStride);
         this.documentElement.style.width = ((displayedPages * this.pageStride) - this.gap) + "px";
     }
 
@@ -66,7 +66,7 @@ EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
 
 EPUBJS.Layout.ReflowableSpreads = function(){
 	this.documentElement = null;
-	this.pageStride = null;
+	this.pageStride = 0;
     this.isVertical = false;
 };
 
@@ -109,8 +109,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 	return {
 		pageWidth : this.isVertical ? width : this.pageStride,
 		pageHeight : this.isVertical ? this.pageStride : height,
-        pageStride : this.pageStride,
-        isVertical : this.isVertical
+        isVertical : this.isVertical,
+        spreads : !this.isVertical
 	};
 };
 
@@ -124,7 +124,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
         this.documentElement.style.height = ((displayedPages * this.pageStride) - this.gap) + "px";
     } else {
         var totalWidth = this.documentElement.scrollWidth;
-        displayedPages = Math.ceil(totalWidth / this.spreadWidth);
+        displayedPages = Math.ceil(totalWidth / this.pageStride);
         divisor = 2;
         this.documentElement.style.width = ((displayedPages * this.pageStride) - this.gap) + "px";
     }
@@ -137,7 +137,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 
 EPUBJS.Layout.Fixed = function(){
 	this.documentElement = null;
-    this.pageStride = null;
+    this.pageStride = 0;
     this.isVertical = false;
 };
 
@@ -155,13 +155,35 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	if(viewport && viewport.hasAttribute("content")) {
 		content = viewport.getAttribute("content");
 		contents = content.split(',');
-		if(contents[0]){
-			width = contents[0].replace("width=", '');
-		}
-		if(contents[1]){
-			height = contents[1].replace("height=", '');
-		}
-	}
+        var keys = [];
+        var options = {};
+        contents.forEach(function(option) {
+            var terms = option.split('=');
+            if (terms.length == 2) {
+                keys.push(terms[0]);
+                options[terms[0]] = terms[1];
+            }
+        });
+
+        width = options["width"];
+        height = options["height"];
+
+        if (width && height) {
+            var transform = EPUBJS.core.prefixed('transform');
+            var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
+
+            var scale = _width / width;
+            width = _width;
+            height = Math.floor(height * scale);
+            var translateY = Math.max(0, (_height - height) / 2)
+
+            var bodyElement = documentElement.ownerDocument.body;
+            bodyElement.style[transform] = 'scale(' + scale + ') translate(0px, ' + translateY + 'px)';
+            bodyElement.style[transformOrigin] = '0 0';
+            bodyElement.style.overflowX = 'hidden';
+            bodyElement.style.overflowY = translateY == 0 ? 'auto' : 'hidden';
+        }
+    }
 
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
@@ -170,8 +192,8 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	//-- Remove columns
 	documentElement.style[columnWidth] = "";
 
-	//-- Scroll
-	documentElement.style.overflow = "auto";
+//	//-- Scroll
+//	documentElement.style.overflow = "auto";
 
     this.pageStride = width;
 	this.colWidth = width;
@@ -180,8 +202,8 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	return {
 		pageWidth : width,
 		pageHeight : height,
-        pageStride : width,
-        isVertical : false
+        isVertical : false,
+        spreads : false
 	};
 };
 
@@ -194,7 +216,7 @@ EPUBJS.Layout.Fixed.prototype.calculatePages = function(){
 
 EPUBJS.Layout.Scroll = function(){
 	this.documentElement = null;
-    this.pageStride = null;
+    this.pageStride = 0;
     this.isVertical = false;
 };
 
@@ -230,8 +252,8 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
 	return {
 		pageWidth : width,
 		pageHeight : height,
-        pageStride : this.pageStride,
-        isVertical : this.isVertical
+        isVertical : this.isVertical,
+        spreads : false
 	};
 };
 
