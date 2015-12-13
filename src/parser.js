@@ -93,6 +93,8 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 
 	spineIndexByURL = {};
 	spine.forEach(function(item){
+		spineIndexByURL[decodeURI(item.href)] = item.index;
+		spineIndexByURL[encodeURI(item.href)] = item.index;
 		spineIndexByURL[item.href] = item.index;
 	});
 

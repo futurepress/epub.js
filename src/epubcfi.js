@@ -360,7 +360,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromHref = function(href, book) {
   var uri = EPUBJS.core.uri(href);
   var path = uri.path;
   var fragment = uri.fragment;
-  var spinePos = book.spineIndexByURL[path];
+  var spinePos = book.spineIndexByURL[path] || book.spineIndexByURL[encodeURI(path)];
   var loaded;
   var deferred = new RSVP.defer();
   var epubcfi = new EPUBJS.EpubCFI();
