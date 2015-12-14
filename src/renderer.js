@@ -317,9 +317,8 @@ EPUBJS.Renderer.prototype.beforeDisplay = function(callback, renderer){
 };
 
 // Update the renderer with the information passed by the layout
-EPUBJS.Renderer.prototype.updatePages = function(layout){
-	this.pageMap = this.mapPage();
-	// this.displayedPages = layout.displayedPages;
+EPUBJS.Renderer.prototype.updatePages = function(layoutPages){
+	this.pageMap = this.mapPage(layoutPages);
 
 	if (this.spreads) {
 		this.displayedPages = Math.ceil(this.pageMap.length / 2);
@@ -614,9 +613,6 @@ EPUBJS.Renderer.prototype.textSprint = function(root, func) {
 			func(node);
 		}
 	}
-
-
-
 };
 
 EPUBJS.Renderer.prototype.sprint = function(root, func) {
@@ -625,285 +621,176 @@ EPUBJS.Renderer.prototype.sprint = function(root, func) {
 	while ((node = treeWalker.nextNode())) {
 		func(node);
 	}
-
 };
 
-EPUBJS.Renderer.prototype.mapPage = function(){
+EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 	var renderer = this;
-	var map = [];
-	var root = this.render.getBaseElement();
-	var page = 1;
-	var stride = this.layout.pageStride;
-	var offset = stride * (this.chapterPos-1);
-	var limit = (stride * page) - offset;
-	var elLimit = 0;
-	var prevRange;
-	var prevRanges;
-	var cfi;
-	var lastChildren = null;
-	var prevElement;
-	var startRange, endRange;
-	var startCfi, endCfi;
+    var html = renderer.render.getDocumentElement();
+    var document = html.ownerDocument;
+    var chapter = renderer.currentChapter;
+    var root = renderer.render.getBaseElement();
+    var nodes = [];
     
-    var doc = this.render.getDocumentElement();
-    var maxRight = doc.scrollWidth + doc.scrollLeft;
-    var isVertical = this.layout.isVertical;
-
-	var check = function(node) {
-		var elPos;
-		var elRange;
-		var found;
-		if (node.nodeType == Node.TEXT_NODE) {
-
-			elRange = document.createRange();
-			elRange.selectNodeContents(node);
-			elPos = elRange.getBoundingClientRect();
-
-			if(!elPos || (elPos.width === 0 && elPos.height === 0)) {
-				return;
-			}
-
-            if (isVertical) {
-                //-- Element starts new Col
-                if (elPos.top > elLimit) {
-                    found = checkText(node);
-                }
-
-                //-- Element Spans new Col
-                if (elPos.bottom > elLimit) {
-                    found = checkText(node);
-                }
-            } else if (renderer.direction == "rtl") {
-                //-- Element starts new Col
-                if (maxRight - elPos.right > elLimit) {
-                    found = checkText(node);
-                }
-
-                //-- Element Spans new Col
-                if (maxRight - elPos.left > elLimit) {
-                    found = checkText(node);
-                }
-            } else {
-                //-- Element starts new Col
-                if (elPos.left > elLimit) {
-                    found = checkText(node);
-                }
-
-                //-- Element Spans new Col
-                if (elPos.right > elLimit) {
-                    found = checkText(node);
-                }
-            }
-
-			prevElement = node;
-
-			if (found) {
-				prevRange = null;
-			}
-		}
-
-	};
-	var checkText = function(node){
-		var result;
-		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
-
-		ranges.forEach(function(range){
-			var pos = range.getBoundingClientRect();
-
-			if(!pos || (pos.width === 0 && pos.height === 0)) {
-				return;
-			}
-            
-            var isInPage = false;
-            if (isVertical) {
-                isInPage = pos.bottom < limit;
-            } else if (renderer.direction == "rtl") {
-                isInPage = maxRight - pos.left < limit;
-            } else {
-                isInPage = pos.right < limit;
-            }
-            
-			if (isInPage) {
-				if(!map[page-1]){
-					range.collapse(true);
-					cfi = renderer.currentChapter.cfiFromRange(range);
-					// map[page-1].start = cfi;
-					result = map.push({ start: cfi, end: null });
-				}
-			} else {
-				// Previous Range is null since we already found our last map pair
-				// Use that last walked textNode
-				if(!prevRange && prevElement) {
-					prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
-					prevRange = prevRanges[prevRanges.length-1];
-				}
-
-				if(prevRange){
-					prevRange.collapse(false);
-					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-                    if (map.length) {
-                        map[map.length-1].end = cfi;
-                    }
-				}
-
-				range.collapse(true);
-				cfi = renderer.currentChapter.cfiFromRange(range);
-				result = map.push({
-						start: cfi,
-						end: null
-				});
-
-				page += 1;
-				limit = (stride * page) - offset;
-				elLimit = limit;
-			}
-
-			prevRange = range;
-		});
-
-		return result;
-	};
-//	var docEl = this.render.getDocumentElement();
-//	var dir = docEl.dir;
-//
-//	// Set back to ltr before sprinting to get correct order
-//	if(dir == "rtl") {
-//		docEl.dir = "ltr";
-//		docEl.style.position = "static";
-//	}
-
-	this.textSprint(root, check);
-
-//	// Reset back to previous RTL settings
-//	if(dir == "rtl") {
-//		docEl.dir = dir;
-//		docEl.style.left = "auto";
-//		docEl.style.right = "0";
-//	}
-
-	// Check the remaining children that fit on this page
-	// to ensure the end is correctly calculated
-	if(!prevRange && prevElement) {
-		prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
-		prevRange = prevRanges[prevRanges.length-1];
-	}
-
-	if(prevRange){
-		prevRange.collapse(false);
-		cfi = renderer.currentChapter.cfiFromRange(prevRange);
-        if (map.length) {
-            map[map.length-1].end = cfi;
+    function checkTextNodes() {
+        if (testNodeBoundry(nodes[nodes.length - 1]) < 0) {
+            // skip check if the last node is inside this page
+            nodes = [];
+            return;
         }
-	}
 
-	// Handle empty map
-	if(!map.length) {
-		startRange = this.doc.createRange();
-		startRange.selectNodeContents(root);
-		startRange.collapse(true);
-		startCfi = renderer.currentChapter.cfiFromRange(startRange);
+        var intersects = false;
+        var pos = 0;
+        var pos_min = 0;
+        var pos_max = nodes.length;
 
-		endRange = this.doc.createRange();
-		endRange.selectNodeContents(root);
-		endRange.collapse(false);
-		endCfi = renderer.currentChapter.cfiFromRange(endRange);
+        while (pos_min < pos_max) {
+            pos = Math.floor((pos_min + pos_max) / 2);
+            var r = testNodeBoundry(nodes[pos]);
+            if (r == 0) {
+                // node intersects page boundry
+                intersects = true;
+                break;
+            } else if (r < 0) {
+                // node is inside this page
+                pos_min = pos + 1;
+            } else {
+                // node is outside this page
+                pos_max = pos;
+            }
+        }
 
+        var node = nodes[pos];
+        if (intersects) {
+            nodes = nodes.slice(pos + 1);
+            checkTextRange(node);
+        } else {
+            nodes = nodes.slice(pos);
+            addPage(node, 0);
+        }
+    }
 
-		map.push({ start: startCfi, end: endCfi });
+    function checkTextRange(node) {
+        var text = node.textContent;
+        var intersects = true;
+        var pos = 0;
+        var pos_min = 0;
+        var pos_max = text.length;
 
-	}
+        var range = document.createRange();
+        range.setStart(node, pos_min);
+        range.setEnd(node, pos_max);
 
-	// clean up
-	prevRange = null;
-	prevRanges = undefined;
-	startRange = null;
-	endRange = null;
-	root = null;
+        while (intersects) {
+            while (pos_min < pos_max) {
+                pos = Math.floor((pos_min + pos_max) / 2);
+                range.setStart(node, pos);
+                var r = testRangeBoundry(range);
+                if (r <= 0) {
+                    // position is inside this page
+                    pos_min = pos + 1;
+                } else {
+                    // position is outside this page
+                    pos_max = pos;
+                }
+            }
 
-	return map;
-};
+            addPage(node, pos);
+            intersects = testNodeBoundry(node) == 0;
+        }
+    }
 
+    var isRightToLeft = renderer.direction == "rtl";
+    var isVertical = renderer.layout.isVertical;
+    var maxRight = html.scrollLeft + html.scrollWidth;
+    var stride = renderer.layout.pageStride;
+	var limit = stride * (1 - renderer.chapterPos);
 
-EPUBJS.Renderer.prototype.indexOfBreakableChar = function (text, startPosition) {
-	var whiteCharacters = "\x2D\x20\t\r\n\b\f";
-	// '-' \x2D
-	// ' ' \x20
+    function testNodeBoundry(node) {
+        var range = document.createRange();
+        range.selectNodeContents(node);
+        return testRangeBoundry(range);
+    }
+            
+    function testRangeBoundry(range) {
+        var rect = range.getBoundingClientRect();
+        if (!rect || rect.width == 0 || rect.height == 0) {
+            return -1;
+        }
+        if (isVertical) {
+            if (rect.bottom <= limit) {
+                return -1;
+            } else if (rect.top > limit) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else if (isRightToLeft) {
+            if (maxRight - rect.left <= limit) {
+                return -1;
+            } else if (maxRight - rect.right > limit) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            if (rect.right <= limit) {
+                return -1;
+            } else if (rect.left > limit) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
 
-	if (! startPosition) {
-		startPosition = 0;
-	}
+    var pages = [];
 
-	for (var i = startPosition; i < text.length; i++) {
-		if (whiteCharacters.indexOf(text.charAt(i)) != -1) {
-			return i;
-		}
-	}
+    function addPage(node, offset) {
+        var range = document.createRange();
+        range.setStart(node, offset);
+        range.setEnd(node, offset);
 
-	return -1;
-};
+        var cfi = chapter.cfiFromRange(range);
+        if (pages.length > 0) {
+            var last = pages[pages.length - 1];
+            last.end = cfi;
+        }
 
+        pages.push({ start: cfi });
+        limit += stride;
+    }
 
-EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
-	var ranges = [];
-	var text = node.textContent.trim();
-	var range;
-	var rect;
-	var list;
+    if (layoutPages.displayedPages > 1) {
+        renderer.textSprint(root, function(node) {
+            if (pages.length == 0) {
+                addPage(node, 0);
+            }
 
-	// Usage of indexOf() function for space character as word delimiter
-	// is not sufficient in case of other breakable characters like \r\n- etc
-	var pos = this.indexOfBreakableChar(text);
+            nodes.push(node);
 
-	if(pos === -1) {
-		range = this.doc.createRange();
-		range.selectNodeContents(node);
-		return [range];
-	}
+            while (nodes.length >= 16) {
+                checkTextNodes();
+            }
+        });
 
-	range = this.doc.createRange();
-	range.setStart(node, 0);
-	range.setEnd(node, pos);
-	ranges.push(range);
+        while (nodes.length > 0) {
+            checkTextNodes();
+        }
+    }
 
-	// there was a word miss in case of one letter words
-	range = this.doc.createRange();
-	range.setStart(node, pos+1);
+    var range = document.createRange();
+    range.selectNodeContents(root);
 
-	while ( pos != -1 ) {
+    if (pages.length == 0) {
+        range.collapse(true);
+        pages.push({ start: chapter.cfiFromRange(range) });
+        range.selectNodeContents(root);
+    }
 
-		pos = this.indexOfBreakableChar(text, pos + 1);
-		if(pos > 0) {
+    range.collapse(false);
+    pages[pages.length - 1].end = chapter.cfiFromRange(range);
 
-			if(range) {
-				range.setEnd(node, pos);
-				ranges.push(range);
-			}
-
-			range = this.doc.createRange();
-			range.setStart(node, pos+1);
-		}
-	}
-
-	if(range) {
-		range.setEnd(node, text.length);
-		ranges.push(range);
-	}
-
-	return ranges;
-};
-
-EPUBJS.Renderer.prototype.rangePosition = function(range){
-	var rect;
-	var list;
-
-	list = range.getClientRects();
-
-	if(list.length) {
-		rect = list[0];
-		return rect;
-	}
-
-	return null;
+    return pages;
 };
 
 /*
