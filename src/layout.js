@@ -17,7 +17,7 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
     var bodyElement = documentElement.ownerDocument.body;
     var bodyStyles = documentElement.ownerDocument.defaultView.getComputedStyle(bodyElement);
     var writingModeValue = bodyStyles[writingMode] || "";
-    this.isVertical = writingModeValue.indexOf("vertical") == 0;
+    this.isVertical = writingModeValue.indexOf("vertical") === 0;
 
 	var width = Math.floor(_width);
     var height = Math.floor(_height);
@@ -80,7 +80,7 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
     var bodyElement = documentElement.ownerDocument.body;
     var bodyStyles = documentElement.ownerDocument.defaultView.getComputedStyle(bodyElement);
     var writingModeValue = bodyStyles[writingMode] || "";
-    this.isVertical = writingModeValue.indexOf("vertical") == 0;
+    this.isVertical = writingModeValue.indexOf("vertical") === 0;
 
 	var width = Math.floor(_width);
     var height = Math.floor(_height);
@@ -172,16 +172,18 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
             var transform = EPUBJS.core.prefixed('transform');
             var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
 
+			width = parseInt(width);
+			height = parseInt(height);
             var scale = _width / width;
             width = _width;
             height = Math.floor(height * scale);
-            var translateY = Math.max(0, (_height - height) / 2)
+            var translateY = Math.max(0, (_height - height) / 2);
 
             var bodyElement = documentElement.ownerDocument.body;
             bodyElement.style[transform] = 'scale(' + scale + ') translate(0px, ' + translateY + 'px)';
             bodyElement.style[transformOrigin] = '0 0';
             bodyElement.style.overflowX = 'hidden';
-            bodyElement.style.overflowY = translateY == 0 ? 'auto' : 'hidden';
+            bodyElement.style.overflowY = translateY === 0 ? 'auto' : 'hidden';
         }
     }
 
@@ -228,7 +230,7 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
     var bodyElement = documentElement.ownerDocument.body;
     var bodyStyles = documentElement.ownerDocument.defaultView.getComputedStyle(bodyElement);
     var writingModeValue = bodyStyles[writingMode] || "";
-    this.isVertical = writingModeValue.indexOf("vertical") == 0;
+    this.isVertical = writingModeValue.indexOf("vertical") === 0;
 
 	var width = Math.floor(_width);
     var height = Math.floor(_height);
@@ -246,7 +248,7 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
 	this.gap = 0;
 
     if (writingModeValue == "vertical-rl") {
-        window.scrollBy(width, 0)
+        window.scrollBy(width, 0);
     }
 
 	return {

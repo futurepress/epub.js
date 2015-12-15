@@ -646,7 +646,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
         while (pos_min < pos_max) {
             pos = Math.floor((pos_min + pos_max) / 2);
             var r = testNodeBoundry(nodes[pos]);
-            if (r == 0) {
+            if (r === 0) {
                 // node intersects page boundry
                 intersects = true;
                 break;
@@ -695,7 +695,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
             }
 
             addPage(node, pos);
-            intersects = testNodeBoundry(node) == 0;
+            intersects = testNodeBoundry(node) === 0;
         }
     }
 
@@ -713,7 +713,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
             
     function testRangeBoundry(range) {
         var rect = range.getBoundingClientRect();
-        if (!rect || rect.width == 0 || rect.height == 0) {
+        if (!rect || rect.width === 0 || rect.height === 0) {
             return -1;
         }
         if (isVertical) {
@@ -762,7 +762,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 
     if (layoutPages.displayedPages > 1) {
         renderer.textSprint(root, function(node) {
-            if (pages.length == 0) {
+            if (pages.length === 0) {
                 addPage(node, 0);
             }
 
@@ -781,7 +781,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
     var range = document.createRange();
     range.selectNodeContents(root);
 
-    if (pages.length == 0) {
+    if (pages.length === 0) {
         range.collapse(true);
         pages.push({ start: chapter.cfiFromRange(range) });
         range.selectNodeContents(root);

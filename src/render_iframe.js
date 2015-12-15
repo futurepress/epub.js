@@ -287,9 +287,9 @@ EPUBJS.Render.Iframe.prototype.isElementVisible = function(el){
 
 
 EPUBJS.Render.Iframe.prototype.scroll = function(boolX, boolY){
+    var parent = this.iframe.parentElement;
 	if (boolX || boolY) {
         if (this.isMobile) {
-            var parent = this.iframe.parentElement;
             parent.style.overflowX = boolX ? "auto" : "hidden";
             parent.style.overflowY = boolY ? "auto" : "hidden";
             parent.style[this.overflowScrolling] = "touch";
@@ -299,7 +299,6 @@ EPUBJS.Render.Iframe.prototype.scroll = function(boolX, boolY){
         }
 	} else {
         if (this.isMobile) {
-            var parent = this.iframe.parentElement;
             parent.style.overflowX = "";
             parent.style.overflowY = "";
             parent.style[this.overflowScrolling] = "";
