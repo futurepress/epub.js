@@ -352,7 +352,7 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 };
 
 // Generates the pageList array by loading every chapter and paging through them
-EPUBJS.Book.prototype.generatePageList = function(width, height){
+EPUBJS.Book.prototype.generatePageList = function(width, height, flag){
 	var pageList = [];
 	var pager = new EPUBJS.Renderer(this.settings.render_method, false); //hidden
 	var hiddenContainer = this.createHiddenRender(pager, width, height);
@@ -369,6 +369,11 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		if(next >= spineLength) {
 			done.resolve();
 		} else {
+            if (flag && flag.cancelled) {
+                done.reject(new Error("User cancelled"));
+                return;
+            }
+        
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
@@ -403,19 +408,21 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		pager.remove();
 		this.element.removeChild(hiddenContainer);
 		deferred.resolve(pageList);
-	}.bind(this));
+	}.bind(this), function(reason) {
+        deferred.reject(reason);
+    });
 
 	return deferred.promise;
 };
 
 // Render out entire book and generate the pagination
 // Width and Height are optional and will default to the current dimensions
-EPUBJS.Book.prototype.generatePagination = function(width, height) {
+EPUBJS.Book.prototype.generatePagination = function(width, height, flag) {
 	var book = this;
 	var defered = new RSVP.defer();
 
 	this.ready.spine.promise.then(function(){
-		book.generatePageList(width, height).then(function(pageList){
+		book.generatePageList(width, height, flag).then(function(pageList){
 			book.pageList = book.contents.pageList = pageList;
 			book.pagination.process(pageList);
 			book.ready.pageList.resolve(book.pageList);

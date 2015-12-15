@@ -768,7 +768,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 
             nodes.push(node);
 
-            while (nodes.length >= 16) {
+            while (nodes.length >= 8) {
                 checkTextNodes();
             }
         });
