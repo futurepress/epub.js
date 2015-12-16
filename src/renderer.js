@@ -274,6 +274,7 @@ EPUBJS.Renderer.prototype.determineLayout = function(settings){
 	// Default is layout: reflowable & spread: auto
 	var spreads = this.determineSpreads(this.minSpreadWidth);
 	var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
+    var scrollType = "viewport";
 	var scrollX = false;
 	var scrollY = false;
 
@@ -300,13 +301,14 @@ EPUBJS.Renderer.prototype.determineLayout = function(settings){
 
 	if(settings.layout === "scroll") {
 		layoutMethod = "Scroll";
+        scrollType = "window";
 		scrollX = true;
 		scrollY = true;
 		spreads = false;
 	}
 
 	this.spreads = spreads;
-	this.render.scroll(scrollX, scrollY);
+	this.render.scroll(scrollX, scrollY, scrollType);
 	this.trigger("renderer:spreads", spreads);
 	return layoutMethod;
 };

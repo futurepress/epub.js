@@ -158,7 +158,7 @@ EPUBJS.Render.Iframe.prototype.setPageDimensions = function(pageWidth, pageHeigh
 	this.pageWidth = pageWidth;
 	this.pageHeight = pageHeight;
     this.isVertical = isVertical;
-//    this.scroll(pageWidth > this.iframe.width, pageHeight > this.iframe.height);
+	this.scroll(pageWidth > this.iframe.width, pageHeight > this.iframe.height);
 
 	//-- Add a page to the width of the document to account an for odd number of pages
 	// this.docEl.style.width = this.docEl.scrollWidth + pageWidth + "px";
@@ -286,14 +286,30 @@ EPUBJS.Render.Iframe.prototype.isElementVisible = function(el){
 };
 
 
-EPUBJS.Render.Iframe.prototype.scroll = function(boolX, boolY){
+EPUBJS.Render.Iframe.prototype.scroll = function(boolX, boolY, type){
+	if (type) {
+        this.scrollType = type;
+		this.scrollDirectionX = boolX;
+		this.scrollDirectionY = boolY;
+	} else {
+		boolX = this.scrollDirectionX && boolX;
+		boolY = this.scrollDirectionY && boolY;
+	}
+
     var parent = this.iframe.parentElement;
 	if (boolX || boolY) {
         if (this.isMobile) {
-            parent.style.overflowX = boolX ? "auto" : "hidden";
-            parent.style.overflowY = boolY ? "auto" : "hidden";
-            parent.style[this.overflowScrolling] = "touch";
-            this.iframe.scrolling = "";
+            if (this.scrollType == "window") {
+                parent.style.overflowX = "";
+                parent.style.overflowY = "";
+                parent.style[this.overflowScrolling] = "";
+                this.iframe.scrolling = "yes";
+            } else {
+                parent.style.overflowX = boolX ? "auto" : "hidden";
+                parent.style.overflowY = boolY ? "auto" : "hidden";
+                parent.style[this.overflowScrolling] = "touch";
+                this.iframe.scrolling = "";
+            }
         } else {
             this.iframe.scrolling = "yes";
         }

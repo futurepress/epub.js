@@ -182,8 +182,6 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
             var bodyElement = documentElement.ownerDocument.body;
             bodyElement.style[transform] = 'scale(' + scale + ') translate(0px, ' + translateY + 'px)';
             bodyElement.style[transformOrigin] = '0 0';
-            bodyElement.style.overflowX = 'hidden';
-            bodyElement.style.overflowY = translateY === 0 ? 'auto' : 'hidden';
         }
     }
 
@@ -231,6 +229,7 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
     var bodyStyles = documentElement.ownerDocument.defaultView.getComputedStyle(bodyElement);
     var writingModeValue = bodyStyles[writingMode] || "";
     this.isVertical = writingModeValue.indexOf("vertical") === 0;
+    this.isRightToLeft = writingModeValue == "vertical-rl" || bodyStyles["direction"] == "rtl"
 
 	var width = Math.floor(_width);
     var height = Math.floor(_height);
@@ -247,10 +246,6 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
 	this.colWidth = this.pageStride;
 	this.gap = 0;
 
-    if (writingModeValue == "vertical-rl") {
-        window.scrollBy(width, 0);
-    }
-
 	return {
 		pageWidth : width,
 		pageHeight : height,
@@ -260,6 +255,9 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
 };
 
 EPUBJS.Layout.Scroll.prototype.calculatePages = function(){
+    if (this.isRightToLeft) {
+        window.scrollBy(this.documentElement.scrollWidth, 0);
+    }
 	return {
 		displayedPages : 1,
 		pageCount : 1
