@@ -370,6 +370,8 @@ EPUBJS.Book.prototype.generatePageList = function(width, height, flag){
 			done.resolve();
 		} else {
             if (flag && flag.cancelled) {
+                pager.remove();
+                this.element.removeChild(hiddenContainer);
                 done.reject(new Error("User cancelled"));
                 return;
             }
