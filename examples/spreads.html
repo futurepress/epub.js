@@ -126,7 +126,7 @@
       height: 600
     });
 
-    var displayed = rendition.display();
+    var displayed = rendition.display(3);
 
 
     displayed.then(function(renderer){
@@ -165,6 +165,9 @@
     rendition.on("keyup", keyListener);
     document.addEventListener("keyup", keyListener, false);
 
+    rendition.on("selected", function(range) {
+      console.log("selected", range);
+    })
 
   </script>
 

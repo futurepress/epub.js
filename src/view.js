@@ -744,9 +744,16 @@ View.prototype.onSelectionChange = function(e){
     clearTimeout(this.selectionEndTimeout);
   }
   this.selectionEndTimeout = setTimeout(function() {
-    this.selectedRange = this.window.getSelection();
-    this.trigger("selected", this.selectedRange);
+    var selection = this.window.getSelection();
+    this.triggerSelectedEvent(selection);
   }.bind(this), 500);
+};
+
+View.prototype.triggerSelectedEvent = function(selection){
+	var range = selection.getRangeAt(0);
+	console.log(range);
+	var cfirange = this.section.cfiFromRange(range);
+  this.trigger("selected", cfirange);
 };
 
 RSVP.EventTarget.mixin(View.prototype);

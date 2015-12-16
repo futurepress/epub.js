@@ -627,10 +627,17 @@ Rendition.prototype.passViewEvents = function(view){
   view.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
 	}.bind(this));
+
+	view.on("selected", this.triggerSelectedEvent.bind(this));
 };
 
 Rendition.prototype.triggerViewEvent = function(e){
   this.trigger(e.type, e);
+};
+
+Rendition.prototype.triggerSelectedEvent = function(cfirange){
+	console.log(cfirange);
+  this.trigger("selected", cfirange);
 };
 
 Rendition.prototype.replacements = function(){

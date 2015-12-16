@@ -43,9 +43,9 @@ gulp.task('minify', ['bundle'], function(){
   return gulp.src('dist/epub.js')
     .pipe(plumber({ errorHandler: onError }))
     .pipe(rename('epub.min.js'))
-    .pipe(sourcemaps.init({loadMaps: true}))
+    // .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(uglify(uglifyOptions))
-    .pipe(sourcemaps.write('./'))
+    // .pipe(sourcemaps.write('./'))
     .pipe(size({ showFiles: true }))
     .pipe(gulp.dest('dist'));
 });
@@ -61,7 +61,7 @@ gulp.task('serve', function() {
 });
 
 // Default
-gulp.task('default', ['lint', 'build']);
+gulp.task('default', ['lint', 'bundle']);
 
 
 function bundle(file, watch) {
