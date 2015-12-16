@@ -66,6 +66,7 @@ EPUBJS.Locations.prototype.process = function(chapter) {
       var contents = doc.documentElement.querySelector("body");
       var counter = 0;
       var prev;
+      var cfi;
 
       this.sprint(contents, function(node) {
         var len = node.length;
