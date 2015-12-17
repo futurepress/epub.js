@@ -704,8 +704,8 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
     var isRightToLeft = renderer.direction == "rtl";
     var isVertical = renderer.layout.isVertical;
     var maxRight = html.scrollLeft + html.scrollWidth;
-    var stride = renderer.layout.pageStride;
-	var limit = stride * (1 - renderer.chapterPos);
+    var stride = renderer.layout.pageStride / (this.spreads ? 2 : 1);
+	var limit = stride - renderer.layout.pageStride * (renderer.chapterPos - 1);
 
     function testNodeBoundry(node) {
         var range = document.createRange();
@@ -762,33 +762,36 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
         limit += stride;
     }
 
-    if (layoutPages.displayedPages > 1) {
-        renderer.textSprint(root, function(node) {
-            if (pages.length === 0) {
-                addPage(node, 0);
-            }
+    var isSingle = layoutPages.displayedPages <= 1;
+    var lastNode = null;
 
+    renderer.textSprint(root, function(node) {
+        lastNode = node;
+        if (pages.length === 0) {
+            addPage(node, 0);
+        }
+
+        if (!isSingle) {
             nodes.push(node);
-
             while (nodes.length >= 8) {
                 checkTextNodes();
             }
-        });
-
-        while (nodes.length > 0) {
-            checkTextNodes();
         }
+    });
+
+    while (nodes.length > 0) {
+        checkTextNodes();
     }
 
     var range = document.createRange();
-    range.selectNodeContents(root);
-
-    if (pages.length === 0) {
+    if (pages.length > 0) {
+        range.selectNodeContents(lastNode);
+    } else {
+        range.selectNodeContents(root);
         range.collapse(true);
         pages.push({ start: chapter.cfiFromRange(range) });
         range.selectNodeContents(root);
     }
-
     range.collapse(false);
     pages[pages.length - 1].end = chapter.cfiFromRange(range);
 
@@ -818,10 +821,10 @@ EPUBJS.Renderer.prototype.getPageCfi = function(prevEl){
 */
 
 // Get the cfi of the current page
-EPUBJS.Renderer.prototype.getPageCfi = function(){
-	var pg = (this.chapterPos * 2)-1;
-	return this.pageMap[pg].start;
-};
+//EPUBJS.Renderer.prototype.getPageCfi = function(){
+//	var pg = (this.chapterPos * 2)-1;
+//	return this.pageMap[pg].start;
+//};
 
 EPUBJS.Renderer.prototype.getRange = function(x, y, forceElement){
 	var range = this.doc.createRange();
