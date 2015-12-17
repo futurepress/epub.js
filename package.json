@@ -27,6 +27,8 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^0.3.1",
     "gulp-util": "^3.0.0",
+    "jquery": "^2.1.4",
+    "mochify": "^2.14.3",
     "morgan": "^1.1.1",
     "optimist": "^0.6.1",
     "portfinder": "^0.2.1",

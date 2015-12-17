@@ -60,6 +60,10 @@ gulp.task('serve', function() {
   server();
 });
 
+gulp.task('test', function() {
+
+});
+
 // Default
 gulp.task('default', ['lint', 'bundle']);
 

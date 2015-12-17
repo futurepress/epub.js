@@ -34,18 +34,18 @@ function EpubCFI(cfiFrom, base, options){
 
   // Allow instantiation without the 'new' keyword
   if (!(this instanceof EpubCFI)) {
-    return new URI(cfiFrom, base, options);
+    return new EpubCFI(cfiFrom, base, options);
   }
 
   // Find options
   for (var i = 1, length = arguments.length; i < length; i++) {
     if(typeof arguments[i] === 'object' && (arguments[i].ignoreClass)) {
       core.extend(this.options, arguments[i]);
-    };
+    }
   }
 
 
-  /* Object that includes:
+  /* TODO: maybe accept object that includes:
     {
       spineNodeIndex: <int>
       index: <int>
@@ -55,6 +55,8 @@ function EpubCFI(cfiFrom, base, options){
   */
   if(typeof base === 'string') {
     this.base = this.parseComponent(base);
+  } else if(typeof base === 'object' && base.steps) {
+    this.base = base;
   }
 
   type = this.checkType(cfiFrom);
@@ -63,12 +65,11 @@ function EpubCFI(cfiFrom, base, options){
   if(type === 'string') {
     this.str = cfiFrom;
     return core.extend(this, this.parse(cfiFrom));
-  }
-  else if(type === 'range') {
+  } else if (type === 'range') {
     this.fromRange(cfiFrom);
-  } else if(type === 'node') {
+  } else if (type === 'node') {
     this.fromNode(cfiFrom);
-  } else if(type === 'EpubCFI') {
+  } else if (type === 'EpubCFI') {
     return cfiFrom;
   } else {
     throw new TypeError('not a valid argument for EpubCFI');
@@ -84,12 +85,12 @@ EpubCFI.prototype.checkType = function(cfi) {
       cfi[cfi.length-1] === ")") {
     return 'string';
   // Is a range object
-  } else (typeof cfi === 'object' && cfi.startContainer && cfi.startOffset){
-    return 'range'
-  } else ((typeof cfi === 'object') && cfi.nodeType){ // || typeof cfi === 'function'
-    return 'node'
-  } else (typeof cfi === 'object' && cfi instanceof EpubCFI){
-    return 'EpubCFI'
+  } else if (typeof cfi === 'object' && cfi.startContainer && cfi.startOffset){
+    return 'range';
+  } else if (typeof cfi === 'object' && cfi.nodeType){ // || typeof cfi === 'function'
+    return 'node';
+  } else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
+    return 'EpubCFI';
   } else {
     return false;
   }
@@ -101,11 +102,10 @@ EpubCFI.prototype.parse = function(cfiStr) {
       range: false,
       base: {},
       path: {},
-      start: null
+      start: null,
       end: null
     };
   var baseComponent, pathComponent, range;
-
 
   if(typeof cfiStr !== "string") {
     return {spinePos: -1};
@@ -133,25 +133,24 @@ EpubCFI.prototype.parse = function(cfiStr) {
   if(range) {
     cfi.range = true;
     cfi.start = this.parseComponent(range[0]);
-    cfi.end = this.parseComponent(range[0]);
+    cfi.end = this.parseComponent(range[1]);
   }
 
   // Get spine node position
   // cfi.spineSegment = cfi.base.steps[1];
 
-  // Chapter segment is always the second one
-  cfi.spinePos = cfi.base.steps[2];
+  // Chapter segment is always the second step
+  cfi.spinePos = cfi.base.steps[1].index;
 
   return cfi;
 };
 
-EpubCFI.prototype.parseComponent = function(componentString){
+EpubCFI.prototype.parseComponent = function(componentStr){
   var component = {
     steps: [],
     terminal: null
   };
-
-  var parts = componentString.split(':');
+  var parts = componentStr.split(':');
   var steps = parts[0].split('/');
   var terminal;
 
@@ -160,28 +159,34 @@ EpubCFI.prototype.parseComponent = function(componentString){
     component.terminal = this.parseTerminal(terminal);
   }
 
+  if (steps[0] === '') {
+    steps.shift(); // Ignore the first slash
+  }
+
   component.steps = steps.map(function(step){
-    return this.parseStep(part);
+    return this.parseStep(step);
   }.bind(this));
+
+  return component;
 };
 
-EpubCFI.prototype.parseStep = function(stepString){
+EpubCFI.prototype.parseStep = function(stepStr){
   var type, num, index, has_brackets, id;
 
-  has_brackets = part.match(/\[(.*)\]/);
+  has_brackets = stepStr.match(/\[(.*)\]/);
   if(has_brackets && has_brackets[1]){
     id = has_brackets[1];
   }
 
   //-- Check if step is a text node or element
-  num = parseInt(stepString);
+  num = parseInt(stepStr);
 
   if(isNaN(num)) {
     return;
   }
 
   if(num % 2 === 0) { // Even = is an element
-    type = "element"
+    type = "element";
     index = num / 2 - 1;
   } else {
     type = "text";
@@ -195,15 +200,15 @@ EpubCFI.prototype.parseStep = function(stepString){
   };
 };
 
-EpubCFI.prototype.parseTerminal = function(termialString){
+EpubCFI.prototype.parseTerminal = function(termialStr){
   var characterOffset, textLocationAssertion;
-  var assertion = charecterOffsetComponent.match(/\[(.*)\]/);
+  var assertion = termialStr.match(/\[(.*)\]/);
 
   if(assertion && assertion[1]){
-    characterOffset = parseInt(charecterOffsetComponent.split('[')[0]);
+    characterOffset = parseInt(termialStr.split('[')[0]);
     textLocationAssertion = assertion[1];
   } else {
-    characterOffset = parseInt(charecterOffsetComponent);
+    characterOffset = parseInt(termialStr);
   }
 
   return {
@@ -273,7 +278,7 @@ EpubCFI.prototype.joinSteps = function(steps) {
 };
 
 EpubCFI.prototype.segmentString = function(segment) {
-  var segmentString = '';
+  var segmentString = '/';
 
   segmentString += this.joinSteps(segment.steps);
 
@@ -291,7 +296,7 @@ EpubCFI.prototype.segmentString = function(segment) {
 EpubCFI.prototype.toString = function() {
   var cfiString = 'epubcfi(';
 
-  cfiString += this.joinSteps(this.base);
+  cfiString += this.segmentString(this.base);
 
   cfiString += '!';
   cfiString += this.segmentString(this.path);
@@ -299,15 +304,17 @@ EpubCFI.prototype.toString = function() {
   // Add Range, if present
   if(this.start) {
     cfiString += ',';
-    cfiString + this.segmentString(this.start);
+    cfiString += this.segmentString(this.start);
   }
 
   if(this.end) {
     cfiString += ',';
-    cfiString + this.segmentString(this.end);
+    cfiString += this.segmentString(this.end);
   }
 
   cfiString += ")";
 
   return cfiString;
 };
+
+module.exports = EpubCFI;
