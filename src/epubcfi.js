@@ -71,11 +71,12 @@ function EpubCFI(cfiFrom, base, options){
     this.fromNode(cfiFrom);
   } else if (type === 'EpubCFI') {
     return cfiFrom;
+  } else if (!cfiFrom) {
+    return this;
   } else {
     throw new TypeError('not a valid argument for EpubCFI');
   }
 
-  return this;
 };
 
 EpubCFI.prototype.checkType = function(cfi) {
@@ -85,9 +86,9 @@ EpubCFI.prototype.checkType = function(cfi) {
       cfi[cfi.length-1] === ")") {
     return 'string';
   // Is a range object
-  } else if (typeof cfi === 'object' && cfi.startContainer && cfi.startOffset){
+} else if (typeof cfi === 'object' && cfi instanceof window.Range){
     return 'range';
-  } else if (typeof cfi === 'object' && cfi.nodeType){ // || typeof cfi === 'function'
+  } else if (typeof cfi === 'object' && cfi instanceof window.Node ){ // || typeof cfi === 'function'
     return 'node';
   } else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
     return 'EpubCFI';
@@ -315,6 +316,55 @@ EpubCFI.prototype.toString = function() {
   cfiString += ")";
 
   return cfiString;
+};
+
+EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
+  if(typeof cfiOne === 'string') {
+    cfiOne = new EpubCFI(cfiOne);
+  }
+  if(typeof cfiTwo === 'string') {
+    cfiTwo = new EpubCFI(cfiTwo);
+  }
+  // Compare Spine Positions
+  if(cfiOne.spinePos > cfiTwo.spinePos) {
+    return 1;
+  }
+  if(cfiOne.spinePos < cfiTwo.spinePos) {
+    return -1;
+  }
+
+
+  // Compare Each Step in the First item
+  for (var i = 0; i < cfiOne.path.steps.length; i++) {
+    if(!cfiTwo.path.steps[i]) {
+      return 1;
+    }
+    if(cfiOne.path.steps[i].index > cfiTwo.path.steps[i].index) {
+      return 1;
+    }
+    if(cfiOne.path.steps[i].index < cfiTwo.path.steps[i].index) {
+      return -1;
+    }
+    // Otherwise continue checking
+  }
+
+  // All steps in First present in Second
+  if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
+    return -1;
+  }
+
+  // Compare the charecter offset of the text node
+  if(cfiOne.path.terminal.offset > cfiTwo.path.terminal.offset) {
+    return 1;
+  }
+  if(cfiOne.path.terminal.offset < cfiTwo.path.terminal.offset) {
+    return -1;
+  }
+
+  // TODO: compare ranges
+
+  // CFI's are equal
+  return 0;
 };
 
 module.exports = EpubCFI;

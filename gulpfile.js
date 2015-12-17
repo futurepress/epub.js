@@ -18,7 +18,7 @@ var sourcemaps = require('gulp-sourcemaps');
 
 var size = require('gulp-size');
 var URI = require('urijs');
-
+var mochify = require('mochify');
 // https://github.com/mishoo/UglifyJS2/pull/265
 // uglify.AST_Node.warn_function = function() {};
 
@@ -60,8 +60,12 @@ gulp.task('serve', function() {
   server();
 });
 
-gulp.task('test', function() {
-
+gulp.task('test', function(cb) {
+  mochify('./test/*.js', {
+    reporter: 'spec',
+    watch: true
+  })
+  .bundle();
 });
 
 // Default
