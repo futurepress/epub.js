@@ -156,6 +156,25 @@ describe('EpubCFI', function() {
 
 
     });
+
+    it('get a cfi from a text node inside a highlight', function() {
+      var t = doc.getElementById('highlight-1').childNodes[0];
+      var cfi = new EpubCFI(t, base);
+
+      assert.equal(t.nodeType, Node.TEXT_NODE, "provided a text node");
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/64/2[c001p0017]/1)" );
+
+    });
+
+    it('get a cfi from a highlight node', function() {
+      var t = doc.getElementById('highlight-1');
+      var cfi = new EpubCFI(t, base);
+
+      assert.equal(t.nodeType, Node.ELEMENT_NODE, "provided a highlight node");
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/64/2[c001p0017]/1)" );
+
+    });
+
   });
 
   describe('#fromRange()', function() {
@@ -191,6 +210,19 @@ describe('EpubCFI', function() {
 
       assert.equal( cfi.range, true);
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4,/20/2[c001p0004]/1:6,/32/2[c001p0007]/1:27)" );
+
+    });
+
+    it('get a cfi from a range inside a highlight', function() {
+      var t1 = doc.getElementById('highlight-1').childNodes[0];
+      var range = doc.createRange();
+      var cfi;
+
+      range.setStart(t1, 6);
+
+      cfi = new EpubCFI(range, base);
+
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/64/2[c001p0017]/1:43)" );
 
     });
 

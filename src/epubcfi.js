@@ -378,19 +378,23 @@ EpubCFI.prototype.pathTo = function(node) {
 
   var children;
 
-  while(node && node.parentNode !== null &&
-        node.parentNode.nodeType != Node.DOCUMENT_NODE) {
+  var currentNode = this.filter(node, this.options.ignoreClass);
 
-    children = node.parentNode.childNodes;
+  while(currentNode && currentNode.parentNode !== null &&
+        currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
+
+    children = currentNode.parentNode.childNodes;
 
     segment.steps.unshift({
-      'id' : node.id,
-      'tagName' : node.tagName,
-      'type' : (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element',
-      'index' : Array.prototype.indexOf.call(children, node)
+      'id' : currentNode.id,
+      'tagName' : currentNode.tagName,
+      'type' : (currentNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element',
+      'index' : Array.prototype.indexOf.call(children, currentNode)
     });
 
-    node = node.parentNode;
+
+    currentNode = this.filter(currentNode.parentNode, this.options.ignoreClass);
+
   }
 
   return segment;
@@ -420,15 +424,15 @@ EpubCFI.prototype.fromRange = function(range, base) {
 
   if (range.collapsed) {
     cfi.path = this.pathTo(start);
-    cfi.path.terminal.offset = startOffset;
+    cfi.path.terminal.offset = this.patch(start, startOffset, this.options.ignoreClass);
   } else {
     cfi.range = true;
 
     cfi.start = this.pathTo(start);
-    cfi.start.terminal.offset = startOffset;
+    cfi.start.terminal.offset = this.patch(start, startOffset, this.options.ignoreClass);
 
     cfi.end = this.pathTo(end);
-    cfi.end.terminal.offset = endOffset;
+    cfi.end.terminal.offset = this.patch(end, endOffset, this.options.ignoreClass);
 
     // Create a new empty path
     cfi.path = {
@@ -467,31 +471,65 @@ EpubCFI.prototype.fromNode = function(anchor, base) {
 
   cfi.path = this.pathTo(anchor);
 
+  return cfi;
+};
 
-  // console.log("base", cfi.base);
-  /*
-  var parent = anchor.parentNode;
-  var steps = this.pathTo(parent);
-  var path = this.generatePathComponent(steps);
-  var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
 
-  var ignoreClass = 'annotator-hl';
-  var needsIgnoring = parent.classList.contains(ignoreClass);
-  var sibling = parent.previousSibling;
+EpubCFI.prototype.filter = function(anchor, ignoreClass) {
+  var needsIgnoring;
+  var sibling;
 
-  if (!needsIgnoring) {
-    parent = parent.parentNode;
-    if (sibling.nodeType === Node.TEXT_NODE) {
-      // If the previous sibling is a text node, join the offset
-      offset = sibling.textContent.length + offset
-      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, sibling));
+  if (anchor.nodeType === Node.TEXT_NODE) {
+    needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
+    sibling = anchor.parentNode.previousSibling;
+  } else {
+    needsIgnoring = anchor.classList.contains(ignoreClass);
+    sibling = anchor.previousSibling;
+  }
+
+  if (needsIgnoring) {
+
+    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
+      // If the previous sibling is a text node, join the nodes
+      // offset = sibling.textContent.length + offset
+      return sibling;
     } else {
       // Otherwise just ignore the node by getting the path to its parent
-      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor.parentNode));
+      return anchor.parentNode;
     }
+
+  } else {
+    return anchor;
   }
-  */
-  return cfi;
+
+};
+
+EpubCFI.prototype.patch = function(anchor, offset, ignoreClass) {
+  var needsIgnoring;
+  var sibling;
+
+  if (anchor.nodeType === Node.TEXT_NODE) {
+    needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
+    sibling = anchor.parentNode.previousSibling;
+  } else {
+    needsIgnoring = anchor.classList.contains(ignoreClass);
+    sibling = anchor.previousSibling;
+  }
+
+  if (needsIgnoring) {
+
+    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
+      // If the previous sibling is a text node, join the nodes
+      return sibling.textContent.length + offset;
+    } else {
+      // Otherwise just ignore the node by getting the path to its parent
+      return sibling.textContent.length;
+    }
+
+  } else {
+    return offset;
+  }
+
 };
 
 module.exports = EpubCFI;
