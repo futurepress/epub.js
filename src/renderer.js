@@ -667,26 +667,28 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
             checkTextRange(node);
         } else {
             nodes = nodes.slice(pos);
-            addPage(node, 0);
+            addPage(node.text, 0);
         }
     }
 
     function checkTextRange(node) {
-        var text = node.textContent;
+        var textNode = node.text;
+        var text = textNode.textContent;
         var intersects = true;
         var pos = 0;
         var pos_min = 0;
         var pos_max = text.length;
 
         var range = document.createRange();
-        range.setStart(node, pos_min);
-        range.setEnd(node, pos_max);
+        range.setStart(textNode, pos_min);
+        range.setEnd(textNode, pos_max);
 
         while (intersects) {
             while (pos_min < pos_max) {
                 pos = Math.floor((pos_min + pos_max) / 2);
-                range.setStart(node, pos);
-                var r = testRangeBoundry(range);
+                range.setStart(textNode, pos);
+                var rect = range.getBoundingClientRect();
+                var r = testBoundry(range);
                 if (r <= 0) {
                     // position is inside this page
                     pos_min = pos + 1;
@@ -696,8 +698,10 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
                 }
             }
 
-            addPage(node, pos);
-            intersects = testNodeBoundry(node) === 0;
+            addPage(textNode, pos);
+            pos_min = pos + 1;
+            pos_max = text.length;
+            intersects = pos_min < pos_max && testNodeBoundry(node) === 0;
         }
     }
 
@@ -708,13 +712,16 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 	var limit = stride - renderer.layout.pageStride * (renderer.chapterPos - 1);
 
     function testNodeBoundry(node) {
-        var range = document.createRange();
-        range.selectNodeContents(node);
-        return testRangeBoundry(range);
+        var rect = node.rect;
+        if (!rect) {
+            var range = document.createRange();
+            range.selectNodeContents(node.text);
+            rect = node.rect = range.getBoundingClientRect();
+        }
+        return testBoundry(rect);
     }
             
-    function testRangeBoundry(range) {
-        var rect = range.getBoundingClientRect();
+    function testBoundry(rect) {
         if (!rect || rect.width === 0 || rect.height === 0) {
             return -1;
         }
@@ -758,7 +765,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
             last.end = cfi;
         }
 
-        pages.push({ start: cfi });
+        pages.push({ start: cfi, end: null });
         limit += stride;
     }
 
@@ -772,7 +779,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
         }
 
         if (!isSingle) {
-            nodes.push(node);
+            nodes.push({ text: node, rect: null });
             while (nodes.length >= 8) {
                 checkTextNodes();
             }
@@ -789,7 +796,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
     } else {
         range.selectNodeContents(root);
         range.collapse(true);
-        pages.push({ start: chapter.cfiFromRange(range) });
+        pages.push({ start: chapter.cfiFromRange(range), end: null });
         range.selectNodeContents(root);
     }
     range.collapse(false);
