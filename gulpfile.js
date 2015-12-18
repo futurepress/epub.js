@@ -63,6 +63,7 @@ gulp.task('serve', function() {
 gulp.task('test', function(cb) {
   mochify('./test/*.js', {
     reporter: 'spec',
+    transform: 'brfs',
     watch: true
   })
   .bundle();

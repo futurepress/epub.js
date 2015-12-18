@@ -1,5 +1,5 @@
 var assert = require('assert');
-
+var fs = require('fs');
 
 describe('EpubCFI', function() {
   var EpubCFI = require('../src/epubcfi.js');
@@ -131,5 +131,69 @@ describe('EpubCFI', function() {
     });
   });
 
-	
+  describe('#fromNode()', function() {
+    var base = "/6/4[chap01ref]";
+    var contents = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
+    // var serializer = new XMLSerializer();
+    // var doc = serializer.serializeToString(contents);
+    var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
+
+    it('get a cfi from a p node', function() {
+      var span = doc.getElementById('c001p0004');
+      var cfi = new EpubCFI(span, base);
+
+      assert.equal(span.nodeType, Node.ELEMENT_NODE, "provided a element node");
+			assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/20/2[c001p0004])" );
+
+    });
+
+    it('get a cfi from a text node', function() {
+      var t = doc.getElementById('c001p0004').childNodes[0];
+      var cfi = new EpubCFI(t, base);
+
+      assert.equal(t.nodeType, Node.TEXT_NODE, "provided a text node");
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/20/2[c001p0004]/1)" );
+
+
+    });
+  });
+
+  describe('#fromRange()', function() {
+    var base = "/6/4[chap01ref]";
+    var contents = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
+    var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
+
+    it('get a cfi from a collapsed range', function() {
+      var t1 = doc.getElementById('c001p0004').childNodes[0];
+      var t2 = doc.getElementById('c001p0007').childNodes[0];
+      var range = doc.createRange();
+      var cfi;
+
+      range.setStart(t1, 6);
+
+      cfi = new EpubCFI(range, base);
+
+      assert.equal( cfi.range, false);
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4/20/2[c001p0004]/1:6)" );
+
+    });
+
+    it('get a cfi from a range', function() {
+      var t1 = doc.getElementById('c001p0004').childNodes[0];
+      var t2 = doc.getElementById('c001p0007').childNodes[0];
+      var range = doc.createRange();
+      var cfi;
+
+      range.setStart(t1, 6);
+      range.setEnd(t2, 27);
+
+      cfi = new EpubCFI(range, base);
+
+      assert.equal( cfi.range, true);
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/8/4,/20/2[c001p0004]/1:6,/32/2[c001p0007]/1:27)" );
+
+    });
+
+  });
+
 });

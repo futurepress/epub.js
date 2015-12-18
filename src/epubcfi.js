@@ -66,9 +66,9 @@ function EpubCFI(cfiFrom, base, options){
     this.str = cfiFrom;
     return core.extend(this, this.parse(cfiFrom));
   } else if (type === 'range') {
-    this.fromRange(cfiFrom);
+    return core.extend(this, this.fromRange(cfiFrom, this.base));
   } else if (type === 'node') {
-    this.fromNode(cfiFrom);
+    return core.extend(this, this.fromNode(cfiFrom, this.base));
   } else if (type === 'EpubCFI') {
     return cfiFrom;
   } else if (!cfiFrom) {
@@ -365,6 +365,133 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 
   // CFI's are equal
   return 0;
+};
+
+EpubCFI.prototype.pathTo = function(node) {
+  var segment = {
+    steps: [],
+    terminal: {
+      offset: null,
+      assertion: null
+    }
+  };
+
+  var children;
+
+  while(node && node.parentNode !== null &&
+        node.parentNode.nodeType != Node.DOCUMENT_NODE) {
+
+    children = node.parentNode.childNodes;
+
+    segment.steps.unshift({
+      'id' : node.id,
+      'tagName' : node.tagName,
+      'type' : (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element',
+      'index' : Array.prototype.indexOf.call(children, node)
+    });
+
+    node = node.parentNode;
+  }
+
+  return segment;
+}
+
+EpubCFI.prototype.fromRange = function(range, base) {
+  var cfi = {
+      range: false,
+      base: {},
+      path: {},
+      start: null,
+      end: null
+    };
+
+  var start = range.startContainer;
+  var end = range.endContainer;
+
+  var startOffset = range.startOffset;
+  var endOffset = range.endOffset;
+
+  if (typeof base === 'string') {
+    cfi.base = this.parseComponent(base);
+    cfi.spinePos = cfi.base.steps[1].index;
+  } else if (typeof base === 'object') {
+    cfi.base = base;
+  }
+
+  if (range.collapsed) {
+    cfi.path = this.pathTo(start);
+    cfi.path.terminal.offset = startOffset;
+  } else {
+    cfi.range = true;
+
+    cfi.start = this.pathTo(start);
+    cfi.start.terminal.offset = startOffset;
+
+    cfi.end = this.pathTo(end);
+    cfi.end.terminal.offset = endOffset;
+
+    // Create a new empty path
+    cfi.path = {
+      steps: [],
+      terminal: null
+    };
+
+    // Push steps that are shared between start and end to the common path
+    for (var i = 0; i < cfi.start.steps.length; i++) {
+      if (cfi.start.steps[i].index == cfi.end.steps[i].index) {
+        cfi.path.steps.push(cfi.start.steps.shift());
+        cfi.end.steps.shift();
+      }
+    }
+
+  }
+
+  return cfi;
+}
+
+EpubCFI.prototype.fromNode = function(anchor, base) {
+  var cfi = {
+      range: false,
+      base: {},
+      path: {},
+      start: null,
+      end: null
+    };
+
+  if (typeof base === 'string') {
+    cfi.base = this.parseComponent(base);
+    cfi.spinePos = cfi.base.steps[1].index;
+  } else if (typeof base === 'object') {
+    cfi.base = base;
+  }
+
+  cfi.path = this.pathTo(anchor);
+
+
+  // console.log("base", cfi.base);
+  /*
+  var parent = anchor.parentNode;
+  var steps = this.pathTo(parent);
+  var path = this.generatePathComponent(steps);
+  var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
+
+  var ignoreClass = 'annotator-hl';
+  var needsIgnoring = parent.classList.contains(ignoreClass);
+  var sibling = parent.previousSibling;
+
+  if (!needsIgnoring) {
+    parent = parent.parentNode;
+    if (sibling.nodeType === Node.TEXT_NODE) {
+      // If the previous sibling is a text node, join the offset
+      offset = sibling.textContent.length + offset
+      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, sibling));
+    } else {
+      // Otherwise just ignore the node by getting the path to its parent
+      index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor.parentNode));
+    }
+  }
+  */
+  return cfi;
 };
 
 module.exports = EpubCFI;

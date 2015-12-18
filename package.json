@@ -8,11 +8,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "gulp test"
   },
   "author": "fchasen@gmail.com",
   "license": "MIT",
   "devDependencies": {
+    "brfs": "^1.4.1",
     "browserify": "^12.0.1",
     "colors": "^0.6.2",
     "connect": "^3.0.1",
