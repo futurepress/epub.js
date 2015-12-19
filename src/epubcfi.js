@@ -379,19 +379,25 @@ EpubCFI.prototype.pathTo = function(node) {
   var children;
 
   var currentNode = this.filter(node, this.options.ignoreClass);
+  var currentNodeType;
 
-  while(currentNode && currentNode.parentNode !== null &&
+  while(currentNode && currentNode.parentNode &&
         currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
 
-    children = currentNode.parentNode.childNodes;
+    currentNodeType = (currentNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+
+    if (currentNodeType === 'text') {
+      children = currentNode.parentNode.childNodes;
+    } else {
+      children = currentNode.parentNode.children;
+    }
 
     segment.steps.unshift({
       'id' : currentNode.id,
       'tagName' : currentNode.tagName,
-      'type' : (currentNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element',
+      'type' : currentNodeType,
       'index' : Array.prototype.indexOf.call(children, currentNode)
     });
-
 
     currentNode = this.filter(currentNode.parentNode, this.options.ignoreClass);
 
@@ -530,6 +536,112 @@ EpubCFI.prototype.patch = function(anchor, offset, ignoreClass) {
     return offset;
   }
 
+};
+
+EpubCFI.prototype.stepsToXpath = function(steps) {
+  var xpath = [".", "*"];
+
+  steps.forEach(function(step){
+    var position = step.index + 1;
+
+    if(step.id){
+      xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
+    } else if(step.type === "text") {
+      xpath.push("text()[" + position + "]");
+    } else {
+      xpath.push("*[" + position + "]");
+    }
+  });
+
+  return xpath.join("/");
+};
+
+EpubCFI.prototype.stepsToQuerySelector = function(steps) {
+  var query = ["html"];
+
+  steps.forEach(function(step){
+    var position = step.index + 1;
+
+    if(step.id){
+      query.push("#" + step.id);
+    } else if(step.type === "text") {
+      // unsupported in querySelector
+      // query.push("text()[" + position + "]");
+    } else {
+      query.push("*:nth-child(" + position + ")");
+    }
+  });
+
+  return query.join(">");
+};
+
+EpubCFI.prototype.findNode = function(steps, _doc) {
+  var doc = _doc || document;
+  var container;
+  var xpath;
+  var lastStep, query, startContainerParent;
+
+  if(typeof document.evaluate != 'undefined') {
+
+    xpath = this.stepsToXpath(steps);
+
+    container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+  } else {
+
+    // Get the terminal step
+    lastStep = steps[steps.length-1];
+    // Get the query string
+    query = this.stepsToQuery(steps);
+    // Find the containing element
+    startContainerParent = doc.querySelector(query);
+    // Find the text node within that element
+    if(startContainerParent && lastStep.type == "text") {
+      container = startContainerParent.childNodes[lastStep.index];
+    }
+  }
+
+  return container;
+};
+
+EpubCFI.prototype.toRange = function(_doc, _cfi) {
+  var doc = _doc || document;
+  var range = doc.createRange();
+  var start, end, startContainer, endContainer;
+  var cfi = _cfi || this;
+
+
+  if (cfi.range) {
+    start = cfi.start;
+    startContainer = this.findNode(cfi.path.steps.concat(start.steps), _doc)
+
+    end = cfi.end;
+    endContainer = this.findNode(cfi.path.steps.concat(end.steps), _doc);
+  } else {
+    start = cfi.path;
+    startContainer = this.findNode(cfi.path.steps, _doc);
+  }
+
+  if(startContainer) {
+    if(start.terminal.offset) {
+      range.setStart(startContainer, start.terminal.offset);
+    } else {
+      range.setStart(startContainer, 0);
+    }
+  }
+
+
+  if (endContainer) {
+    if(end.terminal.offset) {
+      range.setEnd(endContainer, end.terminal.offset);
+    } else {
+      range.setEnd(endContainer, 0);
+    }
+  }
+
+
+  // doc.defaultView.getSelection().addRange(range);
+  return range;
 };
 
 module.exports = EpubCFI;
