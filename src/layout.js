@@ -46,15 +46,17 @@ EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _h
 };
 
 EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
-    var displayedPages;
+    var document = this.documentElement.ownerDocument;
+    var range = document.createRange();
+    range.selectNodeContents(document.body);
+    var rect = range.getBoundingClientRect();
     
+    var displayedPages;
     if (this.isVertical) {
-        var totalHeight = this.documentElement.scrollHeight;
-        displayedPages = Math.ceil(totalHeight / this.pageStride);
+        displayedPages = Math.ceil(rect.height / this.pageStride);
         this.documentElement.style.height = ((displayedPages * this.pageStride) - this.gap) + "px";
     } else {
-        var totalWidth = this.documentElement.scrollWidth;
-        displayedPages = Math.ceil(totalWidth / this.pageStride);
+        displayedPages = Math.ceil(rect.width / this.pageStride);
         this.documentElement.style.width = ((displayedPages * this.pageStride) - this.gap) + "px";
     }
 
@@ -115,17 +117,19 @@ EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _wi
 };
 
 EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
-    var displayedPages, divisor;
+    var document = this.documentElement.ownerDocument;
+    var range = document.createRange();
+    range.selectNodeContents(document.body);
+    var rect = range.getBoundingClientRect();
 
+    var divisor, displayedPages;
     if (this.isVertical) {
-        var totalHeight = this.documentElement.scrollHeight;
-        displayedPages = Math.ceil(totalHeight / this.pageStride);
         divisor = 1;
+        displayedPages = Math.ceil(rect.height / this.pageStride);
         this.documentElement.style.height = ((displayedPages * this.pageStride) - this.gap) + "px";
     } else {
-        var totalWidth = this.documentElement.scrollWidth;
-        displayedPages = Math.ceil(totalWidth / this.pageStride);
         divisor = 2;
+        displayedPages = Math.ceil(rect.width / this.pageStride);
         this.documentElement.style.width = ((displayedPages * this.pageStride) - this.gap) + "px";
     }
 

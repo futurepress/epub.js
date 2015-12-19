@@ -627,12 +627,17 @@ EPUBJS.Renderer.prototype.sprint = function(root, func) {
 
 EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 	var renderer = this;
-    var html = renderer.render.getDocumentElement();
-    var document = html.ownerDocument;
     var chapter = renderer.currentChapter;
     var root = renderer.render.getBaseElement();
+    var document = root.ownerDocument;
     var nodes = [];
     
+    function getBoundingRect(node) {
+        var range = document.createRange();
+        range.selectNodeContents(node);
+        return range.getBoundingClientRect();
+    }
+
     function checkTextNodes() {
         if (testNodeBoundry(nodes[nodes.length - 1]) < 0) {
             // skip check if the last node is inside this page
@@ -707,18 +712,15 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
 
     var isRightToLeft = renderer.direction == "rtl";
     var isVertical = renderer.layout.isVertical;
-    var maxRight = html.scrollLeft + html.scrollWidth;
+    var maxRight = getBoundingRect(root).right;
     var stride = renderer.layout.pageStride / (this.spreads ? 2 : 1);
-	var limit = stride - renderer.layout.pageStride * (renderer.chapterPos - 1);
+	var limit = renderer.layout.pageStride * (1 - renderer.chapterPos);
 
     function testNodeBoundry(node) {
-        var rect = node.rect;
-        if (!rect) {
-            var range = document.createRange();
-            range.selectNodeContents(node.text);
-            rect = node.rect = range.getBoundingClientRect();
+        if (!node.rect) {
+            node.rect = getBoundingRect(node.text);
         }
-        return testBoundry(rect);
+        return testBoundry(node.rect);
     }
             
     function testBoundry(rect) {
