@@ -309,14 +309,14 @@ EPUBJS.core.addCss = function(src, callback, target) {
 };
 
 EPUBJS.core.prefixed = function(unprefixed) {
-	var vendors = ["Webkit", "Moz", "O", "ms" ],
-		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
+	var vendors = ["webkit", "Moz", "O", "ms" ],
+		prefixes = ['-webkit-', '-moz-', '-o-', '-ms-'],
 		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
 		length = vendors.length;
 
-	if (typeof(document.documentElement.style[unprefixed]) != 'undefined') {
-		return unprefixed;
-	}
+//	if (typeof(document.documentElement.style[unprefixed]) != 'undefined') {
+//		return unprefixed;
+//	}
 
 	for ( var i=0; i < length; i++ ) {
 		if (typeof(document.documentElement.style[vendors[i] + upper]) != 'undefined') {
