@@ -121,6 +121,8 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 
 EPUBJS.Layout.Fixed = function(){
 	this.documentElement = null;
+    this.pageStride = 0;
+    this.isVertical = false;
 };
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
@@ -137,35 +139,109 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	if(viewport && viewport.hasAttribute("content")) {
 		content = viewport.getAttribute("content");
 		contents = content.split(',');
-		if(contents[0]){
-			width = contents[0].replace("width=", '');
-		}
-		if(contents[1]){
-			height = contents[1].replace("height=", '');
-		}
-	}
+        var keys = [];
+        var options = {};
+        contents.forEach(function(option) {
+            var terms = option.split('=');
+            if (terms.length == 2) {
+                keys.push(terms[0]);
+                options[terms[0]] = terms[1];
+            }
+        });
+
+        width = options["width"];
+        height = options["height"];
+
+        if (width && height) {
+            var transform = EPUBJS.core.prefixed('transform');
+            var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
+
+			width = parseInt(width);
+			height = parseInt(height);
+            var scale = _width / width;
+            width = _width;
+            height = Math.floor(height * scale);
+            var translateY = Math.max(0, (_height - height) / 2);
+
+            var bodyElement = documentElement.ownerDocument.body;
+            bodyElement.style[transform] = 'scale(' + scale + ') translate(0px, ' + translateY + 'px)';
+            bodyElement.style[transformOrigin] = '0 0';
+        }
+    }
 
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
 	documentElement.style.height =  height + "px" || "auto";
 
 	//-- Remove columns
-	documentElement.style[columnWidth] = "auto";
+	documentElement.style[columnWidth] = "";
 
-	//-- Scroll
-	documentElement.style.overflow = "auto";
+//	//-- Scroll
+//	documentElement.style.overflow = "auto";
 
+    this.pageStride = width;
 	this.colWidth = width;
 	this.gap = 0;
 
 	return {
 		pageWidth : width,
-		pageHeight : height
+		pageHeight : height,
+        isVertical : false,
+        spreads : false
 	};
-
 };
 
 EPUBJS.Layout.Fixed.prototype.calculatePages = function(){
+	return {
+		displayedPages : 1,
+		pageCount : 1
+	};
+};
+
+EPUBJS.Layout.Scroll = function(){
+	this.documentElement = null;
+    this.pageStride = 0;
+    this.isVertical = false;
+};
+
+EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _height, _gap){
+	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+    var writingMode = EPUBJS.core.prefixed('writingMode');
+
+    this.documentElement = documentElement;
+    var bodyElement = documentElement.ownerDocument.body;
+    var bodyStyles = documentElement.ownerDocument.defaultView.getComputedStyle(bodyElement);
+    var writingModeValue = bodyStyles[writingMode] || "";
+    this.isVertical = writingModeValue.indexOf("vertical") === 0;
+    this.isRightToLeft = writingModeValue == "vertical-rl" || bodyStyles["direction"] == "rtl"
+
+	var width = Math.floor(_width);
+    var height = Math.floor(_height);
+
+    documentElement.style[writingMode] = writingModeValue;
+	documentElement.style.overflow = "auto";
+	documentElement.style.width = this.isVertical ? "auto" : width + "px";
+	documentElement.style.height = this.isVertical ? height + "px" : "auto";
+	documentElement.style[columnWidth] = "";
+
+    width = documentElement.scrollWidth;
+    height = documentElement.scrollHeight;
+    this.pageStride = this.isVertical ? height : width;
+	this.colWidth = this.pageStride;
+	this.gap = 0;
+
+	return {
+		pageWidth : width,
+		pageHeight : height,
+        isVertical : this.isVertical,
+        spreads : false
+	};
+};
+
+EPUBJS.Layout.Scroll.prototype.calculatePages = function(){
+    if (this.isRightToLeft) {
+        window.scrollBy(this.documentElement.scrollWidth, 0);
+    }
 	return {
 		displayedPages : 1,
 		pageCount : 1
