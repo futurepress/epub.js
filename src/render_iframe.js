@@ -160,7 +160,6 @@ EPUBJS.Render.Iframe.prototype.setPageDimensions = function(pageWidth, pageHeigh
 	this.pageWidth = pageWidth;
 	this.pageHeight = pageHeight;
     this.isVertical = isVertical;
-	this.scroll(pageWidth > this.iframe.width, pageHeight > this.iframe.height);
     this.resized();
 
 	//-- Add a page to the width of the document to account an for odd number of pages
