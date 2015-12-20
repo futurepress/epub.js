@@ -62,7 +62,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
-	"renderer:visibleLocationChanged",
+	"renderer:visibleRangeChanged",
 	"renderer:resized",
 	"renderer:spreads"
 ];
@@ -89,7 +89,7 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 		this.render.resize('100%', '100%');
 	}
 
-	document.addEventListener("orientationchange", this.onResized);
+//	document.addEventListener("orientationchange", this.onResized);
 };
 
 /**
@@ -183,8 +183,9 @@ EPUBJS.Renderer.prototype.afterLoad = function(contents) {
 	this.doc = this.render.document;
 
 	// Format the contents using the current layout method
-	this.formated = this.layout.format(contents, this.render.width, this.render.height, this.gap);
-	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight);
+	this.formated = this.layout.format(contents, this.width, this.height, this.gap);
+	this.render.setPageDimensions(this.formated.pageWidth, this.formated.pageHeight, this.formated.isVertical);
+    this.spreads = this.formated.spreads;
 
 	// window.addEventListener("orientationchange", this.onResized.bind(this), false);
 	if(!this.initWidth && !this.initHeight){
@@ -337,8 +338,9 @@ EPUBJS.Renderer.prototype.reformat = function(){
 	// Give the css styles time to update
 	// clearTimeout(this.timeoutTillCfi);
 	// this.timeoutTillCfi = setTimeout(function(){
-	renderer.formated = renderer.layout.format(renderer.render.docEl, renderer.render.width, renderer.render.height, renderer.gap);
-	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight);
+	renderer.formated = renderer.layout.format(renderer.render.docEl, renderer.width, renderer.height, renderer.gap);
+	renderer.render.setPageDimensions(renderer.formated.pageWidth, renderer.formated.pageHeight, renderer.formated.isVertical);
+    renderer.spreads = renderer.formated.spreads;
 
 	pages = renderer.layout.calculatePages();
 	renderer.updatePages(pages);
