@@ -1,4 +1,5 @@
 var assert = require('assert');
+// var assert = require('chai').assert;
 var fs = require('fs');
 
 describe('EpubCFI', function() {
@@ -225,11 +226,24 @@ describe('EpubCFI', function() {
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1:43)" );
 
     });
+    // TODO: might need to have double ranges in front
+    it('get a cfi from a range past a highlight', function() {
+      var t1 = doc.getElementById('c001s0001').childNodes[1];
+      var range = doc.createRange();
+      var cfi;
+
+      range.setStart(t1, 25);
+
+      cfi = new EpubCFI(range, base);
+
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001]/1:25)" );
+
+    });
 
   });
 
 
-  describe('#fromRange()', function() {
+  describe('#toRange()', function() {
     var base = "/6/4[chap01ref]";
     var contents = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
     var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
@@ -303,8 +317,32 @@ describe('EpubCFI', function() {
       // Check the range
       newRange = cfi.toRange(doc);
 
+      assert.ok(newRange.startContainer);
+
       assert.equal( newRange.startContainer, t1);
       assert.equal( newRange.startOffset, 6);
+
+    });
+
+    it('get a cfi from a range inside a highlight range', function() {
+      var t1 = doc.getElementById('highlight-2').childNodes[0];
+      var t2 = doc.getElementById('c001s0001').childNodes[1];
+      var ogRange = doc.createRange();
+      var cfi;
+      var newRange;
+
+      ogRange.setStart(t1, 5);
+      ogRange.setEnd(t2, 25);
+
+      cfi = new EpubCFI(ogRange, base);
+
+      assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001],/1:5,/1:25)" );
+
+      // Check the range
+      newRange = cfi.toRange(doc);
+
+      assert.strictEqual( newRange.startContainer, t1);
+      assert.equal( newRange.startOffset, 5);
 
     });
 
