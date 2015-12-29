@@ -138,7 +138,7 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	*/
 	if(viewport && viewport.hasAttribute("content")) {
 		content = viewport.getAttribute("content");
-		contents = content.split(',');
+		contents = content.split(/\s*,\s*/);
         var keys = [];
         var options = {};
         contents.forEach(function(option) {
