@@ -108,7 +108,11 @@ Book.prototype.open = function(_url){
 
     this.containerUrl = this.url + containerPath;
 
-    epubContainer = this.request(this.containerUrl);
+    epubContainer = this.request(this.containerUrl)
+      .catch(function(error) {
+        // handle errors in loading container
+        book.opening.reject(error);
+      });
   }
 
   if (epubContainer) {
@@ -139,7 +143,6 @@ Book.prototype.open = function(_url){
         book.opening.reject(error);
       });
   }
-
 
   epubPackage.then(function(packageXml) {
     // Get package information from epub opf
@@ -172,6 +175,10 @@ Book.prototype.unpack = function(packageXml){
       parse = new Parser();
 
   book.package = parse.packageContents(packageXml); // Extract info from contents
+  if(!book.package) {
+    return;
+  }
+
   book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 
   this.spine.load(book.package);

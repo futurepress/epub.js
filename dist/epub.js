@@ -267,13 +267,13 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],4:[function(require,module,exports){
-(function (process){
+(function (process,global){
 /*!
  * @overview RSVP - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/tildeio/rsvp.js/master/LICENSE
- * @version   3.0.18
+ * @version   3.1.0
  */
 
 (function() {
@@ -403,6 +403,10 @@ process.umask = function() { return 0; };
         @param {Function} callback function to be called when the event is triggered.
       */
       'on': function(eventName, callback) {
+        if (typeof callback !== 'function') {
+          throw new TypeError('Callback must be a function');
+        }
+
         var allCallbacks = lib$rsvp$events$$callbacksFor(this), callbacks;
 
         callbacks = allCallbacks[eventName];
@@ -497,10 +501,10 @@ process.umask = function() { return 0; };
         @for RSVP.EventTarget
         @private
         @param {String} eventName name of the event to be triggered
-        @param {Any} options optional value to be passed to any event handlers for
+        @param {*} options optional value to be passed to any event handlers for
         the given `eventName`
       */
-      'trigger': function(eventName, options) {
+      'trigger': function(eventName, options, label) {
         var allCallbacks = lib$rsvp$events$$callbacksFor(this), callbacks, callback;
 
         if (callbacks = allCallbacks[eventName]) {
@@ -508,7 +512,7 @@ process.umask = function() { return 0; };
           for (var i=0; i<callbacks.length; i++) {
             callback = callbacks[i];
 
-            callback(options);
+            callback(options, label);
           }
         }
       }
@@ -560,19 +564,19 @@ process.umask = function() { return 0; };
 
     function lib$rsvp$instrument$$instrument(eventName, promise, child) {
       if (1 === lib$rsvp$instrument$$queue.push({
-          name: eventName,
-          payload: {
-            key: promise._guidKey,
-            id:  promise._id,
-            eventName: eventName,
-            detail: promise._result,
-            childId: child && child._id,
-            label: promise._label,
-            timeStamp: lib$rsvp$utils$$now(),
-            error: lib$rsvp$config$$config["instrument-with-stack"] ? new Error(promise._label) : null
-          }})) {
-            lib$rsvp$instrument$$scheduleFlush();
-          }
+        name: eventName,
+        payload: {
+          key: promise._guidKey,
+          id:  promise._id,
+          eventName: eventName,
+          detail: promise._result,
+          childId: child && child._id,
+          label: promise._label,
+          timeStamp: lib$rsvp$utils$$now(),
+          error: lib$rsvp$config$$config["instrument-with-stack"] ? new Error(promise._label) : null
+        }})) {
+          lib$rsvp$instrument$$scheduleFlush();
+        }
       }
     var lib$rsvp$instrument$$default = lib$rsvp$instrument$$instrument;
 
@@ -825,7 +829,7 @@ process.umask = function() { return 0; };
           value: value
         };
       } else {
-        return {
+         return {
           state: 'rejected',
           reason: value
         };
@@ -833,28 +837,30 @@ process.umask = function() { return 0; };
     }
 
     function lib$rsvp$enumerator$$Enumerator(Constructor, input, abortOnReject, label) {
-      this._instanceConstructor = Constructor;
-      this.promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      this._abortOnReject = abortOnReject;
+      var enumerator = this;
 
-      if (this._validateInput(input)) {
-        this._input     = input;
-        this.length     = input.length;
-        this._remaining = input.length;
+      enumerator._instanceConstructor = Constructor;
+      enumerator.promise = new Constructor(lib$rsvp$$internal$$noop, label);
+      enumerator._abortOnReject = abortOnReject;
 
-        this._init();
+      if (enumerator._validateInput(input)) {
+        enumerator._input     = input;
+        enumerator.length     = input.length;
+        enumerator._remaining = input.length;
 
-        if (this.length === 0) {
-          lib$rsvp$$internal$$fulfill(this.promise, this._result);
+        enumerator._init();
+
+        if (enumerator.length === 0) {
+          lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
         } else {
-          this.length = this.length || 0;
-          this._enumerate();
-          if (this._remaining === 0) {
-            lib$rsvp$$internal$$fulfill(this.promise, this._result);
+          enumerator.length = enumerator.length || 0;
+          enumerator._enumerate();
+          if (enumerator._remaining === 0) {
+            lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
           }
         }
       } else {
-        lib$rsvp$$internal$$reject(this.promise, this._validationError());
+        lib$rsvp$$internal$$reject(enumerator.promise, enumerator._validationError());
       }
     }
 
@@ -873,45 +879,48 @@ process.umask = function() { return 0; };
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._enumerate = function() {
-      var length  = this.length;
-      var promise = this.promise;
-      var input   = this._input;
+      var enumerator = this;
+      var length     = enumerator.length;
+      var promise    = enumerator.promise;
+      var input      = enumerator._input;
 
       for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
-        this._eachEntry(input[i], i);
+        enumerator._eachEntry(input[i], i);
       }
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var c = this._instanceConstructor;
+      var enumerator = this;
+      var c = enumerator._instanceConstructor;
       if (lib$rsvp$utils$$isMaybeThenable(entry)) {
         if (entry.constructor === c && entry._state !== lib$rsvp$$internal$$PENDING) {
           entry._onError = null;
-          this._settledAt(entry._state, i, entry._result);
+          enumerator._settledAt(entry._state, i, entry._result);
         } else {
-          this._willSettleAt(c.resolve(entry), i);
+          enumerator._willSettleAt(c.resolve(entry), i);
         }
       } else {
-        this._remaining--;
-        this._result[i] = this._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
+        enumerator._remaining--;
+        enumerator._result[i] = enumerator._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
       }
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var promise = this.promise;
+      var enumerator = this;
+      var promise = enumerator.promise;
 
       if (promise._state === lib$rsvp$$internal$$PENDING) {
-        this._remaining--;
+        enumerator._remaining--;
 
-        if (this._abortOnReject && state === lib$rsvp$$internal$$REJECTED) {
+        if (enumerator._abortOnReject && state === lib$rsvp$$internal$$REJECTED) {
           lib$rsvp$$internal$$reject(promise, value);
         } else {
-          this._result[i] = this._makeResult(state, i, value);
+          enumerator._result[i] = enumerator._makeResult(state, i, value);
         }
       }
 
-      if (this._remaining === 0) {
-        lib$rsvp$$internal$$fulfill(promise, this._result);
+      if (enumerator._remaining === 0) {
+        lib$rsvp$$internal$$fulfill(promise, enumerator._result);
       }
     };
 
@@ -993,119 +1002,17 @@ process.umask = function() { return 0; };
       throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
     }
 
-    /**
-      Promise objects represent the eventual result of an asynchronous operation. The
-      primary way of interacting with a promise is through its `then` method, which
-      registers callbacks to receive either a promise’s eventual value or the reason
-      why the promise cannot be fulfilled.
-
-      Terminology
-      -----------
-
-      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-      - `thenable` is an object or function that defines a `then` method.
-      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-      - `exception` is a value that is thrown using the throw statement.
-      - `reason` is a value that indicates why a promise was rejected.
-      - `settled` the final resting state of a promise, fulfilled or rejected.
-
-      A promise can be in one of three states: pending, fulfilled, or rejected.
-
-      Promises that are fulfilled have a fulfillment value and are in the fulfilled
-      state.  Promises that are rejected have a rejection reason and are in the
-      rejected state.  A fulfillment value is never a thenable.
-
-      Promises can also be said to *resolve* a value.  If this value is also a
-      promise, then the original promise's settled state will match the value's
-      settled state.  So a promise that *resolves* a promise that rejects will
-      itself reject, and a promise that *resolves* a promise that fulfills will
-      itself fulfill.
-
-
-      Basic Usage:
-      ------------
-
-      ```js
-      var promise = new Promise(function(resolve, reject) {
-        // on success
-        resolve(value);
-
-        // on failure
-        reject(reason);
-      });
-
-      promise.then(function(value) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Advanced Usage:
-      ---------------
-
-      Promises shine when abstracting away asynchronous interactions such as
-      `XMLHttpRequest`s.
-
-      ```js
-      function getJSON(url) {
-        return new Promise(function(resolve, reject){
-          var xhr = new XMLHttpRequest();
-
-          xhr.open('GET', url);
-          xhr.onreadystatechange = handler;
-          xhr.responseType = 'json';
-          xhr.setRequestHeader('Accept', 'application/json');
-          xhr.send();
-
-          function handler() {
-            if (this.readyState === this.DONE) {
-              if (this.status === 200) {
-                resolve(this.response);
-              } else {
-                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-              }
-            }
-          };
-        });
-      }
-
-      getJSON('/posts.json').then(function(json) {
-        // on fulfillment
-      }, function(reason) {
-        // on rejection
-      });
-      ```
-
-      Unlike callbacks, promises are great composable primitives.
-
-      ```js
-      Promise.all([
-        getJSON('/posts'),
-        getJSON('/comments')
-      ]).then(function(values){
-        values[0] // => postsJSON
-        values[1] // => commentsJSON
-
-        return values;
-      });
-      ```
-
-      @class RSVP.Promise
-      @param {function} resolver
-      @param {String} label optional string for labeling the promise.
-      Useful for tooling.
-      @constructor
-    */
     function lib$rsvp$promise$$Promise(resolver, label) {
-      this._id = lib$rsvp$promise$$counter++;
-      this._label = label;
-      this._state = undefined;
-      this._result = undefined;
-      this._subscribers = [];
+      var promise = this;
+
+      promise._id = lib$rsvp$promise$$counter++;
+      promise._label = label;
+      promise._state = undefined;
+      promise._result = undefined;
+      promise._subscribers = [];
 
       if (lib$rsvp$config$$config.instrument) {
-        lib$rsvp$instrument$$default('created', this);
+        lib$rsvp$instrument$$default('created', promise);
       }
 
       if (lib$rsvp$$internal$$noop !== resolver) {
@@ -1113,11 +1020,11 @@ process.umask = function() { return 0; };
           lib$rsvp$promise$$needsResolver();
         }
 
-        if (!(this instanceof lib$rsvp$promise$$Promise)) {
+        if (!(promise instanceof lib$rsvp$promise$$Promise)) {
           lib$rsvp$promise$$needsNew();
         }
 
-        lib$rsvp$$internal$$initializePromise(this, resolver);
+        lib$rsvp$$internal$$initializePromise(promise, resolver);
       }
     }
 
@@ -1136,13 +1043,12 @@ process.umask = function() { return 0; };
       _guidKey: lib$rsvp$promise$$guidKey,
 
       _onError: function (reason) {
-        lib$rsvp$config$$config.async(function(promise) {
-          setTimeout(function() {
-            if (promise._onError) {
-              lib$rsvp$config$$config['trigger']('error', reason);
-            }
-          }, 0);
-        }, this);
+        var promise = this;
+        lib$rsvp$config$$config.after(function() {
+          if (promise._onError) {
+            lib$rsvp$config$$config['trigger']('error', reason, promise._label);
+          }
+        });
       },
 
     /**
@@ -1333,8 +1239,8 @@ process.umask = function() { return 0; };
       ```
 
       @method then
-      @param {Function} onFulfilled
-      @param {Function} onRejected
+      @param {Function} onFulfillment
+      @param {Function} onRejection
       @param {String} label optional string for labeling the promise.
       Useful for tooling.
       @return {Promise}
@@ -1345,14 +1251,14 @@ process.umask = function() { return 0; };
 
         if (state === lib$rsvp$$internal$$FULFILLED && !onFulfillment || state === lib$rsvp$$internal$$REJECTED && !onRejection) {
           if (lib$rsvp$config$$config.instrument) {
-            lib$rsvp$instrument$$default('chained', this, this);
+            lib$rsvp$instrument$$default('chained', parent, parent);
           }
-          return this;
+          return parent;
         }
 
         parent._onError = null;
 
-        var child = new this.constructor(lib$rsvp$$internal$$noop, label);
+        var child = new parent.constructor(lib$rsvp$$internal$$noop, label);
         var result = parent._result;
 
         if (lib$rsvp$config$$config.instrument) {
@@ -1400,7 +1306,7 @@ process.umask = function() { return 0; };
       @return {Promise}
     */
       'catch': function(onRejection, label) {
-        return this.then(null, onRejection, label);
+        return this.then(undefined, onRejection, label);
       },
 
     /**
@@ -1444,9 +1350,10 @@ process.umask = function() { return 0; };
       @return {Promise}
     */
       'finally': function(callback, label) {
-        var constructor = this.constructor;
+        var promise = this;
+        var constructor = promise.constructor;
 
-        return this.then(function(value) {
+        return promise.then(function(value) {
           return constructor.resolve(callback()).then(function(){
             return value;
           });
@@ -1497,7 +1404,8 @@ process.umask = function() { return 0; };
     var lib$rsvp$asap$$browserWindow = (typeof window !== 'undefined') ? window : undefined;
     var lib$rsvp$asap$$browserGlobal = lib$rsvp$asap$$browserWindow || {};
     var lib$rsvp$asap$$BrowserMutationObserver = lib$rsvp$asap$$browserGlobal.MutationObserver || lib$rsvp$asap$$browserGlobal.WebKitMutationObserver;
-    var lib$rsvp$asap$$isNode = typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
+    var lib$rsvp$asap$$isNode = typeof self === 'undefined' &&
+      typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
 
     // test for web worker but not in IE10
     var lib$rsvp$asap$$isWorker = typeof Uint8ClampedArray !== 'undefined' &&
@@ -1591,7 +1499,7 @@ process.umask = function() { return 0; };
       lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$useSetTimeout();
     }
     function lib$rsvp$defer$$defer(label) {
-      var deferred = { };
+      var deferred = {};
 
       deferred['promise'] = new lib$rsvp$promise$$default(function(resolve, reject) {
         deferred['resolve'] = resolve;
@@ -1654,9 +1562,10 @@ process.umask = function() { return 0; };
     };
 
     lib$rsvp$promise$hash$$PromiseHash.prototype._enumerate = function() {
-      var promise = this.promise;
-      var input   = this._input;
-      var results = [];
+      var enumerator = this;
+      var promise    = enumerator.promise;
+      var input      = enumerator._input;
+      var results    = [];
 
       for (var key in input) {
         if (promise._state === lib$rsvp$$internal$$PENDING && Object.prototype.hasOwnProperty.call(input, key)) {
@@ -1668,12 +1577,12 @@ process.umask = function() { return 0; };
       }
 
       var length = results.length;
-      this._remaining = length;
+      enumerator._remaining = length;
       var result;
 
       for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
         result = results[i];
-        this._eachEntry(result.entry, result.position);
+        enumerator._eachEntry(result.entry, result.position);
       }
     };
 
@@ -1862,6 +1771,20 @@ process.umask = function() { return 0; };
         return false;
       }
     }
+    var lib$rsvp$platform$$platform;
+
+    /* global self */
+    if (typeof self === 'object') {
+      lib$rsvp$platform$$platform = self;
+
+    /* global global */
+    } else if (typeof global === 'object') {
+      lib$rsvp$platform$$platform = global;
+    } else {
+      throw new Error('no global: `self` or `global` found');
+    }
+
+    var lib$rsvp$platform$$default = lib$rsvp$platform$$platform;
     function lib$rsvp$race$$race(array, label) {
       return lib$rsvp$promise$$default.race(array, label);
     }
@@ -1882,8 +1805,11 @@ process.umask = function() { return 0; };
     }
     var lib$rsvp$rethrow$$default = lib$rsvp$rethrow$$rethrow;
 
-    // default async is asap;
+    // defaults
     lib$rsvp$config$$config.async = lib$rsvp$asap$$default;
+    lib$rsvp$config$$config.after = function(cb) {
+      setTimeout(cb, 0);
+    };
     var lib$rsvp$$cast = lib$rsvp$resolve$$default;
     function lib$rsvp$$async(callback, arg) {
       lib$rsvp$config$$config.async(callback, arg);
@@ -1934,13 +1860,13 @@ process.umask = function() { return 0; };
       define(function() { return lib$rsvp$umd$$RSVP; });
     } else if (typeof module !== 'undefined' && module['exports']) {
       module['exports'] = lib$rsvp$umd$$RSVP;
-    } else if (typeof this !== 'undefined') {
-      this['RSVP'] = lib$rsvp$umd$$RSVP;
+    } else if (typeof lib$rsvp$platform$$default !== 'undefined') {
+      lib$rsvp$platform$$default['RSVP'] = lib$rsvp$umd$$RSVP;
     }
 }).call(this);
 
 
-}).call(this,require('_process'))
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{"_process":3}],5:[function(require,module,exports){
 /*!
@@ -4216,7 +4142,11 @@ Book.prototype.open = function(_url){
 
     this.containerUrl = this.url + containerPath;
 
-    epubContainer = this.request(this.containerUrl);
+    epubContainer = this.request(this.containerUrl)
+      .catch(function(error) {
+        // handle errors in loading container
+        book.opening.reject(error);
+      });
   }
 
   if (epubContainer) {
@@ -4247,7 +4177,6 @@ Book.prototype.open = function(_url){
         book.opening.reject(error);
       });
   }
-
 
   epubPackage.then(function(packageXml) {
     // Get package information from epub opf
@@ -4280,6 +4209,10 @@ Book.prototype.unpack = function(packageXml){
       parse = new Parser();
 
   book.package = parse.packageContents(packageXml); // Extract info from contents
+  if(!book.package) {
+    return;
+  }
+
   book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 
   this.spine.load(book.package);
@@ -4446,7 +4379,7 @@ Continuous.prototype.attachListeners = function(){
 
 Continuous.prototype.parseTarget = function(target){
 	if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    cfi = new EpubCFI(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {
@@ -5227,6 +5160,10 @@ function createBlobUrl(content, mime){
   return tempUrl;
 };
 
+function type(obj){
+  return Object.prototype.toString.call(obj).slice(8, -1);
+}
+
 module.exports = {
   // 'uri': uri,
   // 'folder': folder,
@@ -5250,7 +5187,8 @@ module.exports = {
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
   'isXml': isXml,
-  'createBlobUrl': createBlobUrl
+  'createBlobUrl': createBlobUrl,
+  'type': type
 };
 
 },{"rsvp":4}],9:[function(require,module,exports){
@@ -5325,7 +5263,7 @@ function EpubCFI(cfiFrom, base, options){
     return core.extend(this, this.fromRange(cfiFrom, this.base));
   } else if (type === 'node') {
     return core.extend(this, this.fromNode(cfiFrom, this.base));
-  } else if (type === 'EpubCFI') {
+  } else if (type === 'EpubCFI' && cfiFrom.path) {
     return cfiFrom;
   } else if (!cfiFrom) {
     return this;
@@ -5336,13 +5274,11 @@ function EpubCFI(cfiFrom, base, options){
 };
 
 EpubCFI.prototype.checkType = function(cfi) {
-  // is a cfi string, should be wrapped with "epubcfi()"
-  if (typeof cfi === 'string' &&
-      cfi.indexOf("epubcfi(") === 0 &&
-      cfi[cfi.length-1] === ")") {
+
+  if (this.isCfiString(cfi)) {
     return 'string';
   // Is a range object
-} else if (typeof cfi === 'object' && cfi instanceof window.Range){
+  } else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
     return 'range';
   } else if (typeof cfi === 'object' && cfi instanceof window.Node ){ // || typeof cfi === 'function'
     return 'node';
@@ -5405,7 +5341,10 @@ EpubCFI.prototype.parse = function(cfiStr) {
 EpubCFI.prototype.parseComponent = function(componentStr){
   var component = {
     steps: [],
-    terminal: null
+    terminal: {
+      offset: null,
+      assertion: null
+    }
   };
   var parts = componentStr.split(':');
   var steps = parts[0].split('/');
@@ -5462,10 +5401,10 @@ EpubCFI.prototype.parseTerminal = function(termialStr){
   var assertion = termialStr.match(/\[(.*)\]/);
 
   if(assertion && assertion[1]){
-    characterOffset = parseInt(termialStr.split('[')[0]);
+    characterOffset = parseInt(termialStr.split('[')[0]) || null;
     textLocationAssertion = assertion[1];
   } else {
-    characterOffset = parseInt(termialStr);
+    characterOffset = parseInt(termialStr) || null;
   }
 
   return {
@@ -5539,11 +5478,11 @@ EpubCFI.prototype.segmentString = function(segment) {
 
   segmentString += this.joinSteps(segment.steps);
 
-  if(segment.terminal && segment.terminal.offset){
+  if(segment.terminal && segment.terminal.offset != null){
     segmentString += ':' + segment.terminal.offset;
   }
 
-  if(segment.terminal && segment.terminal.assertion){
+  if(segment.terminal && segment.terminal.assertion != null){
     segmentString += '[' + segment.terminal.assertion + ']';
   }
 
@@ -5604,9 +5543,9 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
     // Otherwise continue checking
   }
 
-  // All steps in First present in Second
+  // All steps in First equal to Second and First is Less Specific
   if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
-    return -1;
+    return 1;
   }
 
   // Compare the charecter offset of the text node
@@ -5623,7 +5562,7 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
   return 0;
 };
 
-EpubCFI.prototype.pathTo = function(node) {
+EpubCFI.prototype.pathTo = function(node, offset) {
   var segment = {
     steps: [],
     terminal: {
@@ -5631,37 +5570,59 @@ EpubCFI.prototype.pathTo = function(node) {
       assertion: null
     }
   };
-
-  var children;
-
-  var currentNode = this.filter(node, this.options.ignoreClass);
-  var currentNodeType;
+  var currentNode = node;
+  var filteredNode, nodeType;
 
   while(currentNode && currentNode.parentNode &&
         currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
 
-    currentNodeType = (currentNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+    filteredNode = this.filter(currentNode, this.options.ignoreClass);
+    if (filteredNode) {
+      nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
 
-    if (currentNodeType === 'text') {
-      children = currentNode.parentNode.childNodes;
-    } else {
-      children = currentNode.parentNode.children;
+      segment.steps.unshift({
+        'id' : filteredNode.id,
+        'tagName' : filteredNode.tagName,
+        'type' : nodeType,
+        'index' : this.position(filteredNode, this.options.ignoreClass) //Array.prototype.indexOf.call(children, currentNode)
+      });
     }
 
-    segment.steps.unshift({
-      'id' : currentNode.id,
-      'tagName' : currentNode.tagName,
-      'type' : currentNodeType,
-      'index' : Array.prototype.indexOf.call(children, currentNode)
-    });
-
-    currentNode = this.filter(currentNode.parentNode, this.options.ignoreClass);
+    currentNode = currentNode.parentNode;
 
   }
+
+  if (offset >= 0) {
+
+    segment.terminal.offset = offset;
+
+    // Make sure we are getting to a textNode if there is an offset
+    if(segment.steps[segment.steps.length-1].type != "text") {
+      segment.steps.push({
+        'type' : "text",
+        'index' : 0
+      });
+    }
+
+  }
+
 
   return segment;
 }
 
+EpubCFI.prototype.equalStep = function(stepA, stepB) {
+  if (!stepA || !stepB) {
+    return false;
+  }
+
+  if(stepA.index === stepB.index &&
+     stepA.id === stepB.id &&
+     stepA.type === stepB.type) {
+    return true;
+  }
+
+  return false;
+};
 EpubCFI.prototype.fromRange = function(range, base) {
   var cfi = {
       range: false,
@@ -5685,16 +5646,16 @@ EpubCFI.prototype.fromRange = function(range, base) {
   }
 
   if (range.collapsed) {
-    cfi.path = this.pathTo(start);
-    cfi.path.terminal.offset = this.patch(start, startOffset, this.options.ignoreClass);
+    startOffset = this.patchOffset(start, startOffset, this.options.ignoreClass);
+    cfi.path = this.pathTo(start, startOffset);
   } else {
     cfi.range = true;
 
-    cfi.start = this.pathTo(start);
-    cfi.start.terminal.offset = this.patch(start, startOffset, this.options.ignoreClass);
+    startOffset = this.patchOffset(start, startOffset, this.options.ignoreClass);
+    cfi.start = this.pathTo(start, startOffset);
 
-    cfi.end = this.pathTo(end);
-    cfi.end.terminal.offset = this.patch(end, endOffset, this.options.ignoreClass);
+    endOffset = this.patchOffset(end, endOffset, this.options.ignoreClass);
+    cfi.end = this.pathTo(end, endOffset);
 
     // Create a new empty path
     cfi.path = {
@@ -5703,13 +5664,30 @@ EpubCFI.prototype.fromRange = function(range, base) {
     };
 
     // Push steps that are shared between start and end to the common path
-    for (var i = 0; i < cfi.start.steps.length; i++) {
-      if (cfi.start.steps[i].index == cfi.end.steps[i].index) {
-        cfi.path.steps.push(cfi.start.steps.shift());
-        cfi.end.steps.shift();
-      }
-    }
+    var len = cfi.start.steps.length;
+    var i;
 
+    for (i = 0; i < len; i++) {
+      if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
+        if(i == len-1) {
+          // Last step is equal, check terminals
+          if(cfi.start.terminal === cfi.end.terminal) {
+            // CFI's are equal
+            cfi.path.steps.push(cfi.start.steps[i]);
+            // Not a range
+            cfi.range = false;
+          }
+        } else {
+          cfi.path.steps.push(cfi.start.steps[i]);
+        }
+
+      } else {
+        break;
+      }
+    };
+
+    cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
+    cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
   }
 
   return cfi;
@@ -5740,58 +5718,140 @@ EpubCFI.prototype.fromNode = function(anchor, base) {
 EpubCFI.prototype.filter = function(anchor, ignoreClass) {
   var needsIgnoring;
   var sibling;
+  var isText;
 
   if (anchor.nodeType === Node.TEXT_NODE) {
+    isText = true;
     needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-    sibling = anchor.parentNode.previousSibling;
   } else {
+    isText = false;
     needsIgnoring = anchor.classList.contains(ignoreClass);
-    sibling = anchor.previousSibling;
   }
 
-  if (needsIgnoring) {
+  if (needsIgnoring && isText) {
 
-    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
-      // If the previous sibling is a text node, join the nodes
-      // offset = sibling.textContent.length + offset
-      return sibling;
-    } else {
-      // Otherwise just ignore the node by getting the path to its parent
-      return anchor.parentNode;
+    // If the sibling is a text node, join the nodes
+    if (anchor.parentNode.previousSibling && anchor.parentNode.previousSibling.nodeType === Node.TEXT_NODE) {
+      sibling = anchor.parentNode.previousSibling;
+    } else if (anchor.parentNode.nextSibling && anchor.parentNode.nextSibling.nodeType === Node.TEXT_NODE) {
+      sibling = anchor.parentNode.nextSibling;
     }
 
+    if (sibling) {
+      return sibling;
+    } else {
+      // Parent will be ignored on next step
+      return anchor;
+    }
+
+  } else if (needsIgnoring && !isText) {
+    // Otherwise just skip the element node
+    return false;
   } else {
+    // No need to filter
     return anchor;
   }
 
 };
 
-EpubCFI.prototype.patch = function(anchor, offset, ignoreClass) {
+EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
   var needsIgnoring;
   var sibling;
 
-  if (anchor.nodeType === Node.TEXT_NODE) {
-    needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-    sibling = anchor.parentNode.previousSibling;
-  } else {
-    needsIgnoring = anchor.classList.contains(ignoreClass);
-    sibling = anchor.previousSibling;
+  if (anchor.nodeType != Node.TEXT_NODE) {
+    console.error("Anchor must be a text node");
+    return;
   }
 
-  if (needsIgnoring) {
+  var curr = anchor;
+  var totalOffset = offset;
 
-    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
+  if (anchor.parentNode.classList.contains(ignoreClass)) {
+    curr = anchor.parentNode;
+
+    if (curr.previousSibling && curr.previousSibling.nodeType === Node.TEXT_NODE) {
       // If the previous sibling is a text node, join the nodes
-      return sibling.textContent.length + offset;
-    } else {
-      // Otherwise just ignore the node by getting the path to its parent
-      return sibling.textContent.length;
+      totalOffset += curr.previousSibling.textContent.length;
+    }
+  }
+
+  while (curr.previousSibling) {
+    if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
+      // Originally a text node, so join
+      if(curr.previousSibling.classList.contains(ignoreClass)){
+        totalOffset += curr.previousSibling.textContent.length;
+      } else {
+        break; // Normal node, dont join
+      }
     }
 
-  } else {
-    return offset;
+    curr = curr.previousSibling;
   }
 
+  return totalOffset;
+
+};
+
+EpubCFI.prototype.flatten = function(children, ignoreClass) {
+  // var children = parent.childNodes;
+  var output = {};
+  // var input = Array.prototype.slice.call(children);
+
+  // input = Array.prototype.slice.call(children).map(function(node) {
+  //   var ignore = node.classList.contains(ignoreClass);
+  //   // span -> text
+  //   if (ignore && node.hasChildNodes()) {
+  //     return node.childNodes[0];
+  //   }
+  //
+  //   return node;
+  // });
+
+  // Join text nodes
+  var prevIndex = -1;
+  var i, len = children.length;
+  var ignore;
+
+  for (i = 0; i < len; i++) {
+
+    if (children[i].nodeType === Node.ELEMENT_NODE) {
+      ignore = children[i].classList.contains(ignoreClass);
+    }
+
+    if (i > 0 &&
+        (ignore || children[i].nodeType === Node.TEXT_NODE) &&
+        (children[i-1].nodeType === Node.TEXT_NODE || children[i-1].classList.contains(ignoreClass))) {
+      // join text nodes
+      output[i] = prevIndex;
+    } else {
+      prevIndex = prevIndex + 1;
+      output[i] = prevIndex;
+    }
+
+  }
+
+  return output;
+};
+
+EpubCFI.prototype.position = function(anchor, ignoreClass) {
+  var children, index, map;
+
+  if (anchor.nodeType === Node.ELEMENT_NODE) {
+    children = anchor.parentNode.children;
+  } else {
+    children = anchor.parentNode.childNodes;
+    // Inside an ignored node
+    if(anchor.parentNode.classList.contains(ignoreClass)) {
+      anchor = anchor.parentNode;
+      children = anchor.parentNode.childNodes;
+    }
+  }
+
+
+
+  index = Array.prototype.indexOf.call(children, anchor);
+  map = this.flatten(children, ignoreClass);
+  return map[index];
 };
 
 EpubCFI.prototype.stepsToXpath = function(steps) {
@@ -5812,6 +5872,22 @@ EpubCFI.prototype.stepsToXpath = function(steps) {
   return xpath.join("/");
 };
 
+
+/*
+
+To get the last step if needed:
+
+// Get the terminal step
+lastStep = steps[steps.length-1];
+// Get the query string
+query = this.stepsToQuery(steps);
+// Find the containing element
+startContainerParent = doc.querySelector(query);
+// Find the text node within that element
+if(startContainerParent && lastStep.type == "text") {
+  container = startContainerParent.childNodes[lastStep.index];
+}
+*/
 EpubCFI.prototype.stepsToQuerySelector = function(steps) {
   var query = ["html"];
 
@@ -5829,35 +5905,79 @@ EpubCFI.prototype.stepsToQuerySelector = function(steps) {
   });
 
   return query.join(">");
+
+};
+
+EpubCFI.prototype.walkToNode = function(steps, _doc) {
+  var doc = _doc || document;
+  var container = doc.documentElement;
+  var step;
+  var len = steps.length;
+  var i;
+
+  for (i = 0; i < len; i++) {
+    step = steps[i];
+
+    if(step.type === "element") {
+      container = container.children[step.index];
+    } else if(step.type === "text"){
+      container = container.childNodes[step.index];
+    }
+
+  };
+
+  return container;
 };
 
 EpubCFI.prototype.findNode = function(steps, _doc) {
   var doc = _doc || document;
   var container;
   var xpath;
-  var lastStep, query, startContainerParent;
+    // Check if we might need to need to fix missed results
+  var needsIgnoring = doc.querySelector('.' + this.options.ignoreClass)
 
-  if(typeof document.evaluate != 'undefined') {
+  if(!needsIgnoring && typeof document.evaluate != 'undefined') {
 
     xpath = this.stepsToXpath(steps);
-
     container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
   } else {
 
-    // Get the terminal step
-    lastStep = steps[steps.length-1];
-    // Get the query string
-    query = this.stepsToQuery(steps);
-    // Find the containing element
-    startContainerParent = doc.querySelector(query);
-    // Find the text node within that element
-    if(startContainerParent && lastStep.type == "text") {
-      container = startContainerParent.childNodes[lastStep.index];
+    container = this.walkToNode(steps, doc);
+
+  }
+
+
+  return container;
+};
+
+EpubCFI.prototype.fixMiss = function(steps, offset, _doc) {
+  var container = this.findNode(steps.slice(0,-1), _doc);
+  var children = container.childNodes;
+  var i;
+  var child;
+  var len;
+
+  for (i = 0; i < children.length; i++) {
+    child = children[i];
+    len = child.textContent.length;
+    if(offset > len) {
+      offset = offset - len;
+    } else {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        container = child.childNodes[0];
+      } else {
+        container = child;
+      }
+      break;
     }
   }
 
-  return container;
+  return {
+    container: container,
+    offset: offset
+  };
+
 };
 
 EpubCFI.prototype.toRange = function(_doc, _cfi) {
@@ -5865,39 +5985,84 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
   var range = doc.createRange();
   var start, end, startContainer, endContainer;
   var cfi = _cfi || this;
+  var startSteps, endSteps;
+  var missed;
 
+    if (cfi.range) {
+      start = cfi.start;
+      startSteps = cfi.path.steps.concat(start.steps);
+      startContainer = this.findNode(startSteps, _doc);
 
-  if (cfi.range) {
-    start = cfi.start;
-    startContainer = this.findNode(cfi.path.steps.concat(start.steps), _doc)
-
-    end = cfi.end;
-    endContainer = this.findNode(cfi.path.steps.concat(end.steps), _doc);
-  } else {
-    start = cfi.path;
-    startContainer = this.findNode(cfi.path.steps, _doc);
-  }
-
-  if(startContainer) {
-    if(start.terminal.offset) {
-      range.setStart(startContainer, start.terminal.offset);
+      end = cfi.end;
+      endSteps = cfi.path.steps.concat(end.steps);
+      endContainer = this.findNode(endSteps, _doc);
     } else {
-      range.setStart(startContainer, 0);
+      start = cfi.path;
+      startSteps = cfi.path.steps;
+      startContainer = this.findNode(cfi.path.steps, _doc);
     }
-  }
 
 
-  if (endContainer) {
-    if(end.terminal.offset) {
-      range.setEnd(endContainer, end.terminal.offset);
-    } else {
-      range.setEnd(endContainer, 0);
+
+      if(startContainer) {
+        try {
+
+          if(start.terminal.offset != null) {
+            range.setStart(startContainer, start.terminal.offset);
+          } else {
+            range.setStart(startContainer, 0);
+          }
+
+        } catch (e) {
+          missed = this.fixMiss(startSteps, start.terminal.offset, doc);
+          range.setStart(missed.container, missed.offset);
+        }
+      }
+
+
+    if (endContainer) {
+      try {
+
+        if(end.terminal.offset != null) {
+          range.setEnd(endContainer, end.terminal.offset);
+        } else {
+          range.setEnd(endContainer, 0);
+        }
+
+      } catch (e) {
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc);
+        range.setEnd(missed.container, missed.offset);
+      }
     }
-  }
 
 
   // doc.defaultView.getSelection().addRange(range);
   return range;
+};
+
+// is a cfi string, should be wrapped with "epubcfi()"
+EpubCFI.prototype.isCfiString = function(str) {
+  if(typeof str === 'string' &&
+      str.indexOf("epubcfi(") === 0 &&
+      str[str.length-1] === ")") {
+    return true;
+  }
+
+  return false;
+};
+
+EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id) {
+  var pos = parseInt(_pos),
+    spineNodeIndex = _spineNodeIndex + 1,
+    cfi = '/'+spineNodeIndex+'/';
+
+  cfi += (pos + 1) * 2;
+
+  if(id) {
+    cfi += "[" + id + "]";
+  }
+
+  return cfi;
 };
 
 module.exports = EpubCFI;
@@ -7898,11 +8063,10 @@ Rendition.prototype._display = function(target){
 	visible = this.views.find(section);
 
 	if(visible) {
-		offset = view.locationOf(target);
-		displayed = this.moveTo(offset)
-			.then(function(){
-				return this.check();
-			});
+		offset = visible.locationOf(target);
+		this.moveTo(offset);
+		displaying.resolve();
+
 	} else {
 
 		// Hide all current views
@@ -7952,7 +8116,7 @@ Rendition.prototype._display = function(target){
 
 // Takes a cfi, fragment or page?
 Rendition.prototype.moveTo = function(offset){
-	this.scrollBy(offset.left, offset.top);
+	this.scrollTo(offset.left, offset.top);
 };
 
 Rendition.prototype.render = function(view, show) {
@@ -8538,7 +8702,7 @@ var URI = require('urijs');
 var core = require('./core');
 
 function request(url, type, withCredentials, headers) {
-  var supportsURL = window.URL;
+  var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
   var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
   var uri;
 
@@ -8562,13 +8726,18 @@ function request(url, type, withCredentials, headers) {
     xhr.withCredentials = true;
   }
 
+  xhr.onreadystatechange = handler;
+  xhr.onerror = err;
+
   xhr.open("GET", url, true);
 
   for(header in headers) {
     xhr.setRequestHeader(header, headers[header]);
   }
 
-  xhr.onreadystatechange = handler;
+  if(type == "json") {
+    xhr.setRequestHeader("Accept", "application/json");
+  }
 
   // If type isn't set, determine it from the file extension
 	if(!type) {
@@ -8580,13 +8749,10 @@ function request(url, type, withCredentials, headers) {
     xhr.responseType = BLOB_RESPONSE;
   }
 
-  if(type == "json") {
-    xhr.setRequestHeader("Accept", "application/json");
-  }
 
   if(core.isXml(type)) {
 		xhr.responseType = "document";
-		xhr.overrideMimeType('text/xml'); // for OPF parsing
+		// xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
 
 	if(type == 'xhtml') {
@@ -8603,8 +8769,14 @@ function request(url, type, withCredentials, headers) {
 
   xhr.send();
 
+  function err(e) {
+    console.error(e);
+    deferred.reject(e);
+  }
+
   function handler() {
-    if (this.readyState === this.DONE) {
+    if (this.readyState === XMLHttpRequest.DONE) {
+
       if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
         var r;
 
@@ -8613,6 +8785,7 @@ function request(url, type, withCredentials, headers) {
           r = this.responseXML;
         } else
         if(core.isXml(type)){
+          // xhr.overrideMimeType('text/xml'); // for OPF parsing
           // If this.responseXML wasn't set, try to parse using a DOMParser from text
           r = new DOMParser().parseFromString(this.response, "text/xml");
         }else
@@ -8640,11 +8813,13 @@ function request(url, type, withCredentials, headers) {
 
         deferred.resolve(r);
       } else {
+
         deferred.reject({
           status: this.status,
           message : this.response,
           stack : new Error().stack
         });
+
       }
     }
   }
@@ -8672,7 +8847,6 @@ function Section(item, hooks){
     this.next = item.next;
     this.prev = item.prev;
 
-    this.epubcfi = new EpubCFI();
     this.cfiBase = item.cfiBase;
 
     this.hooks = {};
@@ -8797,11 +8971,11 @@ Section.prototype.reconcileLayoutSettings = function(global){
 };
 
 Section.prototype.cfiFromRange = function(_range) {
-  return this.epubcfi.generateCfiFromRange(_range, this.cfiBase);
+  return new EpubCFI(_range, this.cfiBase).toString();
 };
 
 Section.prototype.cfiFromElement = function(el) {
-  return this.epubcfi.generateCfiFromElement(el, this.cfiBase);
+  return new EpubCFI(el, this.cfiBase).toString();
 };
 
 module.exports = Section;
@@ -8833,6 +9007,7 @@ Spine.prototype.load = function(_package) {
     var href, url;
     var manifestItem = this.manifest[item.idref];
     var spineItem;
+
     item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
     if(manifestItem) {
@@ -8868,7 +9043,7 @@ Spine.prototype.get = function(target) {
   var index = 0;
 
   if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    cfi = new EpubCFI(target);
     index = cfi.spinePos;
   } else if(target && (typeof target === "number" || isNaN(target) === false)){
     index = target;
@@ -9658,22 +9833,28 @@ View.prototype.locationOf = function(target) {
   if(!this.document) return;
 
   if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    // cfi = this.epubcfi.parse(target);
+    //
+    // if(typeof document.evaluate === 'undefined') {
+    //   marker = this.epubcfi.addMarker(cfi, this.document);
+    //   if(marker) {
+    //     // Must Clean up Marker before going to page
+    //     this.epubcfi.removeMarker(marker, this.document);
+    //
+    //     targetPos = marker.getBoundingClientRect();
+    //   }
+    // } else {
+    //   range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
+    //   if(range) {
+    //     targetPos = range.getBoundingClientRect();
+    //   }
+    // }
 
-    if(typeof document.evaluate === 'undefined') {
-      marker = this.epubcfi.addMarker(cfi, this.document);
-      if(marker) {
-        // Must Clean up Marker before going to page
-        this.epubcfi.removeMarker(marker, this.document);
-
-        targetPos = marker.getBoundingClientRect();
-      }
-    } else {
-      range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
-      if(range) {
-        targetPos = range.getBoundingClientRect();
-      }
+    range = new EpubCFI(cfi).toRange(this.document);
+    if(range) {
+      targetPos = range.getBoundingClientRect();
     }
+
   } else if(typeof target === "string" &&
     target.indexOf("#") > -1) {
 
@@ -9832,10 +10013,13 @@ View.prototype.onSelectionChange = function(e){
 };
 
 View.prototype.triggerSelectedEvent = function(selection){
-	var range = selection.getRangeAt(0);
-	console.log(range);
-	var cfirange = this.section.cfiFromRange(range);
-  this.trigger("selected", cfirange);
+	var range;
+  if (selection && selection.rangeCount > 0) {
+    range = selection.getRangeAt(0);
+    console.log(range);
+    var cfirange = this.section.cfiFromRange(range);
+    this.trigger("selected", cfirange);
+  }
 };
 
 RSVP.EventTarget.mixin(View.prototype);

@@ -407,6 +407,10 @@ function createBlobUrl(content, mime){
   return tempUrl;
 };
 
+function type(obj){
+  return Object.prototype.toString.call(obj).slice(8, -1);
+}
+
 module.exports = {
   // 'uri': uri,
   // 'folder': folder,
@@ -430,5 +434,6 @@ module.exports = {
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
   'isXml': isXml,
-  'createBlobUrl': createBlobUrl
+  'createBlobUrl': createBlobUrl,
+  'type': type
 };

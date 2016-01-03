@@ -64,7 +64,12 @@ gulp.task('test', function(cb) {
   mochify('./test/*.js', {
     reporter: 'spec',
     transform: 'brfs',
-    watch: true
+    "web-security": false,
+    "webSecurityEnabled": false,
+    // "localUrlAccess": true,
+    watch: true,
+    wd: false,
+    debug: false
   })
   .bundle();
 });

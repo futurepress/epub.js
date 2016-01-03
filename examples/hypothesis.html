@@ -123,7 +123,7 @@
       margin: 10px auto;
     }
 
-    #hypothesis {
+    #hypothesis-custom {
       overflow: hidden;
       /*position: absolute;*/
       right: 0;
@@ -133,13 +133,13 @@
       /*z-index: -2;*/
     }
 
-    #hypothesis iframe {
+    #hypothesis-custom iframe {
       position: absolute;
       width: 100%;
       height: 100%;
     }
 
-    #annotation-controls {
+    /*#annotation-controls {
       position: absolute;
       top: -7px;
       left: 0px;
@@ -163,7 +163,7 @@
 
     #annotation-controls ul li button:focus {
       border: none !important;
-    }
+    }*/
   </style>
 </head>
 <body>
@@ -179,7 +179,7 @@
       <a id="next" href="#next" class="arrow">...</a>
     </div>
   </div>
-  <div id="annotation-controls"></div>
+  <!-- <div id="annotation-controls"></div> -->
   <!-- <div id="hypothesis">
     <iframe src="//hypothes.is/app.html" seamless></iframe>
   </div> -->
@@ -241,7 +241,7 @@
 
       // Add CFI fragment to the history
       // history.pushState({}, '', section.href);
-      window.location.hash = "#/"+section.href
+      // window.location.hash = "#/"+section.href
     });
 
     book.loaded.navigation.then(function(toc){

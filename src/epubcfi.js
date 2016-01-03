@@ -69,7 +69,7 @@ function EpubCFI(cfiFrom, base, options){
     return core.extend(this, this.fromRange(cfiFrom, this.base));
   } else if (type === 'node') {
     return core.extend(this, this.fromNode(cfiFrom, this.base));
-  } else if (type === 'EpubCFI') {
+  } else if (type === 'EpubCFI' && cfiFrom.path) {
     return cfiFrom;
   } else if (!cfiFrom) {
     return this;
@@ -80,13 +80,11 @@ function EpubCFI(cfiFrom, base, options){
 };
 
 EpubCFI.prototype.checkType = function(cfi) {
-  // is a cfi string, should be wrapped with "epubcfi()"
-  if (typeof cfi === 'string' &&
-      cfi.indexOf("epubcfi(") === 0 &&
-      cfi[cfi.length-1] === ")") {
+
+  if (this.isCfiString(cfi)) {
     return 'string';
   // Is a range object
-} else if (typeof cfi === 'object' && cfi instanceof window.Range){
+  } else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
     return 'range';
   } else if (typeof cfi === 'object' && cfi instanceof window.Node ){ // || typeof cfi === 'function'
     return 'node';
@@ -149,7 +147,10 @@ EpubCFI.prototype.parse = function(cfiStr) {
 EpubCFI.prototype.parseComponent = function(componentStr){
   var component = {
     steps: [],
-    terminal: null
+    terminal: {
+      offset: null,
+      assertion: null
+    }
   };
   var parts = componentStr.split(':');
   var steps = parts[0].split('/');
@@ -206,10 +207,10 @@ EpubCFI.prototype.parseTerminal = function(termialStr){
   var assertion = termialStr.match(/\[(.*)\]/);
 
   if(assertion && assertion[1]){
-    characterOffset = parseInt(termialStr.split('[')[0]);
+    characterOffset = parseInt(termialStr.split('[')[0]) || null;
     textLocationAssertion = assertion[1];
   } else {
-    characterOffset = parseInt(termialStr);
+    characterOffset = parseInt(termialStr) || null;
   }
 
   return {
@@ -283,11 +284,11 @@ EpubCFI.prototype.segmentString = function(segment) {
 
   segmentString += this.joinSteps(segment.steps);
 
-  if(segment.terminal && segment.terminal.offset){
+  if(segment.terminal && segment.terminal.offset != null){
     segmentString += ':' + segment.terminal.offset;
   }
 
-  if(segment.terminal && segment.terminal.assertion){
+  if(segment.terminal && segment.terminal.assertion != null){
     segmentString += '[' + segment.terminal.assertion + ']';
   }
 
@@ -348,9 +349,9 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
     // Otherwise continue checking
   }
 
-  // All steps in First present in Second
+  // All steps in First equal to Second and First is Less Specific
   if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
-    return -1;
+    return 1;
   }
 
   // Compare the charecter offset of the text node
@@ -382,21 +383,22 @@ EpubCFI.prototype.pathTo = function(node, offset) {
         currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
 
     filteredNode = this.filter(currentNode, this.options.ignoreClass);
-    nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+    if (filteredNode) {
+      nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
 
-    segment.steps.unshift({
-      'id' : this.filterId(filteredNode, this.options.ignoreClass),
-      'tagName' : filteredNode.tagName,
-      'type' : nodeType,
-      'index' : this.position(currentNode, this.options.ignoreClass) //Array.prototype.indexOf.call(children, currentNode)
-    });
-    // console.log(segment);
+      segment.steps.unshift({
+        'id' : filteredNode.id,
+        'tagName' : filteredNode.tagName,
+        'type' : nodeType,
+        'index' : this.position(filteredNode, this.options.ignoreClass) //Array.prototype.indexOf.call(children, currentNode)
+      });
+    }
 
-    currentNode = filteredNode.parentNode;
+    currentNode = currentNode.parentNode;
 
   }
 
-  if (offset) {
+  if (offset >= 0) {
 
     segment.terminal.offset = offset;
 
@@ -450,15 +452,15 @@ EpubCFI.prototype.fromRange = function(range, base) {
   }
 
   if (range.collapsed) {
-    startOffset = this.patch(start, startOffset, this.options.ignoreClass);
+    startOffset = this.patchOffset(start, startOffset, this.options.ignoreClass);
     cfi.path = this.pathTo(start, startOffset);
   } else {
     cfi.range = true;
 
-    startOffset = this.patch(start, startOffset, this.options.ignoreClass);
+    startOffset = this.patchOffset(start, startOffset, this.options.ignoreClass);
     cfi.start = this.pathTo(start, startOffset);
 
-    endOffset = this.patch(end, endOffset, this.options.ignoreClass);
+    endOffset = this.patchOffset(end, endOffset, this.options.ignoreClass);
     cfi.end = this.pathTo(end, endOffset);
 
     // Create a new empty path
@@ -522,109 +524,140 @@ EpubCFI.prototype.fromNode = function(anchor, base) {
 EpubCFI.prototype.filter = function(anchor, ignoreClass) {
   var needsIgnoring;
   var sibling;
+  var isText;
 
   if (anchor.nodeType === Node.TEXT_NODE) {
+    isText = true;
     needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-    sibling = anchor.parentNode.previousSibling;
   } else {
+    isText = false;
     needsIgnoring = anchor.classList.contains(ignoreClass);
-    sibling = anchor.previousSibling;
   }
 
-  if (needsIgnoring) {
+  if (needsIgnoring && isText) {
 
-    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
-      // If the previous sibling is a text node, join the nodes
-      return sibling;
-    } else if (anchor.nodeType === Node.TEXT_NODE) {
-      return anchor.parentNode.childNodes[0];
-    } else {
-      // Otherwise just ignore the node by getting the path to its parent
-      return anchor.parentNode;
+    // If the sibling is a text node, join the nodes
+    if (anchor.parentNode.previousSibling && anchor.parentNode.previousSibling.nodeType === Node.TEXT_NODE) {
+      sibling = anchor.parentNode.previousSibling;
+    } else if (anchor.parentNode.nextSibling && anchor.parentNode.nextSibling.nodeType === Node.TEXT_NODE) {
+      sibling = anchor.parentNode.nextSibling;
     }
 
+    if (sibling) {
+      return sibling;
+    } else {
+      // Parent will be ignored on next step
+      return anchor;
+    }
+
+  } else if (needsIgnoring && !isText) {
+    // Otherwise just skip the element node
+    return false;
   } else {
+    // No need to filter
     return anchor;
   }
 
 };
 
-EpubCFI.prototype.filterId = function(anchor, ignoreClass) {
-  var needsIgnoring;
-
-  if (anchor.nodeType === Node.ELEMENT_NODE) {
-    needsIgnoring = anchor.classList.contains(ignoreClass);
-    if(!needsIgnoring) {
-      return anchor.id;
-    }
-  }
-};
-
-EpubCFI.prototype.patch = function(anchor, offset, ignoreClass) {
+EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
   var needsIgnoring;
   var sibling;
 
-  if (anchor.nodeType === Node.TEXT_NODE) {
-    needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-    sibling = anchor.parentNode.previousSibling;
-  } else {
-    needsIgnoring = anchor.classList.contains(ignoreClass);
-    sibling = anchor.previousSibling;
+  if (anchor.nodeType != Node.TEXT_NODE) {
+    console.error("Anchor must be a text node");
+    return;
   }
 
-  if (needsIgnoring) {
+  var curr = anchor;
+  var totalOffset = offset;
 
-    if (sibling && sibling.nodeType === Node.TEXT_NODE) {
+  if (anchor.parentNode.classList.contains(ignoreClass)) {
+    curr = anchor.parentNode;
+
+    if (curr.previousSibling && curr.previousSibling.nodeType === Node.TEXT_NODE) {
       // If the previous sibling is a text node, join the nodes
-      return sibling.textContent.length + offset;
-    } else {
-      // Otherwise just ignore the node
-      return offset;
+      totalOffset += curr.previousSibling.textContent.length;
+    }
+  }
+
+  while (curr.previousSibling) {
+    if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
+      // Originally a text node, so join
+      if(curr.previousSibling.classList.contains(ignoreClass)){
+        totalOffset += curr.previousSibling.textContent.length;
+      } else {
+        break; // Normal node, dont join
+      }
     }
 
-  } else {
-    return offset;
+    curr = curr.previousSibling;
   }
 
+  return totalOffset;
+
+};
+
+EpubCFI.prototype.flatten = function(children, ignoreClass) {
+  // var children = parent.childNodes;
+  var output = {};
+  // var input = Array.prototype.slice.call(children);
+
+  // input = Array.prototype.slice.call(children).map(function(node) {
+  //   var ignore = node.classList.contains(ignoreClass);
+  //   // span -> text
+  //   if (ignore && node.hasChildNodes()) {
+  //     return node.childNodes[0];
+  //   }
+  //
+  //   return node;
+  // });
+
+  // Join text nodes
+  var prevIndex = -1;
+  var i, len = children.length;
+  var ignore;
+
+  for (i = 0; i < len; i++) {
+
+    if (children[i].nodeType === Node.ELEMENT_NODE) {
+      ignore = children[i].classList.contains(ignoreClass);
+    }
+
+    if (i > 0 &&
+        (ignore || children[i].nodeType === Node.TEXT_NODE) &&
+        (children[i-1].nodeType === Node.TEXT_NODE || children[i-1].classList.contains(ignoreClass))) {
+      // join text nodes
+      output[i] = prevIndex;
+    } else {
+      prevIndex = prevIndex + 1;
+      output[i] = prevIndex;
+    }
+
+  }
+
+  return output;
 };
 
 EpubCFI.prototype.position = function(anchor, ignoreClass) {
-  var needsIgnoring;
-  var sibling;
-  var indexed = -1;
-  var ignored;
-  var e = [];
+  var children, index, map;
 
-  if (anchor.nodeType === Node.TEXT_NODE) {
-
-    ignored = Array.prototype.slice.call(anchor.parentNode.querySelectorAll("."+ignoreClass));
-    e = ignored.map(function(item) {
-      return Array.prototype.indexOf.call(anchor.parentNode.childNodes, item)
-    });
-
-    if (ignored.length) {
-      needsIgnoring = true;
-    }
-
-    sibling = anchor.parentNode.previousSibling;
-    children = anchor.parentNode.childNodes;
-  } else {
-    needsIgnoring = anchor.classList.contains(ignoreClass);
-    sibling = anchor.previousSibling;
+  if (anchor.nodeType === Node.ELEMENT_NODE) {
     children = anchor.parentNode.children;
+  } else {
+    children = anchor.parentNode.childNodes;
+    // Inside an ignored node
+    if(anchor.parentNode.classList.contains(ignoreClass)) {
+      anchor = anchor.parentNode;
+      children = anchor.parentNode.childNodes;
+    }
   }
 
 
-  indexed = Array.prototype.indexOf.call(children, anchor);
 
-  e.forEach(function(item) {
-    if(item < indexed) {
-      indexed--;
-    }
-  });
-
-  return indexed;
-
+  index = Array.prototype.indexOf.call(children, anchor);
+  map = this.flatten(children, ignoreClass);
+  return map[index];
 };
 
 EpubCFI.prototype.stepsToXpath = function(steps) {
@@ -706,7 +739,7 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   var doc = _doc || document;
   var container;
   var xpath;
-  // Check if we might need to need to fix missed results
+    // Check if we might need to need to fix missed results
   var needsIgnoring = doc.querySelector('.' + this.options.ignoreClass)
 
   if(!needsIgnoring && typeof document.evaluate != 'undefined') {
@@ -780,7 +813,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
       if(startContainer) {
         try {
 
-          if(start.terminal.offset) {
+          if(start.terminal.offset != null) {
             range.setStart(startContainer, start.terminal.offset);
           } else {
             range.setStart(startContainer, 0);
@@ -793,18 +826,17 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
       }
 
 
-
     if (endContainer) {
       try {
 
-        if(end.terminal.offset) {
+        if(end.terminal.offset != null) {
           range.setEnd(endContainer, end.terminal.offset);
         } else {
           range.setEnd(endContainer, 0);
         }
 
       } catch (e) {
-        missed = this.fixMiss(endSteps, end.terminal.offset, doc);
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc);
         range.setEnd(missed.container, missed.offset);
       }
     }
@@ -812,6 +844,31 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
 
   // doc.defaultView.getSelection().addRange(range);
   return range;
+};
+
+// is a cfi string, should be wrapped with "epubcfi()"
+EpubCFI.prototype.isCfiString = function(str) {
+  if(typeof str === 'string' &&
+      str.indexOf("epubcfi(") === 0 &&
+      str[str.length-1] === ")") {
+    return true;
+  }
+
+  return false;
+};
+
+EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id) {
+  var pos = parseInt(_pos),
+    spineNodeIndex = _spineNodeIndex + 1,
+    cfi = '/'+spineNodeIndex+'/';
+
+  cfi += (pos + 1) * 2;
+
+  if(id) {
+    cfi += "[" + id + "]";
+  }
+
+  return cfi;
 };
 
 module.exports = EpubCFI;

@@ -15,7 +15,6 @@ function Section(item, hooks){
     this.next = item.next;
     this.prev = item.prev;
 
-    this.epubcfi = new EpubCFI();
     this.cfiBase = item.cfiBase;
 
     this.hooks = {};
@@ -140,11 +139,11 @@ Section.prototype.reconcileLayoutSettings = function(global){
 };
 
 Section.prototype.cfiFromRange = function(_range) {
-  return this.epubcfi.generateCfiFromRange(_range, this.cfiBase);
+  return new EpubCFI(_range, this.cfiBase).toString();
 };
 
 Section.prototype.cfiFromElement = function(el) {
-  return this.epubcfi.generateCfiFromElement(el, this.cfiBase);
+  return new EpubCFI(el, this.cfiBase).toString();
 };
 
 module.exports = Section;

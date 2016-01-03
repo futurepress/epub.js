@@ -576,22 +576,28 @@ View.prototype.locationOf = function(target) {
   if(!this.document) return;
 
   if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    // cfi = this.epubcfi.parse(target);
+    //
+    // if(typeof document.evaluate === 'undefined') {
+    //   marker = this.epubcfi.addMarker(cfi, this.document);
+    //   if(marker) {
+    //     // Must Clean up Marker before going to page
+    //     this.epubcfi.removeMarker(marker, this.document);
+    //
+    //     targetPos = marker.getBoundingClientRect();
+    //   }
+    // } else {
+    //   range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
+    //   if(range) {
+    //     targetPos = range.getBoundingClientRect();
+    //   }
+    // }
 
-    if(typeof document.evaluate === 'undefined') {
-      marker = this.epubcfi.addMarker(cfi, this.document);
-      if(marker) {
-        // Must Clean up Marker before going to page
-        this.epubcfi.removeMarker(marker, this.document);
-
-        targetPos = marker.getBoundingClientRect();
-      }
-    } else {
-      range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
-      if(range) {
-        targetPos = range.getBoundingClientRect();
-      }
+    range = new EpubCFI(cfi).toRange(this.document);
+    if(range) {
+      targetPos = range.getBoundingClientRect();
     }
+
   } else if(typeof target === "string" &&
     target.indexOf("#") > -1) {
 
@@ -750,10 +756,13 @@ View.prototype.onSelectionChange = function(e){
 };
 
 View.prototype.triggerSelectedEvent = function(selection){
-	var range = selection.getRangeAt(0);
-	console.log(range);
-	var cfirange = this.section.cfiFromRange(range);
-  this.trigger("selected", cfirange);
+	var range;
+  if (selection && selection.rangeCount > 0) {
+    range = selection.getRangeAt(0);
+    console.log(range);
+    var cfirange = this.section.cfiFromRange(range);
+    this.trigger("selected", cfirange);
+  }
 };
 
 RSVP.EventTarget.mixin(View.prototype);

@@ -24,6 +24,7 @@ Spine.prototype.load = function(_package) {
     var href, url;
     var manifestItem = this.manifest[item.idref];
     var spineItem;
+
     item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
     if(manifestItem) {
@@ -59,7 +60,7 @@ Spine.prototype.get = function(target) {
   var index = 0;
 
   if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    cfi = new EpubCFI(target);
     index = cfi.spinePos;
   } else if(target && (typeof target === "number" || isNaN(target) === false)){
     index = target;

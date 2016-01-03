@@ -3,7 +3,7 @@ var URI = require('urijs');
 var core = require('./core');
 
 function request(url, type, withCredentials, headers) {
-  var supportsURL = window.URL;
+  var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
   var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
   var uri;
 
@@ -27,13 +27,18 @@ function request(url, type, withCredentials, headers) {
     xhr.withCredentials = true;
   }
 
+  xhr.onreadystatechange = handler;
+  xhr.onerror = err;
+
   xhr.open("GET", url, true);
 
   for(header in headers) {
     xhr.setRequestHeader(header, headers[header]);
   }
 
-  xhr.onreadystatechange = handler;
+  if(type == "json") {
+    xhr.setRequestHeader("Accept", "application/json");
+  }
 
   // If type isn't set, determine it from the file extension
 	if(!type) {
@@ -45,13 +50,10 @@ function request(url, type, withCredentials, headers) {
     xhr.responseType = BLOB_RESPONSE;
   }
 
-  if(type == "json") {
-    xhr.setRequestHeader("Accept", "application/json");
-  }
 
   if(core.isXml(type)) {
 		xhr.responseType = "document";
-		xhr.overrideMimeType('text/xml'); // for OPF parsing
+		// xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
 
 	if(type == 'xhtml') {
@@ -68,8 +70,14 @@ function request(url, type, withCredentials, headers) {
 
   xhr.send();
 
+  function err(e) {
+    console.error(e);
+    deferred.reject(e);
+  }
+
   function handler() {
-    if (this.readyState === this.DONE) {
+    if (this.readyState === XMLHttpRequest.DONE) {
+
       if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
         var r;
 
@@ -78,6 +86,7 @@ function request(url, type, withCredentials, headers) {
           r = this.responseXML;
         } else
         if(core.isXml(type)){
+          // xhr.overrideMimeType('text/xml'); // for OPF parsing
           // If this.responseXML wasn't set, try to parse using a DOMParser from text
           r = new DOMParser().parseFromString(this.response, "text/xml");
         }else
@@ -105,11 +114,13 @@ function request(url, type, withCredentials, headers) {
 
         deferred.resolve(r);
       } else {
+
         deferred.reject({
           status: this.status,
           message : this.response,
           stack : new Error().stack
         });
+
       }
     }
   }

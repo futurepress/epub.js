@@ -46,7 +46,7 @@ Continuous.prototype.attachListeners = function(){
 
 Continuous.prototype.parseTarget = function(target){
 	if(this.epubcfi.isCfiString(target)) {
-    cfi = this.epubcfi.parse(target);
+    cfi = new EpubCFI(target);
     spinePos = cfi.spinePos;
     section = this.book.spine.get(spinePos);
   } else {

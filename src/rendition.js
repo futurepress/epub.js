@@ -208,11 +208,10 @@ Rendition.prototype._display = function(target){
 	visible = this.views.find(section);
 
 	if(visible) {
-		offset = view.locationOf(target);
-		displayed = this.moveTo(offset)
-			.then(function(){
-				return this.check();
-			});
+		offset = visible.locationOf(target);
+		this.moveTo(offset);
+		displaying.resolve();
+
 	} else {
 
 		// Hide all current views
@@ -262,7 +261,7 @@ Rendition.prototype._display = function(target){
 
 // Takes a cfi, fragment or page?
 Rendition.prototype.moveTo = function(offset){
-	this.scrollBy(offset.left, offset.top);
+	this.scrollTo(offset.left, offset.top);
 };
 
 Rendition.prototype.render = function(view, show) {
