@@ -5,7 +5,7 @@ EPUBJS.Layout.Reflowable = function(){
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height, _gap){
+EPUBJS.Layout.Reflowable.prototype.format = function(documentElement, _width, _height, _gap) {
 	// Get the prefixed CSS commands
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
@@ -56,12 +56,12 @@ EPUBJS.Layout.Reflowable.prototype.calculatePages = function() {
 	};
 };
 
-EPUBJS.Layout.ReflowableSpreads = function(){
+EPUBJS.Layout.ReflowableSpreads = function() {
 	this.documentElement = null;
 	this.spreadWidth = null;
 };
 
-EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height, _gap){
+EPUBJS.Layout.ReflowableSpreads.prototype.format = function(documentElement, _width, _height, _gap) {
 	var columnAxis = EPUBJS.core.prefixed('columnAxis');
 	var columnGap = EPUBJS.core.prefixed('columnGap');
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
@@ -119,13 +119,13 @@ EPUBJS.Layout.ReflowableSpreads.prototype.calculatePages = function() {
 	};
 };
 
-EPUBJS.Layout.Fixed = function(){
+EPUBJS.Layout.Fixed = function() {
 	this.documentElement = null;
     this.pageStride = 0;
     this.isVertical = false;
 };
 
-EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
+EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap) {
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
 	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
@@ -153,25 +153,32 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
         height = options["height"];
 
         if (width && height) {
-            var transform = EPUBJS.core.prefixed('transform');
-            var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
-
 			width = parseInt(width);
 			height = parseInt(height);
-            var scale = _width / width;
-            width = _width;
-            height = Math.floor(height * scale);
-            var translateY = Math.max(0, (_height - height) / 2);
 
             var bodyElement = documentElement.ownerDocument.body;
-            bodyElement.style[transform] = 'scale(' + scale + ') translate(0px, ' + translateY + 'px)';
+            bodyElement.style.width =  width + "px";
+            bodyElement.style.height =  height + "px";
+
+            var scaleX = _width / width;
+            var scaleY = _height / height;
+            var scale = Math.abs(scaleX - scaleY) <= 0.1 ? Math.min(scaleX, scaleY) : scaleX;
+            
+            width = Math.floor(width * scale);
+            height = Math.floor(height * scale);
+            
+            var translateX = Math.max(0, (_width - width) / 2);
+            var translateY = Math.max(0, (_height - height) / 2);
+            var transform = EPUBJS.core.prefixed('transform');
+            var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
+            bodyElement.style[transform] = 'scale(' + scale + ') translate(' + translateX + 'px, ' + translateY + 'px)';
             bodyElement.style[transformOrigin] = '0 0';
         }
     }
 
-	//-- Adjust width and height
-	documentElement.style.width =  width + "px" || "auto";
-	documentElement.style.height =  height + "px" || "auto";
+    //-- Adjust width and height
+    documentElement.style.width =  width + "px" || "auto";
+    documentElement.style.height =  height + "px" || "auto";
 
 	//-- Remove columns
 	documentElement.style[columnWidth] = "";
@@ -191,20 +198,20 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 	};
 };
 
-EPUBJS.Layout.Fixed.prototype.calculatePages = function(){
+EPUBJS.Layout.Fixed.prototype.calculatePages = function() {
 	return {
 		displayedPages : 1,
 		pageCount : 1
 	};
 };
 
-EPUBJS.Layout.Scroll = function(){
+EPUBJS.Layout.Scroll = function() {
 	this.documentElement = null;
     this.pageStride = 0;
     this.isVertical = false;
 };
 
-EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _height, _gap){
+EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _height, _gap) {
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
     var writingMode = EPUBJS.core.prefixed('writingMode');
 
