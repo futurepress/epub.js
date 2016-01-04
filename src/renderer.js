@@ -669,7 +669,7 @@ EPUBJS.Renderer.prototype.mapPage = function(layoutPages) {
                 pos = Math.floor((pos_min + pos_max) / 2);
                 range.setStart(textNode, pos);
                 var rect = range.getBoundingClientRect();
-                var r = testBoundry(range);
+                var r = testBoundry(rect);
                 if (r <= 0) {
                     // position is inside this page
                     pos_min = pos + 1;
