@@ -238,9 +238,11 @@ EPUBJS.Layout.Scroll.prototype.format = function(documentElement, _width, _heigh
 	};
 };
 
-EPUBJS.Layout.Scroll.prototype.calculatePages = function(){
-    if (this.isRightToLeft) {
-        window.scrollBy(this.documentElement.scrollWidth, 0);
+EPUBJS.Layout.Scroll.prototype.calculatePages = function() {
+    if (this.isVertical) {
+        window.scrollBy((this.isRightToLeft ? 1 : -1) * this.documentElement.scrollWidth, 0);
+    } else {
+        window.scrollBy(0, -this.documentElement.scrollHeight);
     }
 	return {
 		displayedPages : 1,
