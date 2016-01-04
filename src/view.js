@@ -759,7 +759,6 @@ View.prototype.triggerSelectedEvent = function(selection){
 	var range;
   if (selection && selection.rangeCount > 0) {
     range = selection.getRangeAt(0);
-    console.log(range);
     var cfirange = this.section.cfiFromRange(range);
     this.trigger("selected", cfirange);
   }
