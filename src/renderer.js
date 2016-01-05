@@ -494,7 +494,7 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 	if(leng &&
 		children[0] && // First Child
 		children[0].nodeType === 3 && // This is a textNodes
-		children[0].textContent.trim().length) { // With non whitespace or return charecters
+		children[0].textContent.trim().length) { // With non whitespace or return characters
 		return true;
 	}
 	return false;

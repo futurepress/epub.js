@@ -80,7 +80,8 @@ EPUBJS.EpubCFI.prototype.getPathComponent = function(cfiStr) {
   return pathComponent[0];
 };
 
-EPUBJS.EpubCFI.prototype.getCharecterOffsetComponent = function(cfiStr) {
+EPUBJS.EpubCFI.prototype.getCharecterOffsetComponent = // backwards-compat
+EPUBJS.EpubCFI.prototype.getCharacterOffsetComponent = function(cfiStr) {
   var splitStr = cfiStr.split(":");
   return splitStr[1] || '';
 };
@@ -91,7 +92,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
     chapSegment,
     chapterComponent,
     pathComponent,
-    charecterOffsetComponent,
+    characterOffsetComponent,
     assertion,
     chapId,
     path,
@@ -128,7 +129,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 
   chapterComponent = this.getChapterComponent(cfiStr);
   pathComponent = this.getPathComponent(cfiStr) || '';
-  charecterOffsetComponent = this.getCharecterOffsetComponent(cfiStr);
+  characterOffsetComponent = this.getCharacterOffsetComponent(cfiStr);
   // Make sure this is a valid cfi or return
   if(!chapterComponent) {
     return {spinePos: -1};
@@ -178,13 +179,13 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 
   }
 
-  assertion = charecterOffsetComponent.match(/\[(.*)\]/);
+  assertion = characterOffsetComponent.match(/\[(.*)\]/);
   if(assertion && assertion[1]){
-    cfi.characterOffset = parseInt(charecterOffsetComponent.split('[')[0]);
+    cfi.characterOffset = parseInt(characterOffsetComponent.split('[')[0]);
     // We arent handling these assertions yet
     cfi.textLocationAssertion = assertion[1];
   } else {
-    cfi.characterOffset = parseInt(charecterOffsetComponent);
+    cfi.characterOffset = parseInt(characterOffsetComponent);
   }
 
   return cfi;
@@ -344,7 +345,7 @@ EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
     return -1;
   }
 
-  // Compare the charecter offset of the text node
+  // Compare the character offset of the text node
   if(cfiOne.characterOffset > cfiTwo.characterOffset) {
     return 1;
   }
