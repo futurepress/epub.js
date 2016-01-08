@@ -749,6 +749,20 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
+
+Rendition.prototype.highlight = function(_cfi, className){
+  var cfi = new EpubCFI(_cfi);
+  var views = this.visible();
+	var found = views.filter(function (view) {
+		if(cfi.spinePos === view.index) return true;
+	});
+
+	// Should only every return 1 item
+  if (found.length) {
+    return found[0].highlight(cfi, className);
+  }
+};
+
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(Rendition.prototype);
 

@@ -4330,7 +4330,7 @@ RSVP.on('rejected', function(event){
   console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./continuous":7,"./core":8,"./locations":12,"./navigation":14,"./paginate":15,"./parser":16,"./rendition":18,"./request":20,"./spine":22,"./unarchive":23,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
+},{"./continuous":7,"./core":8,"./locations":13,"./navigation":15,"./paginate":16,"./parser":17,"./rendition":19,"./request":21,"./spine":23,"./unarchive":24,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Rendition = require('./rendition');
@@ -4750,7 +4750,7 @@ Continuous.prototype.current = function(what){
 
 module.exports = Continuous;
 
-},{"./core":8,"./rendition":18,"./view":24,"rsvp":4}],8:[function(require,module,exports){
+},{"./core":8,"./rendition":19,"./view":25,"rsvp":4}],8:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
@@ -6145,6 +6145,106 @@ EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id)
 module.exports = EpubCFI;
 
 },{"./core":8,"urijs":5}],10:[function(require,module,exports){
+// Based on - https://gist.github.com/kidoman/5625116
+function Highlighter(className) {
+  this.className = className || "annotator-hl";
+};
+
+Highlighter.prototype.add = function(range, className) {
+  var wrappers = [];
+  var wrapper;
+  if (!range || !range.startContainer) {
+    console.error("Not a valid Range");
+  }
+
+  if (className) {
+    this.className = className;
+  }
+
+  this.doc = range.startContainer.ownerDocument;
+
+  // TODO: is this is needed?
+  // Wrap all child text nodes
+  /*
+  this.getTextNodes(range, _doc).forEach(function(node) {
+    var range = document.createRange();
+    range.selectNodeContents(node);
+    range.surroundContents(this.wrapperNode())
+  });
+  */
+
+  if (range.startContainer === range.endContainer) {
+    wrappers.push(this.wrapNode(range));
+  } else {
+    // Wrap start and end elements
+    wrappers.push(this.wrapPartial(range, range.startContainer, 'start'));
+    wrappers.push(this.wrapPartial(range, range.endContainer, 'end'));
+  }
+
+  return wrappers;
+};
+
+Highlighter.prototype.remove = function(range) {
+  // STUB
+};
+
+Highlighter.prototype.rejectEmpty = function(node) {
+  if (node.data.match(/^\s+$/)) return NodeFilter.FILTER_SKIP;
+
+  return NodeFilter.FILTER_ACCEPT;
+}
+
+Highlighter.prototype.getTextNodes = function(range, _doc) {
+  var doc = _doc || document;
+  var nodeIterator = doc.createNodeIterator(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, this.rejectEmpty);
+  var mark = false;
+  var nodes = [];
+  var node;
+
+  while(node = nodeIterator.nextNode()) {
+    if (node == range.startContainer) {
+      mark = true;
+      continue
+    } else if (node === range.endContainer) {
+      break
+    }
+
+    if (mark) nodes.push(node);
+  }
+
+  return nodes
+
+};
+
+Highlighter.prototype.wrapNode = function(range) {
+  var wrapper = this.wrapperNode();
+  range.surroundContents(wrapper);
+  return wrapper;
+};
+
+Highlighter.prototype.wrapPartial = function(range, node, position) {
+  var startOffset = position === 'start' ? range.startOffset : 0;
+  var endOffset = position === 'start' ? node.length : range.endOffset
+  var range = this.doc.createRange();
+  var wrapper = this.wrapperNode();
+
+  range.setStart(node, startOffset);
+  range.setEnd(node, endOffset);
+
+  range.surroundContents(wrapper);
+  return wrapper;
+};
+
+Highlighter.prototype.wrapperNode = function(type) {
+  if (type === undefined) type = 'span';
+  var elem = document.createElement(type)
+  elem.classList.add(this.className);
+  return elem;
+};
+
+module.exports = Highlighter;
+
+},{}],11:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 //-- Hooks allow for injecting functions that must all complete in order before finishing
@@ -6201,7 +6301,7 @@ Hook.prototype.list = function(){
 
 module.exports = Hook;
 
-},{"rsvp":4}],11:[function(require,module,exports){
+},{"rsvp":4}],12:[function(require,module,exports){
 var core = require('./core');
 
 function Reflowable(){
@@ -6364,7 +6464,7 @@ module.exports = {
   'Scroll': Scroll
 };
 
-},{"./core":8}],12:[function(require,module,exports){
+},{"./core":8}],13:[function(require,module,exports){
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
@@ -6589,7 +6689,7 @@ RSVP.EventTarget.mixin(Locations.prototype);
 
 module.exports = Locations;
 
-},{"./core":8,"./epubcfi":9,"./queue":17,"rsvp":4}],13:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./queue":18,"rsvp":4}],14:[function(require,module,exports){
 function Map(layout){
   this.layout = layout;
 };
@@ -6878,7 +6978,7 @@ Map.prototype.rangeListToCfiList = function(view, columns){
 
 module.exports = Map;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var core = require('./core');
 var Parser = require('./parser');
 var RSVP = require('rsvp');
@@ -6982,7 +7082,7 @@ Navigation.prototype.get = function(target) {
 
 module.exports = Navigation;
 
-},{"./core":8,"./parser":16,"./request":20,"rsvp":4,"urijs":5}],15:[function(require,module,exports){
+},{"./core":8,"./parser":17,"./request":21,"rsvp":4,"urijs":5}],16:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Continuous = require('./continuous');
@@ -7270,7 +7370,7 @@ Paginate.prototype.adjustImages = function(view) {
 
 module.exports = Paginate;
 
-},{"./continuous":7,"./core":8,"./layout":11,"./map":13,"rsvp":4}],16:[function(require,module,exports){
+},{"./continuous":7,"./core":8,"./layout":12,"./map":14,"rsvp":4}],17:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -7734,7 +7834,7 @@ Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
 
 module.exports = Parser;
 
-},{"./core":8,"./epubcfi":9,"urijs":5}],17:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"urijs":5}],18:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 
@@ -7929,7 +8029,7 @@ function Task(task, args, context){
 
 module.exports = Queue;
 
-},{"./core":8,"rsvp":4}],18:[function(require,module,exports){
+},{"./core":8,"rsvp":4}],19:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -8681,12 +8781,26 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
+
+Rendition.prototype.highlight = function(_cfi, className){
+  var cfi = new EpubCFI(_cfi);
+  var views = this.visible();
+	var found = views.filter(function (view) {
+		if(cfi.spinePos === view.index) return true;
+	});
+
+	// Should only every return 1 item
+  if (found.length) {
+    return found[0].highlight(cfi, className);
+  }
+};
+
 //-- Enable binding events to Renderer
 RSVP.EventTarget.mixin(Rendition.prototype);
 
 module.exports = Rendition;
 
-},{"./core":8,"./epubcfi":9,"./hook":10,"./layout":11,"./map":13,"./queue":17,"./replacements":19,"./view":24,"./views":25,"rsvp":4,"urijs":5}],19:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./hook":11,"./layout":12,"./map":14,"./queue":18,"./replacements":20,"./view":25,"./views":26,"rsvp":4,"urijs":5}],20:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 
@@ -8773,7 +8887,7 @@ module.exports = {
   'substitute': substitute
 };
 
-},{"./core":8,"urijs":5}],20:[function(require,module,exports){
+},{"./core":8,"urijs":5}],21:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -8906,7 +9020,7 @@ function request(url, type, withCredentials, headers) {
 
 module.exports = request;
 
-},{"./core":8,"rsvp":4,"urijs":5}],21:[function(require,module,exports){
+},{"./core":8,"rsvp":4,"urijs":5}],22:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -9057,7 +9171,7 @@ Section.prototype.cfiFromElement = function(el) {
 
 module.exports = Section;
 
-},{"./core":8,"./epubcfi":9,"./hook":10,"./replacements":19,"./request":20,"rsvp":4,"urijs":5}],22:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./hook":11,"./replacements":20,"./request":21,"rsvp":4,"urijs":5}],23:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -9181,7 +9295,7 @@ Spine.prototype.each = function() {
 
 module.exports = Spine;
 
-},{"./core":8,"./epubcfi":9,"./section":21,"rsvp":4}],23:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./section":22,"rsvp":4}],24:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -9331,10 +9445,11 @@ Unarchive.prototype.revokeUrl = function(url){
 
 module.exports = Unarchive;
 
-},{"../libs/mime/mime":1,"./core":8,"./request":20,"jszip":"jszip","rsvp":4,"urijs":5}],24:[function(require,module,exports){
+},{"../libs/mime/mime":1,"./core":8,"./request":21,"jszip":"jszip","rsvp":4,"urijs":5}],25:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
+var Highlighter = require('./highlighter');
 
 function View(section, options) {
   this.settings = options || {};
@@ -9361,6 +9476,9 @@ function View(section, options) {
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
+
+  // Highlighter
+  this.highlighter = new Highlighter(this.settings.highlightClass);
 
   if(this.settings.axis && this.settings.axis == "horizontal"){
     this.element.style.display = "inline-block";
@@ -10090,11 +10208,24 @@ View.prototype.onSelectionChange = function(e){
 };
 
 View.prototype.triggerSelectedEvent = function(selection){
-	var range;
+	var range, cfirange;
+
   if (selection && selection.rangeCount > 0) {
     range = selection.getRangeAt(0);
-    var cfirange = this.section.cfiFromRange(range);
+    cfirange = this.section.cfiFromRange(range);
     this.trigger("selected", cfirange);
+    this.trigger("selectedRange", range);
+  }
+};
+
+View.prototype.highlight = function(_cfi, className){
+  var cfi = new EpubCFI(_cfi);
+  var span = this.document.createElement("span");
+	var range;
+
+  if (cfi.spinePos === this.index) {
+    range = cfi.toRange(this.document);
+    return this.highlighter.add(range, className || "annotator-hl");
   }
 };
 
@@ -10102,7 +10233,7 @@ RSVP.EventTarget.mixin(View.prototype);
 
 module.exports = View;
 
-},{"./core":8,"./epubcfi":9,"rsvp":4}],25:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./highlighter":10,"rsvp":4}],26:[function(require,module,exports){
 function Views(container) {
   this.container = container;
   this._views = [];

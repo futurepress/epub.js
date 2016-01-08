@@ -1,6 +1,7 @@
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
+var Highlighter = require('./highlighter');
 
 function View(section, options) {
   this.settings = options || {};
@@ -27,6 +28,9 @@ function View(section, options) {
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
+
+  // Highlighter
+  this.highlighter = new Highlighter(this.settings.highlightClass);
 
   if(this.settings.axis && this.settings.axis == "horizontal"){
     this.element.style.display = "inline-block";
@@ -756,11 +760,24 @@ View.prototype.onSelectionChange = function(e){
 };
 
 View.prototype.triggerSelectedEvent = function(selection){
-	var range;
+	var range, cfirange;
+
   if (selection && selection.rangeCount > 0) {
     range = selection.getRangeAt(0);
-    var cfirange = this.section.cfiFromRange(range);
+    cfirange = this.section.cfiFromRange(range);
     this.trigger("selected", cfirange);
+    this.trigger("selectedRange", range);
+  }
+};
+
+View.prototype.highlight = function(_cfi, className){
+  var cfi = new EpubCFI(_cfi);
+  var span = this.document.createElement("span");
+	var range;
+
+  if (cfi.spinePos === this.index) {
+    range = cfi.toRange(this.document);
+    return this.highlighter.add(range, className || "annotator-hl");
   }
 };
 
