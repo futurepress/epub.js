@@ -4044,6 +4044,7 @@ var Continuous = require('./continuous');
 var Paginate = require('./paginate');
 var Unarchive = require('./unarchive');
 var request = require('./request');
+var EpubCFI = require('./epubcfi');
 
 function Book(_url, options){
   // Promises
@@ -4312,6 +4313,17 @@ Book.prototype.coverUrl = function(){
 	return retrieved;
 };
 
+Book.prototype.getTextFromCfiRange = function(cfiRange) {
+  var cfi = new EpubCFI(cfiRange);
+  var item = this.spine.get(cfi.spinePos)
+
+  return item.load().then(function (contents) {
+    var range = cfi.toRange(item.document);
+    var text = range.toString();
+    return text;
+  })
+};
+
 module.exports = Book;
 
 //-- Enable binding events to book
@@ -4330,7 +4342,7 @@ RSVP.on('rejected', function(event){
   console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./continuous":7,"./core":8,"./locations":13,"./navigation":15,"./paginate":16,"./parser":17,"./rendition":19,"./request":21,"./spine":23,"./unarchive":24,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
+},{"./continuous":7,"./core":8,"./epubcfi":9,"./locations":13,"./navigation":15,"./paginate":16,"./parser":17,"./rendition":19,"./request":21,"./spine":23,"./unarchive":24,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Rendition = require('./rendition');
@@ -6015,7 +6027,7 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   // Check if we might need to need to fix missed results
   var needsIgnoring = (doc.querySelector('.' + this.options.ignoreClass) != null);
 
-  if(!needsIgnoring && typeof document.evaluate != 'undefined') {
+  if(!needsIgnoring && typeof doc.evaluate != 'undefined') {
     xpath = this.stepsToXpath(steps);
     container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
   } else if(needsIgnoring) {
@@ -6023,7 +6035,6 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   } else {
     container = this.walkToNode(steps, doc);
   }
-
 
   return container;
 };
@@ -6068,33 +6079,35 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
     if (cfi.range) {
       start = cfi.start;
       startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, _doc);
-
+      startContainer = this.findNode(startSteps, doc);
       end = cfi.end;
       endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, _doc);
+      endContainer = this.findNode(endSteps, doc);
     } else {
       start = cfi.path;
       startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, _doc);
+      startContainer = this.findNode(cfi.path.steps, doc);
     }
 
 
 
-      if(startContainer) {
-        try {
+    if(startContainer) {
+      try {
 
-          if(start.terminal.offset != null) {
-            range.setStart(startContainer, start.terminal.offset);
-          } else {
-            range.setStart(startContainer, 0);
-          }
-
-        } catch (e) {
-          missed = this.fixMiss(startSteps, start.terminal.offset, doc);
-          range.setStart(missed.container, missed.offset);
+        if(start.terminal.offset != null) {
+          range.setStart(startContainer, start.terminal.offset);
+        } else {
+          range.setStart(startContainer, 0);
         }
+
+      } catch (e) {
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc);
+        range.setStart(missed.container, missed.offset);
       }
+    } else {
+      // No start found
+      return null;
+    }
 
 
     if (endContainer) {

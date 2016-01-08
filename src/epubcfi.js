@@ -821,7 +821,7 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   // Check if we might need to need to fix missed results
   var needsIgnoring = (doc.querySelector('.' + this.options.ignoreClass) != null);
 
-  if(!needsIgnoring && typeof document.evaluate != 'undefined') {
+  if(!needsIgnoring && typeof doc.evaluate != 'undefined') {
     xpath = this.stepsToXpath(steps);
     container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
   } else if(needsIgnoring) {
@@ -829,7 +829,6 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   } else {
     container = this.walkToNode(steps, doc);
   }
-
 
   return container;
 };
@@ -874,33 +873,35 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
     if (cfi.range) {
       start = cfi.start;
       startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, _doc);
-
+      startContainer = this.findNode(startSteps, doc);
       end = cfi.end;
       endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, _doc);
+      endContainer = this.findNode(endSteps, doc);
     } else {
       start = cfi.path;
       startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, _doc);
+      startContainer = this.findNode(cfi.path.steps, doc);
     }
 
 
 
-      if(startContainer) {
-        try {
+    if(startContainer) {
+      try {
 
-          if(start.terminal.offset != null) {
-            range.setStart(startContainer, start.terminal.offset);
-          } else {
-            range.setStart(startContainer, 0);
-          }
-
-        } catch (e) {
-          missed = this.fixMiss(startSteps, start.terminal.offset, doc);
-          range.setStart(missed.container, missed.offset);
+        if(start.terminal.offset != null) {
+          range.setStart(startContainer, start.terminal.offset);
+        } else {
+          range.setStart(startContainer, 0);
         }
+
+      } catch (e) {
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc);
+        range.setStart(missed.container, missed.offset);
       }
+    } else {
+      // No start found
+      return null;
+    }
 
 
     if (endContainer) {

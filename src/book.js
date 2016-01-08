@@ -10,6 +10,7 @@ var Continuous = require('./continuous');
 var Paginate = require('./paginate');
 var Unarchive = require('./unarchive');
 var request = require('./request');
+var EpubCFI = require('./epubcfi');
 
 function Book(_url, options){
   // Promises
@@ -276,6 +277,17 @@ Book.prototype.coverUrl = function(){
 
 
 	return retrieved;
+};
+
+Book.prototype.getTextFromCfiRange = function(cfiRange) {
+  var cfi = new EpubCFI(cfiRange);
+  var item = this.spine.get(cfi.spinePos)
+
+  return item.load().then(function (contents) {
+    var range = cfi.toRange(item.document);
+    var text = range.toString();
+    return text;
+  })
 };
 
 module.exports = Book;
