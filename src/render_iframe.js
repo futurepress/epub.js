@@ -304,8 +304,8 @@ EPUBJS.Render.Iframe.prototype.scroll = function(boolX, boolY, type){
         }
 	} else {
         if (this.isMobile) {
-            parent.style.overflowX = "";
-            parent.style.overflowY = "";
+            parent.style.overflowX = "hidden";
+            parent.style.overflowY = "hidden";
             parent.style[this.overflowScrolling] = "";
         }
         this.iframe.scrolling = "no";
