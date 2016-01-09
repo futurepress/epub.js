@@ -165,12 +165,33 @@
     rendition.on("keyup", keyListener);
     document.addEventListener("keyup", keyListener, false);
 
-    rendition.on("selected", function(range) {
-      console.log("selected", range);
+    var highlights = [];
+
+    rendition.on("selected", function(cfiRange) {
+      window.getSelection().removeAllRanges();
+
+      highlights = rendition.highlight(cfiRange);
+
+      // Illustation of how to add events to highlights
+      // and how get text from a range.
+
+      highlights.forEach(function (h) {
+        // Set the cfi range
+        h.setAttribute("data-epubcfi", cfiRange);
+        // Add a click event
+        h.addEventListener('click', function (e) {
+          var cfiRange = e.target.getAttribute("data-epubcfi");
+          book.getTextFromCfiRange(cfiRange).then(function (text) {
+            console.log(text);
+          })
+          return e.stopPropagation();
+        });
+
+      });
     });
 
     rendition.on("locationChanged", function(location){
-      console.log(location);
+      // console.log(location);
     });
 
   </script>

@@ -61,18 +61,18 @@
       color: #777;
       text-decoration: underline;
     }
-     
+
     #navigation ul li a.active {
       color: #000;
     }
 
-    #viewer { 
+    #viewer {
 
       overflow: hidden;
       width: 800px;
       margin: 0 50px;
       background: url('ajax-loader.gif') center center no-repeat;
-      
+
     }
 
     #viewer .epub-view {
@@ -93,7 +93,7 @@
     .arrow:hover {
       color: #777;
     }
-     
+
     .arrow:active {
       color: #000;
     }
@@ -122,7 +122,7 @@
     // Load the opf
     var book = ePub("../books/alice/");
     var rendition = book.renderTo("viewer");
-    
+
     var hash = window.location.hash.slice(2);
     rendition.display(hash || 1);
 
@@ -147,7 +147,7 @@
 
       if(nextSection) {
         nextNav = book.navigation.get(nextSection.href);
-        
+
         if(nextNav) {
           nextLabel = nextNav.label;
         } else {
@@ -161,7 +161,7 @@
 
       if(prevSection) {
         prevNav = book.navigation.get(prevSection.href);
-        
+
         if(prevNav) {
           prevLabel = prevNav.label;
         } else {
@@ -178,6 +178,10 @@
       window.location.hash = "#/"+section.href
     });
 
+    rendition.on("locationChanged", function(location){
+      console.log(location);
+    });
+    
     book.loaded.navigation.then(function(toc){
       var $nav = document.getElementById("toc"),
           docfrag = document.createDocumentFragment();
@@ -189,7 +193,7 @@
         link.href = chapter.href;
         item.appendChild(link);
         docfrag.appendChild(item);
-      
+
         link.onclick = function(){
           var url = link.getAttribute("href");
           console.log(url)

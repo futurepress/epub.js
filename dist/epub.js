@@ -6176,18 +6176,14 @@ Highlighter.prototype.add = function(range, className) {
 
   this.doc = range.startContainer.ownerDocument;
 
-  // TODO: is this is needed?
   // Wrap all child text nodes
-  /*
-  this.getTextNodes(range, _doc).forEach(function(node) {
-    var range = document.createRange();
-    range.selectNodeContents(node);
-    range.surroundContents(this.wrapperNode())
-  });
-  */
+  this.getTextNodes(range, this.doc).forEach(function(node) {
+    wrappers.push(this.wrapNode(node));
+  }.bind(this));
+
 
   if (range.startContainer === range.endContainer) {
-    wrappers.push(this.wrapNode(range));
+    wrappers.push(this.wrapRange(range));
   } else {
     // Wrap start and end elements
     wrappers.push(this.wrapPartial(range, range.startContainer, 'start'));
@@ -6229,8 +6225,16 @@ Highlighter.prototype.getTextNodes = function(range, _doc) {
 
 };
 
-Highlighter.prototype.wrapNode = function(range) {
+Highlighter.prototype.wrapRange = function(range) {
   var wrapper = this.wrapperNode();
+  range.surroundContents(wrapper);
+  return wrapper;
+};
+
+Highlighter.prototype.wrapNode = function(node) {
+  var wrapper = this.wrapperNode();
+  var range = this.doc.createRange();
+  range.selectNodeContents(node);
   range.surroundContents(wrapper);
   return wrapper;
 };
@@ -8354,6 +8358,7 @@ Rendition.prototype.render = function(view, show) {
 
 Rendition.prototype.afterDisplayed = function(view){
 	this.trigger("added", view.section);
+	this.reportLocation();
 };
 
 Rendition.prototype.fill = function(view){
@@ -8680,7 +8685,6 @@ Rendition.prototype.triggerViewEvent = function(e){
 };
 
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
-	console.log(cfirange);
   this.trigger("selected", cfirange);
 };
 

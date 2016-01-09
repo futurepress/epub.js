@@ -309,6 +309,7 @@ Rendition.prototype.render = function(view, show) {
 
 Rendition.prototype.afterDisplayed = function(view){
 	this.trigger("added", view.section);
+	this.reportLocation();
 };
 
 Rendition.prototype.fill = function(view){
@@ -635,7 +636,6 @@ Rendition.prototype.triggerViewEvent = function(e){
 };
 
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
-	console.log(cfirange);
   this.trigger("selected", cfirange);
 };
 
