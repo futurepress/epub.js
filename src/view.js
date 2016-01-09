@@ -764,9 +764,11 @@ View.prototype.triggerSelectedEvent = function(selection){
 
   if (selection && selection.rangeCount > 0) {
     range = selection.getRangeAt(0);
-    cfirange = this.section.cfiFromRange(range);
-    this.trigger("selected", cfirange);
-    this.trigger("selectedRange", range);
+    if(!range.collapsed) {
+      cfirange = this.section.cfiFromRange(range);
+      this.trigger("selected", cfirange);
+      this.trigger("selectedRange", range);
+    }
   }
 };
 

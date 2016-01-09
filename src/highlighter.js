@@ -81,7 +81,7 @@ Highlighter.prototype.wrapNode = function(node) {
 
 Highlighter.prototype.wrapPartial = function(range, node, position) {
   var startOffset = position === 'start' ? range.startOffset : 0;
-  var endOffset = position === 'start' ? node.length : range.endOffset
+  var endOffset = position === 'start' ? node.length : range.endOffset;
   var range = this.doc.createRange();
   var wrapper = this.wrapperNode();
 
