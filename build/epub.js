@@ -6080,6 +6080,7 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
 	"renderer:visibleLocationChanged",
+	"renderer:visibleRangeChanged",
 	"renderer:resized",
 	"renderer:spreads"
 ];
