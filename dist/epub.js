@@ -5746,6 +5746,8 @@ EpubCFI.prototype.fromRange = function(range, base) {
 
     cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
     cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
+
+    // TODO: Add Sanity check to make sure that the end if greater than the start
   }
 
   return cfi;
@@ -5837,13 +5839,9 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
   var curr = anchor;
   var totalOffset = offset;
 
+  // If the parent is a ignored node, get offset from it's start
   if (anchor.parentNode.classList.contains(ignoreClass)) {
     curr = anchor.parentNode;
-
-    if (curr.previousSibling && curr.previousSibling.nodeType === Node.TEXT_NODE) {
-      // If the previous sibling is a text node, join the nodes
-      totalOffset += curr.previousSibling.textContent.length;
-    }
   }
 
   while (curr.previousSibling) {
@@ -5854,6 +5852,9 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
       } else {
         break; // Normal node, dont join
       }
+    } else {
+      // If the previous sibling is a text node, join the nodes
+      totalOffset += curr.previousSibling.textContent.length;
     }
 
     curr = curr.previousSibling;

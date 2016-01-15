@@ -198,6 +198,23 @@
       // console.log(location);
     });
 
+    rendition.hooks.render.register(function (view) {
+      var highlightColor = [
+        ['.annotator-hl', ['background-color', 'yellow']]
+      ];
+      view.addStylesheetRules(highlightColor);
+    })
+
+    rendition.on("selected", function(range) {
+      console.log("selected", range);
+      book.getTextFromCfiRange(range).then(function (text) {
+        console.log(text);
+      })
+    });
+    // epubcfi(/6/8[chapter_001]!/4/2/8,/1:244,/1:256)
+    // epubcfi(/6/8[chapter_001]!/4/2/12,/3:351,/3:410)
+    // watch to take out of it, and, burning with curiosity, she
+
   </script>
 
 </body>
