@@ -834,25 +834,32 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   return container;
 };
 
-EpubCFI.prototype.fixMiss = function(steps, offset, _doc) {
+EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
   var container = this.findNode(steps.slice(0,-1), _doc);
   var children = container.childNodes;
+  var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
   var i;
   var child;
   var len;
+  var childIndex;
+  var lastStepIndex = steps[steps.length-1].index;
 
-  for (i = 0; i < children.length; i++) {
-    child = children[i];
-    len = child.textContent.length;
-    if(offset > len) {
-      offset = offset - len;
-    } else {
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        container = child.childNodes[0];
+  for (var childIndex in map) {
+    if (!map.hasOwnProperty(childIndex)) return;
+
+    if(map[childIndex] === lastStepIndex) {
+      child = children[childIndex];
+      len = child.textContent.length;
+      if(offset > len) {
+        offset = offset - len;
       } else {
-        container = child;
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          container = child.childNodes[0];
+        } else {
+          container = child;
+        }
+        break;
       }
-      break;
     }
   }
 
@@ -896,7 +903,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc);
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc, this.options.ignoreClass);
         range.setStart(missed.container, missed.offset);
       }
     } else {
@@ -915,7 +922,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc);
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, this.options.ignoreClass);
         range.setEnd(missed.container, missed.offset);
       }
     }

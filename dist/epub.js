@@ -6040,25 +6040,32 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
   return container;
 };
 
-EpubCFI.prototype.fixMiss = function(steps, offset, _doc) {
+EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
   var container = this.findNode(steps.slice(0,-1), _doc);
   var children = container.childNodes;
+  var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
   var i;
   var child;
   var len;
+  var childIndex;
+  var lastStepIndex = steps[steps.length-1].index;
 
-  for (i = 0; i < children.length; i++) {
-    child = children[i];
-    len = child.textContent.length;
-    if(offset > len) {
-      offset = offset - len;
-    } else {
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        container = child.childNodes[0];
+  for (var childIndex in map) {
+    if (!map.hasOwnProperty(childIndex)) return;
+
+    if(map[childIndex] === lastStepIndex) {
+      child = children[childIndex];
+      len = child.textContent.length;
+      if(offset > len) {
+        offset = offset - len;
       } else {
-        container = child;
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          container = child.childNodes[0];
+        } else {
+          container = child;
+        }
+        break;
       }
-      break;
     }
   }
 
@@ -6102,7 +6109,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc);
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc, this.options.ignoreClass);
         range.setStart(missed.container, missed.offset);
       }
     } else {
@@ -6121,7 +6128,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc);
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, this.options.ignoreClass);
         range.setEnd(missed.container, missed.offset);
       }
     }
@@ -10240,6 +10247,7 @@ View.prototype.triggerSelectedEvent = function(selection){
 
 View.prototype.highlight = function(_cfi, className){
   var cfi = new EpubCFI(_cfi);
+  return cfi.toRange(this.document);
   var span = this.document.createElement("span");
 	var range;
 
@@ -10410,24 +10418,20 @@ Views.prototype.hide = function(){
 module.exports = Views;
 
 },{}],"epub":[function(require,module,exports){
-(function (global){
-if (typeof EPUBJS === 'undefined') {
-	(typeof window !== 'undefined' ? window : global).EPUBJS = {};
-}
-
-EPUBJS.VERSION = "0.3.0";
-
 var Book = require('./book');
+var EpubCFI = require('./epubcfi');
 
 function ePub(_url) {
 	return new Book(_url);
 };
 
+ePub.VERSION = "0.3.0";
+
+ePub.CFI = EpubCFI;
+
 module.exports = ePub;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"./book":6}]},{},["epub"])("epub")
+},{"./book":6,"./epubcfi":9}]},{},["epub"])("epub")
 });
 
 

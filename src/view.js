@@ -774,6 +774,7 @@ View.prototype.triggerSelectedEvent = function(selection){
 
 View.prototype.highlight = function(_cfi, className){
   var cfi = new EpubCFI(_cfi);
+  return cfi.toRange(this.document);
   var span = this.document.createElement("span");
 	var range;
 
