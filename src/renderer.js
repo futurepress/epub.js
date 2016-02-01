@@ -165,6 +165,12 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 	this.render.load(contents, url).then(function(contents) {
 
+		// Duck-type fixed layout books.
+		if (EPUBJS.Layout.isFixedLayout(contents)) {
+			this.layoutSettings.layout = "pre-paginated";
+			this.layoutMethod = this.determineLayout(this.layoutSettings);
+			this.layout = new EPUBJS.Layout[this.layoutMethod]();
+		}
 		this.afterLoad(contents);
 
 		//-- Trigger registered hooks before displaying

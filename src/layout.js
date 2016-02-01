@@ -1,5 +1,16 @@
 EPUBJS.Layout = EPUBJS.Layout || {};
 
+// EPUB2 documents won't provide us with "rendition:layout", so this is used to
+// duck type the documents instead.
+EPUBJS.Layout.isFixedLayout = function (documentElement) {
+	var viewport = documentElement.querySelector("[name=viewport]");
+	if (!viewport || !viewport.hasAttribute("content")) {
+		return false;
+	}
+	var content = viewport.getAttribute("content");
+	return /,/.test(content);
+};
+
 EPUBJS.Layout.Reflowable = function(){
 	this.documentElement = null;
 	this.spreadWidth = null;
