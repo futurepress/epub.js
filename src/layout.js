@@ -125,6 +125,8 @@ EPUBJS.Layout.Fixed = function(){
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	var transform = EPUBJS.core.prefixed('transform');
+	var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
 	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
 	var contents;
@@ -144,6 +146,17 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 			height = contents[1].replace("height=", '');
 		}
 	}
+
+	//-- Scale fixed documents so their contents don't overflow, and
+	// vertically and horizontally center the contents
+	var widthScale = _width / width;
+	var heightScale = _height / height;
+	var scale = widthScale < heightScale ? widthScale : heightScale;
+	documentElement.style.position = "absolute";
+	documentElement.style.top = "50%";
+	documentElement.style.left = "50%";
+	documentElement.style[transform] = "scale(" + scale + ") translate(-50%, -50%)";
+	documentElement.style[transformOrigin] = "0px 0px 0px";
 
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
