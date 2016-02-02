@@ -171,6 +171,19 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 			this.layoutMethod = this.determineLayout(this.layoutSettings);
 			this.layout = new EPUBJS.Layout[this.layoutMethod]();
 		}
+		this.render.setLayout(this.layoutSettings.layout);
+
+		// HTML element must have direction set if RTL or columnns will
+		// not be in the correct direction in Firefox
+		// Firefox also need the html element to be position right
+		if(this.render.direction == "rtl" && this.render.docEl.dir != "rtl"){
+			this.render.docEl.dir = "rtl";
+			if (this.render.layout !== "pre-paginated") {
+				this.render.docEl.style.position = "absolute";
+				this.render.docEl.style.right = "0";
+			}
+		}
+
 		this.afterLoad(contents);
 
 		//-- Trigger registered hooks before displaying
@@ -728,7 +741,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Set back to ltr before sprinting to get correct order
 	if(dir == "rtl") {
 		docEl.dir = "ltr";
-		docEl.style.position = "static";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.position = "static";
+		}
 	}
 
 	this.textSprint(root, check);
@@ -736,8 +751,10 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Reset back to previous RTL settings
 	if(dir == "rtl") {
 		docEl.dir = dir;
-		docEl.style.left = "auto";
-		docEl.style.right = "0";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.left = "auto";
+			docEl.style.right = "0";
+		}
 	}
 
 	// Check the remaining children that fit on this page
