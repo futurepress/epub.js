@@ -2,7 +2,7 @@
   "name": "epubjs",
   "version": "0.3.0",
   "description": "Render Epubs",
-  "main": "/lib/epub.js",
+  "main": "/src/epub.js",
   "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
