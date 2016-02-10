@@ -159,7 +159,7 @@ describe('EpubCFI', function() {
 
     it('get a cfi from a text node inside a highlight', function() {
       var t = doc.getElementById('highlight-1').childNodes[0];
-      var cfi = new EpubCFI(t, base);
+      var cfi = new EpubCFI(t, base, 'annotator-hl');
 
       assert.equal(t.nodeType, Node.TEXT_NODE, "provided a text node");
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1)" );
@@ -168,7 +168,7 @@ describe('EpubCFI', function() {
 
     it('get a cfi from a highlight node', function() {
       var t = doc.getElementById('highlight-1');
-      var cfi = new EpubCFI(t, base);
+      var cfi = new EpubCFI(t, base, 'annotator-hl');
 
       assert.equal(t.nodeType, Node.ELEMENT_NODE, "provided a highlight node");
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017])" );
@@ -242,7 +242,7 @@ describe('EpubCFI', function() {
 
       range.setStart(t1, 6);
 
-      cfi = new EpubCFI(range, base);
+      cfi = new EpubCFI(range, base, 'annotator-hl');
 
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1:43)" );
 
@@ -255,7 +255,7 @@ describe('EpubCFI', function() {
 
       range.setStart(t1, 25);
 
-      cfi = new EpubCFI(range, base);
+      cfi = new EpubCFI(range, base, 'annotator-hl');
 
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001]/1:41)" );
 
@@ -268,7 +268,7 @@ describe('EpubCFI', function() {
 
       range.setStart(t1, 4);
 
-      cfi = new EpubCFI(range, base);
+      cfi = new EpubCFI(range, base, 'annotator-hl');
 
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/4[p2]/1:123)" );
 
@@ -357,12 +357,12 @@ describe('EpubCFI', function() {
 
       ogRange.setStart(t1, 6);
 
-      cfi = new EpubCFI(ogRange, base);
+      cfi = new EpubCFI(ogRange, base, 'annotator-hl');
 
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1:43)" );
 
       // Check the range
-      newRange = cfi.toRange(doc);
+      newRange = cfi.toRange(doc, 'annotator-hl');
 
       assert.ok(newRange.startContainer);
 
@@ -381,12 +381,12 @@ describe('EpubCFI', function() {
       ogRange.setStart(t1, 5);
       ogRange.setEnd(t2, 25);
 
-      cfi = new EpubCFI(ogRange, base);
+      cfi = new EpubCFI(ogRange, base, 'annotator-hl');
 
       assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001],/1:5,/1:41)" );
 
       // Check the range
-      newRange = cfi.toRange(doc);
+      newRange = cfi.toRange(doc, 'annotator-hl');
 
       assert.strictEqual( newRange.startContainer.textContent, t1.textContent);
       // assert.strictEqual( newRange.startContainer, t1);

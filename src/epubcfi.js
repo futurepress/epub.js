@@ -15,11 +15,8 @@ var core = require('./core');
   - Text Location Assertion ([)
 */
 
-function EpubCFI(cfiFrom, base, options){
+function EpubCFI(cfiFrom, base, ignoreClass){
   var type;
-  this.options = {
-    ignoreClass: 'annotator-hl'
-  };
 
   this.str = '';
 
@@ -34,25 +31,9 @@ function EpubCFI(cfiFrom, base, options){
 
   // Allow instantiation without the 'new' keyword
   if (!(this instanceof EpubCFI)) {
-    return new EpubCFI(cfiFrom, base, options);
+    return new EpubCFI(cfiFrom, base, ignoreClass);
   }
 
-  // Find options
-  for (var i = 1, length = arguments.length; i < length; i++) {
-    if(typeof arguments[i] === 'object' && (arguments[i].ignoreClass)) {
-      core.extend(this.options, arguments[i]);
-    }
-  }
-
-
-  /* TODO: maybe accept object that includes:
-    {
-      spineNodeIndex: <int>
-      index: <int>
-      idref: <string:optional>
-    }
-  }
-  */
   if(typeof base === 'string') {
     this.base = this.parseComponent(base);
   } else if(typeof base === 'object' && base.steps) {
@@ -66,9 +47,9 @@ function EpubCFI(cfiFrom, base, options){
     this.str = cfiFrom;
     return core.extend(this, this.parse(cfiFrom));
   } else if (type === 'range') {
-    return core.extend(this, this.fromRange(cfiFrom, this.base));
+    return core.extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
   } else if (type === 'node') {
-    return core.extend(this, this.fromNode(cfiFrom, this.base));
+    return core.extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
   } else if (type === 'EpubCFI' && cfiFrom.path) {
     return cfiFrom;
   } else if (!cfiFrom) {
@@ -458,7 +439,7 @@ EpubCFI.prototype.equalStep = function(stepA, stepB) {
 
   return false;
 };
-EpubCFI.prototype.fromRange = function(range, base) {
+EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
   var cfi = {
       range: false,
       base: {},
@@ -473,14 +454,13 @@ EpubCFI.prototype.fromRange = function(range, base) {
   var startOffset = range.startOffset;
   var endOffset = range.endOffset;
 
-  var needsIgnoring = (start.ownerDocument.querySelector('.' + this.options.ignoreClass) != null);
-  var ignoreClass;
-  // Tell pathTo if / what to ignore
-  if (needsIgnoring) {
-    ignoreClass = this.options.ignoreClass
-  } else {
-    ignoreClass = false;
+  var needsIgnoring = false;
+
+  if (ignoreClass) {
+    // Tell pathTo if / what to ignore
+    needsIgnoring = (start.ownerDocument.querySelector('.' + ignoreClass) != null);
   }
+
 
   if (typeof base === 'string') {
     cfi.base = this.parseComponent(base);
@@ -547,7 +527,7 @@ EpubCFI.prototype.fromRange = function(range, base) {
   return cfi;
 }
 
-EpubCFI.prototype.fromNode = function(anchor, base) {
+EpubCFI.prototype.fromNode = function(anchor, base, ignoreClass) {
   var cfi = {
       range: false,
       base: {},
@@ -556,13 +536,11 @@ EpubCFI.prototype.fromNode = function(anchor, base) {
       end: null
     };
 
-  var needsIgnoring = (anchor.ownerDocument.querySelector('.' + this.options.ignoreClass) != null);
-  var ignoreClass;
-  // Tell pathTo if / what to ignore
-  if (needsIgnoring) {
-    ignoreClass = this.options.ignoreClass
-  } else {
-    ignoreClass = false;
+  var needsIgnoring = false;
+
+  if (ignoreClass) {
+    // Tell pathTo if / what to ignore
+    needsIgnoring = (anchor.ownerDocument.querySelector('.' + ignoreClass) != null);
   }
 
   if (typeof base === 'string') {
@@ -815,18 +793,16 @@ EpubCFI.prototype.walkToNode = function(steps, _doc, ignoreClass) {
   return container;
 };
 
-EpubCFI.prototype.findNode = function(steps, _doc) {
+EpubCFI.prototype.findNode = function(steps, _doc, ignoreClass) {
   var doc = _doc || document;
   var container;
   var xpath;
-  // Check if we might need to need to fix missed results
-  var needsIgnoring = (doc.querySelector('.' + this.options.ignoreClass) != null);
 
-  if(!needsIgnoring && typeof doc.evaluate != 'undefined') {
+  if(!ignoreClass && typeof doc.evaluate != 'undefined') {
     xpath = this.stepsToXpath(steps);
     container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  } else if(needsIgnoring) {
-    container = this.walkToNode(steps, doc, this.options.ignoreClass);
+  } else if(ignoreClass) {
+    container = this.walkToNode(steps, doc, ignoreClass);
   } else {
     container = this.walkToNode(steps, doc);
   }
@@ -835,7 +811,7 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
 };
 
 EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
-  var container = this.findNode(steps.slice(0,-1), _doc);
+  var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
   var children = container.childNodes;
   var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
   var i;
@@ -870,25 +846,26 @@ EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 
 };
 
-EpubCFI.prototype.toRange = function(_doc, _cfi) {
+EpubCFI.prototype.toRange = function(_doc, ignoreClass) {
   var doc = _doc || document;
   var range = doc.createRange();
   var start, end, startContainer, endContainer;
-  var cfi = _cfi || this;
+  var cfi = this;
   var startSteps, endSteps;
+  var needsIgnoring = ignoreClass ? (doc.querySelector('.' + ignoreClass) != null) : false;
   var missed;
 
     if (cfi.range) {
       start = cfi.start;
       startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, doc);
+      startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
       end = cfi.end;
       endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, doc);
+      endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
     } else {
       start = cfi.path;
       startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, doc);
+      startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
     }
 
 
@@ -903,7 +880,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc, this.options.ignoreClass);
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
         range.setStart(missed.container, missed.offset);
       }
     } else {
@@ -922,7 +899,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, this.options.ignoreClass);
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
         range.setEnd(missed.container, missed.offset);
       }
     }

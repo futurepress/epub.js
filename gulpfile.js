@@ -52,7 +52,7 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-  // gulp.watch('src/*.js', ['watchify']);
+  server();
   bundle('epub.js', cb);
 });
 
@@ -68,6 +68,21 @@ gulp.task('test', function(cb) {
     "webSecurityEnabled": false,
     // "localUrlAccess": true,
     watch: true,
+    wd: false,
+    debug: false
+  })
+  .bundle();
+});
+
+
+gulp.task('test:once', function(cb) {
+  mochify('./test/*.js', {
+    reporter: 'spec',
+    transform: 'brfs',
+    "web-security": false,
+    "webSecurityEnabled": false,
+    // "localUrlAccess": true,
+    watch: false,
     wd: false,
     debug: false
   })

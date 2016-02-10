@@ -18,12 +18,15 @@ function Rendition(book, options) {
 		width: false,
 		height: null,
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'},
-		axis: "vertical"
+		axis: "vertical",
+		ignoreClass: ''
 	});
 
 	core.extend(this.settings, options);
 
-	this.viewSettings = {};
+	this.viewSettings = {
+		ignoreClass: this.settings.ignoreClass
+	};
 
 	this.book = book;
 
@@ -750,16 +753,15 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
 
-Rendition.prototype.highlight = function(_cfi, className){
+Rendition.prototype.selectCfiRange = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
-  var views = this.visible();
-	var found = views.filter(function (view) {
+  var found = this.visible().filter(function (view) {
 		if(cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
   if (found.length) {
-    return found[0].highlight(cfi, className);
+    return found[0].selectCfiRange(cfi, ignoreClass);
   }
 };
 

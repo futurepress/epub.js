@@ -4313,14 +4313,13 @@ Book.prototype.coverUrl = function(){
 	return retrieved;
 };
 
-Book.prototype.getTextFromCfiRange = function(cfiRange) {
+Book.prototype.selectCfiRange = function(cfiRange) {
   var cfi = new EpubCFI(cfiRange);
   var item = this.spine.get(cfi.spinePos)
 
   return item.load().then(function (contents) {
     var range = cfi.toRange(item.document);
-    var text = range.toString();
-    return text;
+    return range;
   })
 };
 
@@ -4342,7 +4341,7 @@ RSVP.on('rejected', function(event){
   console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./continuous":7,"./core":8,"./epubcfi":9,"./locations":13,"./navigation":15,"./paginate":16,"./parser":17,"./rendition":19,"./request":21,"./spine":23,"./unarchive":24,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
+},{"./continuous":7,"./core":8,"./epubcfi":9,"./locations":12,"./navigation":14,"./paginate":15,"./parser":16,"./rendition":18,"./request":20,"./spine":22,"./unarchive":23,"rsvp":4,"urijs":5}],7:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Rendition = require('./rendition');
@@ -4762,7 +4761,7 @@ Continuous.prototype.current = function(what){
 
 module.exports = Continuous;
 
-},{"./core":8,"./rendition":19,"./view":25,"rsvp":4}],8:[function(require,module,exports){
+},{"./core":8,"./rendition":18,"./view":24,"rsvp":4}],8:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
@@ -5221,11 +5220,8 @@ var core = require('./core');
   - Text Location Assertion ([)
 */
 
-function EpubCFI(cfiFrom, base, options){
+function EpubCFI(cfiFrom, base, ignoreClass){
   var type;
-  this.options = {
-    ignoreClass: 'annotator-hl'
-  };
 
   this.str = '';
 
@@ -5240,25 +5236,9 @@ function EpubCFI(cfiFrom, base, options){
 
   // Allow instantiation without the 'new' keyword
   if (!(this instanceof EpubCFI)) {
-    return new EpubCFI(cfiFrom, base, options);
+    return new EpubCFI(cfiFrom, base, ignoreClass);
   }
 
-  // Find options
-  for (var i = 1, length = arguments.length; i < length; i++) {
-    if(typeof arguments[i] === 'object' && (arguments[i].ignoreClass)) {
-      core.extend(this.options, arguments[i]);
-    }
-  }
-
-
-  /* TODO: maybe accept object that includes:
-    {
-      spineNodeIndex: <int>
-      index: <int>
-      idref: <string:optional>
-    }
-  }
-  */
   if(typeof base === 'string') {
     this.base = this.parseComponent(base);
   } else if(typeof base === 'object' && base.steps) {
@@ -5272,9 +5252,9 @@ function EpubCFI(cfiFrom, base, options){
     this.str = cfiFrom;
     return core.extend(this, this.parse(cfiFrom));
   } else if (type === 'range') {
-    return core.extend(this, this.fromRange(cfiFrom, this.base));
+    return core.extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
   } else if (type === 'node') {
-    return core.extend(this, this.fromNode(cfiFrom, this.base));
+    return core.extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
   } else if (type === 'EpubCFI' && cfiFrom.path) {
     return cfiFrom;
   } else if (!cfiFrom) {
@@ -5664,7 +5644,7 @@ EpubCFI.prototype.equalStep = function(stepA, stepB) {
 
   return false;
 };
-EpubCFI.prototype.fromRange = function(range, base) {
+EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
   var cfi = {
       range: false,
       base: {},
@@ -5679,14 +5659,13 @@ EpubCFI.prototype.fromRange = function(range, base) {
   var startOffset = range.startOffset;
   var endOffset = range.endOffset;
 
-  var needsIgnoring = (start.ownerDocument.querySelector('.' + this.options.ignoreClass) != null);
-  var ignoreClass;
-  // Tell pathTo if / what to ignore
-  if (needsIgnoring) {
-    ignoreClass = this.options.ignoreClass
-  } else {
-    ignoreClass = false;
+  var needsIgnoring = false;
+
+  if (ignoreClass) {
+    // Tell pathTo if / what to ignore
+    needsIgnoring = (start.ownerDocument.querySelector('.' + ignoreClass) != null);
   }
+
 
   if (typeof base === 'string') {
     cfi.base = this.parseComponent(base);
@@ -5753,7 +5732,7 @@ EpubCFI.prototype.fromRange = function(range, base) {
   return cfi;
 }
 
-EpubCFI.prototype.fromNode = function(anchor, base) {
+EpubCFI.prototype.fromNode = function(anchor, base, ignoreClass) {
   var cfi = {
       range: false,
       base: {},
@@ -5762,13 +5741,11 @@ EpubCFI.prototype.fromNode = function(anchor, base) {
       end: null
     };
 
-  var needsIgnoring = (anchor.ownerDocument.querySelector('.' + this.options.ignoreClass) != null);
-  var ignoreClass;
-  // Tell pathTo if / what to ignore
-  if (needsIgnoring) {
-    ignoreClass = this.options.ignoreClass
-  } else {
-    ignoreClass = false;
+  var needsIgnoring = false;
+
+  if (ignoreClass) {
+    // Tell pathTo if / what to ignore
+    needsIgnoring = (anchor.ownerDocument.querySelector('.' + ignoreClass) != null);
   }
 
   if (typeof base === 'string') {
@@ -6021,18 +5998,16 @@ EpubCFI.prototype.walkToNode = function(steps, _doc, ignoreClass) {
   return container;
 };
 
-EpubCFI.prototype.findNode = function(steps, _doc) {
+EpubCFI.prototype.findNode = function(steps, _doc, ignoreClass) {
   var doc = _doc || document;
   var container;
   var xpath;
-  // Check if we might need to need to fix missed results
-  var needsIgnoring = (doc.querySelector('.' + this.options.ignoreClass) != null);
 
-  if(!needsIgnoring && typeof doc.evaluate != 'undefined') {
+  if(!ignoreClass && typeof doc.evaluate != 'undefined') {
     xpath = this.stepsToXpath(steps);
     container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  } else if(needsIgnoring) {
-    container = this.walkToNode(steps, doc, this.options.ignoreClass);
+  } else if(ignoreClass) {
+    container = this.walkToNode(steps, doc, ignoreClass);
   } else {
     container = this.walkToNode(steps, doc);
   }
@@ -6041,7 +6016,7 @@ EpubCFI.prototype.findNode = function(steps, _doc) {
 };
 
 EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
-  var container = this.findNode(steps.slice(0,-1), _doc);
+  var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
   var children = container.childNodes;
   var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
   var i;
@@ -6076,25 +6051,26 @@ EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 
 };
 
-EpubCFI.prototype.toRange = function(_doc, _cfi) {
+EpubCFI.prototype.toRange = function(_doc, ignoreClass) {
   var doc = _doc || document;
   var range = doc.createRange();
   var start, end, startContainer, endContainer;
-  var cfi = _cfi || this;
+  var cfi = this;
   var startSteps, endSteps;
+  var needsIgnoring = ignoreClass ? (doc.querySelector('.' + ignoreClass) != null) : false;
   var missed;
 
     if (cfi.range) {
       start = cfi.start;
       startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, doc);
+      startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
       end = cfi.end;
       endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, doc);
+      endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
     } else {
       start = cfi.path;
       startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, doc);
+      startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
     }
 
 
@@ -6109,7 +6085,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc, this.options.ignoreClass);
+        missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
         range.setStart(missed.container, missed.offset);
       }
     } else {
@@ -6128,7 +6104,7 @@ EpubCFI.prototype.toRange = function(_doc, _cfi) {
         }
 
       } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, this.options.ignoreClass);
+        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
         range.setEnd(missed.container, missed.offset);
       }
     }
@@ -6166,110 +6142,6 @@ EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id)
 module.exports = EpubCFI;
 
 },{"./core":8,"urijs":5}],10:[function(require,module,exports){
-// Based on - https://gist.github.com/kidoman/5625116
-function Highlighter(className) {
-  this.className = className || "annotator-hl";
-};
-
-Highlighter.prototype.add = function(range, className) {
-  var wrappers = [];
-  var wrapper;
-  if (!range || !range.startContainer) {
-    console.error("Not a valid Range");
-  }
-
-  if (className) {
-    this.className = className;
-  }
-
-  this.doc = range.startContainer.ownerDocument;
-
-  // Wrap all child text nodes
-  this.getTextNodes(range, this.doc).forEach(function(node) {
-    wrappers.push(this.wrapNode(node));
-  }.bind(this));
-
-
-  if (range.startContainer === range.endContainer) {
-    wrappers.push(this.wrapRange(range));
-  } else {
-    // Wrap start and end elements
-    wrappers.push(this.wrapPartial(range, range.startContainer, 'start'));
-    wrappers.push(this.wrapPartial(range, range.endContainer, 'end'));
-  }
-
-  return wrappers;
-};
-
-Highlighter.prototype.remove = function(range) {
-  // STUB
-};
-
-Highlighter.prototype.rejectEmpty = function(node) {
-  if (node.data.match(/^\s+$/)) return NodeFilter.FILTER_SKIP;
-
-  return NodeFilter.FILTER_ACCEPT;
-}
-
-Highlighter.prototype.getTextNodes = function(range, _doc) {
-  var doc = _doc || document;
-  var nodeIterator = doc.createNodeIterator(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, this.rejectEmpty);
-  var mark = false;
-  var nodes = [];
-  var node;
-
-  while(node = nodeIterator.nextNode()) {
-    if (node == range.startContainer) {
-      mark = true;
-      continue
-    } else if (node === range.endContainer) {
-      break
-    }
-
-    if (mark) nodes.push(node);
-  }
-
-  return nodes
-
-};
-
-Highlighter.prototype.wrapRange = function(range) {
-  var wrapper = this.wrapperNode();
-  range.surroundContents(wrapper);
-  return wrapper;
-};
-
-Highlighter.prototype.wrapNode = function(node) {
-  var wrapper = this.wrapperNode();
-  var range = this.doc.createRange();
-  range.selectNodeContents(node);
-  range.surroundContents(wrapper);
-  return wrapper;
-};
-
-Highlighter.prototype.wrapPartial = function(range, node, position) {
-  var startOffset = position === 'start' ? range.startOffset : 0;
-  var endOffset = position === 'start' ? node.length : range.endOffset;
-  var range = this.doc.createRange();
-  var wrapper = this.wrapperNode();
-
-  range.setStart(node, startOffset);
-  range.setEnd(node, endOffset);
-
-  range.surroundContents(wrapper);
-  return wrapper;
-};
-
-Highlighter.prototype.wrapperNode = function(type) {
-  if (type === undefined) type = 'span';
-  var elem = document.createElement(type)
-  elem.classList.add(this.className);
-  return elem;
-};
-
-module.exports = Highlighter;
-
-},{}],11:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 //-- Hooks allow for injecting functions that must all complete in order before finishing
@@ -6326,7 +6198,7 @@ Hook.prototype.list = function(){
 
 module.exports = Hook;
 
-},{"rsvp":4}],12:[function(require,module,exports){
+},{"rsvp":4}],11:[function(require,module,exports){
 var core = require('./core');
 
 function Reflowable(){
@@ -6489,7 +6361,7 @@ module.exports = {
   'Scroll': Scroll
 };
 
-},{"./core":8}],13:[function(require,module,exports){
+},{"./core":8}],12:[function(require,module,exports){
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
@@ -6714,7 +6586,7 @@ RSVP.EventTarget.mixin(Locations.prototype);
 
 module.exports = Locations;
 
-},{"./core":8,"./epubcfi":9,"./queue":18,"rsvp":4}],14:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./queue":17,"rsvp":4}],13:[function(require,module,exports){
 function Map(layout){
   this.layout = layout;
 };
@@ -7003,7 +6875,7 @@ Map.prototype.rangeListToCfiList = function(view, columns){
 
 module.exports = Map;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var core = require('./core');
 var Parser = require('./parser');
 var RSVP = require('rsvp');
@@ -7107,7 +6979,7 @@ Navigation.prototype.get = function(target) {
 
 module.exports = Navigation;
 
-},{"./core":8,"./parser":17,"./request":21,"rsvp":4,"urijs":5}],16:[function(require,module,exports){
+},{"./core":8,"./parser":16,"./request":20,"rsvp":4,"urijs":5}],15:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var Continuous = require('./continuous');
@@ -7395,7 +7267,7 @@ Paginate.prototype.adjustImages = function(view) {
 
 module.exports = Paginate;
 
-},{"./continuous":7,"./core":8,"./layout":12,"./map":14,"rsvp":4}],17:[function(require,module,exports){
+},{"./continuous":7,"./core":8,"./layout":11,"./map":13,"rsvp":4}],16:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -7859,7 +7731,7 @@ Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
 
 module.exports = Parser;
 
-},{"./core":8,"./epubcfi":9,"urijs":5}],18:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"urijs":5}],17:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 
@@ -8054,7 +7926,7 @@ function Task(task, args, context){
 
 module.exports = Queue;
 
-},{"./core":8,"rsvp":4}],19:[function(require,module,exports){
+},{"./core":8,"rsvp":4}],18:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -8075,12 +7947,15 @@ function Rendition(book, options) {
 		width: false,
 		height: null,
 		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'},
-		axis: "vertical"
+		axis: "vertical",
+		ignoreClass: ''
 	});
 
 	core.extend(this.settings, options);
 
-	this.viewSettings = {};
+	this.viewSettings = {
+		ignoreClass: this.settings.ignoreClass
+	};
 
 	this.book = book;
 
@@ -8807,16 +8682,15 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
 
-Rendition.prototype.highlight = function(_cfi, className){
+Rendition.prototype.selectCfiRange = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
-  var views = this.visible();
-	var found = views.filter(function (view) {
+  var found = this.visible().filter(function (view) {
 		if(cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
   if (found.length) {
-    return found[0].highlight(cfi, className);
+    return found[0].selectCfiRange(cfi, ignoreClass);
   }
 };
 
@@ -8825,7 +8699,7 @@ RSVP.EventTarget.mixin(Rendition.prototype);
 
 module.exports = Rendition;
 
-},{"./core":8,"./epubcfi":9,"./hook":11,"./layout":12,"./map":14,"./queue":18,"./replacements":20,"./view":25,"./views":26,"rsvp":4,"urijs":5}],20:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./hook":10,"./layout":11,"./map":13,"./queue":17,"./replacements":19,"./view":24,"./views":25,"rsvp":4,"urijs":5}],19:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 
@@ -8912,7 +8786,7 @@ module.exports = {
   'substitute': substitute
 };
 
-},{"./core":8,"urijs":5}],21:[function(require,module,exports){
+},{"./core":8,"urijs":5}],20:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -9045,7 +8919,7 @@ function request(url, type, withCredentials, headers) {
 
 module.exports = request;
 
-},{"./core":8,"rsvp":4,"urijs":5}],22:[function(require,module,exports){
+},{"./core":8,"rsvp":4,"urijs":5}],21:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -9196,7 +9070,7 @@ Section.prototype.cfiFromElement = function(el) {
 
 module.exports = Section;
 
-},{"./core":8,"./epubcfi":9,"./hook":11,"./replacements":20,"./request":21,"rsvp":4,"urijs":5}],23:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./hook":10,"./replacements":19,"./request":20,"rsvp":4,"urijs":5}],22:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -9320,7 +9194,7 @@ Spine.prototype.each = function() {
 
 module.exports = Spine;
 
-},{"./core":8,"./epubcfi":9,"./section":22,"rsvp":4}],24:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"./section":21,"rsvp":4}],23:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -9470,14 +9344,15 @@ Unarchive.prototype.revokeUrl = function(url){
 
 module.exports = Unarchive;
 
-},{"../libs/mime/mime":1,"./core":8,"./request":21,"jszip":"jszip","rsvp":4,"urijs":5}],25:[function(require,module,exports){
+},{"../libs/mime/mime":1,"./core":8,"./request":20,"jszip":"jszip","rsvp":4,"urijs":5}],24:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
-var Highlighter = require('./highlighter');
 
 function View(section, options) {
-  this.settings = options || {};
+  this.settings = core.extend({
+    ignoreClass : ''
+  }, options || {});
 
   this.id = "epubjs-view:" + core.uuid();
   this.section = section;
@@ -9501,9 +9376,6 @@ function View(section, options) {
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
-
-  // Highlighter
-  this.highlighter = new Highlighter(this.settings.highlightClass);
 
   if(this.settings.axis && this.settings.axis == "horizontal"){
     this.element.style.display = "inline-block";
@@ -10053,24 +9925,7 @@ View.prototype.locationOf = function(target) {
   if(!this.document) return;
 
   if(this.epubcfi.isCfiString(target)) {
-    // cfi = this.epubcfi.parse(target);
-    //
-    // if(typeof document.evaluate === 'undefined') {
-    //   marker = this.epubcfi.addMarker(cfi, this.document);
-    //   if(marker) {
-    //     // Must Clean up Marker before going to page
-    //     this.epubcfi.removeMarker(marker, this.document);
-    //
-    //     targetPos = marker.getBoundingClientRect();
-    //   }
-    // } else {
-    //   range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
-    //   if(range) {
-    //     targetPos = range.getBoundingClientRect();
-    //   }
-    // }
-
-    range = new EpubCFI(cfi).toRange(this.document);
+    range = new EpubCFI(cfi).toRange(this.document, this.settings.ignoreClass);
     if(range) {
       targetPos = range.getBoundingClientRect();
     }
@@ -10245,23 +10100,16 @@ View.prototype.triggerSelectedEvent = function(selection){
   }
 };
 
-View.prototype.highlight = function(_cfi, className){
+View.prototype.selectCfiRange = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
-  return cfi.toRange(this.document);
-  var span = this.document.createElement("span");
-	var range;
-
-  if (cfi.spinePos === this.index) {
-    range = cfi.toRange(this.document);
-    return this.highlighter.add(range, className || "annotator-hl");
-  }
+  return cfi.toRange(this.document, ignoreClass || this.settings.ignoreClass);
 };
 
 RSVP.EventTarget.mixin(View.prototype);
 
 module.exports = View;
 
-},{"./core":8,"./epubcfi":9,"./highlighter":10,"rsvp":4}],26:[function(require,module,exports){
+},{"./core":8,"./epubcfi":9,"rsvp":4}],25:[function(require,module,exports){
 function Views(container) {
   this.container = container;
   this._views = [];

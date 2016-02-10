@@ -1,10 +1,11 @@
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
-var Highlighter = require('./highlighter');
 
 function View(section, options) {
-  this.settings = options || {};
+  this.settings = core.extend({
+    ignoreClass : ''
+  }, options || {});
 
   this.id = "epubjs-view:" + core.uuid();
   this.section = section;
@@ -28,9 +29,6 @@ function View(section, options) {
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
-
-  // Highlighter
-  this.highlighter = new Highlighter(this.settings.highlightClass);
 
   if(this.settings.axis && this.settings.axis == "horizontal"){
     this.element.style.display = "inline-block";
@@ -580,24 +578,7 @@ View.prototype.locationOf = function(target) {
   if(!this.document) return;
 
   if(this.epubcfi.isCfiString(target)) {
-    // cfi = this.epubcfi.parse(target);
-    //
-    // if(typeof document.evaluate === 'undefined') {
-    //   marker = this.epubcfi.addMarker(cfi, this.document);
-    //   if(marker) {
-    //     // Must Clean up Marker before going to page
-    //     this.epubcfi.removeMarker(marker, this.document);
-    //
-    //     targetPos = marker.getBoundingClientRect();
-    //   }
-    // } else {
-    //   range = this.epubcfi.generateRangeFromCfi(cfi, this.document);
-    //   if(range) {
-    //     targetPos = range.getBoundingClientRect();
-    //   }
-    // }
-
-    range = new EpubCFI(cfi).toRange(this.document);
+    range = new EpubCFI(cfi).toRange(this.document, this.settings.ignoreClass);
     if(range) {
       targetPos = range.getBoundingClientRect();
     }
@@ -772,16 +753,9 @@ View.prototype.triggerSelectedEvent = function(selection){
   }
 };
 
-View.prototype.highlight = function(_cfi, className){
+View.prototype.selectCfiRange = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
-  return cfi.toRange(this.document);
-  var span = this.document.createElement("span");
-	var range;
-
-  if (cfi.spinePos === this.index) {
-    range = cfi.toRange(this.document);
-    return this.highlighter.add(range, className || "annotator-hl");
-  }
+  return cfi.toRange(this.document, ignoreClass || this.settings.ignoreClass);
 };
 
 RSVP.EventTarget.mixin(View.prototype);
