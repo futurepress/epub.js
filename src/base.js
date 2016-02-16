@@ -51,9 +51,11 @@ EPUBJS.Render = {};
 	//exports to multiple environments
 	if (typeof define === 'function' && define.amd) {
 		//AMD
-		define(['rsvp'], function(){ return ePub; });
+		define(['rsvp', 'jszip'], function(RSVP, JSZip){ return ePub; });
 	} else if (typeof module != "undefined" && module.exports) {
 		//Node
+		global.RSVP = require('rsvp');
+		global.JSZip = require('jszip');
 		module.exports = ePub;
 	}
 

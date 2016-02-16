@@ -23,7 +23,7 @@ module.exports = function(grunt) {
 			build: {
 				options: {
 						preserveComments: 'some',
-						sourceMap: true
+						sourceMap: false
 				},
 				files: {
 					'build/epub.min.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 			reader: {
 				options: {
 						preserveComments: 'some',
-						sourceMap: true
+						sourceMap: false
 				},
 				files: {
 					'reader/js/epub.min.js': ['<banner>', 'node_modules/rsvp/dist/rsvp.js', 'src/*.js',  'libs/mime-types/mime-types.js'],
