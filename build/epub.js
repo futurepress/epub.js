@@ -1599,7 +1599,7 @@
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.13";
+EPUBJS.VERSION = "0.2.14";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -1649,9 +1649,12 @@ EPUBJS.Render = {};
 	//exports to multiple environments
 	if (typeof define === 'function' && define.amd) {
 		//AMD
-		define(['rsvp'], function(){ return ePub; });
+		define(['rsvp', 'jszip', 'localforage'], function(RSVP, JSZip, localForage){ return ePub; });
 	} else if (typeof module != "undefined" && module.exports) {
 		//Node
+		global.RSVP = require('rsvp');
+		global.JSZip = require('jszip');
+		global.localForage = require('localforage');
 		module.exports = ePub;
 	}
 
