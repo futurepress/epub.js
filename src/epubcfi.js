@@ -855,54 +855,51 @@ EpubCFI.prototype.toRange = function(_doc, ignoreClass) {
   var needsIgnoring = ignoreClass ? (doc.querySelector('.' + ignoreClass) != null) : false;
   var missed;
 
-    if (cfi.range) {
-      start = cfi.start;
-      startSteps = cfi.path.steps.concat(start.steps);
-      startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
-      end = cfi.end;
-      endSteps = cfi.path.steps.concat(end.steps);
-      endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
-    } else {
-      start = cfi.path;
-      startSteps = cfi.path.steps;
-      startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
-    }
+  if (cfi.range) {
+    start = cfi.start;
+    startSteps = cfi.path.steps.concat(start.steps);
+    startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
+    end = cfi.end;
+    endSteps = cfi.path.steps.concat(end.steps);
+    endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
+  } else {
+    start = cfi.path;
+    startSteps = cfi.path.steps;
+    startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
+  }
 
+  if(startContainer) {
+    try {
 
-
-    if(startContainer) {
-      try {
-
-        if(start.terminal.offset != null) {
-          range.setStart(startContainer, start.terminal.offset);
-        } else {
-          range.setStart(startContainer, 0);
-        }
-
-      } catch (e) {
-        missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-        range.setStart(missed.container, missed.offset);
+      if(start.terminal.offset != null) {
+        range.setStart(startContainer, start.terminal.offset);
+      } else {
+        range.setStart(startContainer, 0);
       }
-    } else {
-      // No start found
-      return null;
+
+    } catch (e) {
+      missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+      range.setStart(missed.container, missed.offset);
     }
+  } else {
+    // No start found
+    return null;
+  }
 
+  if (endContainer) {
+    try {
 
-    if (endContainer) {
-      try {
-
-        if(end.terminal.offset != null) {
-          range.setEnd(endContainer, end.terminal.offset);
-        } else {
-          range.setEnd(endContainer, 0);
-        }
-
-      } catch (e) {
-        missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-        range.setEnd(missed.container, missed.offset);
+      if(end.terminal.offset != null) {
+        range.setEnd(endContainer, end.terminal.offset);
+      } else {
+        range.setEnd(endContainer, 0);
       }
+
+    } catch (e) {
+      missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+      range.setEnd(missed.container, missed.offset);
     }
+  }
 
 
   // doc.defaultView.getSelection().addRange(range);

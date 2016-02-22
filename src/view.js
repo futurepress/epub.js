@@ -753,7 +753,7 @@ View.prototype.triggerSelectedEvent = function(selection){
   }
 };
 
-View.prototype.selectCfiRange = function(_cfi, ignoreClass){
+View.prototype.range = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
   return cfi.toRange(this.document, ignoreClass || this.settings.ignoreClass);
 };

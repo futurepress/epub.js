@@ -279,9 +279,9 @@ Book.prototype.coverUrl = function(){
 	return retrieved;
 };
 
-Book.prototype.selectCfiRange = function(cfiRange) {
+Book.prototype.range = function(cfiRange) {
   var cfi = new EpubCFI(cfiRange);
-  var item = this.spine.get(cfi.spinePos)
+  var item = this.spine.get(cfi.spinePos);
 
   return item.load().then(function (contents) {
     var range = cfi.toRange(item.document);

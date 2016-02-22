@@ -53,7 +53,7 @@ function request(url, type, withCredentials, headers) {
 
   if(core.isXml(type)) {
 		xhr.responseType = "document";
-		// xhr.overrideMimeType('text/xml'); // for OPF parsing
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
 
 	if(type == 'xhtml') {
@@ -81,6 +81,15 @@ function request(url, type, withCredentials, headers) {
       if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
         var r;
 
+        if (!this.response && !this.responseXML) {
+          deferred.reject({
+            status: this.status,
+            message : "Empty Response",
+            stack : new Error().stack
+          });
+          return deferred.promise;
+        }
+
         if((this.responseType == '' || this.responseType == 'document')
             && this.responseXML){
           r = this.responseXML;
@@ -91,6 +100,7 @@ function request(url, type, withCredentials, headers) {
           r = new DOMParser().parseFromString(this.response, "text/xml");
         }else
         if(type == 'xhtml'){
+          console.log(this.response);
           r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
         }else
         if(type == 'html' || type == 'htm'){

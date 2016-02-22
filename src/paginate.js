@@ -23,9 +23,7 @@ function Paginate(book, options) {
 
   this.isForcedSingle = this.settings.forceSingle;
 
-  this.viewSettings = {
-    axis: this.settings.axis
-  };
+  this.viewSettings.axis = this.settings.axis;
 
   this.start();
 };

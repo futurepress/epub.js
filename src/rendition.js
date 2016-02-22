@@ -753,7 +753,7 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
 
-Rendition.prototype.selectCfiRange = function(_cfi, ignoreClass){
+Rendition.prototype.range = function(_cfi, ignoreClass){
   var cfi = new EpubCFI(_cfi);
   var found = this.visible().filter(function (view) {
 		if(cfi.spinePos === view.index) return true;
@@ -761,7 +761,7 @@ Rendition.prototype.selectCfiRange = function(_cfi, ignoreClass){
 
 	// Should only every return 1 item
   if (found.length) {
-    return found[0].selectCfiRange(cfi, ignoreClass);
+    return found[0].range(cfi, ignoreClass);
   }
 };
 

@@ -52,12 +52,17 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-  server();
   bundle('epub.js', cb);
 });
 
 gulp.task('serve', function() {
   server();
+  bundle('epub.js', cb);
+});
+
+gulp.task('serve:no-watch', function() {
+  server();
+  bundle('epub.js', cb);
 });
 
 gulp.task('test', function(cb) {
@@ -111,7 +116,7 @@ function bundle(file, watch) {
 
   // Ignore optional URI libraries
   var urijsPath = URI(require.resolve('urijs'));
-  ['./punycode.js', './IPv6.js', './SecondLevelDomains.js'].forEach(function(lib) {
+  ['./punycode.js', './IPv6.js'].forEach(function(lib) {
     var libPath = URI(lib).absoluteTo(urijsPath).toString();
     b.ignore(libPath);
   });

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EPUB.js Pagination Example</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
 
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-core.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-classapplier.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-highlighter.js"></script>
 
   <style type="text/css">
     body {
@@ -22,9 +22,6 @@
       position: absolute;
       height: 100%;
       width: 100%;
-      display: flex;
-      -webkit-align-items: center;
-      -webkit-justify-content: center;
     }
 
     #viewer {
@@ -36,31 +33,16 @@
       border-radius: 5px;
 
       padding: 20px 40px;
-      /*width: 100%;*/
-      /* height: 400px;*/
       position: relative;
-      /* Center Content */
       margin: 40px auto;
     }
 
-
-
-    /*
-    #viewer > iframe {
-      overflow: scroll;
-      height: 400px;
-
-      -webkit-column-axis: horizontal;
-      -webkit-column-fill: auto;
-      -webkit-column-width: 400px;
-      -webkit-column-gap: 10px;
-    } */
+    #frame {
+      position: relative;
+    }
 
     #viewer iframe {
         background: white;
-        /*box-shadow: 0 0 4px #ccc;*/
-        /*width: 590px;
-        margin: 10px auto;*/
     }
 
     #prev {
@@ -72,7 +54,7 @@
     }
 
     .arrow {
-      position: fixed;
+      position: absolute;
       top: 50%;
       margin-top: -32px;
       font-size: 64px;
@@ -102,6 +84,28 @@
       background: yellow;
     }
 
+    #extras {
+      width: 600px;
+      margin: 40px auto;
+    }
+
+    #highlights {
+			list-style: none;
+			margin-left: 0;
+			padding: 0;
+		}
+
+    #highlights li {
+			list-style: none;
+      margin-bottom: 20px;
+			border-top: 1px solid #E2E2E2;
+			padding: 10px;
+    }
+
+    #highlights a {
+      display: block;
+    }
+
     @media (min-width: 1000px) {
       #viewer:after {
         position: absolute;
@@ -121,13 +125,20 @@
   </style>
 </head>
 <body>
-  <div id="viewer"></div>
-  <div id="prev" class="arrow">‹</div>
-  <div id="next" class="arrow">›</div>
+  <div id="frame">
+    <div id="viewer"></div>
+    <div id="prev" class="arrow">‹</div>
+    <div id="next" class="arrow">›</div>
+  </div>
+  <div id="extras">
+    <ul id="highlights"></ul>
+  </div>
+
+
   <script>
     // Load the opf
-    // var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var book = ePub("../books/alice/OPS/package.opf");
+    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
+
     var rendition = book.renderTo("viewer", {
       method: "paginate",
       width: "100%",
@@ -135,7 +146,7 @@
       ignoreClass: 'annotator-hl'
     });
 
-    var displayed = rendition.display(3);
+    var displayed = rendition.display(6);
 
     // Navigation loaded
     book.loaded.navigation.then(function(toc){
@@ -183,7 +194,7 @@
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange) {
       // Get the dom range of the selected text
-      var range = rendition.selectCfiRange(cfiRange);
+      var range = rendition.range(cfiRange);
       // Create an empty Rangy range
       var rr = rangy.createRange();
       // Set that range to equal the dom range
@@ -205,11 +216,31 @@
     })
 
     // Illustration of how to get text from a saved cfiRange
+    var highlights = document.getElementById('highlights');
+
     rendition.on("selected", function(cfiRange) {
 
-      book.selectCfiRange(cfiRange).then(function (range) {
-        var text = range.toString();
-        console.log(text);
+      book.range(cfiRange).then(function (range) {
+        var text;
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        var textNode;
+
+        if (range) {
+          text = range.toString();
+          textNode = document.createTextNode(text);
+
+          a.textContent = cfiRange;
+          a.href = "#" + cfiRange;
+          a.onclick = function () {
+            rendition.display(cfiRange);
+          };
+
+          li.appendChild(a);
+          li.appendChild(textNode);
+          highlights.appendChild(li);
+        }
+
       })
 
     });
