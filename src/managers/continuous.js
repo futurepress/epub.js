@@ -1,11 +1,10 @@
 var RSVP = require('rsvp');
-var core = require('./core');
-var Rendition = require('./rendition');
-var View = require('./view');
+var core = require('../core');
+var SingleViewManager = require('./single');
 
-function Continuous(book, options) {
+function ContinuousViewManager(options) {
 
-	Rendition.apply(this, arguments); // call super constructor.
+	SingleViewManager.apply(this, arguments); // call super constructor.
 
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
@@ -15,47 +14,17 @@ function Continuous(book, options) {
 		offsetDelta: 250
 	});
 
-	core.extend(this.settings, options);
-
-	if(this.settings.hidden) {
-		this.wrapper = this.wrap(this.container);
-	}
-
+	core.extend(this.settings, options.settings);
 
 };
 
 // subclass extends superclass
-Continuous.prototype = Object.create(Rendition.prototype);
-Continuous.prototype.constructor = Continuous;
-
-Continuous.prototype.attachListeners = function(){
-
-	// Listen to window for resize event if width or height is set to a percent
-	if(!core.isNumber(this.settings.width) ||
-		 !core.isNumber(this.settings.height) ) {
-		window.addEventListener("resize", this.onResized.bind(this), false);
-	}
+ContinuousViewManager.prototype = Object.create(SingleViewManager.prototype);
+ContinuousViewManager.prototype.constructor = ContinuousViewManager;
 
 
-	if(this.settings.infinite) {
-		this.start();
-	}
-
-
-};
-
-Continuous.prototype.parseTarget = function(target){
-	if(this.epubcfi.isCfiString(target)) {
-    cfi = new EpubCFI(target);
-    spinePos = cfi.spinePos;
-    section = this.book.spine.get(spinePos);
-  } else {
-    section = this.book.spine.get(target);
-  }
-};
-
-Continuous.prototype.moveTo = function(offset){
-  // var bounds = this.bounds();
+ContinuousViewManager.prototype.moveTo = function(offset){
+  // var bounds = this.stage.bounds();
   // var dist = Math.floor(offset.top / bounds.height) * bounds.height;
   return this.check(
 		offset.left+this.settings.offset,
@@ -71,7 +40,7 @@ Continuous.prototype.moveTo = function(offset){
 	  }.bind(this));
 };
 
-Continuous.prototype.afterDisplayed = function(currView){
+ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	var next = currView.section.next();
 	var prev = currView.section.prev();
 	var index = this.views.indexOf(currView);
@@ -79,12 +48,12 @@ Continuous.prototype.afterDisplayed = function(currView){
 
 	if(index + 1 === this.views.length && next) {
 		nextView = this.createView(next);
-		this.q.enqueue(this.append, nextView);
+		this.q.enqueue(this.append.bind(this), nextView);
 	}
 
 	if(index === 0 && prev) {
 		prevView = this.createView(prev, this.viewSettings);
-		this.q.enqueue(this.prepend, prevView);
+		this.q.enqueue(this.prepend.bind(this), prevView);
 	}
 
 	// this.removeShownListeners(currView);
@@ -95,7 +64,7 @@ Continuous.prototype.afterDisplayed = function(currView){
 
 
 // Remove Previous Listeners if present
-Continuous.prototype.removeShownListeners = function(view){
+ContinuousViewManager.prototype.removeShownListeners = function(view){
 
 	// view.off("shown", this.afterDisplayed);
 	// view.off("shown", this.afterDisplayedAbove);
@@ -103,18 +72,18 @@ Continuous.prototype.removeShownListeners = function(view){
 
 };
 
-Continuous.prototype.append = function(view){
+ContinuousViewManager.prototype.append = function(view){
 
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
-
+	console.log(this);
 	this.views.append(view);
 
   //this.q.enqueue(this.check);
   return this.check();
 };
 
-Continuous.prototype.prepend = function(view){
+ContinuousViewManager.prototype.prepend = function(view){
 	// view.on("shown", this.afterDisplayedAbove.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
 
@@ -126,7 +95,7 @@ Continuous.prototype.prepend = function(view){
   return this.check();
 };
 
-Continuous.prototype.counter = function(bounds){
+ContinuousViewManager.prototype.counter = function(bounds){
 
 	if(this.settings.axis === "vertical") {
 		this.scrollBy(0, bounds.heightDelta, true);
@@ -136,9 +105,9 @@ Continuous.prototype.counter = function(bounds){
 
 };
 
-Continuous.prototype.check = function(_offset){
+ContinuousViewManager.prototype.check = function(_offset){
 	var checking = new RSVP.defer();
-	var container = this.bounds();
+	var container = this.stage.bounds();
   var promises = [];
   var offset = _offset || this.settings.offset;
 
@@ -161,7 +130,7 @@ Continuous.prototype.check = function(_offset){
         // this.q.enqueue(this.trim);
         clearTimeout(this.trimTimeout);
         this.trimTimeout = setTimeout(function(){
-          this.q.enqueue(this.trim);
+          this.q.enqueue(this.trim.bind(this));
         }.bind(this), 250);
 			}
 
@@ -175,7 +144,7 @@ Continuous.prototype.check = function(_offset){
     return RSVP.all(promises)
       .then(function(posts) {
         // Check to see if anything new is on screen after rendering
-        this.q.enqueue(this.check);
+        this.q.enqueue(this.check.bind(this));
 
       }.bind(this));
 
@@ -187,7 +156,7 @@ Continuous.prototype.check = function(_offset){
 
 };
 
-Continuous.prototype.trim = function(){
+ContinuousViewManager.prototype.trim = function(){
   var task = new RSVP.defer();
   var displayed = this.views.displayed();
   var first = displayed[0];
@@ -211,7 +180,7 @@ Continuous.prototype.trim = function(){
   return task.promise;
 };
 
-Continuous.prototype.erase = function(view, above){ //Trim
+ContinuousViewManager.prototype.erase = function(view, above){ //Trim
 
 	var prevTop;
 	var prevLeft;
@@ -239,7 +208,11 @@ Continuous.prototype.erase = function(view, above){ //Trim
 
 };
 
-Continuous.prototype.start = function() {
+ContinuousViewManager.prototype.addEventListeners = function(stage){
+	this.addScrollListeners();
+};
+
+ContinuousViewManager.prototype.addScrollListeners = function() {
   var scroller;
 
   this.tick = core.requestAnimationFrame;
@@ -261,7 +234,7 @@ Continuous.prototype.start = function() {
   	scroller = window;
   }
 
-  window.addEventListener("scroll", function(e){
+  scroller.addEventListener("scroll", function(e){
     if(!this.ignore) {
       this.scrolled = true;
     } else {
@@ -280,7 +253,7 @@ Continuous.prototype.start = function() {
 
 };
 
-Continuous.prototype.onScroll = function(){
+ContinuousViewManager.prototype.onScroll = function(){
 
   if(this.scrolled) {
 
@@ -299,7 +272,7 @@ Continuous.prototype.onScroll = function(){
 	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
 	    	 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
-				this.q.enqueue(this.check);
+				this.q.enqueue(this.check.bind(this));
 
 				this.scrollDeltaVert = 0;
 	    	this.scrollDeltaHorz = 0;
@@ -336,7 +309,7 @@ Continuous.prototype.onScroll = function(){
 };
 
 
- Continuous.prototype.resizeView = function(view) {
+ ContinuousViewManager.prototype.resizeView = function(view) {
 
 	if(this.settings.axis === "horizontal") {
 		view.lock("height", this.stage.width, this.stage.height);
@@ -346,7 +319,7 @@ Continuous.prototype.onScroll = function(){
 
 };
 
-Continuous.prototype.currentLocation = function(){
+ContinuousViewManager.prototype.currentLocation = function(){
   var visible = this.visible();
   var startPage, endPage;
 
@@ -415,4 +388,4 @@ Continuous.prototype.current = function(what){
 };
 */
 
-module.exports = Continuous;
+module.exports = ContinuousViewManager;

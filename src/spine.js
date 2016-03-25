@@ -1,7 +1,9 @@
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
+var Hook = require('./hook');
 var Section = require('./section');
+var replacements = require('./replacements');
 
 function Spine(_request){
   this.request = _request;
@@ -9,6 +11,16 @@ function Spine(_request){
   this.spineByHref = {};
   this.spineById = {};
 
+  this.hooks = {};
+  this.hooks.serialize = new Hook();
+  this.hooks.content = new Hook();
+
+  // Register replacements
+  this.hooks.content.register(replacements.base);
+
+  this.epubcfi = new EpubCFI();
+
+  this.loaded = false;
 };
 
 Spine.prototype.load = function(_package) {
@@ -18,7 +30,6 @@ Spine.prototype.load = function(_package) {
   this.spineNodeIndex = _package.spineNodeIndex;
   this.baseUrl = _package.baseUrl || '';
   this.length = this.items.length;
-  this.epubcfi = new EpubCFI();
 
   this.items.forEach(function(item, index){
     var href, url;
@@ -44,12 +55,14 @@ Spine.prototype.load = function(_package) {
       item.next = function(){ return this.get(index+1); }.bind(this);
     // }
 
-    spineItem = new Section(item);
+    spineItem = new Section(item, this.hooks);
+
     this.append(spineItem);
 
 
   }.bind(this));
 
+  this.loaded = true;
 };
 
 // book.spine.get();

@@ -5,6 +5,7 @@ var morgan  = require('morgan');
 var colors = require('colors');
 var	argv = require('optimist').argv;
 var	portfinder = require('portfinder');
+var path = require('path');
 var logger, port;
 var log = console.log;
 
@@ -18,7 +19,7 @@ function start(_port) {
     });
   } else {
     listen(_port);
-  } 
+  }
 }
 
 //CORS middleware
@@ -34,9 +35,9 @@ function allowCrossDomain(req, res, next) {
 function listen(port) {
   var server = express();
   server.use(allowCrossDomain);
-  server.use(serveStatic(__dirname + "../../"));
+  server.use(serveStatic(path.resolve(__dirname, '../')));
 
-  if(!logger) server.use(morgan(logger))
+  if(!logger) server.use(morgan('dev'))
 
   server.listen(port);
 

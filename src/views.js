@@ -31,14 +31,18 @@ Views.prototype.get = function(i) {
 
 Views.prototype.append = function(view){
 	this._views.push(view);
-	this.container.appendChild(view.element);
+  if(this.container){
+    this.container.appendChild(view.element);
+  }
   this.length++;
   return view;
 };
 
 Views.prototype.prepend = function(view){
 	this._views.unshift(view);
-	this.container.insertBefore(view.element, this.container.firstChild);
+  if(this.container){
+    this.container.insertBefore(view.element, this.container.firstChild);
+  }
   this.length++;
   return view;
 };
@@ -46,11 +50,14 @@ Views.prototype.prepend = function(view){
 Views.prototype.insert = function(view, index) {
 	this._views.splice(index, 0, view);
 
-	if(index < this.container.children.length){
-		this.container.insertBefore(view.element, this.container.children[index]);
-	} else {
-		this.container.appendChild(view.element);
-	}
+  if(this.container){
+  	if(index < this.container.children.length){
+  		this.container.insertBefore(view.element, this.container.children[index]);
+  	} else {
+  		this.container.appendChild(view.element);
+  	}
+  }
+
   this.length++;
   return view;
 };
@@ -74,8 +81,9 @@ Views.prototype.destroy = function(view) {
 	if(view.displayed){
 		view.destroy();
 	}
-
-	this.container.removeChild(view.element);
+  if(this.container){
+	   this.container.removeChild(view.element);
+  }
 	view = null;
 };
 

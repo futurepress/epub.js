@@ -3,7 +3,6 @@ var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
-var replacements = require('./replacements');
 
 function Section(item, hooks){
     this.idref = item.idref;
@@ -17,12 +16,14 @@ function Section(item, hooks){
 
     this.cfiBase = item.cfiBase;
 
-    this.hooks = {};
-    this.hooks.serialize = new Hook(this);
-    this.hooks.content = new Hook(this);
+    if (hooks) {
+      this.hooks = hooks;
+    } else {
+      this.hooks = {};
+      this.hooks.serialize = new Hook(this);
+      this.hooks.content = new Hook(this);
+    }
 
-    // Register replacements
-    this.hooks.content.register(replacements.base);
 };
 
 

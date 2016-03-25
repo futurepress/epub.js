@@ -55,14 +55,13 @@ gulp.task('watch', function(cb) {
   bundle('epub.js', cb);
 });
 
-gulp.task('serve', function() {
+gulp.task('serve', function(cb) {
   server();
   bundle('epub.js', cb);
 });
 
-gulp.task('serve:no-watch', function() {
+gulp.task('serve:no-watch', function(cb) {
   server();
-  bundle('epub.js', cb);
 });
 
 gulp.task('test', function(cb) {

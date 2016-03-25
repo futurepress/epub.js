@@ -1,7 +1,19 @@
 var core = require('./core');
 
 function Reflowable(){
+  this.columnAxis = core.prefixed('columnAxis');
+  this.columnGap = core.prefixed('columnGap');
+  this.columnWidth = core.prefixed('columnWidth');
+  this.columnFill = core.prefixed('columnFill');
 
+  this.width = 0;
+  this.height = 0;
+  this.spread = 0;
+  this.delta = 0;
+
+  this.column = 0;
+  this.gap = 0;
+  this.divisor = 0;
 };
 
 Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
@@ -48,32 +60,39 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 
 };
 
-Reflowable.prototype.format = function(view){
+Reflowable.prototype.format = function(contents){
 
-  var $doc = view.document.documentElement;
-  var $body = view.document.body;//view.document.querySelector("body");
+  // var $doc = doc.documentElement;
+  // var $body = doc.body;//view.document.querySelector("body");
 
-  $doc.style.overflow = "hidden";
+  // $doc.style.overflow = "hidden";
+  contents.overflow("hidden");
 
   // Must be set to the new calculated width or the columns will be off
   // $body.style.width = this.width + "px";
-  $doc.style.width = this.width + "px";
+  // $doc.style.width = this.width + "px";
+  contents.width(this.width);
 
   //-- Adjust height
-  $body.style.height = this.height + "px";
+  // $body.style.height = this.height + "px";
+  contents.height(this.height);
 
   //-- Add columns
-  $body.style[this.columnAxis] = "horizontal";
-  $body.style[this.columnFill] = "auto";
-  $body.style[this.columnGap] = this.gap+"px";
-  $body.style[this.columnWidth] = this.column+"px";
+  // $body.style[this.columnAxis] = "horizontal";
+  contents.css(this.columnAxis, "horizontal");
+  // $body.style[this.columnFill] = "auto";
+  contents.css(this.columnFill, "auto");
+  // $body.style[this.columnGap] = this.gap+"px";
+  contents.css(this.columnGap, this.gap+"px");
+  // $body.style[this.columnWidth] = this.column +"px";
+  contents.css(this.columnWidth, this.column+"px");
 
   // Add extra padding for the gap between this and the next view
-  view.iframe.style.marginRight = this.gap+"px";
+  // view.iframe.style.marginRight = this.gap+"px";
 };
 
-Reflowable.prototype.count = function(view) {
-  var totalWidth = view.root().scrollWidth;
+Reflowable.prototype.count = function(totalWidth) {
+  // var totalWidth = view.root().scrollWidth;
   var spreads = Math.ceil(totalWidth / this.spread);
 
   return {
@@ -83,41 +102,51 @@ Reflowable.prototype.count = function(view) {
 };
 
 function Fixed(_width, _height){
-
+  this.width = 0;
+  this.height = 0;
 };
 
 Fixed.prototype.calculate = function(_width, _height){
-
+  this.width = _width;
+  this.height = _height;
 };
 
-Fixed.prototype.format = function(view){
-  var width, height;
-
-  var $doc = view.document.documentElement;
-  var $viewport = documentElement.querySelector("[name=viewport");
-
-  /**
-  * check for the viewport size
-  * <meta name="viewport" content="width=1024,height=697" />
-  */
-  if($viewport && $viewport.hasAttribute("content")) {
-    content = $viewport.getAttribute("content");
-    contents = content.split(',');
-    if(contents[0]){
-      width = contents[0].replace("width=", '');
-    }
-    if(contents[1]){
-      height = contents[1].replace("height=", '');
-    }
-  }
+Fixed.prototype.format = function(contents){
+  var viewport = contents.viewport();
+  // var width, height;
+  //
+  // var $doc = doc.documentElement;
+  // var $viewport = $doc.querySelector("[name=viewport");
+  //
+  // /**
+  // * check for the viewport size
+  // * <meta name="viewport" content="width=1024,height=697" />
+  // */
+  // if($viewport && $viewport.hasAttribute("content")) {
+  //   content = $viewport.getAttribute("content");
+  //   contents = content.split(',');
+  //   if(contents[0]){
+  //     width = contents[0].replace("width=", '');
+  //   }
+  //   if(contents[1]){
+  //     height = contents[1].replace("height=", '');
+  //   }
+  // }
 
   //-- Adjust width and height
   // $doc.style.width =  width + "px" || "auto";
   // $doc.style.height =  height + "px" || "auto";
-  view.resize(width, height);
+  if (viewport.width) {
+    contents.width(viewport.width);
+  }
+
+  if (viewport.height) {
+    contents.height(viewport.height);
+  }
 
   //-- Scroll
-  $doc.style.overflow = "auto";
+  // $doc.style.overflow = "auto";
+  contents.overflow("auto");
 
 };
 
@@ -129,7 +158,11 @@ Fixed.prototype.count = function(){
 };
 
 function Scroll(){
-
+  this.width = 0;
+  this.height = 0;
+  this.spread = 0;
+  this.column = 0;
+  this.gap = 0;
 };
 
 Scroll.prototype.calculate = function(_width, _height){
@@ -138,12 +171,14 @@ Scroll.prototype.calculate = function(_width, _height){
   this.gap = 0;
 };
 
-Scroll.prototype.format = function(view){
+Scroll.prototype.format = function(contents){
 
-  var $doc = view.document.documentElement;
+  // var $doc = doc.documentElement;
 
-  $doc.style.width = "auto";
-  $doc.style.height = "auto";
+  // $doc.style.width = "auto";
+  // $doc.style.height = "auto";
+  contents.width("auto");
+  contents.height("auto");
 
 };
 
