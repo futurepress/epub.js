@@ -90,7 +90,7 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 		this.render.resize('100%', '100%');
 	}
 
-	document.addEventListener("orientationchange", this.onResized);
+	document.addEventListener("orientationchange", this.onResized.bind(this));
 };
 
 /**
