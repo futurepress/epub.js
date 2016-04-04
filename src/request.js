@@ -52,16 +52,16 @@ function request(url, type, withCredentials, headers) {
 
 
   if(core.isXml(type)) {
-		xhr.responseType = "document";
+		// xhr.responseType = "document";
 		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
 
 	if(type == 'xhtml') {
-		xhr.responseType = "document";
+		// xhr.responseType = "document";
 	}
 
 	if(type == 'html' || type == 'htm') {
-		xhr.responseType = "document";
+		// xhr.responseType = "document";
  	}
 
   if(type == "binary") {
@@ -97,14 +97,13 @@ function request(url, type, withCredentials, headers) {
         if(core.isXml(type)){
           // xhr.overrideMimeType('text/xml'); // for OPF parsing
           // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          r = new DOMParser().parseFromString(this.response, "text/xml");
+          r = core.parse(this.response, "text/xml");
         }else
         if(type == 'xhtml'){
-          console.log(this.response);
-          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+          r = core.parse(this.response, "application/xhtml+xml");
         }else
         if(type == 'html' || type == 'htm'){
-          r = new DOMParser().parseFromString(this.response, "text/html");
+          r = core.parse(this.response, "text/html");
         }else
         if(type == 'json'){
           r = JSON.parse(this.response);

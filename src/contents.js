@@ -44,7 +44,7 @@ Contents.prototype.height = function(h) {
 
 };
 
-Contents.prototype.textWidth = function(w) {
+Contents.prototype.textWidth = function() {
   var width;
   var range = this.document.createRange();
 
@@ -57,7 +57,7 @@ Contents.prototype.textWidth = function(w) {
 
 };
 
-Contents.prototype.textHeight = function(h) {
+Contents.prototype.textHeight = function() {
   var height;
   var range = this.document.createRange();
 

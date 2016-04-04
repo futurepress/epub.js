@@ -22,10 +22,11 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 
   //-- Check the width and create even width columns
   var fullWidth = Math.floor(_width);
-  var width = (fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
+  var width = _width; //(fullWidth % 2 === 0) ? fullWidth : fullWidth - 1;
 
   var section = Math.floor(width / 8);
   var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
+
 
   var colWidth;
   var spreadWidth;
@@ -76,6 +77,8 @@ Reflowable.prototype.format = function(contents){
   //-- Adjust height
   // $body.style.height = this.height + "px";
   contents.height(this.height);
+
+  contents.css("margin", "0");
 
   //-- Add columns
   // $body.style[this.columnAxis] = "horizontal";

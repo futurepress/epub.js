@@ -76,7 +76,7 @@ ContinuousViewManager.prototype.append = function(view){
 
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
-	console.log(this);
+
 	this.views.append(view);
 
   //this.q.enqueue(this.check);

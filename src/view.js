@@ -280,7 +280,7 @@ View.prototype.reframe = function(width, height) {
     width: this.elementBounds.width,
     height: this.elementBounds.height,
     widthDelta: this.elementBounds.width - this.prevBounds.width,
-    heightDelta: this.elementBounds.height - this.prevBounds.height,
+    heightDelta: this.elementBounds.height - this.prevBounds.height
   });
 
 };

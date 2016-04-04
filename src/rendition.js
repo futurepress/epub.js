@@ -69,13 +69,18 @@ function Rendition(book, options) {
 
 };
 
+Rendition.prototype.setManager = function(manager) {
+	this.manager = manager;
+};
+
 Rendition.prototype.requireManager = function(manager) {
 	var viewManager;
 
 	// If manager is a string, try to load from register managers,
 	// or require included managers directly
-	if (typeof manager == "string") {
-		viewManager =  ePub.ViewManagers[manager] || require('./managers/'+manager);
+	if (typeof manager === "string") {
+		// Use global or require
+		viewManager =  typeof ePub != "undefined" ? ePub.ViewManagers[manager] : require('./managers/'+manager);
 	} else {
 		// otherwise, assume we were passed a function
 		viewManager = manager
@@ -90,7 +95,7 @@ Rendition.prototype.requireView = function(view) {
 	// If view is a string, try to load from register managers,
 	// or require included managers directly
 	if (typeof view == "string") {
-		View =  ePub.Views[view] || require('./views/'+view);
+		View = typeof ePub != "undefined" ? ePub.Views[view] : require('./views/'+view);
 	} else {
 		// otherwise, assume we were passed a function
 		View = view
@@ -100,16 +105,20 @@ Rendition.prototype.requireView = function(view) {
 };
 
 Rendition.prototype.start = function(stage){
-	var ViewManager = this.requireManager(this.settings.manager);
-	var View = this.requireView(this.settings.view);
+	var ViewManager, View;
 
 	// Add view manager
-	this.manager = new ViewManager({
-		view: View,
-		renderer: this.render.bind(this),
-		queue: this.q,
-		settings: this.settings
-	});
+	if (!this.manager) {
+		ViewManager = this.requireManager(this.settings.manager);
+		View = this.requireView(this.settings.view);
+
+		this.manager = new ViewManager({
+			view: View,
+			renderer: this.render.bind(this),
+			queue: this.q,
+			settings: this.settings
+		});
+	}
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
@@ -246,8 +255,8 @@ Rendition.prototype.applyLayoutMethod = function() {
 };
 
 Rendition.prototype.calculateLayout = function() {
-	var bounds = this.manager.stage.bounds();
-
+	// TODO: should this be a function to get the live bounds? It is cached and updated on resize for now.
+	var bounds = this.manager.bounds;
 	this.layout.calculate(bounds.width, bounds.height);
 };
 

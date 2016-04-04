@@ -88,7 +88,12 @@ Section.prototype.render = function(_request){
 
   this.load(_request).
     then(function(contents){
-      var serializer = new XMLSerializer();
+      var serializer;
+
+      if (typeof XMLSerializer === "undefined") {
+        XMLSerializer = require('xmldom').XMLSerializer;
+      }
+      serializer = new XMLSerializer();
       this.output = serializer.serializeToString(contents);
       return this.output;
     }.bind(this)).

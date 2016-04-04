@@ -1,5 +1,8 @@
 var Book = require('./book');
 var EpubCFI = require('./epubcfi');
+var Rendition = require('./rendition');
+var Contents = require('./contents');
+var RSVP = require('rsvp');
 
 function ePub(_url) {
 	return new Book(_url);
@@ -8,6 +11,9 @@ function ePub(_url) {
 ePub.VERSION = "0.3.0";
 
 ePub.CFI = EpubCFI;
+ePub.Rendition = Rendition;
+ePub.Contents = Contents;
+ePub.RSVP = RSVP;
 
 ePub.ViewManagers = {};
 ePub.Views = {};

@@ -9,8 +9,10 @@ function base(doc, section){
     return;
   }
 
-  head = doc.querySelector("head");
-  base = head.querySelector("base");
+  // head = doc.querySelector("head");
+  // base = head.querySelector("base");
+  head = core.qs(doc, "head");
+  base = core.qs(head, "base");
 
   if(!base) {
     base = doc.createElement("base");
