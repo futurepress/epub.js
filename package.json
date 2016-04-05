@@ -45,6 +45,7 @@
   "dependencies": {
     "jszip": "^2.5.0",
     "rsvp": "^3.0.18",
-    "urijs": "^1.17.0"
+    "urijs": "^1.17.0",
+    "xmldom": "^0.1.22"
   }
 }
