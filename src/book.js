@@ -133,7 +133,11 @@ Book.prototype.open = function(_url){
         } else if(window && !book.isArchivedUrl(uri)){
           book.baseUrl = absPackageUri.absoluteTo(window.location.href).directory() + "/";
         } else {
-          book.baseUrl = "/" + packageUri.directory() + "/";
+          if(packageUri.directory()) {
+            book.baseUrl = "/" + packageUri.directory() + "/";
+          } else {
+            book.baseUrl = "/"
+          }         
         }
 
         return book.request(book.packageUrl);
