@@ -61,7 +61,7 @@ function links(view, renderer) {
       }
 
     }
-  };
+  }.bind(this);
 
   for (var i = 0; i < links.length; i++) {
     replaceLinks(links[i]);
