@@ -59,15 +59,6 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 			render.bodyEl.style.margin = "0";
 		}
 
-		// HTML element must have direction set if RTL or columnns will
-		// not be in the correct direction in Firefox
-		// Firefox also need the html element to be position right
-		if(render.direction == "rtl" && render.docEl.dir != "rtl"){
-			render.docEl.dir = "rtl";
-			render.docEl.style.position = "absolute";
-			render.docEl.style.right = "0";
-		}
-
 		deferred.resolve(render.docEl);
 	};
 
@@ -160,8 +151,10 @@ EPUBJS.Render.Iframe.prototype.setDirection = function(direction){
 	// Undo previous changes if needed
 	if(this.docEl && this.docEl.dir == "rtl"){
 		this.docEl.dir = "rtl";
-		this.docEl.style.position = "static";
-		this.docEl.style.right = "auto";
+		if (this.layout !== "pre-paginated") {
+			this.docEl.style.position = "static";
+			this.docEl.style.right = "auto";
+		}
 	}
 
 };
@@ -177,6 +170,10 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 		this.document.defaultView.scrollTo(leftPos, 0);
 	}
 
+};
+
+EPUBJS.Render.Iframe.prototype.setLayout = function (layout) {
+	this.layout = layout;
 };
 
 EPUBJS.Render.Iframe.prototype.setStyle = function(style, val, prefixed){
