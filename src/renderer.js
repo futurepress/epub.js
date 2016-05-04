@@ -65,7 +65,8 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:visibleLocationChanged",
 	"renderer:visibleRangeChanged",
 	"renderer:resized",
-	"renderer:spreads"
+	"renderer:spreads",
+	"renderer:beforeResize"
 ];
 
 /**
@@ -1168,6 +1169,8 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 //-- Listeners for events in the frame
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
+	this.trigger('renderer:beforeResize');
+	
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 
