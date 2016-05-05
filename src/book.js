@@ -24,7 +24,8 @@ EPUBJS.Book = function(options){
 		styles : {},
 		headTags : {},
 		withCredentials: false,
-		render_method: "Iframe"
+		render_method: "Iframe",
+		displayLastPage: false
 	});
 
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -731,7 +732,7 @@ EPUBJS.Book.prototype.startDisplay = function(){
 	}else if(this.settings.previousLocationCfi) {
 		display = this.gotoCfi(this.settings.previousLocationCfi);
 	}else{
-		display = this.displayChapter(this.spinePos);
+		display = this.displayChapter(this.spinePos, this.settings.displayLastPage);
 	}
 
 	return display;
