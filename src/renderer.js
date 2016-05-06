@@ -400,8 +400,10 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeEventListeners();
 		this.removeSelectionListeners();
 	}
-
-	this.container.removeChild(this.element);
+	
+	// clean container content 
+	this.container.innerHtml = "";
+//	this.container.removeChild(this.element);
 };
 
 //-- STYLES
