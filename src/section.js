@@ -60,8 +60,9 @@ Section.prototype.base = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
     var head;
+    console.log(window.location.origin + "/" +this.url);
 
-    base.setAttribute("href", this.url);
+    base.setAttribute("href", window.location.origin + "/" +this.url);
 
     if(_document) {
       head = _document.querySelector("head");

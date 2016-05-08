@@ -2,7 +2,7 @@ var RSVP = require('rsvp');
 var core = require('../core');
 var ContinuousViewManager = require('./continuous');
 var Map = require('../map');
-// var Layout = require('./layout');
+var Layout = require('../layout');
 
 function PaginatedViewManager(book, options) {
 
@@ -84,7 +84,7 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
 
   // Set the look ahead offset for what is visible
 
-  this.map = new Map(this.layout);
+  // this.map = new Map(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 

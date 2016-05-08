@@ -16,11 +16,10 @@ function base(doc, section){
 
   if(!base) {
     base = doc.createElement("base");
+    head.insertBefore(base, head.firstChild);
   }
 
   base.setAttribute("href", section.url);
-  head.insertBefore(base, head.firstChild);
-
 }
 
 function links(view, renderer) {

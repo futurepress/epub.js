@@ -28,6 +28,7 @@ ePub.register = {
 
 // Default Views
 ePub.register.view("iframe", require('./views/iframe'));
+ePub.register.view("inline", require('./views/inline'));
 
 // Default View Managers
 ePub.register.manager("single", require('./managers/single'));

@@ -5,42 +5,50 @@ var Contents = require('../contents');
 
 function IframeView(section, options) {
   this.settings = core.extend({
-    ignoreClass : ''
+    ignoreClass : '',
+    axis: 'vertical',
+    width: 0,
+    height: 0,
+    layout: undefined,
+    globalLayoutProperties: {},
   }, options || {});
 
   this.id = "epubjs-view:" + core.uuid();
   this.section = section;
   this.index = section.index;
 
-  this.element = this.createContainer();
+  this.element = this.container(this.settings.axis);
 
   this.added = false;
   this.displayed = false;
   this.rendered = false;
 
-  //this.width  = 0;
-  //this.height = 0;
+  this.width  = this.settings.width;
+  this.height = this.settings.height;
+
+  this.fixedWidth  = 0;
+  this.fixedHeight = 0;
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
 
+  this.layout = this.settings.layout;
   // Dom events to listen for
   // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 };
 
-IframeView.prototype.createContainer = function() {
+IframeView.prototype.container = function(axis) {
   var element = document.createElement('div');
 
   element.classList.add("epub-view");
-
 
   // this.element.style.minHeight = "100px";
   element.style.height = "0px";
   element.style.width = "0px";
   element.style.overflow = "hidden";
 
-  if(this.settings.axis && this.settings.axis == "horizontal"){
+  if(axis && axis == "horizontal"){
     element.style.display = "inline-block";
   } else {
     element.style.display = "block";
@@ -92,20 +100,87 @@ IframeView.prototype.create = function() {
   // }
 
   // Firefox has trouble with baseURI and srcdoc
-  // Disabled for now
-  /*
+  // TODO: Disable for now in firefox
+
   if(!!("srcdoc" in this.iframe)) {
     this.supportsSrcdoc = true;
   } else {
     this.supportsSrcdoc = false;
   }
-  */
-  this.supportsSrcdoc = false;
 
   return this.iframe;
 };
 
+IframeView.prototype.render = function(request, show) {
 
+	// view.onLayout = this.layout.format.bind(this.layout);
+	this.create();
+
+	// Fit to size of the container, apply padding
+  this.size();
+
+	// Render Chain
+	return this.section.render(request)
+		.then(function(contents){
+			return this.load(contents);
+		}.bind(this))
+		// .then(function(doc){
+		// 	return this.hooks.content.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+			// this.settings.layout.format(view.contents);
+			// return this.hooks.layout.trigger(view, this);
+		}.bind(this))
+		// .then(function(){
+		// 	return this.display();
+		// }.bind(this))
+		// .then(function(){
+		// 	return this.hooks.render.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+
+      // apply the layout function to the contents
+      this.settings.layout.format(this.contents);
+
+      // Expand the iframe to the full size of the content
+      this.expand();
+
+      // Listen for events that require an expansion of the iframe
+      this.addListeners();
+
+			if(show !== false) {
+				//this.q.enqueue(function(view){
+					this.show();
+				//}, view);
+			}
+			// this.map = new Map(view, this.layout);
+			//this.hooks.show.trigger(view, this);
+			this.trigger("rendered", this.section);
+
+		}.bind(this))
+		.catch(function(e){
+			this.trigger("loaderror", e);
+		}.bind(this));
+
+};
+
+// Determine locks base on settings
+IframeView.prototype.size = function(_width, _height) {
+  var width = _width || this.settings.width;
+  var height = _height || this.settings.height;
+
+  if(this.layout.name === "pre-paginated") {
+    // TODO: check if these are different than the size set in chapter
+    this.lock("both", width, height);
+  } else if(this.settings.axis === "horizontal") {
+		this.lock("height", width, height);
+	} else {
+		this.lock("width", width, height);
+	}
+
+};
+
+// Lock an axis to element dimensions, taking borders into account
 IframeView.prototype.lock = function(what, width, height) {
   var elBorders = core.borders(this.element);
   var iframeBorders;
@@ -147,18 +222,20 @@ IframeView.prototype.lock = function(what, width, height) {
 
 };
 
+// Resize a single axis based on content dimensions
 IframeView.prototype.expand = function(force) {
   var width = this.lockedWidth;
   var height = this.lockedHeight;
 
   var textWidth, textHeight;
-  // console.log("expanding a")
+
   if(!this.iframe || this._expanding) return;
 
   this._expanding = true;
 
   // Expand Horizontally
-  if(height && !width) {
+  // if(height && !width) {
+  if(this.settings.axis === "horizontal") {
     // Get the width of the text
     textWidth = this.contents.textWidth();
     // Check if the textWidth has changed
@@ -174,10 +251,8 @@ IframeView.prototype.expand = function(force) {
       // Otherwise assume content height hasn't changed
       width = this._contentWidth;
     }
-  }
-
-  // Expand Vertically
-  if(width && !height) {
+  } // Expand Vertically
+  else if(this.settings.axis === "vertical") {
     textHeight = this.contents.textHeight();
     if(textHeight != this._textHeight){
       height = this.contentHeight(textHeight);
@@ -248,12 +323,12 @@ IframeView.prototype.resize = function(width, height) {
 };
 
 IframeView.prototype.reframe = function(width, height) {
-  //var prevBounds;
+  var size;
 
-  if(!this.displayed) {
-    this._needsReframe = true;
-    return;
-  }
+  // if(!this.displayed) {
+  //   this._needsReframe = true;
+  //   return;
+  // }
 
   if(core.isNumber(width)){
     this.element.style.width = width + "px";
@@ -267,43 +342,19 @@ IframeView.prototype.reframe = function(width, height) {
 
   this.elementBounds = core.bounds(this.element);
 
-  this.trigger("resized", {
+  size = {
     width: this.elementBounds.width,
     height: this.elementBounds.height,
     widthDelta: this.elementBounds.width - this.prevBounds.width,
     heightDelta: this.elementBounds.height - this.prevBounds.height,
-  });
+  };
+
+  this.onResize(this, size);
+
+  this.trigger("resized", size);
 
 };
 
-// View.prototype.resized = function(e) {
-//   /*
-//   if (!this.resizing) {
-//     if(this.iframe) {
-//       // this.expand();
-//     }
-//   } else {
-//     this.resizing = false;
-//   }*/
-//
-// };
-/*
-View.prototype.render = function(_request) {
-
-  // if(this.rendering){
-  //   return this.displayed;
-  // }
-
-  this.rendering = true;
-  // this.displayingDefer = new RSVP.defer();
-  // this.displayedPromise = this.displaying.promise;
-
-  return this.section.render(_request)
-    .then(function(contents){
-      return this.load(contents);
-    }.bind(this));
-};
-*/
 
 IframeView.prototype.load = function(contents) {
   var loading = new RSVP.defer();
@@ -375,50 +426,10 @@ IframeView.prototype.onLoad = function(event, promise) {
 //   // stub
 // };
 
-IframeView.prototype.setLayout = function(layoutFunc) {
-  this.layoutFunc = layoutFunc;
+IframeView.prototype.setLayout = function(layout) {
+  this.layout = layout;
 };
 
-IframeView.prototype.listeners = function() {
-  /*
-  setTimeout(function(){
-    this.window.addEventListener("resize", this.resized.bind(this), false);
-  }.bind(this), 10); // Wait to listen for resize events
-  */
-
-  // Wait for fonts to load to finish
-  // http://dev.w3.org/csswg/css-font-loading/
-  // Not implemented fully except in chrome
-
-  if(this.document.fonts && this.document.fonts.status === "loading") {
-    // console.log("fonts unloaded");
-    this.document.fonts.onloadingdone = function(){
-      // console.log("loaded fonts");
-      this.expand();
-    }.bind(this);
-  }
-
-  if(this.section.properties.indexOf("scripted") > -1){
-    this.observer = this.observe(this.document.body);
-  }
-
-  this.imageLoadListeners();
-
-  this.mediaQueryListeners();
-
-  // this.resizeListenters();
-
-  // this.addEventListeners();
-
-  // this.addSelectionListeners();
-};
-
-IframeView.prototype.removeListeners = function() {
-
-  // this.removeEventListeners();
-
-  // this.removeSelectionListeners();
-};
 
 IframeView.prototype.resizeListenters = function() {
   // Test size again
@@ -426,93 +437,34 @@ IframeView.prototype.resizeListenters = function() {
   this.expanding = setTimeout(this.expand.bind(this), 350);
 };
 
-//https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
-IframeView.prototype.mediaQueryListeners = function() {
-    var sheets = this.document.styleSheets;
-    var mediaChangeHandler = function(m){
-      if(m.matches && !this._expanding) {
-        setTimeout(this.expand.bind(this), 1);
-        // this.expand();
-      }
-    }.bind(this);
-
-    for (var i = 0; i < sheets.length; i += 1) {
-        var rules = sheets[i].cssRules;
-        if(!rules) return; // Stylesheets changed
-        for (var j = 0; j < rules.length; j += 1) {
-            //if (rules[j].constructor === CSSMediaRule) {
-            if(rules[j].media){
-                var mql = this.window.matchMedia(rules[j].media.mediaText);
-                mql.addListener(mediaChangeHandler);
-                //mql.onchange = mediaChangeHandler;
-            }
-        }
-    }
+IframeView.prototype.addListeners = function() {
+  //TODO: Add content listeners for expanding
 };
 
-IframeView.prototype.observe = function(target) {
-  var renderer = this;
-
-  // create an observer instance
-  var observer = new MutationObserver(function(mutations) {
-    if(renderer._expanding) {
-      renderer.expand();
-    }
-    // mutations.forEach(function(mutation) {
-    //   console.log(mutation);
-    // });
-  });
-
-  // configuration of the observer:
-  var config = { attributes: true, childList: true, characterData: true, subtree: true };
-
-  // pass in the target node, as well as the observer options
-  observer.observe(target, config);
-
-  return observer;
+IframeView.prototype.removeListeners = function(layoutFunc) {
+  //TODO: remove content listeners for expanding
 };
 
-// View.prototype.appendTo = function(element) {
-//   this.element = element;
-//   this.element.appendChild(this.iframe);
-// };
-//
-// View.prototype.prependTo = function(element) {
-//   this.element = element;
-//   element.insertBefore(this.iframe, element.firstChild);
-// };
-
-IframeView.prototype.imageLoadListeners = function(target) {
-  var images = this.document.body.querySelectorAll("img");
-  var img;
-  for (var i = 0; i < images.length; i++) {
-    img = images[i];
-
-    if (typeof img.naturalWidth !== "undefined" &&
-        img.naturalWidth === 0) {
-      img.onload = this.expand.bind(this);
-    }
-  }
-};
-
-IframeView.prototype.display = function() {
+IframeView.prototype.display = function(request) {
   var displayed = new RSVP.defer();
 
-  this.displayed = true;
+  if (!this.displayed) {
 
-  // apply the layout function to the contents
-  // this.layout(layoutFunc);
+    this.render(request).then(function () {
 
-  // Expand the iframe to the full size of the content
-  this.expand();
+      this.trigger("displayed", this);
+      this.onDisplayed(this);
 
-  // Listen for event that require an expansion of the iframe
-  this.listeners();
+      this.displayed = true;
 
-  this.trigger("displayed", this);
-  this.onDisplayed(this);
+      displayed.resolve(this);
 
-  displayed.resolve(this);
+    }.bind(this));
+
+  } else {
+    displayed.resolve(this);
+  }
+
 
   return displayed.promise;
 };
@@ -555,6 +507,10 @@ IframeView.prototype.onDisplayed = function(view) {
   // Stub, override with a custom functions
 };
 
+IframeView.prototype.onResize = function(view, e) {
+  // Stub, override with a custom functions
+};
+
 IframeView.prototype.bounds = function() {
   if(!this.elementBounds) {
     this.elementBounds = core.bounds(this.element);
@@ -563,12 +519,10 @@ IframeView.prototype.bounds = function() {
 };
 
 IframeView.prototype.destroy = function() {
-  // Stop observing
-  if(this.observer) {
-    this.observer.disconnect();
-  }
 
   if(this.displayed){
+    this.displayed = false;
+
     this.removeListeners();
 
     this.stopExpanding = true;

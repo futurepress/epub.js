@@ -6350,6 +6350,7 @@ Book.prototype.open = function(_url){
   var book = this;
   var containerPath = "META-INF/container.xml";
   var location;
+  var absoluteUri;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -6363,7 +6364,13 @@ Book.prototype.open = function(_url){
   //   uri = core.uri(_url);
   // }
   uri = URI(_url);
-  this.url = _url;
+
+  if (window) {
+    absoluteUri = uri.absoluteTo(window.location.href);
+    this.url = absoluteUri.toString();
+  } else {
+    this.url = _url;
+  }
 
   // Find path to the Container
   if(uri.suffix() === "opf") {
@@ -6373,8 +6380,9 @@ Book.prototype.open = function(_url){
 
     if(uri.origin()) {
       this.baseUrl = uri.origin() + "/" + uri.directory() + "/";
-    } else if(window){
-      this.baseUrl = uri.absoluteTo(window.location.href).directory() + "/";
+    } else if(absoluteUri){
+      this.baseUrl = absoluteUri.origin();
+      this.baseUrl += absoluteUri.directory() + "/";
     } else {
       this.baseUrl = uri.directory() + "/";
     }
@@ -6412,14 +6420,14 @@ Book.prototype.open = function(_url){
       then(function(paths){
         var packageUri = URI(paths.packagePath);
         var absPackageUri = packageUri.absoluteTo(book.url);
+        var absWindowUri;
+
         book.packageUrl = absPackageUri.toString();
         book.encoding = paths.encoding;
 
         // Set Url relative to the content
-        if(packageUri.origin()) {
-          book.baseUrl = packageUri.origin() + "/" + packageUri.directory() + "/";
-        } else if(window && !book.isArchivedUrl(uri)){
-          book.baseUrl = absPackageUri.absoluteTo(window.location.href).directory() + "/";
+        if(absPackageUri.origin()) {
+          book.baseUrl = absPackageUri.origin() + absPackageUri.directory() + "/";
         } else {
           book.baseUrl = "/" + packageUri.directory() + "/";
         }
@@ -6666,16 +6674,14 @@ Contents.prototype.textHeight = function() {
   return height;
 };
 
-Contents.prototype.scrollWidth = function(min) {
-  var prev;
-  var width = this.document.body.scrollWidth;
+Contents.prototype.scrollWidth = function() {
+  var width = this.documentElement.scrollWidth;
 
   return width;
 };
 
-Contents.prototype.scrollHeight = function(min) {
-  var prev;
-  var height = this.document.body.scrollHeight;
+Contents.prototype.scrollHeight = function() {
+  var height = this.documentElement.scrollHeight;
 
   return height;
 };
@@ -6746,6 +6752,10 @@ Contents.prototype.viewport = function() {
 //   // stub
 // };
 
+Contents.prototype.expand = function() {
+  //TODO: this should just report resize
+};
+
 Contents.prototype.listeners = function() {
 
   this.imageLoadListeners();
@@ -6792,6 +6802,28 @@ Contents.prototype.mediaQueryListeners = function() {
             }
         }
     }
+};
+
+Contents.prototype.observe = function(target) {
+  var renderer = this;
+
+  // create an observer instance
+  var observer = new MutationObserver(function(mutations) {
+    if(renderer._expanding) {
+      renderer.expand();
+    }
+    // mutations.forEach(function(mutation) {
+    //   console.log(mutation);
+    // });
+  });
+
+  // configuration of the observer:
+  var config = { attributes: true, childList: true, characterData: true, subtree: true };
+
+  // pass in the target node, as well as the observer options
+  observer.observe(target, config);
+
+  return observer;
 };
 
 Contents.prototype.imageLoadListeners = function(target) {
@@ -6998,6 +7030,16 @@ Contents.prototype.range = function(_cfi, ignoreClass){
 Contents.prototype.map = function(layout){
   var map = new Map(layout);
   return map.section();
+};
+
+Contents.prototype.destroy = function() {
+  // Stop observing
+  if(this.observer) {
+    this.observer.disconnect();
+  }
+
+  this.removeListeners();
+
 };
 
 RSVP.EventTarget.mixin(Contents.prototype);
@@ -8524,6 +8566,8 @@ function Reflowable(){
   this.column = 0;
   this.gap = 0;
   this.divisor = 0;
+
+  this.name = "reflowable";
 };
 
 Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
@@ -8617,6 +8661,9 @@ Reflowable.prototype.count = function(totalWidth) {
 function Fixed(_width, _height){
   this.width = 0;
   this.height = 0;
+
+  this.name = "pre-paginated";
+
 };
 
 Fixed.prototype.calculate = function(_width, _height){
@@ -8676,6 +8723,7 @@ function Scroll(){
   this.spread = 0;
   this.column = 0;
   this.gap = 0;
+  this.name = "scrolled";
 };
 
 Scroll.prototype.calculate = function(_width, _height){
@@ -8690,7 +8738,7 @@ Scroll.prototype.format = function(contents){
 
   // $doc.style.width = "auto";
   // $doc.style.height = "auto";
-  contents.width("auto");
+  // contents.width("auto");
   contents.height("auto");
 
 };
@@ -8975,7 +9023,7 @@ ContinuousViewManager.prototype.moveTo = function(offset){
 
 	  }.bind(this));
 };
-
+/*
 ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	var next = currView.section.next();
 	var prev = currView.section.prev();
@@ -8997,7 +9045,10 @@ ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	this.trigger("added", currView.section);
 
 };
-
+*/
+ContinuousViewManager.prototype.afterResized = function(view){
+	this.trigger("resize", view.section);
+};
 
 // Remove Previous Listeners if present
 ContinuousViewManager.prototype.removeShownListeners = function(view){
@@ -9008,27 +9059,31 @@ ContinuousViewManager.prototype.removeShownListeners = function(view){
 
 };
 
-ContinuousViewManager.prototype.append = function(view){
+ContinuousViewManager.prototype.append = function(section){
+	var view = this.createView(section);
 
-	// view.on("shown", this.afterDisplayed.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
+	return this.q.enqueue(function() {
 
-	this.views.append(view);
+		this.views.append(view);
 
-  //this.q.enqueue(this.check);
-  return this.check();
+		return this.update();
+
+	}.bind(this));
 };
 
-ContinuousViewManager.prototype.prepend = function(view){
-	// view.on("shown", this.afterDisplayedAbove.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
+ContinuousViewManager.prototype.prepend = function(section){
+	var view = this.createView(section);
 
 	view.on("resized", this.counter.bind(this));
 
-	this.views.prepend(view);
+	return this.q.enqueue(function() {
 
-  // this.q.enqueue(this.check);
-  return this.check();
+		this.views.prepend(view);
+
+		return this.update();
+
+	}.bind(this));
+
 };
 
 ContinuousViewManager.prototype.counter = function(bounds){
@@ -9040,7 +9095,7 @@ ContinuousViewManager.prototype.counter = function(bounds){
 	}
 
 };
-
+/*
 ContinuousViewManager.prototype.check = function(_offset){
 	var checking = new RSVP.defer();
 	var container = this.stage.bounds();
@@ -9081,6 +9136,98 @@ ContinuousViewManager.prototype.check = function(_offset){
       .then(function(posts) {
         // Check to see if anything new is on screen after rendering
         this.q.enqueue(this.check.bind(this));
+
+      }.bind(this));
+
+  } else {
+    checking.resolve();
+
+    return checking.promise;
+  }
+
+};
+*/
+
+ContinuousViewManager.prototype.update = function(_offset){
+	var container = this.stage.bounds();
+	var views = this.views;
+	var viewsLength = views.length;
+	var visible = [];
+	var isVisible;
+	var view;
+
+	var updating = new RSVP.defer();
+	var promises = [];
+
+	for (var i = 0; i < viewsLength; i++) {
+    view = views[i];
+    isVisible = this.isVisible(view, 0, 0, container);
+
+    if(isVisible === true) {
+			promises.push(view.display());
+      visible.push(view);
+    } else {
+			this.q.enqueue(view.destroy.bind(view));
+
+			clearTimeout(this.trimTimeout);
+			this.trimTimeout = setTimeout(function(){
+				this.q.enqueue(this.trim.bind(this));
+			}.bind(this), 250);
+    }
+
+  }
+
+	if(promises.length){
+    return RSVP.all(promises);
+  } else {
+    updating.resolve();
+    return updating.promise;
+  }
+
+};
+
+ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
+	var next, prev;
+	var horizontal = (this.settings.axis === "horizontal");
+	var delta = this.settings.offset || 0;
+
+	if (_offsetLeft && horizontal) {
+		delta = _offsetLeft;
+	}
+
+	if (_offsetTop && !horizontal) {
+		delta = _offsetTop;
+	}
+
+	var bounds = this.stage.bounds(); // TODO: save this until resize
+
+	var offset = horizontal ? this.container.scrollLeft : this.container.scrollTop;
+	var visibleLength = horizontal ? bounds.width : bounds.height;
+	var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
+
+	var checking = new RSVP.defer();
+	var promises = [];
+
+	if (offset + visibleLength + delta >= contentLength) {
+    next = this.views.last().section.next();
+    if(next) {
+      promises.push(this.append(next));
+    }
+  }
+
+  if (offset - delta < 0 ) {
+    prev = this.views.first().section.prev();
+    if(prev) {
+      promises.push(this.prepend(prev));
+    }
+  }
+
+  if(promises.length){
+
+    return RSVP.all(promises)
+      .then(function(posts) {
+        // Check to see if anything new is on screen after rendering
+        this.q.enqueue(this.update.bind(this));
 
       }.bind(this));
 
@@ -9245,15 +9392,15 @@ ContinuousViewManager.prototype.onScroll = function(){
 };
 
 
- ContinuousViewManager.prototype.resizeView = function(view) {
-
-	if(this.settings.axis === "horizontal") {
-		view.lock("height", this.stage.width, this.stage.height);
-	} else {
-		view.lock("width", this.stage.width, this.stage.height);
-	}
-
-};
+//  ContinuousViewManager.prototype.resizeView = function(view) {
+//
+// 	if(this.settings.axis === "horizontal") {
+// 		view.lock("height", this.stage.width, this.stage.height);
+// 	} else {
+// 		view.lock("width", this.stage.width, this.stage.height);
+// 	}
+//
+// };
 
 ContinuousViewManager.prototype.currentLocation = function(){
   var visible = this.visible();
@@ -9331,7 +9478,7 @@ var RSVP = require('rsvp');
 var core = require('../core');
 var ContinuousViewManager = require('./continuous');
 var Map = require('../map');
-// var Layout = require('./layout');
+var Layout = require('../layout');
 
 function PaginatedViewManager(book, options) {
 
@@ -9413,7 +9560,7 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
 
   // Set the look ahead offset for what is visible
 
-  this.map = new Map(this.layout);
+  // this.map = new Map(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 
@@ -9551,11 +9698,13 @@ PaginatedViewManager.prototype.onResized = function(e) {
 
 module.exports = PaginatedViewManager;
 
-},{"../core":12,"../map":20,"./continuous":17,"rsvp":4}],19:[function(require,module,exports){
+},{"../core":12,"../layout":15,"../map":20,"./continuous":17,"rsvp":4}],19:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
+var Stage = require('../stage');
 var Views = require('../views');
 var EpubCFI = require('../epubcfi');
+var Layout = require('../layout');
 
 function SingleViewManager(options) {
 
@@ -9569,23 +9718,35 @@ function SingleViewManager(options) {
 		width: false,
 		height: null,
 		globalLayoutProperties : { layout: 'reflowable', spread: 'auto', orientation: 'auto'},
-		layout: null,
+		// layout: null,
 		axis: "vertical",
 		ignoreClass: ''
 	});
 
 	core.extend(this.settings, options.settings);
 
+
 	this.viewSettings = {
-		ignoreClass: this.settings.ignoreClass
+		ignoreClass: this.settings.ignoreClass,
+		globalLayoutProperties: this.settings.globalLayoutProperties,
+		axis: this.settings.axis,
+		layout: this.layout,
+		width: 0,
+		height: 0
 	};
 
 }
 
-SingleViewManager.prototype.start = function(stage){
+SingleViewManager.prototype.render = function(element, size){
 
 	// Save the stage
-	this.stage = stage;
+	this.stage = new Stage({
+		width: size.width,
+		height: size.height,
+		hidden: this.settings.hidden
+	});
+
+	this.stage.attachTo(element);
 
 	// Get this stage container div
 	this.container = this.stage.getContainer();
@@ -9596,6 +9757,10 @@ SingleViewManager.prototype.start = function(stage){
 	// Calculate Stage Size
 	this.bounds = this.stage.bounds();
 
+	// Set the dimensions for views
+	this.viewSettings.width = this.bounds.width;
+	this.viewSettings.height = this.bounds.height;
+
 	// Function to handle a resize event.
 	// Will only attach if width and height are both fixed.
 	this.stage.onResize(this.onResized.bind(this));
@@ -9604,7 +9769,7 @@ SingleViewManager.prototype.start = function(stage){
 	this.addEventListeners();
 
 	// Add Layout method
-	// this.applyLayoutMethod();
+	this.applyLayoutMethod();
 };
 
 SingleViewManager.prototype.addEventListeners = function(){
@@ -9619,7 +9784,14 @@ SingleViewManager.prototype.resize = function(width, height){
 
 	this.bounds = this.stage.bounds(width, height);
 
-	this.views.each(this.resizeView.bind(this));
+	// Update for new views
+	this.viewSettings.width = this.bounds.width;
+	this.viewSettings.height = this.bounds.height;
+
+	// Update for existing views
+	this.views.each(function(view) {
+		view.size(this.bounds.width, this.bounds.height);
+	}.bind(this));
 
 	this.trigger("resized", {
 		width: this.stage.width,
@@ -9628,10 +9800,12 @@ SingleViewManager.prototype.resize = function(width, height){
 
 };
 
-SingleViewManager.prototype.layout = function(layoutFunc){
+SingleViewManager.prototype.setLayout = function(layout){
+
+	this.viewSettings.layout = layout;
 
 	this.views.each(function(view){
-		layoutFunc(view);
+		view.setLayout(layout);
 	});
 
 };
@@ -9660,10 +9834,12 @@ SingleViewManager.prototype.display = function(section, target){
 	// Hide all current views
 	this.views.hide();
 
+	this.views.clear();
+
 	// Create a new view
 	view = this.createView(section);
 
-	return this.fill(view)
+	return this.add(view)
 		.then(function(){
 
 			// Move to correct place within the section, if needed
@@ -9683,34 +9859,38 @@ SingleViewManager.prototype.display = function(section, target){
 };
 
 SingleViewManager.prototype.afterDisplayed = function(view){
-	this.trigger("added", view.section);
+	this.trigger("added", view);
+};
+
+SingleViewManager.prototype.afterResized = function(view){
+	this.trigger("resize", view.section);
 };
 
 SingleViewManager.prototype.moveTo = function(offset){
 	this.scrollTo(offset.left, offset.top);
 };
 
-SingleViewManager.prototype.fill = function(view){
-
-	this.views.clear();
+SingleViewManager.prototype.add = function(view){
 
 	this.views.append(view);
 
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
+	view.onResize = this.afterResized.bind(this);
 
-	return this.renderer(view, this.views.hidden);
+	return view.display();
+	// return this.renderer(view, this.views.hidden);
 };
 
-SingleViewManager.prototype.resizeView = function(view) {
-
-	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
-		view.lock("both", this.bounds.width, this.bounds.height);
-	} else {
-		view.lock("width", this.bounds.width, this.bounds.height);
-	}
-
-};
+// SingleViewManager.prototype.resizeView = function(view) {
+//
+// 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
+// 		view.lock("both", this.bounds.width, this.bounds.height);
+// 	} else {
+// 		view.lock("width", this.bounds.width, this.bounds.height);
+// 	}
+//
+// };
 
 SingleViewManager.prototype.next = function(){
 	var next;
@@ -9721,8 +9901,10 @@ SingleViewManager.prototype.next = function(){
 	next = this.views.last().section.next();
 
 	if(next) {
+		this.views.clear();
+
 		view = this.createView(next);
-		return this.fill(view)
+		return this.add(view)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
@@ -9737,8 +9919,10 @@ SingleViewManager.prototype.prev = function(){
 
 	prev = this.views.first().section.prev();
 	if(prev) {
+		this.views.clear();
+
 		view = this.createView(prev);
-		return this.fill(view)
+		return this.add(view)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
@@ -9790,14 +9974,17 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 };
 
 SingleViewManager.prototype.visible = function(){
+	return this.views.displayed();
+	/*
 	var container = this.stage.bounds();
-	var displayedViews = this.views.displayed();
+	var views = this.views;
+	var viewsLength = views.length;
   var visible = [];
   var isVisible;
   var view;
 
-  for (var i = 0; i < displayedViews.length; i++) {
-    view = displayedViews[i];
+  for (var i = 0; i < viewsLength; i++) {
+    view = views[i];
     isVisible = this.isVisible(view, 0, 0, container);
 
     if(isVisible === true) {
@@ -9806,7 +9993,7 @@ SingleViewManager.prototype.visible = function(){
 
   }
   return visible;
-
+	*/
 };
 
 SingleViewManager.prototype.scrollBy = function(x, y, silent){
@@ -9847,12 +10034,46 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   // };
  };
 
+ SingleViewManager.prototype.bounds = function() {
+   var bounds;
+
+   if(!this.settings.height || !this.container) {
+     bounds = core.windowBounds();
+   } else {
+     bounds = this.container.getBoundingClientRect();
+   }
+
+   return bounds;
+ };
+
+ SingleViewManager.prototype.applyLayoutMethod = function() {
+
+ 	this.layout = new Layout.Scroll();
+ 	this.calculateLayout();
+
+	this.setLayout(this.layout);
+
+ 	// this.map = new Map(this.layout);
+ 	// this.manager.layout(this.layout.format);
+ };
+
+ SingleViewManager.prototype.calculateLayout = function() {
+ 	var bounds = this.stage.bounds();
+ 	this.layout.calculate(bounds.width, bounds.height);
+ };
+
+ SingleViewManager.prototype.updateLayout = function() {
+ 	this.calculateLayout();
+
+ 	this.setLayout(this.layout);
+ };
+
  //-- Enable binding events to Manager
  RSVP.EventTarget.mixin(SingleViewManager.prototype);
 
  module.exports = SingleViewManager;
 
-},{"../core":12,"../epubcfi":13,"../views":32,"rsvp":4}],20:[function(require,module,exports){
+},{"../core":12,"../epubcfi":13,"../layout":15,"../stage":29,"../views":32,"rsvp":4}],20:[function(require,module,exports){
 function Map(layout){
   this.layout = layout;
 };
@@ -10402,9 +10623,11 @@ Parser.prototype.metadata = function(xml){
   metadata.rights = p.getElementText(xml, "rights");
 
   metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
+  
   metadata.layout = p.getPropertyText(xml, "rendition:layout");
   metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
-  metadata.spread = p.getPropertyText(xml, 'rendition:spread');
+  metadata.flow = p.getPropertyText(xml, 'rendition:flow');
+  metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
   // metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 
   return metadata;
@@ -10943,16 +11166,15 @@ var View = require('./view');
 var Views = require('./views');
 var Layout = require('./layout');
 var Map = require('./map');
-var Stage = require('./stage');
 
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		hidden: false,
-		width: false,
+		width: null,
 		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'},
+		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
 		axis: "vertical",
 		ignoreClass: '',
 		manager: "single",
@@ -11001,6 +11223,15 @@ function Rendition(book, options) {
 		this.replacements();
 	}
 
+	this.ViewManager = this.requireManager(this.settings.manager);
+	this.View = this.requireView(this.settings.view);
+
+	this.manager = new this.ViewManager({
+		view: this.View,
+		queue: this.q,
+		settings: this.settings
+	});
+
 };
 
 Rendition.prototype.setManager = function(manager) {
@@ -11038,30 +11269,13 @@ Rendition.prototype.requireView = function(view) {
   return View;
 };
 
-Rendition.prototype.start = function(stage){
-	var ViewManager, View;
-
-	// Add view manager
-	if (!this.manager) {
-		ViewManager = this.requireManager(this.settings.manager);
-		View = this.requireView(this.settings.view);
-
-		this.manager = new ViewManager({
-			view: View,
-			renderer: this.render.bind(this),
-			queue: this.q,
-			settings: this.settings
-		});
-	}
+Rendition.prototype.start = function(){
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
 
-	// Start rendering
-	this.manager.start(stage);
-
 	// Add Layout method
-	this.applyLayoutMethod();
+	// this.applyLayoutMethod();
 
 	this.on('displayed', this.reportLocation.bind(this));
 
@@ -11076,12 +11290,13 @@ Rendition.prototype.start = function(stage){
 // Container must be attached before rendering can begin
 Rendition.prototype.attachTo = function(element){
 
-	this.container = new Stage(element, {
+	// Start rendering
+	this.manager.render(element, {
 		"width"  : this.settings.width,
 		"height" : this.settings.height
 	});
 
-	this.start(this.container);
+	this.start();
 
 	// Trigger Attached
 	this.trigger("attached");
@@ -11131,6 +11346,7 @@ Rendition.prototype._display = function(target){
 
 };
 
+/*
 Rendition.prototype.render = function(view, show) {
 
 	// view.onLayout = this.layout.format.bind(this.layout);
@@ -11173,36 +11389,17 @@ Rendition.prototype.render = function(view, show) {
 		}.bind(this));
 
 };
+*/
 
-Rendition.prototype.afterDisplayed = function(section){
-	this.trigger("added", section);
+Rendition.prototype.afterDisplayed = function(view){
+	this.hooks.content.trigger(view, this);
+	this.trigger("rendered", view.section);
 	this.reportLocation();
-};
-
-Rendition.prototype.applyLayoutMethod = function() {
-
-	this.layout = new Layout.Scroll();
-	this.calculateLayout();
-
-	// this.map = new Map(this.layout);
-	// this.manager.layout(this.layout.format);
-};
-
-Rendition.prototype.calculateLayout = function() {
-	// TODO: should this be a function to get the live bounds? It is cached and updated on resize for now.
-	var bounds = this.manager.bounds;
-	this.layout.calculate(bounds.width, bounds.height);
-};
-
-Rendition.prototype.updateLayout = function() {
-	this.calculateLayout();
-
-	this.manager.layout(this.layout.format);
 };
 
 Rendition.prototype.onResized = function(size){
 
-	this.updateLayout();
+	this.manager.updateLayout();
 
 	if(this.location) {
 		this.display(this.location.start);
@@ -11227,29 +11424,21 @@ Rendition.prototype.prev = function(){
 	return this.q.enqueue(this.manager.prev.bind(this.manager));
 };
 
-Rendition.prototype.bounds = function() {
-  var bounds;
-
-  if(!this.settings.height || !this.container) {
-    bounds = core.windowBounds();
-  } else {
-    bounds = this.container.getBoundingClientRect();
-  }
-
-  return bounds;
-};
-
 //-- http://www.idpf.org/epub/fxl/
 Rendition.prototype.parseLayoutProperties = function(_metadata){
 	var metadata = _metadata || this.book.package.metadata;
 	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
 	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
 	var orientation = (this.layoutOveride && this.layoutOveride.orientation) || metadata.orientation || "auto";
+	var flow = (this.layoutOveride && this.layoutOveride.flow) || metadata.flow || "auto";
+	var viewport = (this.layoutOveride && this.layoutOveride.viewport) || metadata.viewport || "";
 
 	this.settings.globalLayoutProperties = {
 		layout : layout,
 		spread : spread,
-		orientation : orientation
+		orientation : orientation,
+		flow : flow,
+		viewport : viewport
 	};
 
 	return this.settings.globalLayoutProperties;
@@ -11257,33 +11446,23 @@ Rendition.prototype.parseLayoutProperties = function(_metadata){
 
 /**
 * Uses the settings to determine which Layout Method is needed
-* Triggers events based on the method choosen
-* Takes: Layout settings object
-* Returns: String of appropriate for EPUBJS.Layout function
 */
-// Paginate.prototype.determineLayout = function(settings){
+// Rendition.prototype.determineLayout = function(settings){
 //   // Default is layout: reflowable & spread: auto
 //   var spreads = this.determineSpreads(this.settings.minSpreadWidth);
-//   console.log("spreads", spreads, this.settings.minSpreadWidth)
 //   var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
 //   var scroll = false;
 //
 //   if(settings.layout === "pre-paginated") {
-//     layoutMethod = "Fixed";
-//     scroll = true;
-//     spreads = false;
+//
 //   }
 //
 //   if(settings.layout === "reflowable" && settings.spread === "none") {
-//     layoutMethod = "Reflowable";
-//     scroll = false;
-//     spreads = false;
+//
 //   }
 //
 //   if(settings.layout === "reflowable" && settings.spread === "both") {
-//     layoutMethod = "ReflowableSpreads";
-//     scroll = false;
-//     spreads = true;
+//
 //   }
 //
 //   this.spreads = spreads;
@@ -11475,7 +11654,7 @@ RSVP.EventTarget.mixin(Rendition.prototype);
 
 module.exports = Rendition;
 
-},{"./core":12,"./epubcfi":13,"./hook":14,"./layout":15,"./map":20,"./queue":23,"./replacements":25,"./stage":29,"./view":31,"./views":32,"rsvp":4,"urijs":6}],25:[function(require,module,exports){
+},{"./core":12,"./epubcfi":13,"./hook":14,"./layout":15,"./map":20,"./queue":23,"./replacements":25,"./view":31,"./views":32,"rsvp":4,"urijs":6}],25:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 
@@ -11494,11 +11673,10 @@ function base(doc, section){
 
   if(!base) {
     base = doc.createElement("base");
+    head.insertBefore(base, head.firstChild);
   }
 
   base.setAttribute("href", section.url);
-  head.insertBefore(base, head.firstChild);
-
 }
 
 function links(view, renderer) {
@@ -11769,8 +11947,9 @@ Section.prototype.base = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
     var head;
+    console.log(window.location.origin + "/" +this.url);
 
-    base.setAttribute("href", this.url);
+    base.setAttribute("href", window.location.origin + "/" +this.url);
 
     if(_document) {
       head = _document.querySelector("head");
@@ -12003,17 +12182,13 @@ module.exports = Spine;
 },{"./core":12,"./epubcfi":13,"./hook":14,"./replacements":25,"./section":27,"rsvp":4}],29:[function(require,module,exports){
 var core = require('./core');
 
-function Stage(element, _options) {
+function Stage(_options) {
 	this.settings = _options || {};
 
-	this.element = this.getElement(element);
 	this.container = this.create(this.settings);
 
 	if(this.settings.hidden) {
 		this.wrapper = this.wrap(this.container);
-		this.attachTo(this.wrapper, this.element);
-	} else {
-		this.attachTo(this.container, this.element);
 	}
 
 }
@@ -12042,7 +12217,7 @@ Stage.prototype.create = function(options){
 	container.classList.add("epub-container");
 
 	// Style Element
-	container.style.fontSize = "0";
+	// container.style.fontSize = "0";
 	container.style.wordSpacing = "0";
 	container.style.lineHeight = "0";
 	container.style.verticalAlign = "top";
@@ -12096,13 +12271,24 @@ Stage.prototype.getElement = function(_element){
 	return element;
 };
 
-Stage.prototype.attachTo = function(what, element){
+Stage.prototype.attachTo = function(what){
+
+	var element = this.getElement(what);
+	var base;
 
 	if(!element){
 		return;
 	}
 
-	element.appendChild(what);
+	if(this.settings.hidden) {
+		base = this.wrapper;
+	} else {
+		base = this.container;
+	}
+
+	element.appendChild(base);
+
+	this.element = element;
 
 	return element;
 
@@ -12128,7 +12314,7 @@ Stage.prototype.bounds = function(_width, _height){
 	var height = _height || this.settings.height;
 
 	// If width or height are set to false, inherit them from containing element
-	if(width === false) {
+	if(width === null) {
 		bounds = this.element.getBoundingClientRect();
 
 		if(bounds.width) {
@@ -12137,7 +12323,7 @@ Stage.prototype.bounds = function(_width, _height){
 		}
 	}
 
-	if(height === false) {
+	if(height === null) {
 		bounds = bounds || this.element.getBoundingClientRect();
 
 		if(bounds.height) {
@@ -13112,10 +13298,6 @@ Views.prototype.last = function() {
 	return this._views[this._views.length-1];
 };
 
-Views.prototype.each = function() {
-	return this._views.forEach.apply(this._views, arguments);
-};
-
 Views.prototype.indexOf = function(view) {
 	return this._views.indexOf(view);
 };
@@ -13187,6 +13369,10 @@ Views.prototype.destroy = function(view) {
 };
 
 // Iterators
+
+Views.prototype.each = function() {
+	return this._views.forEach.apply(this._views, arguments);
+};
 
 Views.prototype.clear = function(){
 	// Remove all views
@@ -13268,42 +13454,50 @@ var Contents = require('../contents');
 
 function IframeView(section, options) {
   this.settings = core.extend({
-    ignoreClass : ''
+    ignoreClass : '',
+    axis: 'vertical',
+    width: 0,
+    height: 0,
+    layout: undefined,
+    globalLayoutProperties: {},
   }, options || {});
 
   this.id = "epubjs-view:" + core.uuid();
   this.section = section;
   this.index = section.index;
 
-  this.element = this.createContainer();
+  this.element = this.container(this.settings.axis);
 
   this.added = false;
   this.displayed = false;
   this.rendered = false;
 
-  //this.width  = 0;
-  //this.height = 0;
+  this.width  = this.settings.width;
+  this.height = this.settings.height;
+
+  this.fixedWidth  = 0;
+  this.fixedHeight = 0;
 
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
 
+  this.layout = this.settings.layout;
   // Dom events to listen for
   // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 };
 
-IframeView.prototype.createContainer = function() {
+IframeView.prototype.container = function(axis) {
   var element = document.createElement('div');
 
   element.classList.add("epub-view");
-
 
   // this.element.style.minHeight = "100px";
   element.style.height = "0px";
   element.style.width = "0px";
   element.style.overflow = "hidden";
 
-  if(this.settings.axis && this.settings.axis == "horizontal"){
+  if(axis && axis == "horizontal"){
     element.style.display = "inline-block";
   } else {
     element.style.display = "block";
@@ -13355,20 +13549,87 @@ IframeView.prototype.create = function() {
   // }
 
   // Firefox has trouble with baseURI and srcdoc
-  // Disabled for now
-  /*
+  // TODO: Disable for now in firefox
+
   if(!!("srcdoc" in this.iframe)) {
     this.supportsSrcdoc = true;
   } else {
     this.supportsSrcdoc = false;
   }
-  */
-  this.supportsSrcdoc = false;
 
   return this.iframe;
 };
 
+IframeView.prototype.render = function(request, show) {
 
+	// view.onLayout = this.layout.format.bind(this.layout);
+	this.create();
+
+	// Fit to size of the container, apply padding
+  this.size();
+
+	// Render Chain
+	return this.section.render(request)
+		.then(function(contents){
+			return this.load(contents);
+		}.bind(this))
+		// .then(function(doc){
+		// 	return this.hooks.content.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+			// this.settings.layout.format(view.contents);
+			// return this.hooks.layout.trigger(view, this);
+		}.bind(this))
+		// .then(function(){
+		// 	return this.display();
+		// }.bind(this))
+		// .then(function(){
+		// 	return this.hooks.render.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+
+      // apply the layout function to the contents
+      this.settings.layout.format(this.contents);
+
+      // Expand the iframe to the full size of the content
+      this.expand();
+
+      // Listen for events that require an expansion of the iframe
+      this.addListeners();
+
+			if(show !== false) {
+				//this.q.enqueue(function(view){
+					this.show();
+				//}, view);
+			}
+			// this.map = new Map(view, this.layout);
+			//this.hooks.show.trigger(view, this);
+			this.trigger("rendered", this.section);
+
+		}.bind(this))
+		.catch(function(e){
+			this.trigger("loaderror", e);
+		}.bind(this));
+
+};
+
+// Determine locks base on settings
+IframeView.prototype.size = function(_width, _height) {
+  var width = _width || this.settings.width;
+  var height = _height || this.settings.height;
+
+  if(this.layout.name === "pre-paginated") {
+    // TODO: check if these are different than the size set in chapter
+    this.lock("both", width, height);
+  } else if(this.settings.axis === "horizontal") {
+		this.lock("height", width, height);
+	} else {
+		this.lock("width", width, height);
+	}
+
+};
+
+// Lock an axis to element dimensions, taking borders into account
 IframeView.prototype.lock = function(what, width, height) {
   var elBorders = core.borders(this.element);
   var iframeBorders;
@@ -13410,18 +13671,20 @@ IframeView.prototype.lock = function(what, width, height) {
 
 };
 
+// Resize a single axis based on content dimensions
 IframeView.prototype.expand = function(force) {
   var width = this.lockedWidth;
   var height = this.lockedHeight;
 
   var textWidth, textHeight;
-  // console.log("expanding a")
+
   if(!this.iframe || this._expanding) return;
 
   this._expanding = true;
 
   // Expand Horizontally
-  if(height && !width) {
+  // if(height && !width) {
+  if(this.settings.axis === "horizontal") {
     // Get the width of the text
     textWidth = this.contents.textWidth();
     // Check if the textWidth has changed
@@ -13437,10 +13700,8 @@ IframeView.prototype.expand = function(force) {
       // Otherwise assume content height hasn't changed
       width = this._contentWidth;
     }
-  }
-
-  // Expand Vertically
-  if(width && !height) {
+  } // Expand Vertically
+  else if(this.settings.axis === "vertical") {
     textHeight = this.contents.textHeight();
     if(textHeight != this._textHeight){
       height = this.contentHeight(textHeight);
@@ -13511,12 +13772,12 @@ IframeView.prototype.resize = function(width, height) {
 };
 
 IframeView.prototype.reframe = function(width, height) {
-  //var prevBounds;
+  var size;
 
-  if(!this.displayed) {
-    this._needsReframe = true;
-    return;
-  }
+  // if(!this.displayed) {
+  //   this._needsReframe = true;
+  //   return;
+  // }
 
   if(core.isNumber(width)){
     this.element.style.width = width + "px";
@@ -13530,43 +13791,19 @@ IframeView.prototype.reframe = function(width, height) {
 
   this.elementBounds = core.bounds(this.element);
 
-  this.trigger("resized", {
+  size = {
     width: this.elementBounds.width,
     height: this.elementBounds.height,
     widthDelta: this.elementBounds.width - this.prevBounds.width,
     heightDelta: this.elementBounds.height - this.prevBounds.height,
-  });
+  };
+
+  this.onResize(this, size);
+
+  this.trigger("resized", size);
 
 };
 
-// View.prototype.resized = function(e) {
-//   /*
-//   if (!this.resizing) {
-//     if(this.iframe) {
-//       // this.expand();
-//     }
-//   } else {
-//     this.resizing = false;
-//   }*/
-//
-// };
-/*
-View.prototype.render = function(_request) {
-
-  // if(this.rendering){
-  //   return this.displayed;
-  // }
-
-  this.rendering = true;
-  // this.displayingDefer = new RSVP.defer();
-  // this.displayedPromise = this.displaying.promise;
-
-  return this.section.render(_request)
-    .then(function(contents){
-      return this.load(contents);
-    }.bind(this));
-};
-*/
 
 IframeView.prototype.load = function(contents) {
   var loading = new RSVP.defer();
@@ -13638,50 +13875,10 @@ IframeView.prototype.onLoad = function(event, promise) {
 //   // stub
 // };
 
-IframeView.prototype.setLayout = function(layoutFunc) {
-  this.layoutFunc = layoutFunc;
+IframeView.prototype.setLayout = function(layout) {
+  this.layout = layout;
 };
 
-IframeView.prototype.listeners = function() {
-  /*
-  setTimeout(function(){
-    this.window.addEventListener("resize", this.resized.bind(this), false);
-  }.bind(this), 10); // Wait to listen for resize events
-  */
-
-  // Wait for fonts to load to finish
-  // http://dev.w3.org/csswg/css-font-loading/
-  // Not implemented fully except in chrome
-
-  if(this.document.fonts && this.document.fonts.status === "loading") {
-    // console.log("fonts unloaded");
-    this.document.fonts.onloadingdone = function(){
-      // console.log("loaded fonts");
-      this.expand();
-    }.bind(this);
-  }
-
-  if(this.section.properties.indexOf("scripted") > -1){
-    this.observer = this.observe(this.document.body);
-  }
-
-  this.imageLoadListeners();
-
-  this.mediaQueryListeners();
-
-  // this.resizeListenters();
-
-  // this.addEventListeners();
-
-  // this.addSelectionListeners();
-};
-
-IframeView.prototype.removeListeners = function() {
-
-  // this.removeEventListeners();
-
-  // this.removeSelectionListeners();
-};
 
 IframeView.prototype.resizeListenters = function() {
   // Test size again
@@ -13689,93 +13886,34 @@ IframeView.prototype.resizeListenters = function() {
   this.expanding = setTimeout(this.expand.bind(this), 350);
 };
 
-//https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
-IframeView.prototype.mediaQueryListeners = function() {
-    var sheets = this.document.styleSheets;
-    var mediaChangeHandler = function(m){
-      if(m.matches && !this._expanding) {
-        setTimeout(this.expand.bind(this), 1);
-        // this.expand();
-      }
-    }.bind(this);
-
-    for (var i = 0; i < sheets.length; i += 1) {
-        var rules = sheets[i].cssRules;
-        if(!rules) return; // Stylesheets changed
-        for (var j = 0; j < rules.length; j += 1) {
-            //if (rules[j].constructor === CSSMediaRule) {
-            if(rules[j].media){
-                var mql = this.window.matchMedia(rules[j].media.mediaText);
-                mql.addListener(mediaChangeHandler);
-                //mql.onchange = mediaChangeHandler;
-            }
-        }
-    }
+IframeView.prototype.addListeners = function() {
+  //TODO: Add content listeners for expanding
 };
 
-IframeView.prototype.observe = function(target) {
-  var renderer = this;
-
-  // create an observer instance
-  var observer = new MutationObserver(function(mutations) {
-    if(renderer._expanding) {
-      renderer.expand();
-    }
-    // mutations.forEach(function(mutation) {
-    //   console.log(mutation);
-    // });
-  });
-
-  // configuration of the observer:
-  var config = { attributes: true, childList: true, characterData: true, subtree: true };
-
-  // pass in the target node, as well as the observer options
-  observer.observe(target, config);
-
-  return observer;
+IframeView.prototype.removeListeners = function(layoutFunc) {
+  //TODO: remove content listeners for expanding
 };
 
-// View.prototype.appendTo = function(element) {
-//   this.element = element;
-//   this.element.appendChild(this.iframe);
-// };
-//
-// View.prototype.prependTo = function(element) {
-//   this.element = element;
-//   element.insertBefore(this.iframe, element.firstChild);
-// };
-
-IframeView.prototype.imageLoadListeners = function(target) {
-  var images = this.document.body.querySelectorAll("img");
-  var img;
-  for (var i = 0; i < images.length; i++) {
-    img = images[i];
-
-    if (typeof img.naturalWidth !== "undefined" &&
-        img.naturalWidth === 0) {
-      img.onload = this.expand.bind(this);
-    }
-  }
-};
-
-IframeView.prototype.display = function() {
+IframeView.prototype.display = function(request) {
   var displayed = new RSVP.defer();
 
-  this.displayed = true;
+  if (!this.displayed) {
 
-  // apply the layout function to the contents
-  // this.layout(layoutFunc);
+    this.render(request).then(function () {
 
-  // Expand the iframe to the full size of the content
-  this.expand();
+      this.trigger("displayed", this);
+      this.onDisplayed(this);
 
-  // Listen for event that require an expansion of the iframe
-  this.listeners();
+      this.displayed = true;
 
-  this.trigger("displayed", this);
-  this.onDisplayed(this);
+      displayed.resolve(this);
 
-  displayed.resolve(this);
+    }.bind(this));
+
+  } else {
+    displayed.resolve(this);
+  }
+
 
   return displayed.promise;
 };
@@ -13818,6 +13956,10 @@ IframeView.prototype.onDisplayed = function(view) {
   // Stub, override with a custom functions
 };
 
+IframeView.prototype.onResize = function(view, e) {
+  // Stub, override with a custom functions
+};
+
 IframeView.prototype.bounds = function() {
   if(!this.elementBounds) {
     this.elementBounds = core.bounds(this.element);
@@ -13826,12 +13968,10 @@ IframeView.prototype.bounds = function() {
 };
 
 IframeView.prototype.destroy = function() {
-  // Stop observing
-  if(this.observer) {
-    this.observer.disconnect();
-  }
 
   if(this.displayed){
+    this.displayed = false;
+
     this.removeListeners();
 
     this.stopExpanding = true;
@@ -13852,7 +13992,448 @@ RSVP.EventTarget.mixin(IframeView.prototype);
 
 module.exports = IframeView;
 
-},{"../contents":11,"../core":12,"../epubcfi":13,"rsvp":4}],"epub":[function(require,module,exports){
+},{"../contents":11,"../core":12,"../epubcfi":13,"rsvp":4}],34:[function(require,module,exports){
+var RSVP = require('rsvp');
+var core = require('../core');
+var EpubCFI = require('../epubcfi');
+var Contents = require('../contents');
+var URI = require('urijs');
+
+function InlineView(section, options) {
+  this.settings = core.extend({
+    ignoreClass : '',
+    axis: 'vertical',
+    width: 0,
+    height: 0,
+    layout: undefined,
+    globalLayoutProperties: {},
+  }, options || {});
+
+  this.id = "epubjs-view:" + core.uuid();
+  this.section = section;
+  this.index = section.index;
+
+  this.element = this.container(this.settings.axis);
+
+  this.added = false;
+  this.displayed = false;
+  this.rendered = false;
+
+  this.width  = this.settings.width;
+  this.height = this.settings.height;
+
+  this.fixedWidth  = 0;
+  this.fixedHeight = 0;
+
+  // Blank Cfi for Parsing
+  this.epubcfi = new EpubCFI();
+
+  this.layout = this.settings.layout;
+  // Dom events to listen for
+  // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+
+};
+
+InlineView.prototype.container = function(axis) {
+  var element = document.createElement('div');
+
+  element.classList.add("epub-view");
+
+  // if(this.settings.axis === "horizontal") {
+  //   element.style.width = "auto";
+  //   element.style.height = "0";
+	// } else {
+  //   element.style.width = "0";
+  //   element.style.height = "auto";
+	// }
+
+  element.style.overflow = "hidden";
+
+  if(axis && axis == "horizontal"){
+    element.style.display = "inline-block";
+  } else {
+    element.style.display = "block";
+  }
+
+  return element;
+};
+
+InlineView.prototype.create = function() {
+
+  if(this.frame) {
+    return this.frame;
+  }
+
+  if(!this.element) {
+    this.element = this.createContainer();
+  }
+
+  this.frame = document.createElement('div');
+  this.frame.id = this.id;
+  this.frame.style.overflow = "hidden";
+  this.frame.style.wordSpacing = "initial";
+	this.frame.style.lineHeight = "initial";
+
+  this.resizing = true;
+
+  // this.frame.style.display = "none";
+  this.element.style.visibility = "hidden";
+  this.frame.style.visibility = "hidden";
+
+  if(this.settings.axis === "horizontal") {
+    this.frame.style.width = "auto";
+    this.frame.style.height = "0";
+	} else {
+    this.frame.style.width = "0";
+    this.frame.style.height = "auto";
+	}
+
+  this._width = 0;
+  this._height = 0;
+
+  this.element.appendChild(this.frame);
+  this.added = true;
+
+  this.elementBounds = core.bounds(this.element);
+
+  return this.frame;
+};
+
+InlineView.prototype.render = function(request, show) {
+
+	// view.onLayout = this.layout.format.bind(this.layout);
+	this.create();
+
+	// Fit to size of the container, apply padding
+  this.size();
+
+	// Render Chain
+	return this.section.render(request)
+		.then(function(contents){
+			return this.load(contents);
+		}.bind(this))
+		// .then(function(doc){
+		// 	return this.hooks.content.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+			// this.settings.layout.format(view.contents);
+			// return this.hooks.layout.trigger(view, this);
+		}.bind(this))
+		// .then(function(){
+		// 	return this.display();
+		// }.bind(this))
+		// .then(function(){
+		// 	return this.hooks.render.trigger(view, this);
+		// }.bind(this))
+		.then(function(){
+
+      // apply the layout function to the contents
+      this.settings.layout.format(this.contents);
+
+      // Expand the iframe to the full size of the content
+      // this.expand();
+
+      // Listen for events that require an expansion of the iframe
+      this.addListeners();
+
+			if(show !== false) {
+				//this.q.enqueue(function(view){
+					this.show();
+				//}, view);
+			}
+			// this.map = new Map(view, this.layout);
+			//this.hooks.show.trigger(view, this);
+			this.trigger("rendered", this.section);
+
+		}.bind(this))
+		.catch(function(e){
+			this.trigger("loaderror", e);
+		}.bind(this));
+
+};
+
+// Determine locks base on settings
+InlineView.prototype.size = function(_width, _height) {
+  var width = _width || this.settings.width;
+  var height = _height || this.settings.height;
+
+  if(this.layout.name === "pre-paginated") {
+    // TODO: check if these are different than the size set in chapter
+    this.lock("both", width, height);
+  } else if(this.settings.axis === "horizontal") {
+		this.lock("height", width, height);
+	} else {
+		this.lock("width", width, height);
+	}
+
+};
+
+// Lock an axis to element dimensions, taking borders into account
+InlineView.prototype.lock = function(what, width, height) {
+  var elBorders = core.borders(this.element);
+  var iframeBorders;
+
+  if(this.frame) {
+    iframeBorders = core.borders(this.frame);
+  } else {
+    iframeBorders = {width: 0, height: 0};
+  }
+
+  if(what == "width" && core.isNumber(width)){
+    this.lockedWidth = width - elBorders.width - iframeBorders.width;
+    this.resize(this.lockedWidth, false); //  width keeps ratio correct
+  }
+
+  if(what == "height" && core.isNumber(height)){
+    this.lockedHeight = height - elBorders.height - iframeBorders.height;
+    this.resize(false, this.lockedHeight);
+  }
+
+  if(what === "both" &&
+     core.isNumber(width) &&
+     core.isNumber(height)){
+
+    this.lockedWidth = width - elBorders.width - iframeBorders.width;
+    this.lockedHeight = height - elBorders.height - iframeBorders.height;
+
+    this.resize(this.lockedWidth, this.lockedHeight);
+  }
+
+};
+
+// Resize a single axis based on content dimensions
+InlineView.prototype.expand = function(force) {
+  var width = this.lockedWidth;
+  var height = this.lockedHeight;
+
+  var textWidth, textHeight;
+
+  if(!this.frame || this._expanding) return;
+
+  this._expanding = true;
+
+  // Expand Horizontally
+  if(this.settings.axis === "horizontal") {
+    width = this.contentWidth(textWidth);
+  } // Expand Vertically
+  else if(this.settings.axis === "vertical") {
+    height = this.contentHeight(textHeight);
+  }
+
+  // Only Resize if dimensions have changed or
+  // if Frame is still hidden, so needs reframing
+  if(this._needsReframe || width != this._width || height != this._height){
+    this.resize(width, height);
+  }
+
+  this._expanding = false;
+};
+
+InlineView.prototype.contentWidth = function(min) {
+  return this.frame.scrollWidth;
+};
+
+InlineView.prototype.contentHeight = function(min) {
+  console.log(this.frame.scrollHeight);
+  return this.frame.scrollHeight;
+};
+
+
+InlineView.prototype.resize = function(width, height) {
+
+  if(!this.frame) return;
+
+  if(core.isNumber(width)){
+    this.frame.style.width = width + "px";
+    this._width = width;
+  }
+
+  if(core.isNumber(height)){
+    this.frame.style.height = height + "px";
+    this._height = height;
+  }
+
+  this.prevBounds = this.elementBounds;
+
+  this.elementBounds = core.bounds(this.element);
+
+  size = {
+    width: this.elementBounds.width,
+    height: this.elementBounds.height,
+    widthDelta: this.elementBounds.width - this.prevBounds.width,
+    heightDelta: this.elementBounds.height - this.prevBounds.height,
+  };
+
+  this.onResize(this, size);
+
+  this.trigger("resized", size);
+
+};
+
+
+InlineView.prototype.load = function(contents) {
+  var loading = new RSVP.defer();
+  var loaded = loading.promise;
+  var doc = core.parse(contents, "text/html");
+  var body = core.qs(doc, "body");
+
+  var srcs = doc.querySelectorAll("[src]");
+  Array.prototype.slice.call(srcs)
+    .forEach(function(item) {
+      var src = item.getAttribute('src');
+      var assetUri = URI(src);
+      var origin = assetUri.origin();
+      var absoluteUri;
+
+      if (!origin) {
+        absoluteUri = assetUri.absoluteTo(this.section.url);
+        item.src = absoluteUri;
+      }
+    }.bind(this));
+
+  this.frame.innerHTML = body.innerHTML;
+
+  this.document = this.frame.ownerDocument;
+  this.window = this.document.defaultView;
+
+  this.contents = new Contents(this.document, this.frame);
+
+  // <link rel="canonical" href="https://blog.example.com/dresses/green-dresses-are-awesome" />
+  var link = this.document.querySelector("link[rel='canonical']");
+  if (link) {
+    link.setAttribute("href", this.section.url);
+  } else {
+    link = this.document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    link.setAttribute("href", this.section.url);
+    this.document.querySelector("head").appendChild(link);
+  }
+  this.rendering = false;
+
+  loading.resolve(this.contents);
+
+
+  return loaded;
+};
+
+InlineView.prototype.setLayout = function(layout) {
+  this.layout = layout;
+};
+
+
+InlineView.prototype.resizeListenters = function() {
+  // Test size again
+  // clearTimeout(this.expanding);
+  // this.expanding = setTimeout(this.expand.bind(this), 350);
+};
+
+InlineView.prototype.addListeners = function() {
+  //TODO: Add content listeners for expanding
+};
+
+InlineView.prototype.removeListeners = function(layoutFunc) {
+  //TODO: remove content listeners for expanding
+};
+
+InlineView.prototype.display = function(request) {
+  var displayed = new RSVP.defer();
+
+  if (!this.displayed) {
+
+    this.render(request).then(function () {
+
+      this.trigger("displayed", this);
+      this.onDisplayed(this);
+
+      this.displayed = true;
+
+      displayed.resolve(this);
+
+    }.bind(this));
+
+  } else {
+    displayed.resolve(this);
+  }
+
+
+  return displayed.promise;
+};
+
+InlineView.prototype.show = function() {
+
+  this.element.style.visibility = "visible";
+
+  if(this.frame){
+    this.frame.style.visibility = "visible";
+  }
+
+  this.trigger("shown", this);
+};
+
+InlineView.prototype.hide = function() {
+  // this.frame.style.display = "none";
+  this.element.style.visibility = "hidden";
+  this.frame.style.visibility = "hidden";
+
+  this.stopExpanding = true;
+  this.trigger("hidden", this);
+};
+
+InlineView.prototype.position = function() {
+  return this.element.getBoundingClientRect();
+};
+
+InlineView.prototype.locationOf = function(target) {
+  var parentPos = this.frame.getBoundingClientRect();
+  var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
+
+  return {
+    "left": window.scrollX + parentPos.left + targetPos.left,
+    "top": window.scrollY + parentPos.top + targetPos.top
+  };
+};
+
+InlineView.prototype.onDisplayed = function(view) {
+  // Stub, override with a custom functions
+};
+
+InlineView.prototype.onResize = function(view, e) {
+  // Stub, override with a custom functions
+};
+
+InlineView.prototype.bounds = function() {
+  if(!this.elementBounds) {
+    this.elementBounds = core.bounds(this.element);
+  }
+  return this.elementBounds;
+};
+
+InlineView.prototype.destroy = function() {
+
+  if(this.displayed){
+    this.displayed = false;
+
+    this.removeListeners();
+
+    this.stopExpanding = true;
+    this.element.removeChild(this.frame);
+    this.displayed = false;
+    this.frame = null;
+
+    this._textWidth = null;
+    this._textHeight = null;
+    this._width = null;
+    this._height = null;
+  }
+  // this.element.style.height = "0px";
+  // this.element.style.width = "0px";
+};
+
+RSVP.EventTarget.mixin(InlineView.prototype);
+
+module.exports = InlineView;
+
+},{"../contents":11,"../core":12,"../epubcfi":13,"rsvp":4,"urijs":6}],"epub":[function(require,module,exports){
 var Book = require('./book');
 var EpubCFI = require('./epubcfi');
 var Rendition = require('./rendition');
@@ -13883,6 +14464,7 @@ ePub.register = {
 
 // Default Views
 ePub.register.view("iframe", require('./views/iframe'));
+ePub.register.view("inline", require('./views/inline'));
 
 // Default View Managers
 ePub.register.manager("single", require('./managers/single'));
@@ -13891,7 +14473,7 @@ ePub.register.manager("paginate", require('./managers/paginate'));
 
 module.exports = ePub;
 
-},{"./book":10,"./contents":11,"./epubcfi":13,"./managers/continuous":17,"./managers/paginate":18,"./managers/single":19,"./rendition":24,"./views/iframe":33,"rsvp":4}]},{},["epub"])("epub")
+},{"./book":10,"./contents":11,"./epubcfi":13,"./managers/continuous":17,"./managers/paginate":18,"./managers/single":19,"./rendition":24,"./views/iframe":33,"./views/inline":34,"rsvp":4}]},{},["epub"])("epub")
 });
 
 

@@ -1,16 +1,12 @@
 var core = require('./core');
 
-function Stage(element, _options) {
+function Stage(_options) {
 	this.settings = _options || {};
 
-	this.element = this.getElement(element);
 	this.container = this.create(this.settings);
 
 	if(this.settings.hidden) {
 		this.wrapper = this.wrap(this.container);
-		this.attachTo(this.wrapper, this.element);
-	} else {
-		this.attachTo(this.container, this.element);
 	}
 
 }
@@ -39,7 +35,7 @@ Stage.prototype.create = function(options){
 	container.classList.add("epub-container");
 
 	// Style Element
-	container.style.fontSize = "0";
+	// container.style.fontSize = "0";
 	container.style.wordSpacing = "0";
 	container.style.lineHeight = "0";
 	container.style.verticalAlign = "top";
@@ -93,13 +89,24 @@ Stage.prototype.getElement = function(_element){
 	return element;
 };
 
-Stage.prototype.attachTo = function(what, element){
+Stage.prototype.attachTo = function(what){
+
+	var element = this.getElement(what);
+	var base;
 
 	if(!element){
 		return;
 	}
 
-	element.appendChild(what);
+	if(this.settings.hidden) {
+		base = this.wrapper;
+	} else {
+		base = this.container;
+	}
+
+	element.appendChild(base);
+
+	this.element = element;
 
 	return element;
 
@@ -125,7 +132,7 @@ Stage.prototype.bounds = function(_width, _height){
 	var height = _height || this.settings.height;
 
 	// If width or height are set to false, inherit them from containing element
-	if(width === false) {
+	if(width === null) {
 		bounds = this.element.getBoundingClientRect();
 
 		if(bounds.width) {
@@ -134,7 +141,7 @@ Stage.prototype.bounds = function(_width, _height){
 		}
 	}
 
-	if(height === false) {
+	if(height === null) {
 		bounds = bounds || this.element.getBoundingClientRect();
 
 		if(bounds.height) {

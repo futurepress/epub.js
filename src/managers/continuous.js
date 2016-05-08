@@ -39,7 +39,7 @@ ContinuousViewManager.prototype.moveTo = function(offset){
 
 	  }.bind(this));
 };
-
+/*
 ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	var next = currView.section.next();
 	var prev = currView.section.prev();
@@ -61,7 +61,10 @@ ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	this.trigger("added", currView.section);
 
 };
-
+*/
+ContinuousViewManager.prototype.afterResized = function(view){
+	this.trigger("resize", view.section);
+};
 
 // Remove Previous Listeners if present
 ContinuousViewManager.prototype.removeShownListeners = function(view){
@@ -72,27 +75,31 @@ ContinuousViewManager.prototype.removeShownListeners = function(view){
 
 };
 
-ContinuousViewManager.prototype.append = function(view){
+ContinuousViewManager.prototype.append = function(section){
+	var view = this.createView(section);
 
-	// view.on("shown", this.afterDisplayed.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
+	return this.q.enqueue(function() {
 
-	this.views.append(view);
+		this.views.append(view);
 
-  //this.q.enqueue(this.check);
-  return this.check();
+		return this.update();
+
+	}.bind(this));
 };
 
-ContinuousViewManager.prototype.prepend = function(view){
-	// view.on("shown", this.afterDisplayedAbove.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
+ContinuousViewManager.prototype.prepend = function(section){
+	var view = this.createView(section);
 
 	view.on("resized", this.counter.bind(this));
 
-	this.views.prepend(view);
+	return this.q.enqueue(function() {
 
-  // this.q.enqueue(this.check);
-  return this.check();
+		this.views.prepend(view);
+
+		return this.update();
+
+	}.bind(this));
+
 };
 
 ContinuousViewManager.prototype.counter = function(bounds){
@@ -104,7 +111,7 @@ ContinuousViewManager.prototype.counter = function(bounds){
 	}
 
 };
-
+/*
 ContinuousViewManager.prototype.check = function(_offset){
 	var checking = new RSVP.defer();
 	var container = this.stage.bounds();
@@ -145,6 +152,98 @@ ContinuousViewManager.prototype.check = function(_offset){
       .then(function(posts) {
         // Check to see if anything new is on screen after rendering
         this.q.enqueue(this.check.bind(this));
+
+      }.bind(this));
+
+  } else {
+    checking.resolve();
+
+    return checking.promise;
+  }
+
+};
+*/
+
+ContinuousViewManager.prototype.update = function(_offset){
+	var container = this.stage.bounds();
+	var views = this.views;
+	var viewsLength = views.length;
+	var visible = [];
+	var isVisible;
+	var view;
+
+	var updating = new RSVP.defer();
+	var promises = [];
+
+	for (var i = 0; i < viewsLength; i++) {
+    view = views[i];
+    isVisible = this.isVisible(view, 0, 0, container);
+
+    if(isVisible === true) {
+			promises.push(view.display());
+      visible.push(view);
+    } else {
+			this.q.enqueue(view.destroy.bind(view));
+
+			clearTimeout(this.trimTimeout);
+			this.trimTimeout = setTimeout(function(){
+				this.q.enqueue(this.trim.bind(this));
+			}.bind(this), 250);
+    }
+
+  }
+
+	if(promises.length){
+    return RSVP.all(promises);
+  } else {
+    updating.resolve();
+    return updating.promise;
+  }
+
+};
+
+ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
+	var next, prev;
+	var horizontal = (this.settings.axis === "horizontal");
+	var delta = this.settings.offset || 0;
+
+	if (_offsetLeft && horizontal) {
+		delta = _offsetLeft;
+	}
+
+	if (_offsetTop && !horizontal) {
+		delta = _offsetTop;
+	}
+
+	var bounds = this.stage.bounds(); // TODO: save this until resize
+
+	var offset = horizontal ? this.container.scrollLeft : this.container.scrollTop;
+	var visibleLength = horizontal ? bounds.width : bounds.height;
+	var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
+
+	var checking = new RSVP.defer();
+	var promises = [];
+
+	if (offset + visibleLength + delta >= contentLength) {
+    next = this.views.last().section.next();
+    if(next) {
+      promises.push(this.append(next));
+    }
+  }
+
+  if (offset - delta < 0 ) {
+    prev = this.views.first().section.prev();
+    if(prev) {
+      promises.push(this.prepend(prev));
+    }
+  }
+
+  if(promises.length){
+
+    return RSVP.all(promises)
+      .then(function(posts) {
+        // Check to see if anything new is on screen after rendering
+        this.q.enqueue(this.update.bind(this));
 
       }.bind(this));
 
@@ -309,15 +408,15 @@ ContinuousViewManager.prototype.onScroll = function(){
 };
 
 
- ContinuousViewManager.prototype.resizeView = function(view) {
-
-	if(this.settings.axis === "horizontal") {
-		view.lock("height", this.stage.width, this.stage.height);
-	} else {
-		view.lock("width", this.stage.width, this.stage.height);
-	}
-
-};
+//  ContinuousViewManager.prototype.resizeView = function(view) {
+//
+// 	if(this.settings.axis === "horizontal") {
+// 		view.lock("height", this.stage.width, this.stage.height);
+// 	} else {
+// 		view.lock("width", this.stage.width, this.stage.height);
+// 	}
+//
+// };
 
 ContinuousViewManager.prototype.currentLocation = function(){
   var visible = this.visible();

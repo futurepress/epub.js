@@ -14,6 +14,8 @@ function Reflowable(){
   this.column = 0;
   this.gap = 0;
   this.divisor = 0;
+
+  this.name = "reflowable";
 };
 
 Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
@@ -107,6 +109,9 @@ Reflowable.prototype.count = function(totalWidth) {
 function Fixed(_width, _height){
   this.width = 0;
   this.height = 0;
+
+  this.name = "pre-paginated";
+
 };
 
 Fixed.prototype.calculate = function(_width, _height){
@@ -166,6 +171,7 @@ function Scroll(){
   this.spread = 0;
   this.column = 0;
   this.gap = 0;
+  this.name = "scrolled";
 };
 
 Scroll.prototype.calculate = function(_width, _height){
@@ -180,7 +186,7 @@ Scroll.prototype.format = function(contents){
 
   // $doc.style.width = "auto";
   // $doc.style.height = "auto";
-  contents.width("auto");
+  // contents.width("auto");
   contents.height("auto");
 
 };

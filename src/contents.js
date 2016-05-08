@@ -69,16 +69,14 @@ Contents.prototype.textHeight = function() {
   return height;
 };
 
-Contents.prototype.scrollWidth = function(min) {
-  var prev;
-  var width = this.document.body.scrollWidth;
+Contents.prototype.scrollWidth = function() {
+  var width = this.documentElement.scrollWidth;
 
   return width;
 };
 
-Contents.prototype.scrollHeight = function(min) {
-  var prev;
-  var height = this.document.body.scrollHeight;
+Contents.prototype.scrollHeight = function() {
+  var height = this.documentElement.scrollHeight;
 
   return height;
 };
@@ -149,6 +147,10 @@ Contents.prototype.viewport = function() {
 //   // stub
 // };
 
+Contents.prototype.expand = function() {
+  //TODO: this should just report resize
+};
+
 Contents.prototype.listeners = function() {
 
   this.imageLoadListeners();
@@ -195,6 +197,28 @@ Contents.prototype.mediaQueryListeners = function() {
             }
         }
     }
+};
+
+Contents.prototype.observe = function(target) {
+  var renderer = this;
+
+  // create an observer instance
+  var observer = new MutationObserver(function(mutations) {
+    if(renderer._expanding) {
+      renderer.expand();
+    }
+    // mutations.forEach(function(mutation) {
+    //   console.log(mutation);
+    // });
+  });
+
+  // configuration of the observer:
+  var config = { attributes: true, childList: true, characterData: true, subtree: true };
+
+  // pass in the target node, as well as the observer options
+  observer.observe(target, config);
+
+  return observer;
 };
 
 Contents.prototype.imageLoadListeners = function(target) {
@@ -401,6 +425,16 @@ Contents.prototype.range = function(_cfi, ignoreClass){
 Contents.prototype.map = function(layout){
   var map = new Map(layout);
   return map.section();
+};
+
+Contents.prototype.destroy = function() {
+  // Stop observing
+  if(this.observer) {
+    this.observer.disconnect();
+  }
+
+  this.removeListeners();
+
 };
 
 RSVP.EventTarget.mixin(Contents.prototype);

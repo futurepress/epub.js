@@ -1,7 +1,9 @@
 var RSVP = require('rsvp');
 var core = require('../core');
+var Stage = require('../stage');
 var Views = require('../views');
 var EpubCFI = require('../epubcfi');
+var Layout = require('../layout');
 
 function SingleViewManager(options) {
 
@@ -15,23 +17,35 @@ function SingleViewManager(options) {
 		width: false,
 		height: null,
 		globalLayoutProperties : { layout: 'reflowable', spread: 'auto', orientation: 'auto'},
-		layout: null,
+		// layout: null,
 		axis: "vertical",
 		ignoreClass: ''
 	});
 
 	core.extend(this.settings, options.settings);
 
+
 	this.viewSettings = {
-		ignoreClass: this.settings.ignoreClass
+		ignoreClass: this.settings.ignoreClass,
+		globalLayoutProperties: this.settings.globalLayoutProperties,
+		axis: this.settings.axis,
+		layout: this.layout,
+		width: 0,
+		height: 0
 	};
 
 }
 
-SingleViewManager.prototype.start = function(stage){
+SingleViewManager.prototype.render = function(element, size){
 
 	// Save the stage
-	this.stage = stage;
+	this.stage = new Stage({
+		width: size.width,
+		height: size.height,
+		hidden: this.settings.hidden
+	});
+
+	this.stage.attachTo(element);
 
 	// Get this stage container div
 	this.container = this.stage.getContainer();
@@ -42,6 +56,10 @@ SingleViewManager.prototype.start = function(stage){
 	// Calculate Stage Size
 	this.bounds = this.stage.bounds();
 
+	// Set the dimensions for views
+	this.viewSettings.width = this.bounds.width;
+	this.viewSettings.height = this.bounds.height;
+
 	// Function to handle a resize event.
 	// Will only attach if width and height are both fixed.
 	this.stage.onResize(this.onResized.bind(this));
@@ -50,7 +68,7 @@ SingleViewManager.prototype.start = function(stage){
 	this.addEventListeners();
 
 	// Add Layout method
-	// this.applyLayoutMethod();
+	this.applyLayoutMethod();
 };
 
 SingleViewManager.prototype.addEventListeners = function(){
@@ -65,7 +83,14 @@ SingleViewManager.prototype.resize = function(width, height){
 
 	this.bounds = this.stage.bounds(width, height);
 
-	this.views.each(this.resizeView.bind(this));
+	// Update for new views
+	this.viewSettings.width = this.bounds.width;
+	this.viewSettings.height = this.bounds.height;
+
+	// Update for existing views
+	this.views.each(function(view) {
+		view.size(this.bounds.width, this.bounds.height);
+	}.bind(this));
 
 	this.trigger("resized", {
 		width: this.stage.width,
@@ -74,10 +99,12 @@ SingleViewManager.prototype.resize = function(width, height){
 
 };
 
-SingleViewManager.prototype.layout = function(layoutFunc){
+SingleViewManager.prototype.setLayout = function(layout){
+
+	this.viewSettings.layout = layout;
 
 	this.views.each(function(view){
-		layoutFunc(view);
+		view.setLayout(layout);
 	});
 
 };
@@ -106,10 +133,12 @@ SingleViewManager.prototype.display = function(section, target){
 	// Hide all current views
 	this.views.hide();
 
+	this.views.clear();
+
 	// Create a new view
 	view = this.createView(section);
 
-	return this.fill(view)
+	return this.add(view)
 		.then(function(){
 
 			// Move to correct place within the section, if needed
@@ -129,34 +158,38 @@ SingleViewManager.prototype.display = function(section, target){
 };
 
 SingleViewManager.prototype.afterDisplayed = function(view){
-	this.trigger("added", view.section);
+	this.trigger("added", view);
+};
+
+SingleViewManager.prototype.afterResized = function(view){
+	this.trigger("resize", view.section);
 };
 
 SingleViewManager.prototype.moveTo = function(offset){
 	this.scrollTo(offset.left, offset.top);
 };
 
-SingleViewManager.prototype.fill = function(view){
-
-	this.views.clear();
+SingleViewManager.prototype.add = function(view){
 
 	this.views.append(view);
 
 	// view.on("shown", this.afterDisplayed.bind(this));
 	view.onDisplayed = this.afterDisplayed.bind(this);
+	view.onResize = this.afterResized.bind(this);
 
-	return this.renderer(view, this.views.hidden);
+	return view.display();
+	// return this.renderer(view, this.views.hidden);
 };
 
-SingleViewManager.prototype.resizeView = function(view) {
-
-	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
-		view.lock("both", this.bounds.width, this.bounds.height);
-	} else {
-		view.lock("width", this.bounds.width, this.bounds.height);
-	}
-
-};
+// SingleViewManager.prototype.resizeView = function(view) {
+//
+// 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
+// 		view.lock("both", this.bounds.width, this.bounds.height);
+// 	} else {
+// 		view.lock("width", this.bounds.width, this.bounds.height);
+// 	}
+//
+// };
 
 SingleViewManager.prototype.next = function(){
 	var next;
@@ -167,8 +200,10 @@ SingleViewManager.prototype.next = function(){
 	next = this.views.last().section.next();
 
 	if(next) {
+		this.views.clear();
+
 		view = this.createView(next);
-		return this.fill(view)
+		return this.add(view)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
@@ -183,8 +218,10 @@ SingleViewManager.prototype.prev = function(){
 
 	prev = this.views.first().section.prev();
 	if(prev) {
+		this.views.clear();
+
 		view = this.createView(prev);
-		return this.fill(view)
+		return this.add(view)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
@@ -236,14 +273,17 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 };
 
 SingleViewManager.prototype.visible = function(){
+	return this.views.displayed();
+	/*
 	var container = this.stage.bounds();
-	var displayedViews = this.views.displayed();
+	var views = this.views;
+	var viewsLength = views.length;
   var visible = [];
   var isVisible;
   var view;
 
-  for (var i = 0; i < displayedViews.length; i++) {
-    view = displayedViews[i];
+  for (var i = 0; i < viewsLength; i++) {
+    view = views[i];
     isVisible = this.isVisible(view, 0, 0, container);
 
     if(isVisible === true) {
@@ -252,7 +292,7 @@ SingleViewManager.prototype.visible = function(){
 
   }
   return visible;
-
+	*/
 };
 
 SingleViewManager.prototype.scrollBy = function(x, y, silent){
@@ -291,6 +331,40 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   //   }.bind(this), 10);
   //   return;
   // };
+ };
+
+ SingleViewManager.prototype.bounds = function() {
+   var bounds;
+
+   if(!this.settings.height || !this.container) {
+     bounds = core.windowBounds();
+   } else {
+     bounds = this.container.getBoundingClientRect();
+   }
+
+   return bounds;
+ };
+
+ SingleViewManager.prototype.applyLayoutMethod = function() {
+
+ 	this.layout = new Layout.Scroll();
+ 	this.calculateLayout();
+
+	this.setLayout(this.layout);
+
+ 	// this.map = new Map(this.layout);
+ 	// this.manager.layout(this.layout.format);
+ };
+
+ SingleViewManager.prototype.calculateLayout = function() {
+ 	var bounds = this.stage.bounds();
+ 	this.layout.calculate(bounds.width, bounds.height);
+ };
+
+ SingleViewManager.prototype.updateLayout = function() {
+ 	this.calculateLayout();
+
+ 	this.setLayout(this.layout);
  };
 
  //-- Enable binding events to Manager

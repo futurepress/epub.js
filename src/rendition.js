@@ -9,16 +9,15 @@ var View = require('./view');
 var Views = require('./views');
 var Layout = require('./layout');
 var Map = require('./map');
-var Stage = require('./stage');
 
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		hidden: false,
-		width: false,
+		width: null,
 		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'},
+		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
 		axis: "vertical",
 		ignoreClass: '',
 		manager: "single",
@@ -67,6 +66,15 @@ function Rendition(book, options) {
 		this.replacements();
 	}
 
+	this.ViewManager = this.requireManager(this.settings.manager);
+	this.View = this.requireView(this.settings.view);
+
+	this.manager = new this.ViewManager({
+		view: this.View,
+		queue: this.q,
+		settings: this.settings
+	});
+
 };
 
 Rendition.prototype.setManager = function(manager) {
@@ -104,30 +112,13 @@ Rendition.prototype.requireView = function(view) {
   return View;
 };
 
-Rendition.prototype.start = function(stage){
-	var ViewManager, View;
-
-	// Add view manager
-	if (!this.manager) {
-		ViewManager = this.requireManager(this.settings.manager);
-		View = this.requireView(this.settings.view);
-
-		this.manager = new ViewManager({
-			view: View,
-			renderer: this.render.bind(this),
-			queue: this.q,
-			settings: this.settings
-		});
-	}
+Rendition.prototype.start = function(){
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
 
-	// Start rendering
-	this.manager.start(stage);
-
 	// Add Layout method
-	this.applyLayoutMethod();
+	// this.applyLayoutMethod();
 
 	this.on('displayed', this.reportLocation.bind(this));
 
@@ -142,12 +133,13 @@ Rendition.prototype.start = function(stage){
 // Container must be attached before rendering can begin
 Rendition.prototype.attachTo = function(element){
 
-	this.container = new Stage(element, {
+	// Start rendering
+	this.manager.render(element, {
 		"width"  : this.settings.width,
 		"height" : this.settings.height
 	});
 
-	this.start(this.container);
+	this.start();
 
 	// Trigger Attached
 	this.trigger("attached");
@@ -197,6 +189,7 @@ Rendition.prototype._display = function(target){
 
 };
 
+/*
 Rendition.prototype.render = function(view, show) {
 
 	// view.onLayout = this.layout.format.bind(this.layout);
@@ -239,36 +232,17 @@ Rendition.prototype.render = function(view, show) {
 		}.bind(this));
 
 };
+*/
 
-Rendition.prototype.afterDisplayed = function(section){
-	this.trigger("added", section);
+Rendition.prototype.afterDisplayed = function(view){
+	this.hooks.content.trigger(view, this);
+	this.trigger("rendered", view.section);
 	this.reportLocation();
-};
-
-Rendition.prototype.applyLayoutMethod = function() {
-
-	this.layout = new Layout.Scroll();
-	this.calculateLayout();
-
-	// this.map = new Map(this.layout);
-	// this.manager.layout(this.layout.format);
-};
-
-Rendition.prototype.calculateLayout = function() {
-	// TODO: should this be a function to get the live bounds? It is cached and updated on resize for now.
-	var bounds = this.manager.bounds;
-	this.layout.calculate(bounds.width, bounds.height);
-};
-
-Rendition.prototype.updateLayout = function() {
-	this.calculateLayout();
-
-	this.manager.layout(this.layout.format);
 };
 
 Rendition.prototype.onResized = function(size){
 
-	this.updateLayout();
+	this.manager.updateLayout();
 
 	if(this.location) {
 		this.display(this.location.start);
@@ -293,29 +267,21 @@ Rendition.prototype.prev = function(){
 	return this.q.enqueue(this.manager.prev.bind(this.manager));
 };
 
-Rendition.prototype.bounds = function() {
-  var bounds;
-
-  if(!this.settings.height || !this.container) {
-    bounds = core.windowBounds();
-  } else {
-    bounds = this.container.getBoundingClientRect();
-  }
-
-  return bounds;
-};
-
 //-- http://www.idpf.org/epub/fxl/
 Rendition.prototype.parseLayoutProperties = function(_metadata){
 	var metadata = _metadata || this.book.package.metadata;
 	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
 	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
 	var orientation = (this.layoutOveride && this.layoutOveride.orientation) || metadata.orientation || "auto";
+	var flow = (this.layoutOveride && this.layoutOveride.flow) || metadata.flow || "auto";
+	var viewport = (this.layoutOveride && this.layoutOveride.viewport) || metadata.viewport || "";
 
 	this.settings.globalLayoutProperties = {
 		layout : layout,
 		spread : spread,
-		orientation : orientation
+		orientation : orientation,
+		flow : flow,
+		viewport : viewport
 	};
 
 	return this.settings.globalLayoutProperties;
@@ -323,33 +289,23 @@ Rendition.prototype.parseLayoutProperties = function(_metadata){
 
 /**
 * Uses the settings to determine which Layout Method is needed
-* Triggers events based on the method choosen
-* Takes: Layout settings object
-* Returns: String of appropriate for EPUBJS.Layout function
 */
-// Paginate.prototype.determineLayout = function(settings){
+// Rendition.prototype.determineLayout = function(settings){
 //   // Default is layout: reflowable & spread: auto
 //   var spreads = this.determineSpreads(this.settings.minSpreadWidth);
-//   console.log("spreads", spreads, this.settings.minSpreadWidth)
 //   var layoutMethod = spreads ? "ReflowableSpreads" : "Reflowable";
 //   var scroll = false;
 //
 //   if(settings.layout === "pre-paginated") {
-//     layoutMethod = "Fixed";
-//     scroll = true;
-//     spreads = false;
+//
 //   }
 //
 //   if(settings.layout === "reflowable" && settings.spread === "none") {
-//     layoutMethod = "Reflowable";
-//     scroll = false;
-//     spreads = false;
+//
 //   }
 //
 //   if(settings.layout === "reflowable" && settings.spread === "both") {
-//     layoutMethod = "ReflowableSpreads";
-//     scroll = false;
-//     spreads = true;
+//
 //   }
 //
 //   this.spreads = spreads;

@@ -62,7 +62,7 @@
     var currentSectionIndex = 8;
     // Load the opf
     var book = ePub("../books/alice/OPS/package.opf");
-    var rendition = book.renderTo("viewer");
+    var rendition = book.renderTo("viewer", { view: "inline" });
 
     rendition.display("chapter_008.xhtml");
 

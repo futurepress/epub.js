@@ -154,9 +154,11 @@ Parser.prototype.metadata = function(xml){
   metadata.rights = p.getElementText(xml, "rights");
 
   metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
+  
   metadata.layout = p.getPropertyText(xml, "rendition:layout");
   metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
-  metadata.spread = p.getPropertyText(xml, 'rendition:spread');
+  metadata.flow = p.getPropertyText(xml, 'rendition:flow');
+  metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
   // metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 
   return metadata;

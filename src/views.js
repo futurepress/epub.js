@@ -13,10 +13,6 @@ Views.prototype.last = function() {
 	return this._views[this._views.length-1];
 };
 
-Views.prototype.each = function() {
-	return this._views.forEach.apply(this._views, arguments);
-};
-
 Views.prototype.indexOf = function(view) {
 	return this._views.indexOf(view);
 };
@@ -88,6 +84,10 @@ Views.prototype.destroy = function(view) {
 };
 
 // Iterators
+
+Views.prototype.each = function() {
+	return this._views.forEach.apply(this._views, arguments);
+};
 
 Views.prototype.clear = function(){
 	// Remove all views
