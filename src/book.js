@@ -133,7 +133,11 @@ Book.prototype.open = function(_url){
         } else if(window && !book.isArchivedUrl(uri)){
           book.baseUrl = absPackageUri.absoluteTo(window.location.href).directory() + "/";
         } else {
-          book.baseUrl = "/" + packageUri.directory() + "/";
+          if(packageUri.directory()) {
+            book.baseUrl = "/" + packageUri.directory() + "/";
+          } else {
+            book.baseUrl = "/"
+          }         
         }
 
         return book.request(book.packageUrl);
@@ -299,7 +303,7 @@ RSVP.on('error', function(event) {
   console.error(event);
 });
 
-RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
