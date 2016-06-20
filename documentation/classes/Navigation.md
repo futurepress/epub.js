@@ -1,5 +1,4 @@
 ## class Navigation(_package, _request)  
----  
 #### properties  
     package  
     toc  

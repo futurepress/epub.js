@@ -1,5 +1,4 @@
 ## class ContinuousViewManager(options) extends SingleViewManager  
----  
 #### properties  
     settings  
 #### methods  

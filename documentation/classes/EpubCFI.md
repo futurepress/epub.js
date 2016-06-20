@@ -1,5 +1,4 @@
-## class EpubCFI(cfiFrom, base, ignoreClass)    
----  
+## class EpubCFI(cfiFrom, base, ignoreClass)     
 #### properties  
     str  
     base  

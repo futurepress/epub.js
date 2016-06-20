@@ -1,6 +1,5 @@
 ## class Section(item, hooks)  
----  
-  #### properties  
+#### properties  
     idref  
     linear  
     #### properties   
@@ -11,7 +10,7 @@
     prev   
     cfiBase  
     hooks  
-  #### methods  
+#### methods  
     load(_request)  
     base(_document)  
     beforeSectionLoad()  

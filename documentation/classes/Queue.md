@@ -1,5 +1,4 @@
 ## class Queue(_context)  
----  
 #### properties  
     _q  
     contex  

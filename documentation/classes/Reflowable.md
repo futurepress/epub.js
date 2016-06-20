@@ -1,5 +1,4 @@
 ## class Reflowable()  
----  
 #### properties  
     columnAxis  
     columnGap  

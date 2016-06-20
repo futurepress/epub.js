@@ -1,5 +1,4 @@
 ## class Map(layout)  
----  
 #### properties  
     layout  
 #### methods  

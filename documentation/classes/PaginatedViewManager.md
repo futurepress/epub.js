@@ -1,5 +1,4 @@
 ## class PaginatedViewManager(book, options) extends ContinuousViewManager  
----  
 #### properties  
     settings  
     isForcedSingle  

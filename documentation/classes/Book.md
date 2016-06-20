@@ -1,5 +1,4 @@
 ## class Book(_url, options)  
----  
 #### properties  
 		settings   
 		opening  

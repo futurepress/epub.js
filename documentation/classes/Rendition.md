@@ -1,5 +1,4 @@
-## class Rendition(book, options)
----    
+## class Rendition(book, options)  
 #### properties  
     settings  
     viewSettings  

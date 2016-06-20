@@ -1,6 +1,5 @@
-## class SingleViewManager(options) 
----   
-  #### properties  
+## class SingleViewManager(options)  
+#### properties  
     View  
     renderer  
     q  
@@ -10,7 +9,7 @@
     container  
     views  
     bounds  
-  #### methods  
+#### methods  
     render(element, size)  
     addEventListeners()  
     onResized(e)  

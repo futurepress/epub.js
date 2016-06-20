@@ -1,5 +1,4 @@
 ## class Contents(doc, content)  
----  
 #### properties  
 	epubcfi  
 	document  

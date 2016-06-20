@@ -1,5 +1,4 @@
 ## class Locations(spine, request)  
----  
 #### properties  
     spine  
     request  

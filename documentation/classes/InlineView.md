@@ -1,5 +1,4 @@
 ## class InlineView(section, options)  
----  
 #### properties  
     settings  
     id  

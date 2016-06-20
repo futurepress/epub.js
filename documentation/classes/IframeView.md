@@ -1,5 +1,4 @@
 ## class IframeView(section, options)  
----  
 #### properties  
     settings  
     id  

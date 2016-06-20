@@ -1,5 +1,4 @@
 ## class Fixed(_width, _height)  
----
 #### properties  
     width  
     height  

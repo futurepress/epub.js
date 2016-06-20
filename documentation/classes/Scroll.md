@@ -1,9 +1,8 @@
 ## class Scroll()  
----  
-  #### properties  
+#### properties  
     calculate(_width, _height)  
     format(conten  
-  #### methods  
+#### methods  
     calculate(_width, _height)  
     format(contents)  
     count()  

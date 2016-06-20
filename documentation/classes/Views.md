@@ -1,11 +1,10 @@
 ## class Views(container)  
----  
-  #### properties  
+#### properties  
     container  
     _views  
     length  
     hidden  
-  #### methods  
+#### methods  
     first()  
     last()  
     indexOf(view)  

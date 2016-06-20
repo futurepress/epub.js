@@ -1,6 +1,7 @@
-## Classes  
----  
-  
+## Epub.js v0.3  
+
+## Class Reference 
+
 [Book](classes/Book.md)  
 [Contents](classes/Contents.md)  
 [EpubCFI](classes/EpubCFI.md)  

@@ -1,5 +1,4 @@
 ## class Parser()  
----  
 #### methods  
     container(containerXml)  
     identifier(packageXml)  

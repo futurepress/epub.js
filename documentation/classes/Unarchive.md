@@ -1,8 +1,7 @@
 ## class Unarchive()  
----  
-  #### properties  
+#### properties  
     urlCache  
-  #### methods   
+#### methods   
     checkRequirements(callback)  
     open(zipUrl)  
     request(url, type)  

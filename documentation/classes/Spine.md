@@ -1,6 +1,5 @@
 ## class Spine(_request)  
----  
-  #### properties  
+#### properties  
     request  
     spineItems   
     spineByHref   
@@ -8,7 +7,7 @@
     hooks   
     epubcfi  
     loaded  
-  #### methods  
+#### methods  
     load(_package)  
     get(target)  
     append(section)  

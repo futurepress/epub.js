@@ -1,10 +1,9 @@
 ## class Stage(_options)  
----  
-  #### properties  
+#### properties  
     settings  
     container  
     wrapper  
-  #### methods  
+#### methods  
     create(options)  
     getElement(_element)  
     attachTo(what)  
