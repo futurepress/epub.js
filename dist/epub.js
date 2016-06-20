@@ -183,6 +183,9 @@ var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -1873,7 +1876,7 @@ process.umask = function() { return 0; };
  * URI.js - Mutating URLs
  * Second Level Domain (SLD) Support
  *
- * Version: 1.17.1
+ * Version: 1.18.0
  *
  * Author: Rodney Rehm
  * Web: http://medialize.github.io/URI.js/
@@ -2114,7 +2117,7 @@ process.umask = function() { return 0; };
 /*!
  * URI.js - Mutating URLs
  *
- * Version: 1.17.1
+ * Version: 1.18.0
  *
  * Author: Rodney Rehm
  * Web: http://medialize.github.io/URI.js/
@@ -2184,7 +2187,7 @@ process.umask = function() { return 0; };
     return this;
   }
 
-  URI.version = '1.17.1';
+  URI.version = '1.18.0';
 
   var p = URI.prototype;
   var hasOwn = Object.prototype.hasOwnProperty;
@@ -2798,11 +2801,13 @@ process.umask = function() { return 0; };
 
     if (parts.username) {
       t += URI.encode(parts.username);
+    }
 
-      if (parts.password) {
-        t += ':' + URI.encode(parts.password);
-      }
+    if (parts.password) {
+      t += ':' + URI.encode(parts.password);
+    }
 
+    if (t) {
       t += '@';
     }
 
@@ -2990,6 +2995,39 @@ process.umask = function() { return 0; };
     }
   };
 
+
+  URI.joinPaths = function() {
+    var input = [];
+    var segments = [];
+    var nonEmptySegments = 0;
+
+    for (var i = 0; i < arguments.length; i++) {
+      var url = new URI(arguments[i]);
+      input.push(url);
+      var _segments = url.segment();
+      for (var s = 0; s < _segments.length; s++) {
+        if (typeof _segments[s] === 'string') {
+          segments.push(_segments[s]);
+        }
+
+        if (_segments[s]) {
+          nonEmptySegments++;
+        }
+      }
+    }
+
+    if (!segments.length || !nonEmptySegments) {
+      return new URI('');
+    }
+
+    var uri = new URI('').segment(segments);
+
+    if (input[0].path() === '' || input[0].path().slice(0, 1) === '/') {
+      uri.path('/' + uri.path());
+    }
+
+    return uri.normalize();
+  };
 
   URI.commonPath = function(one, two) {
     var length = Math.min(one.length, two.length);
@@ -3414,12 +3452,8 @@ process.umask = function() { return 0; };
     }
 
     if (v === undefined) {
-      if (!this._parts.username) {
-        return '';
-      }
-
       var t = URI.buildUserinfo(this._parts);
-      return t.substring(0, t.length -1);
+      return t ? t.substring(0, t.length -1) : t;
     } else {
       if (v[v.length-1] !== '@') {
         v += '@';
@@ -6628,6 +6662,7 @@ Contents.prototype.width = function(w) {
 
   if (w) {
     this.documentElement.style.width = w;
+    this.content.style.width = w;
   }
 
   return this.window.getComputedStyle(this.documentElement)['width'];
@@ -6643,6 +6678,7 @@ Contents.prototype.height = function(h) {
 
   if (h) {
     this.documentElement.style.height = h;
+    this.content.style.height = h;
   }
 
   return this.window.getComputedStyle(this.documentElement)['height'];
@@ -6688,7 +6724,7 @@ Contents.prototype.scrollHeight = function() {
 
 Contents.prototype.overflow = function(overflow) {
 
-  if (h) {
+  if (overflow) {
     this.documentElement.style.overflow = overflow;
   }
 
@@ -6851,8 +6887,13 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 
   if(this.epubcfi.isCfiString(target)) {
     range = new EpubCFI(cfi).toRange(this.document, ignoreClass);
+
     if(range) {
-      targetPos = range.getBoundingClientRect();
+      if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
+        targetPos = range.startContainer.getBoundingClientRect();
+      } else {
+        targetPos = range.getBoundingClientRect();
+      }
     }
 
   } else if(typeof target === "string" &&
@@ -7488,6 +7529,7 @@ function qs(el, sel) {
 }
 
 function qsa(el, sel) {
+  
   if (typeof el.querySelector != "undefined") {
     return el.querySelectorAll(sel);
   } else {
@@ -7622,7 +7664,7 @@ EpubCFI.prototype.checkType = function(cfi) {
   // Is a range object
   } else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
     return 'range';
-  } else if (typeof cfi === 'object' && cfi instanceof window.Node ){ // || typeof cfi === 'function'
+  } else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
     return 'node';
   } else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
     return 'EpubCFI';
@@ -8597,8 +8639,6 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 
   delta = (colWidth + gap) * divisor;
 
-
-
   this.columnAxis = core.prefixed('columnAxis');
   this.columnGap = core.prefixed('columnGap');
   this.columnWidth = core.prefixed('columnWidth');
@@ -8998,8 +9038,8 @@ function ContinuousViewManager(options) {
 		offsetDelta: 250
 	});
 
-	core.extend(this.settings, options.settings);
-
+	core.defaults(this.settings, options.settings || {});
+	// core.extend(this.settings, options.settings || {});
 };
 
 // subclass extends superclass
@@ -9066,7 +9106,7 @@ ContinuousViewManager.prototype.append = function(section){
 
 		this.views.append(view);
 
-		return this.update();
+		// return this.update();
 
 	}.bind(this));
 };
@@ -9080,7 +9120,7 @@ ContinuousViewManager.prototype.prepend = function(section){
 
 		this.views.prepend(view);
 
-		return this.update();
+		// return this.update();
 
 	}.bind(this));
 
@@ -9149,10 +9189,11 @@ ContinuousViewManager.prototype.check = function(_offset){
 */
 
 ContinuousViewManager.prototype.update = function(_offset){
-	var container = this.stage.bounds();
-	var views = this.views;
+	var container = this.bounds();
+	var views = this.views.all();
 	var viewsLength = views.length;
 	var visible = [];
+	var offset = _offset || this.settings.offset || 0;
 	var isVisible;
 	var view;
 
@@ -9161,10 +9202,11 @@ ContinuousViewManager.prototype.update = function(_offset){
 
 	for (var i = 0; i < viewsLength; i++) {
     view = views[i];
-    isVisible = this.isVisible(view, 0, 0, container);
+
+    isVisible = this.isVisible(view, offset, offset, container);
 
     if(isVisible === true) {
-			promises.push(view.display());
+			promises.push(view.display(this.request));
       visible.push(view);
     } else {
 			this.q.enqueue(view.destroy.bind(view));
@@ -9199,9 +9241,9 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		delta = _offsetTop;
 	}
 
-	var bounds = this.stage.bounds(); // TODO: save this until resize
+	var bounds = this._bounds; //this.bounds(); // bounds saved this until resize
 
-	var offset = horizontal ? this.container.scrollLeft : this.container.scrollTop;
+	var offset = horizontal ? this.scrollLeft : this.scrollTop;
 	var visibleLength = horizontal ? bounds.width : bounds.height;
 	var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 
@@ -9223,12 +9265,11 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
   }
 
   if(promises.length){
-
     return RSVP.all(promises)
       .then(function(posts) {
         // Check to see if anything new is on screen after rendering
         this.q.enqueue(this.update.bind(this));
-
+				// this.update(offset);
       }.bind(this));
 
   } else {
@@ -9313,24 +9354,22 @@ ContinuousViewManager.prototype.addScrollListeners = function() {
 
   if(this.settings.height) {
   	scroller = this.container;
+		this.scrollTop = this.container.scrollTop;
+		this.scrollLeft = this.container.scrollLeft;
   } else {
   	scroller = window;
+		this.scrollTop = window.scrollY;
+		this.scrollLeft = window.scrollX;
   }
 
-  scroller.addEventListener("scroll", function(e){
-    if(!this.ignore) {
-      this.scrolled = true;
-    } else {
-      this.ignore = false;
-    }
-  }.bind(this));
+  scroller.addEventListener("scroll", this.onScroll.bind(this));
 
   window.addEventListener('unload', function(e){
     this.ignore = true;
     this.destroy();
   }.bind(this));
 
-  this.tick.call(window, this.onScroll.bind(this));
+  // this.tick.call(window, this.onScroll.bind(this));
 
   this.scrolled = false;
 
@@ -9338,7 +9377,7 @@ ContinuousViewManager.prototype.addScrollListeners = function() {
 
 ContinuousViewManager.prototype.onScroll = function(){
 
-  if(this.scrolled) {
+  // if(!this.ignore) {
 
     if(this.settings.height) {
 	  	scrollTop = this.container.scrollTop;
@@ -9348,6 +9387,9 @@ ContinuousViewManager.prototype.onScroll = function(){
 			scrollLeft = window.scrollX;
 	  }
 
+		this.scrollTop = scrollTop;
+		this.scrollLeft = scrollLeft;
+
     if(!this.ignore) {
 
 	    if((this.scrollDeltaVert === 0 &&
@@ -9355,7 +9397,8 @@ ContinuousViewManager.prototype.onScroll = function(){
 	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
 	    	 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
-				this.q.enqueue(this.check.bind(this));
+				// this.q.enqueue(this.check.bind(this));
+				this.check();
 
 				this.scrollDeltaVert = 0;
 	    	this.scrollDeltaHorz = 0;
@@ -9385,9 +9428,9 @@ ContinuousViewManager.prototype.onScroll = function(){
 
 
     this.scrolled = false;
-  }
+  // }
 
-  this.tick.call(window, this.onScroll.bind(this));
+  // this.tick.call(window, this.onScroll.bind(this));
 
 };
 
@@ -9403,19 +9446,20 @@ ContinuousViewManager.prototype.onScroll = function(){
 // };
 
 ContinuousViewManager.prototype.currentLocation = function(){
+
   var visible = this.visible();
   var startPage, endPage;
 
   var container = this.container.getBoundingClientRect();
 
   if(visible.length === 1) {
-    return this.map.page(visible[0]);
+    return this.mapping.page(visible[0]);
   }
 
   if(visible.length > 1) {
 
-    startPage = this.map.page(visible[0]);
-    endPage = this.map.page(visible[visible.length-1]);
+    startPage = this.mapping.page(visible[0]);
+    endPage = this.mapping.page(visible[visible.length-1]);
 
     return {
       start: startPage.start,
@@ -9480,9 +9524,9 @@ var ContinuousViewManager = require('./continuous');
 var Map = require('../map');
 var Layout = require('../layout');
 
-function PaginatedViewManager(book, options) {
+function PaginatedViewManager(options) {
 
-  ContinuousViewManager.apply(arguments);
+  ContinuousViewManager.apply(this, arguments); // call super constructor.
 
   this.settings = core.extend(this.settings || {}, {
     width: 600,
@@ -9495,7 +9539,7 @@ function PaginatedViewManager(book, options) {
     infinite: false
   });
 
-  core.extend(this.settings, options.settings);
+  core.defaults(this.settings, options.settings || {});
 
   this.isForcedSingle = this.settings.forceSingle;
 
@@ -9558,9 +9602,14 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
 
   this.updateLayout();
 
-  // Set the look ahead offset for what is visible
+  this.setLayout(this.layout);
 
-  // this.map = new Map(this.layout);
+  this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+
+  // Set the look ahead offset for what is visible
+  this.settings.offeset = this.layout.delta;
+
+  this.mapping = new Map(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 
@@ -9574,14 +9623,13 @@ PaginatedViewManager.prototype.updateLayout = function() {
   this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
   this.layout.calculate(
-    this.stage.width,
-    this.stage.height,
+    this._stageSize.width,
+    this._stageSize.height,
     this.settings.gap,
     this.spreads
   );
 
   this.settings.offset = this.layout.delta;
-
 };
 
 PaginatedViewManager.prototype.moveTo = function(offset){
@@ -9600,25 +9648,26 @@ PaginatedViewManager.prototype.page = function(pg){
 };
 
 PaginatedViewManager.prototype.next = function(){
+    this.scrollLeft = this.container.scrollLeft;
 
-    // console.log(this.container.scrollWidth, this.container.scrollLeft + this.container.offsetWidth + this.layout.delta)
     if(this.container.scrollLeft +
        this.container.offsetWidth +
        this.layout.delta < this.container.scrollWidth) {
       this.scrollBy(this.layout.delta, 0);
     } else {
+      // this.scrollTo(this.container.scrollWidth, 0);
       this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
     }
-    this.reportLocation();
-    return this.check();
+    // this.reportLocation();
+    this.check();
 
 };
 
 PaginatedViewManager.prototype.prev = function(){
 
     this.scrollBy(-this.layout.delta, 0);
-    this.reportLocation();
-    return this.check();
+    // this.reportLocation();
+    this.check();
 
 };
 
@@ -9639,7 +9688,7 @@ PaginatedViewManager.prototype.currentLocation = function(){
     startA = container.left - visible[0].position().left;
     endA = startA + this.layout.spread;
 
-    return this.map.page(visible[0], startA, endA);
+    return this.mapping.page(visible[0], startA, endA);
   }
 
   if(visible.length > 1) {
@@ -9652,8 +9701,8 @@ PaginatedViewManager.prototype.currentLocation = function(){
     startB = container.left + this.layout.spread - visible[visible.length-1].position().left;
     endB = startB + this.layout.column;
 
-    pageLeft = this.map.page(visible[0], startA, endA);
-    pageRight = this.map.page(visible[visible.length-1], startB, endB);
+    pageLeft = this.mapping.page(visible[0], startA, endA);
+    pageRight = this.mapping.page(visible[visible.length-1], startB, endB);
 
     return {
       start: pageLeft.start,
@@ -9705,11 +9754,12 @@ var Stage = require('../stage');
 var Views = require('../views');
 var EpubCFI = require('../epubcfi');
 var Layout = require('../layout');
+var Mapping = require('../map');
 
 function SingleViewManager(options) {
 
 	this.View = options.view;
-	this.renderer = options.renderer;
+	this.request = options.request;
 	this.q = options.queue;
 
 	this.settings = core.extend(this.settings || {}, {
@@ -9723,8 +9773,7 @@ function SingleViewManager(options) {
 		ignoreClass: ''
 	});
 
-	core.extend(this.settings, options.settings);
-
+	core.defaults(this.settings, options.settings || {});
 
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass,
@@ -9743,7 +9792,9 @@ SingleViewManager.prototype.render = function(element, size){
 	this.stage = new Stage({
 		width: size.width,
 		height: size.height,
-		hidden: this.settings.hidden
+		overflow: this.settings.overflow,
+		hidden: this.settings.hidden,
+		axis: this.settings.axis
 	});
 
 	this.stage.attachTo(element);
@@ -9755,11 +9806,12 @@ SingleViewManager.prototype.render = function(element, size){
 	this.views = new Views(this.container);
 
 	// Calculate Stage Size
-	this.bounds = this.stage.bounds();
+	this._bounds = this.bounds();
+	this._stageSize = this.stage.size();
 
 	// Set the dimensions for views
-	this.viewSettings.width = this.bounds.width;
-	this.viewSettings.height = this.bounds.height;
+	this.viewSettings.width = this._stageSize.width;
+	this.viewSettings.height = this._stageSize.height;
 
 	// Function to handle a resize event.
 	// Will only attach if width and height are both fixed.
@@ -9782,20 +9834,21 @@ SingleViewManager.prototype.onResized = function(e) {
 
 SingleViewManager.prototype.resize = function(width, height){
 
-	this.bounds = this.stage.bounds(width, height);
+	this._stageSize = this.stage.size(width, height);
+	this._bounds = this.bounds();
 
 	// Update for new views
-	this.viewSettings.width = this.bounds.width;
-	this.viewSettings.height = this.bounds.height;
+	this.viewSettings.width = this._stageSize.width;
+	this.viewSettings.height = this._stageSize.height;
 
 	// Update for existing views
 	this.views.each(function(view) {
-		view.size(this.bounds.width, this.bounds.height);
+		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
 	this.trigger("resized", {
-		width: this.stage.width,
-		height: this.stage.height
+		width: this._stageSize.width,
+		height: this._stageSize.height
 	});
 
 };
@@ -9828,7 +9881,8 @@ SingleViewManager.prototype.display = function(section, target){
 	if(visible && target) {
 		offset = visible.locationOf(target);
 		this.moveTo(offset);
-		return displaying.resolve();
+		displaying.resolve();
+		return displayed;
 	}
 
 	// Hide all current views
@@ -9845,7 +9899,7 @@ SingleViewManager.prototype.display = function(section, target){
 			// Move to correct place within the section, if needed
 			if(target) {
 				offset = view.locationOf(target);
-				return this.moveTo(offset);
+				this.moveTo(offset);
 			}
 
 		}.bind(this))
@@ -9878,7 +9932,7 @@ SingleViewManager.prototype.add = function(view){
 	view.onDisplayed = this.afterDisplayed.bind(this);
 	view.onResize = this.afterResized.bind(this);
 
-	return view.display();
+	return view.display(this.request);
 	// return this.renderer(view, this.views.hidden);
 };
 
@@ -9944,17 +9998,17 @@ SingleViewManager.prototype.currentLocation = function(){
 
   if(this.views.length) {
   	view = this.views.first();
-    // start = container.left - view.position().left;
-    // end = start + this.layout.spread;
-		console.log("visibile currentLocation", view);
-    // return this.map.page(view);
+    start = container.left - view.position().left;
+    end = start + this.layout.spread;
+
+    return this.mapping.page(view);
   }
 
 };
 
 SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
 	var position = view.position();
-	var container = _container || this.container.getBoundingClientRect();
+	var container = _container || this.bounds();
 
 	if(this.settings.axis === "horizontal" &&
 		position.right > container.left - offsetPrev &&
@@ -10011,6 +10065,7 @@ SingleViewManager.prototype.scrollBy = function(x, y, silent){
   }
   // console.log("scrollBy", x, y);
   this.scrolled = true;
+	this.onScroll();
 };
 
 SingleViewManager.prototype.scrollTo = function(x, y, silent){
@@ -10026,6 +10081,7 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   }
   // console.log("scrollTo", x, y);
   this.scrolled = true;
+	this.onScroll();
   // if(this.container.scrollLeft != x){
   //   setTimeout(function() {
   //     this.scrollTo(x, y, silent);
@@ -10034,13 +10090,17 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   // };
  };
 
+ SingleViewManager.prototype.onScroll = function(){
+
+};
+
  SingleViewManager.prototype.bounds = function() {
    var bounds;
 
    if(!this.settings.height || !this.container) {
      bounds = core.windowBounds();
    } else {
-     bounds = this.container.getBoundingClientRect();
+     bounds = this.stage.bounds();
    }
 
    return bounds;
@@ -10053,7 +10113,7 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
 
 	this.setLayout(this.layout);
 
- 	// this.map = new Map(this.layout);
+ 	this.mapping = new Mapping(this.layout);
  	// this.manager.layout(this.layout.format);
  };
 
@@ -10073,7 +10133,7 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
 
  module.exports = SingleViewManager;
 
-},{"../core":12,"../epubcfi":13,"../layout":15,"../stage":29,"../views":32,"rsvp":4}],20:[function(require,module,exports){
+},{"../core":12,"../epubcfi":13,"../layout":15,"../map":20,"../stage":29,"../views":32,"rsvp":4}],20:[function(require,module,exports){
 function Map(layout){
   this.layout = layout;
 };
@@ -10086,7 +10146,7 @@ Map.prototype.section = function(view) {
 };
 
 Map.prototype.page = function(view, start, end) {
-  var root = view.document.body;
+  var root = view.contents.document.body;
   return this.rangePairToCfiPair(view.section, {
     start: this.findStart(root, start, end),
     end: this.findEnd(root, start, end)
@@ -10623,7 +10683,7 @@ Parser.prototype.metadata = function(xml){
   metadata.rights = p.getElementText(xml, "rights");
 
   metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
-  
+
   metadata.layout = p.getPropertyText(xml, "rendition:layout");
   metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
   metadata.flow = p.getPropertyText(xml, 'rendition:flow');
@@ -10841,7 +10901,7 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 
 Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
 	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
-  var navPoints = core.qsa("navPoint");
+  var navPoints = core.qsa(tocXml, "navPoint");
 	var length = navPoints.length;
 	var i;
 	var toc = {};
@@ -10867,7 +10927,7 @@ Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
 Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 	var id = item.getAttribute('id') || false,
 			// content = item.querySelector("content"),
-			content = core.qs("content"),
+			content = core.qs(item, "content"),
 			src = content.getAttribute('src'),
       // navLabel = item.querySelector("navLabel"),
       navLabel = core.qs(item, "navLabel"),
@@ -11170,12 +11230,12 @@ var Map = require('./map');
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
-		infinite: true,
-		hidden: false,
+		// infinite: true,
+		// hidden: false,
 		width: null,
 		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
-		axis: "vertical",
+		// layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
+		// axis: "vertical",
 		ignoreClass: '',
 		manager: "single",
 		view: "iframe"
@@ -11229,6 +11289,7 @@ function Rendition(book, options) {
 	this.manager = new this.ViewManager({
 		view: this.View,
 		queue: this.q,
+		request: this.book.request,
 		settings: this.settings
 	});
 
@@ -11417,11 +11478,13 @@ Rendition.prototype.moveTo = function(offset){
 };
 
 Rendition.prototype.next = function(){
-	return this.q.enqueue(this.manager.next.bind(this.manager));
+	return this.q.enqueue(this.manager.next.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
 Rendition.prototype.prev = function(){
-	return this.q.enqueue(this.manager.prev.bind(this.manager));
+	return this.q.enqueue(this.manager.prev.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
 //-- http://www.idpf.org/epub/fxl/
@@ -11679,11 +11742,38 @@ function base(doc, section){
   base.setAttribute("href", section.url);
 }
 
+function canonical(doc, section){
+  var head;
+  var link;
+  var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
+
+  if(!doc){
+    return;
+  }
+
+  head = core.qs(doc, "head");
+  link = core.qs(head, "link[rel='canonical']");
+
+  if (link) {
+    link.setAttribute("href", url);
+  } else {
+    link = doc.createElement("link");
+    link.setAttribute("rel", "canonical");
+    link.setAttribute("href", url);
+    head.appendChild(link);
+  }
+}
+
 function links(view, renderer) {
 
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
+
+    if(href.indexOf("mailto:") === 0){
+      return;
+    }
+
     var linkUri = URI(href);
     var absolute = linkUri.absoluteTo(view.section.url);
     var relative = absolute.relativeTo(this.book.baseUrl).toString();
@@ -11738,6 +11828,7 @@ function substitute(content, urls, replacements) {
 }
 module.exports = {
   'base': base,
+  'canonical' : canonical,
   'links': links,
   'substitute': substitute
 };
@@ -12062,6 +12153,7 @@ function Spine(_request){
 
   // Register replacements
   this.hooks.content.register(replacements.base);
+  this.hooks.content.register(replacements.canonical);
 
   this.epubcfi = new EpubCFI();
 
@@ -12184,6 +12276,7 @@ var core = require('./core');
 
 function Stage(_options) {
 	this.settings = _options || {};
+	this.id = "epubjs-container-" + core.uuid();
 
 	this.container = this.create(this.settings);
 
@@ -12201,6 +12294,7 @@ Stage.prototype.create = function(options){
 	var height  = options.height;// !== false ? options.height : "100%";
 	var width   = options.width;// !== false ? options.width : "100%";
 	var overflow  = options.overflow || false;
+ 	var axis = options.axis || "vertical";
 
 	if(options.height && core.isNumber(options.height)) {
 		height = options.height + "px";
@@ -12213,7 +12307,7 @@ Stage.prototype.create = function(options){
 	// Create new container element
 	container = document.createElement("div");
 
-	container.id = "epubjs-container:" + core.uuid();
+	container.id = this.id;
 	container.classList.add("epub-container");
 
 	// Style Element
@@ -12222,7 +12316,7 @@ Stage.prototype.create = function(options){
 	container.style.lineHeight = "0";
 	container.style.verticalAlign = "top";
 
-	if(this.settings.axis === "horizontal") {
+	if(axis === "horizontal") {
 		container.style.whiteSpace = "nowrap";
 	}
 
@@ -12308,7 +12402,7 @@ Stage.prototype.onResize = function(func){
 
 };
 
-Stage.prototype.bounds = function(_width, _height){
+Stage.prototype.size = function(_width, _height){
 	var bounds;
 	var width = _width || this.settings.width;
 	var height = _height || this.settings.height;
@@ -12364,6 +12458,42 @@ Stage.prototype.bounds = function(_width, _height){
 	};
 
 };
+
+Stage.prototype.bounds = function(){
+	return this.element.getBoundingClientRect();
+}
+
+Stage.prototype.getSheet = function(){
+	var style = document.createElement("style");
+
+	// WebKit hack --> https://davidwalsh.name/add-rules-stylesheets
+	style.appendChild(document.createTextNode(""));
+
+	document.head.appendChild(style);
+
+	return style.sheet;
+}
+
+Stage.prototype.addStyleRules = function(selector, rulesArray){
+	var scope = "#" + this.id + " ";
+	var rules = "";
+
+	if(!this.sheet){
+		this.sheet = this.getSheet();
+	}
+
+	rulesArray.forEach(function(set) {
+		for (var prop in set) {
+			if(set.hasOwnProperty(prop)) {
+				rules += prop + ":" + set[prop] + ";";
+			}
+		}
+	})
+
+  this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+}
+
+
 
 module.exports = Stage;
 
@@ -13290,6 +13420,10 @@ function Views(container) {
   this.hidden = false;
 };
 
+Views.prototype.all = function() {
+	return this._views;
+};
+
 Views.prototype.first = function() {
 	return this._views[0];
 };
@@ -13462,7 +13596,7 @@ function IframeView(section, options) {
     globalLayoutProperties: {},
   }, options || {});
 
-  this.id = "epubjs-view:" + core.uuid();
+  this.id = "epubjs-view-" + core.uuid();
   this.section = section;
   this.index = section.index;
 
@@ -13484,7 +13618,6 @@ function IframeView(section, options) {
   this.layout = this.settings.layout;
   // Dom events to listen for
   // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
-
 };
 
 IframeView.prototype.container = function(axis) {
@@ -13568,8 +13701,12 @@ IframeView.prototype.render = function(request, show) {
 	// Fit to size of the container, apply padding
   this.size();
 
+  if(!this.sectionRender) {
+    this.sectionRender = this.section.render(request);
+  }
+
 	// Render Chain
-	return this.section.render(request)
+	return this.sectionRender
 		.then(function(contents){
 			return this.load(contents);
 		}.bind(this))
@@ -13848,6 +13985,16 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.contents = new Contents(this.document);
 
     this.rendering = false;
+
+    var link = this.document.querySelector("link[rel='canonical']");
+    if (link) {
+      link.setAttribute("href", this.section.url);
+    } else {
+      link = this.document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      link.setAttribute("href", this.section.url);
+      this.document.querySelector("head").appendChild(link);
+    }
 
     promise.resolve(this.contents);
 };
@@ -14298,16 +14445,6 @@ InlineView.prototype.load = function(contents) {
 
   this.contents = new Contents(this.document, this.frame);
 
-  // <link rel="canonical" href="https://blog.example.com/dresses/green-dresses-are-awesome" />
-  var link = this.document.querySelector("link[rel='canonical']");
-  if (link) {
-    link.setAttribute("href", this.section.url);
-  } else {
-    link = this.document.createElement("link");
-    link.setAttribute("rel", "canonical");
-    link.setAttribute("href", this.section.url);
-    this.document.querySelector("head").appendChild(link);
-  }
   this.rendering = false;
 
   loading.resolve(this.contents);

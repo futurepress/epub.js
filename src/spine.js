@@ -17,6 +17,7 @@ function Spine(_request){
 
   // Register replacements
   this.hooks.content.register(replacements.base);
+  this.hooks.content.register(replacements.canonical);
 
   this.epubcfi = new EpubCFI();
 
