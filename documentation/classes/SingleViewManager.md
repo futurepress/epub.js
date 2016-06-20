@@ -1,4 +1,5 @@
-## class SingleViewManager(options)  
+## class SingleViewManager(options) 
+---   
   #### properties  
     View  
     renderer  

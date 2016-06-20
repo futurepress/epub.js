@@ -1,11 +1,12 @@
 ## class Queue(_context)  
-  #### properties  
+---  
+#### properties  
     _q  
     contex  
     tick  
     running  
     paused  
-  #### methods  
+#### methods  
     enqueue()  
     dequeue()  
     dump()  

@@ -1,5 +1,6 @@
 ## class InlineView(section, options)  
-   #### properties  
+---  
+#### properties  
     settings  
     id  
     section  
@@ -14,7 +15,7 @@
     fixedHeight  
     epubcfi  
     layout  
-  #### methods  
+#### methods  
     container(axis)  
     create()  
     render(request, show)  

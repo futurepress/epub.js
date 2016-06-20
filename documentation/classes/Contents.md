@@ -1,12 +1,13 @@
 ## class Contents(doc, content)  
-  #### properties  
+---  
+#### properties  
 	epubcfi  
 	document  
 	documentElement  
 	content  
 	window  
 	listenedEvents  
-  #### methods  
+#### methods  
     width(w)  
     height(h)  
     textWidth()  

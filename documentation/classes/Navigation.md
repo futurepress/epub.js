@@ -1,10 +1,11 @@
 ## class Navigation(_package, _request)  
-  #### properties  
+---  
+#### properties  
     package  
     toc  
     tocByHref  
     tocById  
-  #### methods  
+#### methods  
     load(_request)  
     loaded(toc)  
     get(target)  

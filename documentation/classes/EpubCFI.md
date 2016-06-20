@@ -1,5 +1,6 @@
-## class EpubCFI(cfiFrom, base, ignoreClass)  
-  #### properties  
+## class EpubCFI(cfiFrom, base, ignoreClass)    
+---  
+#### properties  
     str  
     base  
     spinePos  
@@ -7,7 +8,7 @@
     path  
     start  
     end  
-  #### methods  
+#### methods  
     checkType(cfi)  
     parse(cfiStr)  
     parseComponent(componentStr)  

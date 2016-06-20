@@ -1,4 +1,5 @@
 ## class Stage(_options)  
+---  
   #### properties  
     settings  
     container  

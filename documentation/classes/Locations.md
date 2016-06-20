@@ -1,5 +1,6 @@
 ## class Locations(spine, request)  
-  #### properties  
+---  
+#### properties  
     spine  
     request  
     q  
@@ -8,7 +9,7 @@
     total  
     break  
     _current  
-  #### methods  
+#### methods  
     generate(chars)  
     process(section)  
     sprint(root, func)  

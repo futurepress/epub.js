@@ -1,8 +1,9 @@
 ## class Fixed(_width, _height)  
-  #### properties  
+---
+#### properties  
     width  
     height  
-  #### methods  
+#### methods  
     calculate(_width, _height)  
     format(contents)  
     count()  

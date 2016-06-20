@@ -1,8 +1,9 @@
 Hook(context)  
-  #### properties  
+---  
+#### properties  
     context  
     hooks  
-  #### methods  
+#### methods  
     register = function()  
     trigger = function()  
     list = function()  

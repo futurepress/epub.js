@@ -1,5 +1,6 @@
-## class Rendition(book, options)  
-  #### properties  
+## class Rendition(book, options)
+---    
+#### properties  
     settings  
     viewSettings  
     book  
@@ -12,7 +13,7 @@
     ViewManager  
     View  
     manager  
-  #### methods  
+#### methods  
     setManager(manager)  
     requireManager(manager)  
     requireView(view)  

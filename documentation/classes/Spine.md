@@ -1,4 +1,5 @@
 ## class Spine(_request)  
+---  
   #### properties  
     request  
     spineItems   

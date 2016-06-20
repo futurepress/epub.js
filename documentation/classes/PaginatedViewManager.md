@@ -1,9 +1,10 @@
 ## class PaginatedViewManager(book, options) extends ContinuousViewManager  
-  #### properties  
+---  
+#### properties  
     settings  
     isForcedSingle  
     viewSettings  
-  #### methods  
+#### methods  
     determineSpreads(cutoff)  
     forceSingle(bool)  
     addEventListeners()  

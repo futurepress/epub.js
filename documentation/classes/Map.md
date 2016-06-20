@@ -1,7 +1,8 @@
 ## class Map(layout)  
-  #### properties  
+---  
+#### properties  
     layout  
-  #### methods  
+#### methods  
     section(view)  
     page(view, start, end)  
     walk(root, func)  

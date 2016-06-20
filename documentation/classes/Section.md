@@ -1,4 +1,5 @@
 ## class Section(item, hooks)  
+---  
   #### properties  
     idref  
     linear  

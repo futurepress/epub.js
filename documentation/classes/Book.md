@@ -1,5 +1,6 @@
 ## class Book(_url, options)  
-  #### properties  
+---  
+#### properties  
 		settings   
 		opening  
 		opened  
@@ -12,7 +13,7 @@
 		request  
 		spine  
 		locations  
-  #### methods  
+#### methods  
 		open(_url)  
 		unpack(packageXml)  
 		section(target)  

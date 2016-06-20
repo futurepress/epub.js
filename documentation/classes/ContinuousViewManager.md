@@ -1,7 +1,8 @@
 ## class ContinuousViewManager(options) extends SingleViewManager  
-  #### properties  
+---  
+#### properties  
     settings  
-  #### methods  
+#### methods  
     moveTo(offset)  
     afterDisplayed(currView)  
     afterResized(view)  

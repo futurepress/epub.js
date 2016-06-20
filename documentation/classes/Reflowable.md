@@ -1,5 +1,6 @@
 ## class Reflowable()  
-  #### properties  
+---  
+#### properties  
     columnAxis  
     columnGap  
     columnWidth  
@@ -12,7 +13,7 @@
     gap  
     divisor  
     name  
-  #### methods  
+#### methods  
     calculate(_width, _height, _gap, _devisor)  
     format(contents)  
     count(totalWidth)  
