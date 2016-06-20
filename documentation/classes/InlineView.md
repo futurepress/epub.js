@@ -1,3 +1,11 @@
+---
+label: InlineView
+id: InlineView
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class InlineView(section, options)  
 #### properties  
     settings  

@@ -1,3 +1,11 @@
+---
+label: Unarchive
+id: Unarchive
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Unarchive()  
 #### properties  
     urlCache  

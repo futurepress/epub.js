@@ -1,3 +1,11 @@
+---
+label: Rendition
+id: Rendition
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Rendition(book, options)  
 #### properties  
     settings  

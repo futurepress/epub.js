@@ -1,3 +1,11 @@
+---
+label: Section
+id: Section
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Section(item, hooks)  
 #### properties  
     idref  

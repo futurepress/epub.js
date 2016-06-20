@@ -1,3 +1,11 @@
+---
+label: Views
+id: Views
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Views(container)  
 #### properties  
     container  

@@ -1,3 +1,11 @@
+---
+label: Contents
+id: Contents
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Contents(doc, content)  
 #### properties  
 	epubcfi  

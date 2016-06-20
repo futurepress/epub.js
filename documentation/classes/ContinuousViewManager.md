@@ -1,3 +1,11 @@
+---
+label: ContinuousViewManager
+id: ContinuousViewManager
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class ContinuousViewManager(options) extends SingleViewManager  
 #### properties  
     settings  

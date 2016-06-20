@@ -1,3 +1,11 @@
+---
+label: Locations
+id: Locations
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Locations(spine, request)  
 #### properties  
     spine  

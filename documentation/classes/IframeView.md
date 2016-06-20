@@ -1,3 +1,11 @@
+---
+label: IframeView
+id: IframeView
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class IframeView(section, options)  
 #### properties  
     settings  

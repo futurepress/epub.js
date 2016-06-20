@@ -1,3 +1,11 @@
+---
+label: Map
+id: Map
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Map(layout)  
 #### properties  
     layout  

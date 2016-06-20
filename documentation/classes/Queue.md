@@ -1,3 +1,11 @@
+---
+label: Queue
+id: Queue
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Queue(_context)  
 #### properties  
     _q  

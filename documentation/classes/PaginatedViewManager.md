@@ -1,3 +1,11 @@
+---
+label: PaginatedViewManager
+id: PaginatedViewManager
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class PaginatedViewManager(book, options) extends ContinuousViewManager  
 #### properties  
     settings  

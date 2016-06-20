@@ -1,3 +1,11 @@
+---
+label: SimpleViewManager
+id: SimpleViewManager
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class SingleViewManager(options)  
 #### properties  
     View  

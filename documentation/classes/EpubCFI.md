@@ -1,3 +1,11 @@
+---
+label: EpubCFI
+id: EpubCFI
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class EpubCFI(cfiFrom, base, ignoreClass)     
 #### properties  
     str  

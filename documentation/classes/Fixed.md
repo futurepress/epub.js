@@ -1,3 +1,11 @@
+---
+label: Fixed
+id: Fixed
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Fixed(_width, _height)  
 #### properties  
     width  

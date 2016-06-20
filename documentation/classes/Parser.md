@@ -1,3 +1,11 @@
+---
+label: Parser
+id: Parser
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Parser()  
 #### methods  
     container(containerXml)  

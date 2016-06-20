@@ -1,3 +1,11 @@
+---
+label: Stage
+id: Stage
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Stage(_options)  
 #### properties  
     settings  

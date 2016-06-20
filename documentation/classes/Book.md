@@ -1,3 +1,11 @@
+---
+label: Book
+id: Book
+categorySlug: Classes
+categoryLabel: Classes
+categoryRank: 
+documentRank:
+
 ## class Book(_url, options)  
 #### properties  
 		settings   
