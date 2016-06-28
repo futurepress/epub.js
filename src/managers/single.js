@@ -4,11 +4,12 @@ var Stage = require('../stage');
 var Views = require('../views');
 var EpubCFI = require('../epubcfi');
 var Layout = require('../layout');
+var Mapping = require('../map');
 
 function SingleViewManager(options) {
 
 	this.View = options.view;
-	this.renderer = options.renderer;
+	this.request = options.request;
 	this.q = options.queue;
 
 	this.settings = core.extend(this.settings || {}, {
@@ -22,8 +23,7 @@ function SingleViewManager(options) {
 		ignoreClass: ''
 	});
 
-	core.extend(this.settings, options.settings);
-
+	core.defaults(this.settings, options.settings || {});
 
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass,
@@ -42,7 +42,9 @@ SingleViewManager.prototype.render = function(element, size){
 	this.stage = new Stage({
 		width: size.width,
 		height: size.height,
-		hidden: this.settings.hidden
+		overflow: this.settings.overflow,
+		hidden: this.settings.hidden,
+		axis: this.settings.axis
 	});
 
 	this.stage.attachTo(element);
@@ -54,11 +56,12 @@ SingleViewManager.prototype.render = function(element, size){
 	this.views = new Views(this.container);
 
 	// Calculate Stage Size
-	this.bounds = this.stage.bounds();
+	this._bounds = this.bounds();
+	this._stageSize = this.stage.size();
 
 	// Set the dimensions for views
-	this.viewSettings.width = this.bounds.width;
-	this.viewSettings.height = this.bounds.height;
+	this.viewSettings.width = this._stageSize.width;
+	this.viewSettings.height = this._stageSize.height;
 
 	// Function to handle a resize event.
 	// Will only attach if width and height are both fixed.
@@ -81,20 +84,21 @@ SingleViewManager.prototype.onResized = function(e) {
 
 SingleViewManager.prototype.resize = function(width, height){
 
-	this.bounds = this.stage.bounds(width, height);
+	this._stageSize = this.stage.size(width, height);
+	this._bounds = this.bounds();
 
 	// Update for new views
-	this.viewSettings.width = this.bounds.width;
-	this.viewSettings.height = this.bounds.height;
+	this.viewSettings.width = this._stageSize.width;
+	this.viewSettings.height = this._stageSize.height;
 
 	// Update for existing views
 	this.views.each(function(view) {
-		view.size(this.bounds.width, this.bounds.height);
+		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
 	this.trigger("resized", {
-		width: this.stage.width,
-		height: this.stage.height
+		width: this._stageSize.width,
+		height: this._stageSize.height
 	});
 
 };
@@ -127,7 +131,8 @@ SingleViewManager.prototype.display = function(section, target){
 	if(visible && target) {
 		offset = visible.locationOf(target);
 		this.moveTo(offset);
-		return displaying.resolve();
+		displaying.resolve();
+		return displayed;
 	}
 
 	// Hide all current views
@@ -144,7 +149,7 @@ SingleViewManager.prototype.display = function(section, target){
 			// Move to correct place within the section, if needed
 			if(target) {
 				offset = view.locationOf(target);
-				return this.moveTo(offset);
+				this.moveTo(offset);
 			}
 
 		}.bind(this))
@@ -177,7 +182,7 @@ SingleViewManager.prototype.add = function(view){
 	view.onDisplayed = this.afterDisplayed.bind(this);
 	view.onResize = this.afterResized.bind(this);
 
-	return view.display();
+	return view.display(this.request);
 	// return this.renderer(view, this.views.hidden);
 };
 
@@ -243,17 +248,17 @@ SingleViewManager.prototype.currentLocation = function(){
 
   if(this.views.length) {
   	view = this.views.first();
-    // start = container.left - view.position().left;
-    // end = start + this.layout.spread;
-		console.log("visibile currentLocation", view);
-    // return this.map.page(view);
+    start = container.left - view.position().left;
+    end = start + this.layout.spread;
+
+    return this.mapping.page(view);
   }
 
 };
 
 SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
 	var position = view.position();
-	var container = _container || this.container.getBoundingClientRect();
+	var container = _container || this.bounds();
 
 	if(this.settings.axis === "horizontal" &&
 		position.right > container.left - offsetPrev &&
@@ -310,6 +315,7 @@ SingleViewManager.prototype.scrollBy = function(x, y, silent){
   }
   // console.log("scrollBy", x, y);
   this.scrolled = true;
+	this.onScroll();
 };
 
 SingleViewManager.prototype.scrollTo = function(x, y, silent){
@@ -325,6 +331,7 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   }
   // console.log("scrollTo", x, y);
   this.scrolled = true;
+	this.onScroll();
   // if(this.container.scrollLeft != x){
   //   setTimeout(function() {
   //     this.scrollTo(x, y, silent);
@@ -333,13 +340,17 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   // };
  };
 
+ SingleViewManager.prototype.onScroll = function(){
+
+};
+
  SingleViewManager.prototype.bounds = function() {
    var bounds;
 
    if(!this.settings.height || !this.container) {
      bounds = core.windowBounds();
    } else {
-     bounds = this.container.getBoundingClientRect();
+     bounds = this.stage.bounds();
    }
 
    return bounds;
@@ -352,7 +363,7 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
 
 	this.setLayout(this.layout);
 
- 	// this.map = new Map(this.layout);
+ 	this.mapping = new Mapping(this.layout);
  	// this.manager.layout(this.layout.format);
  };
 

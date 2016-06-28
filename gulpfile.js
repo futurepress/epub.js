@@ -21,6 +21,7 @@ var URI = require('urijs');
 var mochify = require('mochify');
 // https://github.com/mishoo/UglifyJS2/pull/265
 // uglify.AST_Node.warn_function = function() {};
+var markdownDocs = require('gulp-markdown-docs');
 
 // Lint JS
 gulp.task('lint', function() {
@@ -91,6 +92,15 @@ gulp.task('test:once', function(cb) {
     debug: false
   })
   .bundle();
+});
+
+
+gulp.task('docs', function () {
+  return gulp.src('documentation/classes/*.md')
+    .pipe(markdownDocs('index.html', {
+    yamlMeta: true
+  }))
+    .pipe(gulp.dest('./html_docs/'));
 });
 
 // Default

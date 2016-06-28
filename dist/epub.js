@@ -6314,7 +6314,6 @@ function Book(_url, options){
     metadata: new RSVP.defer(),
     cover: new RSVP.defer(),
     navigation: new RSVP.defer(),
-    pageList: new RSVP.defer()
   };
 
   this.loaded = {
@@ -6323,7 +6322,6 @@ function Book(_url, options){
     metadata: this.loading.metadata.promise,
     cover: this.loading.cover.promise,
     navigation: this.loading.navigation.promise,
-    pageList: this.loading.pageList.promise
   };
 
   this.ready = RSVP.hash(this.loaded);
@@ -8666,14 +8664,20 @@ function Fixed(_width, _height){
 
 };
 
+
+
 Fixed.prototype.calculate = function(_width, _height){
   this.width = _width;
   this.height = _height;
+  console.log(_width, _height)
 };
 
 Fixed.prototype.format = function(contents){
   var viewport = contents.viewport();
-  // var width, height;
+  var width, height;
+  console.log("viewport",viewport)
+  console.log("contents", contents)
+  console.log("doc", doc)
   //
   // var $doc = doc.documentElement;
   // var $viewport = $doc.querySelector("[name=viewport");
@@ -8682,7 +8686,7 @@ Fixed.prototype.format = function(contents){
   // * check for the viewport size
   // * <meta name="viewport" content="width=1024,height=697" />
   // */
-  // if($viewport && $viewport.hasAttribute("content")) {
+  // if(viewport && viewport.hasAttribute("content")) {
   //   content = $viewport.getAttribute("content");
   //   contents = content.split(',');
   //   if(contents[0]){
@@ -8732,15 +8736,35 @@ Scroll.prototype.calculate = function(_width, _height){
   this.gap = 0;
 };
 
-Scroll.prototype.format = function(contents){
+Scroll.prototype.format = function(view){
+  var contents = view.contents
+  var viewport = contents.viewport();
+  var width = viewport.width
+  var height = viewport.height
+  var _width = document.querySelector('#area').offsetWidth
+  var _height = document.querySelector('#area').offsetHeight
+  var element = view.element
+  var iFrame = element.querySelector("iframe")
+  
+  var widthScale = _width / (width * 2);
+  var heightScale = heightScale = _height / height;
+  var scale = widthScale < heightScale ? widthScale : heightScale;
+  
+  var page = contents.content.firstElementChild
+  page.style.position = "absolute";
+  // iFrame.style.top = "50%";
+  page.style.transform = "scale(" + scale + ")";
 
-  // var $doc = doc.documentElement;
-
-  // $doc.style.width = "auto";
-  // $doc.style.height = "auto";
-  // contents.width("auto");
-  contents.height("auto");
-
+  page.style.width =  width + "px" || "auto";
+  page.style.height =  height + "px" || "auto";
+  
+  page.style.overflow = "hidden";
+  page.style.transformOrigin = "top left";
+  if (!view.offsetRight) {
+     page.style.transformOrigin = "top right";
+     page.style.right = 0;
+     page.style.left = "auto";
+  }
 };
 
 Scroll.prototype.count = function(){
@@ -9554,7 +9578,7 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
 
   // this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
-  this.layout = new Layout.Reflowable();
+  this.layout = new Layout.Fixed();
 
   this.updateLayout();
 
@@ -9814,13 +9838,17 @@ SingleViewManager.prototype.createView = function(section) {
 	return new this.View(section, this.viewSettings);
 };
 
-SingleViewManager.prototype.display = function(section, target){
+SingleViewManager.prototype.append = function(section){
+  var view = this.createView(section);
+  console.log("View",view);
+  this.views.append(view);
+};
 
+SingleViewManager.prototype.display = function(section, target){
+  var view, view2;
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
-
 	var isCfi = EpubCFI().isCfiString(target);
-
 	// Check to make sure the section we want isn't already shown
 	var visible = this.views.find(section);
 
@@ -9833,28 +9861,49 @@ SingleViewManager.prototype.display = function(section, target){
 
 	// Hide all current views
 	this.views.hide();
-
 	this.views.clear();
 
 	// Create a new view
 	view = this.createView(section);
+  view.element.style.position = "absolute";
+  view.element.style.left = 0;
+  view.element.style.top = 0;
+  // view.element.style.width = "50%";
+  // view2.setAsRightPage();
+  console.log("EP", this.settings.evenPages)
+  view2 = this.createView(section.next());
+  // if this book has more than 1 page and is even display 2 pages
+  if((view2 && this.settings.evenPages) || (view2 && section.index != 0)) {
+    this.views.clear();
+    view2.setAsRightPage();
+    view2.element.style.position = "absolute";
+    view2.element.style.top = 0;
+    view2.element.style.left = view.width + "px"
+    this.add(view);
 
-	return this.add(view)
-		.then(function(){
+    return this.add(view2)
+    .then(function(){
+      this.views.show();
+    }.bind(this));
+  }
+  // odd or single page book, display 1 page
+  else {
+  	return this.add(view)
+  		.then(function(){
+  			// Move to correct place within the section, if needed
+  			if(target) {
+  				offset = view.locationOf(target);
+  				return this.moveTo(offset);
+  			}
 
-			// Move to correct place within the section, if needed
-			if(target) {
-				offset = view.locationOf(target);
-				return this.moveTo(offset);
-			}
-
-		}.bind(this))
-		// .then(function(){
-		// 	return this.hooks.display.trigger(view);
-		// }.bind(this))
-		.then(function(){
-			this.views.show();
-		}.bind(this));
+  		}.bind(this))
+  		// .then(function(){
+  		// 	return this.hooks.display.trigger(view);
+  		// }.bind(this))
+  		.then(function(){
+  			this.views.show();
+  		}.bind(this));
+  }
 
 };
 
@@ -9893,40 +9942,81 @@ SingleViewManager.prototype.add = function(view){
 // };
 
 SingleViewManager.prototype.next = function(){
-	var next;
-	var view;
+	var next, next2;
+	var view, view2;
 
 	if(!this.views.length) return;
 
 	next = this.views.last().section.next();
+  if (next) {
+    next2 = next.next();
+  }
 
-	if(next) {
+	if(next && next2) {
 		this.views.clear();
 
 		view = this.createView(next);
-		return this.add(view)
+    view2 = this.createView(next2);
+    console.log("view2", view2)
+    view2.setAsRightPage();
+    view2.element.style.position = "absolute";
+    view2.element.style.top = 0;
+    view2.element.style.left = view.width + "px"
+    this.add(view);
+
+		return this.add(view2)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
 	}
+  else if(next) {
+    this.views.clear();
+    view = this.createView(next);
+    view.single = true;
+    return this.add(view)
+    .then(function(){
+      this.views.show();
+    }.bind(this));
+  }
 };
 
 SingleViewManager.prototype.prev = function(){
-	var prev;
-	var view;
+	var prev, prev2;
+	var view, prev2;
 
 	if(!this.views.length) return;
+  // prev2 is the RIGHT column
+	prev2 = this.views.first().section.prev();
+  if (prev2) {
+    prev = prev2.prev();
+  }
 
-	prev = this.views.first().section.prev();
-	if(prev) {
+	if(prev && prev2) {
 		this.views.clear();
 
-		view = this.createView(prev);
-		return this.add(view)
+    view = this.createView(prev);
+    view2 = this.createView(prev2)
+    view2.setAsRightPage();
+    view2.element.style.position = "absolute";
+    view2.element.style.left = view.width + "px"
+    console.log(prev.width + "px")
+    view2.element.style.top = 0;
+    this.add(view);
+
+		return this.add(view2)
 		.then(function(){
 			this.views.show();
 		}.bind(this));
 	}
+  else if(prev2) {
+    this.views.clear();
+    view = this.createView(prev2);
+    view.single = true;
+    return this.add(view)
+    .then(function(){
+      this.views.show();
+    }.bind(this));
+  }
 };
 
 SingleViewManager.prototype.current = function(){
@@ -9946,10 +10036,8 @@ SingleViewManager.prototype.currentLocation = function(){
   	view = this.views.first();
     // start = container.left - view.position().left;
     // end = start + this.layout.spread;
-		console.log("visibile currentLocation", view);
-    // return this.map.page(view);
+    return view
   }
-
 };
 
 SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
@@ -11178,7 +11266,8 @@ function Rendition(book, options) {
 		axis: "vertical",
 		ignoreClass: '',
 		manager: "single",
-		view: "iframe"
+		view: "iframe",
+    pages: book.spine.length
 	});
 
 	core.extend(this.settings, options);
@@ -11719,7 +11808,7 @@ function links(view, renderer) {
       }
 
     }
-  };
+  }.bind(this);
 
   for (var i = 0; i < links.length; i++) {
     replaceLinks(links[i]);
@@ -12221,6 +12310,7 @@ Stage.prototype.create = function(options){
 	container.style.wordSpacing = "0";
 	container.style.lineHeight = "0";
 	container.style.verticalAlign = "top";
+  container.style.position = "relative";
 
 	if(this.settings.axis === "horizontal") {
 		container.style.whiteSpace = "nowrap";
@@ -12543,6 +12633,7 @@ function View(section, options) {
   this.added = false;
   this.displayed = false;
   this.rendered = false;
+  this.offsetRight = false;
 
   //this.width  = 0;
   //this.height = 0;
@@ -13037,6 +13128,7 @@ View.prototype.show = function() {
   }
 
   this.trigger("shown", this);
+
 };
 
 View.prototype.hide = function() {
@@ -13429,6 +13521,7 @@ Views.prototype.show = function(){
     }
   }
   this.hidden = false;
+
 };
 
 Views.prototype.hide = function(){
@@ -13463,14 +13556,19 @@ function IframeView(section, options) {
   }, options || {});
 
   this.id = "epubjs-view:" + core.uuid();
-  this.section = section;
-  this.index = section.index;
+  
+  if (section) {
+    this.section = section;
+    this.index = section.index || 0;
+  }
 
   this.element = this.container(this.settings.axis);
 
   this.added = false;
   this.displayed = false;
   this.rendered = false;
+  this.offsetRight = false;
+  this.single = false;
 
   this.width  = this.settings.width;
   this.height = this.settings.height;
@@ -13495,7 +13593,7 @@ IframeView.prototype.container = function(axis) {
   // this.element.style.minHeight = "100px";
   element.style.height = "0px";
   element.style.width = "0px";
-  element.style.overflow = "hidden";
+  element.style.overflow = "visible";
 
   if(axis && axis == "horizontal"){
     element.style.display = "inline-block";
@@ -13519,7 +13617,7 @@ IframeView.prototype.create = function() {
   this.iframe = document.createElement('iframe');
   this.iframe.id = this.id;
   this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
-  this.iframe.style.overflow = "hidden";
+  this.iframe.style.overflow = "visible";
   this.iframe.seamless = "seamless";
   // Back up if seamless isn't supported
   this.iframe.style.border = "none";
@@ -13589,7 +13687,7 @@ IframeView.prototype.render = function(request, show) {
 		.then(function(){
 
       // apply the layout function to the contents
-      this.settings.layout.format(this.contents);
+      this.settings.layout.format(this);
 
       // Expand the iframe to the full size of the content
       this.expand();
@@ -13669,6 +13767,10 @@ IframeView.prototype.lock = function(what, width, height) {
 
 
 
+};
+
+IframeView.prototype.setAsRightPage = function() {
+  this.offsetRight = true;
 };
 
 // Resize a single axis based on content dimensions
@@ -13850,6 +13952,9 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.rendering = false;
 
     promise.resolve(this.contents);
+
+    this.document.body.style.backgroundColor = "#fff";
+    this.document.body.style.overflow = "visible";
 };
 
 
@@ -14238,7 +14343,6 @@ InlineView.prototype.contentHeight = function(min) {
   return this.frame.scrollHeight;
 };
 
-
 InlineView.prototype.resize = function(width, height) {
 
   if(!this.frame) return;
@@ -14475,6 +14579,3 @@ module.exports = ePub;
 
 },{"./book":10,"./contents":11,"./epubcfi":13,"./managers/continuous":17,"./managers/paginate":18,"./managers/single":19,"./rendition":24,"./views/iframe":33,"./views/inline":34,"rsvp":4}]},{},["epub"])("epub")
 });
-
-
-//# sourceMappingURL=epub.js.map

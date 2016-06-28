@@ -121,7 +121,7 @@
     // var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
     var book = ePub("../books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
-      method: "paginate",
+      manager: "paginate",
       width: "100%",
       height: 600
     });

@@ -5,6 +5,10 @@ function Views(container) {
   this.hidden = false;
 };
 
+Views.prototype.all = function() {
+	return this._views;
+};
+
 Views.prototype.first = function() {
 	return this._views[0];
 };

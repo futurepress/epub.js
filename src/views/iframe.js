@@ -13,7 +13,7 @@ function IframeView(section, options) {
     globalLayoutProperties: {},
   }, options || {});
 
-  this.id = "epubjs-view:" + core.uuid();
+  this.id = "epubjs-view-" + core.uuid();
   this.section = section;
   this.index = section.index;
 
@@ -35,7 +35,6 @@ function IframeView(section, options) {
   this.layout = this.settings.layout;
   // Dom events to listen for
   // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
-
 };
 
 IframeView.prototype.container = function(axis) {
@@ -119,8 +118,12 @@ IframeView.prototype.render = function(request, show) {
 	// Fit to size of the container, apply padding
   this.size();
 
+  if(!this.sectionRender) {
+    this.sectionRender = this.section.render(request);
+  }
+
 	// Render Chain
-	return this.section.render(request)
+	return this.sectionRender
 		.then(function(contents){
 			return this.load(contents);
 		}.bind(this))
@@ -399,6 +402,16 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.contents = new Contents(this.document);
 
     this.rendering = false;
+
+    var link = this.document.querySelector("link[rel='canonical']");
+    if (link) {
+      link.setAttribute("href", this.section.url);
+    } else {
+      link = this.document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      link.setAttribute("href", this.section.url);
+      this.document.querySelector("head").appendChild(link);
+    }
 
     promise.resolve(this.contents);
 };

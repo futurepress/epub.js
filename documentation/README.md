@@ -1,0 +1,27 @@
+## Epub.js v0.3  
+
+## Class Reference 
+
+[Book](classes/Book.md)  
+[Contents](classes/Contents.md)  
+[EpubCFI](classes/EpubCFI.md)  
+[Reflowable](classes/Reflowable.md)  
+[Fixed](classes/Fixed.md)  
+[Scroll](classes/Scroll.md)  
+[Locations](classes/Locations.md)  
+[Map](classes/Map.md)  
+[Navigation](classes/Navigation.md)  
+[Parser](classes/Parser.md)  
+[Queue](classes/Queue.md)  
+[Rendition](classes/Rendition.md)  
+[Section](classes/Section.md)  
+[Spine](classes/Spine.md)  
+[Stage](classes/Stage.md)  
+[Unarchive](classes/Unarchive.md)  
+[View](classes/View.md)  
+[Views](classes/Views.md)  
+[IframeView](classes/IframeView.md)  
+[InlineView](classes/InlineView.md)  
+[SingleViewManager](classes/SingleViewManager.md)  
+[ContinuousViewManager](classes/ContinuousViewManager.md)  
+[PaginatedViewManager](classes/PaginatedViewManager.md)  

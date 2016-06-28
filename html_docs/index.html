@@ -1,0 +1,713 @@
+
+<!DOCTYPE html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gulp Markdown Docs</title>
+  <style>/*
+
+Orginal Style from ethanschoonover.com/solarized (c) Jeremy Hull <sourdrums@gmail.com>
+
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #002b36;
+  color: #839496;
+  -webkit-text-size-adjust: none;
+}
+
+.hljs-comment,
+.diff .hljs-header,
+.hljs-doctype,
+.hljs-pi,
+.lisp .hljs-string {
+  color: #586e75;
+}
+
+/* Solarized Green */
+.hljs-keyword,
+.hljs-winutils,
+.method,
+.hljs-addition,
+.css .hljs-tag,
+.hljs-request,
+.hljs-status,
+.nginx .hljs-title {
+  color: #859900;
+}
+
+/* Solarized Cyan */
+.hljs-number,
+.hljs-command,
+.hljs-string,
+.hljs-tag .hljs-value,
+.hljs-rule .hljs-value,
+.hljs-doctag,
+.tex .hljs-formula,
+.hljs-regexp,
+.hljs-hexcolor,
+.hljs-link_url {
+  color: #2aa198;
+}
+
+/* Solarized Blue */
+.hljs-title,
+.hljs-localvars,
+.hljs-chunk,
+.hljs-decorator,
+.hljs-built_in,
+.hljs-identifier,
+.vhdl .hljs-literal,
+.hljs-id,
+.css .hljs-function,
+.hljs-name {
+  color: #268bd2;
+}
+
+/* Solarized Yellow */
+.hljs-attribute,
+.hljs-variable,
+.lisp .hljs-body,
+.smalltalk .hljs-number,
+.hljs-constant,
+.hljs-class .hljs-title,
+.hljs-parent,
+.hljs-type,
+.hljs-link_reference {
+  color: #b58900;
+}
+
+/* Solarized Orange */
+.hljs-preprocessor,
+.hljs-preprocessor .hljs-keyword,
+.hljs-pragma,
+.hljs-shebang,
+.hljs-symbol,
+.hljs-symbol .hljs-string,
+.diff .hljs-change,
+.hljs-special,
+.hljs-attr_selector,
+.hljs-subst,
+.hljs-cdata,
+.css .hljs-pseudo,
+.hljs-header {
+  color: #cb4b16;
+}
+
+/* Solarized Red */
+.hljs-deletion,
+.hljs-important {
+  color: #dc322f;
+}
+
+/* Solarized Violet */
+.hljs-link_label {
+  color: #6c71c4;
+}
+
+.tex .hljs-formula {
+  background: #073642;
+}
+</style><style>body {
+  margin-left: 35vw;
+  font-family: sans-serif;
+}
+pre {
+  /* matches solarized_dark */
+  background: #002b36;
+  color: #839496;
+  padding: 1em;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.doc-nav {
+  position: fixed;
+  width: 32vw;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1em;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+
+}
+.doc-nav a {
+  text-decoration: none;
+}
+.doc-nav a:hover {
+  text-decoration: underline;
+}
+.doc-nav-group {
+  list-style: none;
+  padding: 0;
+}
+.doc-nav-group-header {
+  display: block;
+  padding: 0.5em 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.doc-nav-group-header,
+.doc-nav-group-header a:active,
+.doc-nav-group-header a:visited {
+  color: #212121;
+}
+.doc-nav-item {
+  padding: 0.5em 0 0.5em 1.5em;
+}
+.doc-nav-item a:active,
+.doc-nav-item a:visited {
+  color: #454545;
+}
+.doc-section-header {
+  font-size: 1.7em;
+  border-bottom: 1px solid #839496;
+  padding-bottom: 0.5em;
+}
+.doc-article {
+  padding-bottom: 4em;
+  display: block;
+}
+.doc-article h1 {
+  font-size: 1.6em;
+}
+.doc-article + .doc-article {
+  padding-top: 3em;
+  border-top: 1px solid #323232;
+}</style></head>
+  <body>
+    <section class="doc-nav"><ul class="doc-nav-group"><li class="doc-nav-group-header"><a href="#Classes">Classes</a></li><li class="doc-nav-item"><a href="#Book">Book</a></li><li class="doc-nav-item"><a href="#Contents">Contents</a></li><li class="doc-nav-item"><a href="#ContinuousViewManager">ContinuousViewManager</a></li><li class="doc-nav-item"><a href="#EpubCFI">EpubCFI</a></li><li class="doc-nav-item"><a href="#Fixed">Fixed</a></li><li class="doc-nav-item"><a href="#Book">Hook</a></li><li class="doc-nav-item"><a href="#IframeView">IframeView</a></li><li class="doc-nav-item"><a href="#InlineView">InlineView</a></li><li class="doc-nav-item"><a href="#Locations">Locations</a></li><li class="doc-nav-item"><a href="#Map">Map</a></li><li class="doc-nav-item"><a href="#Navigation">Navigation</a></li><li class="doc-nav-item"><a href="#PaginatedViewManager">PaginatedViewManager</a></li><li class="doc-nav-item"><a href="#Parser">Parser</a></li><li class="doc-nav-item"><a href="#Queue">Queue</a></li><li class="doc-nav-item"><a href="#Reflowable">Reflowable</a></li><li class="doc-nav-item"><a href="#Rendition">Rendition</a></li><li class="doc-nav-item"><a href="#Scroll">Scroll</a></li><li class="doc-nav-item"><a href="#Section">Section</a></li><li class="doc-nav-item"><a href="#SimpleViewManager">SimpleViewManager</a></li><li class="doc-nav-item"><a href="#Spine">Spine</a></li><li class="doc-nav-item"><a href="#Stage">Stage</a></li><li class="doc-nav-item"><a href="#Unarchive">Unarchive</a></li><li class="doc-nav-item"><a href="#Views">Views</a></li></ul></section>
+    <section class="doc-content"><section class="doc-section"><h1 class="doc-section-header"><a class="doc-nav-anchor" name="Classes"></a>Classes</h1><article class="doc-article"><a class="doc-nav-anchor" name="Book"></a><h2 id="class-book-_url-options-">class Book(_url, options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>    settings   
+    opening  
+    <span class="hljs-keyword">opened</span>  
+    isOpen   
+    url  
+    loading  
+    loaded  
+    ready  
+    isRendered  
+    request  
+    spine  
+    locations  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code>    <span class="hljs-function"><span class="hljs-title">open</span><span class="hljs-params">(_url)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">unpack</span><span class="hljs-params">(packageXml)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">section</span><span class="hljs-params">(target)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">renderTo</span><span class="hljs-params">(element, options)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">requestMethod</span><span class="hljs-params">(_url)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">setRequestCredentials</span><span class="hljs-params">(_credentials)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">setRequestHeaders</span><span class="hljs-params">(_headers)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">unarchive</span><span class="hljs-params">(bookUrl)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">isArchivedUrl</span><span class="hljs-params">(bookUrl)</span></span>  
+    <span class="hljs-function"><span class="hljs-title">coverUrl</span><span class="hljs-params">()</span></span>  
+    <span class="hljs-function"><span class="hljs-title">range</span><span class="hljs-params">(cfiRange)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Contents"></a><h2 id="class-contents-doc-content-">class Contents(doc, content)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>epubcfi  
+<span class="hljs-built_in">document</span>  
+documentElement  
+content  
+<span class="hljs-built_in">window</span>  
+listenedEvents  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">width</span><span class="hljs-params">(w)</span></span>  
+<span class="hljs-function"><span class="hljs-title">height</span><span class="hljs-params">(h)</span></span>  
+<span class="hljs-function"><span class="hljs-title">textWidth</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">textHeight</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">scrollWidth</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">scrollHeight</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">overflow</span><span class="hljs-params">(overflow)</span></span>  
+<span class="hljs-function"><span class="hljs-title">css</span><span class="hljs-params">(property, value)</span></span>  
+<span class="hljs-function"><span class="hljs-title">viewport</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">layout</span><span class="hljs-params">(layoutFunc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onLayout</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">expand</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">listeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">resizeListenters</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">mediaQueryListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">observe</span><span class="hljs-params">(target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">imageLoadListeners</span><span class="hljs-params">(target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">root</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">locationOf</span><span class="hljs-params">(target, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addStylesheet</span><span class="hljs-params">(src)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addStylesheetRules</span><span class="hljs-params">(rules)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addScript</span><span class="hljs-params">(src)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addEventListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeEventListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">triggerEvent</span><span class="hljs-params">(e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addSelectionListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeSelectionListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">onSelectionChange</span><span class="hljs-params">(e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">triggerSelectedEvent</span><span class="hljs-params">(selection)</span></span>  
+<span class="hljs-function"><span class="hljs-title">range</span><span class="hljs-params">(_cfi, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">map</span><span class="hljs-params">(layout)</span></span>  
+<span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="ContinuousViewManager"></a><h2 id="class-continuousviewmanager-options-extends-singleviewmanager">class ContinuousViewManager(options) extends SingleViewManager</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">settings</span>  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">moveTo</span><span class="hljs-params">(offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">afterDisplayed</span><span class="hljs-params">(currView)</span></span>  
+<span class="hljs-function"><span class="hljs-title">afterResized</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeShownListeners</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">append</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">prepend</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">counter</span><span class="hljs-params">(bounds)</span></span>  
+<span class="hljs-function"><span class="hljs-title">check</span><span class="hljs-params">(_offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">update</span><span class="hljs-params">(_offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">check</span><span class="hljs-params">(_offsetLeft, _offsetTop)</span></span>  
+<span class="hljs-function"><span class="hljs-title">trim</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">erase</span><span class="hljs-params">(view, above)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addEventListeners</span><span class="hljs-params">(stage)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addScrollListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">onScroll</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">resizeView</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">currentLocation</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="EpubCFI"></a><h2 id="class-epubcfi-cfifrom-base-ignoreclass-">class EpubCFI(cfiFrom, base, ignoreClass)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>str  
+base  
+spinePos  
+range  
+path  
+<span class="hljs-built_in">start</span>  
+<span class="hljs-function"><span class="hljs-keyword">end</span>  </span>
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">checkType</span><span class="hljs-params">(cfi)</span></span>  
+<span class="hljs-function"><span class="hljs-title">parse</span><span class="hljs-params">(cfiStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">parseComponent</span><span class="hljs-params">(componentStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">parseStep</span><span class="hljs-params">(stepStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">parseTerminal</span><span class="hljs-params">(termialStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getChapterComponent</span><span class="hljs-params">(cfiStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getPathComponent</span><span class="hljs-params">(cfiStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getRange</span><span class="hljs-params">(cfiStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getCharecterOffsetComponent</span><span class="hljs-params">(cfiStr)</span></span>  
+<span class="hljs-function"><span class="hljs-title">joinSteps</span><span class="hljs-params">(steps)</span></span>  
+<span class="hljs-function"><span class="hljs-title">segmentString</span><span class="hljs-params">(segment)</span></span>  
+<span class="hljs-function"><span class="hljs-title">toString</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">compare</span><span class="hljs-params">(cfiOne, cfiTwo)</span></span>  
+<span class="hljs-function"><span class="hljs-title">step</span><span class="hljs-params">(node)</span></span>  
+<span class="hljs-function"><span class="hljs-title">filteredStep</span><span class="hljs-params">(node, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">pathTo</span><span class="hljs-params">(node, offset, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">equalStep</span><span class="hljs-params">(stepA, stepB)</span></span>  
+<span class="hljs-function"><span class="hljs-title">fromRange</span><span class="hljs-params">(range, base, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">fromNode</span><span class="hljs-params">(anchor, base, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">filter</span><span class="hljs-params">(anchor, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">patchOffset</span><span class="hljs-params">(anchor, offset, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">normalizedMap</span><span class="hljs-params">(children, nodeType, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">position</span><span class="hljs-params">(anchor)</span></span>  
+<span class="hljs-function"><span class="hljs-title">filteredPosition</span><span class="hljs-params">(anchor, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">stepsToXpath</span><span class="hljs-params">(steps)</span></span>  
+<span class="hljs-function"><span class="hljs-title">stepsToQuerySelector</span><span class="hljs-params">(steps)</span></span>  
+<span class="hljs-function"><span class="hljs-title">textNodes</span><span class="hljs-params">(container, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">walkToNode</span><span class="hljs-params">(steps, _doc, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findNode</span><span class="hljs-params">(steps, _doc, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">fixMiss</span><span class="hljs-params">(steps, offset, _doc, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">toRange</span><span class="hljs-params">(_doc, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">isCfiString</span><span class="hljs-params">(str)</span></span>  
+<span class="hljs-function"><span class="hljs-title">generateChapterComponent</span><span class="hljs-params">(_spineNodeIndex, _pos, id)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Fixed"></a><h2 id="class-fixed-_width-_height-">class Fixed(_width, _height)</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-variable">width</span>  
+<span class="hljs-variable">height</span>  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">calculate</span><span class="hljs-params">(_width, _height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">format</span><span class="hljs-params">(contents)</span></span>  
+<span class="hljs-function"><span class="hljs-title">count</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Book"></a><p>Hook(context)  </p>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">context</span>  
+hooks  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code>register = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>  </span>
+trigger = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>  </span>
+<span class="hljs-built_in">list</span> = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>  </span>
+<span class="hljs-keyword">clear</span> = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>  </span>
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="IframeView"></a><h2 id="class-iframeview-section-options-">class IframeView(section, options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>settings  
+id  
+<span class="hljs-tag">section</span>  
+index  
+element  
+added  
+displayed  
+rendered  
+<span class="hljs-attribute">width</span>  
+<span class="hljs-attribute">height</span>   
+fixedWidth  
+fixedHeight  
+epubcfi  
+layout  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">container</span><span class="hljs-params">(axis)</span></span>  
+<span class="hljs-function"><span class="hljs-title">create</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">render</span><span class="hljs-params">(request, show)</span></span>  
+<span class="hljs-function"><span class="hljs-title">size</span><span class="hljs-params">(_width, _height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">lock</span><span class="hljs-params">(what, width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">expand</span><span class="hljs-params">(force)</span></span>  
+<span class="hljs-function"><span class="hljs-title">contentWidth</span><span class="hljs-params">(min)</span></span>  
+<span class="hljs-function"><span class="hljs-title">contentHeight</span><span class="hljs-params">(min)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resize</span><span class="hljs-params">(width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">reframe</span><span class="hljs-params">(width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(contents)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onLoad</span><span class="hljs-params">(event, promise)</span></span>  
+<span class="hljs-function"><span class="hljs-title">layout</span><span class="hljs-params">(layoutFunc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onLayout</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">setLayout</span><span class="hljs-params">(layout)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resizeListenters</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">addListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeListeners</span><span class="hljs-params">(layoutFunc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">display</span><span class="hljs-params">(request)</span></span>  
+<span class="hljs-function"><span class="hljs-title">show</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">hide</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">position</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">locationOf</span><span class="hljs-params">(target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onDisplayed</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResize</span><span class="hljs-params">(view, e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">bounds</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="InlineView"></a><h2 id="class-inlineview-section-options-">class InlineView(section, options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>settings  
+id  
+<span class="hljs-tag">section</span>  
+index  
+element  
+added  
+displayed  
+rendered  
+<span class="hljs-attribute">width</span>  
+<span class="hljs-attribute">height</span>   
+fixedWidth  
+fixedHeight  
+epubcfi  
+layout  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">container</span><span class="hljs-params">(axis)</span></span>  
+<span class="hljs-function"><span class="hljs-title">create</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">render</span><span class="hljs-params">(request, show)</span></span>  
+<span class="hljs-function"><span class="hljs-title">size</span><span class="hljs-params">(_width, _height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">lock</span><span class="hljs-params">(what, width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">expand</span><span class="hljs-params">(force)</span></span>  
+<span class="hljs-function"><span class="hljs-title">contentWidth</span><span class="hljs-params">(min)</span></span>  
+<span class="hljs-function"><span class="hljs-title">contentHeight</span><span class="hljs-params">(min)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resize</span><span class="hljs-params">(width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(contents)</span></span>  
+<span class="hljs-function"><span class="hljs-title">setLayout</span><span class="hljs-params">(layout)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resizeListenters</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">addListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">removeListeners</span><span class="hljs-params">(layoutFunc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">display</span><span class="hljs-params">(request)</span></span>  
+<span class="hljs-function"><span class="hljs-title">show</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">hide</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">position</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">locationOf</span><span class="hljs-params">(target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onDisplayed</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResize</span><span class="hljs-params">(view, e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">bounds</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Locations"></a><h2 id="class-locations-spine-request-">class Locations(spine, request)</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">spine</span>  
+request  
+q  
+epubcfi  
+_locations  
+total  
+<span class="hljs-built_in">break</span>  
+_current  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">generate</span><span class="hljs-params">(chars)</span></span>  
+<span class="hljs-function"><span class="hljs-title">process</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">sprint</span><span class="hljs-params">(root, func)</span></span>  
+<span class="hljs-function"><span class="hljs-title">locationFromCfi</span><span class="hljs-params">(cfi)</span></span>  
+<span class="hljs-function"><span class="hljs-title">precentageFromCfi</span><span class="hljs-params">(cfi)</span></span>  
+<span class="hljs-function"><span class="hljs-title">percentageFromLocation</span><span class="hljs-params">(loc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">cfiFromLocation</span><span class="hljs-params">(loc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">cfiFromPercentage</span><span class="hljs-params">(value)</span></span>  
+<span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(locations)</span></span>  
+<span class="hljs-function"><span class="hljs-title">save</span><span class="hljs-params">(json)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getCurrent</span><span class="hljs-params">(json)</span></span>  
+<span class="hljs-function"><span class="hljs-title">setCurrent</span><span class="hljs-params">(curr)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Map"></a><h2 id="class-map-layout-">class Map(layout)</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-keyword">layout</span>  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">section</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">page</span><span class="hljs-params">(view, start, end)</span></span>  
+<span class="hljs-function"><span class="hljs-title">walk</span><span class="hljs-params">(root, func)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findRanges</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findStart</span><span class="hljs-params">(root, start, end)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findEnd</span><span class="hljs-params">(root, start, end)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findTextStartRange</span><span class="hljs-params">(node, start, end)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findTextEndRange</span><span class="hljs-params">(node, start, end)</span></span>  
+<span class="hljs-function"><span class="hljs-title">splitTextNodeIntoRanges</span><span class="hljs-params">(node, _splitter)</span></span>  
+<span class="hljs-function"><span class="hljs-title">rangePairToCfiPair</span><span class="hljs-params">(section, rangePair)</span></span>  
+<span class="hljs-function"><span class="hljs-title">rangeListToCfiList</span><span class="hljs-params">(view, columns)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Navigation"></a><h2 id="class-navigation-_package-_request-">class Navigation(_package, _request)</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-package"><span class="hljs-keyword">package</span>  
+<span class="hljs-title">toc</span>  
+<span class="hljs-title">tocByHref</span>  
+<span class="hljs-title">tocById</span>  </span>
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(_request)</span></span>  
+<span class="hljs-function"><span class="hljs-title">loaded</span><span class="hljs-params">(toc)</span></span>  
+<span class="hljs-function"><span class="hljs-title">get</span><span class="hljs-params">(target)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="PaginatedViewManager"></a><h2 id="class-paginatedviewmanager-book-options-extends-continuousviewmanager">class PaginatedViewManager(book, options) extends ContinuousViewManager</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">settings</span>  
+isForcedSingle  
+viewSettings  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">determineSpreads</span><span class="hljs-params">(cutoff)</span></span>  
+<span class="hljs-function"><span class="hljs-title">forceSingle</span><span class="hljs-params">(bool)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addEventListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">applyLayoutMethod</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">updateLayout</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">moveTo</span><span class="hljs-params">(offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">page</span><span class="hljs-params">(pg)</span></span>  
+<span class="hljs-function"><span class="hljs-title">next</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">prev</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">currentLocation</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">resize</span><span class="hljs-params">(width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResized</span><span class="hljs-params">(e)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Parser"></a><h2 id="class-parser-">class Parser()</h2>
+<h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">container</span><span class="hljs-params">(containerXml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">identifier</span><span class="hljs-params">(packageXml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">packageContents</span><span class="hljs-params">(packageXml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findNavPath</span><span class="hljs-params">(manifestNode)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findNcxPath</span><span class="hljs-params">(manifestNode, spineNode)</span></span>  
+<span class="hljs-function"><span class="hljs-title">metadata</span><span class="hljs-params">(xml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">findCoverPath</span><span class="hljs-params">(packageXml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getElementText</span><span class="hljs-params">(xml, tag)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getPropertyText</span><span class="hljs-params">(xml, property)</span></span>  
+<span class="hljs-function"><span class="hljs-title">querySelectorText</span><span class="hljs-params">(xml, q)</span></span>  
+<span class="hljs-function"><span class="hljs-title">manifest</span><span class="hljs-params">(manifestXml)</span></span>  
+<span class="hljs-function"><span class="hljs-title">spine</span><span class="hljs-params">(spineXml, manifest)</span></span>  
+<span class="hljs-function"><span class="hljs-title">querySelectorByType</span><span class="hljs-params">(html, element, type)</span></span>  
+<span class="hljs-function"><span class="hljs-title">nav</span><span class="hljs-params">(navHtml, spineIndexByURL, bookSpine)</span></span>  
+<span class="hljs-function"><span class="hljs-title">navItem</span><span class="hljs-params">(item, spineIndexByURL, bookSpine)</span></span>  
+<span class="hljs-function"><span class="hljs-title">ncx</span><span class="hljs-params">(tocXml, spineIndexByURL, bookSpine)</span></span>  
+<span class="hljs-function"><span class="hljs-title">ncxItem</span><span class="hljs-params">(item, spineIndexByURL, bookSpine)</span></span>  
+<span class="hljs-function"><span class="hljs-title">pageList</span><span class="hljs-params">(navHtml, spineIndexByURL, bookSpine)</span></span>  
+<span class="hljs-function"><span class="hljs-title">pageListItem</span><span class="hljs-params">(item, spineIndexByURL, bookSpine)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Queue"></a><h2 id="class-queue-_context-">class Queue(_context)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>_q  
+contex  
+tick  
+<span class="hljs-property">running</span>  
+paused  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">enqueue</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">dequeue</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">dump</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">run</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">flush</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">clear</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">length</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">pause</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Reflowable"></a><h2 id="class-reflowable-">class Reflowable()</h2>
+<h4 id="properties">properties</h4>
+<pre><code>columnAxis  
+columnGap  
+columnWidth  
+columnFill  
+width  
+height  
+<span class="hljs-built_in">spread</span>  
+delta  
+column  
+gap  
+divisor  
+<span class="hljs-keyword">name</span>  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">calculate</span><span class="hljs-params">(_width, _height, _gap, _devisor)</span></span>  
+<span class="hljs-function"><span class="hljs-title">format</span><span class="hljs-params">(contents)</span></span>  
+<span class="hljs-function"><span class="hljs-title">count</span><span class="hljs-params">(totalWidth)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Rendition"></a><h2 id="class-rendition-book-options-">class Rendition(book, options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>settings  
+viewSettings  
+book  
+views  
+hooks   
+epubcfi  
+<span class="hljs-tag">q</span>  
+starting  
+started  
+ViewManager  
+View  
+manager  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">setManager</span><span class="hljs-params">(manager)</span></span>  
+<span class="hljs-function"><span class="hljs-title">requireManager</span><span class="hljs-params">(manager)</span></span>  
+<span class="hljs-function"><span class="hljs-title">requireView</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">start</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">attachTo</span><span class="hljs-params">(element)</span></span>  
+<span class="hljs-function"><span class="hljs-title">display</span><span class="hljs-params">(target)</span></span>  
+_display(target)  
+<span class="hljs-function"><span class="hljs-title">render</span><span class="hljs-params">(view, show)</span></span>  
+<span class="hljs-function"><span class="hljs-title">afterDisplayed</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResized</span><span class="hljs-params">(size)</span></span>  
+<span class="hljs-function"><span class="hljs-title">moveTo</span><span class="hljs-params">(offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">next</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">prev</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">parseLayoutProperties</span><span class="hljs-params">(_metadata)</span></span>  
+<span class="hljs-function"><span class="hljs-title">determineLayout</span><span class="hljs-params">(settings)</span></span>  
+<span class="hljs-function"><span class="hljs-title">reportLocation</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">passViewEvents</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">triggerViewEvent</span><span class="hljs-params">(e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">triggerSelectedEvent</span><span class="hljs-params">(cfirange)</span></span>  
+<span class="hljs-function"><span class="hljs-title">replacements</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">replaceCss</span><span class="hljs-params">(href, urls, replacementUrls)</span></span>  
+<span class="hljs-function"><span class="hljs-title">replaceAssets</span><span class="hljs-params">(section, urls, replacementUrls)</span></span>  
+<span class="hljs-function"><span class="hljs-title">range</span><span class="hljs-params">(_cfi, ignoreClass)</span></span>  
+<span class="hljs-function"><span class="hljs-title">adjustImages</span><span class="hljs-params">(view)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Scroll"></a><h2 id="class-scroll-">class Scroll()</h2>
+<h4 id="properties">properties</h4>
+<pre><code>calculate<span class="hljs-list">(<span class="hljs-keyword">_width</span>, _height)</span>  
+format<span class="hljs-list">(<span class="hljs-keyword">conten</span>  </span>
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">calculate</span><span class="hljs-params">(_width, _height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">format</span><span class="hljs-params">(contents)</span></span>  
+<span class="hljs-function"><span class="hljs-title">count</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Section"></a><h2 id="class-section-item-hooks-">class Section(item, hooks)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>idref  
+linear  
+<span class="hljs-comment">#### properties   </span>
+<span class="hljs-keyword">index</span>  
+href   
+url  
+<span class="hljs-keyword">next</span>   
+prev   
+cfiBase  
+hooks  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(_request)</span></span>  
+<span class="hljs-function"><span class="hljs-title">base</span><span class="hljs-params">(_document)</span></span>  
+<span class="hljs-function"><span class="hljs-title">beforeSectionLoad</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">render</span><span class="hljs-params">(_request)</span></span>  
+<span class="hljs-function"><span class="hljs-title">find</span><span class="hljs-params">(_query)</span></span>  
+<span class="hljs-function"><span class="hljs-title">reconcileLayoutSettings</span><span class="hljs-params">(global)</span></span>  
+<span class="hljs-function"><span class="hljs-title">cfiFromRange</span><span class="hljs-params">(_range)</span></span>  
+<span class="hljs-function"><span class="hljs-title">cfiFromElement</span><span class="hljs-params">(el)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="SimpleViewManager"></a><h2 id="class-singleviewmanager-options-">class SingleViewManager(options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>View  
+<span class="hljs-keyword">renderer</span>  
+q  
+settings  
+viewSettings  
+stage  
+<span class="hljs-keyword">container</span>  
+views  
+bounds  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">render</span><span class="hljs-params">(element, size)</span></span>  
+<span class="hljs-function"><span class="hljs-title">addEventListeners</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResized</span><span class="hljs-params">(e)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resize</span><span class="hljs-params">(width, height)</span></span>  
+<span class="hljs-function"><span class="hljs-title">setLayout</span><span class="hljs-params">(layout)</span></span>  
+<span class="hljs-function"><span class="hljs-title">createView</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">display</span><span class="hljs-params">(section, target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">afterDisplayed</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">afterResized</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">moveTo</span><span class="hljs-params">(offset)</span></span>  
+<span class="hljs-function"><span class="hljs-title">add</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">resizeView</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">next</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">prev</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">current</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">currentLocation</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">isVisible</span><span class="hljs-params">(view, offsetPrev, offsetNext, _container)</span></span>  
+<span class="hljs-function"><span class="hljs-title">visible</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">scrollBy</span><span class="hljs-params">(x, y, silent)</span></span>  
+<span class="hljs-function"><span class="hljs-title">scrollTo</span><span class="hljs-params">(x, y, silent)</span></span>  
+<span class="hljs-function"><span class="hljs-title">bounds</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">applyLayoutMethod</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">calculateLayout</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">updateLayout</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Spine"></a><h2 id="class-spine-_request-">class Spine(_request)</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">request</span>  
+spineItems   
+spineByHref   
+spineById   
+hooks   
+epubcfi  
+loaded  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">load</span><span class="hljs-params">(_package)</span></span>  
+<span class="hljs-function"><span class="hljs-title">get</span><span class="hljs-params">(target)</span></span>  
+<span class="hljs-function"><span class="hljs-title">append</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">prepend</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">insert</span><span class="hljs-params">(section, index)</span></span>  
+<span class="hljs-function"><span class="hljs-title">remove</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">each</span><span class="hljs-params">()</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Stage"></a><h2 id="class-stage-_options-">class Stage(_options)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>settings  
+<span class="hljs-keyword">container</span>  
+wrapper  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">create</span><span class="hljs-params">(options)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getElement</span><span class="hljs-params">(_element)</span></span>  
+<span class="hljs-function"><span class="hljs-title">attachTo</span><span class="hljs-params">(what)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getContainer</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">onResize</span><span class="hljs-params">(func)</span></span>  
+<span class="hljs-function"><span class="hljs-title">bounds</span><span class="hljs-params">(_width, _height)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Unarchive"></a><h2 id="class-unarchive-">class Unarchive()</h2>
+<h4 id="properties">properties</h4>
+<pre><code><span class="hljs-title">urlCache</span>  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">checkRequirements</span><span class="hljs-params">(callback)</span></span>  
+<span class="hljs-function"><span class="hljs-title">open</span><span class="hljs-params">(zipUrl)</span></span>  
+<span class="hljs-function"><span class="hljs-title">request</span><span class="hljs-params">(url, type)</span></span>  
+<span class="hljs-function"><span class="hljs-title">handleResponse</span><span class="hljs-params">(response, type)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getBlob</span><span class="hljs-params">(url, _mimeType)</span></span>  
+<span class="hljs-function"><span class="hljs-title">getText</span><span class="hljs-params">(url, encoding)</span></span>  
+<span class="hljs-function"><span class="hljs-title">createUrl</span><span class="hljs-params">(url, mime)</span></span>  
+<span class="hljs-function"><span class="hljs-title">revokeUrl</span><span class="hljs-params">(url)</span></span>  
+</code></pre></article><article class="doc-article"><a class="doc-nav-anchor" name="Views"></a><h2 id="class-views-container-">class Views(container)</h2>
+<h4 id="properties">properties</h4>
+<pre><code>container  
+_views  
+<span class="hljs-property">length</span>  
+hidden  
+</code></pre><h4 id="methods">methods</h4>
+<pre><code><span class="hljs-function"><span class="hljs-title">first</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">last</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">indexOf</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">slice</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">get</span><span class="hljs-params">(i)</span></span>  
+<span class="hljs-function"><span class="hljs-title">append</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">prepend</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">insert</span><span class="hljs-params">(view, index)</span></span>  
+<span class="hljs-function"><span class="hljs-title">remove</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">destroy</span><span class="hljs-params">(view)</span></span>  
+<span class="hljs-function"><span class="hljs-title">each</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">clear</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">find</span><span class="hljs-params">(section)</span></span>  
+<span class="hljs-function"><span class="hljs-title">displayed</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">show</span><span class="hljs-params">()</span></span>  
+<span class="hljs-function"><span class="hljs-title">hide</span><span class="hljs-params">()</span></span>  
+</code></pre></article></section></section>
+  </body>
+
