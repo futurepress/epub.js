@@ -83,7 +83,7 @@ Book.prototype.open = function(_url){
   // }
   uri = URI(_url);
 
-  if (window) {
+  if (window && window.location) {
     absoluteUri = uri.absoluteTo(window.location.href);
     this.url = absoluteUri.toString();
   } else {
