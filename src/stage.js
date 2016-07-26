@@ -2,6 +2,7 @@ var core = require('./core');
 
 function Stage(_options) {
 	this.settings = _options || {};
+	this.id = "epubjs-container-" + core.uuid();
 
 	this.container = this.create(this.settings);
 
@@ -19,6 +20,7 @@ Stage.prototype.create = function(options){
 	var height  = options.height;// !== false ? options.height : "100%";
 	var width   = options.width;// !== false ? options.width : "100%";
 	var overflow  = options.overflow || false;
+ 	var axis = options.axis || "vertical";
 
 	if(options.height && core.isNumber(options.height)) {
 		height = options.height + "px";
@@ -31,7 +33,7 @@ Stage.prototype.create = function(options){
 	// Create new container element
 	container = document.createElement("div");
 
-	container.id = "epubjs-container:" + core.uuid();
+	container.id = this.id;
 	container.classList.add("epub-container");
 
 	// Style Element
@@ -40,7 +42,7 @@ Stage.prototype.create = function(options){
 	container.style.lineHeight = "0";
 	container.style.verticalAlign = "top";
 
-	if(this.settings.axis === "horizontal") {
+	if(axis === "horizontal") {
 		container.style.whiteSpace = "nowrap";
 	}
 
@@ -126,7 +128,7 @@ Stage.prototype.onResize = function(func){
 
 };
 
-Stage.prototype.bounds = function(_width, _height){
+Stage.prototype.size = function(_width, _height){
 	var bounds;
 	var width = _width || this.settings.width;
 	var height = _height || this.settings.height;
@@ -182,5 +184,41 @@ Stage.prototype.bounds = function(_width, _height){
 	};
 
 };
+
+Stage.prototype.bounds = function(){
+	return this.element.getBoundingClientRect();
+}
+
+Stage.prototype.getSheet = function(){
+	var style = document.createElement("style");
+
+	// WebKit hack --> https://davidwalsh.name/add-rules-stylesheets
+	style.appendChild(document.createTextNode(""));
+
+	document.head.appendChild(style);
+
+	return style.sheet;
+}
+
+Stage.prototype.addStyleRules = function(selector, rulesArray){
+	var scope = "#" + this.id + " ";
+	var rules = "";
+
+	if(!this.sheet){
+		this.sheet = this.getSheet();
+	}
+
+	rulesArray.forEach(function(set) {
+		for (var prop in set) {
+			if(set.hasOwnProperty(prop)) {
+				rules += prop + ":" + set[prop] + ";";
+			}
+		}
+	})
+
+  this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+}
+
+
 
 module.exports = Stage;

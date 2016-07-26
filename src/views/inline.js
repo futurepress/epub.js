@@ -303,16 +303,6 @@ InlineView.prototype.load = function(contents) {
 
   this.contents = new Contents(this.document, this.frame);
 
-  // <link rel="canonical" href="https://blog.example.com/dresses/green-dresses-are-awesome" />
-  var link = this.document.querySelector("link[rel='canonical']");
-  if (link) {
-    link.setAttribute("href", this.section.url);
-  } else {
-    link = this.document.createElement("link");
-    link.setAttribute("rel", "canonical");
-    link.setAttribute("href", this.section.url);
-    this.document.querySelector("head").appendChild(link);
-  }
   this.rendering = false;
 
   loading.resolve(this.contents);

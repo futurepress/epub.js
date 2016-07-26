@@ -154,7 +154,7 @@ Parser.prototype.metadata = function(xml){
   metadata.rights = p.getElementText(xml, "rights");
 
   metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
-  
+
   metadata.layout = p.getPropertyText(xml, "rendition:layout");
   metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
   metadata.flow = p.getPropertyText(xml, 'rendition:flow');
@@ -372,7 +372,7 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 
 Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
 	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
-  var navPoints = core.qsa("navPoint");
+  var navPoints = core.qsa(tocXml, "navPoint");
 	var length = navPoints.length;
 	var i;
 	var toc = {};
@@ -398,7 +398,7 @@ Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
 Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 	var id = item.getAttribute('id') || false,
 			// content = item.querySelector("content"),
-			content = core.qs("content"),
+			content = core.qs(item, "content"),
 			src = content.getAttribute('src'),
       // navLabel = item.querySelector("navLabel"),
       navLabel = core.qs(item, "navLabel"),

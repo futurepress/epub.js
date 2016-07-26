@@ -23,6 +23,7 @@ Contents.prototype.width = function(w) {
 
   if (w) {
     this.documentElement.style.width = w;
+    this.content.style.width = w;
   }
 
   return this.window.getComputedStyle(this.documentElement)['width'];
@@ -38,6 +39,7 @@ Contents.prototype.height = function(h) {
 
   if (h) {
     this.documentElement.style.height = h;
+    this.content.style.height = h;
   }
 
   return this.window.getComputedStyle(this.documentElement)['height'];
@@ -83,7 +85,7 @@ Contents.prototype.scrollHeight = function() {
 
 Contents.prototype.overflow = function(overflow) {
 
-  if (h) {
+  if (overflow) {
     this.documentElement.style.overflow = overflow;
   }
 
@@ -246,8 +248,13 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 
   if(this.epubcfi.isCfiString(target)) {
     range = new EpubCFI(cfi).toRange(this.document, ignoreClass);
+
     if(range) {
-      targetPos = range.getBoundingClientRect();
+      if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
+        targetPos = range.startContainer.getBoundingClientRect();
+      } else {
+        targetPos = range.getBoundingClientRect();
+      }
     }
 
   } else if(typeof target === "string" &&

@@ -3,11 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EPUB.js Basic Example</title>
+  <title>EPUB.js + Hypothes.is Example</title>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
-  <script src="//hypothes.is/embed.js"></script>
+  <script>
+  window.hypothesisConfig = function () {
+    return {
+      constructor: this.Annotator.Sidebar,
+      app: 'http://45.55.144.135:5000/app.html',
+    };
+  };
+  </script>
+  <script src="http://45.55.144.135:5000/embed.js"></script>
 
   <style type="text/css">
     body {
@@ -15,17 +24,22 @@
       background: #fafafa;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       color: #333;
-
     }
 
     #navigation {
-      width: 200px;
-      margin-top: 60px;
-      float: left;
-      padding: 0 0 0 100px;
+      width: 300px;
+      position: absolute;
+      overflow: auto;
+      top: 60px;
+      left: 1000px
+    }
+
+    #navigation.fixed {
+      position: fixed;
     }
 
     #navigation h1 {
+      width: 200px;
       font-size: 16px;
       font-weight: normal;
       color: #777;
@@ -40,7 +54,7 @@
     }
 
     #navigation ul {
-      padding-left: 0;
+      padding-left: 18px;
       margin-left: 0;
     }
 
@@ -80,12 +94,20 @@
         background: white;
         box-shadow: 0 0 4px #ccc;
         margin: 10px;
-        padding: 20px;
+        padding: 40px 80px;
     }
 
     #main {
-      margin-left: 300px;
+      position: absolute;
+      top: 50px;
+      left: 100px;
       width: 800px;
+      z-index: 2;
+      transition: left .15s cubic-bezier(.55, 0, .2, .8) .08s;
+    }
+
+    #main.open {
+      left: 0;
     }
 
     #pagination {
@@ -139,36 +161,12 @@
       height: 100%;
     }
 
-    /*#annotation-controls {
-      position: absolute;
-      top: -7px;
-      left: 0px;
-    }
-
-    #annotation-controls ul {
-      list-style-type: none;
-    }
-
-    #annotation-controls ul li button {
-      font-size: 1.5em;
-      margin-bottom: 10px;
-      background: #fff;
-      border: none;
-      opacity: .5;
-    }
-
-    #annotation-controls ul li button:hover {
-      opacity: .8;
-    }
-
-    #annotation-controls ul li button:focus {
-      border: none !important;
-    }*/
   </style>
 </head>
 <body>
   <div id="navigation">
     <h1 id="title">...</h1>
+    <image id="cover" width="150px"/>
     <h2 id="author">...</h2>
     <ul id="toc"></ul>
   </div>
@@ -179,33 +177,35 @@
       <a id="next" href="#next" class="arrow">...</a>
     </div>
   </div>
-  <!-- <div id="annotation-controls"></div> -->
-  <!-- <div id="hypothesis">
-    <iframe src="//hypothes.is/app.html" seamless></iframe>
-  </div> -->
+
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/alice/");
+    var book = ePub("../books/11-3-117-1-10-20141029.epub");
     var rendition = book.renderTo("viewer");
 
-    var hash = window.location.hash.slice(2);
+    // var hash = window.location.hash.slice(2);
+    var loc = window.location.href.indexOf("?loc=");
+    if (loc > -1) {
+      var href =  window.location.href.slice(loc + 5);
+      var hash = decodeURIComponent(href);
+    }
     rendition.display(hash || 1);
 
 
     var next = document.getElementById("next");
     next.addEventListener("click", function(e){
+      window.scrollTo(0,0);
       rendition.next();
       e.preventDefault();
     }, false);
 
     var prev = document.getElementById("prev");
     prev.addEventListener("click", function(e){
+      window.scrollTo(0,0);
       rendition.prev();
       e.preventDefault();
     }, false);
-
-
 
     rendition.on("rendered", function(section){
       var nextSection = section.next();
@@ -239,8 +239,17 @@
         prev.textContent = "";
       }
 
+      var old = document.querySelectorAll('.active');
+      Array.prototype.slice.call(old, 0).forEach(function (link) {
+        link.classList.remove("active");
+      })
+
+      var active = document.querySelector('a[href="'+section.href+'"]');
+      if (active) {
+        active.classList.add("active");
+      }
       // Add CFI fragment to the history
-      // history.pushState({}, '', section.href);
+      history.pushState({}, '', "?loc=" + encodeURIComponent(section.href));
       // window.location.hash = "#/"+section.href
     });
 
@@ -248,9 +257,10 @@
       var $nav = document.getElementById("toc"),
           docfrag = document.createDocumentFragment();
 
-      toc.forEach(function(chapter) {
+      toc.forEach(function(chapter, index) {
         var item = document.createElement("li");
         var link = document.createElement("a");
+        link.id = "chap-" + chapter.id;
         link.textContent = chapter.label;
         link.href = chapter.href;
         item.appendChild(link);
@@ -273,73 +283,94 @@
     book.loaded.metadata.then(function(meta){
       var $title = document.getElementById("title");
       var $author = document.getElementById("author");
+      var $cover = document.getElementById("cover");
+      var $nav = document.getElementById('navigation');
+
       $title.textContent = meta.title;
       $author.textContent = meta.creator;
+      if (book.archive) {
+        book.archive.createUrl(book.cover)
+          .then(function (url) {
+            $cover.src = url;
+          })
+      } else {
+        $cover.src = book.cover;
+      }
+
+      if ($nav.offsetHeight + 60 < window.innerHeight) {
+        $nav.classList.add("fixed");
+      }
+
     });
+
+    function checkForAnnotator(cb, w) {
+     if (!w) {
+       w = window;
+     }
+     setTimeout(function () {
+        if (w && w.annotator) {
+          cb();
+        } else {
+          checkForAnnotator(cb, w);
+        }
+      }, 100);
+    }
 
     book.rendition.hooks.content.register(function(view) {
-      view.addScript("//hypothes.is/embed.js").then(function() {
-        view.window.hypothesisConfig = function () {
 
-      		return {
-      			constructor: this.Annotator.Guest,
-            app: 'https://hypothes.is/app.html'
-      		};
-      	};
-      })
+      view.window.hypothesisConfig = function () {
+
+    		return {
+    			constructor: this.Annotator.Guest,
+          app: 'http://45.55.144.135:5000/app.html'
+    		};
+    	};
+
+      view.contents.addScript("http://45.55.144.135:5000/embed.js").then(function() {
+
+        checkForAnnotator(function () {
+
+          var annotator = view.window.annotator;
+
+          annotator.on("scrollToAnnotation", function (node) {
+            var cfi = view.section.cfiFromElement(node);
+            // var selectors = ev.target[0].selector;
+            // var range = selectors[0];
+            console.log("scrollToAnnotation", cfi);
+            book.rendition.display(cfi);
+          });
+
+          annotator.on("highlightClick", function (annotation) {
+            console.log(annotation);
+            window.annotator.show();
+          })
+
+          annotator.on("beforeAnnotationCreated", function (annotation) {
+            console.log(annotation);
+            window.annotator.show();
+          })
+
+        }, view.window);
+
+      });
+
     });
+
+    checkForAnnotator(function () {
+      var main = document.querySelector('#main');
+
+      if(window.innerWidth < 1400) {
+        window.annotator.on("show", function () {
+          main.classList.add("open");
+        });
+
+        window.annotator.on("hide", function () {
+          main.classList.remove("open");
+        });
+      }
+    });
+
   </script>
-  <script>
-  // //  Hypothesis Customized embedding
-  // //  This hypothesis config function returns a new constructor which modifies
-  // //  annotator for a better integration. Below we create our own EpubAnnotationSidebar
-  // //  Constructor, customizing the show and hide function to take acount for the reader UI.
-  //
-  // window.hypothesisConfig = function() {
-  //   var Annotator = window.Annotator;
-  //   var $main = $("#main");
-  //
-  //   function EpubAnnotationSidebar(elem, options) {
-  //     options = {
-  //       server: true,
-  //       origin: true,
-  //       showHighlights: true,
-  //       Toolbar: {container: '#annotation-controls'}
-  //     }
-  //
-  //     Annotator.Host.call(this, elem, options);
-  //   }
-  //
-  //   EpubAnnotationSidebar.prototype = Object.create(Annotator.Host.prototype);
-  //
-  //   // EpubAnnotationSidebar.prototype.show = function() {
-  //   //   this.frame.css({
-  //   //     'margin-left': (-1 * this.frame.width()) + "px"
-  //   //   });
-  //   //   this.frame.removeClass('annotator-collapsed');
-  //   //   if (!$main.hasClass('single')) {
-  //   //     $main.addClass("single");
-  //   //     this.toolbar.find('[name=sidebar-toggle]').removeClass('h-icon-chevron-left').addClass('h-icon-chevron-right');
-  //   //     this.setVisibleHighlights(true);
-  //   //   }
-  //   // };
-  //   //
-  //   // EpubAnnotationSidebar.prototype.hide = function() {
-  //   //   this.frame.css({
-  //   //     'margin-left': ''
-  //   //   });
-  //   //   this.frame.addClass('annotator-collapsed');
-  //   //   if ($main.hasClass('single')) {
-  //   //     $main.removeClass("single");
-  //   //     this.toolbar.find('[name=sidebar-toggle]').removeClass('h-icon-chevron-right').addClass('h-icon-chevron-left');
-  //   //     this.setVisibleHighlights(false);
-  //   //   }
-  //   // };
-  //
-  //   return {
-  //     constructor: EpubAnnotationSidebar
-  //   }
-  // };
-  </script>
+
 </body>
 </html>
