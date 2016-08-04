@@ -399,7 +399,7 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.window = this.iframe.contentWindow;
     this.document = this.iframe.contentDocument;
 
-    this.contents = new Contents(this.document);
+    this.contents = new Contents(this.document, this.document.body);
 
     this.rendering = false;
 
@@ -412,6 +412,12 @@ IframeView.prototype.onLoad = function(event, promise) {
       link.setAttribute("href", this.section.url);
       this.document.querySelector("head").appendChild(link);
     }
+
+    this.contents.on("expand", function () {
+      if(this.displayed && this.iframe) {
+          this.expand();
+      }
+    });
 
     promise.resolve(this.contents);
 };

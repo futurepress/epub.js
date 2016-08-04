@@ -6399,7 +6399,7 @@ Book.prototype.open = function(_url){
   // }
   uri = URI(_url);
 
-  if (window) {
+  if (window && window.location) {
     absoluteUri = uri.absoluteTo(window.location.href);
     this.url = absoluteUri.toString();
   } else {
@@ -6647,50 +6647,90 @@ function Contents(doc, content) {
 
   this.document = doc;
   this.documentElement =  this.document.documentElement;
-  this.content = content || this.document.body;
+  this.content = content;
   this.window = this.document.defaultView;
   // Dom events to listen for
   this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
+  this.size = {
+    width: 0,
+    height: 0
+  }
+
+  this.listeners();
 };
 
 Contents.prototype.width = function(w) {
+  var frame = this.content || this.documentElement;
 
   if (w && core.isNumber(w)) {
     w = w + "px";
   }
 
   if (w) {
-    this.documentElement.style.width = w;
-    this.content.style.width = w;
+    frame.style.width = w;
   }
 
-  return this.window.getComputedStyle(this.documentElement)['width'];
+  return this.window.getComputedStyle(frame)['width'];
 
 
 };
 
 Contents.prototype.height = function(h) {
+  var frame = this.content || this.documentElement;
 
   if (h && core.isNumber(h)) {
     h = h + "px";
   }
 
   if (h) {
-    this.documentElement.style.height = h;
-    this.content.style.height = h;
+    frame.style.height = h;
   }
 
-  return this.window.getComputedStyle(this.documentElement)['height'];
+  return this.window.getComputedStyle(frame)['height'];
+
+};
+
+Contents.prototype.contentWidth = function(w) {
+
+  var content = this.content || this.document.body;
+
+  if (w && core.isNumber(w)) {
+    w = w + "px";
+  }
+
+  if (w) {
+    content.style.width = w;
+  }
+
+  return this.window.getComputedStyle(content)['width'];
+
+
+};
+
+Contents.prototype.contentHeight = function(h) {
+
+  var content = this.content || this.document.body;
+
+  if (h && core.isNumber(h)) {
+    h = h + "px";
+  }
+
+  if (h) {
+    content.style.height = h;
+  }
+
+  return this.window.getComputedStyle(content)['height'];
 
 };
 
 Contents.prototype.textWidth = function() {
   var width;
   var range = this.document.createRange();
+  var content = this.content || this.document.body;
 
   // Select the contents of frame
-  range.selectNodeContents(this.content);
+  range.selectNodeContents(content);
 
   // get the width of the text content
   width = range.getBoundingClientRect().width;
@@ -6701,9 +6741,9 @@ Contents.prototype.textWidth = function() {
 Contents.prototype.textHeight = function() {
   var height;
   var range = this.document.createRange();
+  var content = this.content || this.document.body;
 
-
-  range.selectNodeContents(this.content);
+  range.selectNodeContents(content);
 
   height = range.getBoundingClientRect().height;
 
@@ -6732,12 +6772,13 @@ Contents.prototype.overflow = function(overflow) {
 };
 
 Contents.prototype.css = function(property, value) {
+  var content = this.content || this.document.body;
 
   if (value) {
-    this.content.style[property] = value;
+    content.style[property] = value;
   }
 
-  return this.window.getComputedStyle(this.content)[property];
+  return this.window.getComputedStyle(content)[property];
 };
 
 Contents.prototype.viewport = function() {
@@ -6789,7 +6830,7 @@ Contents.prototype.viewport = function() {
 // };
 
 Contents.prototype.expand = function() {
-  //TODO: this should just report resize
+  this.trigger("expand");
 };
 
 Contents.prototype.listeners = function() {
@@ -6798,9 +6839,14 @@ Contents.prototype.listeners = function() {
 
   this.mediaQueryListeners();
 
+  this.fontLoadListeners();
+
   this.addEventListeners();
 
   this.addSelectionListeners();
+
+  this.resizeListeners();
+
 };
 
 Contents.prototype.removeListeners = function() {
@@ -6810,10 +6856,25 @@ Contents.prototype.removeListeners = function() {
   this.removeSelectionListeners();
 };
 
-Contents.prototype.resizeListenters = function() {
+Contents.prototype.resizeListeners = function() {
+  var width, height;
   // Test size again
   clearTimeout(this.expanding);
-  this.expanding = setTimeout(this.expand.bind(this), 350);
+
+  width = this.scrollWidth();
+  height = this.scrollHeight();
+
+  if (width != this.size.width || height != this.size.height) {
+
+    this.size = {
+      width: width,
+      height: height
+    }
+
+    this.trigger("resize", this.size);
+  }
+
+  this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
 };
 
 //https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
@@ -6863,7 +6924,7 @@ Contents.prototype.observe = function(target) {
 };
 
 Contents.prototype.imageLoadListeners = function(target) {
-  var images = this.contentDocument.querySelectorAll("img");
+  var images = this.document.querySelectorAll("img");
   var img;
   for (var i = 0; i < images.length; i++) {
     img = images[i];
@@ -6873,6 +6934,17 @@ Contents.prototype.imageLoadListeners = function(target) {
       img.onload = this.expand.bind(this);
     }
   }
+};
+
+Contents.prototype.fontLoadListeners = function(target) {
+  if (!this.document.fonts) {
+    return;
+  }
+
+  this.document.fonts.ready.then(function () {
+    this.expand();
+  }.bind(this));
+
 };
 
 Contents.prototype.root = function() {
@@ -13982,7 +14054,7 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.window = this.iframe.contentWindow;
     this.document = this.iframe.contentDocument;
 
-    this.contents = new Contents(this.document);
+    this.contents = new Contents(this.document, this.document.body);
 
     this.rendering = false;
 
@@ -13995,6 +14067,12 @@ IframeView.prototype.onLoad = function(event, promise) {
       link.setAttribute("href", this.section.url);
       this.document.querySelector("head").appendChild(link);
     }
+
+    this.contents.on("expand", function () {
+      if(this.displayed && this.iframe) {
+          this.expand();
+      }
+    });
 
     promise.resolve(this.contents);
 };
