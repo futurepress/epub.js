@@ -69,13 +69,6 @@ function Rendition(book, options) {
 	this.ViewManager = this.requireManager(this.settings.manager);
 	this.View = this.requireView(this.settings.view);
 
-	this.manager = new this.ViewManager({
-		view: this.View,
-		queue: this.q,
-		request: this.book.request,
-		settings: this.settings
-	});
-
 };
 
 Rendition.prototype.setManager = function(manager) {
@@ -115,16 +108,12 @@ Rendition.prototype.requireView = function(view) {
 
 Rendition.prototype.start = function(){
 
-	if(!this.manager) {
-		this.ViewManager = this.requireManager(this.settings.manager);
-		this.View = this.requireView(this.settings.view);
-
-		this.manager = new this.ViewManager({
-			view: this.View,
-			queue: this.q,
-			settings: this.settings
-		});
-	}
+	this.manager = new this.ViewManager({
+		view: this.View,
+		queue: this.q,
+		request: this.book.request,
+		settings: this.settings
+	});
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
