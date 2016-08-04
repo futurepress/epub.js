@@ -4,9 +4,9 @@ var ContinuousViewManager = require('./continuous');
 var Map = require('../map');
 var Layout = require('../layout');
 
-function PaginatedViewManager(book, options) {
+function PaginatedViewManager(options) {
 
-  ContinuousViewManager.apply(arguments);
+  ContinuousViewManager.apply(this, arguments); // call super constructor.
 
   this.settings = core.extend(this.settings || {}, {
     width: 600,
@@ -19,7 +19,7 @@ function PaginatedViewManager(book, options) {
     infinite: false
   });
 
-  core.extend(this.settings, options.settings);
+  core.defaults(this.settings, options.settings || {});
 
   this.isForcedSingle = this.settings.forceSingle;
 
@@ -82,9 +82,14 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
 
   this.updateLayout();
 
-  // Set the look ahead offset for what is visible
+  this.setLayout(this.layout);
 
-  // this.map = new Map(this.layout);
+  this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+
+  // Set the look ahead offset for what is visible
+  this.settings.offeset = this.layout.delta;
+
+  this.mapping = new Map(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 
@@ -98,14 +103,13 @@ PaginatedViewManager.prototype.updateLayout = function() {
   this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
 
   this.layout.calculate(
-    this.stage.width,
-    this.stage.height,
+    this._stageSize.width,
+    this._stageSize.height,
     this.settings.gap,
     this.spreads
   );
 
   this.settings.offset = this.layout.delta;
-
 };
 
 PaginatedViewManager.prototype.moveTo = function(offset){
@@ -124,25 +128,26 @@ PaginatedViewManager.prototype.page = function(pg){
 };
 
 PaginatedViewManager.prototype.next = function(){
+    this.scrollLeft = this.container.scrollLeft;
 
-    // console.log(this.container.scrollWidth, this.container.scrollLeft + this.container.offsetWidth + this.layout.delta)
     if(this.container.scrollLeft +
        this.container.offsetWidth +
        this.layout.delta < this.container.scrollWidth) {
       this.scrollBy(this.layout.delta, 0);
     } else {
+      // this.scrollTo(this.container.scrollWidth, 0);
       this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
     }
-    this.reportLocation();
-    return this.check();
+    // this.reportLocation();
+    this.check();
 
 };
 
 PaginatedViewManager.prototype.prev = function(){
 
     this.scrollBy(-this.layout.delta, 0);
-    this.reportLocation();
-    return this.check();
+    // this.reportLocation();
+    this.check();
 
 };
 
@@ -163,7 +168,7 @@ PaginatedViewManager.prototype.currentLocation = function(){
     startA = container.left - visible[0].position().left;
     endA = startA + this.layout.spread;
 
-    return this.map.page(visible[0], startA, endA);
+    return this.mapping.page(visible[0], startA, endA);
   }
 
   if(visible.length > 1) {
@@ -176,8 +181,8 @@ PaginatedViewManager.prototype.currentLocation = function(){
     startB = container.left + this.layout.spread - visible[visible.length-1].position().left;
     endB = startB + this.layout.column;
 
-    pageLeft = this.map.page(visible[0], startA, endA);
-    pageRight = this.map.page(visible[visible.length-1], startB, endB);
+    pageLeft = this.mapping.page(visible[0], startA, endA);
+    pageRight = this.mapping.page(visible[visible.length-1], startB, endB);
 
     return {
       start: pageLeft.start,

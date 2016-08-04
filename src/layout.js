@@ -46,8 +46,6 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 
   delta = (colWidth + gap) * divisor;
 
-
-
   this.columnAxis = core.prefixed('columnAxis');
   this.columnGap = core.prefixed('columnGap');
   this.columnWidth = core.prefixed('columnWidth');

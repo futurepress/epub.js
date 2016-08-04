@@ -13,12 +13,12 @@ var Map = require('./map');
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
-		infinite: true,
-		hidden: false,
+		// infinite: true,
+		// hidden: false,
 		width: null,
 		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
-		axis: "vertical",
+		// layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto', flow: 'auto', viewport: ''},
+		// axis: "vertical",
 		ignoreClass: '',
 		manager: "single",
 		view: "iframe"
@@ -65,6 +65,16 @@ function Rendition(book, options) {
 	if(this.book.archive) {
 		this.replacements();
 	}
+
+	this.ViewManager = this.requireManager(this.settings.manager);
+	this.View = this.requireView(this.settings.view);
+
+	this.manager = new this.ViewManager({
+		view: this.View,
+		queue: this.q,
+		request: this.book.request,
+		settings: this.settings
+	});
 
 };
 
@@ -262,11 +272,13 @@ Rendition.prototype.moveTo = function(offset){
 };
 
 Rendition.prototype.next = function(){
-	return this.q.enqueue(this.manager.next.bind(this.manager));
+	return this.q.enqueue(this.manager.next.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
 Rendition.prototype.prev = function(){
-	return this.q.enqueue(this.manager.prev.bind(this.manager));
+	return this.q.enqueue(this.manager.prev.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
 //-- http://www.idpf.org/epub/fxl/
