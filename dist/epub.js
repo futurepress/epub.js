@@ -11370,9 +11370,6 @@ function Rendition(book, options) {
 		this.replacements();
 	}
 
-	this.ViewManager = this.requireManager(this.settings.manager);
-	this.View = this.requireView(this.settings.view);
-
 };
 
 Rendition.prototype.setManager = function(manager) {
@@ -11412,12 +11409,16 @@ Rendition.prototype.requireView = function(view) {
 
 Rendition.prototype.start = function(){
 
-	this.manager = new this.ViewManager({
-		view: this.View,
-		queue: this.q,
-		request: this.book.request,
-		settings: this.settings
-	});
+	if(!this.manager) {
+		this.ViewManager = this.requireManager(this.settings.manager);
+		this.View = this.requireView(this.settings.view);
+
+		this.manager = new this.ViewManager({
+			view: this.View,
+			queue: this.q,
+			settings: this.settings
+		});
+	}
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
