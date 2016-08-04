@@ -6385,6 +6385,7 @@ Book.prototype.open = function(_url){
   var containerPath = "META-INF/container.xml";
   var location;
   var absoluteUri;
+  var isArrayBuffer = false;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -6397,17 +6398,24 @@ Book.prototype.open = function(_url){
   // } else {
   //   uri = core.uri(_url);
   // }
-  uri = URI(_url);
+  if (_url instanceof ArrayBuffer) {
+		isArrayBuffer = true;
+    this.url = '/';
+	} else {
+    uri = URI(_url);
+	}
 
-  if (window && window.location) {
+  if (window && window.location && uri) {
     absoluteUri = uri.absoluteTo(window.location.href);
     this.url = absoluteUri.toString();
+  } if (window && window.location) {
+    this.url = window.location.href;
   } else {
     this.url = _url;
   }
 
   // Find path to the Container
-  if(uri.suffix() === "opf") {
+  if(uri && uri.suffix() === "opf") {
     // Direct link to package, no container
     this.packageUrl = _url;
     this.containerUrl = '';
@@ -6423,7 +6431,7 @@ Book.prototype.open = function(_url){
 
     epubPackage = this.request(this.packageUrl);
 
-  } else if(this.isArchivedUrl(uri)) {
+  } else if(isArrayBuffer || this.isArchivedUrl(uri)) {
     // Book is archived
     this.url = '/';
     this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
@@ -8665,6 +8673,7 @@ module.exports = Hook;
 
 },{"rsvp":4}],15:[function(require,module,exports){
 var core = require('./core');
+var RSVP = require('rsvp');
 
 function Reflowable(){
   this.columnAxis = core.prefixed('columnAxis');
@@ -8728,36 +8737,37 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 };
 
 Reflowable.prototype.format = function(contents){
-
+  var promises = [];
   // var $doc = doc.documentElement;
   // var $body = doc.body;//view.document.querySelector("body");
 
   // $doc.style.overflow = "hidden";
-  contents.overflow("hidden");
+  promises.push(contents.overflow("hidden"));
 
   // Must be set to the new calculated width or the columns will be off
   // $body.style.width = this.width + "px";
   // $doc.style.width = this.width + "px";
-  contents.width(this.width);
+  promises.push(contents.width(this.width));
 
   //-- Adjust height
   // $body.style.height = this.height + "px";
-  contents.height(this.height);
+  promises.push(contents.height(this.height));
 
-  contents.css("margin", "0");
+  promises.push(contents.css("margin", "0"));
 
   //-- Add columns
   // $body.style[this.columnAxis] = "horizontal";
-  contents.css(this.columnAxis, "horizontal");
+  promises.push(contents.css(this.columnAxis, "horizontal"));
   // $body.style[this.columnFill] = "auto";
-  contents.css(this.columnFill, "auto");
+  promises.push(contents.css(this.columnFill, "auto"));
   // $body.style[this.columnGap] = this.gap+"px";
-  contents.css(this.columnGap, this.gap+"px");
+  promises.push(contents.css(this.columnGap, this.gap+"px"));
   // $body.style[this.columnWidth] = this.column +"px";
-  contents.css(this.columnWidth, this.column+"px");
+  promises.push(contents.css(this.columnWidth, this.column+"px"));
 
   // Add extra padding for the gap between this and the next view
   // view.iframe.style.marginRight = this.gap+"px";
+  return RSVP.all(promises);
 };
 
 Reflowable.prototype.count = function(totalWidth) {
@@ -8784,6 +8794,7 @@ Fixed.prototype.calculate = function(_width, _height){
 };
 
 Fixed.prototype.format = function(contents){
+  var promises = [];
   var viewport = contents.viewport();
   // var width, height;
   //
@@ -8809,16 +8820,18 @@ Fixed.prototype.format = function(contents){
   // $doc.style.width =  width + "px" || "auto";
   // $doc.style.height =  height + "px" || "auto";
   if (viewport.width) {
-    contents.width(viewport.width);
+    promises.push(contents.width(viewport.width));
   }
 
   if (viewport.height) {
-    contents.height(viewport.height);
+    promises.push(contents.height(viewport.height));
   }
 
   //-- Scroll
   // $doc.style.overflow = "auto";
-  contents.overflow("auto");
+  promises.push(contents.overflow("auto"));
+
+  return RSVP.all(promises);
 
 };
 
@@ -8845,13 +8858,15 @@ Scroll.prototype.calculate = function(_width, _height){
 };
 
 Scroll.prototype.format = function(contents){
-
+  var promises = [];
   // var $doc = doc.documentElement;
 
   // $doc.style.width = "auto";
   // $doc.style.height = "auto";
   // contents.width("auto");
-  contents.height("auto");
+  promises.push(contents.height("auto"));
+
+  return RSVP.all(promises);
 
 };
 
@@ -8868,7 +8883,7 @@ module.exports = {
   'Scroll': Scroll
 };
 
-},{"./core":12}],16:[function(require,module,exports){
+},{"./core":12,"rsvp":4}],16:[function(require,module,exports){
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
@@ -11378,7 +11393,7 @@ Rendition.prototype.requireManager = function(manager) {
 	// or require included managers directly
 	if (typeof manager === "string") {
 		// Use global or require
-		viewManager =  typeof ePub != "undefined" ? ePub.ViewManagers[manager] : require('./managers/'+manager);
+		viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
 	} else {
 		// otherwise, assume we were passed a function
 		viewManager = manager
@@ -11393,7 +11408,7 @@ Rendition.prototype.requireView = function(view) {
 	// If view is a string, try to load from register managers,
 	// or require included managers directly
 	if (typeof view == "string") {
-		View = typeof ePub != "undefined" ? ePub.Views[view] : require('./views/'+view);
+		View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
 	} else {
 		// otherwise, assume we were passed a function
 		View = view
@@ -11403,6 +11418,17 @@ Rendition.prototype.requireView = function(view) {
 };
 
 Rendition.prototype.start = function(){
+
+	if(!this.manager) {
+		this.ViewManager = this.requireManager(this.settings.manager);
+		this.View = this.requireView(this.settings.view);
+
+		this.manager = new this.ViewManager({
+			view: this.View,
+			queue: this.q,
+			settings: this.settings
+		});
+	}
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))
