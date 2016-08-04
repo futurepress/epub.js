@@ -66,15 +66,6 @@ function Rendition(book, options) {
 		this.replacements();
 	}
 
-	this.ViewManager = this.requireManager(this.settings.manager);
-	this.View = this.requireView(this.settings.view);
-
-	this.manager = new this.ViewManager({
-		view: this.View,
-		queue: this.q,
-		settings: this.settings
-	});
-
 };
 
 Rendition.prototype.setManager = function(manager) {
@@ -88,7 +79,7 @@ Rendition.prototype.requireManager = function(manager) {
 	// or require included managers directly
 	if (typeof manager === "string") {
 		// Use global or require
-		viewManager =  typeof ePub != "undefined" ? ePub.ViewManagers[manager] : require('./managers/'+manager);
+		viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
 	} else {
 		// otherwise, assume we were passed a function
 		viewManager = manager
@@ -103,7 +94,7 @@ Rendition.prototype.requireView = function(view) {
 	// If view is a string, try to load from register managers,
 	// or require included managers directly
 	if (typeof view == "string") {
-		View = typeof ePub != "undefined" ? ePub.Views[view] : require('./views/'+view);
+		View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
 	} else {
 		// otherwise, assume we were passed a function
 		View = view
@@ -113,6 +104,17 @@ Rendition.prototype.requireView = function(view) {
 };
 
 Rendition.prototype.start = function(){
+
+	if(!this.manager) {
+		this.ViewManager = this.requireManager(this.settings.manager);
+		this.View = this.requireView(this.settings.view);
+
+		this.manager = new this.ViewManager({
+			view: this.View,
+			queue: this.q,
+			settings: this.settings
+		});
+	}
 
 	// Listen for displayed views
 	this.manager.on("added", this.afterDisplayed.bind(this))

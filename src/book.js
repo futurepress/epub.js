@@ -69,6 +69,7 @@ Book.prototype.open = function(_url){
   var containerPath = "META-INF/container.xml";
   var location;
   var absoluteUri;
+  var isArrayBuffer = false;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -81,17 +82,24 @@ Book.prototype.open = function(_url){
   // } else {
   //   uri = core.uri(_url);
   // }
-  uri = URI(_url);
+  if (_url instanceof ArrayBuffer) {
+		isArrayBuffer = true;
+    this.url = '/';
+	} else {
+    uri = URI(_url);
+	}
 
-  if (window && window.location) {
+  if (window && window.location && uri) {
     absoluteUri = uri.absoluteTo(window.location.href);
     this.url = absoluteUri.toString();
+  } if (window && window.location) {
+    this.url = window.location.href;
   } else {
     this.url = _url;
   }
 
   // Find path to the Container
-  if(uri.suffix() === "opf") {
+  if(uri && uri.suffix() === "opf") {
     // Direct link to package, no container
     this.packageUrl = _url;
     this.containerUrl = '';
@@ -107,7 +115,7 @@ Book.prototype.open = function(_url){
 
     epubPackage = this.request(this.packageUrl);
 
-  } else if(this.isArchivedUrl(uri)) {
+  } else if(isArrayBuffer || this.isArchivedUrl(uri)) {
     // Book is archived
     this.url = '/';
     this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
