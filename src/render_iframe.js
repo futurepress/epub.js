@@ -95,6 +95,7 @@ EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	this.headEl = this.document.head;
 	this.bodyEl = this.document.body || this.document.querySelector("body");
 	this.window = this.iframe.contentWindow;
+	this.window.focus();
 
 	if(url != "about:blank"){
 		baseEl = this.iframe.contentDocument.querySelector("base");
