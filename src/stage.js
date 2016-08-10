@@ -186,7 +186,7 @@ Stage.prototype.size = function(_width, _height){
 };
 
 Stage.prototype.bounds = function(){
-	return this.element.getBoundingClientRect();
+	return this.container.getBoundingClientRect();
 }
 
 Stage.prototype.getSheet = function(){

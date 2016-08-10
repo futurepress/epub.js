@@ -439,7 +439,7 @@ function qs(el, sel) {
 }
 
 function qsa(el, sel) {
-  
+
   if (typeof el.querySelector != "undefined") {
     return el.querySelectorAll(sel);
   } else {

@@ -10,7 +10,13 @@ Map.prototype.section = function(view) {
 };
 
 Map.prototype.page = function(view, start, end) {
-  var root = view.contents.document.body;
+  var contents = view.contents;
+  var root = contents && contents.document ? contents.document.body : false;
+
+  if (!root) {
+    return;
+  }
+  
   return this.rangePairToCfiPair(view.section, {
     start: this.findStart(root, start, end),
     end: this.findEnd(root, start, end)

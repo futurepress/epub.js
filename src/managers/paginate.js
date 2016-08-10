@@ -1,7 +1,7 @@
 var RSVP = require('rsvp');
 var core = require('../core');
 var ContinuousViewManager = require('./continuous');
-var Map = require('../map');
+var Mapping = require('../map');
 var Layout = require('../layout');
 
 function PaginatedViewManager(options) {
@@ -21,11 +21,15 @@ function PaginatedViewManager(options) {
 
   core.defaults(this.settings, options.settings || {});
 
+  // Gap can be 0, byt defaults doesn't handle that
+  if (options.settings.gap != "undefined" && options.settings.gap === 0) {
+    this.settings.gap = options.settings.gap;
+  }
+
   this.isForcedSingle = this.settings.forceSingle;
 
   this.viewSettings.axis = this.settings.axis;
 
-  // this.start();
 };
 
 PaginatedViewManager.prototype = Object.create(ContinuousViewManager.prototype);
@@ -52,7 +56,7 @@ PaginatedViewManager.prototype.forceSingle = function(bool){
 };
 
 
-PaginatedViewManager.prototype.addEventListeners = function(){
+// PaginatedViewManager.prototype.addEventListeners = function(){
   // On display
   // this.layoutSettings = this.reconcileLayoutSettings(globalLayout, chapter.properties);
   // this.layoutMethod = this.determineLayout(this.layoutSettings);
@@ -63,21 +67,21 @@ PaginatedViewManager.prototype.addEventListeners = function(){
 
   // this.hooks.content.register(this.adjustImages.bind(this));
 
-  this.currentPage = 0;
+  // this.currentPage = 0;
 
-  window.addEventListener('unload', function(e){
-    this.ignore = true;
-    this.destroy();
-  }.bind(this));
+  // window.addEventListener('unload', function(e){
+  //   this.ignore = true;
+  //   this.destroy();
+  // }.bind(this));
 
-};
+// };
 
 
 PaginatedViewManager.prototype.applyLayoutMethod = function() {
   //var task = new RSVP.defer();
 
   // this.spreads = this.determineSpreads(this.settings.minSpreadWidth);
-
+  console.log(this.settings.globalLayoutProperties);
   this.layout = new Layout.Reflowable();
 
   this.updateLayout();
@@ -87,9 +91,9 @@ PaginatedViewManager.prototype.applyLayoutMethod = function() {
   this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
   // Set the look ahead offset for what is visible
-  this.settings.offeset = this.layout.delta;
+  this.settings.offset = this.layout.delta;
 
-  this.mapping = new Map(this.layout);
+  this.mapping = new Mapping(this.layout);
 
   // this.hooks.layout.register(this.layout.format.bind(this));
 
@@ -139,15 +143,14 @@ PaginatedViewManager.prototype.next = function(){
       this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
     }
     // this.reportLocation();
-    this.check();
-
+    // this.check();
 };
 
 PaginatedViewManager.prototype.prev = function(){
 
     this.scrollBy(-this.layout.delta, 0);
     // this.reportLocation();
-    this.check();
+    // this.check();
 
 };
 
@@ -221,8 +224,6 @@ PaginatedViewManager.prototype.onResized = function(e) {
 };
 
 
-// Paginate.prototype.display = function(what){
-//   return this.display(what);
-// };
+
 
 module.exports = PaginatedViewManager;

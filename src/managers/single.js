@@ -5,12 +5,14 @@ var Views = require('../views');
 var EpubCFI = require('../epubcfi');
 var Layout = require('../layout');
 var Mapping = require('../map');
+var Queue = require('../queue');
 
 function SingleViewManager(options) {
 
 	this.View = options.view;
 	this.request = options.request;
-	this.q = options.queue;
+	this.renditionQueue = options.queue;
+	this.q = new Queue(this);
 
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
@@ -75,7 +77,15 @@ SingleViewManager.prototype.render = function(element, size){
 };
 
 SingleViewManager.prototype.addEventListeners = function(){
+	window.addEventListener('unload', function(e){
+		this.destroy();
+	}.bind(this));
+};
 
+SingleViewManager.prototype.destroy = function(){
+	// this.views.each(function(view){
+	// 	view.destroy();
+	// });
 };
 
 SingleViewManager.prototype.onResized = function(e) {
@@ -143,7 +153,7 @@ SingleViewManager.prototype.display = function(section, target){
 	// Create a new view
 	view = this.createView(section);
 
-	return this.add(view)
+	this.add(view)
 		.then(function(){
 
 			// Move to correct place within the section, if needed
@@ -152,14 +162,18 @@ SingleViewManager.prototype.display = function(section, target){
 				this.moveTo(offset);
 			}
 
+			this.views.show();
+
+			displaying.resolve();
+
 		}.bind(this))
 		// .then(function(){
 		// 	return this.hooks.display.trigger(view);
 		// }.bind(this))
-		.then(function(){
-			this.views.show();
-		}.bind(this));
-
+		// .then(function(){
+		// 	this.views.show();
+		// }.bind(this));
+		return displayed;
 };
 
 SingleViewManager.prototype.afterDisplayed = function(view){
@@ -183,7 +197,7 @@ SingleViewManager.prototype.add = function(view){
 	view.onResize = this.afterResized.bind(this);
 
 	return view.display(this.request);
-	// return this.renderer(view, this.views.hidden);
+
 };
 
 // SingleViewManager.prototype.resizeView = function(view) {
@@ -278,10 +292,9 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 };
 
 SingleViewManager.prototype.visible = function(){
-	return this.views.displayed();
-	/*
-	var container = this.stage.bounds();
-	var views = this.views;
+	// return this.views.displayed();
+	var container = this.bounds();
+	var views = this.views.displayed();
 	var viewsLength = views.length;
   var visible = [];
   var isVisible;
@@ -297,7 +310,6 @@ SingleViewManager.prototype.visible = function(){
 
   }
   return visible;
-	*/
 };
 
 SingleViewManager.prototype.scrollBy = function(x, y, silent){

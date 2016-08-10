@@ -46,11 +46,6 @@ Reflowable.prototype.calculate = function(_width, _height, _gap, _devisor){
 
   delta = (colWidth + gap) * divisor;
 
-  this.columnAxis = core.prefixed('columnAxis');
-  this.columnGap = core.prefixed('columnGap');
-  this.columnWidth = core.prefixed('columnWidth');
-  this.columnFill = core.prefixed('columnFill');
-
   this.width = width;
   this.height = _height;
   this.spread = spreadWidth;
@@ -109,53 +104,88 @@ Reflowable.prototype.count = function(totalWidth) {
 function Fixed(_width, _height){
   this.width = 0;
   this.height = 0;
+  this.spread = 0;
+  this.delta = 0;
+
+  this.column = 0;
+  this.gap = 0;
+  this.divisor = 0;
 
   this.name = "pre-paginated";
 
 };
 
-Fixed.prototype.calculate = function(_width, _height){
-  this.width = _width;
+Fixed.prototype.calculate = function(_width, _height, _gap, _devisor){
+  var divisor = _devisor || 1;
+  var section = Math.floor(_width / 8);
+  var gap = (_gap >= 0) ? _gap : ((section % 2 === 0) ? section : section - 1);
+
+
+  var colWidth;
+  var spreadWidth;
+  var delta;
+
+  //-- Double Page
+  if(divisor > 1) {
+    colWidth = Math.floor((_width - gap) / divisor);
+  } else {
+    colWidth = _width;
+  }
+
+  spreadWidth = colWidth * divisor;
+
+  delta = (colWidth + gap) * divisor;
+
+  this.width = colWidth;
   this.height = _height;
+  this.spread = spreadWidth;
+  this.delta = delta;
+
+  this.column = colWidth;
+  this.gap = gap;
+  this.divisor = divisor;
+
 };
 
 Fixed.prototype.format = function(contents){
   var promises = [];
   var viewport = contents.viewport();
-  // var width, height;
-  //
-  // var $doc = doc.documentElement;
-  // var $viewport = $doc.querySelector("[name=viewport");
-  //
-  // /**
-  // * check for the viewport size
-  // * <meta name="viewport" content="width=1024,height=697" />
-  // */
-  // if($viewport && $viewport.hasAttribute("content")) {
-  //   content = $viewport.getAttribute("content");
-  //   contents = content.split(',');
-  //   if(contents[0]){
-  //     width = contents[0].replace("width=", '');
-  //   }
-  //   if(contents[1]){
-  //     height = contents[1].replace("height=", '');
-  //   }
+
+  var width = viewport.width;
+  var height = viewport.height;
+  var widthScale = this.column / width;
+  var heightScale = this.height / height;
+  var scale = widthScale < heightScale ? widthScale : heightScale;
+
+  var offsetX = (this.width - (width * scale)) / 2;
+  var offsetY = (this.height - (height * scale)) / 2;
+
+  promises.push(contents.width(this.width));
+  promises.push(contents.height(this.height));
+
+  promises.push(contents.css("position", "absolute"));
+  promises.push(contents.css("transform", "scale(" + scale + ")"));
+
+  promises.push(contents.overflow("hidden"));
+
+  promises.push(contents.css("transformOrigin", "top left"));
+
+  promises.push(contents.css("backgroundColor", "transparent"));
+
+  promises.push(contents.css("marginTop", offsetY + "px"));
+  // promises.push(contents.css("marginLeft", offsetX + "px"));
+
+
+  // page.style.transformOrigin = "top left";
+  // if (!view.offsetRight) {
+  //    page.style.transformOrigin = "top right";
+  //    page.style.right = 0;
+  //    page.style.left = "auto";
   // }
-
-  //-- Adjust width and height
-  // $doc.style.width =  width + "px" || "auto";
-  // $doc.style.height =  height + "px" || "auto";
-  if (viewport.width) {
-    promises.push(contents.width(viewport.width));
-  }
-
-  if (viewport.height) {
-    promises.push(contents.height(viewport.height));
-  }
 
   //-- Scroll
   // $doc.style.overflow = "auto";
-  promises.push(contents.overflow("auto"));
+  // promises.push(contents.overflow("auto"));
 
   return RSVP.all(promises);
 

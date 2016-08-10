@@ -118,15 +118,14 @@
   <div id="next" class="arrow">›</div>
   <script>
     // Load the opf
-    // var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var book = ePub("../books/alice/OPS/package.opf");
+    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       manager: "paginate",
       width: "100%",
       height: 600
     });
 
-    var displayed = rendition.display(3);
+    var displayed = rendition.display(6);
 
 
     displayed.then(function(renderer){

@@ -95,6 +95,7 @@ Contents.prototype.textWidth = function() {
 
   // get the width of the text content
   width = range.getBoundingClientRect().width;
+
   return width;
 
 };
@@ -155,16 +156,16 @@ Contents.prototype.viewport = function() {
     content = $viewport.getAttribute("content");
     contents = content.split(',');
     if(contents[0]){
-      width = contents[0].replace("width=", '');
+      width = contents[0].replace("width=", '').trim();
     }
     if(contents[1]){
-      height = contents[1].replace("height=", '');
+      height = contents[1].replace("height=", '').trim();
     }
   }
 
   return {
-    width: width,
-    height: height
+    width: parseInt(width),
+    height: parseInt(height)
   };
 };
 

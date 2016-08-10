@@ -5,10 +5,9 @@ var replace = require('./replacements');
 var Hook = require('./hook');
 var EpubCFI = require('./epubcfi');
 var Queue = require('./queue');
-var View = require('./view');
+// var View = require('./view');
 var Views = require('./views');
 var Layout = require('./layout');
-var Map = require('./map');
 
 function Rendition(book, options) {
 
@@ -112,6 +111,7 @@ Rendition.prototype.start = function(){
 		this.manager = new this.ViewManager({
 			view: this.View,
 			queue: this.q,
+			request: this.book.request,
 			settings: this.settings
 		});
 	}
@@ -135,13 +135,13 @@ Rendition.prototype.start = function(){
 // Container must be attached before rendering can begin
 Rendition.prototype.attachTo = function(element){
 
+	this.start();
+
 	// Start rendering
 	this.manager.render(element, {
 		"width"  : this.settings.width,
 		"height" : this.settings.height
 	});
-
-	this.start();
 
 	// Trigger Attached
 	this.trigger("attached");

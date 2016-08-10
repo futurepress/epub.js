@@ -172,10 +172,11 @@ IframeView.prototype.size = function(_width, _height) {
   var width = _width || this.settings.width;
   var height = _height || this.settings.height;
 
-  if(this.layout.name === "pre-paginated") {
-    // TODO: check if these are different than the size set in chapter
-    this.lock("both", width, height);
-  } else if(this.settings.axis === "horizontal") {
+  // if(this.layout.name === "pre-paginated") {
+  //   // TODO: check if these are different than the size set in chapter
+  //   this.lock("both", width, height);
+  // } else
+  if(this.settings.axis === "horizontal") {
 		this.lock("height", width, height);
 	} else {
 		this.lock("width", width, height);
@@ -332,7 +333,6 @@ IframeView.prototype.reframe = function(width, height) {
   //   this._needsReframe = true;
   //   return;
   // }
-
   if(core.isNumber(width)){
     this.element.style.width = width + "px";
   }

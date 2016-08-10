@@ -15,13 +15,35 @@ function ContinuousViewManager(options) {
 	});
 
 	core.defaults(this.settings, options.settings || {});
-	// core.extend(this.settings, options.settings || {});
+
+	this.scrollTop = 0;
+	this.scrollLeft = 0;
 };
 
 // subclass extends superclass
 ContinuousViewManager.prototype = Object.create(SingleViewManager.prototype);
 ContinuousViewManager.prototype.constructor = ContinuousViewManager;
 
+ContinuousViewManager.prototype.display = function(section, target){
+  return SingleViewManager.prototype.display.call(this, section, target)
+		.then(function () {
+			return this.fill();
+		}.bind(this));
+};
+
+ContinuousViewManager.prototype.fill = function(_full){
+	var full = _full || new RSVP.defer();
+
+	this.check().then(function(result) {
+		if (result) {
+			this.fill(full);
+		} else {
+			full.resolve();
+		}
+	}.bind(this));
+
+	return full.promise;
+}
 
 ContinuousViewManager.prototype.moveTo = function(offset){
   // var bounds = this.stage.bounds();
@@ -75,31 +97,38 @@ ContinuousViewManager.prototype.removeShownListeners = function(view){
 
 };
 
-ContinuousViewManager.prototype.append = function(section){
-	var view = this.createView(section);
 
+ContinuousViewManager.prototype.append = function(section){
 	return this.q.enqueue(function() {
 
-		this.views.append(view);
+		this._append(section);
 
-		// return this.update();
 
 	}.bind(this));
 };
 
 ContinuousViewManager.prototype.prepend = function(section){
+	return this.q.enqueue(function() {
+
+		this._prepend(section);
+
+	}.bind(this));
+
+};
+
+ContinuousViewManager.prototype._append = function(section){
+	var view = this.createView(section);
+	this.views.append(view);
+	return view;
+};
+
+ContinuousViewManager.prototype._prepend = function(section){
 	var view = this.createView(section);
 
 	view.on("resized", this.counter.bind(this));
 
-	return this.q.enqueue(function() {
-
-		this.views.prepend(view);
-
-		// return this.update();
-
-	}.bind(this));
-
+	this.views.prepend(view);
+	return view;
 };
 
 ContinuousViewManager.prototype.counter = function(bounds){
@@ -169,7 +198,7 @@ ContinuousViewManager.prototype.update = function(_offset){
 	var views = this.views.all();
 	var viewsLength = views.length;
 	var visible = [];
-	var offset = _offset || this.settings.offset || 0;
+	var offset = typeof _offset != "undefined" ? _offset : (this.settings.offset || 0);
 	var isVisible;
 	var view;
 
@@ -182,7 +211,9 @@ ContinuousViewManager.prototype.update = function(_offset){
     isVisible = this.isVisible(view, offset, offset, container);
 
     if(isVisible === true) {
-			promises.push(view.display(this.request));
+			if (!view.displayed) {
+				promises.push(view.display(this.request));
+			}
       visible.push(view);
     } else {
 			this.q.enqueue(view.destroy.bind(view));
@@ -205,7 +236,11 @@ ContinuousViewManager.prototype.update = function(_offset){
 };
 
 ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
-	var next, prev;
+	var last, first, next, prev;
+
+	var checking = new RSVP.defer();
+	var newViews = [];
+
 	var horizontal = (this.settings.axis === "horizontal");
 	var delta = this.settings.offset || 0;
 
@@ -217,42 +252,45 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		delta = _offsetTop;
 	}
 
-	var bounds = this._bounds; //this.bounds(); // bounds saved this until resize
+	var bounds = this._bounds; // bounds saved this until resize
 
 	var offset = horizontal ? this.scrollLeft : this.scrollTop;
 	var visibleLength = horizontal ? bounds.width : bounds.height;
 	var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 
-	var checking = new RSVP.defer();
-	var promises = [];
 
 	if (offset + visibleLength + delta >= contentLength) {
-    next = this.views.last().section.next();
+		last = this.views.last();
+    next = last && last.section.next();
     if(next) {
-      promises.push(this.append(next));
+      newViews.push(this._append(next));
     }
   }
 
   if (offset - delta < 0 ) {
-    prev = this.views.first().section.prev();
+		first = this.views.first();
+    prev = first && first.section.prev();
     if(prev) {
-      promises.push(this.prepend(prev));
+      newViews.push(this._prepend(prev));
     }
   }
 
-  if(promises.length){
-    return RSVP.all(promises)
-      .then(function(posts) {
+  if(newViews.length){
+    // RSVP.all(promises)
+      // .then(function() {
         // Check to see if anything new is on screen after rendering
-        this.q.enqueue(this.update.bind(this));
-				// this.update(offset);
-      }.bind(this));
+        return this.q.enqueue(function(){
+					return this.update(delta);
+				}.bind(this));
+
+
+      // }.bind(this));
 
   } else {
-    checking.resolve();
-
-    return checking.promise;
+    checking.resolve(false);
+		return checking.promise;
   }
+
 
 };
 
@@ -309,6 +347,13 @@ ContinuousViewManager.prototype.erase = function(view, above){ //Trim
 };
 
 ContinuousViewManager.prototype.addEventListeners = function(stage){
+
+	window.addEventListener('unload', function(e){
+		this.ignore = true;
+		// this.scrollTo(0,0);
+		this.destroy();
+	}.bind(this));
+
 	this.addScrollListeners();
 };
 
@@ -340,11 +385,6 @@ ContinuousViewManager.prototype.addScrollListeners = function() {
 
   scroller.addEventListener("scroll", this.onScroll.bind(this));
 
-  window.addEventListener('unload', function(e){
-    this.ignore = true;
-    this.destroy();
-  }.bind(this));
-
   // this.tick.call(window, this.onScroll.bind(this));
 
   this.scrolled = false;
@@ -373,8 +413,10 @@ ContinuousViewManager.prototype.onScroll = function(){
 	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
 	    	 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
-				// this.q.enqueue(this.check.bind(this));
-				this.check();
+				this.q.enqueue(function() {
+					this.check();
+				}.bind(this));
+				// this.check();
 
 				this.scrollDeltaVert = 0;
 	    	this.scrollDeltaHorz = 0;
