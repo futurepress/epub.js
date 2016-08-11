@@ -1,8 +1,10 @@
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
+var Mapping = require('./mapping');
 
-function Contents(doc, content) {
+
+function Contents(doc, content, cfiBase) {
   // Blank Cfi for Parsing
   this.epubcfi = new EpubCFI();
 
@@ -13,10 +15,12 @@ function Contents(doc, content) {
   // Dom events to listen for
   this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
-  this.size = {
+  this._size = {
     width: 0,
     height: 0
   }
+
+  this.cfiBase = cfiBase || "";
 
   this.listeners();
 };
@@ -226,14 +230,14 @@ Contents.prototype.resizeListeners = function() {
   width = this.scrollWidth();
   height = this.scrollHeight();
 
-  if (width != this.size.width || height != this.size.height) {
+  if (width != this._size.width || height != this._size.height) {
 
-    this.size = {
+    this._size = {
       width: width,
       height: height
     }
 
-    this.trigger("resize", this.size);
+    this.trigger("resize", this._size);
   }
 
   this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
@@ -490,7 +494,8 @@ Contents.prototype.triggerSelectedEvent = function(selection){
   if (selection && selection.rangeCount > 0) {
     range = selection.getRangeAt(0);
     if(!range.collapsed) {
-      cfirange = this.section.cfiFromRange(range);
+      // cfirange = this.section.cfiFromRange(range);
+      cfirange = new EpubCFI(range, this.cfiBase).toString();
       this.trigger("selected", cfirange);
       this.trigger("selectedRange", range);
     }
@@ -503,9 +508,74 @@ Contents.prototype.range = function(_cfi, ignoreClass){
 };
 
 Contents.prototype.map = function(layout){
-  var map = new Map(layout);
+  var map = new Mapping(layout);
   return map.section();
 };
+
+Contents.prototype.size = function(width, height){
+
+  if (width >= 0) {
+    this.width(width);
+  }
+
+  if (height >= 0) {
+    this.height(height);
+  }
+
+  if (width >= 0 && height >= 0) {
+    this.overflow("hidden");
+  }
+
+};
+
+Contents.prototype.columns = function(width, height, columnWidth, gap){
+  var COLUMN_AXIS = core.prefixed('columnAxis');
+  var COLUMN_GAP = core.prefixed('columnGap');
+  var COLUMN_WIDTH = core.prefixed('columnWidth');
+  var COLUMN_FILL = core.prefixed('columnFill');
+
+  this.size(width, height);
+  this.css("margin", "0");
+
+  this.css(COLUMN_AXIS, "horizontal");
+  this.css(COLUMN_FILL, "auto");
+
+  this.css(COLUMN_GAP, gap+"px");
+  this.css(COLUMN_WIDTH, columnWidth+"px");
+};
+
+Contents.prototype.scale = function(scale){
+  // this.css("position", "absolute"));
+  this.css("transformOrigin", "top left");
+
+  this.css("transform", "scale(" + scale + ")");
+
+  this.documentElement.style.display = "flex";
+  this.documentElement.style.flexDirection = "column";
+  this.documentElement.style.justifyContent = "center";
+};
+
+Contents.prototype.fit = function(width, height){
+  var viewport = this.viewport();
+
+  var widthScale = width / viewport.width;
+  var heightScale = height / viewport.height;
+  var scale = widthScale < heightScale ? widthScale : heightScale;
+
+  var offsetY = (height - (viewport.height * scale)) / 2;
+
+  this.width(width);
+  this.height(height);
+  this.overflow("hidden");
+
+  this.scale(scale, 0, offsetY);
+
+  this.css("backgroundColor", "transparent");
+
+  // this.css("marginTop", offsetY + "px");
+};
+
+
 
 Contents.prototype.destroy = function() {
   // Stop observing

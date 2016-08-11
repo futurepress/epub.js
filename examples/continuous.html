@@ -78,7 +78,7 @@
     var currentSectionIndex = 8;
     // Load the opf
     var book = ePub("../books/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo(document.body, { manager: "continuous", width: "60%" });
+    var rendition = book.renderTo(document.body, { manager: "continuous", width: "60%", flow: "scrolled" });
     var displayed = rendition.display("epubcfi(/6/14[xchapter_001]!4/2/24/2[c001p0011]/1:799)");
 
 

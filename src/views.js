@@ -81,6 +81,7 @@ Views.prototype.destroy = function(view) {
 	if(view.displayed){
 		view.destroy();
 	}
+
   if(this.container){
 	   this.container.removeChild(view.element);
   }

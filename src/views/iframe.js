@@ -399,7 +399,7 @@ IframeView.prototype.onLoad = function(event, promise) {
     this.window = this.iframe.contentWindow;
     this.document = this.iframe.contentDocument;
 
-    this.contents = new Contents(this.document, this.document.body);
+    this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
 
     this.rendering = false;
 
@@ -449,6 +449,9 @@ IframeView.prototype.setLayout = function(layout) {
   this.layout = layout;
 };
 
+IframeView.prototype.setAxis = function(axis) {
+  this.settings.axis = axis;
+};
 
 IframeView.prototype.resizeListenters = function() {
   // Test size again

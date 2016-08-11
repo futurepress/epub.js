@@ -3,8 +3,8 @@ var core = require('../core');
 var Stage = require('../stage');
 var Views = require('../views');
 var EpubCFI = require('../epubcfi');
-var Layout = require('../layout');
-var Mapping = require('../map');
+// var Layout = require('../layout');
+var Mapping = require('../mapping');
 var Queue = require('../queue');
 
 function SingleViewManager(options) {
@@ -17,19 +17,18 @@ function SingleViewManager(options) {
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		hidden: false,
-		width: false,
-		height: null,
-		globalLayoutProperties : { layout: 'reflowable', spread: 'auto', orientation: 'auto'},
+		width: undefined,
+		height: undefined,
+		// globalLayoutProperties : { layout: 'reflowable', spread: 'auto', orientation: 'auto'},
 		// layout: null,
 		axis: "vertical",
 		ignoreClass: ''
 	});
 
-	core.defaults(this.settings, options.settings || {});
+	core.extend(this.settings, options.settings || {});
 
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass,
-		globalLayoutProperties: this.settings.globalLayoutProperties,
 		axis: this.settings.axis,
 		layout: this.layout,
 		width: 0,
@@ -73,7 +72,10 @@ SingleViewManager.prototype.render = function(element, size){
 	this.addEventListeners();
 
 	// Add Layout method
-	this.applyLayoutMethod();
+	// this.applyLayoutMethod();
+	if (this.layout) {
+		this.updateLayout();
+	}
 };
 
 SingleViewManager.prototype.addEventListeners = function(){
@@ -109,16 +111,6 @@ SingleViewManager.prototype.resize = function(width, height){
 	this.trigger("resized", {
 		width: this._stageSize.width,
 		height: this._stageSize.height
-	});
-
-};
-
-SingleViewManager.prototype.setLayout = function(layout){
-
-	this.viewSettings.layout = layout;
-
-	this.views.each(function(view){
-		view.setLayout(layout);
 	});
 
 };
@@ -352,44 +344,69 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
   // };
  };
 
- SingleViewManager.prototype.onScroll = function(){
+SingleViewManager.prototype.onScroll = function(){
 
 };
 
- SingleViewManager.prototype.bounds = function() {
-   var bounds;
+	SingleViewManager.prototype.bounds = function() {
+	var bounds;
 
-   if(!this.settings.height || !this.container) {
-     bounds = core.windowBounds();
-   } else {
-     bounds = this.stage.bounds();
-   }
+	if(!this.settings.height || !this.container) {
+	 bounds = core.windowBounds();
+	} else {
+	 bounds = this.stage.bounds();
+	}
 
-   return bounds;
- };
+	return bounds;
+};
 
- SingleViewManager.prototype.applyLayoutMethod = function() {
+SingleViewManager.prototype.applyLayout = function(layout) {
 
- 	this.layout = new Layout.Scroll();
- 	this.calculateLayout();
+	this.layout = layout;
+	this.updateLayout();
 
-	this.setLayout(this.layout);
-
- 	this.mapping = new Mapping(this.layout);
+	this.mapping = new Mapping(this.layout);
  	// this.manager.layout(this.layout.format);
- };
+};
 
- SingleViewManager.prototype.calculateLayout = function() {
- 	var bounds = this.stage.bounds();
- 	this.layout.calculate(bounds.width, bounds.height);
- };
+SingleViewManager.prototype.updateLayout = function() {
+	var bounds;
 
- SingleViewManager.prototype.updateLayout = function() {
- 	this.calculateLayout();
+	if (this.stage) {
+		bound = this.stage.bounds();
+		this.layout.calculate(bounds.width, bounds.height);
 
- 	this.setLayout(this.layout);
- };
+		this.setLayout(this.layout);
+	}
 
+};
+
+SingleViewManager.prototype.setLayout = function(layout){
+
+	this.viewSettings.layout = layout;
+
+	if(this.views) {
+
+		this.views.each(function(view){
+			view.setLayout(layout);
+		});
+
+	}
+
+};
+
+SingleViewManager.prototype.updateFlow = function(flow){
+	var axis = (flow === "paginated") ? "horizontal" : "paginated";
+
+	this.settings.axis = axis;
+
+	this.viewSettings.axis = axis;
+
+	// this.views.each(function(view){
+	// 	view.setAxis(axis);
+	// });
+
+};
  //-- Enable binding events to Manager
  RSVP.EventTarget.mixin(SingleViewManager.prototype);
 

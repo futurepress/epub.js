@@ -120,7 +120,8 @@
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
-      manager: "paginate",
+      manager: "continuous",
+      flow: "paginated",
       width: "100%",
       height: 600
     });

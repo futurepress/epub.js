@@ -1,29 +1,29 @@
-function Map(layout){
+function Mapping(layout){
   this.layout = layout;
 };
 
-Map.prototype.section = function(view) {
+Mapping.prototype.section = function(view) {
   var ranges = this.findRanges(view);
   var map = this.rangeListToCfiList(view, ranges);
 
   return map;
 };
 
-Map.prototype.page = function(view, start, end) {
+Mapping.prototype.page = function(view, start, end) {
   var contents = view.contents;
   var root = contents && contents.document ? contents.document.body : false;
 
   if (!root) {
     return;
   }
-  
+
   return this.rangePairToCfiPair(view.section, {
     start: this.findStart(root, start, end),
     end: this.findEnd(root, start, end)
   });
 };
 
-Map.prototype.walk = function(root, func) {
+Mapping.prototype.walk = function(root, func) {
   //var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
   var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
@@ -44,9 +44,10 @@ Map.prototype.walk = function(root, func) {
   return result;
 };
 
-Map.prototype.findRanges = function(view){
+Mapping.prototype.findRanges = function(view){
   var columns = [];
-  var count = this.layout.count(view);
+  var scrollWidth = view.contents.scrollWidth();
+  var count = this.layout.count(scrollWidth);
   var column = this.layout.column;
   var gap = this.layout.gap;
   var start, end;
@@ -63,7 +64,7 @@ Map.prototype.findRanges = function(view){
   return columns;
 };
 
-Map.prototype.findStart = function(root, start, end){
+Mapping.prototype.findStart = function(root, start, end){
   var stack = [root];
   var $el;
   var found;
@@ -110,7 +111,7 @@ Map.prototype.findStart = function(root, start, end){
   return this.findTextStartRange($prev, start, end);
 };
 
-Map.prototype.findEnd = function(root, start, end){
+Mapping.prototype.findEnd = function(root, start, end){
   var stack = [root];
   var $el;
   var $prev = root;
@@ -161,7 +162,7 @@ Map.prototype.findEnd = function(root, start, end){
 };
 
 
-Map.prototype.findTextStartRange = function(node, start, end){
+Mapping.prototype.findTextStartRange = function(node, start, end){
   var ranges = this.splitTextNodeIntoRanges(node);
   var prev;
   var range;
@@ -183,7 +184,7 @@ Map.prototype.findTextStartRange = function(node, start, end){
   return ranges[0];
 };
 
-Map.prototype.findTextEndRange = function(node, start, end){
+Mapping.prototype.findTextEndRange = function(node, start, end){
   var ranges = this.splitTextNodeIntoRanges(node);
   var prev;
   var range;
@@ -209,7 +210,7 @@ Map.prototype.findTextEndRange = function(node, start, end){
 
 };
 
-Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
+Mapping.prototype.splitTextNodeIntoRanges = function(node, _splitter){
   var ranges = [];
   var textContent = node.textContent || "";
   var text = textContent.trim();
@@ -258,7 +259,7 @@ Map.prototype.splitTextNodeIntoRanges = function(node, _splitter){
 
 
 
-Map.prototype.rangePairToCfiPair = function(section, rangePair){
+Mapping.prototype.rangePairToCfiPair = function(section, rangePair){
 
   var startRange = rangePair.start;
   var endRange = rangePair.end;
@@ -276,7 +277,7 @@ Map.prototype.rangePairToCfiPair = function(section, rangePair){
 
 };
 
-Map.prototype.rangeListToCfiList = function(view, columns){
+Mapping.prototype.rangeListToCfiList = function(view, columns){
   var map = [];
   var rangePair, cifPair;
 
@@ -290,4 +291,4 @@ Map.prototype.rangeListToCfiList = function(view, columns){
   return map;
 };
 
-module.exports = Map;
+module.exports = Mapping;

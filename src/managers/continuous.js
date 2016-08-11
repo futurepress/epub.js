@@ -11,10 +11,26 @@ function ContinuousViewManager(options) {
 		overflow: "auto",
 		axis: "vertical",
 		offset: 500,
-		offsetDelta: 250
+		offsetDelta: 250,
+		width: undefined,
+		height: undefined
 	});
 
-	core.defaults(this.settings, options.settings || {});
+	core.extend(this.settings, options.settings || {});
+
+	// Gap can be 0, byt defaults doesn't handle that
+  if (options.settings.gap != "undefined" && options.settings.gap === 0) {
+    this.settings.gap = options.settings.gap;
+  }
+
+	// this.viewSettings.axis = this.settings.axis;
+	this.viewSettings = {
+		ignoreClass: this.settings.ignoreClass,
+		axis: this.settings.axis,
+		layout: this.layout,
+		width: 0,
+		height: 0
+	};
 
 	this.scrollTop = 0;
 	this.scrollLeft = 0;
@@ -48,19 +64,26 @@ ContinuousViewManager.prototype.fill = function(_full){
 ContinuousViewManager.prototype.moveTo = function(offset){
   // var bounds = this.stage.bounds();
   // var dist = Math.floor(offset.top / bounds.height) * bounds.height;
-  return this.check(
-		offset.left+this.settings.offset,
-		offset.top+this.settings.offset)
+	var distX = 0,
+			distY = 0;
+
+	var offsetX = 0,
+			offsetY = 0;
+
+	if(this.settings.axis === "vertical") {
+		distY = offset.top;
+		offsetY = offset.top+this.settings.offset;
+	} else {
+		distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
+		offsetX = distX+this.settings.offset;
+	}
+
+  return this.check(offsetX, offsetY)
 		.then(function(){
-
-	    if(this.settings.axis === "vertical") {
-	      this.scrollBy(0, offset.top);
-	    } else {
-	      this.scrollBy(offset.left, 0);
-	    }
-
+	    this.scrollBy(distX, distY);
 	  }.bind(this));
 };
+
 /*
 ContinuousViewManager.prototype.afterDisplayed = function(currView){
 	var next = currView.section.next();
@@ -84,6 +107,47 @@ ContinuousViewManager.prototype.afterDisplayed = function(currView){
 
 };
 */
+
+ContinuousViewManager.prototype.resize = function(width, height){
+
+	// Clear the queue
+  this.q.clear();
+
+	this._stageSize = this.stage.size(width, height);
+	this._bounds = this.bounds();
+
+	// Update for new views
+	this.viewSettings.width = this._stageSize.width;
+	this.viewSettings.height = this._stageSize.height;
+
+	// Update for existing views
+	this.views.each(function(view) {
+		view.size(this._stageSize.width, this._stageSize.height);
+	}.bind(this));
+
+  this.updateLayout();
+
+  // if(this.location) {
+  //   this.rendition.display(this.location.start);
+  // }
+
+  this.trigger("resized", {
+    width: this.stage.width,
+    height: this.stage.height
+  });
+
+};
+
+ContinuousViewManager.prototype.onResized = function(e) {
+
+  // this.views.clear();
+
+  clearTimeout(this.resizeTimeout);
+  this.resizeTimeout = setTimeout(function(){
+    this.resize();
+  }.bind(this), 150);
+};
+
 ContinuousViewManager.prototype.afterResized = function(view){
 	this.trigger("resize", view.section);
 };
@@ -140,58 +204,6 @@ ContinuousViewManager.prototype.counter = function(bounds){
 	}
 
 };
-/*
-ContinuousViewManager.prototype.check = function(_offset){
-	var checking = new RSVP.defer();
-	var container = this.stage.bounds();
-  var promises = [];
-  var offset = _offset || this.settings.offset;
-
-	this.views.each(function(view){
-		var visible = this.isVisible(view, offset, offset, container);
-
-		if(visible) {
-
-			if(!view.displayed && !view.rendering) {
-          // console.log("render",view.section.index)
-					promises.push(this.render(view));
-			}
-
-		} else {
-
-			if(view.displayed) {
-        // console.log("destroy", view.section.index)
-        this.q.enqueue(view.destroy.bind(view));
-        // view.destroy();
-        // this.q.enqueue(this.trim);
-        clearTimeout(this.trimTimeout);
-        this.trimTimeout = setTimeout(function(){
-          this.q.enqueue(this.trim.bind(this));
-        }.bind(this), 250);
-			}
-
-		}
-
-	}.bind(this));
-
-
-  if(promises.length){
-
-    return RSVP.all(promises)
-      .then(function(posts) {
-        // Check to see if anything new is on screen after rendering
-        this.q.enqueue(this.check.bind(this));
-
-      }.bind(this));
-
-  } else {
-    checking.resolve();
-
-    return checking.promise;
-  }
-
-};
-*/
 
 ContinuousViewManager.prototype.update = function(_offset){
 	var container = this.bounds();
@@ -257,7 +269,6 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 	var offset = horizontal ? this.scrollLeft : this.scrollTop;
 	var visibleLength = horizontal ? bounds.width : bounds.height;
 	var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
-
 
 	if (offset + visibleLength + delta >= contentLength) {
 		last = this.views.last();
@@ -465,6 +476,17 @@ ContinuousViewManager.prototype.onScroll = function(){
 
 ContinuousViewManager.prototype.currentLocation = function(){
 
+  if (this.settings.axis === "vertical") {
+  	this.location = this.scrolledLocation();
+  } else {
+		this.location = this.paginatedLocation();
+	}
+
+	return this.location;
+};
+
+ContinuousViewManager.prototype.scrolledLocation = function(){
+
   var visible = this.visible();
   var startPage, endPage;
 
@@ -485,6 +507,39 @@ ContinuousViewManager.prototype.currentLocation = function(){
     };
   }
 
+};
+
+ContinuousViewManager.prototype.paginatedLocation = function(){
+  var visible = this.visible();
+  var startA, startB, endA, endB;
+  var pageLeft, pageRight;
+  var container = this.container.getBoundingClientRect();
+
+  if(visible.length === 1) {
+    startA = container.left - visible[0].position().left;
+    endA = startA + this.layout.spreadWidth;
+
+    return this.mapping.page(visible[0], startA, endA);
+  }
+
+  if(visible.length > 1) {
+
+    // Left Col
+    startA = container.left - visible[0].position().left;
+    endA = startA + this.layout.columnWidth;
+
+    // Right Col
+    startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
+    endB = startB + this.layout.columnWidth;
+
+    pageLeft = this.mapping.page(visible[0], startA, endA);
+    pageRight = this.mapping.page(visible[visible.length-1], startB, endB);
+
+    return {
+      start: pageLeft.start,
+      end: pageRight.end
+    };
+  }
 };
 
 /*
@@ -533,4 +588,77 @@ Continuous.prototype.current = function(what){
 };
 */
 
+ContinuousViewManager.prototype.updateLayout = function() {
+
+	if (!this.stage) {
+		return;
+	}
+
+	if(this.settings.axis === "vertical") {
+		this.layout.calculate(this._stageSize.width, this._stageSize.height);
+	} else {
+		this.layout.calculate(
+			this._stageSize.width,
+			this._stageSize.height,
+			this.settings.gap
+		);
+
+		// Set the look ahead offset for what is visible
+		this.settings.offset = this.layout.delta;
+
+		this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+
+	}
+
+  this.setLayout(this.layout);
+
+};
+
+ContinuousViewManager.prototype.next = function(){
+
+	if(this.settings.axis === "horizontal") {
+
+    this.scrollLeft = this.container.scrollLeft;
+
+    if(this.container.scrollLeft +
+       this.container.offsetWidth +
+       this.layout.delta < this.container.scrollWidth) {
+      this.scrollBy(this.layout.delta, 0);
+    } else {
+      this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+    }
+
+	} else {
+		this.scrollBy(0, this.layout.height);
+	}
+};
+
+ContinuousViewManager.prototype.prev = function(){
+	if(this.settings.axis === "horizontal") {
+    this.scrollBy(-this.layout.delta, 0);
+	} else {
+		this.scrollBy(0, -this.layout.height);
+	}
+};
+
+ContinuousViewManager.prototype.updateFlow = function(flow){
+	var axis = (flow === "paginated") ? "horizontal" : "vertical";
+
+	this.settings.axis = axis;
+
+	this.viewSettings.axis = axis;
+
+	this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
+
+	// this.views.each(function(view){
+	// 	view.setAxis(axis);
+	// });
+
+	if (this.settings.axis === "vertical") {
+		this.settings.infinite = true;
+  } else {
+		this.settings.infinite = false;
+	}
+
+};
 module.exports = ContinuousViewManager;

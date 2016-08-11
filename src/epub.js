@@ -28,11 +28,10 @@ ePub.register = {
 
 // Default Views
 ePub.register.view("iframe", require('./views/iframe'));
-ePub.register.view("inline", require('./views/inline'));
+// ePub.register.view("inline", require('./views/inline'));
 
 // Default View Managers
 ePub.register.manager("single", require('./managers/single'));
 ePub.register.manager("continuous", require('./managers/continuous'));
-ePub.register.manager("paginate", require('./managers/paginate'));
 
 module.exports = ePub;
