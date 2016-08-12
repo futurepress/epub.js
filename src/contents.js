@@ -158,7 +158,7 @@ Contents.prototype.viewport = function(options) {
   */
   if($viewport && $viewport.hasAttribute("content")) {
     content = $viewport.getAttribute("content");
-    contents = content.split(',');
+    contents = content.split(/\s*,\s*/);
     if(contents[0]){
       width = contents[0].replace("width=", '').trim();
     }
@@ -571,11 +571,17 @@ Contents.prototype.columns = function(width, height, columnWidth, gap){
   this.css(COLUMN_WIDTH, columnWidth+"px");
 };
 
-Contents.prototype.scale = function(scale){
+Contents.prototype.scale = function(scale, offsetX, offsetY){
+  var scale = "scale(" + scale + ")";
+  var translate = '';
   // this.css("position", "absolute"));
   this.css("transformOrigin", "top left");
 
-  this.css("transform", "scale(" + scale + ")");
+  if (offsetX >= 0 || offsetY >= 0) {
+    translate = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
+  }
+
+  this.css("transform", scale + translate);
 };
 
 Contents.prototype.fit = function(width, height){
@@ -594,11 +600,9 @@ Contents.prototype.fit = function(width, height){
   this.viewport({ scale: 1.0 });
 
   // Scale to the correct size
-  this.scale(scale);
+  this.scale(scale, 0, offsetY);
 
   this.css("backgroundColor", "transparent");
-
-  this.css("marginTop", offsetY + "px");
 };
 
 
