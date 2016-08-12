@@ -108,15 +108,23 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	_store.getText(full).then(function(text){
 		var url;
 
-		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
-			var _URL = window.URL || window.webkitURL || window.mozURL;
+		 EPUBJS.replace.cssImports(_store, full, text).then(function (importText) {
 
-			var blob = new Blob([newText], { "type" : "text\/css" }),
-					url = _URL.createObjectURL(blob);
+          text = importText + text;
 
-			deferred.resolve(url);
+			EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
+				var _URL = window.URL || window.webkitURL || window.mozURL;
 
-		}, function(reason) {
+				var blob = new Blob([newText], { "type" : "text\/css" }),
+						url = _URL.createObjectURL(blob);
+
+				deferred.resolve(url);
+
+			}, function(reason) {
+				deferred.reject(reason);
+			});
+
+		},function(reason) {
 			deferred.reject(reason);
 		});
 
@@ -126,6 +134,40 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 	return deferred.promise;
 };
+
+EPUBJS.replace.cssImports = function (_store, base, text) {
+  var deferred = new RSVP.defer();
+  if(!_store) return;
+
+  // check for css @import
+  var importRegex = /@import\s+(?:url\()?\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)?/gi;
+  var importMatches, importFiles = [], allImportText =  '';
+
+  while (importMatches = importRegex.exec(text)) {
+      importFiles.push(importMatches[1]);
+  }
+
+  if (importFiles.length === 0) {
+    deferred.resolve(allImportText);
+  }
+
+  importFiles.forEach(function (fileUrl) {
+      var full = EPUBJS.core.resolveUrl(base, fileUrl);
+      full = EPUBJS.core.uri(full).path;
+      _store.getText(full).then(function(importText){
+        allImportText += importText;
+        if (importFiles.indexOf(fileUrl) === importFiles.length - 1) {
+          deferred.resolve(allImportText);
+        }
+      }, function(reason) {
+        deferred.reject(reason);
+      });
+  });
+
+  return deferred.promise;
+
+};
+
 
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
