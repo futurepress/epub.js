@@ -78,11 +78,11 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
     return deferred.promise;
   }
 
-  this.document.open();
-  this.document.write(contents);
-  this.document.close();
+  this.iframe.contentDocument.open();
+  this.iframe.contentDocument.write(contents);
+  this.iframe.contentDocument.close();
 
-	return deferred.promise;
+  return deferred.promise;
 };
 
 
