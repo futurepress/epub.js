@@ -396,7 +396,7 @@ SingleViewManager.prototype.setLayout = function(layout){
 };
 
 SingleViewManager.prototype.updateFlow = function(flow){
-	var axis = (flow === "paginated") ? "horizontal" : "paginated";
+	var axis = (flow === "paginated") ? "horizontal" : "vertical";
 
 	this.settings.axis = axis;
 
@@ -407,6 +407,7 @@ SingleViewManager.prototype.updateFlow = function(flow){
 	// });
 
 };
+
  //-- Enable binding events to Manager
  RSVP.EventTarget.mixin(SingleViewManager.prototype);
 

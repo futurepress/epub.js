@@ -35,7 +35,7 @@ Layout.prototype.spread = function(spread, min) {
 Layout.prototype.calculate = function(_width, _height, _gap){
 
   var divisor = 1;
-  var gap = _gap;
+  var gap = _gap || 0;
 
   //-- Check the width and create even width columns
   var fullWidth = Math.floor(_width);
@@ -55,7 +55,9 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 
   if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
     gap = ((section % 2 === 0) ? section : section - 1);
-  } else {
+  }
+
+  if (this.name === "pre-paginated" ) {
     gap = 0;
   }
 

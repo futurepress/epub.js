@@ -6794,10 +6794,10 @@ Contents.prototype.css = function(property, value) {
   return this.window.getComputedStyle(content)[property];
 };
 
-Contents.prototype.viewport = function() {
-  var width, height;
-  var $doc = this.document.documentElement;
-  var $viewport = $doc.querySelector("[name=viewport");
+Contents.prototype.viewport = function(options) {
+  var width, height, scale, scalable;
+  var $viewport = this.document.querySelector("meta[name='viewport']");
+  var newContent = '';
 
   /**
   * check for the viewport size
@@ -6812,7 +6812,34 @@ Contents.prototype.viewport = function() {
     if(contents[1]){
       height = contents[1].replace("height=", '').trim();
     }
+    if(contents[2]){
+      scale = contents[2].replace("initial-scale=", '').trim();
+    }
+    if(contents[3]){
+      scalable = contents[3].replace("user-scalable=", '').trim();
+    }
   }
+
+  if (options) {
+
+    newContent += "width=" + (options.width || width);
+    newContent += ", height=" + (options.height || height);
+    if (options.scale || scale) {
+      newContent += ", initial-scale=" + (options.scale || scale);
+    }
+    if (options.scalable || scalable) {
+      newContent += ", user-scalable=" + (options.scalable || scalable);
+    }
+
+    if (!$viewport) {
+      $viewport = this.document.createElement("meta");
+      $viewport.setAttribute("name", "viewport");
+      this.document.querySelector('head').appendChild($viewport);
+    }
+
+    $viewport.setAttribute("content", newContent);
+  }
+
 
   return {
     width: parseInt(width),
@@ -7196,15 +7223,10 @@ Contents.prototype.scale = function(scale){
   this.css("transformOrigin", "top left");
 
   this.css("transform", "scale(" + scale + ")");
-
-  this.documentElement.style.display = "flex";
-  this.documentElement.style.flexDirection = "column";
-  this.documentElement.style.justifyContent = "center";
 };
 
 Contents.prototype.fit = function(width, height){
   var viewport = this.viewport();
-
   var widthScale = width / viewport.width;
   var heightScale = height / viewport.height;
   var scale = widthScale < heightScale ? widthScale : heightScale;
@@ -7215,11 +7237,15 @@ Contents.prototype.fit = function(width, height){
   this.height(height);
   this.overflow("hidden");
 
-  this.scale(scale, 0, offsetY);
+  // Deal with Mobile trying to scale to viewport
+  this.viewport({ scale: 1.0 });
+
+  // Scale to the correct size
+  this.scale(scale);
 
   this.css("backgroundColor", "transparent");
 
-  // this.css("marginTop", offsetY + "px");
+  this.css("marginTop", offsetY + "px");
 };
 
 
@@ -8780,7 +8806,7 @@ Layout.prototype.spread = function(spread, min) {
 Layout.prototype.calculate = function(_width, _height, _gap){
 
   var divisor = 1;
-  var gap = _gap;
+  var gap = _gap || 0;
 
   //-- Check the width and create even width columns
   var fullWidth = Math.floor(_width);
@@ -8800,7 +8826,9 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 
   if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
     gap = ((section % 2 === 0) ? section : section - 1);
-  } else {
+  }
+
+  if (this.name === "pre-paginated" ) {
     gap = 0;
   }
 
@@ -10141,7 +10169,7 @@ SingleViewManager.prototype.setLayout = function(layout){
 };
 
 SingleViewManager.prototype.updateFlow = function(flow){
-	var axis = (flow === "paginated") ? "horizontal" : "paginated";
+	var axis = (flow === "paginated") ? "horizontal" : "vertical";
 
 	this.settings.axis = axis;
 
@@ -10152,6 +10180,7 @@ SingleViewManager.prototype.updateFlow = function(flow){
 	// });
 
 };
+
  //-- Enable binding events to Manager
  RSVP.EventTarget.mixin(SingleViewManager.prototype);
 
