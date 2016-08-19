@@ -6571,9 +6571,9 @@ Book.prototype.setRequestHeaders = function(_headers) {
   this.requestHeaders = _headers;
 };
 
-Book.prototype.unarchive = function(bookUrl){
+Book.prototype.unarchive = function(bookUrl, isBase64){
 	this.archive = new Unarchive();
-	return this.archive.open(bookUrl);
+	return this.archive.open(bookUrl, isBase64);
 };
 
 //-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
