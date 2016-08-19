@@ -1,5 +1,7 @@
 var connect = require('connect');
 var express = require('express');
+var http = require('http');
+var fs = require('fs');
 var serveStatic = require('serve-static');
 var morgan  = require('morgan');
 var colors = require('colors');
@@ -33,11 +35,16 @@ function allowCrossDomain(req, res, next) {
 
 
 function listen(port) {
-  var server = express();
-  server.use(allowCrossDomain);
-  server.use(serveStatic(path.resolve(__dirname, '../')));
 
-  if(!logger) server.use(morgan('dev'))
+  var app = express();
+  var staticServer = serveStatic(path.resolve(__dirname, '../'), {'index': ['index.html', 'index.htm']})
+
+  var server = http.createServer(app);
+
+  app.use(allowCrossDomain);
+  app.use(staticServer);
+
+  if(!logger) app.use(morgan('dev'))
 
   server.listen(port);
 

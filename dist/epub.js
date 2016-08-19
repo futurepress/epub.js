@@ -6657,7 +6657,7 @@ function Contents(doc, content, cfiBase) {
 
   this.document = doc;
   this.documentElement =  this.document.documentElement;
-  this.content = content;
+  this.content = content || this.document.body;
   this.window = this.document.defaultView;
   // Dom events to listen for
   this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -6673,7 +6673,8 @@ function Contents(doc, content, cfiBase) {
 };
 
 Contents.prototype.width = function(w) {
-  var frame = this.content || this.documentElement;
+  // var frame = this.documentElement;
+  var frame = this.content;
 
   if (w && core.isNumber(w)) {
     w = w + "px";
@@ -6681,6 +6682,7 @@ Contents.prototype.width = function(w) {
 
   if (w) {
     frame.style.width = w;
+    // this.content.style.width = w;
   }
 
   return this.window.getComputedStyle(frame)['width'];
@@ -6689,7 +6691,8 @@ Contents.prototype.width = function(w) {
 };
 
 Contents.prototype.height = function(h) {
-  var frame = this.content || this.documentElement;
+  // var frame = this.documentElement;
+  var frame = this.content;
 
   if (h && core.isNumber(h)) {
     h = h + "px";
@@ -6697,6 +6700,7 @@ Contents.prototype.height = function(h) {
 
   if (h) {
     frame.style.height = h;
+    // this.content.style.height = h;
   }
 
   return this.window.getComputedStyle(frame)['height'];
@@ -6782,6 +6786,24 @@ Contents.prototype.overflow = function(overflow) {
   }
 
   return this.window.getComputedStyle(this.documentElement)['overflow'];
+};
+
+Contents.prototype.overflowX = function(overflow) {
+
+  if (overflow) {
+    this.documentElement.style.overflowX = overflow;
+  }
+
+  return this.window.getComputedStyle(this.documentElement)['overflowX'];
+};
+
+Contents.prototype.overflowY = function(overflow) {
+
+  if (overflow) {
+    this.documentElement.style.overflowY = overflow;
+  }
+
+  return this.window.getComputedStyle(this.documentElement)['overflowY'];
 };
 
 Contents.prototype.css = function(property, value) {
@@ -6879,7 +6901,7 @@ Contents.prototype.listeners = function() {
 
   this.mediaQueryListeners();
 
-  this.fontLoadListeners();
+  // this.fontLoadListeners();
 
   this.addEventListeners();
 
@@ -6977,7 +6999,7 @@ Contents.prototype.imageLoadListeners = function(target) {
 };
 
 Contents.prototype.fontLoadListeners = function(target) {
-  if (!this.document.fonts) {
+  if (!this.document || !this.document.fonts) {
     return;
   }
 
@@ -7196,9 +7218,9 @@ Contents.prototype.size = function(width, height){
     this.height(height);
   }
 
-  if (width >= 0 && height >= 0) {
-    this.overflow("hidden");
-  }
+  // if (width >= 0 && height >= 0) {
+  //   this.overflow("hidden");
+  // }
 
 };
 
@@ -7208,8 +7230,16 @@ Contents.prototype.columns = function(width, height, columnWidth, gap){
   var COLUMN_WIDTH = core.prefixed('columnWidth');
   var COLUMN_FILL = core.prefixed('columnFill');
 
-  this.size(width, height);
+  this.width(width);
+  this.height(height);
+
+  // Deal with Mobile trying to scale to viewport
+  this.viewport({ width: width, height: height, scale: 1.0 });
+
+  // this.overflowY("hidden");
+  this.css("overflowY", "hidden");
   this.css("margin", "0");
+  this.css("boxSizing", "border-box");
 
   this.css(COLUMN_AXIS, "horizontal");
   this.css(COLUMN_FILL, "auto");
