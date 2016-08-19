@@ -26,15 +26,17 @@ Unarchive.prototype.checkRequirements = function(callback){
 
 Unarchive.prototype.open = function(zipUrl){
 	if (zipUrl instanceof ArrayBuffer) {
-    return new RSVP.Promise(function(resolve, reject) {
-      this.zip = new JSZip(zipUrl);
-      resolve(this.zip);
-    });
+    // return new RSVP.Promise(function(resolve, reject) {
+    //   this.zip = new JSZip(zipUrl);
+    //   resolve(this.zip);
+    // });
+    return this.zip.loadAsync(zipUrl);
 	} else {
 		return request(zipUrl, "binary")
       .then(function(data){
-			  this.zip = new JSZip(data);
-        return this.zip;
+			  // this.zip = new JSZip(data);
+        // return this.zip;
+        return this.zip.loadAsync(data);
 		  }.bind(this));
 	}
 };
@@ -57,8 +59,10 @@ Unarchive.prototype.request = function(url, type){
   }
 
   if (response) {
-    r = this.handleResponse(response, type);
-    deferred.resolve(r);
+    response.then(function (r) {
+      result = this.handleResponse(r, type);
+      deferred.resolve(result);
+    }.bind(this));
   } else {
     deferred.reject({
       message : "File not found in the epub: " + url,
@@ -99,7 +103,9 @@ Unarchive.prototype.getBlob = function(url, _mimeType){
 
 	if(entry) {
     mimeType = _mimeType || mime.lookup(entry.name);
-    return new Blob([entry.asUint8Array()], {type : mimeType});
+    return entry.async("uint8array").then(function(uint8array) {
+      return new Blob([uint8array], {type : mimeType});
+    });
 	}
 };
 
@@ -108,7 +114,9 @@ Unarchive.prototype.getText = function(url, encoding){
 	var entry = this.zip.file(decodededUrl);
 
 	if(entry) {
-    return entry.asText();
+    return entry.async("string").then(function(text) {
+      return text;
+    });
 	}
 };
 
@@ -116,19 +124,22 @@ Unarchive.prototype.createUrl = function(url, mime){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
-	var blob;
+  var blob;
+	var response;
 
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
 		return deferred.promise;
 	}
 
-	blob = this.getBlob(url);
+	response = this.getBlob(url);
 
-  if (blob) {
-    tempUrl = _URL.createObjectURL(blob);
-    deferred.resolve(tempUrl);
-    this.urlCache[url] = tempUrl;
+  if (response) {
+    response.then(function(blob) {
+      tempUrl = _URL.createObjectURL(blob);
+      deferred.resolve(tempUrl);
+      this.urlCache[url] = tempUrl;
+    }.bind(this));
   } else {
     deferred.reject({
       message : "File not found in the epub: " + url,

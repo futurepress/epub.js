@@ -468,7 +468,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 		var fileUri = URI(href);
 		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
 		// Get the text of the css file from the archive
-		var text = this.book.archive.getText(absolute);
+		var textResponse = this.book.archive.getText(absolute);
 		// Get asset links relative to css file
 		var relUrls = urls.
 			map(function(assetHref) {
@@ -477,17 +477,20 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				return relative;
 			}.bind(this));
 
-		// Replacements in the css text
-		text = replace.substitute(text, relUrls, replacementUrls);
+		return textResponse.then(function (text) {
+			// Replacements in the css text
+			text = replace.substitute(text, relUrls, replacementUrls);
 
-		// Get the new url
-		newUrl = core.createBlobUrl(text, 'text/css');
+			// Get the new url
+			newUrl = core.createBlobUrl(text, 'text/css');
 
-		// switch the url in the replacementUrls
-		indexInUrls = urls.indexOf(href);
-		if (indexInUrls > -1) {
-			replacementUrls[indexInUrls] = newUrl;
-		}
+			// switch the url in the replacementUrls
+			indexInUrls = urls.indexOf(href);
+			if (indexInUrls > -1) {
+				replacementUrls[indexInUrls] = newUrl;
+			}
+		});
+
 };
 
 Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
