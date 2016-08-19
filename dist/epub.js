@@ -7827,7 +7827,7 @@ function createBlobUrl(content, mime){
   return tempUrl;
 };
 
-function createBase64Url(content, mime, cb){
+function createBase64Url(content, mime){
   var string;
   var data;
   var datauri;
@@ -12913,7 +12913,7 @@ Unarchive.prototype.getBase64 = function(url, _mimeType){
 	if(entry) {
     mimeType = _mimeType || mime.lookup(entry.name);
     return entry.async("base64").then(function(data) {
-      return "data:" + mime + ";base64," + data;
+      return "data:" + mimeType + ";base64," + data;
     });
 	}
 };

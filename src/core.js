@@ -414,7 +414,7 @@ function createBlobUrl(content, mime){
   return tempUrl;
 };
 
-function createBase64Url(content, mime, cb){
+function createBase64Url(content, mime){
   var string;
   var data;
   var datauri;
