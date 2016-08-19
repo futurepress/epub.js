@@ -6376,7 +6376,7 @@ function Book(_url, options){
   }
 };
 
-Book.prototype.open = function(_url){
+Book.prototype.open = function(_url, options){
   var uri;
   var parse = new Parser();
   var epubPackage;
@@ -6386,6 +6386,7 @@ Book.prototype.open = function(_url){
   var location;
   var absoluteUri;
   var isArrayBuffer = false;
+  var isBase64 = options && options.base64;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -6398,7 +6399,7 @@ Book.prototype.open = function(_url){
   // } else {
   //   uri = core.uri(_url);
   // }
-  if (_url instanceof ArrayBuffer) {
+  if (_url instanceof ArrayBuffer || isBase64) {
 		isArrayBuffer = true;
     this.url = '/';
 	} else {
@@ -6431,12 +6432,12 @@ Book.prototype.open = function(_url){
 
     epubPackage = this.request(this.packageUrl);
 
-  } else if(isArrayBuffer || this.isArchivedUrl(uri)) {
+  } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
     // Book is archived
     this.url = '/';
     this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
 
-    epubContainer = this.unarchive(_url).
+    epubContainer = this.unarchive(_url, isBase64).
       then(function() {
         return this.request(this.containerUrl);
       }.bind(this));
@@ -12658,18 +12659,12 @@ Unarchive.prototype.checkRequirements = function(callback){
   }
 };
 
-Unarchive.prototype.open = function(zipUrl){
-	if (zipUrl instanceof ArrayBuffer) {
-    // return new RSVP.Promise(function(resolve, reject) {
-    //   this.zip = new JSZip(zipUrl);
-    //   resolve(this.zip);
-    // });
-    return this.zip.loadAsync(zipUrl);
+Unarchive.prototype.open = function(zipUrl, isBase64){
+	if (zipUrl instanceof ArrayBuffer || isBase64) {
+    return this.zip.loadAsync(zipUrl, {"base64": isBase64});
 	} else {
 		return request(zipUrl, "binary")
       .then(function(data){
-			  // this.zip = new JSZip(data);
-        // return this.zip;
         return this.zip.loadAsync(data);
 		  }.bind(this));
 	}

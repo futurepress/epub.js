@@ -60,7 +60,7 @@ function Book(_url, options){
   }
 };
 
-Book.prototype.open = function(_url){
+Book.prototype.open = function(_url, options){
   var uri;
   var parse = new Parser();
   var epubPackage;
@@ -70,6 +70,7 @@ Book.prototype.open = function(_url){
   var location;
   var absoluteUri;
   var isArrayBuffer = false;
+  var isBase64 = options && options.base64;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -82,7 +83,7 @@ Book.prototype.open = function(_url){
   // } else {
   //   uri = core.uri(_url);
   // }
-  if (_url instanceof ArrayBuffer) {
+  if (_url instanceof ArrayBuffer || isBase64) {
 		isArrayBuffer = true;
     this.url = '/';
 	} else {
@@ -115,12 +116,12 @@ Book.prototype.open = function(_url){
 
     epubPackage = this.request(this.packageUrl);
 
-  } else if(isArrayBuffer || this.isArchivedUrl(uri)) {
+  } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
     // Book is archived
     this.url = '/';
     this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
 
-    epubContainer = this.unarchive(_url).
+    epubContainer = this.unarchive(_url, isBase64).
       then(function() {
         return this.request(this.containerUrl);
       }.bind(this));

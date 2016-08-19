@@ -24,18 +24,12 @@ Unarchive.prototype.checkRequirements = function(callback){
   }
 };
 
-Unarchive.prototype.open = function(zipUrl){
-	if (zipUrl instanceof ArrayBuffer) {
-    // return new RSVP.Promise(function(resolve, reject) {
-    //   this.zip = new JSZip(zipUrl);
-    //   resolve(this.zip);
-    // });
-    return this.zip.loadAsync(zipUrl);
+Unarchive.prototype.open = function(zipUrl, isBase64){
+	if (zipUrl instanceof ArrayBuffer || isBase64) {
+    return this.zip.loadAsync(zipUrl, {"base64": isBase64});
 	} else {
 		return request(zipUrl, "binary")
       .then(function(data){
-			  // this.zip = new JSZip(data);
-        // return this.zip;
         return this.zip.loadAsync(data);
 		  }.bind(this));
 	}
