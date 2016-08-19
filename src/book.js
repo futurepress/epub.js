@@ -239,8 +239,8 @@ Book.prototype.renderTo = function(element, options) {
 
 Book.prototype.requestMethod = function(_url) {
   // Switch request methods
-  if(this.archive) {
-    return this.archive.request(_url);
+  if(this.unarchived) {
+    return this.unarchived.request(_url);
   } else {
     return request(_url, null, this.requestCredentials, this.requestHeaders);
   }
@@ -256,8 +256,8 @@ Book.prototype.setRequestHeaders = function(_headers) {
 };
 
 Book.prototype.unarchive = function(bookUrl, isBase64){
-	this.archive = new Unarchive();
-	return this.archive.open(bookUrl, isBase64);
+	this.unarchived = new Unarchive();
+	return this.unarchived.open(bookUrl, isBase64);
 };
 
 //-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
@@ -289,8 +289,8 @@ Book.prototype.isArchivedUrl = function(bookUrl){
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
-			if(this.archive) {
-				return this.archive.createUrl(this.cover);
+			if(this.unarchived) {
+				return this.unarchived.createUrl(this.cover);
 			}else{
 				return this.cover;
 			}

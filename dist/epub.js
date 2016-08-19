@@ -6555,8 +6555,8 @@ Book.prototype.renderTo = function(element, options) {
 
 Book.prototype.requestMethod = function(_url) {
   // Switch request methods
-  if(this.archive) {
-    return this.archive.request(_url);
+  if(this.unarchived) {
+    return this.unarchived.request(_url);
   } else {
     return request(_url, null, this.requestCredentials, this.requestHeaders);
   }
@@ -6572,8 +6572,8 @@ Book.prototype.setRequestHeaders = function(_headers) {
 };
 
 Book.prototype.unarchive = function(bookUrl, isBase64){
-	this.archive = new Unarchive();
-	return this.archive.open(bookUrl, isBase64);
+	this.unarchived = new Unarchive();
+	return this.unarchived.open(bookUrl, isBase64);
 };
 
 //-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
@@ -6605,8 +6605,8 @@ Book.prototype.isArchivedUrl = function(bookUrl){
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
-			if(this.archive) {
-				return this.archive.createUrl(this.cover);
+			if(this.unarchived) {
+				return this.unarchived.createUrl(this.cover);
 			}else{
 				return this.cover;
 			}
@@ -7699,14 +7699,27 @@ function isXml(ext) {
   return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
 }
 
-function createBlobUrl(content, mime){
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var tempUrl;
+function createBlob(content, mime){
 	var blob = new Blob([content], {type : mime });
+
+  return blob;
+};
+
+function createBlobUrl(content, mime){
+  var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob = this.createBlob(content, mime);
 
   tempUrl = _URL.createObjectURL(blob);
 
   return tempUrl;
+};
+
+function createBase64Url(content, mime, cb){
+	var tempUrl;
+  var blob = this.createBlob(content, mime);
+
+  this.blob2base64(blob, cb);
 };
 
 function type(obj){
@@ -7775,6 +7788,14 @@ function qsp(el, sel, props) {
   }
 }
 
+function blob2base64(blob, cb) {
+  var reader = new FileReader();
+  reader.readAsDataURL(blob);
+  reader.onloadend = function() {
+    cb(reader.result);
+  }
+}
+
 module.exports = {
   // 'uri': uri,
   // 'folder': folder,
@@ -7798,12 +7819,15 @@ module.exports = {
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
   'isXml': isXml,
+  'createBlob': createBlob,
   'createBlobUrl': createBlobUrl,
   'type': type,
   'parse' : parse,
   'qs' : qs,
   'qsa' : qsa,
-  'qsp' : qsp
+  'qsp' : qsp,
+  'blob2base64' : blob2base64,
+  'createBase64Url': createBase64Url
 };
 
 },{"rsvp":4,"xmldom":7}],13:[function(require,module,exports){
@@ -11333,7 +11357,8 @@ function Rendition(book, options) {
 		flow: null,
 		layout: null,
 		spread: null,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
+		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
+		useBase64: true
 	});
 
 	core.extend(this.settings, options);
@@ -11372,7 +11397,7 @@ function Rendition(book, options) {
 	this.q.enqueue(this.start);
 
 	// TODO: move this somewhere else
-	if(this.book.archive) {
+	if(this.book.unarchived) {
 		this.replacements();
 	}
 
@@ -11748,7 +11773,7 @@ Rendition.prototype.replacements = function(){
 	    map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
 				// Full url from archive base
-	      return this.book.archive.createUrl(absolute);
+	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
 	    }.bind(this));
 
 		// After all the urls are created
@@ -11780,7 +11805,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 		var fileUri = URI(href);
 		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
 		// Get the text of the css file from the archive
-		var textResponse = this.book.archive.getText(absolute);
+		var textResponse = this.book.unarchived.getText(absolute);
 		// Get asset links relative to css file
 		var relUrls = urls.
 			map(function(assetHref) {
@@ -11794,14 +11819,25 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 			text = replace.substitute(text, relUrls, replacementUrls);
 
 			// Get the new url
-			newUrl = core.createBlobUrl(text, 'text/css');
+			if (this.settings.useBase64) {
+				core.createBlobUrl(text, 'text/css', function(newUrl) {
+					// switch the url in the replacementUrls
+					indexInUrls = urls.indexOf(href);
+					if (indexInUrls > -1) {
+						replacementUrls[indexInUrls] = newUrl;
+					}
+				});
+			} else {
+				newUrl = core.createBlobUrl(text, 'text/css');
 
-			// switch the url in the replacementUrls
-			indexInUrls = urls.indexOf(href);
-			if (indexInUrls > -1) {
-				replacementUrls[indexInUrls] = newUrl;
+				// switch the url in the replacementUrls
+				indexInUrls = urls.indexOf(href);
+				if (indexInUrls > -1) {
+					replacementUrls[indexInUrls] = newUrl;
+				}
 			}
-		});
+
+		}.bind(this));
 
 };
 
@@ -12749,12 +12785,13 @@ Unarchive.prototype.getText = function(url, encoding){
 	}
 };
 
-Unarchive.prototype.createUrl = function(url, mime){
+Unarchive.prototype.createUrl = function(url, options){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
   var blob;
 	var response;
+  var useBase64 = options && options.base64;
 
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
@@ -12765,9 +12802,19 @@ Unarchive.prototype.createUrl = function(url, mime){
 
   if (response) {
     response.then(function(blob) {
-      tempUrl = _URL.createObjectURL(blob);
-      deferred.resolve(tempUrl);
-      this.urlCache[url] = tempUrl;
+
+      if (useBase64) {
+        core.blob2base64(blob, function (tempUrl) {
+          this.urlCache[url] = tempUrl;
+          deferred.resolve(tempUrl);
+        }.bind(this));
+      } else {
+        tempUrl = _URL.createObjectURL(blob);
+        this.urlCache[url] = tempUrl;
+        deferred.resolve(tempUrl);
+      }
+
+
     }.bind(this));
   } else {
     deferred.reject({

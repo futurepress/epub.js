@@ -114,12 +114,13 @@ Unarchive.prototype.getText = function(url, encoding){
 	}
 };
 
-Unarchive.prototype.createUrl = function(url, mime){
+Unarchive.prototype.createUrl = function(url, options){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
   var blob;
 	var response;
+  var useBase64 = options && options.base64;
 
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
@@ -130,9 +131,19 @@ Unarchive.prototype.createUrl = function(url, mime){
 
   if (response) {
     response.then(function(blob) {
-      tempUrl = _URL.createObjectURL(blob);
-      deferred.resolve(tempUrl);
-      this.urlCache[url] = tempUrl;
+
+      if (useBase64) {
+        core.blob2base64(blob, function (tempUrl) {
+          this.urlCache[url] = tempUrl;
+          deferred.resolve(tempUrl);
+        }.bind(this));
+      } else {
+        tempUrl = _URL.createObjectURL(blob);
+        this.urlCache[url] = tempUrl;
+        deferred.resolve(tempUrl);
+      }
+
+
     }.bind(this));
   } else {
     deferred.reject({

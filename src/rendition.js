@@ -21,7 +21,8 @@ function Rendition(book, options) {
 		flow: null,
 		layout: null,
 		spread: null,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always)
+		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
+		useBase64: true
 	});
 
 	core.extend(this.settings, options);
@@ -60,7 +61,7 @@ function Rendition(book, options) {
 	this.q.enqueue(this.start);
 
 	// TODO: move this somewhere else
-	if(this.book.archive) {
+	if(this.book.unarchived) {
 		this.replacements();
 	}
 
@@ -436,7 +437,7 @@ Rendition.prototype.replacements = function(){
 	    map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
 				// Full url from archive base
-	      return this.book.archive.createUrl(absolute);
+	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
 	    }.bind(this));
 
 		// After all the urls are created
@@ -468,7 +469,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 		var fileUri = URI(href);
 		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
 		// Get the text of the css file from the archive
-		var textResponse = this.book.archive.getText(absolute);
+		var textResponse = this.book.unarchived.getText(absolute);
 		// Get asset links relative to css file
 		var relUrls = urls.
 			map(function(assetHref) {
@@ -482,14 +483,25 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 			text = replace.substitute(text, relUrls, replacementUrls);
 
 			// Get the new url
-			newUrl = core.createBlobUrl(text, 'text/css');
+			if (this.settings.useBase64) {
+				core.createBlobUrl(text, 'text/css', function(newUrl) {
+					// switch the url in the replacementUrls
+					indexInUrls = urls.indexOf(href);
+					if (indexInUrls > -1) {
+						replacementUrls[indexInUrls] = newUrl;
+					}
+				});
+			} else {
+				newUrl = core.createBlobUrl(text, 'text/css');
 
-			// switch the url in the replacementUrls
-			indexInUrls = urls.indexOf(href);
-			if (indexInUrls > -1) {
-				replacementUrls[indexInUrls] = newUrl;
+				// switch the url in the replacementUrls
+				indexInUrls = urls.indexOf(href);
+				if (indexInUrls > -1) {
+					replacementUrls[indexInUrls] = newUrl;
+				}
 			}
-		});
+
+		}.bind(this));
 
 };
 
