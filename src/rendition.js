@@ -443,17 +443,21 @@ Rendition.prototype.replacements = function(){
 		// After all the urls are created
 	  return RSVP.all(processing).
 	    then(function(replacementUrls) {
-
+				var replaced = [];
 				// Replace Asset Urls in the text of all css files
 				cssUrls.forEach(function(href) {
-					this.replaceCss(href, urls, replacementUrls);
+					replaced.push(this.replaceCss(href, urls, replacementUrls));
 		    }.bind(this));
 
-				// Replace Asset Urls in chapters
-				// by registering a hook after the sections contents has been serialized
-	      this.book.spine.hooks.serialize.register(function(output, section) {
-					this.replaceAssets(section, urls, replacementUrls);
-	      }.bind(this));
+				return RSVP.all(replaced).then(function () {
+					// Replace Asset Urls in chapters
+					// by registering a hook after the sections contents has been serialized
+		      this.book.spine.hooks.serialize.register(function(output, section) {
+						this.replaceAssets(section, urls, replacementUrls);
+		      }.bind(this));
+
+				}.bind(this));
+
 
 	    }.bind(this)).catch(function(reason){
 	      console.error(reason);
@@ -484,13 +488,20 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 
 			// Get the new url
 			if (this.settings.useBase64) {
-				core.createBlobUrl(text, 'text/css', function(newUrl) {
-					// switch the url in the replacementUrls
-					indexInUrls = urls.indexOf(href);
-					if (indexInUrls > -1) {
-						replacementUrls[indexInUrls] = newUrl;
-					}
-				});
+			 return new RSVP.Promise(function(resolve, reject) {
+
+				 core.createBase64Url(text, 'text/css', function(newUrl) {
+ 					// switch the url in the replacementUrls
+ 					indexInUrls = urls.indexOf(href);
+ 					if (indexInUrls > -1) {
+ 						replacementUrls[indexInUrls] = newUrl;
+ 					}
+
+					resolve(replacementUrls);
+ 				});
+
+			 });
+
 			} else {
 				newUrl = core.createBlobUrl(text, 'text/css');
 
@@ -499,6 +510,10 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				if (indexInUrls > -1) {
 					replacementUrls[indexInUrls] = newUrl;
 				}
+
+				return new RSVP.Promise(function(resolve, reject) {
+					resolve(replacementUrls);
+				});
 			}
 
 		}.bind(this));
