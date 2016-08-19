@@ -12709,15 +12709,15 @@ Unarchive.prototype.handleResponse = function(response, type){
   }
   else
   if(core.isXml(type)) {
-    r = new DOMParser().parseFromString(response, "text/xml");
+    r = core.parse(response, "text/xml");
 	}
   else
 	if(type == 'xhtml') {
-    r = new DOMParser().parseFromString(response, "application/xhtml+xml");
+    r = core.parse(response, "application/xhtml+xml");
 	}
   else
 	if(type == 'html' || type == 'htm') {
-    r = new DOMParser().parseFromString(response, "text/html");
+    r = core.parse(response, "text/html");
  	} else {
  	  r = response;
  	}
