@@ -113,7 +113,7 @@ function bundle(file, watch) {
   // must be loaded to use Unarchive or `require` will throw an error
   b.external('jszip');
 
-  // b.external('xmldom');
+  b.external('xmldom');
 
   // Ignore optional URI libraries
   var urijsPath = URI(require.resolve('urijs'));

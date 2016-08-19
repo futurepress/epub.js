@@ -114,6 +114,19 @@ Unarchive.prototype.getText = function(url, encoding){
 	}
 };
 
+Unarchive.prototype.getBase64 = function(url, _mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+  var mimeType;
+
+	if(entry) {
+    mimeType = _mimeType || mime.lookup(entry.name);
+    return entry.async("base64").then(function(data) {
+      return "data:" + mime + ";base64," + data;
+    });
+	}
+};
+
 Unarchive.prototype.createUrl = function(url, options){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
@@ -127,25 +140,37 @@ Unarchive.prototype.createUrl = function(url, options){
 		return deferred.promise;
 	}
 
-	response = this.getBlob(url);
+  if (useBase64) {
+    response = this.getBase64(url);
 
-  if (response) {
-    response.then(function(blob) {
+    if (response) {
+      response.then(function(tempUrl) {
 
-      if (useBase64) {
-        core.blob2base64(blob, function (tempUrl) {
-          this.urlCache[url] = tempUrl;
-          deferred.resolve(tempUrl);
-        }.bind(this));
-      } else {
+        this.urlCache[url] = tempUrl;
+        deferred.resolve(tempUrl);
+
+      }.bind(this));
+
+    }
+
+  } else {
+
+    response = this.getBlob(url);
+
+    if (response) {
+      response.then(function(blob) {
+
         tempUrl = _URL.createObjectURL(blob);
         this.urlCache[url] = tempUrl;
         deferred.resolve(tempUrl);
-      }
+
+      }.bind(this));
+
+    }
+  }
 
 
-    }.bind(this));
-  } else {
+  if (!response) {
     deferred.reject({
       message : "File not found in the epub: " + url,
       stack : new Error().stack

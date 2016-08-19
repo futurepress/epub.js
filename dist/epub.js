@@ -172,8 +172,119 @@ module.exports = {
 }
 
 },{}],2:[function(require,module,exports){
+'use strict'
+
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+function init () {
+  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  for (var i = 0, len = code.length; i < len; ++i) {
+    lookup[i] = code[i]
+    revLookup[code.charCodeAt(i)] = i
+  }
+
+  revLookup['-'.charCodeAt(0)] = 62
+  revLookup['_'.charCodeAt(0)] = 63
+}
+
+init()
+
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
+  var len = b64.length
+
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // the number of equal signs (place holders)
+  // if there are two placeholders, than the two characters before it
+  // represent one byte
+  // if there is only one, then the three characters before it represent 2 bytes
+  // this is just a cheap hack to not do indexOf twice
+  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+
+  // base64 is 4/3 + up to two characters of the original data
+  arr = new Arr(len * 3 / 4 - placeHolders)
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  l = placeHolders > 0 ? len - 4 : len
+
+  var L = 0
+
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
+    arr[L++] = (tmp >> 16) & 0xFF
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  if (placeHolders === 2) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[L++] = tmp & 0xFF
+  } else if (placeHolders === 1) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp
+  var output = []
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    output.push(tripletToBase64(tmp))
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  var tmp
+  var len = uint8.length
+  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+  var output = ''
+  var parts = []
+  var maxChunkLength = 16383 // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1]
+    output += lookup[tmp >> 2]
+    output += lookup[(tmp << 4) & 0x3F]
+    output += '=='
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
+    output += lookup[tmp >> 10]
+    output += lookup[(tmp >> 4) & 0x3F]
+    output += lookup[(tmp << 2) & 0x3F]
+    output += '='
+  }
+
+  parts.push(output)
+
+  return parts.join('')
+}
 
 },{}],3:[function(require,module,exports){
+
+},{}],4:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -269,7 +380,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview RSVP - a tiny implementation of Promises/A+.
@@ -1871,7 +1982,7 @@ process.umask = function() { return 0; };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":3}],5:[function(require,module,exports){
+},{"_process":4}],6:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * Second Level Domain (SLD) Support
@@ -2113,7 +2224,7 @@ process.umask = function() { return 0; };
   return SLD;
 }));
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  *
@@ -4325,7 +4436,7 @@ process.umask = function() { return 0; };
   return URI;
 }));
 
-},{"./IPv6":2,"./SecondLevelDomains":5,"./punycode":2}],7:[function(require,module,exports){
+},{"./IPv6":3,"./SecondLevelDomains":6,"./punycode":3}],8:[function(require,module,exports){
 function DOMParser(options){
 	this.options = options ||{locator:{}};
 	
@@ -4576,7 +4687,7 @@ if(typeof require == 'function'){
 	exports.DOMParser = DOMParser;
 }
 
-},{"./dom":8,"./sax":9}],8:[function(require,module,exports){
+},{"./dom":9,"./sax":10}],9:[function(require,module,exports){
 /*
  * DOM Level 2
  * Object DOMException
@@ -5725,7 +5836,7 @@ if(typeof require == 'function'){
 	exports.XMLSerializer = XMLSerializer;
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 //[4]   	NameStartChar	   ::=   	":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
 //[4a]   	NameChar	   ::=   	NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
 //[5]   	Name	   ::=   	NameStartChar (NameChar)*
@@ -6313,7 +6424,7 @@ if(typeof require == 'function'){
 }
 
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -6645,7 +6756,7 @@ RSVP.on('rejected', function(event){
   console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./core":12,"./epubcfi":13,"./locations":16,"./navigation":20,"./parser":21,"./rendition":23,"./request":25,"./spine":27,"./unarchive":29,"rsvp":4,"urijs":6}],11:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./locations":17,"./navigation":21,"./parser":22,"./rendition":24,"./request":26,"./spine":28,"./unarchive":30,"rsvp":5,"urijs":7}],12:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -7299,8 +7410,9 @@ RSVP.EventTarget.mixin(Contents.prototype);
 
 module.exports = Contents;
 
-},{"./core":12,"./epubcfi":13,"./mapping":19,"rsvp":4}],12:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./mapping":20,"rsvp":5}],13:[function(require,module,exports){
 var RSVP = require('rsvp');
+var base64 = require('base64-js');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 /*
@@ -7716,10 +7828,20 @@ function createBlobUrl(content, mime){
 };
 
 function createBase64Url(content, mime, cb){
-	var tempUrl;
-  var blob = this.createBlob(content, mime);
+  var string;
+  var data;
+  var datauri;
 
-  this.blob2base64(blob, cb);
+  if (typeof(content) !== "string") {
+    // Only handles strings
+    return;
+  }
+
+  data = btoa(content);
+
+  datauri = "data:" + mime + ";base64," + data;
+
+  return datauri;
 };
 
 function type(obj){
@@ -7830,7 +7952,7 @@ module.exports = {
   'createBase64Url': createBase64Url
 };
 
-},{"rsvp":4,"xmldom":7}],13:[function(require,module,exports){
+},{"base64-js":2,"rsvp":5,"xmldom":8}],14:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 
@@ -8766,7 +8888,7 @@ EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id)
 
 module.exports = EpubCFI;
 
-},{"./core":12,"urijs":6}],14:[function(require,module,exports){
+},{"./core":13,"urijs":7}],15:[function(require,module,exports){
 var RSVP = require('rsvp');
 
 //-- Hooks allow for injecting functions that must all complete in order before finishing
@@ -8827,7 +8949,7 @@ Hook.prototype.clear = function(){
 
 module.exports = Hook;
 
-},{"rsvp":4}],15:[function(require,module,exports){
+},{"rsvp":5}],16:[function(require,module,exports){
 var core = require('./core');
 var RSVP = require('rsvp');
 
@@ -8938,7 +9060,7 @@ Layout.prototype.count = function(totalWidth) {
 
 module.exports = Layout;
 
-},{"./core":12,"rsvp":4}],16:[function(require,module,exports){
+},{"./core":13,"rsvp":5}],17:[function(require,module,exports){
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
@@ -9163,7 +9285,7 @@ RSVP.EventTarget.mixin(Locations.prototype);
 
 module.exports = Locations;
 
-},{"./core":12,"./epubcfi":13,"./queue":22,"rsvp":4}],17:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./queue":23,"rsvp":5}],18:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
 var SingleViewManager = require('./single');
@@ -9829,7 +9951,7 @@ ContinuousViewManager.prototype.updateFlow = function(flow){
 };
 module.exports = ContinuousViewManager;
 
-},{"../core":12,"./single":18,"rsvp":4}],18:[function(require,module,exports){
+},{"../core":13,"./single":19,"rsvp":5}],19:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
 var Stage = require('../stage');
@@ -10245,7 +10367,7 @@ SingleViewManager.prototype.updateFlow = function(flow){
 
  module.exports = SingleViewManager;
 
-},{"../core":12,"../epubcfi":13,"../mapping":19,"../queue":22,"../stage":28,"../views":30,"rsvp":4}],19:[function(require,module,exports){
+},{"../core":13,"../epubcfi":14,"../mapping":20,"../queue":23,"../stage":29,"../views":31,"rsvp":5}],20:[function(require,module,exports){
 function Mapping(layout){
   this.layout = layout;
 };
@@ -10541,7 +10663,7 @@ Mapping.prototype.rangeListToCfiList = function(view, columns){
 
 module.exports = Mapping;
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var core = require('./core');
 var Parser = require('./parser');
 var RSVP = require('rsvp');
@@ -10645,7 +10767,7 @@ Navigation.prototype.get = function(target) {
 
 module.exports = Navigation;
 
-},{"./core":12,"./parser":21,"./request":25,"rsvp":4,"urijs":6}],21:[function(require,module,exports){
+},{"./core":13,"./parser":22,"./request":26,"rsvp":5,"urijs":7}],22:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -11138,7 +11260,7 @@ Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
 
 module.exports = Parser;
 
-},{"./core":12,"./epubcfi":13,"urijs":6}],22:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"urijs":7}],23:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 
@@ -11333,7 +11455,7 @@ function Task(task, args, context){
 
 module.exports = Queue;
 
-},{"./core":12,"rsvp":4}],23:[function(require,module,exports){
+},{"./core":13,"rsvp":5}],24:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -11824,32 +11946,15 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 
 			// Get the new url
 			if (this.settings.useBase64) {
-			 return new RSVP.Promise(function(resolve, reject) {
-
-				 core.createBase64Url(text, 'text/css', function(newUrl) {
- 					// switch the url in the replacementUrls
- 					indexInUrls = urls.indexOf(href);
- 					if (indexInUrls > -1) {
- 						replacementUrls[indexInUrls] = newUrl;
- 					}
-
-					resolve(replacementUrls);
- 				});
-
-			 });
-
+				newUrl = core.createBase64Url(text, 'text/css');
 			} else {
 				newUrl = core.createBlobUrl(text, 'text/css');
+			}
 
-				// switch the url in the replacementUrls
-				indexInUrls = urls.indexOf(href);
-				if (indexInUrls > -1) {
-					replacementUrls[indexInUrls] = newUrl;
-				}
-
-				return new RSVP.Promise(function(resolve, reject) {
-					resolve(replacementUrls);
-				});
+			// switch the url in the replacementUrls
+			indexInUrls = urls.indexOf(href);
+			if (indexInUrls > -1) {
+				replacementUrls[indexInUrls] = newUrl;
 			}
 
 		}.bind(this));
@@ -11903,7 +12008,7 @@ RSVP.EventTarget.mixin(Rendition.prototype);
 
 module.exports = Rendition;
 
-},{"./core":12,"./epubcfi":13,"./hook":14,"./layout":15,"./mapping":19,"./queue":22,"./replacements":24,"./views":30,"rsvp":4,"urijs":6}],24:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./hook":15,"./layout":16,"./mapping":20,"./queue":23,"./replacements":25,"./views":31,"rsvp":5,"urijs":7}],25:[function(require,module,exports){
 var URI = require('urijs');
 var core = require('./core');
 
@@ -12019,7 +12124,7 @@ module.exports = {
   'substitute': substitute
 };
 
-},{"./core":12,"urijs":6}],25:[function(require,module,exports){
+},{"./core":13,"urijs":7}],26:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -12161,7 +12266,7 @@ function request(url, type, withCredentials, headers) {
 
 module.exports = request;
 
-},{"./core":12,"rsvp":4,"urijs":6}],26:[function(require,module,exports){
+},{"./core":13,"rsvp":5,"urijs":7}],27:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -12319,7 +12424,7 @@ Section.prototype.cfiFromElement = function(el) {
 
 module.exports = Section;
 
-},{"./core":12,"./epubcfi":13,"./hook":14,"./request":25,"rsvp":4,"urijs":6,"xmldom":7}],27:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./hook":15,"./request":26,"rsvp":5,"urijs":7,"xmldom":8}],28:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -12457,7 +12562,7 @@ Spine.prototype.each = function() {
 
 module.exports = Spine;
 
-},{"./core":12,"./epubcfi":13,"./hook":14,"./replacements":24,"./section":26,"rsvp":4}],28:[function(require,module,exports){
+},{"./core":13,"./epubcfi":14,"./hook":15,"./replacements":25,"./section":27,"rsvp":5}],29:[function(require,module,exports){
 var core = require('./core');
 
 function Stage(_options) {
@@ -12683,7 +12788,7 @@ Stage.prototype.addStyleRules = function(selector, rulesArray){
 
 module.exports = Stage;
 
-},{"./core":12}],29:[function(require,module,exports){
+},{"./core":13}],30:[function(require,module,exports){
 var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
@@ -12800,6 +12905,19 @@ Unarchive.prototype.getText = function(url, encoding){
 	}
 };
 
+Unarchive.prototype.getBase64 = function(url, _mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+  var mimeType;
+
+	if(entry) {
+    mimeType = _mimeType || mime.lookup(entry.name);
+    return entry.async("base64").then(function(data) {
+      return "data:" + mime + ";base64," + data;
+    });
+	}
+};
+
 Unarchive.prototype.createUrl = function(url, options){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
@@ -12813,25 +12931,37 @@ Unarchive.prototype.createUrl = function(url, options){
 		return deferred.promise;
 	}
 
-	response = this.getBlob(url);
+  if (useBase64) {
+    response = this.getBase64(url);
 
-  if (response) {
-    response.then(function(blob) {
+    if (response) {
+      response.then(function(tempUrl) {
 
-      if (useBase64) {
-        core.blob2base64(blob, function (tempUrl) {
-          this.urlCache[url] = tempUrl;
-          deferred.resolve(tempUrl);
-        }.bind(this));
-      } else {
+        this.urlCache[url] = tempUrl;
+        deferred.resolve(tempUrl);
+
+      }.bind(this));
+
+    }
+
+  } else {
+
+    response = this.getBlob(url);
+
+    if (response) {
+      response.then(function(blob) {
+
         tempUrl = _URL.createObjectURL(blob);
         this.urlCache[url] = tempUrl;
         deferred.resolve(tempUrl);
-      }
+
+      }.bind(this));
+
+    }
+  }
 
 
-    }.bind(this));
-  } else {
+  if (!response) {
     deferred.reject({
       message : "File not found in the epub: " + url,
       stack : new Error().stack
@@ -12849,7 +12979,7 @@ Unarchive.prototype.revokeUrl = function(url){
 
 module.exports = Unarchive;
 
-},{"../libs/mime/mime":1,"./core":12,"./request":25,"jszip":"jszip","rsvp":4,"urijs":6}],30:[function(require,module,exports){
+},{"../libs/mime/mime":1,"./core":13,"./request":26,"jszip":"jszip","rsvp":5,"urijs":7}],31:[function(require,module,exports){
 function Views(container) {
   this.container = container;
   this._views = [];
@@ -13018,7 +13148,7 @@ Views.prototype.hide = function(){
 
 module.exports = Views;
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
 var EpubCFI = require('../epubcfi');
@@ -13586,7 +13716,7 @@ RSVP.EventTarget.mixin(IframeView.prototype);
 
 module.exports = IframeView;
 
-},{"../contents":11,"../core":12,"../epubcfi":13,"rsvp":4}],"epub":[function(require,module,exports){
+},{"../contents":12,"../core":13,"../epubcfi":14,"rsvp":5}],"epub":[function(require,module,exports){
 var Book = require('./book');
 var EpubCFI = require('./epubcfi');
 var Rendition = require('./rendition');
@@ -13625,7 +13755,7 @@ ePub.register.manager("continuous", require('./managers/continuous'));
 
 module.exports = ePub;
 
-},{"./book":10,"./contents":11,"./epubcfi":13,"./managers/continuous":17,"./managers/single":18,"./rendition":23,"./views/iframe":31,"rsvp":4}]},{},["epub"])("epub")
+},{"./book":11,"./contents":12,"./epubcfi":14,"./managers/continuous":18,"./managers/single":19,"./rendition":24,"./views/iframe":32,"rsvp":5}]},{},["epub"])("epub")
 });
 
 

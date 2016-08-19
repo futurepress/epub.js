@@ -488,32 +488,15 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 
 			// Get the new url
 			if (this.settings.useBase64) {
-			 return new RSVP.Promise(function(resolve, reject) {
-
-				 core.createBase64Url(text, 'text/css', function(newUrl) {
- 					// switch the url in the replacementUrls
- 					indexInUrls = urls.indexOf(href);
- 					if (indexInUrls > -1) {
- 						replacementUrls[indexInUrls] = newUrl;
- 					}
-
-					resolve(replacementUrls);
- 				});
-
-			 });
-
+				newUrl = core.createBase64Url(text, 'text/css');
 			} else {
 				newUrl = core.createBlobUrl(text, 'text/css');
+			}
 
-				// switch the url in the replacementUrls
-				indexInUrls = urls.indexOf(href);
-				if (indexInUrls > -1) {
-					replacementUrls[indexInUrls] = newUrl;
-				}
-
-				return new RSVP.Promise(function(resolve, reject) {
-					resolve(replacementUrls);
-				});
+			// switch the url in the replacementUrls
+			indexInUrls = urls.indexOf(href);
+			if (indexInUrls > -1) {
+				replacementUrls[indexInUrls] = newUrl;
 			}
 
 		}.bind(this));

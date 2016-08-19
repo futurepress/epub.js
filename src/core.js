@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var base64 = require('base64-js');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 /*
@@ -414,10 +415,20 @@ function createBlobUrl(content, mime){
 };
 
 function createBase64Url(content, mime, cb){
-	var tempUrl;
-  var blob = this.createBlob(content, mime);
+  var string;
+  var data;
+  var datauri;
 
-  this.blob2base64(blob, cb);
+  if (typeof(content) !== "string") {
+    // Only handles strings
+    return;
+  }
+
+  data = btoa(content);
+
+  datauri = "data:" + mime + ";base64," + data;
+
+  return datauri;
 };
 
 function type(obj){
