@@ -127,6 +127,9 @@ Rendition.prototype.start = function(){
 	// Listen for resizing
 	this.manager.on("resized", this.onResized.bind(this));
 
+	// Listen for scroll changes
+	this.manager.on("scroll", this.reportLocation.bind(this));
+
 
 	this.on('displayed', this.reportLocation.bind(this));
 

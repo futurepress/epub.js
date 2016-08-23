@@ -493,13 +493,13 @@ ContinuousViewManager.prototype.scrolledLocation = function(){
   var container = this.container.getBoundingClientRect();
 
   if(visible.length === 1) {
-    return this.mapping.page(visible[0]);
+    return this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
   }
 
   if(visible.length > 1) {
 
-    startPage = this.mapping.page(visible[0]);
-    endPage = this.mapping.page(visible[visible.length-1]);
+    startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+    endPage = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase);
 
     return {
       start: startPage.start,
@@ -519,7 +519,7 @@ ContinuousViewManager.prototype.paginatedLocation = function(){
     startA = container.left - visible[0].position().left;
     endA = startA + this.layout.spreadWidth;
 
-    return this.mapping.page(visible[0], startA, endA);
+    return this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
   }
 
   if(visible.length > 1) {
@@ -532,8 +532,8 @@ ContinuousViewManager.prototype.paginatedLocation = function(){
     startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
     endB = startB + this.layout.columnWidth;
 
-    pageLeft = this.mapping.page(visible[0], startA, endA);
-    pageRight = this.mapping.page(visible[visible.length-1], startB, endB);
+    pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
+    pageRight = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase, startB, endB);
 
     return {
       start: pageLeft.start,

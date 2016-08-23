@@ -1,23 +1,24 @@
+var EpubCFI = require('./epubcfi');
+
 function Mapping(layout){
   this.layout = layout;
 };
 
 Mapping.prototype.section = function(view) {
   var ranges = this.findRanges(view);
-  var map = this.rangeListToCfiList(view, ranges);
+  var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
 
   return map;
 };
 
-Mapping.prototype.page = function(view, start, end) {
-  var contents = view.contents;
+Mapping.prototype.page = function(contents, cfiBase, start, end) {
   var root = contents && contents.document ? contents.document.body : false;
 
   if (!root) {
     return;
   }
 
-  return this.rangePairToCfiPair(view.section, {
+  return this.rangePairToCfiPair(cfiBase, {
     start: this.findStart(root, start, end),
     end: this.findEnd(root, start, end)
   });
@@ -259,7 +260,7 @@ Mapping.prototype.splitTextNodeIntoRanges = function(node, _splitter){
 
 
 
-Mapping.prototype.rangePairToCfiPair = function(section, rangePair){
+Mapping.prototype.rangePairToCfiPair = function(cfiBase, rangePair){
 
   var startRange = rangePair.start;
   var endRange = rangePair.end;
@@ -267,8 +268,10 @@ Mapping.prototype.rangePairToCfiPair = function(section, rangePair){
   startRange.collapse(true);
   endRange.collapse(true);
 
-  startCfi = section.cfiFromRange(startRange);
-  endCfi = section.cfiFromRange(endRange);
+  // startCfi = section.cfiFromRange(startRange);
+  // endCfi = section.cfiFromRange(endRange);
+  startCfi = new EpubCFI(startRange, cfiBase).toString();
+  endCfi = new EpubCFI(endRange, cfiBase).toString();
 
   return {
     start: startCfi,
@@ -277,12 +280,12 @@ Mapping.prototype.rangePairToCfiPair = function(section, rangePair){
 
 };
 
-Mapping.prototype.rangeListToCfiList = function(view, columns){
+Mapping.prototype.rangeListToCfiList = function(cfiBase, columns){
   var map = [];
   var rangePair, cifPair;
 
   for (var i = 0; i < columns.length; i++) {
-    cifPair = this.rangePairToCfiPair(view.section, columns[i]);
+    cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
 
     map.push(cifPair);
 
