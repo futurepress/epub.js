@@ -360,8 +360,17 @@ Rendition.prototype.spread = function(spread, min){
 
 Rendition.prototype.reportLocation = function(){
   return this.q.enqueue(function(){
-    this.location = this.manager.currentLocation();
-    this.trigger("locationChanged", this.location);
+    var location = this.manager.currentLocation();
+		if (location.then && typeof location.then === 'function') {
+			location.then(function(result) {
+				this.location = result;
+		    this.trigger("locationChanged", this.location);
+			}.bind(this));
+		} else {
+			this.location = location;
+	    this.trigger("locationChanged", this.location);
+		}
+
   }.bind(this));
 };
 

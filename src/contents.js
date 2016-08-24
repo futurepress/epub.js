@@ -635,7 +635,11 @@ Contents.prototype.fit = function(width, height){
   this.css("backgroundColor", "transparent");
 };
 
+Contents.prototype.mapPage = function(cfiBase, start, end) {
+  var mapping = new Mapping();
 
+  return mapping.page(this, cfiBase, start, end);
+};
 
 Contents.prototype.destroy = function() {
   // Stop observing

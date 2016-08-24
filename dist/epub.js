@@ -7394,7 +7394,11 @@ Contents.prototype.fit = function(width, height){
   this.css("backgroundColor", "transparent");
 };
 
+Contents.prototype.mapPage = function(cfiBase, start, end) {
+  var mapping = new Mapping();
 
+  return mapping.page(this, cfiBase, start, end);
+};
 
 Contents.prototype.destroy = function() {
   // Stop observing
@@ -11821,8 +11825,17 @@ Rendition.prototype.spread = function(spread, min){
 
 Rendition.prototype.reportLocation = function(){
   return this.q.enqueue(function(){
-    this.location = this.manager.currentLocation();
-    this.trigger("locationChanged", this.location);
+    var location = this.manager.currentLocation();
+		if (location.then && typeof location.then === 'function') {
+			location.then(function(result) {
+				this.location = result;
+		    this.trigger("locationChanged", this.location);
+			}.bind(this));
+		} else {
+			this.location = location;
+	    this.trigger("locationChanged", this.location);
+		}
+
   }.bind(this));
 };
 
