@@ -375,7 +375,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height, flag){
                 done.reject(new Error("User cancelled"));
                 return;
             }
-        
+
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
@@ -439,7 +439,13 @@ EPUBJS.Book.prototype.generatePagination = function(width, height, flag) {
 
 // Process the pagination from a JSON array containing the pagelist
 EPUBJS.Book.prototype.loadPagination = function(pagelistJSON) {
-	var pageList = JSON.parse(pagelistJSON);
+	var pageList;
+
+	if (typeof(pagelistJSON) === "string") {
+		pageList = JSON.parse(pagelistJSON);
+	} else {
+		pageList = pagelistJSON;
+	}
 
 	if(pageList && pageList.length) {
 		this.pageList = pageList;
@@ -878,7 +884,7 @@ EPUBJS.Book.prototype.nextPage = function(defer){
         this._q.enqueue("nextPage", [defer]);
         return defer.promise;
     }
-    
+
 	var next = this.renderer.nextPage();
 	if (!next){
 		return this.nextChapter(defer);
@@ -895,7 +901,7 @@ EPUBJS.Book.prototype.prevPage = function(defer) {
         this._q.enqueue("prevPage", [defer]);
         return defer.promise;
     }
-    
+
 	var prev = this.renderer.prevPage();
 	if (!prev){
 		return this.prevChapter(defer);
@@ -918,7 +924,7 @@ EPUBJS.Book.prototype.nextChapter = function(defer) {
 			return this.displayChapter(next, false, defer);
 		}
 	}
-    
+
     this.trigger("book:atEnd");
     defer.resolve(true);
     return defer.promise;

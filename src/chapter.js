@@ -121,21 +121,23 @@ EPUBJS.Chapter.prototype.unload = function(store){
 };
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
-	var uri = _document.namespaceURI;
-	var doctype = _document.doctype;
-
-	// Creates an empty document
-	this.document = _document.implementation.createDocument(
-			uri,
-			null,
-			null
-	);
-	this.contents = this.document.importNode(
-			_document.documentElement, //node to import
-			true                         //clone its descendants
-	);
-
-	this.document.appendChild(this.contents);
+	// var uri = _document.namespaceURI;
+	// var doctype = _document.doctype;
+	//
+	// // Creates an empty document
+	// this.document = _document.implementation.createDocument(
+	// 		uri,
+	// 		null,
+	// 		null
+	// );
+	// this.contents = this.document.importNode(
+	// 		_document.documentElement, //node to import
+	// 		true                         //clone its descendants
+	// );
+	//
+	// this.document.appendChild(this.contents);
+	this.document = _document;
+	this.contents = _document.documentElement;
 
 	// Fix to apply wgxpath to new document in IE
 	if(!this.document.evaluate && document.evaluate) {
