@@ -437,6 +437,14 @@ ContinuousViewManager.prototype.onScroll = function(){
 		      left: scrollLeft
 		    });
 
+				clearTimeout(this.afterScrolled);
+				this.afterScrolled = setTimeout(function () {
+					this.trigger("scrolled", {
+			      top: this.scrollTop,
+			      left: this.scrollLeft
+			    });
+				}.bind(this));
+
 			}
 
 		} else {

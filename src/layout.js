@@ -5,7 +5,7 @@ function Layout(settings){
   this.name = settings.layout || "reflowable";
   this._flow = (settings.flow === "paginated") ? "paginated" : "scrolled";
   this._spread = (settings.spread === "none") ? false : true;
-  this.minSpreadWidth = 800;
+  this._minSpreadWidth = settings.spread || 800;
 
   this.width = 0;
   this.height = 0;
@@ -28,7 +28,7 @@ Layout.prototype.spread = function(spread, min) {
   this._spread = (spread === "none") ? false : true;
 
   if (min >= 0) {
-    this.minSpreadWidth = min;
+    this._minSpreadWidth = min;
   }
 }
 
@@ -47,7 +47,7 @@ Layout.prototype.calculate = function(_width, _height, _gap){
   var spreadWidth;
   var delta;
 
-  if (this._spread && width >= this.minSpreadWidth) {
+  if (this._spread && width >= this._minSpreadWidth) {
     divisor = 2;
   } else {
     divisor = 1;

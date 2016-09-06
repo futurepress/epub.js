@@ -124,8 +124,6 @@ SingleViewManager.prototype.display = function(section, target){
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
 
-	var isCfi = EpubCFI().isCfiString(target);
-
 	// Check to make sure the section we want isn't already shown
 	var visible = this.views.find(section);
 

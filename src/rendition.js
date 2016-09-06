@@ -288,6 +288,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 	var orientation = this.settings.orientation || metadata.orientation || "auto";
 	var flow = this.settings.flow || metadata.flow || "auto";
 	var viewport = metadata.viewport || "";
+	var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
 
 	if (this.settings.width >= 0 && this.settings.height >= 0) {
 		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
@@ -298,7 +299,8 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		spread : spread,
 		orientation : orientation,
 		flow : flow,
-		viewport : viewport
+		viewport : viewport,
+		minSpreadWidth : minSpreadWidth 
 	};
 
 	return settings;

@@ -368,18 +368,23 @@ Contents.prototype.root = function() {
 };
 
 Contents.prototype.locationOf = function(target, ignoreClass) {
+  var position;
   var targetPos = {"left": 0, "top": 0};
 
   if(!this.document) return;
 
   if(this.epubcfi.isCfiString(target)) {
-    range = new EpubCFI(cfi).toRange(this.document, ignoreClass);
+    range = new EpubCFI(target).toRange(this.document, ignoreClass);
 
     if(range) {
       if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
-        targetPos = range.startContainer.getBoundingClientRect();
+        position = range.startContainer.getBoundingClientRect();
+        targetPos.left = position.left;
+        targetPos.top = position.top;
       } else {
-        targetPos = range.getBoundingClientRect();
+        position = range.getBoundingClientRect();
+        targetPos.left = position.left;
+        targetPos.top = position.top;
       }
     }
 
@@ -390,7 +395,9 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
     el = this.document.getElementById(id);
 
     if(el) {
-      targetPos = el.getBoundingClientRect();
+      position = el.getBoundingClientRect();
+      targetPos.left = position.left;
+      targetPos.top = position.top;
     }
   }
 
