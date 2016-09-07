@@ -9790,7 +9790,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		orientation : orientation,
 		flow : flow,
 		viewport : viewport,
-		minSpreadWidth : minSpreadWidth 
+		minSpreadWidth : minSpreadWidth
 	};
 
 	return settings;
@@ -9827,12 +9827,14 @@ Rendition.prototype.flow = function(_flow){
 
 // reflowable | pre-paginated
 Rendition.prototype.layout = function(settings){
-	this._layout = new Layout(settings);
-	this._layout.spread(settings.spread, this.settings.minSpreadWidth);
+	if (settings) {
+		this._layout = new Layout(settings);
+		this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
-	this.mapping = new Mapping(this._layout);
+		this.mapping = new Mapping(this._layout);
+	}
 
-	if (this.manager) {
+	if (this.manager && this._layout) {
 		this.manager.applyLayout(this._layout);
 	}
 
