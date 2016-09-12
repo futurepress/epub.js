@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/tildeio/rsvp.js/master/LICENSE
- * @version   3.1.0
+ * @version   3.2.1
  */
 
 (function() {
@@ -309,249 +309,47 @@
         }
       }
     var lib$rsvp$instrument$$default = lib$rsvp$instrument$$instrument;
+    function lib$rsvp$then$$then(onFulfillment, onRejection, label) {
+      var parent = this;
+      var state = parent._state;
 
-    function  lib$rsvp$$internal$$withOwnPromise() {
-      return new TypeError('A promises callback cannot return that same promise.');
-    }
-
-    function lib$rsvp$$internal$$noop() {}
-
-    var lib$rsvp$$internal$$PENDING   = void 0;
-    var lib$rsvp$$internal$$FULFILLED = 1;
-    var lib$rsvp$$internal$$REJECTED  = 2;
-
-    var lib$rsvp$$internal$$GET_THEN_ERROR = new lib$rsvp$$internal$$ErrorObject();
-
-    function lib$rsvp$$internal$$getThen(promise) {
-      try {
-        return promise.then;
-      } catch(error) {
-        lib$rsvp$$internal$$GET_THEN_ERROR.error = error;
-        return lib$rsvp$$internal$$GET_THEN_ERROR;
+      if (state === lib$rsvp$$internal$$FULFILLED && !onFulfillment || state === lib$rsvp$$internal$$REJECTED && !onRejection) {
+        lib$rsvp$config$$config.instrument && lib$rsvp$instrument$$default('chained', parent, parent);
+        return parent;
       }
-    }
-
-    function lib$rsvp$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
-      try {
-        then.call(value, fulfillmentHandler, rejectionHandler);
-      } catch(e) {
-        return e;
-      }
-    }
-
-    function lib$rsvp$$internal$$handleForeignThenable(promise, thenable, then) {
-      lib$rsvp$config$$config.async(function(promise) {
-        var sealed = false;
-        var error = lib$rsvp$$internal$$tryThen(then, thenable, function(value) {
-          if (sealed) { return; }
-          sealed = true;
-          if (thenable !== value) {
-            lib$rsvp$$internal$$resolve(promise, value);
-          } else {
-            lib$rsvp$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          if (sealed) { return; }
-          sealed = true;
-
-          lib$rsvp$$internal$$reject(promise, reason);
-        }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-        if (!sealed && error) {
-          sealed = true;
-          lib$rsvp$$internal$$reject(promise, error);
-        }
-      }, promise);
-    }
-
-    function lib$rsvp$$internal$$handleOwnThenable(promise, thenable) {
-      if (thenable._state === lib$rsvp$$internal$$FULFILLED) {
-        lib$rsvp$$internal$$fulfill(promise, thenable._result);
-      } else if (thenable._state === lib$rsvp$$internal$$REJECTED) {
-        thenable._onError = null;
-        lib$rsvp$$internal$$reject(promise, thenable._result);
-      } else {
-        lib$rsvp$$internal$$subscribe(thenable, undefined, function(value) {
-          if (thenable !== value) {
-            lib$rsvp$$internal$$resolve(promise, value);
-          } else {
-            lib$rsvp$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          lib$rsvp$$internal$$reject(promise, reason);
-        });
-      }
-    }
-
-    function lib$rsvp$$internal$$handleMaybeThenable(promise, maybeThenable) {
-      if (maybeThenable.constructor === promise.constructor) {
-        lib$rsvp$$internal$$handleOwnThenable(promise, maybeThenable);
-      } else {
-        var then = lib$rsvp$$internal$$getThen(maybeThenable);
-
-        if (then === lib$rsvp$$internal$$GET_THEN_ERROR) {
-          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$GET_THEN_ERROR.error);
-        } else if (then === undefined) {
-          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
-        } else if (lib$rsvp$utils$$isFunction(then)) {
-          lib$rsvp$$internal$$handleForeignThenable(promise, maybeThenable, then);
-        } else {
-          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
-        }
-      }
-    }
-
-    function lib$rsvp$$internal$$resolve(promise, value) {
-      if (promise === value) {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      } else if (lib$rsvp$utils$$objectOrFunction(value)) {
-        lib$rsvp$$internal$$handleMaybeThenable(promise, value);
-      } else {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      }
-    }
-
-    function lib$rsvp$$internal$$publishRejection(promise) {
-      if (promise._onError) {
-        promise._onError(promise._result);
-      }
-
-      lib$rsvp$$internal$$publish(promise);
-    }
-
-    function lib$rsvp$$internal$$fulfill(promise, value) {
-      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
-
-      promise._result = value;
-      promise._state = lib$rsvp$$internal$$FULFILLED;
-
-      if (promise._subscribers.length === 0) {
-        if (lib$rsvp$config$$config.instrument) {
-          lib$rsvp$instrument$$default('fulfilled', promise);
-        }
-      } else {
-        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, promise);
-      }
-    }
-
-    function lib$rsvp$$internal$$reject(promise, reason) {
-      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
-      promise._state = lib$rsvp$$internal$$REJECTED;
-      promise._result = reason;
-      lib$rsvp$config$$config.async(lib$rsvp$$internal$$publishRejection, promise);
-    }
-
-    function lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
-      var subscribers = parent._subscribers;
-      var length = subscribers.length;
 
       parent._onError = null;
 
-      subscribers[length] = child;
-      subscribers[length + lib$rsvp$$internal$$FULFILLED] = onFulfillment;
-      subscribers[length + lib$rsvp$$internal$$REJECTED]  = onRejection;
+      var child = new parent.constructor(lib$rsvp$$internal$$noop, label);
+      var result = parent._result;
 
-      if (length === 0 && parent._state) {
-        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, parent);
-      }
-    }
+      lib$rsvp$config$$config.instrument && lib$rsvp$instrument$$default('chained', parent, child);
 
-    function lib$rsvp$$internal$$publish(promise) {
-      var subscribers = promise._subscribers;
-      var settled = promise._state;
-
-      if (lib$rsvp$config$$config.instrument) {
-        lib$rsvp$instrument$$default(settled === lib$rsvp$$internal$$FULFILLED ? 'fulfilled' : 'rejected', promise);
-      }
-
-      if (subscribers.length === 0) { return; }
-
-      var child, callback, detail = promise._result;
-
-      for (var i = 0; i < subscribers.length; i += 3) {
-        child = subscribers[i];
-        callback = subscribers[i + settled];
-
-        if (child) {
-          lib$rsvp$$internal$$invokeCallback(settled, child, callback, detail);
-        } else {
-          callback(detail);
-        }
-      }
-
-      promise._subscribers.length = 0;
-    }
-
-    function lib$rsvp$$internal$$ErrorObject() {
-      this.error = null;
-    }
-
-    var lib$rsvp$$internal$$TRY_CATCH_ERROR = new lib$rsvp$$internal$$ErrorObject();
-
-    function lib$rsvp$$internal$$tryCatch(callback, detail) {
-      try {
-        return callback(detail);
-      } catch(e) {
-        lib$rsvp$$internal$$TRY_CATCH_ERROR.error = e;
-        return lib$rsvp$$internal$$TRY_CATCH_ERROR;
-      }
-    }
-
-    function lib$rsvp$$internal$$invokeCallback(settled, promise, callback, detail) {
-      var hasCallback = lib$rsvp$utils$$isFunction(callback),
-          value, error, succeeded, failed;
-
-      if (hasCallback) {
-        value = lib$rsvp$$internal$$tryCatch(callback, detail);
-
-        if (value === lib$rsvp$$internal$$TRY_CATCH_ERROR) {
-          failed = true;
-          error = value.error;
-          value = null;
-        } else {
-          succeeded = true;
-        }
-
-        if (promise === value) {
-          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$withOwnPromise());
-          return;
-        }
-
-      } else {
-        value = detail;
-        succeeded = true;
-      }
-
-      if (promise._state !== lib$rsvp$$internal$$PENDING) {
-        // noop
-      } else if (hasCallback && succeeded) {
-        lib$rsvp$$internal$$resolve(promise, value);
-      } else if (failed) {
-        lib$rsvp$$internal$$reject(promise, error);
-      } else if (settled === lib$rsvp$$internal$$FULFILLED) {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      } else if (settled === lib$rsvp$$internal$$REJECTED) {
-        lib$rsvp$$internal$$reject(promise, value);
-      }
-    }
-
-    function lib$rsvp$$internal$$initializePromise(promise, resolver) {
-      var resolved = false;
-      try {
-        resolver(function resolvePromise(value){
-          if (resolved) { return; }
-          resolved = true;
-          lib$rsvp$$internal$$resolve(promise, value);
-        }, function rejectPromise(reason) {
-          if (resolved) { return; }
-          resolved = true;
-          lib$rsvp$$internal$$reject(promise, reason);
+      if (state) {
+        var callback = arguments[state - 1];
+        lib$rsvp$config$$config.async(function(){
+          lib$rsvp$$internal$$invokeCallback(state, child, callback, result);
         });
-      } catch(e) {
-        lib$rsvp$$internal$$reject(promise, e);
+      } else {
+        lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection);
       }
-    }
 
+      return child;
+    }
+    var lib$rsvp$then$$default = lib$rsvp$then$$then;
+    function lib$rsvp$promise$resolve$$resolve(object, label) {
+      /*jshint validthis:true */
+      var Constructor = this;
+
+      if (object && typeof object === 'object' && object.constructor === Constructor) {
+        return object;
+      }
+
+      var promise = new Constructor(lib$rsvp$$internal$$noop, label);
+      lib$rsvp$$internal$$resolve(promise, object);
+      return promise;
+    }
+    var lib$rsvp$promise$resolve$$default = lib$rsvp$promise$resolve$$resolve;
     function lib$rsvp$enumerator$$makeSettledResult(state, position, value) {
       if (state === lib$rsvp$$internal$$FULFILLED) {
         return {
@@ -567,30 +365,28 @@
     }
 
     function lib$rsvp$enumerator$$Enumerator(Constructor, input, abortOnReject, label) {
-      var enumerator = this;
+      this._instanceConstructor = Constructor;
+      this.promise = new Constructor(lib$rsvp$$internal$$noop, label);
+      this._abortOnReject = abortOnReject;
 
-      enumerator._instanceConstructor = Constructor;
-      enumerator.promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      enumerator._abortOnReject = abortOnReject;
+      if (this._validateInput(input)) {
+        this._input     = input;
+        this.length     = input.length;
+        this._remaining = input.length;
 
-      if (enumerator._validateInput(input)) {
-        enumerator._input     = input;
-        enumerator.length     = input.length;
-        enumerator._remaining = input.length;
+        this._init();
 
-        enumerator._init();
-
-        if (enumerator.length === 0) {
-          lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
+        if (this.length === 0) {
+          lib$rsvp$$internal$$fulfill(this.promise, this._result);
         } else {
-          enumerator.length = enumerator.length || 0;
-          enumerator._enumerate();
-          if (enumerator._remaining === 0) {
-            lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
+          this.length = this.length || 0;
+          this._enumerate();
+          if (this._remaining === 0) {
+            lib$rsvp$$internal$$fulfill(this.promise, this._result);
           }
         }
       } else {
-        lib$rsvp$$internal$$reject(enumerator.promise, enumerator._validationError());
+        lib$rsvp$$internal$$reject(this.promise, this._validationError());
       }
     }
 
@@ -609,48 +405,65 @@
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._enumerate = function() {
-      var enumerator = this;
-      var length     = enumerator.length;
-      var promise    = enumerator.promise;
-      var input      = enumerator._input;
+      var length     = this.length;
+      var promise    = this.promise;
+      var input      = this._input;
 
       for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
-        enumerator._eachEntry(input[i], i);
+        this._eachEntry(input[i], i);
+      }
+    };
+
+    lib$rsvp$enumerator$$Enumerator.prototype._settleMaybeThenable = function(entry, i) {
+      var c = this._instanceConstructor;
+      var resolve = c.resolve;
+
+      if (resolve === lib$rsvp$promise$resolve$$default) {
+        var then = lib$rsvp$$internal$$getThen(entry);
+
+        if (then === lib$rsvp$then$$default &&
+            entry._state !== lib$rsvp$$internal$$PENDING) {
+          entry._onError = null;
+          this._settledAt(entry._state, i, entry._result);
+        } else if (typeof then !== 'function') {
+          this._remaining--;
+          this._result[i] = this._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
+        } else if (c === lib$rsvp$promise$$default) {
+          var promise = new c(lib$rsvp$$internal$$noop);
+          lib$rsvp$$internal$$handleMaybeThenable(promise, entry, then);
+          this._willSettleAt(promise, i);
+        } else {
+          this._willSettleAt(new c(function(resolve) { resolve(entry); }), i);
+        }
+      } else {
+        this._willSettleAt(resolve(entry), i);
       }
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var enumerator = this;
-      var c = enumerator._instanceConstructor;
       if (lib$rsvp$utils$$isMaybeThenable(entry)) {
-        if (entry.constructor === c && entry._state !== lib$rsvp$$internal$$PENDING) {
-          entry._onError = null;
-          enumerator._settledAt(entry._state, i, entry._result);
-        } else {
-          enumerator._willSettleAt(c.resolve(entry), i);
-        }
+        this._settleMaybeThenable(entry, i);
       } else {
-        enumerator._remaining--;
-        enumerator._result[i] = enumerator._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
+        this._remaining--;
+        this._result[i] = this._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
       }
     };
 
     lib$rsvp$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var enumerator = this;
-      var promise = enumerator.promise;
+      var promise = this.promise;
 
       if (promise._state === lib$rsvp$$internal$$PENDING) {
-        enumerator._remaining--;
+        this._remaining--;
 
-        if (enumerator._abortOnReject && state === lib$rsvp$$internal$$REJECTED) {
+        if (this._abortOnReject && state === lib$rsvp$$internal$$REJECTED) {
           lib$rsvp$$internal$$reject(promise, value);
         } else {
-          enumerator._result[i] = enumerator._makeResult(state, i, value);
+          this._result[i] = this._makeResult(state, i, value);
         }
       }
 
-      if (enumerator._remaining === 0) {
-        lib$rsvp$$internal$$fulfill(promise, enumerator._result);
+      if (this._remaining === 0) {
+        lib$rsvp$$internal$$fulfill(promise, this._result);
       }
     };
 
@@ -699,19 +512,6 @@
       return promise;
     }
     var lib$rsvp$promise$race$$default = lib$rsvp$promise$race$$race;
-    function lib$rsvp$promise$resolve$$resolve(object, label) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (object && typeof object === 'object' && object.constructor === Constructor) {
-        return object;
-      }
-
-      var promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      lib$rsvp$$internal$$resolve(promise, object);
-      return promise;
-    }
-    var lib$rsvp$promise$resolve$$default = lib$rsvp$promise$resolve$$resolve;
     function lib$rsvp$promise$reject$$reject(reason, label) {
       /*jshint validthis:true */
       var Constructor = this;
@@ -733,28 +533,17 @@
     }
 
     function lib$rsvp$promise$$Promise(resolver, label) {
-      var promise = this;
+      this._id = lib$rsvp$promise$$counter++;
+      this._label = label;
+      this._state = undefined;
+      this._result = undefined;
+      this._subscribers = [];
 
-      promise._id = lib$rsvp$promise$$counter++;
-      promise._label = label;
-      promise._state = undefined;
-      promise._result = undefined;
-      promise._subscribers = [];
-
-      if (lib$rsvp$config$$config.instrument) {
-        lib$rsvp$instrument$$default('created', promise);
-      }
+      lib$rsvp$config$$config.instrument && lib$rsvp$instrument$$default('created', this);
 
       if (lib$rsvp$$internal$$noop !== resolver) {
-        if (!lib$rsvp$utils$$isFunction(resolver)) {
-          lib$rsvp$promise$$needsResolver();
-        }
-
-        if (!(promise instanceof lib$rsvp$promise$$Promise)) {
-          lib$rsvp$promise$$needsNew();
-        }
-
-        lib$rsvp$$internal$$initializePromise(promise, resolver);
+        typeof resolver !== 'function' && lib$rsvp$promise$$needsResolver();
+        this instanceof lib$rsvp$promise$$Promise ? lib$rsvp$$internal$$initializePromise(this, resolver) : lib$rsvp$promise$$needsNew();
       }
     }
 
@@ -975,37 +764,7 @@
       Useful for tooling.
       @return {Promise}
     */
-      then: function(onFulfillment, onRejection, label) {
-        var parent = this;
-        var state = parent._state;
-
-        if (state === lib$rsvp$$internal$$FULFILLED && !onFulfillment || state === lib$rsvp$$internal$$REJECTED && !onRejection) {
-          if (lib$rsvp$config$$config.instrument) {
-            lib$rsvp$instrument$$default('chained', parent, parent);
-          }
-          return parent;
-        }
-
-        parent._onError = null;
-
-        var child = new parent.constructor(lib$rsvp$$internal$$noop, label);
-        var result = parent._result;
-
-        if (lib$rsvp$config$$config.instrument) {
-          lib$rsvp$instrument$$default('chained', parent, child);
-        }
-
-        if (state) {
-          var callback = arguments[state - 1];
-          lib$rsvp$config$$config.async(function(){
-            lib$rsvp$$internal$$invokeCallback(state, child, callback, result);
-          });
-        } else {
-          lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection);
-        }
-
-        return child;
-      },
+      then: lib$rsvp$then$$default,
 
     /**
       `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
@@ -1084,16 +843,257 @@
         var constructor = promise.constructor;
 
         return promise.then(function(value) {
-          return constructor.resolve(callback()).then(function(){
+          return constructor.resolve(callback()).then(function() {
             return value;
           });
         }, function(reason) {
-          return constructor.resolve(callback()).then(function(){
-            throw reason;
+          return constructor.resolve(callback()).then(function() {
+            return constructor.reject(reason);
           });
         }, label);
       }
     };
+    function  lib$rsvp$$internal$$withOwnPromise() {
+      return new TypeError('A promises callback cannot return that same promise.');
+    }
+
+    function lib$rsvp$$internal$$noop() {}
+
+    var lib$rsvp$$internal$$PENDING   = void 0;
+    var lib$rsvp$$internal$$FULFILLED = 1;
+    var lib$rsvp$$internal$$REJECTED  = 2;
+
+    var lib$rsvp$$internal$$GET_THEN_ERROR = new lib$rsvp$$internal$$ErrorObject();
+
+    function lib$rsvp$$internal$$getThen(promise) {
+      try {
+        return promise.then;
+      } catch(error) {
+        lib$rsvp$$internal$$GET_THEN_ERROR.error = error;
+        return lib$rsvp$$internal$$GET_THEN_ERROR;
+      }
+    }
+
+    function lib$rsvp$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
+      try {
+        then.call(value, fulfillmentHandler, rejectionHandler);
+      } catch(e) {
+        return e;
+      }
+    }
+
+    function lib$rsvp$$internal$$handleForeignThenable(promise, thenable, then) {
+      lib$rsvp$config$$config.async(function(promise) {
+        var sealed = false;
+        var error = lib$rsvp$$internal$$tryThen(then, thenable, function(value) {
+          if (sealed) { return; }
+          sealed = true;
+          if (thenable !== value) {
+            lib$rsvp$$internal$$resolve(promise, value, undefined);
+          } else {
+            lib$rsvp$$internal$$fulfill(promise, value);
+          }
+        }, function(reason) {
+          if (sealed) { return; }
+          sealed = true;
+
+          lib$rsvp$$internal$$reject(promise, reason);
+        }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+        if (!sealed && error) {
+          sealed = true;
+          lib$rsvp$$internal$$reject(promise, error);
+        }
+      }, promise);
+    }
+
+    function lib$rsvp$$internal$$handleOwnThenable(promise, thenable) {
+      if (thenable._state === lib$rsvp$$internal$$FULFILLED) {
+        lib$rsvp$$internal$$fulfill(promise, thenable._result);
+      } else if (thenable._state === lib$rsvp$$internal$$REJECTED) {
+        thenable._onError = null;
+        lib$rsvp$$internal$$reject(promise, thenable._result);
+      } else {
+        lib$rsvp$$internal$$subscribe(thenable, undefined, function(value) {
+          if (thenable !== value) {
+            lib$rsvp$$internal$$resolve(promise, value, undefined);
+          } else {
+            lib$rsvp$$internal$$fulfill(promise, value);
+          }
+        }, function(reason) {
+          lib$rsvp$$internal$$reject(promise, reason);
+        });
+      }
+    }
+
+    function lib$rsvp$$internal$$handleMaybeThenable(promise, maybeThenable, then) {
+      if (maybeThenable.constructor === promise.constructor &&
+          then === lib$rsvp$then$$default &&
+          constructor.resolve === lib$rsvp$promise$resolve$$default) {
+        lib$rsvp$$internal$$handleOwnThenable(promise, maybeThenable);
+      } else {
+        if (then === lib$rsvp$$internal$$GET_THEN_ERROR) {
+          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$GET_THEN_ERROR.error);
+        } else if (then === undefined) {
+          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
+        } else if (lib$rsvp$utils$$isFunction(then)) {
+          lib$rsvp$$internal$$handleForeignThenable(promise, maybeThenable, then);
+        } else {
+          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
+        }
+      }
+    }
+
+    function lib$rsvp$$internal$$resolve(promise, value) {
+      if (promise === value) {
+        lib$rsvp$$internal$$fulfill(promise, value);
+      } else if (lib$rsvp$utils$$objectOrFunction(value)) {
+        lib$rsvp$$internal$$handleMaybeThenable(promise, value, lib$rsvp$$internal$$getThen(value));
+      } else {
+        lib$rsvp$$internal$$fulfill(promise, value);
+      }
+    }
+
+    function lib$rsvp$$internal$$publishRejection(promise) {
+      if (promise._onError) {
+        promise._onError(promise._result);
+      }
+
+      lib$rsvp$$internal$$publish(promise);
+    }
+
+    function lib$rsvp$$internal$$fulfill(promise, value) {
+      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
+
+      promise._result = value;
+      promise._state = lib$rsvp$$internal$$FULFILLED;
+
+      if (promise._subscribers.length === 0) {
+        if (lib$rsvp$config$$config.instrument) {
+          lib$rsvp$instrument$$default('fulfilled', promise);
+        }
+      } else {
+        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, promise);
+      }
+    }
+
+    function lib$rsvp$$internal$$reject(promise, reason) {
+      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
+      promise._state = lib$rsvp$$internal$$REJECTED;
+      promise._result = reason;
+      lib$rsvp$config$$config.async(lib$rsvp$$internal$$publishRejection, promise);
+    }
+
+    function lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
+      var subscribers = parent._subscribers;
+      var length = subscribers.length;
+
+      parent._onError = null;
+
+      subscribers[length] = child;
+      subscribers[length + lib$rsvp$$internal$$FULFILLED] = onFulfillment;
+      subscribers[length + lib$rsvp$$internal$$REJECTED]  = onRejection;
+
+      if (length === 0 && parent._state) {
+        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, parent);
+      }
+    }
+
+    function lib$rsvp$$internal$$publish(promise) {
+      var subscribers = promise._subscribers;
+      var settled = promise._state;
+
+      if (lib$rsvp$config$$config.instrument) {
+        lib$rsvp$instrument$$default(settled === lib$rsvp$$internal$$FULFILLED ? 'fulfilled' : 'rejected', promise);
+      }
+
+      if (subscribers.length === 0) { return; }
+
+      var child, callback, detail = promise._result;
+
+      for (var i = 0; i < subscribers.length; i += 3) {
+        child = subscribers[i];
+        callback = subscribers[i + settled];
+
+        if (child) {
+          lib$rsvp$$internal$$invokeCallback(settled, child, callback, detail);
+        } else {
+          callback(detail);
+        }
+      }
+
+      promise._subscribers.length = 0;
+    }
+
+    function lib$rsvp$$internal$$ErrorObject() {
+      this.error = null;
+    }
+
+    var lib$rsvp$$internal$$TRY_CATCH_ERROR = new lib$rsvp$$internal$$ErrorObject();
+
+    function lib$rsvp$$internal$$tryCatch(callback, detail) {
+      try {
+        return callback(detail);
+      } catch(e) {
+        lib$rsvp$$internal$$TRY_CATCH_ERROR.error = e;
+        return lib$rsvp$$internal$$TRY_CATCH_ERROR;
+      }
+    }
+
+    function lib$rsvp$$internal$$invokeCallback(settled, promise, callback, detail) {
+      var hasCallback = lib$rsvp$utils$$isFunction(callback),
+          value, error, succeeded, failed;
+
+      if (hasCallback) {
+        value = lib$rsvp$$internal$$tryCatch(callback, detail);
+
+        if (value === lib$rsvp$$internal$$TRY_CATCH_ERROR) {
+          failed = true;
+          error = value.error;
+          value = null;
+        } else {
+          succeeded = true;
+        }
+
+        if (promise === value) {
+          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$withOwnPromise());
+          return;
+        }
+
+      } else {
+        value = detail;
+        succeeded = true;
+      }
+
+      if (promise._state !== lib$rsvp$$internal$$PENDING) {
+        // noop
+      } else if (hasCallback && succeeded) {
+        lib$rsvp$$internal$$resolve(promise, value);
+      } else if (failed) {
+        lib$rsvp$$internal$$reject(promise, error);
+      } else if (settled === lib$rsvp$$internal$$FULFILLED) {
+        lib$rsvp$$internal$$fulfill(promise, value);
+      } else if (settled === lib$rsvp$$internal$$REJECTED) {
+        lib$rsvp$$internal$$reject(promise, value);
+      }
+    }
+
+    function lib$rsvp$$internal$$initializePromise(promise, resolver) {
+      var resolved = false;
+      try {
+        resolver(function resolvePromise(value){
+          if (resolved) { return; }
+          resolved = true;
+          lib$rsvp$$internal$$resolve(promise, value);
+        }, function rejectPromise(reason) {
+          if (resolved) { return; }
+          resolved = true;
+          lib$rsvp$$internal$$reject(promise, reason);
+        });
+      } catch(e) {
+        lib$rsvp$$internal$$reject(promise, e);
+      }
+    }
 
     function lib$rsvp$all$settled$$AllSettled(Constructor, entries, label) {
       this._superConstructor(Constructor, entries, false /* don't abort on reject */, label);
@@ -2037,7 +2037,7 @@ EPUBJS.Book.prototype.generatePageList = function(width, height, flag){
                 done.reject(new Error("User cancelled"));
                 return;
             }
-        
+
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
@@ -2101,7 +2101,13 @@ EPUBJS.Book.prototype.generatePagination = function(width, height, flag) {
 
 // Process the pagination from a JSON array containing the pagelist
 EPUBJS.Book.prototype.loadPagination = function(pagelistJSON) {
-	var pageList = JSON.parse(pagelistJSON);
+	var pageList;
+
+	if (typeof(pagelistJSON) === "string") {
+		pageList = JSON.parse(pagelistJSON);
+	} else {
+		pageList = pagelistJSON;
+	}
 
 	if(pageList && pageList.length) {
 		this.pageList = pageList;
@@ -2540,7 +2546,7 @@ EPUBJS.Book.prototype.nextPage = function(defer){
         this._q.enqueue("nextPage", [defer]);
         return defer.promise;
     }
-    
+
 	var next = this.renderer.nextPage();
 	if (!next){
 		return this.nextChapter(defer);
@@ -2557,7 +2563,7 @@ EPUBJS.Book.prototype.prevPage = function(defer) {
         this._q.enqueue("prevPage", [defer]);
         return defer.promise;
     }
-    
+
 	var prev = this.renderer.prevPage();
 	if (!prev){
 		return this.prevChapter(defer);
@@ -2580,7 +2586,7 @@ EPUBJS.Book.prototype.nextChapter = function(defer) {
 			return this.displayChapter(next, false, defer);
 		}
 	}
-    
+
     this.trigger("book:atEnd");
     defer.resolve(true);
     return defer.promise;
@@ -3150,21 +3156,23 @@ EPUBJS.Chapter.prototype.unload = function(store){
 };
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
-	var uri = _document.namespaceURI;
-	var doctype = _document.doctype;
-
-	// Creates an empty document
-	this.document = _document.implementation.createDocument(
-			uri,
-			null,
-			null
-	);
-	this.contents = this.document.importNode(
-			_document.documentElement, //node to import
-			true                         //clone its descendants
-	);
-
-	this.document.appendChild(this.contents);
+	// var uri = _document.namespaceURI;
+	// var doctype = _document.doctype;
+	//
+	// // Creates an empty document
+	// this.document = _document.implementation.createDocument(
+	// 		uri,
+	// 		null,
+	// 		null
+	// );
+	// this.contents = this.document.importNode(
+	// 		_document.documentElement, //node to import
+	// 		true                         //clone its descendants
+	// );
+	//
+	// this.document.appendChild(this.contents);
+	this.document = _document;
+	this.contents = _document.documentElement;
 
 	// Fix to apply wgxpath to new document in IE
 	if(!this.document.evaluate && document.evaluate) {
@@ -4790,6 +4798,17 @@ EPUBJS.Hooks = (function(){
 
 EPUBJS.Layout = EPUBJS.Layout || {};
 
+// EPUB2 documents won't provide us with "rendition:layout", so this is used to
+// duck type the documents instead.
+EPUBJS.Layout.isFixedLayout = function (documentElement) {
+	var viewport = documentElement.querySelector("[name=viewport]");
+	if (!viewport || !viewport.hasAttribute("content")) {
+		return false;
+	}
+	var content = viewport.getAttribute("content");
+	return /,/.test(content);
+};
+
 EPUBJS.Layout.Reflowable = function(){
 	this.documentElement = null;
 	this.spreadWidth = null;
@@ -4915,6 +4934,8 @@ EPUBJS.Layout.Fixed = function(){
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	var transform = EPUBJS.core.prefixed('transform');
+	var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
 	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
 	var contents;
@@ -4934,6 +4955,17 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 			height = contents[1].replace("height=", '');
 		}
 	}
+
+	//-- Scale fixed documents so their contents don't overflow, and
+	// vertically and horizontally center the contents
+	var widthScale = _width / width;
+	var heightScale = _height / height;
+	var scale = widthScale < heightScale ? widthScale : heightScale;
+	documentElement.style.position = "absolute";
+	documentElement.style.top = "50%";
+	documentElement.style.left = "50%";
+	documentElement.style[transform] = "scale(" + scale + ") translate(-50%, -50%)";
+	documentElement.style[transformOrigin] = "0px 0px 0px";
 
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
@@ -5765,22 +5797,34 @@ EPUBJS.Render.Iframe = function() {
 
 	this.leftPos = 0;
 	this.pageWidth = 0;
+	this.id = EPUBJS.core.uuid();
 };
 
 //-- Build up any html needed
 EPUBJS.Render.Iframe.prototype.create = function(){
+	this.element = document.createElement('div');
+	this.element.id = "epubjs-view:" + this.id
+
+	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
+	this.transform = EPUBJS.core.prefixed('transform');
+
+	return this.element;
+};
+
+EPUBJS.Render.Iframe.prototype.addIframe = function(){
 	this.iframe = document.createElement('iframe');
-	this.iframe.id = "epubjs-iframe:" + EPUBJS.core.uuid();
-	this.iframe.scrolling = "no";
+	this.iframe.id = "epubjs-iframe:" + this.id;
+	this.iframe.scrolling = this.scrolling || "no";
 	this.iframe.seamless = "seamless";
 	// Back up if seamless isn't supported
 	this.iframe.style.border = "none";
 
 	this.iframe.addEventListener("load", this.loaded.bind(this), false);
 
-	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
-	this.transform = EPUBJS.core.prefixed('transform');
-
+	if (this._width || this._height) {
+		this.iframe.height = this._height;
+		this.iframe.width = this._width;
+	}
 	return this.iframe;
 };
 
@@ -5796,6 +5840,14 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 	if(this.window) {
 		this.unload();
 	}
+
+	if (this.iframe) {
+		this.element.removeChild(this.iframe);
+	}
+
+	this.iframe = this.addIframe();
+	this.element.appendChild(this.iframe);
+
 
 	this.iframe.onload = function(e) {
 		var title;
@@ -5817,15 +5869,6 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 			render.bodyEl.style.margin = "0";
 		}
 
-		// HTML element must have direction set if RTL or columnns will
-		// not be in the correct direction in Firefox
-		// Firefox also need the html element to be position right
-		if(render.direction == "rtl" && render.docEl.dir != "rtl"){
-			render.docEl.dir = "rtl";
-			render.docEl.style.position = "absolute";
-			render.docEl.style.right = "0";
-		}
-
 		deferred.resolve(render.docEl);
 	};
 
@@ -5845,11 +5888,11 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
     return deferred.promise;
   }
 
-  this.document.open();
-  this.document.write(contents);
-  this.document.close();
+  this.iframe.contentDocument.open();
+  this.iframe.contentDocument.write(contents);
+  this.iframe.contentDocument.close();
 
-	return deferred.promise;
+  return deferred.promise;
 };
 
 
@@ -5868,25 +5911,38 @@ EPUBJS.Render.Iframe.prototype.loaded = function(v){
 		base = baseEl.getAttribute('href');
 		this.trigger("render:loaded", base);
 	}
+
 };
 
 // Resize the iframe to the given width and height
 EPUBJS.Render.Iframe.prototype.resize = function(width, height){
 	var iframeBox;
 
-	if(!this.iframe) return;
+	if(!this.element) return;
 
-	this.iframe.height = height;
+	this.element.style.height = height;
+
 
 	if(!isNaN(width) && width % 2 !== 0){
 		width += 1; //-- Prevent cutting off edges of text in columns
 	}
 
-	this.iframe.width = width;
+	this.element.style.width = width;
+
+	if (this.iframe) {
+		this.iframe.height = height;
+		this.iframe.width = width;
+	}
+
+	// Set the width for the iframe
+	this._height = height;
+	this._width = width;
+
 	// Get the fractional height and width of the iframe
 	// Default to orginal if bounding rect is 0
-	this.width = this.iframe.getBoundingClientRect().width || width;
-	this.height = this.iframe.getBoundingClientRect().height || height;
+	this.width = this.element.getBoundingClientRect().width || width;
+	this.height = this.element.getBoundingClientRect().height || height;
+
 };
 
 
@@ -5918,8 +5974,10 @@ EPUBJS.Render.Iframe.prototype.setDirection = function(direction){
 	// Undo previous changes if needed
 	if(this.docEl && this.docEl.dir == "rtl"){
 		this.docEl.dir = "rtl";
-		this.docEl.style.position = "static";
-		this.docEl.style.right = "auto";
+		if (this.layout !== "pre-paginated") {
+			this.docEl.style.position = "static";
+			this.docEl.style.right = "auto";
+		}
 	}
 
 };
@@ -5935,6 +5993,10 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 		this.document.defaultView.scrollTo(leftPos, 0);
 	}
 
+};
+
+EPUBJS.Render.Iframe.prototype.setLayout = function (layout) {
+	this.layout = layout;
 };
 
 EPUBJS.Render.Iframe.prototype.setStyle = function(style, val, prefixed){
@@ -6028,16 +6090,18 @@ EPUBJS.Render.Iframe.prototype.isElementVisible = function(el){
 
 EPUBJS.Render.Iframe.prototype.scroll = function(bool){
 	if(bool) {
-		this.iframe.scrolling = "yes";
+		// this.iframe.scrolling = "yes";
+		this.scrolling = "yes";
 	} else {
-		this.iframe.scrolling = "no";
+		this.scrolling = "no";
+		// this.iframe.scrolling = "no";
 	}
 };
 
 // Cleanup event listeners
 EPUBJS.Render.Iframe.prototype.unload = function(){
 	this.window.removeEventListener("resize", this.resized);
-	this.window.location.reload();
+	this.iframe.removeEventListener("load", this.loaded);
 };
 
 //-- Enable binding events to Render
@@ -6135,7 +6199,7 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 		this.render.resize('100%', '100%');
 	}
 
-	document.addEventListener("orientationchange", this.onResized);
+	document.addEventListener("orientationchange", this.onResized.bind(this));
 };
 
 /**
@@ -6210,6 +6274,25 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 	this.render.load(contents, url).then(function(contents) {
 
+		// Duck-type fixed layout books.
+		if (EPUBJS.Layout.isFixedLayout(contents)) {
+			this.layoutSettings.layout = "pre-paginated";
+			this.layoutMethod = this.determineLayout(this.layoutSettings);
+			this.layout = new EPUBJS.Layout[this.layoutMethod]();
+		}
+		this.render.setLayout(this.layoutSettings.layout);
+
+		// HTML element must have direction set if RTL or columnns will
+		// not be in the correct direction in Firefox
+		// Firefox also need the html element to be position right
+		if(this.render.direction == "rtl" && this.render.docEl.dir != "rtl"){
+			this.render.docEl.dir = "rtl";
+			if (this.render.layout !== "pre-paginated") {
+				this.render.docEl.style.position = "absolute";
+				this.render.docEl.style.right = "0";
+			}
+		}
+
 		this.afterLoad(contents);
 
 		//-- Trigger registered hooks before displaying
@@ -6231,7 +6314,7 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 EPUBJS.Renderer.prototype.afterLoad = function(contents) {
 	var formated;
-	this.currentChapter.setDocument(this.render.document);
+	// this.currentChapter.setDocument(this.render.document);
 	this.contents = contents;
 	this.doc = this.render.document;
 
@@ -6738,10 +6821,12 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 					prevRange = prevRanges[prevRanges.length-1];
 				}
 
-				if(prevRange){
+				if(prevRange && map.length){
 					prevRange.collapse(false);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[map.length-1].end = cfi;
+					if (map[map.length-1]) {
+						map[map.length-1].end = cfi;
+					}
 				}
 
 				range.collapse(true);
@@ -6767,7 +6852,9 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Set back to ltr before sprinting to get correct order
 	if(dir == "rtl") {
 		docEl.dir = "ltr";
-		docEl.style.position = "static";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.position = "static";
+		}
 	}
 
 	this.textSprint(root, check);
@@ -6775,8 +6862,10 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Reset back to previous RTL settings
 	if(dir == "rtl") {
 		docEl.dir = dir;
-		docEl.style.left = "auto";
-		docEl.style.right = "0";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.left = "auto";
+			docEl.style.right = "0";
+		}
 	}
 
 	// Check the remaining children that fit on this page
@@ -6985,13 +7074,13 @@ EPUBJS.Renderer.prototype.pagesInCurrentChapter = function() {
 
 	length = this.pageMap.length;
 
-	if(this.spreads){
-		pgs = Math.ceil(length / 2);
-	} else {
-		pgs = length;
-	}
+	// if(this.spreads){
+	// 	pgs = Math.ceil(length / 2);
+	// } else {
+	// 	pgs = length;
+	// }
 
-	return pgs;
+	return length;
 };
 
 EPUBJS.Renderer.prototype.currentRenderedPage = function(){
@@ -7003,7 +7092,7 @@ EPUBJS.Renderer.prototype.currentRenderedPage = function(){
 	}
 
 	if (this.spreads && this.pageMap.length > 1) {
-		pg = this.chapterPos*2;
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -7024,7 +7113,7 @@ EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
 	lastPage = this.pageMap.length;
 
 	if (this.spreads) {
-		pg = this.chapterPos*2;
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -7419,15 +7508,23 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	_store.getText(full).then(function(text){
 		var url;
 
-		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
-			var _URL = window.URL || window.webkitURL || window.mozURL;
+		 EPUBJS.replace.cssImports(_store, full, text).then(function (importText) {
 
-			var blob = new Blob([newText], { "type" : "text\/css" }),
-					url = _URL.createObjectURL(blob);
+          text = importText + text;
 
-			deferred.resolve(url);
+			EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
+				var _URL = window.URL || window.webkitURL || window.mozURL;
 
-		}, function(reason) {
+				var blob = new Blob([newText], { "type" : "text\/css" }),
+						url = _URL.createObjectURL(blob);
+
+				deferred.resolve(url);
+
+			}, function(reason) {
+				deferred.reject(reason);
+			});
+
+		},function(reason) {
 			deferred.reject(reason);
 		});
 
@@ -7437,6 +7534,40 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 
 	return deferred.promise;
 };
+
+EPUBJS.replace.cssImports = function (_store, base, text) {
+  var deferred = new RSVP.defer();
+  if(!_store) return;
+
+  // check for css @import
+  var importRegex = /@import\s+(?:url\()?\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)?/gi;
+  var importMatches, importFiles = [], allImportText =  '';
+
+  while (importMatches = importRegex.exec(text)) {
+      importFiles.push(importMatches[1]);
+  }
+
+  if (importFiles.length === 0) {
+    deferred.resolve(allImportText);
+  }
+
+  importFiles.forEach(function (fileUrl) {
+      var full = EPUBJS.core.resolveUrl(base, fileUrl);
+      full = EPUBJS.core.uri(full).path;
+      _store.getText(full).then(function(importText){
+        allImportText += importText;
+        if (importFiles.indexOf(fileUrl) === importFiles.length - 1) {
+          deferred.resolve(allImportText);
+        }
+      }, function(reason) {
+        deferred.reject(reason);
+      });
+  });
+
+  return deferred.promise;
+
+};
+
 
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
