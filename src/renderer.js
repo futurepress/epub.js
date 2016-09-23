@@ -65,7 +65,8 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:visibleLocationChanged",
 	"renderer:visibleRangeChanged",
 	"renderer:resized",
-	"renderer:spreads"
+	"renderer:spreads",
+	"renderer:beforeResize"
 ];
 
 /**
@@ -399,8 +400,10 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeEventListeners();
 		this.removeSelectionListeners();
 	}
-
-	this.container.removeChild(this.element);
+	
+	// clean container content 
+	this.container.innerHtml = "";
+//	this.container.removeChild(this.element);
 };
 
 //-- STYLES
@@ -1170,6 +1173,8 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 //-- Listeners for events in the frame
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
+	this.trigger('renderer:beforeResize');
+	
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 
