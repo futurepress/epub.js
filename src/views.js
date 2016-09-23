@@ -5,16 +5,16 @@ function Views(container) {
   this.hidden = false;
 };
 
+Views.prototype.all = function() {
+	return this._views;
+};
+
 Views.prototype.first = function() {
 	return this._views[0];
 };
 
 Views.prototype.last = function() {
 	return this._views[this._views.length-1];
-};
-
-Views.prototype.each = function() {
-	return this._views.forEach.apply(this._views, arguments);
 };
 
 Views.prototype.indexOf = function(view) {
@@ -31,14 +31,18 @@ Views.prototype.get = function(i) {
 
 Views.prototype.append = function(view){
 	this._views.push(view);
-	this.container.appendChild(view.element);
+  if(this.container){
+    this.container.appendChild(view.element);
+  }
   this.length++;
   return view;
 };
 
 Views.prototype.prepend = function(view){
 	this._views.unshift(view);
-	this.container.insertBefore(view.element, this.container.firstChild);
+  if(this.container){
+    this.container.insertBefore(view.element, this.container.firstChild);
+  }
   this.length++;
   return view;
 };
@@ -46,11 +50,14 @@ Views.prototype.prepend = function(view){
 Views.prototype.insert = function(view, index) {
 	this._views.splice(index, 0, view);
 
-	if(index < this.container.children.length){
-		this.container.insertBefore(view.element, this.container.children[index]);
-	} else {
-		this.container.appendChild(view.element);
-	}
+  if(this.container){
+  	if(index < this.container.children.length){
+  		this.container.insertBefore(view.element, this.container.children[index]);
+  	} else {
+  		this.container.appendChild(view.element);
+  	}
+  }
+
   this.length++;
   return view;
 };
@@ -75,11 +82,17 @@ Views.prototype.destroy = function(view) {
 		view.destroy();
 	}
 
-	this.container.removeChild(view.element);
+  if(this.container){
+	   this.container.removeChild(view.element);
+  }
 	view = null;
 };
 
 // Iterators
+
+Views.prototype.each = function() {
+	return this._views.forEach.apply(this._views, arguments);
+};
 
 Views.prototype.clear = function(){
 	// Remove all views

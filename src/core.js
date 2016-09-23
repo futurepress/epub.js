@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var base64 = require('base64-js');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 /*
@@ -193,7 +194,7 @@ function prefixed(unprefixed) {
     upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
     length = vendors.length;
 
-  if (typeof(document.body.style[unprefixed]) != 'undefined') {
+  if (typeof(document) === 'undefined' || typeof(document.body.style[unprefixed]) != 'undefined') {
     return unprefixed;
   }
 
@@ -397,18 +398,111 @@ function isXml(ext) {
   return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
 }
 
-function createBlobUrl(content, mime){
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var tempUrl;
+function createBlob(content, mime){
 	var blob = new Blob([content], {type : mime });
+
+  return blob;
+};
+
+function createBlobUrl(content, mime){
+  var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob = this.createBlob(content, mime);
 
   tempUrl = _URL.createObjectURL(blob);
 
   return tempUrl;
 };
 
+function createBase64Url(content, mime){
+  var string;
+  var data;
+  var datauri;
+
+  if (typeof(content) !== "string") {
+    // Only handles strings
+    return;
+  }
+
+  data = btoa(content);
+
+  datauri = "data:" + mime + ";base64," + data;
+
+  return datauri;
+};
+
 function type(obj){
   return Object.prototype.toString.call(obj).slice(8, -1);
+}
+
+function parse(markup, mime) {
+  var doc;
+  // console.log("parse", markup);
+
+  if (typeof DOMParser === "undefined") {
+    DOMParser = require('xmldom').DOMParser;
+  }
+
+
+  doc = new DOMParser().parseFromString(markup, mime);
+
+  return doc;
+}
+
+function qs(el, sel) {
+  var elements;
+
+  if (typeof el.querySelector != "undefined") {
+    return el.querySelector(sel);
+  } else {
+    elements = el.getElementsByTagName(sel);
+    if (elements.length) {
+      return elements[0];
+    }
+  }
+}
+
+function qsa(el, sel) {
+
+  if (typeof el.querySelector != "undefined") {
+    return el.querySelectorAll(sel);
+  } else {
+    return el.getElementsByTagName(sel);
+  }
+}
+
+function qsp(el, sel, props) {
+  var q, filtered;
+  if (typeof el.querySelector != "undefined") {
+    sel += '[';
+    for (var prop in props) {
+      sel += prop + "='" + props[prop] + "'";
+    }
+    sel += ']';
+    return el.querySelector(sel);
+  } else {
+    q = el.getElementsByTagName(sel);
+    filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
+      for (var prop in props) {
+        if(el.getAttribute(prop) === props[prop]){
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (filtered) {
+      return filtered[0];
+    }
+  }
+}
+
+function blob2base64(blob, cb) {
+  var reader = new FileReader();
+  reader.readAsDataURL(blob);
+  reader.onloadend = function() {
+    cb(reader.result);
+  }
 }
 
 module.exports = {
@@ -434,6 +528,13 @@ module.exports = {
   'cleanStringForXpath': cleanStringForXpath,
   'indexOfTextNode': indexOfTextNode,
   'isXml': isXml,
+  'createBlob': createBlob,
   'createBlobUrl': createBlobUrl,
-  'type': type
+  'type': type,
+  'parse' : parse,
+  'qs' : qs,
+  'qsa' : qsa,
+  'qsp' : qsp,
+  'blob2base64' : blob2base64,
+  'createBase64Url': createBase64Url
 };

@@ -9,16 +9,39 @@ function base(doc, section){
     return;
   }
 
-  head = doc.querySelector("head");
-  base = head.querySelector("base");
+  // head = doc.querySelector("head");
+  // base = head.querySelector("base");
+  head = core.qs(doc, "head");
+  base = core.qs(head, "base");
 
   if(!base) {
     base = doc.createElement("base");
+    head.insertBefore(base, head.firstChild);
   }
 
   base.setAttribute("href", section.url);
-  head.insertBefore(base, head.firstChild);
+}
 
+function canonical(doc, section){
+  var head;
+  var link;
+  var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
+
+  if(!doc){
+    return;
+  }
+
+  head = core.qs(doc, "head");
+  link = core.qs(head, "link[rel='canonical']");
+
+  if (link) {
+    link.setAttribute("href", url);
+  } else {
+    link = doc.createElement("link");
+    link.setAttribute("rel", "canonical");
+    link.setAttribute("href", url);
+    head.appendChild(link);
+  }
 }
 
 function links(view, renderer) {
@@ -26,6 +49,11 @@ function links(view, renderer) {
   var links = view.document.querySelectorAll("a[href]");
   var replaceLinks = function(link){
     var href = link.getAttribute("href");
+
+    if(href.indexOf("mailto:") === 0){
+      return;
+    }
+
     var linkUri = URI(href);
     var absolute = linkUri.absoluteTo(view.section.url);
     var relative = absolute.relativeTo(this.book.baseUrl).toString();
@@ -80,6 +108,7 @@ function substitute(content, urls, replacements) {
 }
 module.exports = {
   'base': base,
+  'canonical' : canonical,
   'links': links,
   'substitute': substitute
 };

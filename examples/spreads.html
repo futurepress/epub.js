@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EPUB.js Pagination Example</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
   <style type="text/css">
@@ -118,15 +118,15 @@
   <div id="next" class="arrow">›</div>
   <script>
     // Load the opf
-    // var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var book = ePub("../books/alice/OPS/package.opf");
+    window.book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
     var rendition = book.renderTo("viewer", {
-      method: "paginate",
+      manager: "continuous",
+      flow: "paginated",
       width: "100%",
       height: 600
     });
 
-    var displayed = rendition.display(3);
+    var displayed = rendition.display(0);
 
 
     displayed.then(function(renderer){

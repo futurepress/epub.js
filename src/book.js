@@ -6,13 +6,19 @@ var Locations = require('./locations');
 var Parser = require('./parser');
 var Navigation = require('./navigation');
 var Rendition = require('./rendition');
-var Continuous = require('./continuous');
-var Paginate = require('./paginate');
 var Unarchive = require('./unarchive');
 var request = require('./request');
 var EpubCFI = require('./epubcfi');
 
 function Book(_url, options){
+
+  this.settings = core.extend(this.settings || {}, {
+		requestMethod: this.requestMethod
+	});
+
+  core.extend(this.settings, options);
+
+
   // Promises
   this.opening = new RSVP.defer();
   this.opened = this.opening.promise;
@@ -44,7 +50,7 @@ function Book(_url, options){
   this.isRendered = false;
   // this._q = core.queue(this);
 
-  this.request = this.requestMethod.bind(this);
+  this.request = this.settings.requestMethod.bind(this);
 
   this.spine = new Spine(this.request);
   this.locations = new Locations(this.spine, this.request);
@@ -54,7 +60,7 @@ function Book(_url, options){
   }
 };
 
-Book.prototype.open = function(_url){
+Book.prototype.open = function(_url, options){
   var uri;
   var parse = new Parser();
   var epubPackage;
@@ -62,6 +68,9 @@ Book.prototype.open = function(_url){
   var book = this;
   var containerPath = "META-INF/container.xml";
   var location;
+  var absoluteUri;
+  var isArrayBuffer = false;
+  var isBase64 = options && options.base64;
 
   if(!_url) {
     this.opening.resolve(this);
@@ -74,31 +83,45 @@ Book.prototype.open = function(_url){
   // } else {
   //   uri = core.uri(_url);
   // }
-  uri = URI(_url);
-  this.url = _url;
+  if (_url instanceof ArrayBuffer || isBase64) {
+		isArrayBuffer = true;
+    this.url = '/';
+	} else {
+    uri = URI(_url);
+	}
+
+  if (window && window.location && uri) {
+    absoluteUri = uri.absoluteTo(window.location.href);
+    this.url = absoluteUri.toString();
+  } if (window && window.location) {
+    this.url = window.location.href;
+  } else {
+    this.url = _url;
+  }
 
   // Find path to the Container
-  if(uri.suffix() === "opf") {
+  if(uri && uri.suffix() === "opf") {
     // Direct link to package, no container
     this.packageUrl = _url;
     this.containerUrl = '';
 
     if(uri.origin()) {
       this.baseUrl = uri.origin() + "/" + uri.directory() + "/";
-    } else if(window){
-      this.baseUrl = uri.absoluteTo(window.location.href).directory() + "/";
+    } else if(absoluteUri){
+      this.baseUrl = absoluteUri.origin();
+      this.baseUrl += absoluteUri.directory() + "/";
     } else {
       this.baseUrl = uri.directory() + "/";
     }
 
     epubPackage = this.request(this.packageUrl);
 
-  } else if(this.isArchivedUrl(uri)) {
+  } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
     // Book is archived
     this.url = '/';
     this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
 
-    epubContainer = this.unarchive(_url).
+    epubContainer = this.unarchive(_url, isBase64).
       then(function() {
         return this.request(this.containerUrl);
       }.bind(this));
@@ -124,14 +147,14 @@ Book.prototype.open = function(_url){
       then(function(paths){
         var packageUri = URI(paths.packagePath);
         var absPackageUri = packageUri.absoluteTo(book.url);
+        var absWindowUri;
+
         book.packageUrl = absPackageUri.toString();
         book.encoding = paths.encoding;
 
         // Set Url relative to the content
-        if(packageUri.origin()) {
-          book.baseUrl = packageUri.origin() + "/" + packageUri.directory() + "/";
-        } else if(window && !book.isArchivedUrl(uri)){
-          book.baseUrl = absPackageUri.absoluteTo(window.location.href).directory() + "/";
+        if(absPackageUri.origin()) {
+          book.baseUrl = absPackageUri.origin() + absPackageUri.directory() + "/";
         } else {
           if(packageUri.directory()) {
             book.baseUrl = "/" + packageUri.directory() + "/";
@@ -208,12 +231,11 @@ Book.prototype.section = function(target) {
 
 // Sugar to render a book
 Book.prototype.renderTo = function(element, options) {
-  var renderMethod = (options && options.method) ?
-      options.method :
-      "rendition";
-  var Renderer = require('./'+renderMethod);
+  // var renderMethod = (options && options.method) ?
+  //     options.method :
+  //     "single";
 
-  this.rendition = new Renderer(this, options);
+  this.rendition = new Rendition(this, options);
   this.rendition.attachTo(element);
 
   return this.rendition;
@@ -221,8 +243,8 @@ Book.prototype.renderTo = function(element, options) {
 
 Book.prototype.requestMethod = function(_url) {
   // Switch request methods
-  if(this.archive) {
-    return this.archive.request(_url);
+  if(this.unarchived) {
+    return this.unarchived.request(_url);
   } else {
     return request(_url, null, this.requestCredentials, this.requestHeaders);
   }
@@ -237,9 +259,9 @@ Book.prototype.setRequestHeaders = function(_headers) {
   this.requestHeaders = _headers;
 };
 
-Book.prototype.unarchive = function(bookUrl){
-	this.archive = new Unarchive();
-	return this.archive.open(bookUrl);
+Book.prototype.unarchive = function(bookUrl, isBase64){
+	this.unarchived = new Unarchive();
+	return this.unarchived.open(bookUrl, isBase64);
 };
 
 //-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
@@ -271,8 +293,8 @@ Book.prototype.isArchivedUrl = function(bookUrl){
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
-			if(this.archive) {
-				return this.archive.createUrl(this.cover);
+			if(this.unarchived) {
+				return this.unarchived.createUrl(this.cover);
 			}else{
 				return this.cover;
 			}

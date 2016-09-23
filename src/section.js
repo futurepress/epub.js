@@ -3,7 +3,6 @@ var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
-var replacements = require('./replacements');
 
 function Section(item, hooks){
     this.idref = item.idref;
@@ -17,12 +16,14 @@ function Section(item, hooks){
 
     this.cfiBase = item.cfiBase;
 
-    this.hooks = {};
-    this.hooks.serialize = new Hook(this);
-    this.hooks.content = new Hook(this);
+    if (hooks) {
+      this.hooks = hooks;
+    } else {
+      this.hooks = {};
+      this.hooks.serialize = new Hook(this);
+      this.hooks.content = new Hook(this);
+    }
 
-    // Register replacements
-    this.hooks.content.register(replacements.base);
 };
 
 
@@ -59,8 +60,9 @@ Section.prototype.base = function(_document){
     var task = new RSVP.defer();
     var base = _document.createElement("base"); // TODO: check if exists
     var head;
+    console.log(window.location.origin + "/" +this.url);
 
-    base.setAttribute("href", this.url);
+    base.setAttribute("href", window.location.origin + "/" +this.url);
 
     if(_document) {
       head = _document.querySelector("head");
@@ -87,7 +89,12 @@ Section.prototype.render = function(_request){
 
   this.load(_request).
     then(function(contents){
-      var serializer = new XMLSerializer();
+      var serializer;
+
+      if (typeof XMLSerializer === "undefined") {
+        XMLSerializer = require('xmldom').XMLSerializer;
+      }
+      serializer = new XMLSerializer();
       this.output = serializer.serializeToString(contents);
       return this.output;
     }.bind(this)).

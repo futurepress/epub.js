@@ -1,10 +1,13 @@
 var connect = require('connect');
 var express = require('express');
+var http = require('http');
+var fs = require('fs');
 var serveStatic = require('serve-static');
 var morgan  = require('morgan');
 var colors = require('colors');
 var	argv = require('optimist').argv;
 var	portfinder = require('portfinder');
+var path = require('path');
 var logger, port;
 var log = console.log;
 
@@ -18,7 +21,7 @@ function start(_port) {
     });
   } else {
     listen(_port);
-  } 
+  }
 }
 
 //CORS middleware
@@ -32,11 +35,16 @@ function allowCrossDomain(req, res, next) {
 
 
 function listen(port) {
-  var server = express();
-  server.use(allowCrossDomain);
-  server.use(serveStatic(__dirname + "../../"));
 
-  if(!logger) server.use(morgan(logger))
+  var app = express();
+  var staticServer = serveStatic(path.resolve(__dirname, '../'), {'index': ['index.html', 'index.htm']})
+
+  var server = http.createServer(app);
+
+  app.use(allowCrossDomain);
+  app.use(staticServer);
+
+  if(!logger) app.use(morgan('dev'))
 
   server.listen(port);
 

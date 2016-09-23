@@ -55,14 +55,13 @@ gulp.task('watch', function(cb) {
   bundle('epub.js', cb);
 });
 
-gulp.task('serve', function() {
+gulp.task('serve', function(cb) {
   server();
   bundle('epub.js', cb);
 });
 
-gulp.task('serve:no-watch', function() {
+gulp.task('serve:no-watch', function(cb) {
   server();
-  bundle('epub.js', cb);
 });
 
 gulp.task('test', function(cb) {
@@ -113,6 +112,8 @@ function bundle(file, watch) {
   // Keep JSZip library seperate,
   // must be loaded to use Unarchive or `require` will throw an error
   b.external('jszip');
+
+  b.external('xmldom');
 
   // Ignore optional URI libraries
   var urijsPath = URI(require.resolve('urijs'));

@@ -5,21 +5,24 @@ var replace = require('./replacements');
 var Hook = require('./hook');
 var EpubCFI = require('./epubcfi');
 var Queue = require('./queue');
-var View = require('./view');
+// var View = require('./view');
 var Views = require('./views');
 var Layout = require('./layout');
-var Map = require('./map');
+var Mapping = require('./mapping');
 
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
-		infinite: true,
-		hidden: false,
-		width: false,
+		width: null,
 		height: null,
-		layoutOveride : null, // Default: { spread: 'reflowable', layout: 'auto', orientation: 'auto'},
-		axis: "vertical",
-		ignoreClass: ''
+		ignoreClass: '',
+		manager: "continuous",
+		view: "iframe",
+		flow: null,
+		layout: null,
+		spread: null,
+		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
+		useBase64: true
 	});
 
 	core.extend(this.settings, options);
@@ -52,153 +55,127 @@ function Rendition(book, options) {
 
 	this.q.enqueue(this.book.opened);
 
-	this.q.enqueue(this.parseLayoutProperties);
+	// Block the queue until rendering is started
+	// this.starting = new RSVP.defer();
+	// this.started = this.starting.promise;
+	this.q.enqueue(this.start);
 
-	if(this.book.archive) {
+	// TODO: move this somewhere else
+	if(this.book.unarchived) {
 		this.replacements();
 	}
+
 };
 
-/**
-* Creates an element to render to.
-* Resizes to passed width and height or to the elements size
-*/
-Rendition.prototype.initialize = function(_options){
-	var options = _options || {};
-	var height  = options.height;// !== false ? options.height : "100%";
-	var width   = options.width;// !== false ? options.width : "100%";
-	var hidden  = options.hidden || false;
-	var container;
-	var wrapper;
-
-	if(options.height && core.isNumber(options.height)) {
-		height = options.height + "px";
-	}
-
-	if(options.width && core.isNumber(options.width)) {
-		width = options.width + "px";
-	}
-
-	// Create new container element
-	container = document.createElement("div");
-
-	container.id = "epubjs-container:" + core.uuid();
-	container.classList.add("epub-container");
-
-	// Style Element
-	container.style.fontSize = "0";
-	container.style.wordSpacing = "0";
-	container.style.lineHeight = "0";
-	container.style.verticalAlign = "top";
-
-	if(this.settings.axis === "horizontal") {
-		container.style.whiteSpace = "nowrap";
-	}
-
-	if(width){
-		container.style.width = width;
-	}
-
-	if(height){
-		container.style.height = height;
-	}
-
-	container.style.overflow = this.settings.overflow;
-
-	return container;
+Rendition.prototype.setManager = function(manager) {
+	this.manager = manager;
 };
 
-Rendition.wrap = function(container) {
-	var wrapper = document.createElement("div");
+Rendition.prototype.requireManager = function(manager) {
+	var viewManager;
 
-	wrapper.style.visibility = "hidden";
-	wrapper.style.overflow = "hidden";
-	wrapper.style.width = "0";
-	wrapper.style.height = "0";
+	// If manager is a string, try to load from register managers,
+	// or require included managers directly
+	if (typeof manager === "string") {
+		// Use global or require
+		viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
+	} else {
+		// otherwise, assume we were passed a function
+		viewManager = manager
+	}
 
-	wrapper.appendChild(container);
-	return wrapper;
+  return viewManager;
+};
+
+Rendition.prototype.requireView = function(view) {
+	var View;
+
+	if (typeof view == "string") {
+		View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
+	} else {
+		// otherwise, assume we were passed a function
+		View = view
+	}
+
+  return View;
+};
+
+Rendition.prototype.start = function(){
+
+	if(!this.manager) {
+		this.ViewManager = this.requireManager(this.settings.manager);
+		this.View = this.requireView(this.settings.view);
+
+		this.manager = new this.ViewManager({
+			view: this.View,
+			queue: this.q,
+			request: this.book.request,
+			settings: this.settings
+		});
+	}
+
+	// Parse metadata to get layout props
+	this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
+
+	this.flow(this.settings.globalLayoutProperties.flow);
+
+	this.layout(this.settings.globalLayoutProperties);
+
+	// Listen for displayed views
+	this.manager.on("added", this.afterDisplayed.bind(this));
+
+	// Listen for resizing
+	this.manager.on("resized", this.onResized.bind(this));
+
+	// Listen for scroll changes
+	this.manager.on("scroll", this.reportLocation.bind(this));
+
+
+	this.on('displayed', this.reportLocation.bind(this));
+
+	// Trigger that rendering has started
+	this.trigger("started");
+
+	// Start processing queue
+	// this.starting.resolve();
 };
 
 // Call to attach the container to an element in the dom
 // Container must be attached before rendering can begin
-Rendition.prototype.attachTo = function(_element){
-	var bounds;
+Rendition.prototype.attachTo = function(element){
 
-	this.container = this.initialize({
-		"width"  : this.settings.width,
-		"height" : this.settings.height
-	});
+	return this.q.enqueue(function () {
 
-	if(core.isElement(_element)) {
-		this.element = _element;
-	} else if (typeof _element === "string") {
-		this.element = document.getElementById(_element);
-	}
+		// Start rendering
+		this.manager.render(element, {
+			"width"  : this.settings.width,
+			"height" : this.settings.height
+		});
 
-	if(!this.element){
-		console.error("Not an Element");
-		return;
-	}
+		// Trigger Attached
+		this.trigger("attached");
 
-	if(this.settings.hidden) {
-		this.wrapper = this.wrap(this.container);
-		this.element.appendChild(this.wrapper);
-	} else {
-		this.element.appendChild(this.container);
-	}
+	}.bind(this));
 
-	this.views = new Views(this.container);
-
-	// Attach Listeners
-	this.attachListeners();
-
-	// Calculate Stage Size
-	this.stageSize();
-
-	// Add Layout method
-	this.applyLayoutMethod();
-
-	// Trigger Attached
-	this.trigger("attached");
-
-	// Start processing queue
-	// this.q.run();
-
-};
-
-Rendition.prototype.attachListeners = function(){
-
-	// Listen to window for resize event if width or height is set to 100%
-	if(!core.isNumber(this.settings.width) ||
-		 !core.isNumber(this.settings.height) ) {
-		window.addEventListener("resize", this.onResized.bind(this), false);
-	}
-
-};
-
-Rendition.prototype.bounds = function() {
-	return this.container.getBoundingClientRect();
 };
 
 Rendition.prototype.display = function(target){
+
+	// if (!this.book.spine.spineItems.length > 0) {
+		// Book isn't open yet
+		// return this.q.enqueue(this.display, target);
+	// }
 
 	return this.q.enqueue(this._display, target);
 
 };
 
 Rendition.prototype._display = function(target){
-
+	var isCfiString = this.epubcfi.isCfiString(target);
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
-
 	var section;
-  var view;
-  var offset;
-	var fragment;
-	var cfi = this.epubcfi.isCfiString(target);
-
-	var visible;
+	var moveTo;
 
 	section = this.book.spine.get(target);
 
@@ -207,81 +184,43 @@ Rendition.prototype._display = function(target){
 		return displayed;
 	}
 
-	// Check to make sure the section we want isn't already shown
-	visible = this.views.find(section);
-
-	if(visible) {
-		offset = visible.locationOf(target);
-		this.moveTo(offset);
-		displaying.resolve();
-
-	} else {
-
-		// Hide all current views
-		this.views.hide();
-
-		// Create a new view
-		// view = new View(section, this.viewSettings);
-		view = this.createView(section);
-
-		// This will clear all previous views
-		displayed = this.fill(view)
-			.then(function(){
-
-				// Parse the target fragment
-				if(typeof target === "string" &&
-					target.indexOf("#") > -1) {
-						fragment = target.substring(target.indexOf("#")+1);
-				}
-
-				// Move to correct place within the section, if needed
-				if(cfi || fragment) {
-					offset = view.locationOf(target);
-					return this.moveTo(offset);
-				}
-
-				if(typeof this.check === 'function') {
-					return this.check();
-				}
-			}.bind(this))
-			.then(function(){
-				return this.hooks.display.trigger(view);
-			}.bind(this))
-			.then(function(){
-				this.views.show();
-			}.bind(this));
+	// Trim the target fragment
+	// removing the chapter
+	if(!isCfiString && typeof target === "string" &&
+		target.indexOf("#") > -1) {
+			moveTo = target.substring(target.indexOf("#")+1);
 	}
 
-	displayed.then(function(){
+	if (isCfiString) {
+		moveTo = target;
+	}
 
-		this.trigger("displayed", section);
+	return this.manager.display(section, moveTo)
+		.then(function(){
+			this.trigger("displayed", section);
+		}.bind(this));
 
-	}.bind(this));
-
-
-	return displayed;
 };
 
-// Takes a cfi, fragment or page?
-Rendition.prototype.moveTo = function(offset){
-	this.scrollTo(offset.left, offset.top);
-};
-
+/*
 Rendition.prototype.render = function(view, show) {
 
+	// view.onLayout = this.layout.format.bind(this.layout);
 	view.create();
 
-	view.onLayout = this.layout.format.bind(this.layout);
-
 	// Fit to size of the container, apply padding
-	this.resizeView(view);
+	this.manager.resizeView(view);
 
 	// Render Chain
-	return view.render(this.book.request)
-		.then(function(){
+	return view.section.render(this.book.request)
+		.then(function(contents){
+			return view.load(contents);
+		}.bind(this))
+		.then(function(doc){
 			return this.hooks.content.trigger(view, this);
 		}.bind(this))
 		.then(function(){
+			this.layout.format(view.contents);
 			return this.hooks.layout.trigger(view, this);
 		}.bind(this))
 		.then(function(){
@@ -291,13 +230,11 @@ Rendition.prototype.render = function(view, show) {
 			return this.hooks.render.trigger(view, this);
 		}.bind(this))
 		.then(function(){
-			if(show !== false && this.views.hidden === false) {
+			if(show !== false) {
 				this.q.enqueue(function(view){
 					view.show();
 				}, view);
 			}
-
-
 			// this.map = new Map(view, this.layout);
 			this.hooks.show.trigger(view, this);
 			this.trigger("rendered", view.section);
@@ -308,249 +245,139 @@ Rendition.prototype.render = function(view, show) {
 		}.bind(this));
 
 };
-
+*/
 
 Rendition.prototype.afterDisplayed = function(view){
-	this.trigger("added", view.section);
+	this.hooks.content.trigger(view, this);
+	this.trigger("rendered", view.section);
 	this.reportLocation();
 };
 
-Rendition.prototype.fill = function(view){
+Rendition.prototype.onResized = function(size){
 
-	this.views.clear();
-
-	this.views.append(view);
-
-	// view.on("shown", this.afterDisplayed.bind(this));
-	view.onDisplayed = this.afterDisplayed.bind(this);
-
-	return this.render(view);
-};
-
-Rendition.prototype.resizeView = function(view) {
-
-	if(this.globalLayoutProperties.layout === "pre-paginated") {
-		view.lock("both", this.stage.width, this.stage.height);
-	} else {
-		view.lock("width", this.stage.width, this.stage.height);
+	if(this.location) {
+		this.display(this.location.start);
 	}
-
-};
-
-Rendition.prototype.stageSize = function(_width, _height){
-	var bounds;
-	var width = _width || this.settings.width;
-	var height = _height || this.settings.height;
-
-	// If width or height are set to false, inherit them from containing element
-	if(width === false) {
-		bounds = this.element.getBoundingClientRect();
-
-		if(bounds.width) {
-			width = bounds.width;
-			this.container.style.width = bounds.width + "px";
-		}
-	}
-
-	if(height === false) {
-		bounds = bounds || this.element.getBoundingClientRect();
-
-		if(bounds.height) {
-			height = bounds.height;
-			this.container.style.height = bounds.height + "px";
-		}
-
-	}
-
-	if(width && !core.isNumber(width)) {
-		bounds = this.container.getBoundingClientRect();
-		width = bounds.width;
-		//height = bounds.height;
-	}
-
-	if(height && !core.isNumber(height)) {
-		bounds = bounds || this.container.getBoundingClientRect();
-		//width = bounds.width;
-		height = bounds.height;
-	}
-
-
-	this.containerStyles = window.getComputedStyle(this.container);
-	this.containerPadding = {
-		left: parseFloat(this.containerStyles["padding-left"]) || 0,
-		right: parseFloat(this.containerStyles["padding-right"]) || 0,
-		top: parseFloat(this.containerStyles["padding-top"]) || 0,
-		bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
-	};
-
-	this.stage = {
-		width: width -
-						this.containerPadding.left -
-						this.containerPadding.right,
-		height: height -
-						this.containerPadding.top -
-						this.containerPadding.bottom
-	};
-
-	return this.stage;
-
-};
-
-Rendition.prototype.applyLayoutMethod = function() {
-
-	this.layout = new Layout.Scroll();
-	this.updateLayout();
-
-	this.map = new Map(this.layout);
-};
-
-Rendition.prototype.updateLayout = function() {
-
-	this.layout.calculate(this.stage.width, this.stage.height);
-
-};
-
-Rendition.prototype.resize = function(width, height){
-
-	this.stageSize(width, height);
-
-	this.updateLayout();
-
-	this.views.each(this.resizeView.bind(this));
 
 	this.trigger("resized", {
-		width: this.stage.width,
-		height: this.stage.height
+		width: size.width,
+		height: size.height
 	});
 
 };
 
-Rendition.prototype.onResized = function(e) {
-	this.resize();
-};
-
-Rendition.prototype.createView = function(section) {
-	// Transfer the existing hooks
-	section.hooks.serialize.register(this.hooks.serialize.list());
-
-	return new View(section, this.viewSettings);
+Rendition.prototype.moveTo = function(offset){
+	this.manager.moveTo(offset);
 };
 
 Rendition.prototype.next = function(){
-
-	return this.q.enqueue(function(){
-
-		var next;
-		var view;
-
-		if(!this.views.length) return;
-
-		next = this.views.last().section.next();
-
-		if(next) {
-			view = this.createView(next);
-			return this.fill(view);
-		}
-
-	});
-
+	return this.q.enqueue(this.manager.next.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
 Rendition.prototype.prev = function(){
-
-	return this.q.enqueue(function(){
-
-		var prev;
-		var view;
-
-		if(!this.views.length) return;
-
-		prev = this.views.first().section.prev();
-		if(prev) {
-			view = this.createView(prev);
-			return this.fill(view);
-		}
-
-	});
-
+	return this.q.enqueue(this.manager.prev.bind(this.manager))
+		.then(this.reportLocation.bind(this));
 };
 
-//-- http://www.idpf.org/epub/fxl/
-Rendition.prototype.parseLayoutProperties = function(_metadata){
-	var metadata = _metadata || this.book.package.metadata;
-	var layout = (this.layoutOveride && this.layoutOveride.layout) || metadata.layout || "reflowable";
-	var spread = (this.layoutOveride && this.layoutOveride.spread) || metadata.spread || "auto";
-	var orientation = (this.layoutOveride && this.layoutOveride.orientation) || metadata.orientation || "auto";
-	this.globalLayoutProperties = {
+//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
+Rendition.prototype.determineLayoutProperties = function(metadata){
+	var settings;
+	var layout = this.settings.layout || metadata.layout || "reflowable";
+	var spread = this.settings.spread || metadata.spread || "auto";
+	var orientation = this.settings.orientation || metadata.orientation || "auto";
+	var flow = this.settings.flow || metadata.flow || "auto";
+	var viewport = metadata.viewport || "";
+	var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
+
+	if (this.settings.width >= 0 && this.settings.height >= 0) {
+		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
+	}
+
+	settings = {
 		layout : layout,
 		spread : spread,
-		orientation : orientation
+		orientation : orientation,
+		flow : flow,
+		viewport : viewport,
+		minSpreadWidth : minSpreadWidth
 	};
-	return this.globalLayoutProperties;
+
+	return settings;
 };
 
+// Rendition.prototype.applyLayoutProperties = function(){
+// 	var settings = this.determineLayoutProperties(this.book.package.metadata);
+//
+// 	this.flow(settings.flow);
+//
+// 	this.layout(settings);
+// };
 
-Rendition.prototype.current = function(){
-	var visible = this.visible();
-	if(visible.length){
-		// Current is the last visible view
-		return visible[visible.length-1];
+// paginated | scrolled
+// (scrolled-continuous vs scrolled-doc are handled by different view managers)
+Rendition.prototype.flow = function(_flow){
+	var flow;
+	if (_flow === "scrolled-doc" || _flow === "scrolled-continuous") {
+		flow = "scrolled";
 	}
-  return null;
+
+	if (_flow === "auto" || _flow === "paginated") {
+		flow = "paginated";
+	}
+
+	if (this._layout) {
+		this._layout.flow(flow);
+	}
+
+	if (this.manager) {
+		this.manager.updateFlow(flow);
+	}
 };
 
-Rendition.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
-	var position = view.position();
-	var container = _container || this.container.getBoundingClientRect();
+// reflowable | pre-paginated
+Rendition.prototype.layout = function(settings){
+	if (settings) {
+		this._layout = new Layout(settings);
+		this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
-	if(this.settings.axis === "horizontal" &&
-		position.right > container.left - offsetPrev &&
-		position.left < container.right + offsetNext) {
+		this.mapping = new Mapping(this._layout);
+	}
 
-		return true;
+	if (this.manager && this._layout) {
+		this.manager.applyLayout(this._layout);
+	}
 
-  } else if(this.settings.axis === "vertical" &&
-  	position.bottom > container.top - offsetPrev &&
-		position.top < container.bottom + offsetNext) {
-
-		return true;
-  }
-
-	return false;
-
+	return this._layout;
 };
 
-Rendition.prototype.visible = function(){
-	var container = this.bounds();
-	var displayedViews = this.views.displayed();
-  var visible = [];
-  var isVisible;
-  var view;
+// none | auto (TODO: implement landscape, portrait, both)
+Rendition.prototype.spread = function(spread, min){
 
-  for (var i = 0; i < displayedViews.length; i++) {
-    view = displayedViews[i];
-    isVisible = this.isVisible(view, 0, 0, container);
+	this._layout.spread(spread, min);
 
-    if(isVisible === true) {
-      visible.push(view);
-    }
-
-  }
-  return visible;
-
+	if (this.manager.isRendered()) {
+		this.manager.updateLayout();
+	}
 };
 
-Rendition.prototype.bounds = function(func) {
-  var bounds;
 
-  if(!this.settings.height) {
-    bounds = core.windowBounds();
-  } else {
-    bounds = this.container.getBoundingClientRect();
-  }
+Rendition.prototype.reportLocation = function(){
+  return this.q.enqueue(function(){
+    var location = this.manager.currentLocation();
+		if (location.then && typeof location.then === 'function') {
+			location.then(function(result) {
+				this.location = result;
+		    this.trigger("locationChanged", this.location);
+			}.bind(this));
+		} else {
+			this.location = location;
+	    this.trigger("locationChanged", this.location);
+		}
 
-  return bounds;
+  }.bind(this));
 };
+
 
 Rendition.prototype.destroy = function(){
   // Clear the queue
@@ -567,67 +394,8 @@ Rendition.prototype.destroy = function(){
 
 };
 
-Rendition.prototype.reportLocation = function(){
-  return this.q.enqueue(function(){
-    this.location = this.currentLocation();
-    this.trigger("locationChanged", this.location);
-  }.bind(this));
-};
-
-Rendition.prototype.currentLocation = function(){
-  var view;
-  var start, end;
-
-  if(this.views.length) {
-  	view = this.views.first();
-    // start = container.left - view.position().left;
-    // end = start + this.layout.spread;
-
-    return this.map.page(view);
-  }
-
-};
-
-Rendition.prototype.scrollBy = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
-
-  if(this.settings.height) {
-
-    if(x) this.container.scrollLeft += x;
-  	if(y) this.container.scrollTop += y;
-
-  } else {
-  	window.scrollBy(x,y);
-  }
-  // console.log("scrollBy", x, y);
-  this.scrolled = true;
-};
-
-Rendition.prototype.scrollTo = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
-
-  if(this.settings.height) {
-  	this.container.scrollLeft = x;
-  	this.container.scrollTop = y;
-  } else {
-  	window.scrollTo(x,y);
-  }
-  // console.log("scrollTo", x, y);
-  this.scrolled = true;
-  // if(this.container.scrollLeft != x){
-  //   setTimeout(function() {
-  //     this.scrollTo(x, y, silent);
-  //   }.bind(this), 10);
-  //   return;
-  // };
- };
-
 Rendition.prototype.passViewEvents = function(view){
-  view.listenedEvents.forEach(function(e){
+  view.contents.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
 	}.bind(this));
 
@@ -685,23 +453,27 @@ Rendition.prototype.replacements = function(){
 	    map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
 				// Full url from archive base
-	      return this.book.archive.createUrl(absolute);
+	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
 	    }.bind(this));
 
 		// After all the urls are created
 	  return RSVP.all(processing).
 	    then(function(replacementUrls) {
-
+				var replaced = [];
 				// Replace Asset Urls in the text of all css files
 				cssUrls.forEach(function(href) {
-					this.replaceCss(href, urls, replacementUrls);
+					replaced.push(this.replaceCss(href, urls, replacementUrls));
 		    }.bind(this));
 
-				// Replace Asset Urls in chapters
-				// by registering a hook after the sections contents has been serialized
-	      this.hooks.serialize.register(function(output, section) {
-					this.replaceAssets(section, urls, replacementUrls);
-	      }.bind(this));
+				return RSVP.all(replaced).then(function () {
+					// Replace Asset Urls in chapters
+					// by registering a hook after the sections contents has been serialized
+		      this.book.spine.hooks.serialize.register(function(output, section) {
+						this.replaceAssets(section, urls, replacementUrls);
+		      }.bind(this));
+
+				}.bind(this));
+
 
 	    }.bind(this)).catch(function(reason){
 	      console.error(reason);
@@ -717,7 +489,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 		var fileUri = URI(href);
 		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
 		// Get the text of the css file from the archive
-		var text = this.book.archive.getText(absolute);
+		var textResponse = this.book.unarchived.getText(absolute);
 		// Get asset links relative to css file
 		var relUrls = urls.
 			map(function(assetHref) {
@@ -726,17 +498,25 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				return relative;
 			}.bind(this));
 
-		// Replacements in the css text
-		text = replace.substitute(text, relUrls, replacementUrls);
+		return textResponse.then(function (text) {
+			// Replacements in the css text
+			text = replace.substitute(text, relUrls, replacementUrls);
 
-		// Get the new url
-		newUrl = core.createBlobUrl(text, 'text/css');
+			// Get the new url
+			if (this.settings.useBase64) {
+				newUrl = core.createBase64Url(text, 'text/css');
+			} else {
+				newUrl = core.createBlobUrl(text, 'text/css');
+			}
 
-		// switch the url in the replacementUrls
-		indexInUrls = urls.indexOf(href);
-		if (indexInUrls > -1) {
-			replacementUrls[indexInUrls] = newUrl;
-		}
+			// switch the url in the replacementUrls
+			indexInUrls = urls.indexOf(href);
+			if (indexInUrls > -1) {
+				replacementUrls[indexInUrls] = newUrl;
+			}
+
+		}.bind(this));
+
 };
 
 Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
@@ -763,6 +543,22 @@ Rendition.prototype.range = function(_cfi, ignoreClass){
   if (found.length) {
     return found[0].range(cfi, ignoreClass);
   }
+};
+
+Rendition.prototype.adjustImages = function(view) {
+
+  view.addStylesheetRules([
+      ["img",
+        ["max-width", (view.layout.spread) + "px"],
+        ["max-height", (view.layout.height) + "px"]
+      ]
+  ]);
+  return new RSVP.Promise(function(resolve, reject){
+    // Wait to apply
+    setTimeout(function() {
+      resolve();
+    }, 1);
+  });
 };
 
 //-- Enable binding events to Renderer

@@ -67,7 +67,7 @@ EpubCFI.prototype.checkType = function(cfi) {
   // Is a range object
   } else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
     return 'range';
-  } else if (typeof cfi === 'object' && cfi instanceof window.Node ){ // || typeof cfi === 'function'
+  } else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
     return 'node';
   } else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
     return 'EpubCFI';

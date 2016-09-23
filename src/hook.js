@@ -52,4 +52,8 @@ Hook.prototype.list = function(){
   return this.hooks;
 };
 
+Hook.prototype.clear = function(){
+  return this.hooks = [];
+};
+
 module.exports = Hook;
