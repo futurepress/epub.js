@@ -6,59 +6,12 @@
 
 	<script src="../dist/epub.js"></script>
 
+	<link rel="stylesheet" type="text/css" href="examples.css">
 
-	<style type="text/css">
-		body {
-			margin: 0;
-			height: 100%;
-		}
-
-		#viewer { 
-			display: block;
-			margin: 50px auto;
-			width: 600px;
-		}
-
-		#prev {
-			left: 40px;
-		}
-
-		#next {  
-			right: 40px;
-		}
-
-		.arrow {
-			position: absolute;
-			top: 50%;
-			margin-top: -32px;
-			font-size: 64px;
-			color: #E2E2E2;
-			font-family: arial, sans-serif;
-			font-weight: bold;
-			cursor: pointer;
-			-webkit-user-select: none;
-			-moz-user-select: none;
-			user-select: none;
-		}
-
-		.arrow:hover {
-			color: #777;
-		}
-
-		.arrow:active {
-			color: #000;
-		}
-
-		#toc {
-			display: block;
-			margin: 10px auto;
-		}
-
-	</style>
 </head>
 <body>
 	<select id="toc"></select>
-	<div id="viewer"></div>
+	<div id="viewer" class="scrolled"></div>
 
 	<script>
 		var $viewer = document.getElementById("viewer");
@@ -66,10 +19,10 @@
 		var $prev = document.getElementById("prev");
 		var currentSectionIndex = 9;
 		// Load the opf
-		var book = ePub("../books/moby-dick/OPS/package.opf"); // https://s3.amazonaws.com/moby-dick/OPS/package.opf
-		var rendition = book.renderTo("viewer", {width: 600, height: 400});
+		var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
+		var rendition = book.renderTo("viewer", { flow: "scrolled-doc", width: 600, height: 400});
 		var displayed = rendition.display(currentSectionIndex);
-		
+
 		book.loaded.navigation.then(function(toc){
 			var $select = document.getElementById("toc"),
 					docfrag = document.createDocumentFragment();

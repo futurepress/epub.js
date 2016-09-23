@@ -7,62 +7,19 @@
 
   <script src="../dist/epub.js"></script>
 
-  <style type="text/css">
-    body {
-      margin: 0;
-      background: #fafafa;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      color: #333;
-    }
+  <link rel="stylesheet" type="text/css" href="examples.css">
 
-    #viewer {
-
-      overflow: hidden;
-      width: 800px;
-      margin: 0 auto;
-
-    }
-
-    #viewer .epub-view {
-        background: white;
-        box-shadow: 0 0 4px #ccc;
-        margin: 10px;
-        padding: 20px;
-    }
-
-    .arrow {
-      margin: 14px;
-      display: block;
-      text-align: center;
-      text-decoration: none;
-      color: #ccc;
-    }
-
-    .arrow:hover {
-      color: #777;
-    }
-
-    .arrow:active {
-      color: #000;
-    }
-
-    #toc {
-      display: block;
-      margin: 10px auto;
-    }
-
-  </style>
 </head>
 <body>
-  <a id="prev" href="#prev" class="arrow">...</a>
-  <div id="viewer"></div>
-  <a id="next" href="#next" class="arrow">...</a>
+  <a id="prev" href="#prev" class="navlink">...</a>
+  <div id="viewer" class="scrolled"></div>
+  <a id="next" href="#next" class="navlink">...</a>
 
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/alice/OPS/package.opf");
-    var rendition = book.renderTo("viewer");
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    var rendition = book.renderTo("viewer", { flow: "scrolled-doc" });
 
     rendition.display("chapter_001.xhtml");
 

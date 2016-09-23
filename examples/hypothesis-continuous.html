@@ -80,8 +80,8 @@
   <script>
     // var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/alice/OPS/package.opf");
-    var rendition = book.renderTo(document.body, { method: "continuous", width: "60%" });
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = book.renderTo(document.body, { method: "continuous", flow: "scrolled-continuous", width: "60%" });
     var displayed = rendition.display();
 
 

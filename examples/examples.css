@@ -1,0 +1,141 @@
+body {
+  margin: 0;
+  background: #fafafa;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+#title {
+  width: 900px;
+  min-height: 18px;
+  margin: 10px auto;
+  text-align: center;
+  font-size: 16px;
+  color: #E2E2E2;
+}
+
+#title:hover {
+  color: #777;
+}
+
+#viewer.spreads {
+  width: 900px;
+  height: 600px;
+  box-shadow: 0 0 4px #ccc;
+  border-radius: 5px;
+  padding: 20px 40px;
+  position: relative;
+  margin: 10px auto;
+  background: white url('ajax-loader.gif') center center no-repeat;
+}
+
+#viewer.spreads .epub-view > iframe {
+    background: white;
+}
+
+#viewer.scrolled {
+  overflow: hidden;
+  width: 800px;
+  margin: 0 auto;
+  position: relative;
+  background: url('ajax-loader.gif') center center no-repeat;
+
+}
+
+#viewer.scrolled .epub-container {
+  background: white;
+  box-shadow: 0 0 4px #ccc;
+  margin: 10px;
+  padding: 20px;
+}
+
+#viewer.scrolled .epub-view > iframe {
+    background: white;
+}
+
+#prev {
+  left: 40px;
+}
+
+#next {
+  right: 40px;
+}
+
+#toc {
+  display: block;
+  margin: 10px auto;
+}
+
+@media (min-width: 1000px) {
+  #viewer.spreads:after {
+    position: absolute;
+    width: 1px;
+    border-right: 1px #000 solid;
+    height: 90%;
+    z-index: 1;
+    left: 50%;
+    margin-left: -1px;
+    top: 5%;
+    opacity: .15;
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
+    content:  "";
+  }
+}
+
+.arrow {
+  position: fixed;
+  top: 50%;
+  margin-top: -32px;
+  font-size: 64px;
+  color: #E2E2E2;
+  font-family: arial, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  text-decoration: none;
+}
+
+.navlink {
+  margin: 14px;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #ccc;
+}
+
+.arrow:hover, .navlink:hover {
+  color: #777;
+}
+
+.arrow:active, .navlink:hover {
+  color: #000;
+}
+
+#book-wrapper {
+  width: 480px;
+  height: 640px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  margin: 28px auto;
+  background: #fff;
+  border-radius: 0 5px 5px 0;
+}
+
+#book-viewer {
+  width: 480px;
+  height: 660px;
+  margin: -30px auto;
+  -moz-box-shadow:      inset 10px 0 20px rgba(0,0,0,.1);
+  -webkit-box-shadow:   inset 10px 0 20px rgba(0,0,0,.1);
+  box-shadow:           inset 10px 0 20px rgba(0,0,0,.1);
+}
+
+#book-viewer iframe {
+  padding: 40px 40px;
+}

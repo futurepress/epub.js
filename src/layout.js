@@ -3,10 +3,17 @@ var RSVP = require('rsvp');
 
 function Layout(settings){
   this.name = settings.layout || "reflowable";
-  this._flow = (settings.flow === "paginated") ? "paginated" : "scrolled";
   this._spread = (settings.spread === "none") ? false : true;
   this._minSpreadWidth = settings.spread || 800;
   this._evenSpreads = settings.evenSpreads || false;
+
+  if (settings.flow === "scrolled-continuous" ||
+      settings.flow === "scrolled-doc") {
+    this._flow = "scrolled";
+  } else {
+    this._flow = "paginated";
+  }
+
 
   this.width = 0;
   this.height = 0;

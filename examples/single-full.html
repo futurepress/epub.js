@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EPUB.js Basic Example</title>
+  <title>EPUB.js Scrolled Full Example</title>
 
   <script src="../dist/epub.js"></script>
-
 
 
   <style type="text/css">
@@ -120,9 +119,10 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/alice/");
-    var rendition = book.renderTo("viewer");
-
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = book.renderTo("viewer", {
+      flow: "scrolled-doc"
+    });
     var hash = window.location.hash.slice(2);
     rendition.display(hash || 1);
 
@@ -181,7 +181,7 @@
     rendition.on("locationChanged", function(location){
       console.log(location);
     });
-    
+
     book.loaded.navigation.then(function(toc){
       var $nav = document.getElementById("toc"),
           docfrag = document.createDocumentFragment();
