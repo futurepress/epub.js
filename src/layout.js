@@ -6,6 +6,7 @@ function Layout(settings){
   this._flow = (settings.flow === "paginated") ? "paginated" : "scrolled";
   this._spread = (settings.spread === "none") ? false : true;
   this._minSpreadWidth = settings.spread || 800;
+  this._evenSpreads = settings.evenSpreads || false;
 
   this.width = 0;
   this.height = 0;

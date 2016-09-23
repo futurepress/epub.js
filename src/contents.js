@@ -588,6 +588,7 @@ Contents.prototype.columns = function(width, height, columnWidth, gap){
   var COLUMN_GAP = core.prefixed('columnGap');
   var COLUMN_WIDTH = core.prefixed('columnWidth');
   var COLUMN_FILL = core.prefixed('columnFill');
+  var textWidth;
 
   this.width(width);
   this.height(height);

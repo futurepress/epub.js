@@ -230,6 +230,7 @@ IframeView.prototype.lock = function(what, width, height) {
 IframeView.prototype.expand = function(force) {
   var width = this.lockedWidth;
   var height = this.lockedHeight;
+  var columns;
 
   var textWidth, textHeight;
 
@@ -247,6 +248,15 @@ IframeView.prototype.expand = function(force) {
       // Get the contentWidth by resizing the iframe
       // Check with a min reset of the textWidth
       width = this.contentWidth(textWidth);
+
+      columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
+
+      if ( this.settings.layout.divisor > 1 &&
+          (columns % 2 > 0)) {
+          // add a blank page
+          width += this.settings.layout.gap + this.settings.layout.columnWidth;
+      }
+
       // Save the textWdith
       this._textWidth = textWidth;
       // Save the contentWidth

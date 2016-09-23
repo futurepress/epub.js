@@ -91,10 +91,16 @@ SingleViewManager.prototype.destroy = function(){
 };
 
 SingleViewManager.prototype.onResized = function(e) {
-	this.resize();
+	clearTimeout(this.resizeTimeout);
+  this.resizeTimeout = setTimeout(function(){
+    this.resize();
+  }.bind(this), 150);
 };
 
 SingleViewManager.prototype.resize = function(width, height){
+
+	// Clear the queue
+  this.q.clear();
 
 	this._stageSize = this.stage.size(width, height);
 	this._bounds = this.bounds();
@@ -108,10 +114,12 @@ SingleViewManager.prototype.resize = function(width, height){
 		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
-	this.trigger("resized", {
-		width: this._stageSize.width,
-		height: this._stageSize.height
-	});
+  this.updateLayout();
+
+  this.trigger("resized", {
+    width: this.stage.width,
+    height: this.stage.height
+  });
 
 };
 
@@ -174,8 +182,25 @@ SingleViewManager.prototype.afterResized = function(view){
 	this.trigger("resize", view.section);
 };
 
+// SingleViewManager.prototype.moveTo = function(offset){
+// 	this.scrollTo(offset.left, offset.top);
+// };
+
 SingleViewManager.prototype.moveTo = function(offset){
-	this.scrollTo(offset.left, offset.top);
+	var distX = 0,
+			distY = 0;
+
+	if(this.settings.axis === "vertical") {
+		distY = offset.top;
+	} else {
+		distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
+
+		if (distX + this.layout.delta > this.container.scrollWidth) {
+			distX = this.container.scrollWidth - this.layout.delta;
+		}
+	}
+
+  this.scrollTo(distX, distY);
 };
 
 SingleViewManager.prototype.add = function(view){
@@ -203,10 +228,30 @@ SingleViewManager.prototype.add = function(view){
 SingleViewManager.prototype.next = function(){
 	var next;
 	var view;
+	var left;
 
 	if(!this.views.length) return;
 
-	next = this.views.last().section.next();
+	if(this.settings.axis === "horizontal") {
+
+		this.scrollLeft = this.container.scrollLeft;
+
+		left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+
+		if(left < this.container.scrollWidth) {
+			this.scrollBy(this.layout.delta, 0);
+		} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
+			this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+		} else {
+			next = this.views.last().section.next();
+		}
+
+
+	} else {
+
+		next = this.views.last().section.next();
+
+	}
 
 	if(next) {
 		this.views.clear();
@@ -217,21 +262,45 @@ SingleViewManager.prototype.next = function(){
 			this.views.show();
 		}.bind(this));
 	}
+
+
 };
 
 SingleViewManager.prototype.prev = function(){
 	var prev;
 	var view;
+	var left;
 
 	if(!this.views.length) return;
 
-	prev = this.views.first().section.prev();
+	if(this.settings.axis === "horizontal") {
+
+		this.scrollLeft = this.container.scrollLeft;
+
+		left = this.container.scrollLeft;
+
+		if(left > 0) {
+			this.scrollBy(-this.layout.delta, 0);
+		} else {
+			prev = this.views.first().section.prev();
+		}
+
+
+	} else {
+
+		prev = this.views.first().section.prev();
+
+	}
+
 	if(prev) {
 		this.views.clear();
 
 		view = this.createView(prev);
 		return this.add(view)
 		.then(function(){
+			if(this.settings.axis === "horizontal") {
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+			}
 			this.views.show();
 		}.bind(this));
 	}
@@ -255,7 +324,7 @@ SingleViewManager.prototype.currentLocation = function(){
     start = container.left - view.position().left;
     end = start + this.layout.spread;
 
-    return this.mapping.page(view);
+    return this.mapping.page(view, view.section.cfiBase);
   }
 
 };
@@ -364,15 +433,27 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 };
 
 SingleViewManager.prototype.updateLayout = function() {
-	var bounds;
-
 	if (!this.stage) {
 		return;
 	}
 
-	bounds = this.stage.size();
+	this._stageSize = this.stage.size();
 
-	this.layout.calculate(bounds.width, bounds.height);
+	if(this.settings.axis === "vertical") {
+		this.layout.calculate(this._stageSize.width, this._stageSize.height);
+	} else {
+		this.layout.calculate(
+			this._stageSize.width,
+			this._stageSize.height,
+			this.settings.gap
+		);
+
+		// Set the look ahead offset for what is visible
+		this.settings.offset = this.layout.delta;
+
+		this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+
+	}
 
 	this.setLayout(this.layout);
 
