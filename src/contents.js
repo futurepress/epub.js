@@ -578,9 +578,8 @@ Contents.prototype.size = function(width, height){
     this.height(height);
   }
 
-  // if (width >= 0 && height >= 0) {
-  //   this.overflow("hidden");
-  // }
+  this.css("margin", "0");
+  this.css("boxSizing", "border-box");
 
 };
 

@@ -20,10 +20,10 @@
       overflow: hidden;
       width: 800px;
       margin: 0 auto;
-
+      position: relative;
     }
 
-    #viewer .epub-view {
+    #viewer .epub-container {
         background: white;
         box-shadow: 0 0 4px #ccc;
         margin: 10px;
@@ -61,8 +61,11 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("../books/alice/OPS/package.opf");
-    var rendition = book.renderTo("viewer", { view: "inline" });
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = book.renderTo("viewer", {
+      manager: "single",
+      flow: "scrolled-doc",
+    });
 
     rendition.display("chapter_008.xhtml");
 

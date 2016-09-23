@@ -56,7 +56,12 @@ function Book(_url, options){
   this.locations = new Locations(this.spine, this.request);
 
   if(_url) {
-    this.open(_url);
+    this.open(_url).catch(function (error) {
+      var err = new Error("Cannot load book at "+ _url );
+      console.error(err);
+
+      this.trigger("loadFailed", error);
+    }.bind(this));
   }
 };
 
@@ -114,7 +119,10 @@ Book.prototype.open = function(_url, options){
       this.baseUrl = uri.directory() + "/";
     }
 
-    epubPackage = this.request(this.packageUrl);
+    epubPackage = this.request(this.packageUrl)
+      .catch(function(error) {
+        book.opening.reject(error);
+      });
 
   } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
     // Book is archived
@@ -124,8 +132,10 @@ Book.prototype.open = function(_url, options){
     epubContainer = this.unarchive(_url, isBase64).
       then(function() {
         return this.request(this.containerUrl);
-      }.bind(this));
-
+      }.bind(this))
+      .catch(function(error) {
+        book.opening.reject(error);
+      });
   }
   // Find the path to the Package from the container
   else if (!uri.suffix()) {
@@ -160,19 +170,22 @@ Book.prototype.open = function(_url, options){
             book.baseUrl = "/" + packageUri.directory() + "/";
           } else {
             book.baseUrl = "/"
-          }         
+          }
         }
 
         return book.request(book.packageUrl);
       }).catch(function(error) {
         // handle errors in either of the two requests
-        console.error("Could not load book at: " + (this.packageUrl || this.containerPath));
-        book.trigger("book:loadFailed", (this.packageUrl || this.containerPath));
         book.opening.reject(error);
       });
   }
 
   epubPackage.then(function(packageXml) {
+
+    if (!packageXml) {
+      return;
+    }
+
     // Get package information from epub opf
     book.unpack(packageXml);
 
@@ -191,7 +204,7 @@ Book.prototype.open = function(_url, options){
 
   }).catch(function(error) {
     // handle errors in parsing the book
-    console.error(error.message, error.stack);
+    // console.error(error.message, error.stack);
     book.opening.reject(error);
   });
 

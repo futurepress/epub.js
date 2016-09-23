@@ -346,14 +346,10 @@ SingleViewManager.prototype.onScroll = function(){
 
 };
 
-	SingleViewManager.prototype.bounds = function() {
+SingleViewManager.prototype.bounds = function() {
 	var bounds;
 
-	if(!this.settings.height || !this.container) {
-	 bounds = core.windowBounds();
-	} else {
-	 bounds = this.stage.bounds();
-	}
+	bounds = this.stage.bounds();
 
 	return bounds;
 };
@@ -370,12 +366,15 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 SingleViewManager.prototype.updateLayout = function() {
 	var bounds;
 
-	if (this.stage) {
-		bound = this.stage.bounds();
-		this.layout.calculate(bounds.width, bounds.height);
-
-		this.setLayout(this.layout);
+	if (!this.stage) {
+		return;
 	}
+
+	bounds = this.stage.size();
+
+	this.layout.calculate(bounds.width, bounds.height);
+
+	this.setLayout(this.layout);
 
 };
 
@@ -400,6 +399,7 @@ SingleViewManager.prototype.updateFlow = function(flow){
 
 	this.viewSettings.axis = axis;
 
+	this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
 	// this.views.each(function(view){
 	// 	view.setAxis(axis);
 	// });

@@ -90,6 +90,16 @@ function request(url, type, withCredentials, headers) {
           return deferred.promise;
         }
 
+        if (this.status === 403) {
+          deferred.reject({
+            status: this.status,
+            response: this.response,
+            message : "Forbidden",
+            stack : new Error().stack
+          });
+          return deferred.promise;
+        }
+
         if((this.responseType == '' || this.responseType == 'document')
             && this.responseXML){
           r = this.responseXML;

@@ -239,6 +239,10 @@ EpubCFI.prototype.getCharecterOffsetComponent = function(cfiStr) {
 };
 
 EpubCFI.prototype.joinSteps = function(steps) {
+  if(!steps) {
+    return "";
+  }
+  
   return steps.map(function(part){
     var segment = '';
 

@@ -128,10 +128,10 @@ Stage.prototype.onResize = function(func){
 
 };
 
-Stage.prototype.size = function(_width, _height){
+Stage.prototype.size = function(width, height){
 	var bounds;
-	var width = _width || this.settings.width;
-	var height = _height || this.settings.height;
+	// var width = _width || this.settings.width;
+	// var height = _height || this.settings.height;
 
 	// If width or height are set to false, inherit them from containing element
 	if(width === null) {
@@ -153,13 +153,13 @@ Stage.prototype.size = function(_width, _height){
 
 	}
 
-	if(width && !core.isNumber(width)) {
+	if(!core.isNumber(width)) {
 		bounds = this.container.getBoundingClientRect();
 		width = bounds.width;
 		//height = bounds.height;
 	}
 
-	if(height && !core.isNumber(height)) {
+	if(!core.isNumber(height)) {
 		bounds = bounds || this.container.getBoundingClientRect();
 		//width = bounds.width;
 		height = bounds.height;
@@ -167,6 +167,7 @@ Stage.prototype.size = function(_width, _height){
 
 
 	this.containerStyles = window.getComputedStyle(this.container);
+
 	this.containerPadding = {
 		left: parseFloat(this.containerStyles["padding-left"]) || 0,
 		right: parseFloat(this.containerStyles["padding-right"]) || 0,
@@ -186,7 +187,13 @@ Stage.prototype.size = function(_width, _height){
 };
 
 Stage.prototype.bounds = function(){
-	return this.container.getBoundingClientRect();
+
+	if(!this.container) {
+		return core.windowBounds();
+	} else {
+		return this.container.getBoundingClientRect();
+	}
+
 }
 
 Stage.prototype.getSheet = function(){

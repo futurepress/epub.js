@@ -5485,7 +5485,12 @@ function Book(_url, options){
   this.locations = new Locations(this.spine, this.request);
 
   if(_url) {
-    this.open(_url);
+    this.open(_url).catch(function (error) {
+      var err = new Error("Cannot load book at "+ _url );
+      console.error(err);
+
+      this.trigger("loadFailed", error);
+    }.bind(this));
   }
 };
 
@@ -5543,7 +5548,10 @@ Book.prototype.open = function(_url, options){
       this.baseUrl = uri.directory() + "/";
     }
 
-    epubPackage = this.request(this.packageUrl);
+    epubPackage = this.request(this.packageUrl)
+      .catch(function(error) {
+        book.opening.reject(error);
+      });
 
   } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
     // Book is archived
@@ -5553,8 +5561,10 @@ Book.prototype.open = function(_url, options){
     epubContainer = this.unarchive(_url, isBase64).
       then(function() {
         return this.request(this.containerUrl);
-      }.bind(this));
-
+      }.bind(this))
+      .catch(function(error) {
+        book.opening.reject(error);
+      });
   }
   // Find the path to the Package from the container
   else if (!uri.suffix()) {
@@ -5589,19 +5599,22 @@ Book.prototype.open = function(_url, options){
             book.baseUrl = "/" + packageUri.directory() + "/";
           } else {
             book.baseUrl = "/"
-          }         
+          }
         }
 
         return book.request(book.packageUrl);
       }).catch(function(error) {
         // handle errors in either of the two requests
-        console.error("Could not load book at: " + (this.packageUrl || this.containerPath));
-        book.trigger("book:loadFailed", (this.packageUrl || this.containerPath));
         book.opening.reject(error);
       });
   }
 
   epubPackage.then(function(packageXml) {
+
+    if (!packageXml) {
+      return;
+    }
+
     // Get package information from epub opf
     book.unpack(packageXml);
 
@@ -5620,7 +5633,7 @@ Book.prototype.open = function(_url, options){
 
   }).catch(function(error) {
     // handle errors in parsing the book
-    console.error(error.message, error.stack);
+    // console.error(error.message, error.stack);
     book.opening.reject(error);
   });
 
@@ -6343,9 +6356,8 @@ Contents.prototype.size = function(width, height){
     this.height(height);
   }
 
-  // if (width >= 0 && height >= 0) {
-  //   this.overflow("hidden");
-  // }
+  this.css("margin", "0");
+  this.css("boxSizing", "border-box");
 
 };
 
@@ -7211,6 +7223,10 @@ EpubCFI.prototype.getCharecterOffsetComponent = function(cfiStr) {
 };
 
 EpubCFI.prototype.joinSteps = function(steps) {
+  if(!steps) {
+    return "";
+  }
+  
   return steps.map(function(part){
     var segment = '';
 
@@ -9325,14 +9341,10 @@ SingleViewManager.prototype.onScroll = function(){
 
 };
 
-	SingleViewManager.prototype.bounds = function() {
+SingleViewManager.prototype.bounds = function() {
 	var bounds;
 
-	if(!this.settings.height || !this.container) {
-	 bounds = core.windowBounds();
-	} else {
-	 bounds = this.stage.bounds();
-	}
+	bounds = this.stage.bounds();
 
 	return bounds;
 };
@@ -9349,12 +9361,15 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 SingleViewManager.prototype.updateLayout = function() {
 	var bounds;
 
-	if (this.stage) {
-		bound = this.stage.bounds();
-		this.layout.calculate(bounds.width, bounds.height);
-
-		this.setLayout(this.layout);
+	if (!this.stage) {
+		return;
 	}
+
+	bounds = this.stage.size();
+
+	this.layout.calculate(bounds.width, bounds.height);
+
+	this.setLayout(this.layout);
 
 };
 
@@ -9379,6 +9394,7 @@ SingleViewManager.prototype.updateFlow = function(flow){
 
 	this.viewSettings.axis = axis;
 
+	this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
 	// this.views.each(function(view){
 	// 	view.setAxis(axis);
 	// });
@@ -11259,6 +11275,16 @@ function request(url, type, withCredentials, headers) {
           return deferred.promise;
         }
 
+        if (this.status === 403) {
+          deferred.reject({
+            status: this.status,
+            response: this.response,
+            message : "Forbidden",
+            stack : new Error().stack
+          });
+          return deferred.promise;
+        }
+
         if((this.responseType == '' || this.responseType == 'document')
             && this.responseXML){
           r = this.responseXML;
@@ -11735,10 +11761,10 @@ Stage.prototype.onResize = function(func){
 
 };
 
-Stage.prototype.size = function(_width, _height){
+Stage.prototype.size = function(width, height){
 	var bounds;
-	var width = _width || this.settings.width;
-	var height = _height || this.settings.height;
+	// var width = _width || this.settings.width;
+	// var height = _height || this.settings.height;
 
 	// If width or height are set to false, inherit them from containing element
 	if(width === null) {
@@ -11760,13 +11786,13 @@ Stage.prototype.size = function(_width, _height){
 
 	}
 
-	if(width && !core.isNumber(width)) {
+	if(!core.isNumber(width)) {
 		bounds = this.container.getBoundingClientRect();
 		width = bounds.width;
 		//height = bounds.height;
 	}
 
-	if(height && !core.isNumber(height)) {
+	if(!core.isNumber(height)) {
 		bounds = bounds || this.container.getBoundingClientRect();
 		//width = bounds.width;
 		height = bounds.height;
@@ -11774,6 +11800,7 @@ Stage.prototype.size = function(_width, _height){
 
 
 	this.containerStyles = window.getComputedStyle(this.container);
+
 	this.containerPadding = {
 		left: parseFloat(this.containerStyles["padding-left"]) || 0,
 		right: parseFloat(this.containerStyles["padding-right"]) || 0,
@@ -11793,7 +11820,13 @@ Stage.prototype.size = function(_width, _height){
 };
 
 Stage.prototype.bounds = function(){
-	return this.container.getBoundingClientRect();
+
+	if(!this.container) {
+		return core.windowBounds();
+	} else {
+		return this.container.getBoundingClientRect();
+	}
+
 }
 
 Stage.prototype.getSheet = function(){
