@@ -60,9 +60,8 @@ function Rendition(book, options) {
 	// this.started = this.starting.promise;
 	this.q.enqueue(this.start);
 
-	// TODO: move this somewhere else
 	if(this.book.unarchived) {
-		this.replacements();
+		this.q.enqueue(this.replacements.bind(this));
 	}
 
 };
@@ -412,7 +411,7 @@ Rendition.prototype.triggerSelectedEvent = function(cfirange){
 
 Rendition.prototype.replacements = function(){
 	// Wait for loading
-	return this.q.enqueue(function () {
+	// return this.q.enqueue(function () {
 		// Get thes books manifest
 		var manifest = this.book.package.manifest;
 	  var manifestArray = Object.keys(manifest).
@@ -456,29 +455,37 @@ Rendition.prototype.replacements = function(){
 	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
 	    }.bind(this));
 
+		var replacementUrls;
+
 		// After all the urls are created
-	  return RSVP.all(processing).
-	    then(function(replacementUrls) {
+		return RSVP.all(processing)
+			.then(function(_replacementUrls) {
 				var replaced = [];
+
+				replacementUrls = _replacementUrls;
+
 				// Replace Asset Urls in the text of all css files
 				cssUrls.forEach(function(href) {
 					replaced.push(this.replaceCss(href, urls, replacementUrls));
 		    }.bind(this));
 
-				return RSVP.all(replaced).then(function () {
-					// Replace Asset Urls in chapters
-					// by registering a hook after the sections contents has been serialized
-		      this.book.spine.hooks.serialize.register(function(output, section) {
-						this.replaceAssets(section, urls, replacementUrls);
-		      }.bind(this));
+				return RSVP.all(replaced);
+
+	    }.bind(this))
+			.then(function () {
+				// Replace Asset Urls in chapters
+				// by registering a hook after the sections contents has been serialized
+				this.book.spine.hooks.serialize.register(function(output, section) {
+
+					this.replaceAssets(section, urls, replacementUrls);
 
 				}.bind(this));
 
-
-	    }.bind(this)).catch(function(reason){
+			}.bind(this))
+			.catch(function(reason){
 	      console.error(reason);
 	    });
-	}.bind(this));
+	// }.bind(this));
 };
 
 Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
@@ -515,6 +522,10 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				replacementUrls[indexInUrls] = newUrl;
 			}
 
+			return new RSVP.Promise(function(resolve, reject){
+				resolve(urls, replacementUrls);
+			});
+
 		}.bind(this));
 
 };
@@ -549,7 +560,7 @@ Rendition.prototype.adjustImages = function(view) {
 
   view.addStylesheetRules([
       ["img",
-        ["max-width", (view.layout.spread) + "px"],
+        ["max-width", (view.layout.spreadWidth) + "px"],
         ["max-height", (view.layout.height) + "px"]
       ]
   ]);

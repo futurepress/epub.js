@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EPUB.js Spreads Example</title>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
   <link rel="stylesheet" type="text/css" href="examples.css">
@@ -13,8 +14,8 @@
 <body>
   <div id="title"></div>
   <div id="viewer" class="spreads"></div>
-  <a id="prev" href="#prev" class="arrow"></a>
-  <a id="next" href="#next" class="arrow"></a>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
 
   <script>
     var currentSectionIndex = 8;
