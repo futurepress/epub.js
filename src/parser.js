@@ -303,7 +303,7 @@ EPUBJS.Parser.prototype.navItems = function (navNode, spineIndexByURL, bookSpine
 	var items = list.childNodes,
 			result = [];
 
-	Array.prototype.forEach.call(items, (item) => {
+	Array.prototype.forEach.call(items, function (item) {
 		if (item.tagName !== 'li') return;
 
 		var content = item.querySelector('a, span'),
@@ -314,7 +314,7 @@ EPUBJS.Parser.prototype.navItems = function (navNode, spineIndexByURL, bookSpine
 				spinePos = spineIndexByURL[baseUrl],
 				spineItem = bookSpine[spinePos],
 				cfi = spineItem ? spineItem.cfi : '',
-				subitems = this.navItems(item, spineIndexByURL, bookSpine)
+				subitems = this.navItems(item, spineIndexByURL, bookSpine);
 
 		result.push({
 			href: href,
@@ -323,7 +323,7 @@ EPUBJS.Parser.prototype.navItems = function (navNode, spineIndexByURL, bookSpine
 			subitems: subitems,
 			cfi: cfi
 		});
-	});
+	}.bind(this));
 
 	return result;
 };
