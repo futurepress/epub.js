@@ -9,6 +9,7 @@ var Queue = require('../queue');
 
 function SingleViewManager(options) {
 
+	this.name = "single";
 	this.View = options.view;
 	this.request = options.request;
 	this.renditionQueue = options.queue;
@@ -148,11 +149,18 @@ SingleViewManager.prototype.display = function(section, target){
 
 	this.views.clear();
 
-	// Create a new view
-	view = this.createView(section);
-
-	this.add(view)
+	this.add(section)
 		.then(function(){
+			var next;
+			if (this.layout.name === "pre-paginated" &&
+					this.layout.divisor > 1) {
+				next = section.next();
+				if (next) {
+					return this.add(next);
+				}
+			}
+		}.bind(this))
+		.then(function(view){
 
 			// Move to correct place within the section, if needed
 			if(target) {
@@ -203,7 +211,8 @@ SingleViewManager.prototype.moveTo = function(offset){
   this.scrollTo(distX, distY);
 };
 
-SingleViewManager.prototype.add = function(view){
+SingleViewManager.prototype.add = function(section){
+	var view = this.createView(section);
 
 	this.views.append(view);
 
@@ -215,6 +224,18 @@ SingleViewManager.prototype.add = function(view){
 
 };
 
+SingleViewManager.prototype.append = function(section){
+	var view = this.createView(section);
+	this.views.append(view);
+	return view.display(this.request);
+};
+
+SingleViewManager.prototype.prepend = function(section){
+	var view = this.createView(section);
+
+	this.views.prepend(view);
+	return view.display(this.request);
+};
 // SingleViewManager.prototype.resizeView = function(view) {
 //
 // 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
@@ -256,11 +277,19 @@ SingleViewManager.prototype.next = function(){
 	if(next) {
 		this.views.clear();
 
-		view = this.createView(next);
-		return this.add(view)
-		.then(function(){
-			this.views.show();
-		}.bind(this));
+		return this.append(next)
+			.then(function(){
+				var right;
+				if (this.layout.name && this.layout.divisor > 1) {
+					right = next.next();
+					if (right) {
+						return this.append(right);
+					}
+				}
+			}.bind(this))
+			.then(function(){
+				this.views.show();
+			}.bind(this));
 	}
 
 
@@ -295,14 +324,22 @@ SingleViewManager.prototype.prev = function(){
 	if(prev) {
 		this.views.clear();
 
-		view = this.createView(prev);
-		return this.add(view)
-		.then(function(){
-			if(this.settings.axis === "horizontal") {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
-			}
-			this.views.show();
-		}.bind(this));
+		return this.prepend(prev)
+			.then(function(){
+				var left;
+				if (this.layout.name && this.layout.divisor > 1) {
+					left = prev.prev();
+					if (left) {
+						return this.prepend(left);
+					}
+				}
+			}.bind(this))
+			.then(function(){
+				if(this.settings.axis === "horizontal") {
+					this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				}
+				this.views.show();
+			}.bind(this));
 	}
 };
 
@@ -454,6 +491,10 @@ SingleViewManager.prototype.updateLayout = function() {
 		this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
 	}
+
+	// Set the dimensions for views
+	this.viewSettings.width = this.layout.width;
+	this.viewSettings.height = this.layout.height;
 
 	this.setLayout(this.layout);
 

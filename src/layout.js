@@ -76,6 +76,10 @@ Layout.prototype.calculate = function(_width, _height, _gap){
     colWidth = width;
   }
 
+  if (this.name === "pre-paginated" && divisor > 1) {
+    width = colWidth;
+  }
+
   spreadWidth = colWidth * divisor;
 
   delta = (colWidth + gap) * divisor;

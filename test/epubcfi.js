@@ -1,5 +1,8 @@
 var assert = require('assert');
 var fs = require('fs');
+if (typeof DOMParser === "undefined") {
+  global.DOMParser = require('xmldom').DOMParser;
+}
 
 describe('EpubCFI', function() {
   var EpubCFI = require('../src/epubcfi.js');

@@ -8062,6 +8062,10 @@ Layout.prototype.calculate = function(_width, _height, _gap){
     colWidth = width;
   }
 
+  if (this.name === "pre-paginated" && divisor > 1) {
+    width = colWidth;
+  }
+
   spreadWidth = colWidth * divisor;
 
   delta = (colWidth + gap) * divisor;
@@ -8336,6 +8340,8 @@ function ContinuousViewManager(options) {
 
 	SingleViewManager.apply(this, arguments); // call super constructor.
 
+	this.name = "continuous";
+
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		overflow: "auto",
@@ -8492,31 +8498,31 @@ ContinuousViewManager.prototype.removeShownListeners = function(view){
 };
 
 
+// ContinuousViewManager.prototype.append = function(section){
+// 	return this.q.enqueue(function() {
+//
+// 		this._append(section);
+//
+//
+// 	}.bind(this));
+// };
+//
+// ContinuousViewManager.prototype.prepend = function(section){
+// 	return this.q.enqueue(function() {
+//
+// 		this._prepend(section);
+//
+// 	}.bind(this));
+//
+// };
+
 ContinuousViewManager.prototype.append = function(section){
-	return this.q.enqueue(function() {
-
-		this._append(section);
-
-
-	}.bind(this));
-};
-
-ContinuousViewManager.prototype.prepend = function(section){
-	return this.q.enqueue(function() {
-
-		this._prepend(section);
-
-	}.bind(this));
-
-};
-
-ContinuousViewManager.prototype._append = function(section){
 	var view = this.createView(section);
 	this.views.append(view);
 	return view;
 };
 
-ContinuousViewManager.prototype._prepend = function(section){
+ContinuousViewManager.prototype.prepend = function(section){
 	var view = this.createView(section);
 
 	view.on("resized", this.counter.bind(this));
@@ -8554,7 +8560,9 @@ ContinuousViewManager.prototype.update = function(_offset){
 
     if(isVisible === true) {
 			if (!view.displayed) {
-				promises.push(view.display(this.request));
+				promises.push(view.display(this.request).then(function (view) {
+					view.show();
+				}));
 			}
       visible.push(view);
     } else {
@@ -8604,7 +8612,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		last = this.views.last();
     next = last && last.section.next();
     if(next) {
-      newViews.push(this._append(next));
+      newViews.push(this.append(next));
     }
   }
 
@@ -8612,7 +8620,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		first = this.views.first();
     prev = first && first.section.prev();
     if(prev) {
-      newViews.push(this._prepend(prev));
+      newViews.push(this.prepend(prev));
     }
   }
 
@@ -8948,6 +8956,10 @@ ContinuousViewManager.prototype.updateLayout = function() {
 
 	}
 
+	// Set the dimensions for views
+	this.viewSettings.width = this.layout.width;
+	this.viewSettings.height = this.layout.height;
+
   this.setLayout(this.layout);
 
 };
@@ -9013,6 +9025,7 @@ var Queue = require('../queue');
 
 function SingleViewManager(options) {
 
+	this.name = "single";
 	this.View = options.view;
 	this.request = options.request;
 	this.renditionQueue = options.queue;
@@ -9152,11 +9165,18 @@ SingleViewManager.prototype.display = function(section, target){
 
 	this.views.clear();
 
-	// Create a new view
-	view = this.createView(section);
-
-	this.add(view)
+	this.add(section)
 		.then(function(){
+			var next;
+			if (this.layout.name === "pre-paginated" &&
+					this.layout.divisor > 1) {
+				next = section.next();
+				if (next) {
+					return this.add(next);
+				}
+			}
+		}.bind(this))
+		.then(function(view){
 
 			// Move to correct place within the section, if needed
 			if(target) {
@@ -9207,7 +9227,8 @@ SingleViewManager.prototype.moveTo = function(offset){
   this.scrollTo(distX, distY);
 };
 
-SingleViewManager.prototype.add = function(view){
+SingleViewManager.prototype.add = function(section){
+	var view = this.createView(section);
 
 	this.views.append(view);
 
@@ -9219,6 +9240,18 @@ SingleViewManager.prototype.add = function(view){
 
 };
 
+SingleViewManager.prototype.append = function(section){
+	var view = this.createView(section);
+	this.views.append(view);
+	return view.display(this.request);
+};
+
+SingleViewManager.prototype.prepend = function(section){
+	var view = this.createView(section);
+
+	this.views.prepend(view);
+	return view.display(this.request);
+};
 // SingleViewManager.prototype.resizeView = function(view) {
 //
 // 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
@@ -9260,11 +9293,19 @@ SingleViewManager.prototype.next = function(){
 	if(next) {
 		this.views.clear();
 
-		view = this.createView(next);
-		return this.add(view)
-		.then(function(){
-			this.views.show();
-		}.bind(this));
+		return this.append(next)
+			.then(function(){
+				var right;
+				if (this.layout.name && this.layout.divisor > 1) {
+					right = next.next();
+					if (right) {
+						return this.append(right);
+					}
+				}
+			}.bind(this))
+			.then(function(){
+				this.views.show();
+			}.bind(this));
 	}
 
 
@@ -9299,14 +9340,22 @@ SingleViewManager.prototype.prev = function(){
 	if(prev) {
 		this.views.clear();
 
-		view = this.createView(prev);
-		return this.add(view)
-		.then(function(){
-			if(this.settings.axis === "horizontal") {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
-			}
-			this.views.show();
-		}.bind(this));
+		return this.prepend(prev)
+			.then(function(){
+				var left;
+				if (this.layout.name && this.layout.divisor > 1) {
+					left = prev.prev();
+					if (left) {
+						return this.prepend(left);
+					}
+				}
+			}.bind(this))
+			.then(function(){
+				if(this.settings.axis === "horizontal") {
+					this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				}
+				this.views.show();
+			}.bind(this));
 	}
 };
 
@@ -9458,6 +9507,10 @@ SingleViewManager.prototype.updateLayout = function() {
 		this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
 	}
+
+	// Set the dimensions for views
+	this.viewSettings.width = this.layout.width;
+	this.viewSettings.height = this.layout.height;
 
 	this.setLayout(this.layout);
 
@@ -12480,7 +12533,7 @@ IframeView.prototype.render = function(request, show) {
 
 			if(show !== false) {
 				//this.q.enqueue(function(view){
-					this.show();
+					// this.show();
 				//}, view);
 			}
 			// this.map = new Map(view, this.layout);
@@ -12499,11 +12552,9 @@ IframeView.prototype.size = function(_width, _height) {
   var width = _width || this.settings.width;
   var height = _height || this.settings.height;
 
-  // if(this.layout.name === "pre-paginated") {
-  //   // TODO: check if these are different than the size set in chapter
-  //   this.lock("both", width, height);
-  // } else
-  if(this.settings.axis === "horizontal") {
+  if(this.layout.name === "pre-paginated") {
+    this.lock("both", width, height);
+  } else if(this.settings.axis === "horizontal") {
 		this.lock("height", width, height);
 	} else {
 		this.lock("width", width, height);
@@ -12579,6 +12630,7 @@ IframeView.prototype.expand = function(force) {
       columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
       if ( this.settings.layout.divisor > 1 &&
+           this.settings.layout.name === "reflowable" &&
           (columns % 2 > 0)) {
           // add a blank page
           width += this.settings.layout.gap + this.settings.layout.columnWidth;
@@ -12815,7 +12867,6 @@ IframeView.prototype.display = function(request) {
       this.onDisplayed(this);
 
       this.displayed = true;
-
       displayed.resolve(this);
 
     }.bind(this));

@@ -6,6 +6,8 @@ function ContinuousViewManager(options) {
 
 	SingleViewManager.apply(this, arguments); // call super constructor.
 
+	this.name = "continuous";
+
 	this.settings = core.extend(this.settings || {}, {
 		infinite: true,
 		overflow: "auto",
@@ -162,31 +164,31 @@ ContinuousViewManager.prototype.removeShownListeners = function(view){
 };
 
 
+// ContinuousViewManager.prototype.append = function(section){
+// 	return this.q.enqueue(function() {
+//
+// 		this._append(section);
+//
+//
+// 	}.bind(this));
+// };
+//
+// ContinuousViewManager.prototype.prepend = function(section){
+// 	return this.q.enqueue(function() {
+//
+// 		this._prepend(section);
+//
+// 	}.bind(this));
+//
+// };
+
 ContinuousViewManager.prototype.append = function(section){
-	return this.q.enqueue(function() {
-
-		this._append(section);
-
-
-	}.bind(this));
-};
-
-ContinuousViewManager.prototype.prepend = function(section){
-	return this.q.enqueue(function() {
-
-		this._prepend(section);
-
-	}.bind(this));
-
-};
-
-ContinuousViewManager.prototype._append = function(section){
 	var view = this.createView(section);
 	this.views.append(view);
 	return view;
 };
 
-ContinuousViewManager.prototype._prepend = function(section){
+ContinuousViewManager.prototype.prepend = function(section){
 	var view = this.createView(section);
 
 	view.on("resized", this.counter.bind(this));
@@ -224,7 +226,9 @@ ContinuousViewManager.prototype.update = function(_offset){
 
     if(isVisible === true) {
 			if (!view.displayed) {
-				promises.push(view.display(this.request));
+				promises.push(view.display(this.request).then(function (view) {
+					view.show();
+				}));
 			}
       visible.push(view);
     } else {
@@ -274,7 +278,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		last = this.views.last();
     next = last && last.section.next();
     if(next) {
-      newViews.push(this._append(next));
+      newViews.push(this.append(next));
     }
   }
 
@@ -282,7 +286,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 		first = this.views.first();
     prev = first && first.section.prev();
     if(prev) {
-      newViews.push(this._prepend(prev));
+      newViews.push(this.prepend(prev));
     }
   }
 
@@ -617,6 +621,10 @@ ContinuousViewManager.prototype.updateLayout = function() {
 		this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
 	}
+
+	// Set the dimensions for views
+	this.viewSettings.width = this.layout.width;
+	this.viewSettings.height = this.layout.height;
 
   this.setLayout(this.layout);
 

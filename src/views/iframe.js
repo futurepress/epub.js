@@ -153,7 +153,7 @@ IframeView.prototype.render = function(request, show) {
 
 			if(show !== false) {
 				//this.q.enqueue(function(view){
-					this.show();
+					// this.show();
 				//}, view);
 			}
 			// this.map = new Map(view, this.layout);
@@ -172,11 +172,9 @@ IframeView.prototype.size = function(_width, _height) {
   var width = _width || this.settings.width;
   var height = _height || this.settings.height;
 
-  // if(this.layout.name === "pre-paginated") {
-  //   // TODO: check if these are different than the size set in chapter
-  //   this.lock("both", width, height);
-  // } else
-  if(this.settings.axis === "horizontal") {
+  if(this.layout.name === "pre-paginated") {
+    this.lock("both", width, height);
+  } else if(this.settings.axis === "horizontal") {
 		this.lock("height", width, height);
 	} else {
 		this.lock("width", width, height);
@@ -252,6 +250,7 @@ IframeView.prototype.expand = function(force) {
       columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
       if ( this.settings.layout.divisor > 1 &&
+           this.settings.layout.name === "reflowable" &&
           (columns % 2 > 0)) {
           // add a blank page
           width += this.settings.layout.gap + this.settings.layout.columnWidth;
@@ -488,7 +487,6 @@ IframeView.prototype.display = function(request) {
       this.onDisplayed(this);
 
       this.displayed = true;
-
       displayed.resolve(this);
 
     }.bind(this));
