@@ -1,11 +1,11 @@
 var RSVP = require('rsvp');
 var core = require('../core');
-var Stage = require('../stage');
-var Views = require('../views');
 var EpubCFI = require('../epubcfi');
 // var Layout = require('../layout');
 var Mapping = require('../mapping');
 var Queue = require('../queue');
+var Stage = require('./helpers/stage');
+var Views = require('./helpers/views');
 
 function SingleViewManager(options) {
 
@@ -89,6 +89,16 @@ SingleViewManager.prototype.destroy = function(){
 	// this.views.each(function(view){
 	// 	view.destroy();
 	// });
+
+	/*
+
+		clearTimeout(this.trimTimeout);
+		if(this.settings.hidden) {
+			this.element.removeChild(this.wrapper);
+		} else {
+			this.element.removeChild(this.container);
+		}
+	*/
 };
 
 SingleViewManager.prototype.onResized = function(e) {

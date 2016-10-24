@@ -1,7 +1,7 @@
 var RSVP = require('rsvp');
-var core = require('../core');
-var EpubCFI = require('../epubcfi');
-var Contents = require('../contents');
+var core = require('../../core');
+var EpubCFI = require('../../epubcfi');
+var Contents = require('../../contents');
 
 function IframeView(section, options) {
 	this.settings = core.extend({

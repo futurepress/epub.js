@@ -5775,7 +5775,7 @@ RSVP.on('rejected', function(event){
 	console.error(event.detail.message, event.detail.stack);
 });
 
-},{"./core":10,"./epubcfi":11,"./locations":14,"./navigation":18,"./parser":19,"./rendition":21,"./request":23,"./spine":25,"./unarchive":27,"rsvp":5,"urijs":7}],9:[function(require,module,exports){
+},{"./core":10,"./epubcfi":11,"./locations":14,"./navigation":21,"./parser":22,"./rendition":24,"./request":26,"./spine":28,"./unarchive":29,"rsvp":5,"urijs":7}],9:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -6441,7 +6441,7 @@ RSVP.EventTarget.mixin(Contents.prototype);
 
 module.exports = Contents;
 
-},{"./core":10,"./epubcfi":11,"./mapping":17,"rsvp":5}],10:[function(require,module,exports){
+},{"./core":10,"./epubcfi":11,"./mapping":20,"rsvp":5}],10:[function(require,module,exports){
 var RSVP = require('rsvp');
 var base64 = require('base64-js');
 
@@ -8332,7 +8332,7 @@ RSVP.EventTarget.mixin(Locations.prototype);
 
 module.exports = Locations;
 
-},{"./core":10,"./epubcfi":11,"./queue":20,"rsvp":5}],15:[function(require,module,exports){
+},{"./core":10,"./epubcfi":11,"./queue":23,"rsvp":5}],15:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
 var SingleViewManager = require('./single');
@@ -9014,15 +9014,417 @@ ContinuousViewManager.prototype.updateFlow = function(flow){
 };
 module.exports = ContinuousViewManager;
 
-},{"../core":10,"./single":16,"rsvp":5}],16:[function(require,module,exports){
+},{"../core":10,"./single":18,"rsvp":5}],16:[function(require,module,exports){
+var core = require('../../core');
+
+function Stage(_options) {
+	this.settings = _options || {};
+	this.id = "epubjs-container-" + core.uuid();
+
+	this.container = this.create(this.settings);
+
+	if(this.settings.hidden) {
+		this.wrapper = this.wrap(this.container);
+	}
+
+}
+
+/**
+* Creates an element to render to.
+* Resizes to passed width and height or to the elements size
+*/
+Stage.prototype.create = function(options){
+	var height  = options.height;// !== false ? options.height : "100%";
+	var width   = options.width;// !== false ? options.width : "100%";
+	var overflow  = options.overflow || false;
+	var axis = options.axis || "vertical";
+
+	if(options.height && core.isNumber(options.height)) {
+		height = options.height + "px";
+	}
+
+	if(options.width && core.isNumber(options.width)) {
+		width = options.width + "px";
+	}
+
+	// Create new container element
+	container = document.createElement("div");
+
+	container.id = this.id;
+	container.classList.add("epub-container");
+
+	// Style Element
+	// container.style.fontSize = "0";
+	container.style.wordSpacing = "0";
+	container.style.lineHeight = "0";
+	container.style.verticalAlign = "top";
+
+	if(axis === "horizontal") {
+		container.style.whiteSpace = "nowrap";
+	}
+
+	if(width){
+		container.style.width = width;
+	}
+
+	if(height){
+		container.style.height = height;
+	}
+
+	if (overflow) {
+		container.style.overflow = overflow;
+	}
+
+	return container;
+};
+
+Stage.wrap = function(container) {
+	var wrapper = document.createElement("div");
+
+	wrapper.style.visibility = "hidden";
+	wrapper.style.overflow = "hidden";
+	wrapper.style.width = "0";
+	wrapper.style.height = "0";
+
+	wrapper.appendChild(container);
+	return wrapper;
+};
+
+
+Stage.prototype.getElement = function(_element){
+	var element;
+
+	if(core.isElement(_element)) {
+		element = _element;
+	} else if (typeof _element === "string") {
+		element = document.getElementById(_element);
+	}
+
+	if(!element){
+		console.error("Not an Element");
+		return;
+	}
+
+	return element;
+};
+
+Stage.prototype.attachTo = function(what){
+
+	var element = this.getElement(what);
+	var base;
+
+	if(!element){
+		return;
+	}
+
+	if(this.settings.hidden) {
+		base = this.wrapper;
+	} else {
+		base = this.container;
+	}
+
+	element.appendChild(base);
+
+	this.element = element;
+
+	return element;
+
+};
+
+Stage.prototype.getContainer = function() {
+	return this.container;
+};
+
+Stage.prototype.onResize = function(func){
+	// Only listen to window for resize event if width and height are not fixed.
+	// This applies if it is set to a percent or auto.
+	if(!core.isNumber(this.settings.width) ||
+		 !core.isNumber(this.settings.height) ) {
+		window.addEventListener("resize", func, false);
+	}
+
+};
+
+Stage.prototype.size = function(width, height){
+	var bounds;
+	// var width = _width || this.settings.width;
+	// var height = _height || this.settings.height;
+
+	// If width or height are set to false, inherit them from containing element
+	if(width === null) {
+		bounds = this.element.getBoundingClientRect();
+
+		if(bounds.width) {
+			width = bounds.width;
+			this.container.style.width = bounds.width + "px";
+		}
+	}
+
+	if(height === null) {
+		bounds = bounds || this.element.getBoundingClientRect();
+
+		if(bounds.height) {
+			height = bounds.height;
+			this.container.style.height = bounds.height + "px";
+		}
+
+	}
+
+	if(!core.isNumber(width)) {
+		bounds = this.container.getBoundingClientRect();
+		width = bounds.width;
+		//height = bounds.height;
+	}
+
+	if(!core.isNumber(height)) {
+		bounds = bounds || this.container.getBoundingClientRect();
+		//width = bounds.width;
+		height = bounds.height;
+	}
+
+
+	this.containerStyles = window.getComputedStyle(this.container);
+
+	this.containerPadding = {
+		left: parseFloat(this.containerStyles["padding-left"]) || 0,
+		right: parseFloat(this.containerStyles["padding-right"]) || 0,
+		top: parseFloat(this.containerStyles["padding-top"]) || 0,
+		bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
+	};
+
+	return {
+		width: width -
+						this.containerPadding.left -
+						this.containerPadding.right,
+		height: height -
+						this.containerPadding.top -
+						this.containerPadding.bottom
+	};
+
+};
+
+Stage.prototype.bounds = function(){
+
+	if(!this.container) {
+		return core.windowBounds();
+	} else {
+		return this.container.getBoundingClientRect();
+	}
+
+}
+
+Stage.prototype.getSheet = function(){
+	var style = document.createElement("style");
+
+	// WebKit hack --> https://davidwalsh.name/add-rules-stylesheets
+	style.appendChild(document.createTextNode(""));
+
+	document.head.appendChild(style);
+
+	return style.sheet;
+}
+
+Stage.prototype.addStyleRules = function(selector, rulesArray){
+	var scope = "#" + this.id + " ";
+	var rules = "";
+
+	if(!this.sheet){
+		this.sheet = this.getSheet();
+	}
+
+	rulesArray.forEach(function(set) {
+		for (var prop in set) {
+			if(set.hasOwnProperty(prop)) {
+				rules += prop + ":" + set[prop] + ";";
+			}
+		}
+	})
+
+	this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+}
+
+
+
+module.exports = Stage;
+
+},{"../../core":10}],17:[function(require,module,exports){
+function Views(container) {
+	this.container = container;
+	this._views = [];
+	this.length = 0;
+	this.hidden = false;
+};
+
+Views.prototype.all = function() {
+	return this._views;
+};
+
+Views.prototype.first = function() {
+	return this._views[0];
+};
+
+Views.prototype.last = function() {
+	return this._views[this._views.length-1];
+};
+
+Views.prototype.indexOf = function(view) {
+	return this._views.indexOf(view);
+};
+
+Views.prototype.slice = function() {
+	return this._views.slice.apply(this._views, arguments);
+};
+
+Views.prototype.get = function(i) {
+	return this._views[i];
+};
+
+Views.prototype.append = function(view){
+	this._views.push(view);
+	if(this.container){
+		this.container.appendChild(view.element);
+	}
+	this.length++;
+	return view;
+};
+
+Views.prototype.prepend = function(view){
+	this._views.unshift(view);
+	if(this.container){
+		this.container.insertBefore(view.element, this.container.firstChild);
+	}
+	this.length++;
+	return view;
+};
+
+Views.prototype.insert = function(view, index) {
+	this._views.splice(index, 0, view);
+
+	if(this.container){
+		if(index < this.container.children.length){
+			this.container.insertBefore(view.element, this.container.children[index]);
+		} else {
+			this.container.appendChild(view.element);
+		}
+	}
+
+	this.length++;
+	return view;
+};
+
+Views.prototype.remove = function(view) {
+	var index = this._views.indexOf(view);
+
+	if(index > -1) {
+		this._views.splice(index, 1);
+	}
+
+
+	this.destroy(view);
+
+	this.length--;
+};
+
+Views.prototype.destroy = function(view) {
+	view.off("resized");
+
+	if(view.displayed){
+		view.destroy();
+	}
+
+	if(this.container){
+		 this.container.removeChild(view.element);
+	}
+	view = null;
+};
+
+// Iterators
+
+Views.prototype.each = function() {
+	return this._views.forEach.apply(this._views, arguments);
+};
+
+Views.prototype.clear = function(){
+	// Remove all views
+	var view;
+	var len = this.length;
+
+	if(!this.length) return;
+
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		this.destroy(view);
+	}
+
+	this._views = [];
+	this.length = 0;
+};
+
+Views.prototype.find = function(section){
+
+	var view;
+	var len = this.length;
+
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed && view.section.index == section.index) {
+			return view;
+		}
+	}
+
+};
+
+Views.prototype.displayed = function(){
+	var displayed = [];
+	var view;
+	var len = this.length;
+
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			displayed.push(view);
+		}
+	}
+	return displayed;
+};
+
+Views.prototype.show = function(){
+	var view;
+	var len = this.length;
+
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.show();
+		}
+	}
+	this.hidden = false;
+};
+
+Views.prototype.hide = function(){
+	var view;
+	var len = this.length;
+
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.hide();
+		}
+	}
+	this.hidden = true;
+};
+
+module.exports = Views;
+
+},{}],18:[function(require,module,exports){
 var RSVP = require('rsvp');
 var core = require('../core');
-var Stage = require('../stage');
-var Views = require('../views');
 var EpubCFI = require('../epubcfi');
 // var Layout = require('../layout');
 var Mapping = require('../mapping');
 var Queue = require('../queue');
+var Stage = require('./helpers/stage');
+var Views = require('./helpers/views');
 
 function SingleViewManager(options) {
 
@@ -9106,6 +9508,16 @@ SingleViewManager.prototype.destroy = function(){
 	// this.views.each(function(view){
 	// 	view.destroy();
 	// });
+
+	/*
+
+		clearTimeout(this.trimTimeout);
+		if(this.settings.hidden) {
+			this.element.removeChild(this.wrapper);
+		} else {
+			this.element.removeChild(this.container);
+		}
+	*/
 };
 
 SingleViewManager.prototype.onResized = function(e) {
@@ -9550,2839 +9962,11 @@ SingleViewManager.prototype.updateFlow = function(flow){
 
  module.exports = SingleViewManager;
 
-},{"../core":10,"../epubcfi":11,"../mapping":17,"../queue":20,"../stage":26,"../views":28,"rsvp":5}],17:[function(require,module,exports){
-var EpubCFI = require('./epubcfi');
-
-function Mapping(layout){
-	this.layout = layout;
-};
-
-Mapping.prototype.section = function(view) {
-	var ranges = this.findRanges(view);
-	var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
-
-	return map;
-};
-
-Mapping.prototype.page = function(contents, cfiBase, start, end) {
-	var root = contents && contents.document ? contents.document.body : false;
-
-	if (!root) {
-		return;
-	}
-
-	return this.rangePairToCfiPair(cfiBase, {
-		start: this.findStart(root, start, end),
-		end: this.findEnd(root, start, end)
-	});
-};
-
-Mapping.prototype.walk = function(root, func) {
-	//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-					if ( node.data.trim().length > 0 ) {
-						return NodeFilter.FILTER_ACCEPT;
-					} else {
-						return NodeFilter.FILTER_REJECT;
-					}
-			}
-	}, false);
-	var node;
-	var result;
-	while ((node = treeWalker.nextNode())) {
-		result = func(node);
-		if(result) break;
-	}
-
-	return result;
-};
-
-Mapping.prototype.findRanges = function(view){
-	var columns = [];
-	var scrollWidth = view.contents.scrollWidth();
-	var count = this.layout.count(scrollWidth);
-	var column = this.layout.column;
-	var gap = this.layout.gap;
-	var start, end;
-
-	for (var i = 0; i < count.pages; i++) {
-		start = (column + gap) * i;
-		end = (column * (i+1)) + (gap * i);
-		columns.push({
-			start: this.findStart(view.document.body, start, end),
-			end: this.findEnd(view.document.body, start, end)
-		});
-	}
-
-	return columns;
-};
-
-Mapping.prototype.findStart = function(root, start, end){
-	var stack = [root];
-	var $el;
-	var found;
-	var $prev = root;
-	while (stack.length) {
-
-		$el = stack.shift();
-
-		found = this.walk($el, function(node){
-			var left, right;
-			var elPos;
-			var elRange;
-
-
-			if(node.nodeType == Node.TEXT_NODE){
-				elRange = document.createRange();
-				elRange.selectNodeContents(node);
-				elPos = elRange.getBoundingClientRect();
-			} else {
-				elPos = node.getBoundingClientRect();
-			}
-
-			left = elPos.left;
-			right = elPos.right;
-
-			if( left >= start && left <= end ) {
-				return node;
-			} else if (right > start) {
-				return node;
-			} else {
-				$prev = node;
-				stack.push(node);
-			}
-
-		});
-
-		if(found) {
-			return this.findTextStartRange(found, start, end);
-		}
-
-	}
-
-	// Return last element
-	return this.findTextStartRange($prev, start, end);
-};
-
-Mapping.prototype.findEnd = function(root, start, end){
-	var stack = [root];
-	var $el;
-	var $prev = root;
-	var found;
-
-	while (stack.length) {
-
-		$el = stack.shift();
-
-		found = this.walk($el, function(node){
-
-			var left, right;
-			var elPos;
-			var elRange;
-
-
-			if(node.nodeType == Node.TEXT_NODE){
-				elRange = document.createRange();
-				elRange.selectNodeContents(node);
-				elPos = elRange.getBoundingClientRect();
-			} else {
-				elPos = node.getBoundingClientRect();
-			}
-
-			left = elPos.left;
-			right = elPos.right;
-
-			if(left > end && $prev) {
-				return $prev;
-			} else if(right > end) {
-				return node;
-			} else {
-				$prev = node;
-				stack.push(node);
-			}
-
-		});
-
-
-		if(found){
-			return this.findTextEndRange(found, start, end);
-		}
-
-	}
-
-	// end of chapter
-	return this.findTextEndRange($prev, start, end);
-};
-
-
-Mapping.prototype.findTextStartRange = function(node, start, end){
-	var ranges = this.splitTextNodeIntoRanges(node);
-	var prev;
-	var range;
-	var pos;
-
-	for (var i = 0; i < ranges.length; i++) {
-		range = ranges[i];
-
-		pos = range.getBoundingClientRect();
-
-		if( pos.left >= start ) {
-			return range;
-		}
-
-		prev = range;
-
-	}
-
-	return ranges[0];
-};
-
-Mapping.prototype.findTextEndRange = function(node, start, end){
-	var ranges = this.splitTextNodeIntoRanges(node);
-	var prev;
-	var range;
-	var pos;
-
-	for (var i = 0; i < ranges.length; i++) {
-		range = ranges[i];
-
-		pos = range.getBoundingClientRect();
-
-		if(pos.left > end && prev) {
-			return prev;
-		} else if(pos.right > end) {
-			return range;
-		}
-
-		prev = range;
-
-	}
-
-	// Ends before limit
-	return ranges[ranges.length-1];
-
-};
-
-Mapping.prototype.splitTextNodeIntoRanges = function(node, _splitter){
-	var ranges = [];
-	var textContent = node.textContent || "";
-	var text = textContent.trim();
-	var range;
-	var rect;
-	var list;
-	var doc = node.ownerDocument;
-	var splitter = _splitter || " ";
-
-	pos = text.indexOf(splitter);
-
-	if(pos === -1 || node.nodeType != Node.TEXT_NODE) {
-		range = doc.createRange();
-		range.selectNodeContents(node);
-		return [range];
-	}
-
-	range = doc.createRange();
-	range.setStart(node, 0);
-	range.setEnd(node, pos);
-	ranges.push(range);
-	range = false;
-
-	while ( pos != -1 ) {
-
-		pos = text.indexOf(splitter, pos + 1);
-		if(pos > 0) {
-
-			if(range) {
-				range.setEnd(node, pos);
-				ranges.push(range);
-			}
-
-			range = doc.createRange();
-			range.setStart(node, pos+1);
-		}
-	}
-
-	if(range) {
-		range.setEnd(node, text.length);
-		ranges.push(range);
-	}
-
-	return ranges;
-};
-
-
-
-Mapping.prototype.rangePairToCfiPair = function(cfiBase, rangePair){
-
-	var startRange = rangePair.start;
-	var endRange = rangePair.end;
-
-	startRange.collapse(true);
-	endRange.collapse(true);
-
-	// startCfi = section.cfiFromRange(startRange);
-	// endCfi = section.cfiFromRange(endRange);
-	startCfi = new EpubCFI(startRange, cfiBase).toString();
-	endCfi = new EpubCFI(endRange, cfiBase).toString();
-
-	return {
-		start: startCfi,
-		end: endCfi
-	};
-
-};
-
-Mapping.prototype.rangeListToCfiList = function(cfiBase, columns){
-	var map = [];
-	var rangePair, cifPair;
-
-	for (var i = 0; i < columns.length; i++) {
-		cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
-
-		map.push(cifPair);
-
-	}
-
-	return map;
-};
-
-module.exports = Mapping;
-
-},{"./epubcfi":11}],18:[function(require,module,exports){
-var core = require('./core');
-var Parser = require('./parser');
+},{"../core":10,"../epubcfi":11,"../mapping":20,"../queue":23,"./helpers/stage":16,"./helpers/views":17,"rsvp":5}],19:[function(require,module,exports){
 var RSVP = require('rsvp');
-var URI = require('urijs');
-
-function Navigation(_package, _request){
-	var navigation = this;
-	var parse = new Parser();
-	var request = _request || require('./request');
-
-	this.package = _package;
-	this.toc = [];
-	this.tocByHref = {};
-	this.tocById = {};
-
-	if(_package.navPath) {
-		this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
-		this.nav = {};
-
-		this.nav.load = function(_request){
-			var loading = new RSVP.defer();
-			var loaded = loading.promise;
-
-			request(navigation.navUrl, 'xml').then(function(xml){
-				navigation.toc = parse.nav(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
-	}
-
-	if(_package.ncxPath) {
-		this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
-		this.ncx = {};
-
-		this.ncx.load = function(_request){
-			var loading = new RSVP.defer();
-			var loaded = loading.promise;
-
-			request(navigation.ncxUrl, 'xml').then(function(xml){
-				navigation.toc = parse.toc(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
-	}
-};
-
-// Load the navigation
-Navigation.prototype.load = function(_request) {
-	var request = _request || require('./request');
-	var loading, loaded;
-
-	if(this.nav) {
-		loading = this.nav.load();
-	} else if(this.ncx) {
-		loading = this.ncx.load();
-	} else {
-		loaded = new RSVP.defer();
-		loaded.resolve([]);
-		loading = loaded.promise;
-	}
-
-	return loading;
-
-};
-
-Navigation.prototype.loaded = function(toc) {
-	var item;
-
-	for (var i = 0; i < toc.length; i++) {
-		item = toc[i];
-		this.tocByHref[item.href] = i;
-		this.tocById[item.id] = i;
-	}
-
-};
-
-// Get an item from the navigation
-Navigation.prototype.get = function(target) {
-	var index;
-
-	if(!target) {
-		return this.toc;
-	}
-
-	if(target.indexOf("#") === 0) {
-		index = this.tocById[target.substring(1)];
-	} else if(target in this.tocByHref){
-		index = this.tocByHref[target];
-	}
-
-	return this.toc[index];
-};
-
-module.exports = Navigation;
-
-},{"./core":10,"./parser":19,"./request":23,"rsvp":5,"urijs":7}],19:[function(require,module,exports){
-var URI = require('urijs');
-var core = require('./core');
-var EpubCFI = require('./epubcfi');
-
-
-function Parser(){};
-
-Parser.prototype.container = function(containerXml){
-		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-		var rootfile, fullpath, folder, encoding;
-
-		if(!containerXml) {
-			console.error("Container File Not Found");
-			return;
-		}
-
-		rootfile = core.qs(containerXml, "rootfile");
-
-		if(!rootfile) {
-			console.error("No RootFile Found");
-			return;
-		}
-
-		fullpath = rootfile.getAttribute('full-path');
-		folder = URI(fullpath).directory();
-		encoding = containerXml.xmlEncoding;
-
-		//-- Now that we have the path we can parse the contents
-		return {
-			'packagePath' : fullpath,
-			'basePath' : folder,
-			'encoding' : encoding
-		};
-};
-
-Parser.prototype.identifier = function(packageXml){
-	var metadataNode;
-
-	if(!packageXml) {
-		console.error("Package File Not Found");
-		return;
-	}
-
-	metadataNode = core.qs(packageXml, "metadata");
-
-	if(!metadataNode) {
-		console.error("No Metadata Found");
-		return;
-	}
-
-	return this.getElementText(metadataNode, "identifier");
-};
-
-Parser.prototype.packageContents = function(packageXml){
-	var parse = this;
-	var metadataNode, manifestNode, spineNode;
-	var manifest, navPath, ncxPath, coverPath;
-	var spineNodeIndex;
-	var spine;
-	var spineIndexByURL;
-	var metadata;
-
-	if(!packageXml) {
-		console.error("Package File Not Found");
-		return;
-	}
-
-	metadataNode = core.qs(packageXml, "metadata");
-	if(!metadataNode) {
-		console.error("No Metadata Found");
-		return;
-	}
-
-	manifestNode = core.qs(packageXml, "manifest");
-	if(!manifestNode) {
-		console.error("No Manifest Found");
-		return;
-	}
-
-	spineNode = core.qs(packageXml, "spine");
-	if(!spineNode) {
-		console.error("No Spine Found");
-		return;
-	}
-
-	manifest = parse.manifest(manifestNode);
-	navPath = parse.findNavPath(manifestNode);
-	ncxPath = parse.findNcxPath(manifestNode, spineNode);
-	coverPath = parse.findCoverPath(packageXml);
-
-	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
-
-	spine = parse.spine(spineNode, manifest);
-
-	metadata = parse.metadata(metadataNode);
-
-	metadata.direction = spineNode.getAttribute("page-progression-direction");
-
-	return {
-		'metadata' : metadata,
-		'spine'    : spine,
-		'manifest' : manifest,
-		'navPath'  : navPath,
-		'ncxPath'  : ncxPath,
-		'coverPath': coverPath,
-		'spineNodeIndex' : spineNodeIndex
-	};
-};
-
-//-- Find TOC NAV
-Parser.prototype.findNavPath = function(manifestNode){
-	// Find item with property 'nav'
-	// Should catch nav irregardless of order
-	// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
-	var node = core.qsp(manifestNode, "item", {"properties":"nav"});
-	return node ? node.getAttribute('href') : false;
-};
-
-//-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
-Parser.prototype.findNcxPath = function(manifestNode, spineNode){
-	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
-	var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
-	var tocId;
-
-	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
-	// according to http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2,
-	// "The item that describes the NCX must be referenced by the spine toc attribute."
-	if (!node) {
-		tocId = spineNode.getAttribute("toc");
-		if(tocId) {
-			// node = manifestNode.querySelector("item[id='" + tocId + "']");
-			node = manifestNode.getElementById(tocId);
-		}
-	}
-
-	return node ? node.getAttribute('href') : false;
-};
-
-//-- Expanded to match Readium web components
-Parser.prototype.metadata = function(xml){
-	var metadata = {},
-			p = this;
-
-	metadata.title = p.getElementText(xml, 'title');
-	metadata.creator = p.getElementText(xml, 'creator');
-	metadata.description = p.getElementText(xml, 'description');
-
-	metadata.pubdate = p.getElementText(xml, 'date');
-
-	metadata.publisher = p.getElementText(xml, 'publisher');
-
-	metadata.identifier = p.getElementText(xml, "identifier");
-	metadata.language = p.getElementText(xml, "language");
-	metadata.rights = p.getElementText(xml, "rights");
-
-	metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
-
-	metadata.layout = p.getPropertyText(xml, "rendition:layout");
-	metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
-	metadata.flow = p.getPropertyText(xml, 'rendition:flow');
-	metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
-	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
-
-	return metadata;
-};
-
-//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-//-- Fallback for Epub 2.0
-Parser.prototype.findCoverPath = function(packageXml){
-	var pkg = core.qs(packageXml, "package");
-	var epubVersion = pkg.getAttribute('version');
-
-	if (epubVersion === '2.0') {
-		var metaCover = core.qsp(packageXml, 'meta', {'name':'cover'});
-		if (metaCover) {
-			var coverId = metaCover.getAttribute('content');
-			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
-			var cover = packageXml.getElementById(coverId);
-			return cover ? cover.getAttribute('href') : false;
-		}
-		else {
-			return false;
-		}
-	}
-	else {
-		// var node = packageXml.querySelector("item[properties='cover-image']");
-		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
-		return node ? node.getAttribute('href') : false;
-	}
-};
-
-Parser.prototype.getElementText = function(xml, tag){
-	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
-		el;
-
-	if(!found || found.length === 0) return '';
-
-	el = found[0];
-
-	if(el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-
-};
-
-Parser.prototype.getPropertyText = function(xml, property){
-	var el = core.qsp(xml, "meta", {"property":property});
-
-	if(el && el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-};
-
-Parser.prototype.querySelectorText = function(xml, q){
-	var el = xml.querySelector(q);
-
-	if(el && el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-};
-
-Parser.prototype.manifest = function(manifestXml){
-	var manifest = {};
-
-	//-- Turn items into an array
-	// var selected = manifestXml.querySelectorAll("item");
-	var selected = core.qsa(manifestXml, "item");
-	var items = Array.prototype.slice.call(selected);
-
-	//-- Create an object with the id as key
-	items.forEach(function(item){
-		var id = item.getAttribute('id'),
-				href = item.getAttribute('href') || '',
-				type = item.getAttribute('media-type') || '',
-				properties = item.getAttribute('properties') || '';
-
-		manifest[id] = {
-			'href' : href,
-			// 'url' : href,
-			'type' : type,
-			'properties' : properties.length ? properties.split(' ') : []
-		};
-
-	});
-
-	return manifest;
-
-};
-
-Parser.prototype.spine = function(spineXml, manifest){
-	var spine = [];
-
-	var selected = spineXml.getElementsByTagName("itemref"),
-			items = Array.prototype.slice.call(selected);
-
-	var epubcfi = new EpubCFI();
-
-	//-- Add to array to mantain ordering and cross reference with manifest
-	items.forEach(function(item, index){
-		var idref = item.getAttribute('idref');
-		// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
-		var props = item.getAttribute('properties') || '';
-		var propArray = props.length ? props.split(' ') : [];
-		// var manifestProps = manifest[Id].properties;
-		// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
-
-		var itemref = {
-			'idref' : idref,
-			'linear' : item.getAttribute('linear') || '',
-			'properties' : propArray,
-			// 'href' : manifest[Id].href,
-			// 'url' :  manifest[Id].url,
-			'index' : index
-			// 'cfiBase' : cfiBase
-		};
-		spine.push(itemref);
-	});
-
-	return spine;
-};
-
-Parser.prototype.querySelectorByType = function(html, element, type){
-	var query;
-	if (typeof html.querySelector != "undefined") {
-		query = html.querySelector(element+'[*|type="'+type+'"]');
-	}
-	// Handle IE not supporting namespaced epub:type in querySelector
-	if(!query || query.length === 0) {
-		query = core.qsa(html, element);
-		for (var i = 0; i < query.length; i++) {
-			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
-				return query[i];
-			}
-		}
-	} else {
-		return query;
-	}
-};
-
-Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
-	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
-	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
-	var navItems = navElement ? core.qsa(navElement, "li") : [];
-	var length = navItems.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item, parent;
-
-	if(!navItems || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
-		toc[item.id] = item;
-		if(!item.parent) {
-			list.push(item);
-		} else {
-			parent = toc[item.parent];
-			parent.subitems.push(item);
-		}
-	}
-
-	return list;
-};
-
-Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("a, span"),
-			content = core.qs(item, "a"),
-			src = content.getAttribute('href') || '',
-			text = content.textContent || "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
-			subitems = [],
-			parentNode = item.parentNode,
-			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
-
-	if(parentNode && parentNode.nodeName === "navPoint") {
-		parent = parentNode.getAttribute('id');
-	}
-
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
-
-	return {
-		"id": id,
-		"href": src,
-		"label": text,
-		"subitems" : subitems,
-		"parent" : parent
-	};
-};
-
-Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
-	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
-	var navPoints = core.qsa(tocXml, "navPoint");
-	var length = navPoints.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item, parent;
-
-	if(!navPoints || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.ncxItem(navPoints[i], spineIndexByURL, bookSpine);
-		toc[item.id] = item;
-		if(!item.parent) {
-			list.push(item);
-		} else {
-			parent = toc[item.parent];
-			parent.subitems.push(item);
-		}
-	}
-
-	return list;
-};
-
-Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("content"),
-			content = core.qs(item, "content"),
-			src = content.getAttribute('src'),
-			// navLabel = item.querySelector("navLabel"),
-			navLabel = core.qs(item, "navLabel"),
-			text = navLabel.textContent ? navLabel.textContent : "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
-			subitems = [],
-			parentNode = item.parentNode,
-			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
-
-	if(parentNode && parentNode.nodeName === "navPoint") {
-		parent = parentNode.getAttribute('id');
-	}
-
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
-
-	return {
-		"id": id,
-		"href": src,
-		"label": text,
-		"subitems" : subitems,
-		"parent" : parent
-	};
-};
-
-Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
-	var navElement = this.querySelectorByType(navHtml, "nav", "page-list");
-	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
-	var navItems = navElement ? core.qsa(navElement, "li") : [];
-	var length = navItems.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item;
-
-	if(!navItems || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.pageListItem(navItems[i], spineIndexByURL, bookSpine);
-		list.push(item);
-	}
-
-	return list;
-};
-
-Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-		// content = item.querySelector("a"),
-		content = core.qs(item, "a"),
-		href = content.getAttribute('href') || '',
-		text = content.textContent || "",
-		page = parseInt(text),
-		isCfi = href.indexOf("epubcfi"),
-		split,
-		packageUrl,
-		cfi;
-
-	if(isCfi != -1) {
-		split = href.split("#");
-		packageUrl = split[0];
-		cfi = split.length > 1 ? split[1] : false;
-		return {
-			"cfi" : cfi,
-			"href" : href,
-			"packageUrl" : packageUrl,
-			"page" : page
-		};
-	} else {
-		return {
-			"href" : href,
-			"page" : page
-		};
-	}
-};
-
-module.exports = Parser;
-
-},{"./core":10,"./epubcfi":11,"urijs":7}],20:[function(require,module,exports){
-var RSVP = require('rsvp');
-var core = require('./core');
-
-function Queue(_context){
-	this._q = [];
-	this.context = _context;
-	this.tick = core.requestAnimationFrame;
-	this.running = false;
-	this.paused = false;
-};
-
-// Add an item to the queue
-Queue.prototype.enqueue = function() {
-	var deferred, promise;
-	var queued;
-	var task = [].shift.call(arguments);
-	var args = arguments;
-
-	// Handle single args without context
-	// if(args && !Array.isArray(args)) {
-	//   args = [args];
-	// }
-	if(!task) {
-		return console.error("No Task Provided");
-	}
-
-	if(typeof task === "function"){
-
-		deferred = new RSVP.defer();
-		promise = deferred.promise;
-
-		queued = {
-			"task" : task,
-			"args"     : args,
-			//"context"  : context,
-			"deferred" : deferred,
-			"promise" : promise
-		};
-
-	} else {
-		// Task is a promise
-		queued = {
-			"promise" : task
-		};
-
-	}
-
-	this._q.push(queued);
-
-	// Wait to start queue flush
-	if (this.paused == false && !this.running) {
-		// setTimeout(this.flush.bind(this), 0);
-		// this.tick.call(window, this.run.bind(this));
-		this.run();
-	}
-
-	return queued.promise;
-};
-
-// Run one item
-Queue.prototype.dequeue = function(){
-	var inwait, task, result;
-
-	if(this._q.length) {
-		inwait = this._q.shift();
-		task = inwait.task;
-		if(task){
-			// console.log(task)
-
-			result = task.apply(this.context, inwait.args);
-
-			if(result && typeof result["then"] === "function") {
-				// Task is a function that returns a promise
-				return result.then(function(){
-					inwait.deferred.resolve.apply(this.context, arguments);
-				}.bind(this));
-			} else {
-				// Task resolves immediately
-				inwait.deferred.resolve.apply(this.context, result);
-				return inwait.promise;
-			}
-
-
-
-		} else if(inwait.promise) {
-			// Task is a promise
-			return inwait.promise;
-		}
-
-	} else {
-		inwait = new RSVP.defer();
-		inwait.deferred.resolve();
-		return inwait.promise;
-	}
-
-};
-
-// Run All Immediately
-Queue.prototype.dump = function(){
-	while(this._q.length) {
-		this.dequeue();
-	}
-};
-
-// Run all sequentially, at convince
-
-Queue.prototype.run = function(){
-
-	if(!this.running){
-		this.running = true;
-		this.defered = new RSVP.defer();
-	}
-
-	this.tick.call(window, function() {
-
-		if(this._q.length) {
-
-			this.dequeue()
-				.then(function(){
-					this.run();
-				}.bind(this));
-
-		} else {
-			this.defered.resolve();
-			this.running = undefined;
-		}
-
-	}.bind(this));
-
-	// Unpause
-	if(this.paused == true) {
-		this.paused = false;
-	}
-
-	return this.defered.promise;
-};
-
-// Flush all, as quickly as possible
-Queue.prototype.flush = function(){
-
-	if(this.running){
-		return this.running;
-	}
-
-	if(this._q.length) {
-		this.running = this.dequeue()
-			.then(function(){
-				this.running = undefined;
-				return this.flush();
-			}.bind(this));
-
-		return this.running;
-	}
-
-};
-
-// Clear all items in wait
-Queue.prototype.clear = function(){
-	this._q = [];
-	this.running = false;
-};
-
-Queue.prototype.length = function(){
-	return this._q.length;
-};
-
-Queue.prototype.pause = function(){
-	this.paused = true;
-};
-
-// Create a new task from a callback
-function Task(task, args, context){
-
-	return function(){
-		var toApply = arguments || [];
-
-		return new RSVP.Promise(function(resolve, reject) {
-			var callback = function(value){
-				resolve(value);
-			};
-			// Add the callback to the arguments list
-			toApply.push(callback);
-
-			// Apply all arguments to the functions
-			task.apply(this, toApply);
-
-	}.bind(this));
-
-	};
-
-};
-
-module.exports = Queue;
-
-},{"./core":10,"rsvp":5}],21:[function(require,module,exports){
-var RSVP = require('rsvp');
-var URI = require('urijs');
-var core = require('./core');
-var replace = require('./replacements');
-var Hook = require('./hook');
-var EpubCFI = require('./epubcfi');
-var Queue = require('./queue');
-// var View = require('./view');
-var Views = require('./views');
-var Layout = require('./layout');
-var Mapping = require('./mapping');
-
-function Rendition(book, options) {
-
-	this.settings = core.extend(this.settings || {}, {
-		width: null,
-		height: null,
-		ignoreClass: '',
-		manager: "single",
-		view: "iframe",
-		flow: null,
-		layout: null,
-		spread: null,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
-		useBase64: true
-	});
-
-	core.extend(this.settings, options);
-
-	this.viewSettings = {
-		ignoreClass: this.settings.ignoreClass
-	};
-
-	this.book = book;
-
-	this.views = null;
-
-	//-- Adds Hook methods to the Rendition prototype
-	this.hooks = {};
-	this.hooks.display = new Hook(this);
-	this.hooks.serialize = new Hook(this);
-	this.hooks.content = new Hook(this);
-	this.hooks.layout = new Hook(this);
-	this.hooks.render = new Hook(this);
-	this.hooks.show = new Hook(this);
-
-	this.hooks.content.register(replace.links.bind(this));
-	this.hooks.content.register(this.passViewEvents.bind(this));
-
-	// this.hooks.display.register(this.afterDisplay.bind(this));
-
-	this.epubcfi = new EpubCFI();
-
-	this.q = new Queue(this);
-
-	this.q.enqueue(this.book.opened);
-
-	// Block the queue until rendering is started
-	// this.starting = new RSVP.defer();
-	// this.started = this.starting.promise;
-	this.q.enqueue(this.start);
-
-	if(this.book.unarchived) {
-		this.q.enqueue(this.replacements.bind(this));
-	}
-
-};
-
-Rendition.prototype.setManager = function(manager) {
-	this.manager = manager;
-};
-
-Rendition.prototype.requireManager = function(manager) {
-	var viewManager;
-
-	// If manager is a string, try to load from register managers,
-	// or require included managers directly
-	if (typeof manager === "string") {
-		// Use global or require
-		viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
-	} else {
-		// otherwise, assume we were passed a function
-		viewManager = manager
-	}
-
-	return viewManager;
-};
-
-Rendition.prototype.requireView = function(view) {
-	var View;
-
-	if (typeof view == "string") {
-		View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
-	} else {
-		// otherwise, assume we were passed a function
-		View = view
-	}
-
-	return View;
-};
-
-Rendition.prototype.start = function(){
-
-	if(!this.manager) {
-		this.ViewManager = this.requireManager(this.settings.manager);
-		this.View = this.requireView(this.settings.view);
-
-		this.manager = new this.ViewManager({
-			view: this.View,
-			queue: this.q,
-			request: this.book.request,
-			settings: this.settings
-		});
-	}
-
-	// Parse metadata to get layout props
-	this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
-
-	this.flow(this.settings.globalLayoutProperties.flow);
-
-	this.layout(this.settings.globalLayoutProperties);
-
-	// Listen for displayed views
-	this.manager.on("added", this.afterDisplayed.bind(this));
-
-	// Listen for resizing
-	this.manager.on("resized", this.onResized.bind(this));
-
-	// Listen for scroll changes
-	this.manager.on("scroll", this.reportLocation.bind(this));
-
-
-	this.on('displayed', this.reportLocation.bind(this));
-
-	// Trigger that rendering has started
-	this.trigger("started");
-
-	// Start processing queue
-	// this.starting.resolve();
-};
-
-// Call to attach the container to an element in the dom
-// Container must be attached before rendering can begin
-Rendition.prototype.attachTo = function(element){
-
-	return this.q.enqueue(function () {
-
-		// Start rendering
-		this.manager.render(element, {
-			"width"  : this.settings.width,
-			"height" : this.settings.height
-		});
-
-		// Trigger Attached
-		this.trigger("attached");
-
-	}.bind(this));
-
-};
-
-Rendition.prototype.display = function(target){
-
-	// if (!this.book.spine.spineItems.length > 0) {
-		// Book isn't open yet
-		// return this.q.enqueue(this.display, target);
-	// }
-
-	return this.q.enqueue(this._display, target);
-
-};
-
-Rendition.prototype._display = function(target){
-	var isCfiString = this.epubcfi.isCfiString(target);
-	var displaying = new RSVP.defer();
-	var displayed = displaying.promise;
-	var section;
-	var moveTo;
-
-	section = this.book.spine.get(target);
-
-	if(!section){
-		displaying.reject(new Error("No Section Found"));
-		return displayed;
-	}
-
-	// Trim the target fragment
-	// removing the chapter
-	if(!isCfiString && typeof target === "string" &&
-		target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
-	}
-
-	if (isCfiString) {
-		moveTo = target;
-	}
-
-	return this.manager.display(section, moveTo)
-		.then(function(){
-			this.trigger("displayed", section);
-		}.bind(this));
-
-};
-
-/*
-Rendition.prototype.render = function(view, show) {
-
-	// view.onLayout = this.layout.format.bind(this.layout);
-	view.create();
-
-	// Fit to size of the container, apply padding
-	this.manager.resizeView(view);
-
-	// Render Chain
-	return view.section.render(this.book.request)
-		.then(function(contents){
-			return view.load(contents);
-		}.bind(this))
-		.then(function(doc){
-			return this.hooks.content.trigger(view, this);
-		}.bind(this))
-		.then(function(){
-			this.layout.format(view.contents);
-			return this.hooks.layout.trigger(view, this);
-		}.bind(this))
-		.then(function(){
-			return view.display();
-		}.bind(this))
-		.then(function(){
-			return this.hooks.render.trigger(view, this);
-		}.bind(this))
-		.then(function(){
-			if(show !== false) {
-				this.q.enqueue(function(view){
-					view.show();
-				}, view);
-			}
-			// this.map = new Map(view, this.layout);
-			this.hooks.show.trigger(view, this);
-			this.trigger("rendered", view.section);
-
-		}.bind(this))
-		.catch(function(e){
-			this.trigger("loaderror", e);
-		}.bind(this));
-
-};
-*/
-
-Rendition.prototype.afterDisplayed = function(view){
-	this.hooks.content.trigger(view, this);
-	this.trigger("rendered", view.section);
-	this.reportLocation();
-};
-
-Rendition.prototype.onResized = function(size){
-
-	if(this.location) {
-		this.display(this.location.start);
-	}
-
-	this.trigger("resized", {
-		width: size.width,
-		height: size.height
-	});
-
-};
-
-Rendition.prototype.moveTo = function(offset){
-	this.manager.moveTo(offset);
-};
-
-Rendition.prototype.next = function(){
-	return this.q.enqueue(this.manager.next.bind(this.manager))
-		.then(this.reportLocation.bind(this));
-};
-
-Rendition.prototype.prev = function(){
-	return this.q.enqueue(this.manager.prev.bind(this.manager))
-		.then(this.reportLocation.bind(this));
-};
-
-//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
-Rendition.prototype.determineLayoutProperties = function(metadata){
-	var settings;
-	var layout = this.settings.layout || metadata.layout || "reflowable";
-	var spread = this.settings.spread || metadata.spread || "auto";
-	var orientation = this.settings.orientation || metadata.orientation || "auto";
-	var flow = this.settings.flow || metadata.flow || "auto";
-	var viewport = metadata.viewport || "";
-	var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
-
-	if (this.settings.width >= 0 && this.settings.height >= 0) {
-		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
-	}
-
-	settings = {
-		layout : layout,
-		spread : spread,
-		orientation : orientation,
-		flow : flow,
-		viewport : viewport,
-		minSpreadWidth : minSpreadWidth
-	};
-
-	return settings;
-};
-
-// Rendition.prototype.applyLayoutProperties = function(){
-// 	var settings = this.determineLayoutProperties(this.book.package.metadata);
-//
-// 	this.flow(settings.flow);
-//
-// 	this.layout(settings);
-// };
-
-// paginated | scrolled
-// (scrolled-continuous vs scrolled-doc are handled by different view managers)
-Rendition.prototype.flow = function(_flow){
-	var flow;
-	if (_flow === "scrolled-doc" || _flow === "scrolled-continuous") {
-		flow = "scrolled";
-	}
-
-	if (_flow === "auto" || _flow === "paginated") {
-		flow = "paginated";
-	}
-
-	if (this._layout) {
-		this._layout.flow(flow);
-	}
-
-	if (this.manager) {
-		this.manager.updateFlow(flow);
-	}
-};
-
-// reflowable | pre-paginated
-Rendition.prototype.layout = function(settings){
-	if (settings) {
-		this._layout = new Layout(settings);
-		this._layout.spread(settings.spread, this.settings.minSpreadWidth);
-
-		this.mapping = new Mapping(this._layout);
-	}
-
-	if (this.manager && this._layout) {
-		this.manager.applyLayout(this._layout);
-	}
-
-	return this._layout;
-};
-
-// none | auto (TODO: implement landscape, portrait, both)
-Rendition.prototype.spread = function(spread, min){
-
-	this._layout.spread(spread, min);
-
-	if (this.manager.isRendered()) {
-		this.manager.updateLayout();
-	}
-};
-
-
-Rendition.prototype.reportLocation = function(){
-	return this.q.enqueue(function(){
-		var location = this.manager.currentLocation();
-		if (location && location.then && typeof location.then === 'function') {
-			location.then(function(result) {
-				this.location = result;
-				this.trigger("locationChanged", this.location);
-			}.bind(this));
-		} else if (location) {
-			this.location = location;
-			this.trigger("locationChanged", this.location);
-		}
-
-	}.bind(this));
-};
-
-
-Rendition.prototype.destroy = function(){
-	// Clear the queue
-	this.q.clear();
-
-	this.views.clear();
-
-	clearTimeout(this.trimTimeout);
-	if(this.settings.hidden) {
-		this.element.removeChild(this.wrapper);
-	} else {
-		this.element.removeChild(this.container);
-	}
-
-};
-
-Rendition.prototype.passViewEvents = function(view){
-	view.contents.listenedEvents.forEach(function(e){
-		view.on(e, this.triggerViewEvent.bind(this));
-	}.bind(this));
-
-	view.on("selected", this.triggerSelectedEvent.bind(this));
-};
-
-Rendition.prototype.triggerViewEvent = function(e){
-	this.trigger(e.type, e);
-};
-
-Rendition.prototype.triggerSelectedEvent = function(cfirange){
-	this.trigger("selected", cfirange);
-};
-
-Rendition.prototype.replacements = function(){
-	// Wait for loading
-	// return this.q.enqueue(function () {
-		// Get thes books manifest
-		var manifest = this.book.package.manifest;
-		var manifestArray = Object.keys(manifest).
-			map(function (key){
-				return manifest[key];
-			});
-
-		// Exclude HTML
-		var items = manifestArray.
-			filter(function (item){
-				if (item.type != "application/xhtml+xml" &&
-						item.type != "text/html") {
-					return true;
-				}
-			});
-
-		// Only CSS
-		var css = items.
-			filter(function (item){
-				if (item.type === "text/css") {
-					return true;
-				}
-			});
-
-		// Css Urls
-		var cssUrls = css.map(function(item) {
-			return item.href;
-		});
-
-		// All Assets Urls
-		var urls = items.
-			map(function(item) {
-				return item.href;
-			}.bind(this));
-
-		// Create blob urls for all the assets
-		var processing = urls.
-			map(function(url) {
-				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
-				// Full url from archive base
-				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
-			}.bind(this));
-
-		var replacementUrls;
-
-		// After all the urls are created
-		return RSVP.all(processing)
-			.then(function(_replacementUrls) {
-				var replaced = [];
-
-				replacementUrls = _replacementUrls;
-
-				// Replace Asset Urls in the text of all css files
-				cssUrls.forEach(function(href) {
-					replaced.push(this.replaceCss(href, urls, replacementUrls));
-				}.bind(this));
-
-				return RSVP.all(replaced);
-
-			}.bind(this))
-			.then(function () {
-				// Replace Asset Urls in chapters
-				// by registering a hook after the sections contents has been serialized
-				this.book.spine.hooks.serialize.register(function(output, section) {
-
-					this.replaceAssets(section, urls, replacementUrls);
-
-				}.bind(this));
-
-			}.bind(this))
-			.catch(function(reason){
-				console.error(reason);
-			});
-	// }.bind(this));
-};
-
-Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
-		var newUrl;
-		var indexInUrls;
-
-		// Find the absolute url of the css file
-		var fileUri = URI(href);
-		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
-		// Get the text of the css file from the archive
-		var textResponse = this.book.unarchived.getText(absolute);
-		// Get asset links relative to css file
-		var relUrls = urls.
-			map(function(assetHref) {
-				var assetUri = URI(assetHref).absoluteTo(this.book.baseUrl);
-				var relative = assetUri.relativeTo(absolute).toString();
-				return relative;
-			}.bind(this));
-
-		return textResponse.then(function (text) {
-			// Replacements in the css text
-			text = replace.substitute(text, relUrls, replacementUrls);
-
-			// Get the new url
-			if (this.settings.useBase64) {
-				newUrl = core.createBase64Url(text, 'text/css');
-			} else {
-				newUrl = core.createBlobUrl(text, 'text/css');
-			}
-
-			// switch the url in the replacementUrls
-			indexInUrls = urls.indexOf(href);
-			if (indexInUrls > -1) {
-				replacementUrls[indexInUrls] = newUrl;
-			}
-
-			return new RSVP.Promise(function(resolve, reject){
-				resolve(urls, replacementUrls);
-			});
-
-		}.bind(this));
-
-};
-
-Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
-	var fileUri = URI(section.url);
-	// Get Urls relative to current sections
-	var relUrls = urls.
-		map(function(href) {
-			var assetUri = URI(href).absoluteTo(this.book.baseUrl);
-			var relative = assetUri.relativeTo(fileUri).toString();
-			return relative;
-		}.bind(this));
-
-
-	section.output = replace.substitute(section.output, relUrls, replacementUrls);
-};
-
-Rendition.prototype.range = function(_cfi, ignoreClass){
-	var cfi = new EpubCFI(_cfi);
-	var found = this.visible().filter(function (view) {
-		if(cfi.spinePos === view.index) return true;
-	});
-
-	// Should only every return 1 item
-	if (found.length) {
-		return found[0].range(cfi, ignoreClass);
-	}
-};
-
-Rendition.prototype.adjustImages = function(view) {
-
-	view.addStylesheetRules([
-			["img",
-				["max-width", (view.layout.spreadWidth) + "px"],
-				["max-height", (view.layout.height) + "px"]
-			]
-	]);
-	return new RSVP.Promise(function(resolve, reject){
-		// Wait to apply
-		setTimeout(function() {
-			resolve();
-		}, 1);
-	});
-};
-
-//-- Enable binding events to Renderer
-RSVP.EventTarget.mixin(Rendition.prototype);
-
-module.exports = Rendition;
-
-},{"./core":10,"./epubcfi":11,"./hook":12,"./layout":13,"./mapping":17,"./queue":20,"./replacements":22,"./views":28,"rsvp":5,"urijs":7}],22:[function(require,module,exports){
-var URI = require('urijs');
-var core = require('./core');
-
-function base(doc, section){
-	var base;
-	var head;
-
-	if(!doc){
-		return;
-	}
-
-	// head = doc.querySelector("head");
-	// base = head.querySelector("base");
-	head = core.qs(doc, "head");
-	base = core.qs(head, "base");
-
-	if(!base) {
-		base = doc.createElement("base");
-		head.insertBefore(base, head.firstChild);
-	}
-
-	base.setAttribute("href", section.url);
-}
-
-function canonical(doc, section){
-	var head;
-	var link;
-	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
-
-	if(!doc){
-		return;
-	}
-
-	head = core.qs(doc, "head");
-	link = core.qs(head, "link[rel='canonical']");
-
-	if (link) {
-		link.setAttribute("href", url);
-	} else {
-		link = doc.createElement("link");
-		link.setAttribute("rel", "canonical");
-		link.setAttribute("href", url);
-		head.appendChild(link);
-	}
-}
-
-function links(view, renderer) {
-
-	var links = view.document.querySelectorAll("a[href]");
-	var replaceLinks = function(link){
-		var href = link.getAttribute("href");
-
-		if(href.indexOf("mailto:") === 0){
-			return;
-		}
-
-		var linkUri = URI(href);
-		var absolute = linkUri.absoluteTo(view.section.url);
-		var relative = absolute.relativeTo(this.book.baseUrl).toString();
-
-		if(linkUri.protocol()){
-
-			link.setAttribute("target", "_blank");
-
-		}else{
-			/*
-			if(baseDirectory) {
-				// We must ensure that the file:// protocol is preserved for
-				// local file links, as in certain contexts (such as under
-				// Titanium), file links without the file:// protocol will not
-				// work
-				if (baseUri.protocol === "file") {
-					relative = core.resolveUrl(baseUri.base, href);
-				} else {
-					relative = core.resolveUrl(baseDirectory, href);
-				}
-			} else {
-				relative = href;
-			}
-			*/
-
-			if(linkUri.fragment()) {
-				// do nothing with fragment yet
-			} else {
-				link.onclick = function(){
-					renderer.display(relative);
-					return false;
-				};
-			}
-
-		}
-	}.bind(this);
-
-	for (var i = 0; i < links.length; i++) {
-		replaceLinks(links[i]);
-	}
-
-
-};
-
-function substitute(content, urls, replacements) {
-	urls.forEach(function(url, i){
-		if (url && replacements[i]) {
-			content = content.replace(new RegExp(url, 'g'), replacements[i]);
-		}
-	});
-	return content;
-}
-module.exports = {
-	'base': base,
-	'canonical' : canonical,
-	'links': links,
-	'substitute': substitute
-};
-
-},{"./core":10,"urijs":7}],23:[function(require,module,exports){
-var RSVP = require('rsvp');
-var URI = require('urijs');
-var core = require('./core');
-
-function request(url, type, withCredentials, headers) {
-	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
-	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-	var uri;
-
-	var deferred = new RSVP.defer();
-
-	var xhr = new XMLHttpRequest();
-
-	//-- Check from PDF.js:
-	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
-	var xhrPrototype = XMLHttpRequest.prototype;
-
-	var header;
-
-	if (!('overrideMimeType' in xhrPrototype)) {
-		// IE10 might have response, but not overrideMimeType
-		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
-			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
-		});
-	}
-	if(withCredentials) {
-		xhr.withCredentials = true;
-	}
-
-	xhr.onreadystatechange = handler;
-	xhr.onerror = err;
-
-	xhr.open("GET", url, true);
-
-	for(header in headers) {
-		xhr.setRequestHeader(header, headers[header]);
-	}
-
-	if(type == "json") {
-		xhr.setRequestHeader("Accept", "application/json");
-	}
-
-	// If type isn't set, determine it from the file extension
-	if(!type) {
-		uri = URI(url);
-		type = uri.suffix();
-	}
-
-	if(type == 'blob'){
-		xhr.responseType = BLOB_RESPONSE;
-	}
-
-
-	if(core.isXml(type)) {
-		// xhr.responseType = "document";
-		xhr.overrideMimeType('text/xml'); // for OPF parsing
-	}
-
-	if(type == 'xhtml') {
-		// xhr.responseType = "document";
-	}
-
-	if(type == 'html' || type == 'htm') {
-		// xhr.responseType = "document";
-	 }
-
-	if(type == "binary") {
-		xhr.responseType = "arraybuffer";
-	}
-
-	xhr.send();
-
-	function err(e) {
-		console.error(e);
-		deferred.reject(e);
-	}
-
-	function handler() {
-		if (this.readyState === XMLHttpRequest.DONE) {
-
-			if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
-				var r;
-
-				if (!this.response && !this.responseXML) {
-					deferred.reject({
-						status: this.status,
-						message : "Empty Response",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-
-				if (this.status === 403) {
-					deferred.reject({
-						status: this.status,
-						response: this.response,
-						message : "Forbidden",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-
-				if((this.responseType == '' || this.responseType == 'document')
-						&& this.responseXML){
-					r = this.responseXML;
-				} else
-				if(core.isXml(type)){
-					// xhr.overrideMimeType('text/xml'); // for OPF parsing
-					// If this.responseXML wasn't set, try to parse using a DOMParser from text
-					r = core.parse(this.response, "text/xml");
-				}else
-				if(type == 'xhtml'){
-					r = core.parse(this.response, "application/xhtml+xml");
-				}else
-				if(type == 'html' || type == 'htm'){
-					r = core.parse(this.response, "text/html");
-				}else
-				if(type == 'json'){
-					r = JSON.parse(this.response);
-				}else
-				if(type == 'blob'){
-
-					if(supportsURL) {
-						r = this.response;
-					} else {
-						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-						r = new Blob([this.response]);
-					}
-
-				}else{
-					r = this.response;
-				}
-
-				deferred.resolve(r);
-			} else {
-
-				deferred.reject({
-					status: this.status,
-					message : this.response,
-					stack : new Error().stack
-				});
-
-			}
-		}
-	}
-
-	return deferred.promise;
-};
-
-module.exports = request;
-
-},{"./core":10,"rsvp":5,"urijs":7}],24:[function(require,module,exports){
-var RSVP = require('rsvp');
-var URI = require('urijs');
-var core = require('./core');
-var EpubCFI = require('./epubcfi');
-var Hook = require('./hook');
-
-function Section(item, hooks){
-		this.idref = item.idref;
-		this.linear = item.linear;
-		this.properties = item.properties;
-		this.index = item.index;
-		this.href = item.href;
-		this.url = item.url;
-		this.next = item.next;
-		this.prev = item.prev;
-
-		this.cfiBase = item.cfiBase;
-
-		if (hooks) {
-			this.hooks = hooks;
-		} else {
-			this.hooks = {};
-			this.hooks.serialize = new Hook(this);
-			this.hooks.content = new Hook(this);
-		}
-
-};
-
-
-Section.prototype.load = function(_request){
-	var request = _request || this.request || require('./request');
-	var loading = new RSVP.defer();
-	var loaded = loading.promise;
-
-	if(this.contents) {
-		loading.resolve(this.contents);
-	} else {
-		request(this.url)
-			.then(function(xml){
-				var base;
-				var directory = URI(this.url).directory();
-
-				this.document = xml;
-				this.contents = xml.documentElement;
-
-				return this.hooks.content.trigger(this.document, this);
-			}.bind(this))
-			.then(function(){
-				loading.resolve(this.contents);
-			}.bind(this))
-			.catch(function(error){
-				loading.reject(error);
-			});
-	}
-
-	return loaded;
-};
-
-Section.prototype.base = function(_document){
-		var task = new RSVP.defer();
-		var base = _document.createElement("base"); // TODO: check if exists
-		var head;
-		console.log(window.location.origin + "/" +this.url);
-
-		base.setAttribute("href", window.location.origin + "/" +this.url);
-
-		if(_document) {
-			head = _document.querySelector("head");
-		}
-		if(head) {
-			head.insertBefore(base, head.firstChild);
-			task.resolve();
-		} else {
-			task.reject(new Error("No head to insert into"));
-		}
-
-
-		return task.promise;
-};
-
-Section.prototype.beforeSectionLoad = function(){
-	// Stub for a hook - replace me for now
-};
-
-Section.prototype.render = function(_request){
-	var rendering = new RSVP.defer();
-	var rendered = rendering.promise;
-	this.output; // TODO: better way to return this from hooks?
-
-	this.load(_request).
-		then(function(contents){
-			var serializer;
-
-			if (typeof XMLSerializer === "undefined") {
-				XMLSerializer = require('xmldom').XMLSerializer;
-			}
-			serializer = new XMLSerializer();
-			this.output = serializer.serializeToString(contents);
-			return this.output;
-		}.bind(this)).
-		then(function(){
-			return this.hooks.serialize.trigger(this.output, this);
-		}.bind(this)).
-		then(function(){
-			rendering.resolve(this.output);
-		}.bind(this))
-		.catch(function(error){
-			rendering.reject(error);
-		});
-
-	return rendered;
-};
-
-Section.prototype.find = function(_query){
-
-};
-
-/**
-* Reconciles the current chapters layout properies with
-* the global layout properities.
-* Takes: global layout settings object, chapter properties string
-* Returns: Object with layout properties
-*/
-Section.prototype.reconcileLayoutSettings = function(global){
-	//-- Get the global defaults
-	var settings = {
-		layout : global.layout,
-		spread : global.spread,
-		orientation : global.orientation
-	};
-
-	//-- Get the chapter's display type
-	this.properties.forEach(function(prop){
-		var rendition = prop.replace("rendition:", '');
-		var split = rendition.indexOf("-");
-		var property, value;
-
-		if(split != -1){
-			property = rendition.slice(0, split);
-			value = rendition.slice(split+1);
-
-			settings[property] = value;
-		}
-	});
- return settings;
-};
-
-Section.prototype.cfiFromRange = function(_range) {
-	return new EpubCFI(_range, this.cfiBase).toString();
-};
-
-Section.prototype.cfiFromElement = function(el) {
-	return new EpubCFI(el, this.cfiBase).toString();
-};
-
-module.exports = Section;
-
-},{"./core":10,"./epubcfi":11,"./hook":12,"./request":23,"rsvp":5,"urijs":7,"xmldom":"xmldom"}],25:[function(require,module,exports){
-var RSVP = require('rsvp');
-var core = require('./core');
-var EpubCFI = require('./epubcfi');
-var Hook = require('./hook');
-var Section = require('./section');
-var replacements = require('./replacements');
-
-function Spine(_request){
-	this.request = _request;
-	this.spineItems = [];
-	this.spineByHref = {};
-	this.spineById = {};
-
-	this.hooks = {};
-	this.hooks.serialize = new Hook();
-	this.hooks.content = new Hook();
-
-	// Register replacements
-	this.hooks.content.register(replacements.base);
-	this.hooks.content.register(replacements.canonical);
-
-	this.epubcfi = new EpubCFI();
-
-	this.loaded = false;
-};
-
-Spine.prototype.load = function(_package) {
-
-	this.items = _package.spine;
-	this.manifest = _package.manifest;
-	this.spineNodeIndex = _package.spineNodeIndex;
-	this.baseUrl = _package.baseUrl || '';
-	this.length = this.items.length;
-
-	this.items.forEach(function(item, index){
-		var href, url;
-		var manifestItem = this.manifest[item.idref];
-		var spineItem;
-
-		item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
-
-		if(manifestItem) {
-			item.href = manifestItem.href;
-			item.url = this.baseUrl + item.href;
-
-			if(manifestItem.properties.length){
-				item.properties.push.apply(item.properties, manifestItem.properties);
-			}
-		}
-
-		// if(index > 0) {
-			item.prev = function(){ return this.get(index-1); }.bind(this);
-		// }
-
-		// if(index+1 < this.items.length) {
-			item.next = function(){ return this.get(index+1); }.bind(this);
-		// }
-
-		spineItem = new Section(item, this.hooks);
-
-		this.append(spineItem);
-
-
-	}.bind(this));
-
-	this.loaded = true;
-};
-
-// book.spine.get();
-// book.spine.get(1);
-// book.spine.get("chap1.html");
-// book.spine.get("#id1234");
-Spine.prototype.get = function(target) {
-	var index = 0;
-
-	if(this.epubcfi.isCfiString(target)) {
-		cfi = new EpubCFI(target);
-		index = cfi.spinePos;
-	} else if(target && (typeof target === "number" || isNaN(target) === false)){
-		index = target;
-	} else if(target && target.indexOf("#") === 0) {
-		index = this.spineById[target.substring(1)];
-	} else if(target) {
-		// Remove fragments
-		target = target.split("#")[0];
-		index = this.spineByHref[target];
-	}
-
-	return this.spineItems[index] || null;
-};
-
-Spine.prototype.append = function(section) {
-	var index = this.spineItems.length;
-	section.index = index;
-
-	this.spineItems.push(section);
-
-	this.spineByHref[section.href] = index;
-	this.spineById[section.idref] = index;
-
-	return index;
-};
-
-Spine.prototype.prepend = function(section) {
-	var index = this.spineItems.unshift(section);
-	this.spineByHref[section.href] = 0;
-	this.spineById[section.idref] = 0;
-
-	// Re-index
-	this.spineItems.forEach(function(item, index){
-		item.index = index;
-	});
-
-	return 0;
-};
-
-Spine.prototype.insert = function(section, index) {
-
-};
-
-Spine.prototype.remove = function(section) {
-	var index = this.spineItems.indexOf(section);
-
-	if(index > -1) {
-		delete this.spineByHref[section.href];
-		delete this.spineById[section.idref];
-
-		return this.spineItems.splice(index, 1);
-	}
-};
-
-Spine.prototype.each = function() {
-	return this.spineItems.forEach.apply(this.spineItems, arguments);
-};
-
-module.exports = Spine;
-
-},{"./core":10,"./epubcfi":11,"./hook":12,"./replacements":22,"./section":24,"rsvp":5}],26:[function(require,module,exports){
-var core = require('./core');
-
-function Stage(_options) {
-	this.settings = _options || {};
-	this.id = "epubjs-container-" + core.uuid();
-
-	this.container = this.create(this.settings);
-
-	if(this.settings.hidden) {
-		this.wrapper = this.wrap(this.container);
-	}
-
-}
-
-/**
-* Creates an element to render to.
-* Resizes to passed width and height or to the elements size
-*/
-Stage.prototype.create = function(options){
-	var height  = options.height;// !== false ? options.height : "100%";
-	var width   = options.width;// !== false ? options.width : "100%";
-	var overflow  = options.overflow || false;
-	var axis = options.axis || "vertical";
-
-	if(options.height && core.isNumber(options.height)) {
-		height = options.height + "px";
-	}
-
-	if(options.width && core.isNumber(options.width)) {
-		width = options.width + "px";
-	}
-
-	// Create new container element
-	container = document.createElement("div");
-
-	container.id = this.id;
-	container.classList.add("epub-container");
-
-	// Style Element
-	// container.style.fontSize = "0";
-	container.style.wordSpacing = "0";
-	container.style.lineHeight = "0";
-	container.style.verticalAlign = "top";
-
-	if(axis === "horizontal") {
-		container.style.whiteSpace = "nowrap";
-	}
-
-	if(width){
-		container.style.width = width;
-	}
-
-	if(height){
-		container.style.height = height;
-	}
-
-	if (overflow) {
-		container.style.overflow = overflow;
-	}
-
-	return container;
-};
-
-Stage.wrap = function(container) {
-	var wrapper = document.createElement("div");
-
-	wrapper.style.visibility = "hidden";
-	wrapper.style.overflow = "hidden";
-	wrapper.style.width = "0";
-	wrapper.style.height = "0";
-
-	wrapper.appendChild(container);
-	return wrapper;
-};
-
-
-Stage.prototype.getElement = function(_element){
-	var element;
-
-	if(core.isElement(_element)) {
-		element = _element;
-	} else if (typeof _element === "string") {
-		element = document.getElementById(_element);
-	}
-
-	if(!element){
-		console.error("Not an Element");
-		return;
-	}
-
-	return element;
-};
-
-Stage.prototype.attachTo = function(what){
-
-	var element = this.getElement(what);
-	var base;
-
-	if(!element){
-		return;
-	}
-
-	if(this.settings.hidden) {
-		base = this.wrapper;
-	} else {
-		base = this.container;
-	}
-
-	element.appendChild(base);
-
-	this.element = element;
-
-	return element;
-
-};
-
-Stage.prototype.getContainer = function() {
-	return this.container;
-};
-
-Stage.prototype.onResize = function(func){
-	// Only listen to window for resize event if width and height are not fixed.
-	// This applies if it is set to a percent or auto.
-	if(!core.isNumber(this.settings.width) ||
-		 !core.isNumber(this.settings.height) ) {
-		window.addEventListener("resize", func, false);
-	}
-
-};
-
-Stage.prototype.size = function(width, height){
-	var bounds;
-	// var width = _width || this.settings.width;
-	// var height = _height || this.settings.height;
-
-	// If width or height are set to false, inherit them from containing element
-	if(width === null) {
-		bounds = this.element.getBoundingClientRect();
-
-		if(bounds.width) {
-			width = bounds.width;
-			this.container.style.width = bounds.width + "px";
-		}
-	}
-
-	if(height === null) {
-		bounds = bounds || this.element.getBoundingClientRect();
-
-		if(bounds.height) {
-			height = bounds.height;
-			this.container.style.height = bounds.height + "px";
-		}
-
-	}
-
-	if(!core.isNumber(width)) {
-		bounds = this.container.getBoundingClientRect();
-		width = bounds.width;
-		//height = bounds.height;
-	}
-
-	if(!core.isNumber(height)) {
-		bounds = bounds || this.container.getBoundingClientRect();
-		//width = bounds.width;
-		height = bounds.height;
-	}
-
-
-	this.containerStyles = window.getComputedStyle(this.container);
-
-	this.containerPadding = {
-		left: parseFloat(this.containerStyles["padding-left"]) || 0,
-		right: parseFloat(this.containerStyles["padding-right"]) || 0,
-		top: parseFloat(this.containerStyles["padding-top"]) || 0,
-		bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
-	};
-
-	return {
-		width: width -
-						this.containerPadding.left -
-						this.containerPadding.right,
-		height: height -
-						this.containerPadding.top -
-						this.containerPadding.bottom
-	};
-
-};
-
-Stage.prototype.bounds = function(){
-
-	if(!this.container) {
-		return core.windowBounds();
-	} else {
-		return this.container.getBoundingClientRect();
-	}
-
-}
-
-Stage.prototype.getSheet = function(){
-	var style = document.createElement("style");
-
-	// WebKit hack --> https://davidwalsh.name/add-rules-stylesheets
-	style.appendChild(document.createTextNode(""));
-
-	document.head.appendChild(style);
-
-	return style.sheet;
-}
-
-Stage.prototype.addStyleRules = function(selector, rulesArray){
-	var scope = "#" + this.id + " ";
-	var rules = "";
-
-	if(!this.sheet){
-		this.sheet = this.getSheet();
-	}
-
-	rulesArray.forEach(function(set) {
-		for (var prop in set) {
-			if(set.hasOwnProperty(prop)) {
-				rules += prop + ":" + set[prop] + ";";
-			}
-		}
-	})
-
-	this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
-}
-
-
-
-module.exports = Stage;
-
-},{"./core":10}],27:[function(require,module,exports){
-var RSVP = require('rsvp');
-var URI = require('urijs');
-var core = require('./core');
-var request = require('./request');
-var mime = require('../libs/mime/mime');
-
-function Unarchive() {
-
-	this.checkRequirements();
-	this.urlCache = {};
-
-}
-
-Unarchive.prototype.checkRequirements = function(callback){
-	try {
-		if (typeof JSZip !== 'undefined') {
-			this.zip = new JSZip();
-		} else {
-			JSZip = require('jszip');
-			this.zip = new JSZip();
-		}
-	} catch (e) {
-		console.error("JSZip lib not loaded");
-	}
-};
-
-Unarchive.prototype.open = function(zipUrl, isBase64){
-	if (zipUrl instanceof ArrayBuffer || isBase64) {
-		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
-	} else {
-		return request(zipUrl, "binary")
-			.then(function(data){
-				return this.zip.loadAsync(data);
-			}.bind(this));
-	}
-};
-
-Unarchive.prototype.request = function(url, type){
-	var deferred = new RSVP.defer();
-	var response;
-	var r;
-
-	// If type isn't set, determine it from the file extension
-	if(!type) {
-		uri = URI(url);
-		type = uri.suffix();
-	}
-
-	if(type == 'blob'){
-		response = this.getBlob(url);
-	} else {
-		response = this.getText(url);
-	}
-
-	if (response) {
-		response.then(function (r) {
-			result = this.handleResponse(r, type);
-			deferred.resolve(result);
-		}.bind(this));
-	} else {
-		deferred.reject({
-			message : "File not found in the epub: " + url,
-			stack : new Error().stack
-		});
-	}
-	return deferred.promise;
-};
-
-Unarchive.prototype.handleResponse = function(response, type){
-	var r;
-
-	if(type == "json") {
-		r = JSON.parse(response);
-	}
-	else
-	if(core.isXml(type)) {
-		r = core.parse(response, "text/xml");
-	}
-	else
-	if(type == 'xhtml') {
-		r = core.parse(response, "application/xhtml+xml");
-	}
-	else
-	if(type == 'html' || type == 'htm') {
-		r = core.parse(response, "text/html");
-	 } else {
-		 r = response;
-	 }
-
-	return r;
-};
-
-Unarchive.prototype.getBlob = function(url, _mimeType){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-	var mimeType;
-
-	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
-		return entry.async("uint8array").then(function(uint8array) {
-			return new Blob([uint8array], {type : mimeType});
-		});
-	}
-};
-
-Unarchive.prototype.getText = function(url, encoding){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-
-	if(entry) {
-		return entry.async("string").then(function(text) {
-			return text;
-		});
-	}
-};
-
-Unarchive.prototype.getBase64 = function(url, _mimeType){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-	var mimeType;
-
-	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
-		return entry.async("base64").then(function(data) {
-			return "data:" + mimeType + ";base64," + data;
-		});
-	}
-};
-
-Unarchive.prototype.createUrl = function(url, options){
-	var deferred = new RSVP.defer();
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var tempUrl;
-	var blob;
-	var response;
-	var useBase64 = options && options.base64;
-
-	if(url in this.urlCache) {
-		deferred.resolve(this.urlCache[url]);
-		return deferred.promise;
-	}
-
-	if (useBase64) {
-		response = this.getBase64(url);
-
-		if (response) {
-			response.then(function(tempUrl) {
-
-				this.urlCache[url] = tempUrl;
-				deferred.resolve(tempUrl);
-
-			}.bind(this));
-
-		}
-
-	} else {
-
-		response = this.getBlob(url);
-
-		if (response) {
-			response.then(function(blob) {
-
-				tempUrl = _URL.createObjectURL(blob);
-				this.urlCache[url] = tempUrl;
-				deferred.resolve(tempUrl);
-
-			}.bind(this));
-
-		}
-	}
-
-
-	if (!response) {
-		deferred.reject({
-			message : "File not found in the epub: " + url,
-			stack : new Error().stack
-		});
-	}
-
-	return deferred.promise;
-};
-
-Unarchive.prototype.revokeUrl = function(url){
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var fromCache = this.urlCache[url];
-	if(fromCache) _URL.revokeObjectURL(fromCache);
-};
-
-module.exports = Unarchive;
-
-},{"../libs/mime/mime":1,"./core":10,"./request":23,"jszip":"jszip","rsvp":5,"urijs":7}],28:[function(require,module,exports){
-function Views(container) {
-	this.container = container;
-	this._views = [];
-	this.length = 0;
-	this.hidden = false;
-};
-
-Views.prototype.all = function() {
-	return this._views;
-};
-
-Views.prototype.first = function() {
-	return this._views[0];
-};
-
-Views.prototype.last = function() {
-	return this._views[this._views.length-1];
-};
-
-Views.prototype.indexOf = function(view) {
-	return this._views.indexOf(view);
-};
-
-Views.prototype.slice = function() {
-	return this._views.slice.apply(this._views, arguments);
-};
-
-Views.prototype.get = function(i) {
-	return this._views[i];
-};
-
-Views.prototype.append = function(view){
-	this._views.push(view);
-	if(this.container){
-		this.container.appendChild(view.element);
-	}
-	this.length++;
-	return view;
-};
-
-Views.prototype.prepend = function(view){
-	this._views.unshift(view);
-	if(this.container){
-		this.container.insertBefore(view.element, this.container.firstChild);
-	}
-	this.length++;
-	return view;
-};
-
-Views.prototype.insert = function(view, index) {
-	this._views.splice(index, 0, view);
-
-	if(this.container){
-		if(index < this.container.children.length){
-			this.container.insertBefore(view.element, this.container.children[index]);
-		} else {
-			this.container.appendChild(view.element);
-		}
-	}
-
-	this.length++;
-	return view;
-};
-
-Views.prototype.remove = function(view) {
-	var index = this._views.indexOf(view);
-
-	if(index > -1) {
-		this._views.splice(index, 1);
-	}
-
-
-	this.destroy(view);
-
-	this.length--;
-};
-
-Views.prototype.destroy = function(view) {
-	view.off("resized");
-
-	if(view.displayed){
-		view.destroy();
-	}
-
-	if(this.container){
-		 this.container.removeChild(view.element);
-	}
-	view = null;
-};
-
-// Iterators
-
-Views.prototype.each = function() {
-	return this._views.forEach.apply(this._views, arguments);
-};
-
-Views.prototype.clear = function(){
-	// Remove all views
-	var view;
-	var len = this.length;
-
-	if(!this.length) return;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		this.destroy(view);
-	}
-
-	this._views = [];
-	this.length = 0;
-};
-
-Views.prototype.find = function(section){
-
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed && view.section.index == section.index) {
-			return view;
-		}
-	}
-
-};
-
-Views.prototype.displayed = function(){
-	var displayed = [];
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed){
-			displayed.push(view);
-		}
-	}
-	return displayed;
-};
-
-Views.prototype.show = function(){
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed){
-			view.show();
-		}
-	}
-	this.hidden = false;
-};
-
-Views.prototype.hide = function(){
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed){
-			view.hide();
-		}
-	}
-	this.hidden = true;
-};
-
-module.exports = Views;
-
-},{}],29:[function(require,module,exports){
-var RSVP = require('rsvp');
-var core = require('../core');
-var EpubCFI = require('../epubcfi');
-var Contents = require('../contents');
+var core = require('../../core');
+var EpubCFI = require('../../epubcfi');
+var Contents = require('../../contents');
 
 function IframeView(section, options) {
 	this.settings = core.extend({
@@ -12954,7 +10538,2423 @@ RSVP.EventTarget.mixin(IframeView.prototype);
 
 module.exports = IframeView;
 
-},{"../contents":9,"../core":10,"../epubcfi":11,"rsvp":5}],"epub":[function(require,module,exports){
+},{"../../contents":9,"../../core":10,"../../epubcfi":11,"rsvp":5}],20:[function(require,module,exports){
+var EpubCFI = require('./epubcfi');
+
+function Mapping(layout){
+	this.layout = layout;
+};
+
+Mapping.prototype.section = function(view) {
+	var ranges = this.findRanges(view);
+	var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
+
+	return map;
+};
+
+Mapping.prototype.page = function(contents, cfiBase, start, end) {
+	var root = contents && contents.document ? contents.document.body : false;
+
+	if (!root) {
+		return;
+	}
+
+	return this.rangePairToCfiPair(cfiBase, {
+		start: this.findStart(root, start, end),
+		end: this.findEnd(root, start, end)
+	});
+};
+
+Mapping.prototype.walk = function(root, func) {
+	//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
+	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: function (node) {
+					if ( node.data.trim().length > 0 ) {
+						return NodeFilter.FILTER_ACCEPT;
+					} else {
+						return NodeFilter.FILTER_REJECT;
+					}
+			}
+	}, false);
+	var node;
+	var result;
+	while ((node = treeWalker.nextNode())) {
+		result = func(node);
+		if(result) break;
+	}
+
+	return result;
+};
+
+Mapping.prototype.findRanges = function(view){
+	var columns = [];
+	var scrollWidth = view.contents.scrollWidth();
+	var count = this.layout.count(scrollWidth);
+	var column = this.layout.column;
+	var gap = this.layout.gap;
+	var start, end;
+
+	for (var i = 0; i < count.pages; i++) {
+		start = (column + gap) * i;
+		end = (column * (i+1)) + (gap * i);
+		columns.push({
+			start: this.findStart(view.document.body, start, end),
+			end: this.findEnd(view.document.body, start, end)
+		});
+	}
+
+	return columns;
+};
+
+Mapping.prototype.findStart = function(root, start, end){
+	var stack = [root];
+	var $el;
+	var found;
+	var $prev = root;
+	while (stack.length) {
+
+		$el = stack.shift();
+
+		found = this.walk($el, function(node){
+			var left, right;
+			var elPos;
+			var elRange;
+
+
+			if(node.nodeType == Node.TEXT_NODE){
+				elRange = document.createRange();
+				elRange.selectNodeContents(node);
+				elPos = elRange.getBoundingClientRect();
+			} else {
+				elPos = node.getBoundingClientRect();
+			}
+
+			left = elPos.left;
+			right = elPos.right;
+
+			if( left >= start && left <= end ) {
+				return node;
+			} else if (right > start) {
+				return node;
+			} else {
+				$prev = node;
+				stack.push(node);
+			}
+
+		});
+
+		if(found) {
+			return this.findTextStartRange(found, start, end);
+		}
+
+	}
+
+	// Return last element
+	return this.findTextStartRange($prev, start, end);
+};
+
+Mapping.prototype.findEnd = function(root, start, end){
+	var stack = [root];
+	var $el;
+	var $prev = root;
+	var found;
+
+	while (stack.length) {
+
+		$el = stack.shift();
+
+		found = this.walk($el, function(node){
+
+			var left, right;
+			var elPos;
+			var elRange;
+
+
+			if(node.nodeType == Node.TEXT_NODE){
+				elRange = document.createRange();
+				elRange.selectNodeContents(node);
+				elPos = elRange.getBoundingClientRect();
+			} else {
+				elPos = node.getBoundingClientRect();
+			}
+
+			left = elPos.left;
+			right = elPos.right;
+
+			if(left > end && $prev) {
+				return $prev;
+			} else if(right > end) {
+				return node;
+			} else {
+				$prev = node;
+				stack.push(node);
+			}
+
+		});
+
+
+		if(found){
+			return this.findTextEndRange(found, start, end);
+		}
+
+	}
+
+	// end of chapter
+	return this.findTextEndRange($prev, start, end);
+};
+
+
+Mapping.prototype.findTextStartRange = function(node, start, end){
+	var ranges = this.splitTextNodeIntoRanges(node);
+	var prev;
+	var range;
+	var pos;
+
+	for (var i = 0; i < ranges.length; i++) {
+		range = ranges[i];
+
+		pos = range.getBoundingClientRect();
+
+		if( pos.left >= start ) {
+			return range;
+		}
+
+		prev = range;
+
+	}
+
+	return ranges[0];
+};
+
+Mapping.prototype.findTextEndRange = function(node, start, end){
+	var ranges = this.splitTextNodeIntoRanges(node);
+	var prev;
+	var range;
+	var pos;
+
+	for (var i = 0; i < ranges.length; i++) {
+		range = ranges[i];
+
+		pos = range.getBoundingClientRect();
+
+		if(pos.left > end && prev) {
+			return prev;
+		} else if(pos.right > end) {
+			return range;
+		}
+
+		prev = range;
+
+	}
+
+	// Ends before limit
+	return ranges[ranges.length-1];
+
+};
+
+Mapping.prototype.splitTextNodeIntoRanges = function(node, _splitter){
+	var ranges = [];
+	var textContent = node.textContent || "";
+	var text = textContent.trim();
+	var range;
+	var rect;
+	var list;
+	var doc = node.ownerDocument;
+	var splitter = _splitter || " ";
+
+	pos = text.indexOf(splitter);
+
+	if(pos === -1 || node.nodeType != Node.TEXT_NODE) {
+		range = doc.createRange();
+		range.selectNodeContents(node);
+		return [range];
+	}
+
+	range = doc.createRange();
+	range.setStart(node, 0);
+	range.setEnd(node, pos);
+	ranges.push(range);
+	range = false;
+
+	while ( pos != -1 ) {
+
+		pos = text.indexOf(splitter, pos + 1);
+		if(pos > 0) {
+
+			if(range) {
+				range.setEnd(node, pos);
+				ranges.push(range);
+			}
+
+			range = doc.createRange();
+			range.setStart(node, pos+1);
+		}
+	}
+
+	if(range) {
+		range.setEnd(node, text.length);
+		ranges.push(range);
+	}
+
+	return ranges;
+};
+
+
+
+Mapping.prototype.rangePairToCfiPair = function(cfiBase, rangePair){
+
+	var startRange = rangePair.start;
+	var endRange = rangePair.end;
+
+	startRange.collapse(true);
+	endRange.collapse(true);
+
+	// startCfi = section.cfiFromRange(startRange);
+	// endCfi = section.cfiFromRange(endRange);
+	startCfi = new EpubCFI(startRange, cfiBase).toString();
+	endCfi = new EpubCFI(endRange, cfiBase).toString();
+
+	return {
+		start: startCfi,
+		end: endCfi
+	};
+
+};
+
+Mapping.prototype.rangeListToCfiList = function(cfiBase, columns){
+	var map = [];
+	var rangePair, cifPair;
+
+	for (var i = 0; i < columns.length; i++) {
+		cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
+
+		map.push(cifPair);
+
+	}
+
+	return map;
+};
+
+module.exports = Mapping;
+
+},{"./epubcfi":11}],21:[function(require,module,exports){
+var core = require('./core');
+var Parser = require('./parser');
+var RSVP = require('rsvp');
+var URI = require('urijs');
+
+function Navigation(_package, _request){
+	var navigation = this;
+	var parse = new Parser();
+	var request = _request || require('./request');
+
+	this.package = _package;
+	this.toc = [];
+	this.tocByHref = {};
+	this.tocById = {};
+
+	if(_package.navPath) {
+		this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
+		this.nav = {};
+
+		this.nav.load = function(_request){
+			var loading = new RSVP.defer();
+			var loaded = loading.promise;
+
+			request(navigation.navUrl, 'xml').then(function(xml){
+				navigation.toc = parse.nav(xml);
+				navigation.loaded(navigation.toc);
+				loading.resolve(navigation.toc);
+			});
+
+			return loaded;
+		};
+
+	}
+
+	if(_package.ncxPath) {
+		this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
+		this.ncx = {};
+
+		this.ncx.load = function(_request){
+			var loading = new RSVP.defer();
+			var loaded = loading.promise;
+
+			request(navigation.ncxUrl, 'xml').then(function(xml){
+				navigation.toc = parse.toc(xml);
+				navigation.loaded(navigation.toc);
+				loading.resolve(navigation.toc);
+			});
+
+			return loaded;
+		};
+
+	}
+};
+
+// Load the navigation
+Navigation.prototype.load = function(_request) {
+	var request = _request || require('./request');
+	var loading, loaded;
+
+	if(this.nav) {
+		loading = this.nav.load();
+	} else if(this.ncx) {
+		loading = this.ncx.load();
+	} else {
+		loaded = new RSVP.defer();
+		loaded.resolve([]);
+		loading = loaded.promise;
+	}
+
+	return loading;
+
+};
+
+Navigation.prototype.loaded = function(toc) {
+	var item;
+
+	for (var i = 0; i < toc.length; i++) {
+		item = toc[i];
+		this.tocByHref[item.href] = i;
+		this.tocById[item.id] = i;
+	}
+
+};
+
+// Get an item from the navigation
+Navigation.prototype.get = function(target) {
+	var index;
+
+	if(!target) {
+		return this.toc;
+	}
+
+	if(target.indexOf("#") === 0) {
+		index = this.tocById[target.substring(1)];
+	} else if(target in this.tocByHref){
+		index = this.tocByHref[target];
+	}
+
+	return this.toc[index];
+};
+
+module.exports = Navigation;
+
+},{"./core":10,"./parser":22,"./request":26,"rsvp":5,"urijs":7}],22:[function(require,module,exports){
+var URI = require('urijs');
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
+
+
+function Parser(){};
+
+Parser.prototype.container = function(containerXml){
+		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
+		var rootfile, fullpath, folder, encoding;
+
+		if(!containerXml) {
+			console.error("Container File Not Found");
+			return;
+		}
+
+		rootfile = core.qs(containerXml, "rootfile");
+
+		if(!rootfile) {
+			console.error("No RootFile Found");
+			return;
+		}
+
+		fullpath = rootfile.getAttribute('full-path');
+		folder = URI(fullpath).directory();
+		encoding = containerXml.xmlEncoding;
+
+		//-- Now that we have the path we can parse the contents
+		return {
+			'packagePath' : fullpath,
+			'basePath' : folder,
+			'encoding' : encoding
+		};
+};
+
+Parser.prototype.identifier = function(packageXml){
+	var metadataNode;
+
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
+
+	metadataNode = core.qs(packageXml, "metadata");
+
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
+
+	return this.getElementText(metadataNode, "identifier");
+};
+
+Parser.prototype.packageContents = function(packageXml){
+	var parse = this;
+	var metadataNode, manifestNode, spineNode;
+	var manifest, navPath, ncxPath, coverPath;
+	var spineNodeIndex;
+	var spine;
+	var spineIndexByURL;
+	var metadata;
+
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
+
+	metadataNode = core.qs(packageXml, "metadata");
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
+
+	manifestNode = core.qs(packageXml, "manifest");
+	if(!manifestNode) {
+		console.error("No Manifest Found");
+		return;
+	}
+
+	spineNode = core.qs(packageXml, "spine");
+	if(!spineNode) {
+		console.error("No Spine Found");
+		return;
+	}
+
+	manifest = parse.manifest(manifestNode);
+	navPath = parse.findNavPath(manifestNode);
+	ncxPath = parse.findNcxPath(manifestNode, spineNode);
+	coverPath = parse.findCoverPath(packageXml);
+
+	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+
+	spine = parse.spine(spineNode, manifest);
+
+	metadata = parse.metadata(metadataNode);
+
+	metadata.direction = spineNode.getAttribute("page-progression-direction");
+
+	return {
+		'metadata' : metadata,
+		'spine'    : spine,
+		'manifest' : manifest,
+		'navPath'  : navPath,
+		'ncxPath'  : ncxPath,
+		'coverPath': coverPath,
+		'spineNodeIndex' : spineNodeIndex
+	};
+};
+
+//-- Find TOC NAV
+Parser.prototype.findNavPath = function(manifestNode){
+	// Find item with property 'nav'
+	// Should catch nav irregardless of order
+	// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
+	var node = core.qsp(manifestNode, "item", {"properties":"nav"});
+	return node ? node.getAttribute('href') : false;
+};
+
+//-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
+Parser.prototype.findNcxPath = function(manifestNode, spineNode){
+	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
+	var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
+	var tocId;
+
+	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
+	// according to http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2,
+	// "The item that describes the NCX must be referenced by the spine toc attribute."
+	if (!node) {
+		tocId = spineNode.getAttribute("toc");
+		if(tocId) {
+			// node = manifestNode.querySelector("item[id='" + tocId + "']");
+			node = manifestNode.getElementById(tocId);
+		}
+	}
+
+	return node ? node.getAttribute('href') : false;
+};
+
+//-- Expanded to match Readium web components
+Parser.prototype.metadata = function(xml){
+	var metadata = {},
+			p = this;
+
+	metadata.title = p.getElementText(xml, 'title');
+	metadata.creator = p.getElementText(xml, 'creator');
+	metadata.description = p.getElementText(xml, 'description');
+
+	metadata.pubdate = p.getElementText(xml, 'date');
+
+	metadata.publisher = p.getElementText(xml, 'publisher');
+
+	metadata.identifier = p.getElementText(xml, "identifier");
+	metadata.language = p.getElementText(xml, "language");
+	metadata.rights = p.getElementText(xml, "rights");
+
+	metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
+
+	metadata.layout = p.getPropertyText(xml, "rendition:layout");
+	metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
+	metadata.flow = p.getPropertyText(xml, 'rendition:flow');
+	metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
+	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
+
+	return metadata;
+};
+
+//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
+//-- Fallback for Epub 2.0
+Parser.prototype.findCoverPath = function(packageXml){
+	var pkg = core.qs(packageXml, "package");
+	var epubVersion = pkg.getAttribute('version');
+
+	if (epubVersion === '2.0') {
+		var metaCover = core.qsp(packageXml, 'meta', {'name':'cover'});
+		if (metaCover) {
+			var coverId = metaCover.getAttribute('content');
+			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
+			var cover = packageXml.getElementById(coverId);
+			return cover ? cover.getAttribute('href') : false;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		// var node = packageXml.querySelector("item[properties='cover-image']");
+		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
+		return node ? node.getAttribute('href') : false;
+	}
+};
+
+Parser.prototype.getElementText = function(xml, tag){
+	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
+		el;
+
+	if(!found || found.length === 0) return '';
+
+	el = found[0];
+
+	if(el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+
+};
+
+Parser.prototype.getPropertyText = function(xml, property){
+	var el = core.qsp(xml, "meta", {"property":property});
+
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+};
+
+Parser.prototype.querySelectorText = function(xml, q){
+	var el = xml.querySelector(q);
+
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+};
+
+Parser.prototype.manifest = function(manifestXml){
+	var manifest = {};
+
+	//-- Turn items into an array
+	// var selected = manifestXml.querySelectorAll("item");
+	var selected = core.qsa(manifestXml, "item");
+	var items = Array.prototype.slice.call(selected);
+
+	//-- Create an object with the id as key
+	items.forEach(function(item){
+		var id = item.getAttribute('id'),
+				href = item.getAttribute('href') || '',
+				type = item.getAttribute('media-type') || '',
+				properties = item.getAttribute('properties') || '';
+
+		manifest[id] = {
+			'href' : href,
+			// 'url' : href,
+			'type' : type,
+			'properties' : properties.length ? properties.split(' ') : []
+		};
+
+	});
+
+	return manifest;
+
+};
+
+Parser.prototype.spine = function(spineXml, manifest){
+	var spine = [];
+
+	var selected = spineXml.getElementsByTagName("itemref"),
+			items = Array.prototype.slice.call(selected);
+
+	var epubcfi = new EpubCFI();
+
+	//-- Add to array to mantain ordering and cross reference with manifest
+	items.forEach(function(item, index){
+		var idref = item.getAttribute('idref');
+		// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
+		var props = item.getAttribute('properties') || '';
+		var propArray = props.length ? props.split(' ') : [];
+		// var manifestProps = manifest[Id].properties;
+		// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
+
+		var itemref = {
+			'idref' : idref,
+			'linear' : item.getAttribute('linear') || '',
+			'properties' : propArray,
+			// 'href' : manifest[Id].href,
+			// 'url' :  manifest[Id].url,
+			'index' : index
+			// 'cfiBase' : cfiBase
+		};
+		spine.push(itemref);
+	});
+
+	return spine;
+};
+
+Parser.prototype.querySelectorByType = function(html, element, type){
+	var query;
+	if (typeof html.querySelector != "undefined") {
+		query = html.querySelector(element+'[*|type="'+type+'"]');
+	}
+	// Handle IE not supporting namespaced epub:type in querySelector
+	if(!query || query.length === 0) {
+		query = core.qsa(html, element);
+		for (var i = 0; i < query.length; i++) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+				return query[i];
+			}
+		}
+	} else {
+		return query;
+	}
+};
+
+Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
+	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
+	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	var navItems = navElement ? core.qsa(navElement, "li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navItems || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+			// content = item.querySelector("a, span"),
+			content = core.qs(item, "a"),
+			src = content.getAttribute('href') || '',
+			text = content.textContent || "",
+			// split = src.split("#"),
+			// baseUrl = split[0],
+			// spinePos = spineIndexByURL[baseUrl],
+			// spineItem = bookSpine[spinePos],
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+			// cfi = spineItem ? spineItem.cfi : '';
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+	/*
+	if(!id) {
+		if(spinePos) {
+			spineItem = bookSpine[spinePos];
+			id = spineItem.id;
+			cfi = spineItem.cfi;
+		} else {
+			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
+			item.setAttribute('id', id);
+		}
+	}
+	*/
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
+};
+
+Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
+	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
+	var navPoints = core.qsa(tocXml, "navPoint");
+	var length = navPoints.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navPoints || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.ncxItem(navPoints[i], spineIndexByURL, bookSpine);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+			// content = item.querySelector("content"),
+			content = core.qs(item, "content"),
+			src = content.getAttribute('src'),
+			// navLabel = item.querySelector("navLabel"),
+			navLabel = core.qs(item, "navLabel"),
+			text = navLabel.textContent ? navLabel.textContent : "",
+			// split = src.split("#"),
+			// baseUrl = split[0],
+			// spinePos = spineIndexByURL[baseUrl],
+			// spineItem = bookSpine[spinePos],
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+			// cfi = spineItem ? spineItem.cfi : '';
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+	/*
+	if(!id) {
+		if(spinePos) {
+			spineItem = bookSpine[spinePos];
+			id = spineItem.id;
+			cfi = spineItem.cfi;
+		} else {
+			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
+			item.setAttribute('id', id);
+		}
+	}
+	*/
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
+};
+
+Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
+	var navElement = this.querySelectorByType(navHtml, "nav", "page-list");
+	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	var navItems = navElement ? core.qsa(navElement, "li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item;
+
+	if(!navItems || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.pageListItem(navItems[i], spineIndexByURL, bookSpine);
+		list.push(item);
+	}
+
+	return list;
+};
+
+Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+		// content = item.querySelector("a"),
+		content = core.qs(item, "a"),
+		href = content.getAttribute('href') || '',
+		text = content.textContent || "",
+		page = parseInt(text),
+		isCfi = href.indexOf("epubcfi"),
+		split,
+		packageUrl,
+		cfi;
+
+	if(isCfi != -1) {
+		split = href.split("#");
+		packageUrl = split[0];
+		cfi = split.length > 1 ? split[1] : false;
+		return {
+			"cfi" : cfi,
+			"href" : href,
+			"packageUrl" : packageUrl,
+			"page" : page
+		};
+	} else {
+		return {
+			"href" : href,
+			"page" : page
+		};
+	}
+};
+
+module.exports = Parser;
+
+},{"./core":10,"./epubcfi":11,"urijs":7}],23:[function(require,module,exports){
+var RSVP = require('rsvp');
+var core = require('./core');
+
+function Queue(_context){
+	this._q = [];
+	this.context = _context;
+	this.tick = core.requestAnimationFrame;
+	this.running = false;
+	this.paused = false;
+};
+
+// Add an item to the queue
+Queue.prototype.enqueue = function() {
+	var deferred, promise;
+	var queued;
+	var task = [].shift.call(arguments);
+	var args = arguments;
+
+	// Handle single args without context
+	// if(args && !Array.isArray(args)) {
+	//   args = [args];
+	// }
+	if(!task) {
+		return console.error("No Task Provided");
+	}
+
+	if(typeof task === "function"){
+
+		deferred = new RSVP.defer();
+		promise = deferred.promise;
+
+		queued = {
+			"task" : task,
+			"args"     : args,
+			//"context"  : context,
+			"deferred" : deferred,
+			"promise" : promise
+		};
+
+	} else {
+		// Task is a promise
+		queued = {
+			"promise" : task
+		};
+
+	}
+
+	this._q.push(queued);
+
+	// Wait to start queue flush
+	if (this.paused == false && !this.running) {
+		// setTimeout(this.flush.bind(this), 0);
+		// this.tick.call(window, this.run.bind(this));
+		this.run();
+	}
+
+	return queued.promise;
+};
+
+// Run one item
+Queue.prototype.dequeue = function(){
+	var inwait, task, result;
+
+	if(this._q.length) {
+		inwait = this._q.shift();
+		task = inwait.task;
+		if(task){
+			// console.log(task)
+
+			result = task.apply(this.context, inwait.args);
+
+			if(result && typeof result["then"] === "function") {
+				// Task is a function that returns a promise
+				return result.then(function(){
+					inwait.deferred.resolve.apply(this.context, arguments);
+				}.bind(this));
+			} else {
+				// Task resolves immediately
+				inwait.deferred.resolve.apply(this.context, result);
+				return inwait.promise;
+			}
+
+
+
+		} else if(inwait.promise) {
+			// Task is a promise
+			return inwait.promise;
+		}
+
+	} else {
+		inwait = new RSVP.defer();
+		inwait.deferred.resolve();
+		return inwait.promise;
+	}
+
+};
+
+// Run All Immediately
+Queue.prototype.dump = function(){
+	while(this._q.length) {
+		this.dequeue();
+	}
+};
+
+// Run all sequentially, at convince
+
+Queue.prototype.run = function(){
+
+	if(!this.running){
+		this.running = true;
+		this.defered = new RSVP.defer();
+	}
+
+	this.tick.call(window, function() {
+
+		if(this._q.length) {
+
+			this.dequeue()
+				.then(function(){
+					this.run();
+				}.bind(this));
+
+		} else {
+			this.defered.resolve();
+			this.running = undefined;
+		}
+
+	}.bind(this));
+
+	// Unpause
+	if(this.paused == true) {
+		this.paused = false;
+	}
+
+	return this.defered.promise;
+};
+
+// Flush all, as quickly as possible
+Queue.prototype.flush = function(){
+
+	if(this.running){
+		return this.running;
+	}
+
+	if(this._q.length) {
+		this.running = this.dequeue()
+			.then(function(){
+				this.running = undefined;
+				return this.flush();
+			}.bind(this));
+
+		return this.running;
+	}
+
+};
+
+// Clear all items in wait
+Queue.prototype.clear = function(){
+	this._q = [];
+	this.running = false;
+};
+
+Queue.prototype.length = function(){
+	return this._q.length;
+};
+
+Queue.prototype.pause = function(){
+	this.paused = true;
+};
+
+// Create a new task from a callback
+function Task(task, args, context){
+
+	return function(){
+		var toApply = arguments || [];
+
+		return new RSVP.Promise(function(resolve, reject) {
+			var callback = function(value){
+				resolve(value);
+			};
+			// Add the callback to the arguments list
+			toApply.push(callback);
+
+			// Apply all arguments to the functions
+			task.apply(this, toApply);
+
+	}.bind(this));
+
+	};
+
+};
+
+module.exports = Queue;
+
+},{"./core":10,"rsvp":5}],24:[function(require,module,exports){
+var RSVP = require('rsvp');
+var URI = require('urijs');
+var core = require('./core');
+var replace = require('./replacements');
+var Hook = require('./hook');
+var EpubCFI = require('./epubcfi');
+var Queue = require('./queue');
+var Layout = require('./layout');
+var Mapping = require('./mapping');
+
+function Rendition(book, options) {
+
+	this.settings = core.extend(this.settings || {}, {
+		width: null,
+		height: null,
+		ignoreClass: '',
+		manager: "single",
+		view: "iframe",
+		flow: null,
+		layout: null,
+		spread: null,
+		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
+		useBase64: true
+	});
+
+	core.extend(this.settings, options);
+
+	this.viewSettings = {
+		ignoreClass: this.settings.ignoreClass
+	};
+
+	this.book = book;
+
+	this.views = null;
+
+	//-- Adds Hook methods to the Rendition prototype
+	this.hooks = {};
+	this.hooks.display = new Hook(this);
+	this.hooks.serialize = new Hook(this);
+	this.hooks.content = new Hook(this);
+	this.hooks.layout = new Hook(this);
+	this.hooks.render = new Hook(this);
+	this.hooks.show = new Hook(this);
+
+	this.hooks.content.register(replace.links.bind(this));
+	this.hooks.content.register(this.passViewEvents.bind(this));
+
+	// this.hooks.display.register(this.afterDisplay.bind(this));
+
+	this.epubcfi = new EpubCFI();
+
+	this.q = new Queue(this);
+
+	this.q.enqueue(this.book.opened);
+
+	// Block the queue until rendering is started
+	// this.starting = new RSVP.defer();
+	// this.started = this.starting.promise;
+	this.q.enqueue(this.start);
+
+	if(this.book.unarchived) {
+		this.q.enqueue(this.replacements.bind(this));
+	}
+
+};
+
+Rendition.prototype.setManager = function(manager) {
+	this.manager = manager;
+};
+
+Rendition.prototype.requireManager = function(manager) {
+	var viewManager;
+
+	// If manager is a string, try to load from register managers,
+	// or require included managers directly
+	if (typeof manager === "string") {
+		// Use global or require
+		viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
+	} else {
+		// otherwise, assume we were passed a function
+		viewManager = manager
+	}
+
+	return viewManager;
+};
+
+Rendition.prototype.requireView = function(view) {
+	var View;
+
+	if (typeof view == "string") {
+		View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
+	} else {
+		// otherwise, assume we were passed a function
+		View = view
+	}
+
+	return View;
+};
+
+Rendition.prototype.start = function(){
+
+	if(!this.manager) {
+		this.ViewManager = this.requireManager(this.settings.manager);
+		this.View = this.requireView(this.settings.view);
+
+		this.manager = new this.ViewManager({
+			view: this.View,
+			queue: this.q,
+			request: this.book.request,
+			settings: this.settings
+		});
+	}
+
+	// Parse metadata to get layout props
+	this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
+
+	this.flow(this.settings.globalLayoutProperties.flow);
+
+	this.layout(this.settings.globalLayoutProperties);
+
+	// Listen for displayed views
+	this.manager.on("added", this.afterDisplayed.bind(this));
+
+	// Listen for resizing
+	this.manager.on("resized", this.onResized.bind(this));
+
+	// Listen for scroll changes
+	this.manager.on("scroll", this.reportLocation.bind(this));
+
+
+	this.on('displayed', this.reportLocation.bind(this));
+
+	// Trigger that rendering has started
+	this.trigger("started");
+
+	// Start processing queue
+	// this.starting.resolve();
+};
+
+// Call to attach the container to an element in the dom
+// Container must be attached before rendering can begin
+Rendition.prototype.attachTo = function(element){
+
+	return this.q.enqueue(function () {
+
+		// Start rendering
+		this.manager.render(element, {
+			"width"  : this.settings.width,
+			"height" : this.settings.height
+		});
+
+		// Trigger Attached
+		this.trigger("attached");
+
+	}.bind(this));
+
+};
+
+Rendition.prototype.display = function(target){
+
+	// if (!this.book.spine.spineItems.length > 0) {
+		// Book isn't open yet
+		// return this.q.enqueue(this.display, target);
+	// }
+
+	return this.q.enqueue(this._display, target);
+
+};
+
+Rendition.prototype._display = function(target){
+	var isCfiString = this.epubcfi.isCfiString(target);
+	var displaying = new RSVP.defer();
+	var displayed = displaying.promise;
+	var section;
+	var moveTo;
+
+	section = this.book.spine.get(target);
+
+	if(!section){
+		displaying.reject(new Error("No Section Found"));
+		return displayed;
+	}
+
+	// Trim the target fragment
+	// removing the chapter
+	if(!isCfiString && typeof target === "string" &&
+		target.indexOf("#") > -1) {
+			moveTo = target.substring(target.indexOf("#")+1);
+	}
+
+	if (isCfiString) {
+		moveTo = target;
+	}
+
+	return this.manager.display(section, moveTo)
+		.then(function(){
+			this.trigger("displayed", section);
+		}.bind(this));
+
+};
+
+/*
+Rendition.prototype.render = function(view, show) {
+
+	// view.onLayout = this.layout.format.bind(this.layout);
+	view.create();
+
+	// Fit to size of the container, apply padding
+	this.manager.resizeView(view);
+
+	// Render Chain
+	return view.section.render(this.book.request)
+		.then(function(contents){
+			return view.load(contents);
+		}.bind(this))
+		.then(function(doc){
+			return this.hooks.content.trigger(view, this);
+		}.bind(this))
+		.then(function(){
+			this.layout.format(view.contents);
+			return this.hooks.layout.trigger(view, this);
+		}.bind(this))
+		.then(function(){
+			return view.display();
+		}.bind(this))
+		.then(function(){
+			return this.hooks.render.trigger(view, this);
+		}.bind(this))
+		.then(function(){
+			if(show !== false) {
+				this.q.enqueue(function(view){
+					view.show();
+				}, view);
+			}
+			// this.map = new Map(view, this.layout);
+			this.hooks.show.trigger(view, this);
+			this.trigger("rendered", view.section);
+
+		}.bind(this))
+		.catch(function(e){
+			this.trigger("loaderror", e);
+		}.bind(this));
+
+};
+*/
+
+Rendition.prototype.afterDisplayed = function(view){
+	this.hooks.content.trigger(view, this);
+	this.trigger("rendered", view.section);
+	this.reportLocation();
+};
+
+Rendition.prototype.onResized = function(size){
+
+	if(this.location) {
+		this.display(this.location.start);
+	}
+
+	this.trigger("resized", {
+		width: size.width,
+		height: size.height
+	});
+
+};
+
+Rendition.prototype.moveTo = function(offset){
+	this.manager.moveTo(offset);
+};
+
+Rendition.prototype.next = function(){
+	return this.q.enqueue(this.manager.next.bind(this.manager))
+		.then(this.reportLocation.bind(this));
+};
+
+Rendition.prototype.prev = function(){
+	return this.q.enqueue(this.manager.prev.bind(this.manager))
+		.then(this.reportLocation.bind(this));
+};
+
+//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
+Rendition.prototype.determineLayoutProperties = function(metadata){
+	var settings;
+	var layout = this.settings.layout || metadata.layout || "reflowable";
+	var spread = this.settings.spread || metadata.spread || "auto";
+	var orientation = this.settings.orientation || metadata.orientation || "auto";
+	var flow = this.settings.flow || metadata.flow || "auto";
+	var viewport = metadata.viewport || "";
+	var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
+
+	if (this.settings.width >= 0 && this.settings.height >= 0) {
+		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
+	}
+
+	settings = {
+		layout : layout,
+		spread : spread,
+		orientation : orientation,
+		flow : flow,
+		viewport : viewport,
+		minSpreadWidth : minSpreadWidth
+	};
+
+	return settings;
+};
+
+// Rendition.prototype.applyLayoutProperties = function(){
+// 	var settings = this.determineLayoutProperties(this.book.package.metadata);
+//
+// 	this.flow(settings.flow);
+//
+// 	this.layout(settings);
+// };
+
+// paginated | scrolled
+// (scrolled-continuous vs scrolled-doc are handled by different view managers)
+Rendition.prototype.flow = function(_flow){
+	var flow;
+	if (_flow === "scrolled-doc" || _flow === "scrolled-continuous") {
+		flow = "scrolled";
+	}
+
+	if (_flow === "auto" || _flow === "paginated") {
+		flow = "paginated";
+	}
+
+	if (this._layout) {
+		this._layout.flow(flow);
+	}
+
+	if (this.manager) {
+		this.manager.updateFlow(flow);
+	}
+};
+
+// reflowable | pre-paginated
+Rendition.prototype.layout = function(settings){
+	if (settings) {
+		this._layout = new Layout(settings);
+		this._layout.spread(settings.spread, this.settings.minSpreadWidth);
+
+		this.mapping = new Mapping(this._layout);
+	}
+
+	if (this.manager && this._layout) {
+		this.manager.applyLayout(this._layout);
+	}
+
+	return this._layout;
+};
+
+// none | auto (TODO: implement landscape, portrait, both)
+Rendition.prototype.spread = function(spread, min){
+
+	this._layout.spread(spread, min);
+
+	if (this.manager.isRendered()) {
+		this.manager.updateLayout();
+	}
+};
+
+
+Rendition.prototype.reportLocation = function(){
+	return this.q.enqueue(function(){
+		var location = this.manager.currentLocation();
+		if (location && location.then && typeof location.then === 'function') {
+			location.then(function(result) {
+				this.location = result;
+				this.trigger("locationChanged", this.location);
+			}.bind(this));
+		} else if (location) {
+			this.location = location;
+			this.trigger("locationChanged", this.location);
+		}
+
+	}.bind(this));
+};
+
+
+Rendition.prototype.destroy = function(){
+	// Clear the queue
+	this.q.clear();
+
+	this.manager.destroy();
+};
+
+Rendition.prototype.passViewEvents = function(view){
+	view.contents.listenedEvents.forEach(function(e){
+		view.on(e, this.triggerViewEvent.bind(this));
+	}.bind(this));
+
+	view.on("selected", this.triggerSelectedEvent.bind(this));
+};
+
+Rendition.prototype.triggerViewEvent = function(e){
+	this.trigger(e.type, e);
+};
+
+Rendition.prototype.triggerSelectedEvent = function(cfirange){
+	this.trigger("selected", cfirange);
+};
+
+Rendition.prototype.replacements = function(){
+	// Wait for loading
+	// return this.q.enqueue(function () {
+		// Get thes books manifest
+		var manifest = this.book.package.manifest;
+		var manifestArray = Object.keys(manifest).
+			map(function (key){
+				return manifest[key];
+			});
+
+		// Exclude HTML
+		var items = manifestArray.
+			filter(function (item){
+				if (item.type != "application/xhtml+xml" &&
+						item.type != "text/html") {
+					return true;
+				}
+			});
+
+		// Only CSS
+		var css = items.
+			filter(function (item){
+				if (item.type === "text/css") {
+					return true;
+				}
+			});
+
+		// Css Urls
+		var cssUrls = css.map(function(item) {
+			return item.href;
+		});
+
+		// All Assets Urls
+		var urls = items.
+			map(function(item) {
+				return item.href;
+			}.bind(this));
+
+		// Create blob urls for all the assets
+		var processing = urls.
+			map(function(url) {
+				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
+				// Full url from archive base
+				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
+			}.bind(this));
+
+		var replacementUrls;
+
+		// After all the urls are created
+		return RSVP.all(processing)
+			.then(function(_replacementUrls) {
+				var replaced = [];
+
+				replacementUrls = _replacementUrls;
+
+				// Replace Asset Urls in the text of all css files
+				cssUrls.forEach(function(href) {
+					replaced.push(this.replaceCss(href, urls, replacementUrls));
+				}.bind(this));
+
+				return RSVP.all(replaced);
+
+			}.bind(this))
+			.then(function () {
+				// Replace Asset Urls in chapters
+				// by registering a hook after the sections contents has been serialized
+				this.book.spine.hooks.serialize.register(function(output, section) {
+
+					this.replaceAssets(section, urls, replacementUrls);
+
+				}.bind(this));
+
+			}.bind(this))
+			.catch(function(reason){
+				console.error(reason);
+			});
+	// }.bind(this));
+};
+
+Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
+		var newUrl;
+		var indexInUrls;
+
+		// Find the absolute url of the css file
+		var fileUri = URI(href);
+		var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
+		// Get the text of the css file from the archive
+		var textResponse = this.book.unarchived.getText(absolute);
+		// Get asset links relative to css file
+		var relUrls = urls.
+			map(function(assetHref) {
+				var assetUri = URI(assetHref).absoluteTo(this.book.baseUrl);
+				var relative = assetUri.relativeTo(absolute).toString();
+				return relative;
+			}.bind(this));
+
+		return textResponse.then(function (text) {
+			// Replacements in the css text
+			text = replace.substitute(text, relUrls, replacementUrls);
+
+			// Get the new url
+			if (this.settings.useBase64) {
+				newUrl = core.createBase64Url(text, 'text/css');
+			} else {
+				newUrl = core.createBlobUrl(text, 'text/css');
+			}
+
+			// switch the url in the replacementUrls
+			indexInUrls = urls.indexOf(href);
+			if (indexInUrls > -1) {
+				replacementUrls[indexInUrls] = newUrl;
+			}
+
+			return new RSVP.Promise(function(resolve, reject){
+				resolve(urls, replacementUrls);
+			});
+
+		}.bind(this));
+
+};
+
+Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
+	var fileUri = URI(section.url);
+	// Get Urls relative to current sections
+	var relUrls = urls.
+		map(function(href) {
+			var assetUri = URI(href).absoluteTo(this.book.baseUrl);
+			var relative = assetUri.relativeTo(fileUri).toString();
+			return relative;
+		}.bind(this));
+
+
+	section.output = replace.substitute(section.output, relUrls, replacementUrls);
+};
+
+Rendition.prototype.range = function(_cfi, ignoreClass){
+	var cfi = new EpubCFI(_cfi);
+	var found = this.visible().filter(function (view) {
+		if(cfi.spinePos === view.index) return true;
+	});
+
+	// Should only every return 1 item
+	if (found.length) {
+		return found[0].range(cfi, ignoreClass);
+	}
+};
+
+Rendition.prototype.adjustImages = function(view) {
+
+	view.addStylesheetRules([
+			["img",
+				["max-width", (view.layout.spreadWidth) + "px"],
+				["max-height", (view.layout.height) + "px"]
+			]
+	]);
+	return new RSVP.Promise(function(resolve, reject){
+		// Wait to apply
+		setTimeout(function() {
+			resolve();
+		}, 1);
+	});
+};
+
+//-- Enable binding events to Renderer
+RSVP.EventTarget.mixin(Rendition.prototype);
+
+module.exports = Rendition;
+
+},{"./core":10,"./epubcfi":11,"./hook":12,"./layout":13,"./mapping":20,"./queue":23,"./replacements":25,"rsvp":5,"urijs":7}],25:[function(require,module,exports){
+var URI = require('urijs');
+var core = require('./core');
+
+function base(doc, section){
+	var base;
+	var head;
+
+	if(!doc){
+		return;
+	}
+
+	// head = doc.querySelector("head");
+	// base = head.querySelector("base");
+	head = core.qs(doc, "head");
+	base = core.qs(head, "base");
+
+	if(!base) {
+		base = doc.createElement("base");
+		head.insertBefore(base, head.firstChild);
+	}
+
+	base.setAttribute("href", section.url);
+}
+
+function canonical(doc, section){
+	var head;
+	var link;
+	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
+
+	if(!doc){
+		return;
+	}
+
+	head = core.qs(doc, "head");
+	link = core.qs(head, "link[rel='canonical']");
+
+	if (link) {
+		link.setAttribute("href", url);
+	} else {
+		link = doc.createElement("link");
+		link.setAttribute("rel", "canonical");
+		link.setAttribute("href", url);
+		head.appendChild(link);
+	}
+}
+
+function links(view, renderer) {
+
+	var links = view.document.querySelectorAll("a[href]");
+	var replaceLinks = function(link){
+		var href = link.getAttribute("href");
+
+		if(href.indexOf("mailto:") === 0){
+			return;
+		}
+
+		var linkUri = URI(href);
+		var absolute = linkUri.absoluteTo(view.section.url);
+		var relative = absolute.relativeTo(this.book.baseUrl).toString();
+
+		if(linkUri.protocol()){
+
+			link.setAttribute("target", "_blank");
+
+		}else{
+			/*
+			if(baseDirectory) {
+				// We must ensure that the file:// protocol is preserved for
+				// local file links, as in certain contexts (such as under
+				// Titanium), file links without the file:// protocol will not
+				// work
+				if (baseUri.protocol === "file") {
+					relative = core.resolveUrl(baseUri.base, href);
+				} else {
+					relative = core.resolveUrl(baseDirectory, href);
+				}
+			} else {
+				relative = href;
+			}
+			*/
+
+			if(linkUri.fragment()) {
+				// do nothing with fragment yet
+			} else {
+				link.onclick = function(){
+					renderer.display(relative);
+					return false;
+				};
+			}
+
+		}
+	}.bind(this);
+
+	for (var i = 0; i < links.length; i++) {
+		replaceLinks(links[i]);
+	}
+
+
+};
+
+function substitute(content, urls, replacements) {
+	urls.forEach(function(url, i){
+		if (url && replacements[i]) {
+			content = content.replace(new RegExp(url, 'g'), replacements[i]);
+		}
+	});
+	return content;
+}
+module.exports = {
+	'base': base,
+	'canonical' : canonical,
+	'links': links,
+	'substitute': substitute
+};
+
+},{"./core":10,"urijs":7}],26:[function(require,module,exports){
+var RSVP = require('rsvp');
+var URI = require('urijs');
+var core = require('./core');
+
+function request(url, type, withCredentials, headers) {
+	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
+	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+	var uri;
+
+	var deferred = new RSVP.defer();
+
+	var xhr = new XMLHttpRequest();
+
+	//-- Check from PDF.js:
+	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+	var xhrPrototype = XMLHttpRequest.prototype;
+
+	var header;
+
+	if (!('overrideMimeType' in xhrPrototype)) {
+		// IE10 might have response, but not overrideMimeType
+		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
+			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+		});
+	}
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
+
+	xhr.onreadystatechange = handler;
+	xhr.onerror = err;
+
+	xhr.open("GET", url, true);
+
+	for(header in headers) {
+		xhr.setRequestHeader(header, headers[header]);
+	}
+
+	if(type == "json") {
+		xhr.setRequestHeader("Accept", "application/json");
+	}
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		uri = URI(url);
+		type = uri.suffix();
+	}
+
+	if(type == 'blob'){
+		xhr.responseType = BLOB_RESPONSE;
+	}
+
+
+	if(core.isXml(type)) {
+		// xhr.responseType = "document";
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
+	}
+
+	if(type == 'xhtml') {
+		// xhr.responseType = "document";
+	}
+
+	if(type == 'html' || type == 'htm') {
+		// xhr.responseType = "document";
+	 }
+
+	if(type == "binary") {
+		xhr.responseType = "arraybuffer";
+	}
+
+	xhr.send();
+
+	function err(e) {
+		console.error(e);
+		deferred.reject(e);
+	}
+
+	function handler() {
+		if (this.readyState === XMLHttpRequest.DONE) {
+
+			if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
+				var r;
+
+				if (!this.response && !this.responseXML) {
+					deferred.reject({
+						status: this.status,
+						message : "Empty Response",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
+
+				if (this.status === 403) {
+					deferred.reject({
+						status: this.status,
+						response: this.response,
+						message : "Forbidden",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
+
+				if((this.responseType == '' || this.responseType == 'document')
+						&& this.responseXML){
+					r = this.responseXML;
+				} else
+				if(core.isXml(type)){
+					// xhr.overrideMimeType('text/xml'); // for OPF parsing
+					// If this.responseXML wasn't set, try to parse using a DOMParser from text
+					r = core.parse(this.response, "text/xml");
+				}else
+				if(type == 'xhtml'){
+					r = core.parse(this.response, "application/xhtml+xml");
+				}else
+				if(type == 'html' || type == 'htm'){
+					r = core.parse(this.response, "text/html");
+				}else
+				if(type == 'json'){
+					r = JSON.parse(this.response);
+				}else
+				if(type == 'blob'){
+
+					if(supportsURL) {
+						r = this.response;
+					} else {
+						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+						r = new Blob([this.response]);
+					}
+
+				}else{
+					r = this.response;
+				}
+
+				deferred.resolve(r);
+			} else {
+
+				deferred.reject({
+					status: this.status,
+					message : this.response,
+					stack : new Error().stack
+				});
+
+			}
+		}
+	}
+
+	return deferred.promise;
+};
+
+module.exports = request;
+
+},{"./core":10,"rsvp":5,"urijs":7}],27:[function(require,module,exports){
+var RSVP = require('rsvp');
+var URI = require('urijs');
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
+var Hook = require('./hook');
+
+function Section(item, hooks){
+		this.idref = item.idref;
+		this.linear = item.linear;
+		this.properties = item.properties;
+		this.index = item.index;
+		this.href = item.href;
+		this.url = item.url;
+		this.next = item.next;
+		this.prev = item.prev;
+
+		this.cfiBase = item.cfiBase;
+
+		if (hooks) {
+			this.hooks = hooks;
+		} else {
+			this.hooks = {};
+			this.hooks.serialize = new Hook(this);
+			this.hooks.content = new Hook(this);
+		}
+
+};
+
+
+Section.prototype.load = function(_request){
+	var request = _request || this.request || require('./request');
+	var loading = new RSVP.defer();
+	var loaded = loading.promise;
+
+	if(this.contents) {
+		loading.resolve(this.contents);
+	} else {
+		request(this.url)
+			.then(function(xml){
+				var base;
+				var directory = URI(this.url).directory();
+
+				this.document = xml;
+				this.contents = xml.documentElement;
+
+				return this.hooks.content.trigger(this.document, this);
+			}.bind(this))
+			.then(function(){
+				loading.resolve(this.contents);
+			}.bind(this))
+			.catch(function(error){
+				loading.reject(error);
+			});
+	}
+
+	return loaded;
+};
+
+Section.prototype.base = function(_document){
+		var task = new RSVP.defer();
+		var base = _document.createElement("base"); // TODO: check if exists
+		var head;
+		console.log(window.location.origin + "/" +this.url);
+
+		base.setAttribute("href", window.location.origin + "/" +this.url);
+
+		if(_document) {
+			head = _document.querySelector("head");
+		}
+		if(head) {
+			head.insertBefore(base, head.firstChild);
+			task.resolve();
+		} else {
+			task.reject(new Error("No head to insert into"));
+		}
+
+
+		return task.promise;
+};
+
+Section.prototype.beforeSectionLoad = function(){
+	// Stub for a hook - replace me for now
+};
+
+Section.prototype.render = function(_request){
+	var rendering = new RSVP.defer();
+	var rendered = rendering.promise;
+	this.output; // TODO: better way to return this from hooks?
+
+	this.load(_request).
+		then(function(contents){
+			var serializer;
+
+			if (typeof XMLSerializer === "undefined") {
+				XMLSerializer = require('xmldom').XMLSerializer;
+			}
+			serializer = new XMLSerializer();
+			this.output = serializer.serializeToString(contents);
+			return this.output;
+		}.bind(this)).
+		then(function(){
+			return this.hooks.serialize.trigger(this.output, this);
+		}.bind(this)).
+		then(function(){
+			rendering.resolve(this.output);
+		}.bind(this))
+		.catch(function(error){
+			rendering.reject(error);
+		});
+
+	return rendered;
+};
+
+Section.prototype.find = function(_query){
+
+};
+
+/**
+* Reconciles the current chapters layout properies with
+* the global layout properities.
+* Takes: global layout settings object, chapter properties string
+* Returns: Object with layout properties
+*/
+Section.prototype.reconcileLayoutSettings = function(global){
+	//-- Get the global defaults
+	var settings = {
+		layout : global.layout,
+		spread : global.spread,
+		orientation : global.orientation
+	};
+
+	//-- Get the chapter's display type
+	this.properties.forEach(function(prop){
+		var rendition = prop.replace("rendition:", '');
+		var split = rendition.indexOf("-");
+		var property, value;
+
+		if(split != -1){
+			property = rendition.slice(0, split);
+			value = rendition.slice(split+1);
+
+			settings[property] = value;
+		}
+	});
+ return settings;
+};
+
+Section.prototype.cfiFromRange = function(_range) {
+	return new EpubCFI(_range, this.cfiBase).toString();
+};
+
+Section.prototype.cfiFromElement = function(el) {
+	return new EpubCFI(el, this.cfiBase).toString();
+};
+
+module.exports = Section;
+
+},{"./core":10,"./epubcfi":11,"./hook":12,"./request":26,"rsvp":5,"urijs":7,"xmldom":"xmldom"}],28:[function(require,module,exports){
+var RSVP = require('rsvp');
+var core = require('./core');
+var EpubCFI = require('./epubcfi');
+var Hook = require('./hook');
+var Section = require('./section');
+var replacements = require('./replacements');
+
+function Spine(_request){
+	this.request = _request;
+	this.spineItems = [];
+	this.spineByHref = {};
+	this.spineById = {};
+
+	this.hooks = {};
+	this.hooks.serialize = new Hook();
+	this.hooks.content = new Hook();
+
+	// Register replacements
+	this.hooks.content.register(replacements.base);
+	this.hooks.content.register(replacements.canonical);
+
+	this.epubcfi = new EpubCFI();
+
+	this.loaded = false;
+};
+
+Spine.prototype.load = function(_package) {
+
+	this.items = _package.spine;
+	this.manifest = _package.manifest;
+	this.spineNodeIndex = _package.spineNodeIndex;
+	this.baseUrl = _package.baseUrl || '';
+	this.length = this.items.length;
+
+	this.items.forEach(function(item, index){
+		var href, url;
+		var manifestItem = this.manifest[item.idref];
+		var spineItem;
+
+		item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
+
+		if(manifestItem) {
+			item.href = manifestItem.href;
+			item.url = this.baseUrl + item.href;
+
+			if(manifestItem.properties.length){
+				item.properties.push.apply(item.properties, manifestItem.properties);
+			}
+		}
+
+		// if(index > 0) {
+			item.prev = function(){ return this.get(index-1); }.bind(this);
+		// }
+
+		// if(index+1 < this.items.length) {
+			item.next = function(){ return this.get(index+1); }.bind(this);
+		// }
+
+		spineItem = new Section(item, this.hooks);
+
+		this.append(spineItem);
+
+
+	}.bind(this));
+
+	this.loaded = true;
+};
+
+// book.spine.get();
+// book.spine.get(1);
+// book.spine.get("chap1.html");
+// book.spine.get("#id1234");
+Spine.prototype.get = function(target) {
+	var index = 0;
+
+	if(this.epubcfi.isCfiString(target)) {
+		cfi = new EpubCFI(target);
+		index = cfi.spinePos;
+	} else if(target && (typeof target === "number" || isNaN(target) === false)){
+		index = target;
+	} else if(target && target.indexOf("#") === 0) {
+		index = this.spineById[target.substring(1)];
+	} else if(target) {
+		// Remove fragments
+		target = target.split("#")[0];
+		index = this.spineByHref[target];
+	}
+
+	return this.spineItems[index] || null;
+};
+
+Spine.prototype.append = function(section) {
+	var index = this.spineItems.length;
+	section.index = index;
+
+	this.spineItems.push(section);
+
+	this.spineByHref[section.href] = index;
+	this.spineById[section.idref] = index;
+
+	return index;
+};
+
+Spine.prototype.prepend = function(section) {
+	var index = this.spineItems.unshift(section);
+	this.spineByHref[section.href] = 0;
+	this.spineById[section.idref] = 0;
+
+	// Re-index
+	this.spineItems.forEach(function(item, index){
+		item.index = index;
+	});
+
+	return 0;
+};
+
+Spine.prototype.insert = function(section, index) {
+
+};
+
+Spine.prototype.remove = function(section) {
+	var index = this.spineItems.indexOf(section);
+
+	if(index > -1) {
+		delete this.spineByHref[section.href];
+		delete this.spineById[section.idref];
+
+		return this.spineItems.splice(index, 1);
+	}
+};
+
+Spine.prototype.each = function() {
+	return this.spineItems.forEach.apply(this.spineItems, arguments);
+};
+
+module.exports = Spine;
+
+},{"./core":10,"./epubcfi":11,"./hook":12,"./replacements":25,"./section":27,"rsvp":5}],29:[function(require,module,exports){
+var RSVP = require('rsvp');
+var URI = require('urijs');
+var core = require('./core');
+var request = require('./request');
+var mime = require('../libs/mime/mime');
+
+function Unarchive() {
+
+	this.checkRequirements();
+	this.urlCache = {};
+
+}
+
+Unarchive.prototype.checkRequirements = function(callback){
+	try {
+		if (typeof JSZip !== 'undefined') {
+			this.zip = new JSZip();
+		} else {
+			JSZip = require('jszip');
+			this.zip = new JSZip();
+		}
+	} catch (e) {
+		console.error("JSZip lib not loaded");
+	}
+};
+
+Unarchive.prototype.open = function(zipUrl, isBase64){
+	if (zipUrl instanceof ArrayBuffer || isBase64) {
+		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
+	} else {
+		return request(zipUrl, "binary")
+			.then(function(data){
+				return this.zip.loadAsync(data);
+			}.bind(this));
+	}
+};
+
+Unarchive.prototype.request = function(url, type){
+	var deferred = new RSVP.defer();
+	var response;
+	var r;
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		uri = URI(url);
+		type = uri.suffix();
+	}
+
+	if(type == 'blob'){
+		response = this.getBlob(url);
+	} else {
+		response = this.getText(url);
+	}
+
+	if (response) {
+		response.then(function (r) {
+			result = this.handleResponse(r, type);
+			deferred.resolve(result);
+		}.bind(this));
+	} else {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
+	return deferred.promise;
+};
+
+Unarchive.prototype.handleResponse = function(response, type){
+	var r;
+
+	if(type == "json") {
+		r = JSON.parse(response);
+	}
+	else
+	if(core.isXml(type)) {
+		r = core.parse(response, "text/xml");
+	}
+	else
+	if(type == 'xhtml') {
+		r = core.parse(response, "application/xhtml+xml");
+	}
+	else
+	if(type == 'html' || type == 'htm') {
+		r = core.parse(response, "text/html");
+	 } else {
+		 r = response;
+	 }
+
+	return r;
+};
+
+Unarchive.prototype.getBlob = function(url, _mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+	var mimeType;
+
+	if(entry) {
+		mimeType = _mimeType || mime.lookup(entry.name);
+		return entry.async("uint8array").then(function(uint8array) {
+			return new Blob([uint8array], {type : mimeType});
+		});
+	}
+};
+
+Unarchive.prototype.getText = function(url, encoding){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+
+	if(entry) {
+		return entry.async("string").then(function(text) {
+			return text;
+		});
+	}
+};
+
+Unarchive.prototype.getBase64 = function(url, _mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+	var mimeType;
+
+	if(entry) {
+		mimeType = _mimeType || mime.lookup(entry.name);
+		return entry.async("base64").then(function(data) {
+			return "data:" + mimeType + ";base64," + data;
+		});
+	}
+};
+
+Unarchive.prototype.createUrl = function(url, options){
+	var deferred = new RSVP.defer();
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob;
+	var response;
+	var useBase64 = options && options.base64;
+
+	if(url in this.urlCache) {
+		deferred.resolve(this.urlCache[url]);
+		return deferred.promise;
+	}
+
+	if (useBase64) {
+		response = this.getBase64(url);
+
+		if (response) {
+			response.then(function(tempUrl) {
+
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
+
+			}.bind(this));
+
+		}
+
+	} else {
+
+		response = this.getBlob(url);
+
+		if (response) {
+			response.then(function(blob) {
+
+				tempUrl = _URL.createObjectURL(blob);
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
+
+			}.bind(this));
+
+		}
+	}
+
+
+	if (!response) {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
+
+	return deferred.promise;
+};
+
+Unarchive.prototype.revokeUrl = function(url){
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var fromCache = this.urlCache[url];
+	if(fromCache) _URL.revokeObjectURL(fromCache);
+};
+
+module.exports = Unarchive;
+
+},{"../libs/mime/mime":1,"./core":10,"./request":26,"jszip":"jszip","rsvp":5,"urijs":7}],"epub":[function(require,module,exports){
 var Book = require('./book');
 var EpubCFI = require('./epubcfi');
 var Rendition = require('./rendition');
@@ -12984,8 +12984,8 @@ ePub.register = {
 };
 
 // Default Views
-ePub.register.view("iframe", require('./views/iframe'));
-// ePub.register.view("inline", require('./views/inline'));
+ePub.register.view("iframe", require('./managers/views/iframe'));
+// ePub.register.view("inline", require('./managers/views/inline'));
 
 // Default View Managers
 ePub.register.manager("single", require('./managers/single'));
@@ -12993,7 +12993,7 @@ ePub.register.manager("continuous", require('./managers/continuous'));
 
 module.exports = ePub;
 
-},{"./book":8,"./contents":9,"./epubcfi":11,"./managers/continuous":15,"./managers/single":16,"./rendition":21,"./views/iframe":29,"rsvp":5}]},{},["epub"])("epub")
+},{"./book":8,"./contents":9,"./epubcfi":11,"./managers/continuous":15,"./managers/single":18,"./managers/views/iframe":19,"./rendition":24,"rsvp":5}]},{},["epub"])("epub")
 });
 
 
