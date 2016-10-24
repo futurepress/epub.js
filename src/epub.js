@@ -31,7 +31,7 @@ ePub.register.view("iframe", require('./managers/views/iframe'));
 // ePub.register.view("inline", require('./managers/views/inline'));
 
 // Default View Managers
-ePub.register.manager("single", require('./managers/single'));
+ePub.register.manager("single", require('./managers/default'));
 ePub.register.manager("continuous", require('./managers/continuous'));
 
 module.exports = ePub;
