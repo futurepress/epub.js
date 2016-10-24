@@ -20,7 +20,7 @@ Stage.prototype.create = function(options){
 	var height  = options.height;// !== false ? options.height : "100%";
 	var width   = options.width;// !== false ? options.width : "100%";
 	var overflow  = options.overflow || false;
- 	var axis = options.axis || "vertical";
+	var axis = options.axis || "vertical";
 
 	if(options.height && core.isNumber(options.height)) {
 		height = options.height + "px";
@@ -223,7 +223,7 @@ Stage.prototype.addStyleRules = function(selector, rulesArray){
 		}
 	})
 
-  this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+	this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 }
 
 

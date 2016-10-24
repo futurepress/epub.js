@@ -93,15 +93,15 @@ SingleViewManager.prototype.destroy = function(){
 
 SingleViewManager.prototype.onResized = function(e) {
 	clearTimeout(this.resizeTimeout);
-  this.resizeTimeout = setTimeout(function(){
-    this.resize();
-  }.bind(this), 150);
+	this.resizeTimeout = setTimeout(function(){
+		this.resize();
+	}.bind(this), 150);
 };
 
 SingleViewManager.prototype.resize = function(width, height){
 
 	// Clear the queue
-  this.q.clear();
+	this.q.clear();
 
 	this._stageSize = this.stage.size(width, height);
 	this._bounds = this.bounds();
@@ -115,12 +115,12 @@ SingleViewManager.prototype.resize = function(width, height){
 		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
-  this.updateLayout();
+	this.updateLayout();
 
-  this.trigger("resized", {
-    width: this.stage.width,
-    height: this.stage.height
-  });
+	this.trigger("resized", {
+		width: this.stage.width,
+		height: this.stage.height
+	});
 
 };
 
@@ -208,7 +208,7 @@ SingleViewManager.prototype.moveTo = function(offset){
 		}
 	}
 
-  this.scrollTo(distX, distY);
+	this.scrollTo(distX, distY);
 };
 
 SingleViewManager.prototype.add = function(section){
@@ -349,20 +349,20 @@ SingleViewManager.prototype.current = function(){
 		// Current is the last visible view
 		return visible[visible.length-1];
 	}
-  return null;
+	return null;
 };
 
 SingleViewManager.prototype.currentLocation = function(){
-  var view;
-  var start, end;
+	var view;
+	var start, end;
 
-  if(this.views.length) {
-  	view = this.views.first();
-    start = container.left - view.position().left;
-    end = start + this.layout.spread;
+	if(this.views.length) {
+		view = this.views.first();
+		start = container.left - view.position().left;
+		end = start + this.layout.spread;
 
-    return this.mapping.page(view, view.section.cfiBase);
-  }
+		return this.mapping.page(view, view.section.cfiBase);
+	}
 
 };
 
@@ -376,12 +376,12 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 
 		return true;
 
-  } else if(this.settings.axis === "vertical" &&
-  	position.bottom > container.top - offsetPrev &&
+	} else if(this.settings.axis === "vertical" &&
+		position.bottom > container.top - offsetPrev &&
 		position.top < container.bottom + offsetNext) {
 
 		return true;
-  }
+	}
 
 	return false;
 
@@ -392,60 +392,60 @@ SingleViewManager.prototype.visible = function(){
 	var container = this.bounds();
 	var views = this.views.displayed();
 	var viewsLength = views.length;
-  var visible = [];
-  var isVisible;
-  var view;
+	var visible = [];
+	var isVisible;
+	var view;
 
-  for (var i = 0; i < viewsLength; i++) {
-    view = views[i];
-    isVisible = this.isVisible(view, 0, 0, container);
+	for (var i = 0; i < viewsLength; i++) {
+		view = views[i];
+		isVisible = this.isVisible(view, 0, 0, container);
 
-    if(isVisible === true) {
-      visible.push(view);
-    }
+		if(isVisible === true) {
+			visible.push(view);
+		}
 
-  }
-  return visible;
+	}
+	return visible;
 };
 
 SingleViewManager.prototype.scrollBy = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
+	if(silent) {
+		this.ignore = true;
+	}
 
-  if(this.settings.height) {
+	if(this.settings.height) {
 
-    if(x) this.container.scrollLeft += x;
-  	if(y) this.container.scrollTop += y;
+		if(x) this.container.scrollLeft += x;
+		if(y) this.container.scrollTop += y;
 
-  } else {
-  	window.scrollBy(x,y);
-  }
-  // console.log("scrollBy", x, y);
-  this.scrolled = true;
+	} else {
+		window.scrollBy(x,y);
+	}
+	// console.log("scrollBy", x, y);
+	this.scrolled = true;
 	this.onScroll();
 };
 
 SingleViewManager.prototype.scrollTo = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
+	if(silent) {
+		this.ignore = true;
+	}
 
-  if(this.settings.height) {
-  	this.container.scrollLeft = x;
-  	this.container.scrollTop = y;
-  } else {
-  	window.scrollTo(x,y);
-  }
-  // console.log("scrollTo", x, y);
-  this.scrolled = true;
+	if(this.settings.height) {
+		this.container.scrollLeft = x;
+		this.container.scrollTop = y;
+	} else {
+		window.scrollTo(x,y);
+	}
+	// console.log("scrollTo", x, y);
+	this.scrolled = true;
 	this.onScroll();
-  // if(this.container.scrollLeft != x){
-  //   setTimeout(function() {
-  //     this.scrollTo(x, y, silent);
-  //   }.bind(this), 10);
-  //   return;
-  // };
+	// if(this.container.scrollLeft != x){
+	//   setTimeout(function() {
+	//     this.scrollTo(x, y, silent);
+	//   }.bind(this), 10);
+	//   return;
+	// };
  };
 
 SingleViewManager.prototype.onScroll = function(){
@@ -466,7 +466,7 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 	this.updateLayout();
 
 	this.mapping = new Mapping(this.layout);
- 	// this.manager.layout(this.layout.format);
+	 // this.manager.layout(this.layout.format);
 };
 
 SingleViewManager.prototype.updateLayout = function() {

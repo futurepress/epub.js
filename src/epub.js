@@ -19,7 +19,7 @@ ePub.ViewManagers = {};
 ePub.Views = {};
 ePub.register = {
 	manager : function(name, manager){
-  	return ePub.ViewManagers[name] = manager;
+		return ePub.ViewManagers[name] = manager;
 	},
 	view : function(name, view){
 		return ePub.Views[name] = view;
