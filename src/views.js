@@ -1,8 +1,8 @@
 function Views(container) {
-  this.container = container;
-  this._views = [];
-  this.length = 0;
-  this.hidden = false;
+	this.container = container;
+	this._views = [];
+	this.length = 0;
+	this.hidden = false;
 };
 
 Views.prototype.all = function() {
@@ -31,35 +31,35 @@ Views.prototype.get = function(i) {
 
 Views.prototype.append = function(view){
 	this._views.push(view);
-  if(this.container){
-    this.container.appendChild(view.element);
-  }
-  this.length++;
-  return view;
+	if(this.container){
+		this.container.appendChild(view.element);
+	}
+	this.length++;
+	return view;
 };
 
 Views.prototype.prepend = function(view){
 	this._views.unshift(view);
-  if(this.container){
-    this.container.insertBefore(view.element, this.container.firstChild);
-  }
-  this.length++;
-  return view;
+	if(this.container){
+		this.container.insertBefore(view.element, this.container.firstChild);
+	}
+	this.length++;
+	return view;
 };
 
 Views.prototype.insert = function(view, index) {
 	this._views.splice(index, 0, view);
 
-  if(this.container){
-  	if(index < this.container.children.length){
-  		this.container.insertBefore(view.element, this.container.children[index]);
-  	} else {
-  		this.container.appendChild(view.element);
-  	}
-  }
+	if(this.container){
+		if(index < this.container.children.length){
+			this.container.insertBefore(view.element, this.container.children[index]);
+		} else {
+			this.container.appendChild(view.element);
+		}
+	}
 
-  this.length++;
-  return view;
+	this.length++;
+	return view;
 };
 
 Views.prototype.remove = function(view) {
@@ -72,7 +72,7 @@ Views.prototype.remove = function(view) {
 
 	this.destroy(view);
 
-  this.length--;
+	this.length--;
 };
 
 Views.prototype.destroy = function(view) {
@@ -82,9 +82,9 @@ Views.prototype.destroy = function(view) {
 		view.destroy();
 	}
 
-  if(this.container){
-	   this.container.removeChild(view.element);
-  }
+	if(this.container){
+		 this.container.removeChild(view.element);
+	}
 	view = null;
 };
 
@@ -96,72 +96,72 @@ Views.prototype.each = function() {
 
 Views.prototype.clear = function(){
 	// Remove all views
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  if(!this.length) return;
+	if(!this.length) return;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
 		this.destroy(view);
-  }
+	}
 
-  this._views = [];
-  this.length = 0;
+	this._views = [];
+	this.length = 0;
 };
 
 Views.prototype.find = function(section){
 
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
 		if(view.displayed && view.section.index == section.index) {
 			return view;
 		}
-  }
+	}
 
 };
 
 Views.prototype.displayed = function(){
-  var displayed = [];
-  var view;
-  var len = this.length;
+	var displayed = [];
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      displayed.push(view);
-    }
-  }
-  return displayed;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			displayed.push(view);
+		}
+	}
+	return displayed;
 };
 
 Views.prototype.show = function(){
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      view.show();
-    }
-  }
-  this.hidden = false;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.show();
+		}
+	}
+	this.hidden = false;
 };
 
 Views.prototype.hide = function(){
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      view.hide();
-    }
-  }
-  this.hidden = true;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.hide();
+		}
+	}
+	this.hidden = true;
 };
 
 module.exports = Views;

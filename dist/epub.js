@@ -5441,264 +5441,264 @@ var EpubCFI = require('./epubcfi');
 
 function Book(_url, options){
 
-  this.settings = core.extend(this.settings || {}, {
+	this.settings = core.extend(this.settings || {}, {
 		requestMethod: this.requestMethod
 	});
 
-  core.extend(this.settings, options);
+	core.extend(this.settings, options);
 
 
-  // Promises
-  this.opening = new RSVP.defer();
-  this.opened = this.opening.promise;
-  this.isOpen = false;
+	// Promises
+	this.opening = new RSVP.defer();
+	this.opened = this.opening.promise;
+	this.isOpen = false;
 
-  this.url = undefined;
+	this.url = undefined;
 
-  this.loading = {
-    manifest: new RSVP.defer(),
-    spine: new RSVP.defer(),
-    metadata: new RSVP.defer(),
-    cover: new RSVP.defer(),
-    navigation: new RSVP.defer(),
-    pageList: new RSVP.defer()
-  };
+	this.loading = {
+		manifest: new RSVP.defer(),
+		spine: new RSVP.defer(),
+		metadata: new RSVP.defer(),
+		cover: new RSVP.defer(),
+		navigation: new RSVP.defer(),
+		pageList: new RSVP.defer()
+	};
 
-  this.loaded = {
-    manifest: this.loading.manifest.promise,
-    spine: this.loading.spine.promise,
-    metadata: this.loading.metadata.promise,
-    cover: this.loading.cover.promise,
-    navigation: this.loading.navigation.promise,
-    pageList: this.loading.pageList.promise
-  };
+	this.loaded = {
+		manifest: this.loading.manifest.promise,
+		spine: this.loading.spine.promise,
+		metadata: this.loading.metadata.promise,
+		cover: this.loading.cover.promise,
+		navigation: this.loading.navigation.promise,
+		pageList: this.loading.pageList.promise
+	};
 
-  this.ready = RSVP.hash(this.loaded);
+	this.ready = RSVP.hash(this.loaded);
 
-  // Queue for methods used before opening
-  this.isRendered = false;
-  // this._q = core.queue(this);
+	// Queue for methods used before opening
+	this.isRendered = false;
+	// this._q = core.queue(this);
 
-  this.request = this.settings.requestMethod.bind(this);
+	this.request = this.settings.requestMethod.bind(this);
 
-  this.spine = new Spine(this.request);
-  this.locations = new Locations(this.spine, this.request);
+	this.spine = new Spine(this.request);
+	this.locations = new Locations(this.spine, this.request);
 
-  if(_url) {
-    this.open(_url).catch(function (error) {
-      var err = new Error("Cannot load book at "+ _url );
-      console.error(err);
+	if(_url) {
+		this.open(_url).catch(function (error) {
+			var err = new Error("Cannot load book at "+ _url );
+			console.error(err);
 
-      this.trigger("loadFailed", error);
-    }.bind(this));
-  }
+			this.trigger("loadFailed", error);
+		}.bind(this));
+	}
 };
 
 Book.prototype.open = function(_url, options){
-  var uri;
-  var parse = new Parser();
-  var epubPackage;
-  var epubContainer;
-  var book = this;
-  var containerPath = "META-INF/container.xml";
-  var location;
-  var absoluteUri;
-  var isArrayBuffer = false;
-  var isBase64 = options && options.base64;
+	var uri;
+	var parse = new Parser();
+	var epubPackage;
+	var epubContainer;
+	var book = this;
+	var containerPath = "META-INF/container.xml";
+	var location;
+	var absoluteUri;
+	var isArrayBuffer = false;
+	var isBase64 = options && options.base64;
 
-  if(!_url) {
-    this.opening.resolve(this);
-    return this.opened;
-  }
-
-  // Reuse parsed url or create a new uri object
-  // if(typeof(_url) === "object") {
-  //   uri = _url;
-  // } else {
-  //   uri = core.uri(_url);
-  // }
-  if (_url instanceof ArrayBuffer || isBase64) {
-		isArrayBuffer = true;
-    this.url = '/';
-	} else {
-    uri = URI(_url);
+	if(!_url) {
+		this.opening.resolve(this);
+		return this.opened;
 	}
 
-  if (window && window.location && uri) {
-    absoluteUri = uri.absoluteTo(window.location.href);
-    this.url = absoluteUri.toString();
-  } if (window && window.location) {
-    this.url = window.location.href;
-  } else {
-    this.url = _url;
-  }
+	// Reuse parsed url or create a new uri object
+	// if(typeof(_url) === "object") {
+	//   uri = _url;
+	// } else {
+	//   uri = core.uri(_url);
+	// }
+	if (_url instanceof ArrayBuffer || isBase64) {
+		isArrayBuffer = true;
+		this.url = '/';
+	} else {
+		uri = URI(_url);
+	}
 
-  // Find path to the Container
-  if(uri && uri.suffix() === "opf") {
-    // Direct link to package, no container
-    this.packageUrl = _url;
-    this.containerUrl = '';
+	if (window && window.location && uri) {
+		absoluteUri = uri.absoluteTo(window.location.href);
+		this.url = absoluteUri.toString();
+	} else if (window && window.location) {
+		this.url = window.location.href;
+	} else {
+		this.url = _url;
+	}
 
-    if(uri.origin()) {
-      this.baseUrl = uri.origin() + "/" + uri.directory() + "/";
-    } else if(absoluteUri){
-      this.baseUrl = absoluteUri.origin();
-      this.baseUrl += absoluteUri.directory() + "/";
-    } else {
-      this.baseUrl = uri.directory() + "/";
-    }
+	// Find path to the Container
+	if(uri && uri.suffix() === "opf") {
+		// Direct link to package, no container
+		this.packageUrl = _url;
+		this.containerUrl = '';
 
-    epubPackage = this.request(this.packageUrl)
-      .catch(function(error) {
-        book.opening.reject(error);
-      });
+		if(uri.origin()) {
+			this.baseUrl = uri.origin() + "/" + uri.directory() + "/";
+		} else if(absoluteUri){
+			this.baseUrl = absoluteUri.origin();
+			this.baseUrl += absoluteUri.directory() + "/";
+		} else {
+			this.baseUrl = uri.directory() + "/";
+		}
 
-  } else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
-    // Book is archived
-    this.url = '/';
-    this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
+		epubPackage = this.request(this.packageUrl)
+			.catch(function(error) {
+				book.opening.reject(error);
+			});
 
-    epubContainer = this.unarchive(_url, isBase64).
-      then(function() {
-        return this.request(this.containerUrl);
-      }.bind(this))
-      .catch(function(error) {
-        book.opening.reject(error);
-      });
-  }
-  // Find the path to the Package from the container
-  else if (!uri.suffix()) {
+	} else if(isArrayBuffer || isBase64 || this.isArchivedUrl(uri)) {
+		// Book is archived
+		this.url = '/';
+		this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
 
-    this.containerUrl = this.url + containerPath;
+		epubContainer = this.unarchive(_url, isBase64).
+			then(function() {
+				return this.request(this.containerUrl);
+			}.bind(this))
+			.catch(function(error) {
+				book.opening.reject(error);
+			});
+	}
+	// Find the path to the Package from the container
+	else if (!uri.suffix()) {
 
-    epubContainer = this.request(this.containerUrl)
-      .catch(function(error) {
-        // handle errors in loading container
-        book.opening.reject(error);
-      });
-  }
+		this.containerUrl = this.url + containerPath;
 
-  if (epubContainer) {
-    epubPackage = epubContainer.
-      then(function(containerXml){
-        return parse.container(containerXml); // Container has path to content
-      }).
-      then(function(paths){
-        var packageUri = URI(paths.packagePath);
-        var absPackageUri = packageUri.absoluteTo(book.url);
-        var absWindowUri;
+		epubContainer = this.request(this.containerUrl)
+			.catch(function(error) {
+				// handle errors in loading container
+				book.opening.reject(error);
+			});
+	}
 
-        book.packageUrl = absPackageUri.toString();
-        book.encoding = paths.encoding;
+	if (epubContainer) {
+		epubPackage = epubContainer.
+			then(function(containerXml){
+				return parse.container(containerXml); // Container has path to content
+			}).
+			then(function(paths){
+				var packageUri = URI(paths.packagePath);
+				var absPackageUri = packageUri.absoluteTo(book.url);
+				var absWindowUri;
 
-        // Set Url relative to the content
-        if(absPackageUri.origin()) {
-          book.baseUrl = absPackageUri.origin() + absPackageUri.directory() + "/";
-        } else {
-          if(packageUri.directory()) {
-            book.baseUrl = "/" + packageUri.directory() + "/";
-          } else {
-            book.baseUrl = "/"
-          }
-        }
+				book.packageUrl = absPackageUri.toString();
+				book.encoding = paths.encoding;
 
-        return book.request(book.packageUrl);
-      }).catch(function(error) {
-        // handle errors in either of the two requests
-        book.opening.reject(error);
-      });
-  }
+				// Set Url relative to the content
+				if(absPackageUri.origin()) {
+					book.baseUrl = absPackageUri.origin() + absPackageUri.directory() + "/";
+				} else {
+					if(packageUri.directory()) {
+						book.baseUrl = "/" + packageUri.directory() + "/";
+					} else {
+						book.baseUrl = "/"
+					}
+				}
 
-  epubPackage.then(function(packageXml) {
+				return book.request(book.packageUrl);
+			}).catch(function(error) {
+				// handle errors in either of the two requests
+				book.opening.reject(error);
+			});
+	}
 
-    if (!packageXml) {
-      return;
-    }
+	epubPackage.then(function(packageXml) {
 
-    // Get package information from epub opf
-    book.unpack(packageXml);
+		if (!packageXml) {
+			return;
+		}
 
-    // Resolve promises
-    book.loading.manifest.resolve(book.package.manifest);
-    book.loading.metadata.resolve(book.package.metadata);
-    book.loading.spine.resolve(book.spine);
-    book.loading.cover.resolve(book.cover);
+		// Get package information from epub opf
+		book.unpack(packageXml);
 
-    book.isOpen = true;
+		// Resolve promises
+		book.loading.manifest.resolve(book.package.manifest);
+		book.loading.metadata.resolve(book.package.metadata);
+		book.loading.spine.resolve(book.spine);
+		book.loading.cover.resolve(book.cover);
 
-    // Clear queue of any waiting book request
+		book.isOpen = true;
 
-    // Resolve book opened promise
-    book.opening.resolve(book);
+		// Clear queue of any waiting book request
 
-  }).catch(function(error) {
-    // handle errors in parsing the book
-    // console.error(error.message, error.stack);
-    book.opening.reject(error);
-  });
+		// Resolve book opened promise
+		book.opening.resolve(book);
 
-  return this.opened;
+	}).catch(function(error) {
+		// handle errors in parsing the book
+		// console.error(error.message, error.stack);
+		book.opening.reject(error);
+	});
+
+	return this.opened;
 };
 
 Book.prototype.unpack = function(packageXml){
-  var book = this,
-      parse = new Parser();
+	var book = this,
+			parse = new Parser();
 
-  book.package = parse.packageContents(packageXml); // Extract info from contents
-  if(!book.package) {
-    return;
-  }
+	book.package = parse.packageContents(packageXml); // Extract info from contents
+	if(!book.package) {
+		return;
+	}
 
-  book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
+	book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 
-  this.spine.load(book.package);
+	this.spine.load(book.package);
 
-  book.navigation = new Navigation(book.package, this.request);
-  book.navigation.load().then(function(toc){
-    book.toc = toc;
-    book.loading.navigation.resolve(book.toc);
-  });
+	book.navigation = new Navigation(book.package, this.request);
+	book.navigation.load().then(function(toc){
+		book.toc = toc;
+		book.loading.navigation.resolve(book.toc);
+	});
 
-  // //-- Set Global Layout setting based on metadata
-  // MOVE TO RENDER
-  // book.globalLayoutProperties = book.parseLayoutProperties(book.package.metadata);
+	// //-- Set Global Layout setting based on metadata
+	// MOVE TO RENDER
+	// book.globalLayoutProperties = book.parseLayoutProperties(book.package.metadata);
 
-  book.cover = URI(book.package.coverPath).absoluteTo(book.baseUrl).toString();
+	book.cover = URI(book.package.coverPath).absoluteTo(book.baseUrl).toString();
 };
 
 // Alias for book.spine.get
 Book.prototype.section = function(target) {
-  return this.spine.get(target);
+	return this.spine.get(target);
 };
 
 // Sugar to render a book
 Book.prototype.renderTo = function(element, options) {
-  // var renderMethod = (options && options.method) ?
-  //     options.method :
-  //     "single";
+	// var renderMethod = (options && options.method) ?
+	//     options.method :
+	//     "single";
 
-  this.rendition = new Rendition(this, options);
-  this.rendition.attachTo(element);
+	this.rendition = new Rendition(this, options);
+	this.rendition.attachTo(element);
 
-  return this.rendition;
+	return this.rendition;
 };
 
 Book.prototype.requestMethod = function(_url) {
-  // Switch request methods
-  if(this.unarchived) {
-    return this.unarchived.request(_url);
-  } else {
-    return request(_url, null, this.requestCredentials, this.requestHeaders);
-  }
+	// Switch request methods
+	if(this.unarchived) {
+		return this.unarchived.request(_url);
+	} else {
+		return request(_url, null, this.requestCredentials, this.requestHeaders);
+	}
 
 };
 
 Book.prototype.setRequestCredentials = function(_credentials) {
-  this.requestCredentials = _credentials;
+	this.requestCredentials = _credentials;
 };
 
 Book.prototype.setRequestHeaders = function(_headers) {
-  this.requestHeaders = _headers;
+	this.requestHeaders = _headers;
 };
 
 Book.prototype.unarchive = function(bookUrl, isBase64){
@@ -5708,21 +5708,21 @@ Book.prototype.unarchive = function(bookUrl, isBase64){
 
 //-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
 Book.prototype.isArchivedUrl = function(bookUrl){
-  var uri;
-  var extension;
+	var uri;
+	var extension;
 
-  if (bookUrl instanceof ArrayBuffer) {
+	if (bookUrl instanceof ArrayBuffer) {
 		return true;
 	}
 
-  // Reuse parsed url or create a new uri object
-  // if(typeof(bookUrl) === "object") {
-  //   uri = bookUrl;
-  // } else {
-  //   uri = core.uri(bookUrl);
-  // }
-  uri = URI(bookUrl);
-  extension = uri.suffix();
+	// Reuse parsed url or create a new uri object
+	// if(typeof(bookUrl) === "object") {
+	//   uri = bookUrl;
+	// } else {
+	//   uri = core.uri(bookUrl);
+	// }
+	uri = URI(bookUrl);
+	extension = uri.suffix();
 
 	if(extension && (extension == "epub" || extension == "zip")){
 		return true;
@@ -5748,13 +5748,13 @@ Book.prototype.coverUrl = function(){
 };
 
 Book.prototype.range = function(cfiRange) {
-  var cfi = new EpubCFI(cfiRange);
-  var item = this.spine.get(cfi.spinePos);
+	var cfi = new EpubCFI(cfiRange);
+	var item = this.spine.get(cfi.spinePos);
 
-  return item.load().then(function (contents) {
-    var range = cfi.toRange(item.document);
-    return range;
-  })
+	return item.load().then(function (contents) {
+		var range = cfi.toRange(item.document);
+		return range;
+	})
 };
 
 module.exports = Book;
@@ -5764,7 +5764,7 @@ RSVP.EventTarget.mixin(Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-  console.error(event);
+	console.error(event);
 });
 
 RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
@@ -5772,7 +5772,7 @@ RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejec
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
 RSVP.on('rejected', function(event){
-  console.error(event.detail.message, event.detail.stack);
+	console.error(event.detail.message, event.detail.stack);
 });
 
 },{"./core":10,"./epubcfi":11,"./locations":14,"./navigation":18,"./parser":19,"./rendition":21,"./request":23,"./spine":25,"./unarchive":27,"rsvp":5,"urijs":7}],9:[function(require,module,exports){
@@ -5783,221 +5783,221 @@ var Mapping = require('./mapping');
 
 
 function Contents(doc, content, cfiBase) {
-  // Blank Cfi for Parsing
-  this.epubcfi = new EpubCFI();
+	// Blank Cfi for Parsing
+	this.epubcfi = new EpubCFI();
 
-  this.document = doc;
-  this.documentElement =  this.document.documentElement;
-  this.content = content || this.document.body;
-  this.window = this.document.defaultView;
-  // Dom events to listen for
-  this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+	this.document = doc;
+	this.documentElement =  this.document.documentElement;
+	this.content = content || this.document.body;
+	this.window = this.document.defaultView;
+	// Dom events to listen for
+	this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
-  this._size = {
-    width: 0,
-    height: 0
-  }
+	this._size = {
+		width: 0,
+		height: 0
+	}
 
-  this.cfiBase = cfiBase || "";
+	this.cfiBase = cfiBase || "";
 
-  this.listeners();
+	this.listeners();
 };
 
 Contents.prototype.width = function(w) {
-  // var frame = this.documentElement;
-  var frame = this.content;
+	// var frame = this.documentElement;
+	var frame = this.content;
 
-  if (w && core.isNumber(w)) {
-    w = w + "px";
-  }
+	if (w && core.isNumber(w)) {
+		w = w + "px";
+	}
 
-  if (w) {
-    frame.style.width = w;
-    // this.content.style.width = w;
-  }
+	if (w) {
+		frame.style.width = w;
+		// this.content.style.width = w;
+	}
 
-  return this.window.getComputedStyle(frame)['width'];
+	return this.window.getComputedStyle(frame)['width'];
 
 
 };
 
 Contents.prototype.height = function(h) {
-  // var frame = this.documentElement;
-  var frame = this.content;
+	// var frame = this.documentElement;
+	var frame = this.content;
 
-  if (h && core.isNumber(h)) {
-    h = h + "px";
-  }
+	if (h && core.isNumber(h)) {
+		h = h + "px";
+	}
 
-  if (h) {
-    frame.style.height = h;
-    // this.content.style.height = h;
-  }
+	if (h) {
+		frame.style.height = h;
+		// this.content.style.height = h;
+	}
 
-  return this.window.getComputedStyle(frame)['height'];
+	return this.window.getComputedStyle(frame)['height'];
 
 };
 
 Contents.prototype.contentWidth = function(w) {
 
-  var content = this.content || this.document.body;
+	var content = this.content || this.document.body;
 
-  if (w && core.isNumber(w)) {
-    w = w + "px";
-  }
+	if (w && core.isNumber(w)) {
+		w = w + "px";
+	}
 
-  if (w) {
-    content.style.width = w;
-  }
+	if (w) {
+		content.style.width = w;
+	}
 
-  return this.window.getComputedStyle(content)['width'];
+	return this.window.getComputedStyle(content)['width'];
 
 
 };
 
 Contents.prototype.contentHeight = function(h) {
 
-  var content = this.content || this.document.body;
+	var content = this.content || this.document.body;
 
-  if (h && core.isNumber(h)) {
-    h = h + "px";
-  }
+	if (h && core.isNumber(h)) {
+		h = h + "px";
+	}
 
-  if (h) {
-    content.style.height = h;
-  }
+	if (h) {
+		content.style.height = h;
+	}
 
-  return this.window.getComputedStyle(content)['height'];
+	return this.window.getComputedStyle(content)['height'];
 
 };
 
 Contents.prototype.textWidth = function() {
-  var width;
-  var range = this.document.createRange();
-  var content = this.content || this.document.body;
+	var width;
+	var range = this.document.createRange();
+	var content = this.content || this.document.body;
 
-  // Select the contents of frame
-  range.selectNodeContents(content);
+	// Select the contents of frame
+	range.selectNodeContents(content);
 
-  // get the width of the text content
-  width = range.getBoundingClientRect().width;
+	// get the width of the text content
+	width = range.getBoundingClientRect().width;
 
-  return width;
+	return width;
 
 };
 
 Contents.prototype.textHeight = function() {
-  var height;
-  var range = this.document.createRange();
-  var content = this.content || this.document.body;
+	var height;
+	var range = this.document.createRange();
+	var content = this.content || this.document.body;
 
-  range.selectNodeContents(content);
+	range.selectNodeContents(content);
 
-  height = range.getBoundingClientRect().height;
+	height = range.getBoundingClientRect().height;
 
-  return height;
+	return height;
 };
 
 Contents.prototype.scrollWidth = function() {
-  var width = this.documentElement.scrollWidth;
+	var width = this.documentElement.scrollWidth;
 
-  return width;
+	return width;
 };
 
 Contents.prototype.scrollHeight = function() {
-  var height = this.documentElement.scrollHeight;
+	var height = this.documentElement.scrollHeight;
 
-  return height;
+	return height;
 };
 
 Contents.prototype.overflow = function(overflow) {
 
-  if (overflow) {
-    this.documentElement.style.overflow = overflow;
-  }
+	if (overflow) {
+		this.documentElement.style.overflow = overflow;
+	}
 
-  return this.window.getComputedStyle(this.documentElement)['overflow'];
+	return this.window.getComputedStyle(this.documentElement)['overflow'];
 };
 
 Contents.prototype.overflowX = function(overflow) {
 
-  if (overflow) {
-    this.documentElement.style.overflowX = overflow;
-  }
+	if (overflow) {
+		this.documentElement.style.overflowX = overflow;
+	}
 
-  return this.window.getComputedStyle(this.documentElement)['overflowX'];
+	return this.window.getComputedStyle(this.documentElement)['overflowX'];
 };
 
 Contents.prototype.overflowY = function(overflow) {
 
-  if (overflow) {
-    this.documentElement.style.overflowY = overflow;
-  }
+	if (overflow) {
+		this.documentElement.style.overflowY = overflow;
+	}
 
-  return this.window.getComputedStyle(this.documentElement)['overflowY'];
+	return this.window.getComputedStyle(this.documentElement)['overflowY'];
 };
 
 Contents.prototype.css = function(property, value) {
-  var content = this.content || this.document.body;
+	var content = this.content || this.document.body;
 
-  if (value) {
-    content.style[property] = value;
-  }
+	if (value) {
+		content.style[property] = value;
+	}
 
-  return this.window.getComputedStyle(content)[property];
+	return this.window.getComputedStyle(content)[property];
 };
 
 Contents.prototype.viewport = function(options) {
-  var width, height, scale, scalable;
-  var $viewport = this.document.querySelector("meta[name='viewport']");
-  var newContent = '';
+	var width, height, scale, scalable;
+	var $viewport = this.document.querySelector("meta[name='viewport']");
+	var newContent = '';
 
-  /**
-  * check for the viewport size
-  * <meta name="viewport" content="width=1024,height=697" />
-  */
-  if($viewport && $viewport.hasAttribute("content")) {
-    content = $viewport.getAttribute("content");
-    contents = content.split(/\s*,\s*/);
-    if(contents[0]){
-      width = contents[0].replace("width=", '').trim();
-    }
-    if(contents[1]){
-      height = contents[1].replace("height=", '').trim();
-    }
-    if(contents[2]){
-      scale = contents[2].replace("initial-scale=", '').trim();
-    }
-    if(contents[3]){
-      scalable = contents[3].replace("user-scalable=", '').trim();
-    }
-  }
+	/**
+	* check for the viewport size
+	* <meta name="viewport" content="width=1024,height=697" />
+	*/
+	if($viewport && $viewport.hasAttribute("content")) {
+		content = $viewport.getAttribute("content");
+		contents = content.split(/\s*,\s*/);
+		if(contents[0]){
+			width = contents[0].replace("width=", '').trim();
+		}
+		if(contents[1]){
+			height = contents[1].replace("height=", '').trim();
+		}
+		if(contents[2]){
+			scale = contents[2].replace("initial-scale=", '').trim();
+		}
+		if(contents[3]){
+			scalable = contents[3].replace("user-scalable=", '').trim();
+		}
+	}
 
-  if (options) {
+	if (options) {
 
-    newContent += "width=" + (options.width || width);
-    newContent += ", height=" + (options.height || height);
-    if (options.scale || scale) {
-      newContent += ", initial-scale=" + (options.scale || scale);
-    }
-    if (options.scalable || scalable) {
-      newContent += ", user-scalable=" + (options.scalable || scalable);
-    }
+		newContent += "width=" + (options.width || width);
+		newContent += ", height=" + (options.height || height);
+		if (options.scale || scale) {
+			newContent += ", initial-scale=" + (options.scale || scale);
+		}
+		if (options.scalable || scalable) {
+			newContent += ", user-scalable=" + (options.scalable || scalable);
+		}
 
-    if (!$viewport) {
-      $viewport = this.document.createElement("meta");
-      $viewport.setAttribute("name", "viewport");
-      this.document.querySelector('head').appendChild($viewport);
-    }
+		if (!$viewport) {
+			$viewport = this.document.createElement("meta");
+			$viewport.setAttribute("name", "viewport");
+			this.document.querySelector('head').appendChild($viewport);
+		}
 
-    $viewport.setAttribute("content", newContent);
-  }
+		$viewport.setAttribute("content", newContent);
+	}
 
 
-  return {
-    width: parseInt(width),
-    height: parseInt(height)
-  };
+	return {
+		width: parseInt(width),
+		height: parseInt(height)
+	};
 };
 
 
@@ -6023,416 +6023,417 @@ Contents.prototype.viewport = function(options) {
 // };
 
 Contents.prototype.expand = function() {
-  this.trigger("expand");
+	this.trigger("expand");
 };
 
 Contents.prototype.listeners = function() {
 
-  this.imageLoadListeners();
+	this.imageLoadListeners();
 
-  this.mediaQueryListeners();
+	this.mediaQueryListeners();
 
-  // this.fontLoadListeners();
+	// this.fontLoadListeners();
 
-  this.addEventListeners();
+	this.addEventListeners();
 
-  this.addSelectionListeners();
+	this.addSelectionListeners();
 
-  this.resizeListeners();
+	this.resizeListeners();
 
 };
 
 Contents.prototype.removeListeners = function() {
 
-  this.removeEventListeners();
+	this.removeEventListeners();
 
-  this.removeSelectionListeners();
+	this.removeSelectionListeners();
 };
 
 Contents.prototype.resizeListeners = function() {
-  var width, height;
-  // Test size again
-  clearTimeout(this.expanding);
+	var width, height;
+	// Test size again
+	clearTimeout(this.expanding);
 
-  width = this.scrollWidth();
-  height = this.scrollHeight();
+	width = this.scrollWidth();
+	height = this.scrollHeight();
 
-  if (width != this._size.width || height != this._size.height) {
+	if (width != this._size.width || height != this._size.height) {
 
-    this._size = {
-      width: width,
-      height: height
-    }
+		this._size = {
+			width: width,
+			height: height
+		}
 
-    this.trigger("resize", this._size);
-  }
+		this.trigger("resize", this._size);
+	}
 
-  this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
+	this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
 };
 
 //https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
 Contents.prototype.mediaQueryListeners = function() {
-    var sheets = this.document.styleSheets;
-    var mediaChangeHandler = function(m){
-      if(m.matches && !this._expanding) {
-        setTimeout(this.expand.bind(this), 1);
-        // this.expand();
-      }
-    }.bind(this);
+		var sheets = this.document.styleSheets;
+		var mediaChangeHandler = function(m){
+			if(m.matches && !this._expanding) {
+				setTimeout(this.expand.bind(this), 1);
+				// this.expand();
+			}
+		}.bind(this);
 
-    for (var i = 0; i < sheets.length; i += 1) {
-        var rules = sheets[i].cssRules;
-        if(!rules) return; // Stylesheets changed
-        for (var j = 0; j < rules.length; j += 1) {
-            //if (rules[j].constructor === CSSMediaRule) {
-            if(rules[j].media){
-                var mql = this.window.matchMedia(rules[j].media.mediaText);
-                mql.addListener(mediaChangeHandler);
-                //mql.onchange = mediaChangeHandler;
-            }
-        }
-    }
+		for (var i = 0; i < sheets.length; i += 1) {
+				var rules = sheets[i].cssRules;
+				if(!rules) return; // Stylesheets changed
+				for (var j = 0; j < rules.length; j += 1) {
+						//if (rules[j].constructor === CSSMediaRule) {
+						if(rules[j].media){
+								var mql = this.window.matchMedia(rules[j].media.mediaText);
+								mql.addListener(mediaChangeHandler);
+								//mql.onchange = mediaChangeHandler;
+						}
+				}
+		}
 };
 
 Contents.prototype.observe = function(target) {
-  var renderer = this;
+	var renderer = this;
 
-  // create an observer instance
-  var observer = new MutationObserver(function(mutations) {
-    if(renderer._expanding) {
-      renderer.expand();
-    }
-    // mutations.forEach(function(mutation) {
-    //   console.log(mutation);
-    // });
-  });
+	// create an observer instance
+	var observer = new MutationObserver(function(mutations) {
+		if(renderer._expanding) {
+			renderer.expand();
+		}
+		// mutations.forEach(function(mutation) {
+		//   console.log(mutation);
+		// });
+	});
 
-  // configuration of the observer:
-  var config = { attributes: true, childList: true, characterData: true, subtree: true };
+	// configuration of the observer:
+	var config = { attributes: true, childList: true, characterData: true, subtree: true };
 
-  // pass in the target node, as well as the observer options
-  observer.observe(target, config);
+	// pass in the target node, as well as the observer options
+	observer.observe(target, config);
 
-  return observer;
+	return observer;
 };
 
 Contents.prototype.imageLoadListeners = function(target) {
-  var images = this.document.querySelectorAll("img");
-  var img;
-  for (var i = 0; i < images.length; i++) {
-    img = images[i];
+	var images = this.document.querySelectorAll("img");
+	var img;
+	for (var i = 0; i < images.length; i++) {
+		img = images[i];
 
-    if (typeof img.naturalWidth !== "undefined" &&
-        img.naturalWidth === 0) {
-      img.onload = this.expand.bind(this);
-    }
-  }
+		if (typeof img.naturalWidth !== "undefined" &&
+				img.naturalWidth === 0) {
+			img.onload = this.expand.bind(this);
+		}
+	}
 };
 
 Contents.prototype.fontLoadListeners = function(target) {
-  if (!this.document || !this.document.fonts) {
-    return;
-  }
+	if (!this.document || !this.document.fonts) {
+		return;
+	}
 
-  this.document.fonts.ready.then(function () {
-    this.expand();
-  }.bind(this));
+	this.document.fonts.ready.then(function () {
+		this.expand();
+	}.bind(this));
 
 };
 
 Contents.prototype.root = function() {
-  if(!this.document) return null;
-  return this.document.documentElement;
+	if(!this.document) return null;
+	return this.document.documentElement;
 };
 
 Contents.prototype.locationOf = function(target, ignoreClass) {
-  var position;
-  var targetPos = {"left": 0, "top": 0};
+	var position;
+	var targetPos = {"left": 0, "top": 0};
 
-  if(!this.document) return;
+	if(!this.document) return;
 
-  if(this.epubcfi.isCfiString(target)) {
-    range = new EpubCFI(target).toRange(this.document, ignoreClass);
+	if(this.epubcfi.isCfiString(target)) {
+		range = new EpubCFI(target).toRange(this.document, ignoreClass);
 
-    if(range) {
-      if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
-        position = range.startContainer.getBoundingClientRect();
-        targetPos.left = position.left;
-        targetPos.top = position.top;
-      } else {
-        position = range.getBoundingClientRect();
-        targetPos.left = position.left;
-        targetPos.top = position.top;
-      }
-    }
+		if(range) {
+			if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
+				position = range.startContainer.getBoundingClientRect();
+				targetPos.left = position.left;
+				targetPos.top = position.top;
+			} else {
+				position = range.getBoundingClientRect();
+				targetPos.left = position.left;
+				targetPos.top = position.top;
+			}
+		}
 
-  } else if(typeof target === "string" &&
-    target.indexOf("#") > -1) {
+	} else if(typeof target === "string" &&
+		target.indexOf("#") > -1) {
 
-    id = target.substring(target.indexOf("#")+1);
-    el = this.document.getElementById(id);
+		id = target.substring(target.indexOf("#")+1);
+		el = this.document.getElementById(id);
 
-    if(el) {
-      position = el.getBoundingClientRect();
-      targetPos.left = position.left;
-      targetPos.top = position.top;
-    }
-  }
+		if(el) {
+			position = el.getBoundingClientRect();
+			targetPos.left = position.left;
+			targetPos.top = position.top;
+		}
+	}
 
-  return targetPos;
+	return targetPos;
 };
 
 Contents.prototype.addStylesheet = function(src) {
-  return new RSVP.Promise(function(resolve, reject){
-    var $stylesheet;
-    var ready = false;
+	return new RSVP.Promise(function(resolve, reject){
+		var $stylesheet;
+		var ready = false;
 
-    if(!this.document) {
-      resolve(false);
-      return;
-    }
+		if(!this.document) {
+			resolve(false);
+			return;
+		}
 
-    $stylesheet = this.document.createElement('link');
-    $stylesheet.type = 'text/css';
-    $stylesheet.rel = "stylesheet";
-    $stylesheet.href = src;
-    $stylesheet.onload = $stylesheet.onreadystatechange = function() {
-      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
-        ready = true;
-        // Let apply
-        setTimeout(function(){
-          resolve(true);
-        }, 1);
-      }
-    };
+		$stylesheet = this.document.createElement('link');
+		$stylesheet.type = 'text/css';
+		$stylesheet.rel = "stylesheet";
+		$stylesheet.href = src;
+		$stylesheet.onload = $stylesheet.onreadystatechange = function() {
+			if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+				ready = true;
+				// Let apply
+				setTimeout(function(){
+					resolve(true);
+				}, 1);
+			}
+		};
 
-    this.document.head.appendChild($stylesheet);
+		this.document.head.appendChild($stylesheet);
 
-  }.bind(this));
+	}.bind(this));
 };
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
 Contents.prototype.addStylesheetRules = function(rules) {
-  var styleEl;
-  var styleSheet;
+	var styleEl;
+	var styleSheet;
 
-  if(!this.document) return;
+	if(!this.document) return;
 
-  styleEl = this.document.createElement('style');
+	styleEl = this.document.createElement('style');
 
-  // Append style element to head
-  this.document.head.appendChild(styleEl);
+	// Append style element to head
+	this.document.head.appendChild(styleEl);
 
-  // Grab style sheet
-  styleSheet = styleEl.sheet;
+	// Grab style sheet
+	styleSheet = styleEl.sheet;
 
-  for (var i = 0, rl = rules.length; i < rl; i++) {
-    var j = 1, rule = rules[i], selector = rules[i][0], propStr = '';
-    // If the second argument of a rule is an array of arrays, correct our variables.
-    if (Object.prototype.toString.call(rule[1][0]) === '[object Array]') {
-      rule = rule[1];
-      j = 0;
-    }
+	for (var i = 0, rl = rules.length; i < rl; i++) {
+		var j = 1, rule = rules[i], selector = rules[i][0], propStr = '';
+		// If the second argument of a rule is an array of arrays, correct our variables.
+		if (Object.prototype.toString.call(rule[1][0]) === '[object Array]') {
+			rule = rule[1];
+			j = 0;
+		}
 
-    for (var pl = rule.length; j < pl; j++) {
-      var prop = rule[j];
-      propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
-    }
+		for (var pl = rule.length; j < pl; j++) {
+			var prop = rule[j];
+			propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+		}
 
-    // Insert CSS Rule
-    styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
-  }
+		// Insert CSS Rule
+		styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
+	}
 };
 
 Contents.prototype.addScript = function(src) {
 
-  return new RSVP.Promise(function(resolve, reject){
-    var $script;
-    var ready = false;
+	return new RSVP.Promise(function(resolve, reject){
+		var $script;
+		var ready = false;
 
-    if(!this.document) {
-      resolve(false);
-      return;
-    }
+		if(!this.document) {
+			resolve(false);
+			return;
+		}
 
-    $script = this.document.createElement('script');
-    $script.type = 'text/javascript';
-    $script.async = true;
-    $script.src = src;
-    $script.onload = $script.onreadystatechange = function() {
-      if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
-        ready = true;
-        setTimeout(function(){
-          resolve(true);
-        }, 1);
-      }
-    };
+		$script = this.document.createElement('script');
+		$script.type = 'text/javascript';
+		$script.async = true;
+		$script.src = src;
+		$script.onload = $script.onreadystatechange = function() {
+			if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+				ready = true;
+				setTimeout(function(){
+					resolve(true);
+				}, 1);
+			}
+		};
 
-    this.document.head.appendChild($script);
+		this.document.head.appendChild($script);
 
-  }.bind(this));
+	}.bind(this));
 };
 
 Contents.prototype.addEventListeners = function(){
-  if(!this.document) {
-    return;
-  }
-  this.listenedEvents.forEach(function(eventName){
-    this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
-  }, this);
+	if(!this.document) {
+		return;
+	}
+	this.listenedEvents.forEach(function(eventName){
+		this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
+	}, this);
 
 };
 
 Contents.prototype.removeEventListeners = function(){
-  if(!this.document) {
-    return;
-  }
-  this.listenedEvents.forEach(function(eventName){
-    this.document.removeEventListener(eventName, this.triggerEvent, false);
-  }, this);
+	if(!this.document) {
+		return;
+	}
+	this.listenedEvents.forEach(function(eventName){
+		this.document.removeEventListener(eventName, this.triggerEvent, false);
+	}, this);
 
 };
 
 // Pass browser events
 Contents.prototype.triggerEvent = function(e){
-  this.trigger(e.type, e);
+	this.trigger(e.type, e);
 };
 
 Contents.prototype.addSelectionListeners = function(){
-  if(!this.document) {
-    return;
-  }
-  this.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
+	if(!this.document) {
+		return;
+	}
+	this.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
 };
 
 Contents.prototype.removeSelectionListeners = function(){
-  if(!this.document) {
-    return;
-  }
-  this.document.removeEventListener("selectionchange", this.onSelectionChange, false);
+	if(!this.document) {
+		return;
+	}
+	this.document.removeEventListener("selectionchange", this.onSelectionChange, false);
 };
 
 Contents.prototype.onSelectionChange = function(e){
-  if (this.selectionEndTimeout) {
-    clearTimeout(this.selectionEndTimeout);
-  }
-  this.selectionEndTimeout = setTimeout(function() {
-    var selection = this.window.getSelection();
-    this.triggerSelectedEvent(selection);
-  }.bind(this), 500);
+	if (this.selectionEndTimeout) {
+		clearTimeout(this.selectionEndTimeout);
+	}
+	this.selectionEndTimeout = setTimeout(function() {
+		var selection = this.window.getSelection();
+		this.triggerSelectedEvent(selection);
+	}.bind(this), 500);
 };
 
 Contents.prototype.triggerSelectedEvent = function(selection){
 	var range, cfirange;
 
-  if (selection && selection.rangeCount > 0) {
-    range = selection.getRangeAt(0);
-    if(!range.collapsed) {
-      // cfirange = this.section.cfiFromRange(range);
-      cfirange = new EpubCFI(range, this.cfiBase).toString();
-      this.trigger("selected", cfirange);
-      this.trigger("selectedRange", range);
-    }
-  }
+	if (selection && selection.rangeCount > 0) {
+		range = selection.getRangeAt(0);
+		if(!range.collapsed) {
+			// cfirange = this.section.cfiFromRange(range);
+			cfirange = new EpubCFI(range, this.cfiBase).toString();
+			this.trigger("selected", cfirange);
+			this.trigger("selectedRange", range);
+		}
+	}
 };
 
 Contents.prototype.range = function(_cfi, ignoreClass){
-  var cfi = new EpubCFI(_cfi);
-  return cfi.toRange(this.document, ignoreClass);
+	var cfi = new EpubCFI(_cfi);
+	return cfi.toRange(this.document, ignoreClass);
 };
 
 Contents.prototype.map = function(layout){
-  var map = new Mapping(layout);
-  return map.section();
+	var map = new Mapping(layout);
+	return map.section();
 };
 
 Contents.prototype.size = function(width, height){
 
-  if (width >= 0) {
-    this.width(width);
-  }
+	if (width >= 0) {
+		this.width(width);
+	}
 
-  if (height >= 0) {
-    this.height(height);
-  }
+	if (height >= 0) {
+		this.height(height);
+	}
 
-  this.css("margin", "0");
-  this.css("boxSizing", "border-box");
+	this.css("margin", "0");
+	this.css("boxSizing", "border-box");
 
 };
 
 Contents.prototype.columns = function(width, height, columnWidth, gap){
-  var COLUMN_AXIS = core.prefixed('columnAxis');
-  var COLUMN_GAP = core.prefixed('columnGap');
-  var COLUMN_WIDTH = core.prefixed('columnWidth');
-  var COLUMN_FILL = core.prefixed('columnFill');
-  var textWidth;
+	var COLUMN_AXIS = core.prefixed('columnAxis');
+	var COLUMN_GAP = core.prefixed('columnGap');
+	var COLUMN_WIDTH = core.prefixed('columnWidth');
+	var COLUMN_FILL = core.prefixed('columnFill');
+	var textWidth;
 
-  this.width(width);
-  this.height(height);
+	this.width(width);
+	this.height(height);
 
-  // Deal with Mobile trying to scale to viewport
-  this.viewport({ width: width, height: height, scale: 1.0 });
+	// Deal with Mobile trying to scale to viewport
+	this.viewport({ width: width, height: height, scale: 1.0 });
 
-  // this.overflowY("hidden");
-  this.css("overflowY", "hidden");
-  this.css("margin", "0");
-  this.css("boxSizing", "border-box");
+	// this.overflowY("hidden");
+	this.css("overflowY", "hidden");
+	this.css("margin", "0");
+	this.css("boxSizing", "border-box");
+	this.css("maxWidth", "inherit");
 
-  this.css(COLUMN_AXIS, "horizontal");
-  this.css(COLUMN_FILL, "auto");
+	this.css(COLUMN_AXIS, "horizontal");
+	this.css(COLUMN_FILL, "auto");
 
-  this.css(COLUMN_GAP, gap+"px");
-  this.css(COLUMN_WIDTH, columnWidth+"px");
+	this.css(COLUMN_GAP, gap+"px");
+	this.css(COLUMN_WIDTH, columnWidth+"px");
 };
 
 Contents.prototype.scale = function(scale, offsetX, offsetY){
-  var scale = "scale(" + scale + ")";
-  var translate = '';
-  // this.css("position", "absolute"));
-  this.css("transformOrigin", "top left");
+	var scale = "scale(" + scale + ")";
+	var translate = '';
+	// this.css("position", "absolute"));
+	this.css("transformOrigin", "top left");
 
-  if (offsetX >= 0 || offsetY >= 0) {
-    translate = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
-  }
+	if (offsetX >= 0 || offsetY >= 0) {
+		translate = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
+	}
 
-  this.css("transform", scale + translate);
+	this.css("transform", scale + translate);
 };
 
 Contents.prototype.fit = function(width, height){
-  var viewport = this.viewport();
-  var widthScale = width / viewport.width;
-  var heightScale = height / viewport.height;
-  var scale = widthScale < heightScale ? widthScale : heightScale;
+	var viewport = this.viewport();
+	var widthScale = width / viewport.width;
+	var heightScale = height / viewport.height;
+	var scale = widthScale < heightScale ? widthScale : heightScale;
 
-  var offsetY = (height - (viewport.height * scale)) / 2;
+	var offsetY = (height - (viewport.height * scale)) / 2;
 
-  this.width(width);
-  this.height(height);
-  this.overflow("hidden");
+	this.width(width);
+	this.height(height);
+	this.overflow("hidden");
 
-  // Deal with Mobile trying to scale to viewport
-  this.viewport({ scale: 1.0 });
+	// Deal with Mobile trying to scale to viewport
+	this.viewport({ scale: 1.0 });
 
-  // Scale to the correct size
-  this.scale(scale, 0, offsetY);
+	// Scale to the correct size
+	this.scale(scale, 0, offsetY);
 
-  this.css("backgroundColor", "transparent");
+	this.css("backgroundColor", "transparent");
 };
 
 Contents.prototype.mapPage = function(cfiBase, start, end) {
-  var mapping = new Mapping();
+	var mapping = new Mapping();
 
-  return mapping.page(this, cfiBase, start, end);
+	return mapping.page(this, cfiBase, start, end);
 };
 
 Contents.prototype.destroy = function() {
-  // Stop observing
-  if(this.observer) {
-    this.observer.disconnect();
-  }
+	// Stop observing
+	if(this.observer) {
+		this.observer.disconnect();
+	}
 
-  this.removeListeners();
+	this.removeListeners();
 
 };
 
@@ -6448,538 +6449,538 @@ var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnim
 /*
 //-- Parse the different parts of a url, returning a object
 function uri(url){
-  var uri = {
-        protocol : '',
-        host : '',
-        path : '',
-        origin : '',
-        directory : '',
-        base : '',
-        filename : '',
-        extension : '',
-        fragment : '',
-        href : url
-      },
-      doubleSlash = url.indexOf('://'),
-      search = url.indexOf('?'),
-      fragment = url.indexOf("#"),
-      withoutProtocol,
-      dot,
-      firstSlash;
+	var uri = {
+				protocol : '',
+				host : '',
+				path : '',
+				origin : '',
+				directory : '',
+				base : '',
+				filename : '',
+				extension : '',
+				fragment : '',
+				href : url
+			},
+			doubleSlash = url.indexOf('://'),
+			search = url.indexOf('?'),
+			fragment = url.indexOf("#"),
+			withoutProtocol,
+			dot,
+			firstSlash;
 
-  if(fragment != -1) {
-    uri.fragment = url.slice(fragment + 1);
-    url = url.slice(0, fragment);
-  }
+	if(fragment != -1) {
+		uri.fragment = url.slice(fragment + 1);
+		url = url.slice(0, fragment);
+	}
 
-  if(search != -1) {
-    uri.search = url.slice(search + 1);
-    url = url.slice(0, search);
-    href = url;
-  }
+	if(search != -1) {
+		uri.search = url.slice(search + 1);
+		url = url.slice(0, search);
+		href = url;
+	}
 
-  if(doubleSlash != -1) {
-    uri.protocol = url.slice(0, doubleSlash);
-    withoutProtocol = url.slice(doubleSlash+3);
-    firstSlash = withoutProtocol.indexOf('/');
+	if(doubleSlash != -1) {
+		uri.protocol = url.slice(0, doubleSlash);
+		withoutProtocol = url.slice(doubleSlash+3);
+		firstSlash = withoutProtocol.indexOf('/');
 
-    if(firstSlash === -1) {
-      uri.host = uri.path;
-      uri.path = "";
-    } else {
-      uri.host = withoutProtocol.slice(0, firstSlash);
-      uri.path = withoutProtocol.slice(firstSlash);
-    }
+		if(firstSlash === -1) {
+			uri.host = uri.path;
+			uri.path = "";
+		} else {
+			uri.host = withoutProtocol.slice(0, firstSlash);
+			uri.path = withoutProtocol.slice(firstSlash);
+		}
 
 
-    uri.origin = uri.protocol + "://" + uri.host;
+		uri.origin = uri.protocol + "://" + uri.host;
 
-    uri.directory = folder(uri.path);
+		uri.directory = folder(uri.path);
 
-    uri.base = uri.origin + uri.directory;
-    // return origin;
-  } else {
-    uri.path = url;
-    uri.directory = folder(url);
-    uri.base = uri.directory;
-  }
+		uri.base = uri.origin + uri.directory;
+		// return origin;
+	} else {
+		uri.path = url;
+		uri.directory = folder(url);
+		uri.base = uri.directory;
+	}
 
-  //-- Filename
-  uri.filename = url.replace(uri.base, '');
-  dot = uri.filename.lastIndexOf('.');
-  if(dot != -1) {
-    uri.extension = uri.filename.slice(dot+1);
-  }
-  return uri;
+	//-- Filename
+	uri.filename = url.replace(uri.base, '');
+	dot = uri.filename.lastIndexOf('.');
+	if(dot != -1) {
+		uri.extension = uri.filename.slice(dot+1);
+	}
+	return uri;
 };
 
 //-- Parse out the folder, will return everything before the last slash
 function folder(url){
 
-  var lastSlash = url.lastIndexOf('/');
+	var lastSlash = url.lastIndexOf('/');
 
-  if(lastSlash == -1) var folder = '';
+	if(lastSlash == -1) var folder = '';
 
-  folder = url.slice(0, lastSlash + 1);
+	folder = url.slice(0, lastSlash + 1);
 
-  return folder;
+	return folder;
 
 };
 */
 function isElement(obj) {
-    return !!(obj && obj.nodeType == 1);
+		return !!(obj && obj.nodeType == 1);
 };
 
 // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 function uuid() {
-  var d = new Date().getTime();
-  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = (d + Math.random()*16)%16 | 0;
-      d = Math.floor(d/16);
-      return (c=='x' ? r : (r&0x7|0x8)).toString(16);
-  });
-  return uuid;
+	var d = new Date().getTime();
+	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			var r = (d + Math.random()*16)%16 | 0;
+			d = Math.floor(d/16);
+			return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+	});
+	return uuid;
 };
 
 // From Lodash
 function values(object) {
-  var index = -1,
-      props = Object.keys(object),
-      length = props.length,
-      result = Array(length);
+	var index = -1,
+			props = Object.keys(object),
+			length = props.length,
+			result = Array(length);
 
-  while (++index < length) {
-    result[index] = object[props[index]];
-  }
-  return result;
+	while (++index < length) {
+		result[index] = object[props[index]];
+	}
+	return result;
 };
 
 function resolveUrl(base, path) {
-  var url = [],
-    segments = [],
-    baseUri = uri(base),
-    pathUri = uri(path),
-    baseDirectory = baseUri.directory,
-    pathDirectory = pathUri.directory,
-    directories = [],
-    // folders = base.split("/"),
-    paths;
+	var url = [],
+		segments = [],
+		baseUri = uri(base),
+		pathUri = uri(path),
+		baseDirectory = baseUri.directory,
+		pathDirectory = pathUri.directory,
+		directories = [],
+		// folders = base.split("/"),
+		paths;
 
-  // if(uri.host) {
-  //   return path;
-  // }
+	// if(uri.host) {
+	//   return path;
+	// }
 
-  if(baseDirectory[0] === "/") {
-    baseDirectory = baseDirectory.substring(1);
-  }
+	if(baseDirectory[0] === "/") {
+		baseDirectory = baseDirectory.substring(1);
+	}
 
-  if(pathDirectory[pathDirectory.length-1] === "/") {
-    baseDirectory = baseDirectory.substring(0, baseDirectory.length-1);
-  }
+	if(pathDirectory[pathDirectory.length-1] === "/") {
+		baseDirectory = baseDirectory.substring(0, baseDirectory.length-1);
+	}
 
-  if(pathDirectory[0] === "/") {
-    pathDirectory = pathDirectory.substring(1);
-  }
+	if(pathDirectory[0] === "/") {
+		pathDirectory = pathDirectory.substring(1);
+	}
 
-  if(pathDirectory[pathDirectory.length-1] === "/") {
-    pathDirectory = pathDirectory.substring(0, pathDirectory.length-1);
-  }
+	if(pathDirectory[pathDirectory.length-1] === "/") {
+		pathDirectory = pathDirectory.substring(0, pathDirectory.length-1);
+	}
 
-  if(baseDirectory) {
-    directories = baseDirectory.split("/");
-  }
+	if(baseDirectory) {
+		directories = baseDirectory.split("/");
+	}
 
-  paths = pathDirectory.split("/");
+	paths = pathDirectory.split("/");
 
-  paths.reverse().forEach(function(part, index){
-    if(part === ".."){
-      directories.pop();
-    } else if(part === directories[directories.length-1]) {
-      directories.pop();
-      segments.unshift(part);
-    } else {
-      segments.unshift(part);
-    }
-  });
+	paths.reverse().forEach(function(part, index){
+		if(part === ".."){
+			directories.pop();
+		} else if(part === directories[directories.length-1]) {
+			directories.pop();
+			segments.unshift(part);
+		} else {
+			segments.unshift(part);
+		}
+	});
 
-  url = [baseUri.origin];
+	url = [baseUri.origin];
 
-  if(directories.length) {
-    url = url.concat(directories);
-  }
+	if(directories.length) {
+		url = url.concat(directories);
+	}
 
-  if(segments) {
-    url = url.concat(segments);
-  }
+	if(segments) {
+		url = url.concat(segments);
+	}
 
-  url = url.concat(pathUri.filename);
+	url = url.concat(pathUri.filename);
 
-  return url.join("/");
+	return url.join("/");
 };
 
 function documentHeight() {
-  return Math.max(
-      document.documentElement.clientHeight,
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.offsetHeight
-  );
+	return Math.max(
+			document.documentElement.clientHeight,
+			document.body.scrollHeight,
+			document.documentElement.scrollHeight,
+			document.body.offsetHeight,
+			document.documentElement.offsetHeight
+	);
 };
 
 function isNumber(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
+	return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
 function prefixed(unprefixed) {
-  var vendors = ["Webkit", "Moz", "O", "ms" ],
-    prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
-    upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
-    length = vendors.length;
+	var vendors = ["Webkit", "Moz", "O", "ms" ],
+		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
+		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
+		length = vendors.length;
 
-  if (typeof(document) === 'undefined' || typeof(document.body.style[unprefixed]) != 'undefined') {
-    return unprefixed;
-  }
+	if (typeof(document) === 'undefined' || typeof(document.body.style[unprefixed]) != 'undefined') {
+		return unprefixed;
+	}
 
-  for ( var i=0; i < length; i++ ) {
-    if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
-      return vendors[i] + upper;
-    }
-  }
+	for ( var i=0; i < length; i++ ) {
+		if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
+			return vendors[i] + upper;
+		}
+	}
 
-  return unprefixed;
+	return unprefixed;
 };
 
 function defaults(obj) {
-  for (var i = 1, length = arguments.length; i < length; i++) {
-    var source = arguments[i];
-    for (var prop in source) {
-      if (obj[prop] === void 0) obj[prop] = source[prop];
-    }
-  }
-  return obj;
+	for (var i = 1, length = arguments.length; i < length; i++) {
+		var source = arguments[i];
+		for (var prop in source) {
+			if (obj[prop] === void 0) obj[prop] = source[prop];
+		}
+	}
+	return obj;
 };
 
 function extend(target) {
-    var sources = [].slice.call(arguments, 1);
-    sources.forEach(function (source) {
-      if(!source) return;
-      Object.getOwnPropertyNames(source).forEach(function(propName) {
-        Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
-      });
-    });
-    return target;
+		var sources = [].slice.call(arguments, 1);
+		sources.forEach(function (source) {
+			if(!source) return;
+			Object.getOwnPropertyNames(source).forEach(function(propName) {
+				Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+			});
+		});
+		return target;
 };
 
 // Fast quicksort insert for sorted array -- based on:
 // http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
 function insert(item, array, compareFunction) {
-  var location = locationOf(item, array, compareFunction);
-  array.splice(location, 0, item);
+	var location = locationOf(item, array, compareFunction);
+	array.splice(location, 0, item);
 
-  return location;
+	return location;
 };
 // Returns where something would fit in
 function locationOf(item, array, compareFunction, _start, _end) {
-  var start = _start || 0;
-  var end = _end || array.length;
-  var pivot = parseInt(start + (end - start) / 2);
-  var compared;
-  if(!compareFunction){
-    compareFunction = function(a, b) {
-      if(a > b) return 1;
-      if(a < b) return -1;
-      if(a = b) return 0;
-    };
-  }
-  if(end-start <= 0) {
-    return pivot;
-  }
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 0) {
+		return pivot;
+	}
 
-  compared = compareFunction(array[pivot], item);
-  if(end-start === 1) {
-    return compared > 0 ? pivot : pivot + 1;
-  }
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared > 0 ? pivot : pivot + 1;
+	}
 
-  if(compared === 0) {
-    return pivot;
-  }
-  if(compared === -1) {
-    return locationOf(item, array, compareFunction, pivot, end);
-  } else{
-    return locationOf(item, array, compareFunction, start, pivot);
-  }
+	if(compared === 0) {
+		return pivot;
+	}
+	if(compared === -1) {
+		return locationOf(item, array, compareFunction, pivot, end);
+	} else{
+		return locationOf(item, array, compareFunction, start, pivot);
+	}
 };
 // Returns -1 of mpt found
 function indexOfSorted(item, array, compareFunction, _start, _end) {
-  var start = _start || 0;
-  var end = _end || array.length;
-  var pivot = parseInt(start + (end - start) / 2);
-  var compared;
-  if(!compareFunction){
-    compareFunction = function(a, b) {
-      if(a > b) return 1;
-      if(a < b) return -1;
-      if(a = b) return 0;
-    };
-  }
-  if(end-start <= 0) {
-    return -1; // Not found
-  }
+	var start = _start || 0;
+	var end = _end || array.length;
+	var pivot = parseInt(start + (end - start) / 2);
+	var compared;
+	if(!compareFunction){
+		compareFunction = function(a, b) {
+			if(a > b) return 1;
+			if(a < b) return -1;
+			if(a = b) return 0;
+		};
+	}
+	if(end-start <= 0) {
+		return -1; // Not found
+	}
 
-  compared = compareFunction(array[pivot], item);
-  if(end-start === 1) {
-    return compared === 0 ? pivot : -1;
-  }
-  if(compared === 0) {
-    return pivot; // Found
-  }
-  if(compared === -1) {
-    return indexOfSorted(item, array, compareFunction, pivot, end);
-  } else{
-    return indexOfSorted(item, array, compareFunction, start, pivot);
-  }
+	compared = compareFunction(array[pivot], item);
+	if(end-start === 1) {
+		return compared === 0 ? pivot : -1;
+	}
+	if(compared === 0) {
+		return pivot; // Found
+	}
+	if(compared === -1) {
+		return indexOfSorted(item, array, compareFunction, pivot, end);
+	} else{
+		return indexOfSorted(item, array, compareFunction, start, pivot);
+	}
 };
 
 function bounds(el) {
 
-  var style = window.getComputedStyle(el);
-  var widthProps = ["width", "paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
-  var heightProps = ["height", "paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
+	var style = window.getComputedStyle(el);
+	var widthProps = ["width", "paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
+	var heightProps = ["height", "paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
 
-  var width = 0;
-  var height = 0;
+	var width = 0;
+	var height = 0;
 
-  widthProps.forEach(function(prop){
-    width += parseFloat(style[prop]) || 0;
-  });
+	widthProps.forEach(function(prop){
+		width += parseFloat(style[prop]) || 0;
+	});
 
-  heightProps.forEach(function(prop){
-    height += parseFloat(style[prop]) || 0;
-  });
+	heightProps.forEach(function(prop){
+		height += parseFloat(style[prop]) || 0;
+	});
 
-  return {
-    height: height,
-    width: width
-  };
+	return {
+		height: height,
+		width: width
+	};
 
 };
 
 function borders(el) {
 
-  var style = window.getComputedStyle(el);
-  var widthProps = ["paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
-  var heightProps = ["paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
+	var style = window.getComputedStyle(el);
+	var widthProps = ["paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
+	var heightProps = ["paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
 
-  var width = 0;
-  var height = 0;
+	var width = 0;
+	var height = 0;
 
-  widthProps.forEach(function(prop){
-    width += parseFloat(style[prop]) || 0;
-  });
+	widthProps.forEach(function(prop){
+		width += parseFloat(style[prop]) || 0;
+	});
 
-  heightProps.forEach(function(prop){
-    height += parseFloat(style[prop]) || 0;
-  });
+	heightProps.forEach(function(prop){
+		height += parseFloat(style[prop]) || 0;
+	});
 
-  return {
-    height: height,
-    width: width
-  };
+	return {
+		height: height,
+		width: width
+	};
 
 };
 
 function windowBounds() {
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+	var width = window.innerWidth;
+	var height = window.innerHeight;
 
-  return {
-    top: 0,
-    left: 0,
-    right: width,
-    bottom: height,
-    width: width,
-    height: height
-  };
+	return {
+		top: 0,
+		left: 0,
+		right: width,
+		bottom: height,
+		width: width,
+		height: height
+	};
 
 };
 
 //https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
 function cleanStringForXpath(str)  {
-    var parts = str.match(/[^'"]+|['"]/g);
-    parts = parts.map(function(part){
-        if (part === "'")  {
-            return '\"\'\"'; // output "'"
-        }
+		var parts = str.match(/[^'"]+|['"]/g);
+		parts = parts.map(function(part){
+				if (part === "'")  {
+						return '\"\'\"'; // output "'"
+				}
 
-        if (part === '"') {
-            return "\'\"\'"; // output '"'
-        }
-        return "\'" + part + "\'";
-    });
-    return "concat(\'\'," + parts.join(",") + ")";
+				if (part === '"') {
+						return "\'\"\'"; // output '"'
+				}
+				return "\'" + part + "\'";
+		});
+		return "concat(\'\'," + parts.join(",") + ")";
 };
 
 function indexOfTextNode(textNode){
-  var parent = textNode.parentNode;
-  var children = parent.childNodes;
-  var sib;
-  var index = -1;
-  for (var i = 0; i < children.length; i++) {
-    sib = children[i];
-    if(sib.nodeType === Node.TEXT_NODE){
-      index++;
-    }
-    if(sib == textNode) break;
-  }
+	var parent = textNode.parentNode;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if(sib.nodeType === Node.TEXT_NODE){
+			index++;
+		}
+		if(sib == textNode) break;
+	}
 
-  return index;
+	return index;
 };
 
 function isXml(ext) {
-  return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
+	return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
 }
 
 function createBlob(content, mime){
 	var blob = new Blob([content], {type : mime });
 
-  return blob;
+	return blob;
 };
 
 function createBlobUrl(content, mime){
-  var _URL = window.URL || window.webkitURL || window.mozURL;
+	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob = this.createBlob(content, mime);
 
-  tempUrl = _URL.createObjectURL(blob);
+	tempUrl = _URL.createObjectURL(blob);
 
-  return tempUrl;
+	return tempUrl;
 };
 
 function createBase64Url(content, mime){
-  var string;
-  var data;
-  var datauri;
+	var string;
+	var data;
+	var datauri;
 
-  if (typeof(content) !== "string") {
-    // Only handles strings
-    return;
-  }
+	if (typeof(content) !== "string") {
+		// Only handles strings
+		return;
+	}
 
-  data = btoa(content);
+	data = btoa(content);
 
-  datauri = "data:" + mime + ";base64," + data;
+	datauri = "data:" + mime + ";base64," + data;
 
-  return datauri;
+	return datauri;
 };
 
 function type(obj){
-  return Object.prototype.toString.call(obj).slice(8, -1);
+	return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
 function parse(markup, mime) {
-  var doc;
-  // console.log("parse", markup);
+	var doc;
+	// console.log("parse", markup);
 
-  if (typeof DOMParser === "undefined") {
-    DOMParser = require('xmldom').DOMParser;
-  }
+	if (typeof DOMParser === "undefined") {
+		DOMParser = require('xmldom').DOMParser;
+	}
 
 
-  doc = new DOMParser().parseFromString(markup, mime);
+	doc = new DOMParser().parseFromString(markup, mime);
 
-  return doc;
+	return doc;
 }
 
 function qs(el, sel) {
-  var elements;
+	var elements;
 
-  if (typeof el.querySelector != "undefined") {
-    return el.querySelector(sel);
-  } else {
-    elements = el.getElementsByTagName(sel);
-    if (elements.length) {
-      return elements[0];
-    }
-  }
+	if (typeof el.querySelector != "undefined") {
+		return el.querySelector(sel);
+	} else {
+		elements = el.getElementsByTagName(sel);
+		if (elements.length) {
+			return elements[0];
+		}
+	}
 }
 
 function qsa(el, sel) {
 
-  if (typeof el.querySelector != "undefined") {
-    return el.querySelectorAll(sel);
-  } else {
-    return el.getElementsByTagName(sel);
-  }
+	if (typeof el.querySelector != "undefined") {
+		return el.querySelectorAll(sel);
+	} else {
+		return el.getElementsByTagName(sel);
+	}
 }
 
 function qsp(el, sel, props) {
-  var q, filtered;
-  if (typeof el.querySelector != "undefined") {
-    sel += '[';
-    for (var prop in props) {
-      sel += prop + "='" + props[prop] + "'";
-    }
-    sel += ']';
-    return el.querySelector(sel);
-  } else {
-    q = el.getElementsByTagName(sel);
-    filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
-      for (var prop in props) {
-        if(el.getAttribute(prop) === props[prop]){
-          return true;
-        }
-      }
-      return false;
-    });
+	var q, filtered;
+	if (typeof el.querySelector != "undefined") {
+		sel += '[';
+		for (var prop in props) {
+			sel += prop + "='" + props[prop] + "'";
+		}
+		sel += ']';
+		return el.querySelector(sel);
+	} else {
+		q = el.getElementsByTagName(sel);
+		filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
+			for (var prop in props) {
+				if(el.getAttribute(prop) === props[prop]){
+					return true;
+				}
+			}
+			return false;
+		});
 
-    if (filtered) {
-      return filtered[0];
-    }
-  }
+		if (filtered) {
+			return filtered[0];
+		}
+	}
 }
 
 function blob2base64(blob, cb) {
-  var reader = new FileReader();
-  reader.readAsDataURL(blob);
-  reader.onloadend = function() {
-    cb(reader.result);
-  }
+	var reader = new FileReader();
+	reader.readAsDataURL(blob);
+	reader.onloadend = function() {
+		cb(reader.result);
+	}
 }
 
 module.exports = {
-  // 'uri': uri,
-  // 'folder': folder,
-  'isElement': isElement,
-  'uuid': uuid,
-  'values': values,
-  'resolveUrl': resolveUrl,
-  'indexOfSorted': indexOfSorted,
-  'documentHeight': documentHeight,
-  'isNumber': isNumber,
-  'prefixed': prefixed,
-  'defaults': defaults,
-  'extend': extend,
-  'insert': insert,
-  'locationOf': locationOf,
-  'indexOfSorted': indexOfSorted,
-  'requestAnimationFrame': requestAnimationFrame,
-  'bounds': bounds,
-  'borders': borders,
-  'windowBounds': windowBounds,
-  'cleanStringForXpath': cleanStringForXpath,
-  'indexOfTextNode': indexOfTextNode,
-  'isXml': isXml,
-  'createBlob': createBlob,
-  'createBlobUrl': createBlobUrl,
-  'type': type,
-  'parse' : parse,
-  'qs' : qs,
-  'qsa' : qsa,
-  'qsp' : qsp,
-  'blob2base64' : blob2base64,
-  'createBase64Url': createBase64Url
+	// 'uri': uri,
+	// 'folder': folder,
+	'isElement': isElement,
+	'uuid': uuid,
+	'values': values,
+	'resolveUrl': resolveUrl,
+	'indexOfSorted': indexOfSorted,
+	'documentHeight': documentHeight,
+	'isNumber': isNumber,
+	'prefixed': prefixed,
+	'defaults': defaults,
+	'extend': extend,
+	'insert': insert,
+	'locationOf': locationOf,
+	'indexOfSorted': indexOfSorted,
+	'requestAnimationFrame': requestAnimationFrame,
+	'bounds': bounds,
+	'borders': borders,
+	'windowBounds': windowBounds,
+	'cleanStringForXpath': cleanStringForXpath,
+	'indexOfTextNode': indexOfTextNode,
+	'isXml': isXml,
+	'createBlob': createBlob,
+	'createBlobUrl': createBlobUrl,
+	'type': type,
+	'parse' : parse,
+	'qs' : qs,
+	'qsa' : qsa,
+	'qsp' : qsp,
+	'blob2base64' : blob2base64,
+	'createBase64Url': createBase64Url
 };
 
 },{"base64-js":2,"rsvp":5,"xmldom":"xmldom"}],11:[function(require,module,exports){
@@ -6987,730 +6988,730 @@ var URI = require('urijs');
 var core = require('./core');
 
 /**
-  EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
+	EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
 
-  Implements:
-  - Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
-  - Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
+	Implements:
+	- Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
+	- Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
 
-  Does Not Implement:
-  - Temporal Offset (~)
-  - Spatial Offset (@)
-  - Temporal-Spatial Offset (~ + @)
-  - Text Location Assertion ([)
+	Does Not Implement:
+	- Temporal Offset (~)
+	- Spatial Offset (@)
+	- Temporal-Spatial Offset (~ + @)
+	- Text Location Assertion ([)
 */
 
 function EpubCFI(cfiFrom, base, ignoreClass){
-  var type;
+	var type;
 
-  this.str = '';
+	this.str = '';
 
-  this.base = {};
-  this.spinePos = 0; // For compatibility
+	this.base = {};
+	this.spinePos = 0; // For compatibility
 
-  this.range = false; // true || false;
+	this.range = false; // true || false;
 
-  this.path = {};
-  this.start = null;
-  this.end = null;
+	this.path = {};
+	this.start = null;
+	this.end = null;
 
-  // Allow instantiation without the 'new' keyword
-  if (!(this instanceof EpubCFI)) {
-    return new EpubCFI(cfiFrom, base, ignoreClass);
-  }
+	// Allow instantiation without the 'new' keyword
+	if (!(this instanceof EpubCFI)) {
+		return new EpubCFI(cfiFrom, base, ignoreClass);
+	}
 
-  if(typeof base === 'string') {
-    this.base = this.parseComponent(base);
-  } else if(typeof base === 'object' && base.steps) {
-    this.base = base;
-  }
+	if(typeof base === 'string') {
+		this.base = this.parseComponent(base);
+	} else if(typeof base === 'object' && base.steps) {
+		this.base = base;
+	}
 
-  type = this.checkType(cfiFrom);
+	type = this.checkType(cfiFrom);
 
 
-  if(type === 'string') {
-    this.str = cfiFrom;
-    return core.extend(this, this.parse(cfiFrom));
-  } else if (type === 'range') {
-    return core.extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
-  } else if (type === 'node') {
-    return core.extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
-  } else if (type === 'EpubCFI' && cfiFrom.path) {
-    return cfiFrom;
-  } else if (!cfiFrom) {
-    return this;
-  } else {
-    throw new TypeError('not a valid argument for EpubCFI');
-  }
+	if(type === 'string') {
+		this.str = cfiFrom;
+		return core.extend(this, this.parse(cfiFrom));
+	} else if (type === 'range') {
+		return core.extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
+	} else if (type === 'node') {
+		return core.extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
+	} else if (type === 'EpubCFI' && cfiFrom.path) {
+		return cfiFrom;
+	} else if (!cfiFrom) {
+		return this;
+	} else {
+		throw new TypeError('not a valid argument for EpubCFI');
+	}
 
 };
 
 EpubCFI.prototype.checkType = function(cfi) {
 
-  if (this.isCfiString(cfi)) {
-    return 'string';
-  // Is a range object
-  } else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
-    return 'range';
-  } else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
-    return 'node';
-  } else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
-    return 'EpubCFI';
-  } else {
-    return false;
-  }
+	if (this.isCfiString(cfi)) {
+		return 'string';
+	// Is a range object
+	} else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
+		return 'range';
+	} else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
+		return 'node';
+	} else if (typeof cfi === 'object' && cfi instanceof EpubCFI){
+		return 'EpubCFI';
+	} else {
+		return false;
+	}
 };
 
 EpubCFI.prototype.parse = function(cfiStr) {
-  var cfi = {
-      spinePos: -1,
-      range: false,
-      base: {},
-      path: {},
-      start: null,
-      end: null
-    };
-  var baseComponent, pathComponent, range;
+	var cfi = {
+			spinePos: -1,
+			range: false,
+			base: {},
+			path: {},
+			start: null,
+			end: null
+		};
+	var baseComponent, pathComponent, range;
 
-  if(typeof cfiStr !== "string") {
-    return {spinePos: -1};
-  }
+	if(typeof cfiStr !== "string") {
+		return {spinePos: -1};
+	}
 
-  if(cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length-1] === ")") {
-    // Remove intial epubcfi( and ending )
-    cfiStr = cfiStr.slice(8, cfiStr.length-1);
-  }
+	if(cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length-1] === ")") {
+		// Remove intial epubcfi( and ending )
+		cfiStr = cfiStr.slice(8, cfiStr.length-1);
+	}
 
-  baseComponent = this.getChapterComponent(cfiStr);
+	baseComponent = this.getChapterComponent(cfiStr);
 
-  // Make sure this is a valid cfi or return
-  if(!baseComponent) {
-    return {spinePos: -1};
-  }
+	// Make sure this is a valid cfi or return
+	if(!baseComponent) {
+		return {spinePos: -1};
+	}
 
-  cfi.base = this.parseComponent(baseComponent);
+	cfi.base = this.parseComponent(baseComponent);
 
-  pathComponent = this.getPathComponent(cfiStr);
-  cfi.path = this.parseComponent(pathComponent);
+	pathComponent = this.getPathComponent(cfiStr);
+	cfi.path = this.parseComponent(pathComponent);
 
-  range = this.getRange(cfiStr);
+	range = this.getRange(cfiStr);
 
-  if(range) {
-    cfi.range = true;
-    cfi.start = this.parseComponent(range[0]);
-    cfi.end = this.parseComponent(range[1]);
-  }
+	if(range) {
+		cfi.range = true;
+		cfi.start = this.parseComponent(range[0]);
+		cfi.end = this.parseComponent(range[1]);
+	}
 
-  // Get spine node position
-  // cfi.spineSegment = cfi.base.steps[1];
+	// Get spine node position
+	// cfi.spineSegment = cfi.base.steps[1];
 
-  // Chapter segment is always the second step
-  cfi.spinePos = cfi.base.steps[1].index;
+	// Chapter segment is always the second step
+	cfi.spinePos = cfi.base.steps[1].index;
 
-  return cfi;
+	return cfi;
 };
 
 EpubCFI.prototype.parseComponent = function(componentStr){
-  var component = {
-    steps: [],
-    terminal: {
-      offset: null,
-      assertion: null
-    }
-  };
-  var parts = componentStr.split(':');
-  var steps = parts[0].split('/');
-  var terminal;
+	var component = {
+		steps: [],
+		terminal: {
+			offset: null,
+			assertion: null
+		}
+	};
+	var parts = componentStr.split(':');
+	var steps = parts[0].split('/');
+	var terminal;
 
-  if(parts.length > 1) {
-    terminal = parts[1];
-    component.terminal = this.parseTerminal(terminal);
-  }
+	if(parts.length > 1) {
+		terminal = parts[1];
+		component.terminal = this.parseTerminal(terminal);
+	}
 
-  if (steps[0] === '') {
-    steps.shift(); // Ignore the first slash
-  }
+	if (steps[0] === '') {
+		steps.shift(); // Ignore the first slash
+	}
 
-  component.steps = steps.map(function(step){
-    return this.parseStep(step);
-  }.bind(this));
+	component.steps = steps.map(function(step){
+		return this.parseStep(step);
+	}.bind(this));
 
-  return component;
+	return component;
 };
 
 EpubCFI.prototype.parseStep = function(stepStr){
-  var type, num, index, has_brackets, id;
+	var type, num, index, has_brackets, id;
 
-  has_brackets = stepStr.match(/\[(.*)\]/);
-  if(has_brackets && has_brackets[1]){
-    id = has_brackets[1];
-  }
+	has_brackets = stepStr.match(/\[(.*)\]/);
+	if(has_brackets && has_brackets[1]){
+		id = has_brackets[1];
+	}
 
-  //-- Check if step is a text node or element
-  num = parseInt(stepStr);
+	//-- Check if step is a text node or element
+	num = parseInt(stepStr);
 
-  if(isNaN(num)) {
-    return;
-  }
+	if(isNaN(num)) {
+		return;
+	}
 
-  if(num % 2 === 0) { // Even = is an element
-    type = "element";
-    index = num / 2 - 1;
-  } else {
-    type = "text";
-    index = (num - 1 ) / 2;
-  }
+	if(num % 2 === 0) { // Even = is an element
+		type = "element";
+		index = num / 2 - 1;
+	} else {
+		type = "text";
+		index = (num - 1 ) / 2;
+	}
 
-  return {
-    "type" : type,
-    'index' : index,
-    'id' : id || null
-  };
+	return {
+		"type" : type,
+		'index' : index,
+		'id' : id || null
+	};
 };
 
 EpubCFI.prototype.parseTerminal = function(termialStr){
-  var characterOffset, textLocationAssertion;
-  var assertion = termialStr.match(/\[(.*)\]/);
+	var characterOffset, textLocationAssertion;
+	var assertion = termialStr.match(/\[(.*)\]/);
 
-  if(assertion && assertion[1]){
-    characterOffset = parseInt(termialStr.split('[')[0]) || null;
-    textLocationAssertion = assertion[1];
-  } else {
-    characterOffset = parseInt(termialStr) || null;
-  }
+	if(assertion && assertion[1]){
+		characterOffset = parseInt(termialStr.split('[')[0]) || null;
+		textLocationAssertion = assertion[1];
+	} else {
+		characterOffset = parseInt(termialStr) || null;
+	}
 
-  return {
-    'offset': characterOffset,
-    'assertion': textLocationAssertion
-  };
+	return {
+		'offset': characterOffset,
+		'assertion': textLocationAssertion
+	};
 
 };
 
 EpubCFI.prototype.getChapterComponent = function(cfiStr) {
 
-  var indirection = cfiStr.split("!");
+	var indirection = cfiStr.split("!");
 
-  return indirection[0];
+	return indirection[0];
 };
 
 EpubCFI.prototype.getPathComponent = function(cfiStr) {
 
-  var indirection = cfiStr.split("!");
+	var indirection = cfiStr.split("!");
 
-  if(indirection[1]) {
-    ranges = indirection[1].split(',');
-    return ranges[0];
-  }
+	if(indirection[1]) {
+		ranges = indirection[1].split(',');
+		return ranges[0];
+	}
 
 };
 
 EpubCFI.prototype.getRange = function(cfiStr) {
 
-  var ranges = cfiStr.split(",");
+	var ranges = cfiStr.split(",");
 
-  if(ranges.length === 3){
-    return [
-      ranges[1],
-      ranges[2]
-    ];
-  }
+	if(ranges.length === 3){
+		return [
+			ranges[1],
+			ranges[2]
+		];
+	}
 
-  return false;
+	return false;
 };
 
 EpubCFI.prototype.getCharecterOffsetComponent = function(cfiStr) {
-  var splitStr = cfiStr.split(":");
-  return splitStr[1] || '';
+	var splitStr = cfiStr.split(":");
+	return splitStr[1] || '';
 };
 
 EpubCFI.prototype.joinSteps = function(steps) {
-  if(!steps) {
-    return "";
-  }
-  
-  return steps.map(function(part){
-    var segment = '';
+	if(!steps) {
+		return "";
+	}
 
-    if(part.type === 'element') {
-      segment += (part.index + 1) * 2;
-    }
+	return steps.map(function(part){
+		var segment = '';
 
-    if(part.type === 'text') {
-      segment += 1 + (2 * part.index); // TODO: double check that this is odd
-    }
+		if(part.type === 'element') {
+			segment += (part.index + 1) * 2;
+		}
 
-    if(part.id) {
-      segment += "[" + part.id + "]";
-    }
+		if(part.type === 'text') {
+			segment += 1 + (2 * part.index); // TODO: double check that this is odd
+		}
 
-    return segment;
+		if(part.id) {
+			segment += "[" + part.id + "]";
+		}
 
-  }).join('/');
+		return segment;
+
+	}).join('/');
 
 };
 
 EpubCFI.prototype.segmentString = function(segment) {
-  var segmentString = '/';
+	var segmentString = '/';
 
-  segmentString += this.joinSteps(segment.steps);
+	segmentString += this.joinSteps(segment.steps);
 
-  if(segment.terminal && segment.terminal.offset != null){
-    segmentString += ':' + segment.terminal.offset;
-  }
+	if(segment.terminal && segment.terminal.offset != null){
+		segmentString += ':' + segment.terminal.offset;
+	}
 
-  if(segment.terminal && segment.terminal.assertion != null){
-    segmentString += '[' + segment.terminal.assertion + ']';
-  }
+	if(segment.terminal && segment.terminal.assertion != null){
+		segmentString += '[' + segment.terminal.assertion + ']';
+	}
 
-  return segmentString;
+	return segmentString;
 };
 
 EpubCFI.prototype.toString = function() {
-  var cfiString = 'epubcfi(';
+	var cfiString = 'epubcfi(';
 
-  cfiString += this.segmentString(this.base);
+	cfiString += this.segmentString(this.base);
 
-  cfiString += '!';
-  cfiString += this.segmentString(this.path);
+	cfiString += '!';
+	cfiString += this.segmentString(this.path);
 
-  // Add Range, if present
-  if(this.start) {
-    cfiString += ',';
-    cfiString += this.segmentString(this.start);
-  }
+	// Add Range, if present
+	if(this.start) {
+		cfiString += ',';
+		cfiString += this.segmentString(this.start);
+	}
 
-  if(this.end) {
-    cfiString += ',';
-    cfiString += this.segmentString(this.end);
-  }
+	if(this.end) {
+		cfiString += ',';
+		cfiString += this.segmentString(this.end);
+	}
 
-  cfiString += ")";
+	cfiString += ")";
 
-  return cfiString;
+	return cfiString;
 };
 
 EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
-  if(typeof cfiOne === 'string') {
-    cfiOne = new EpubCFI(cfiOne);
-  }
-  if(typeof cfiTwo === 'string') {
-    cfiTwo = new EpubCFI(cfiTwo);
-  }
-  // Compare Spine Positions
-  if(cfiOne.spinePos > cfiTwo.spinePos) {
-    return 1;
-  }
-  if(cfiOne.spinePos < cfiTwo.spinePos) {
-    return -1;
-  }
+	if(typeof cfiOne === 'string') {
+		cfiOne = new EpubCFI(cfiOne);
+	}
+	if(typeof cfiTwo === 'string') {
+		cfiTwo = new EpubCFI(cfiTwo);
+	}
+	// Compare Spine Positions
+	if(cfiOne.spinePos > cfiTwo.spinePos) {
+		return 1;
+	}
+	if(cfiOne.spinePos < cfiTwo.spinePos) {
+		return -1;
+	}
 
 
-  // Compare Each Step in the First item
-  for (var i = 0; i < cfiOne.path.steps.length; i++) {
-    if(!cfiTwo.path.steps[i]) {
-      return 1;
-    }
-    if(cfiOne.path.steps[i].index > cfiTwo.path.steps[i].index) {
-      return 1;
-    }
-    if(cfiOne.path.steps[i].index < cfiTwo.path.steps[i].index) {
-      return -1;
-    }
-    // Otherwise continue checking
-  }
+	// Compare Each Step in the First item
+	for (var i = 0; i < cfiOne.path.steps.length; i++) {
+		if(!cfiTwo.path.steps[i]) {
+			return 1;
+		}
+		if(cfiOne.path.steps[i].index > cfiTwo.path.steps[i].index) {
+			return 1;
+		}
+		if(cfiOne.path.steps[i].index < cfiTwo.path.steps[i].index) {
+			return -1;
+		}
+		// Otherwise continue checking
+	}
 
-  // All steps in First equal to Second and First is Less Specific
-  if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
-    return 1;
-  }
+	// All steps in First equal to Second and First is Less Specific
+	if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
+		return 1;
+	}
 
-  // Compare the charecter offset of the text node
-  if(cfiOne.path.terminal.offset > cfiTwo.path.terminal.offset) {
-    return 1;
-  }
-  if(cfiOne.path.terminal.offset < cfiTwo.path.terminal.offset) {
-    return -1;
-  }
+	// Compare the charecter offset of the text node
+	if(cfiOne.path.terminal.offset > cfiTwo.path.terminal.offset) {
+		return 1;
+	}
+	if(cfiOne.path.terminal.offset < cfiTwo.path.terminal.offset) {
+		return -1;
+	}
 
-  // TODO: compare ranges
+	// TODO: compare ranges
 
-  // CFI's are equal
-  return 0;
+	// CFI's are equal
+	return 0;
 };
 
 EpubCFI.prototype.step = function(node) {
-  var nodeType = (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	var nodeType = (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
 
-  return {
-    'id' : node.id,
-    'tagName' : node.tagName,
-    'type' : nodeType,
-    'index' : this.position(node)
-  };
+	return {
+		'id' : node.id,
+		'tagName' : node.tagName,
+		'type' : nodeType,
+		'index' : this.position(node)
+	};
 };
 
 EpubCFI.prototype.filteredStep = function(node, ignoreClass) {
-  var filteredNode = this.filter(node, ignoreClass);
-  var nodeType;
+	var filteredNode = this.filter(node, ignoreClass);
+	var nodeType;
 
-  // Node filtered, so ignore
-  if (!filteredNode) {
-    return;
-  }
+	// Node filtered, so ignore
+	if (!filteredNode) {
+		return;
+	}
 
-  // Otherwise add the filter node in
-  nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	// Otherwise add the filter node in
+	nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
 
-  return {
-    'id' : filteredNode.id,
-    'tagName' : filteredNode.tagName,
-    'type' : nodeType,
-    'index' : this.filteredPosition(filteredNode, ignoreClass)
-  };
+	return {
+		'id' : filteredNode.id,
+		'tagName' : filteredNode.tagName,
+		'type' : nodeType,
+		'index' : this.filteredPosition(filteredNode, ignoreClass)
+	};
 };
 
 EpubCFI.prototype.pathTo = function(node, offset, ignoreClass) {
-  var segment = {
-    steps: [],
-    terminal: {
-      offset: null,
-      assertion: null
-    }
-  };
-  var currentNode = node;
-  var step;
+	var segment = {
+		steps: [],
+		terminal: {
+			offset: null,
+			assertion: null
+		}
+	};
+	var currentNode = node;
+	var step;
 
-  while(currentNode && currentNode.parentNode &&
-        currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
+	while(currentNode && currentNode.parentNode &&
+				currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
 
-    if (ignoreClass) {
-      step = this.filteredStep(currentNode, ignoreClass);
-    } else {
-      step = this.step(currentNode);
-    }
+		if (ignoreClass) {
+			step = this.filteredStep(currentNode, ignoreClass);
+		} else {
+			step = this.step(currentNode);
+		}
 
-    if (step) {
-      segment.steps.unshift(step);
-    }
+		if (step) {
+			segment.steps.unshift(step);
+		}
 
-    currentNode = currentNode.parentNode;
+		currentNode = currentNode.parentNode;
 
-  }
+	}
 
-  if (offset != null && offset >= 0) {
+	if (offset != null && offset >= 0) {
 
-    segment.terminal.offset = offset;
+		segment.terminal.offset = offset;
 
-    // Make sure we are getting to a textNode if there is an offset
-    if(segment.steps[segment.steps.length-1].type != "text") {
-      segment.steps.push({
-        'type' : "text",
-        'index' : 0
-      });
-    }
+		// Make sure we are getting to a textNode if there is an offset
+		if(segment.steps[segment.steps.length-1].type != "text") {
+			segment.steps.push({
+				'type' : "text",
+				'index' : 0
+			});
+		}
 
-  }
+	}
 
 
-  return segment;
+	return segment;
 }
 
 EpubCFI.prototype.equalStep = function(stepA, stepB) {
-  if (!stepA || !stepB) {
-    return false;
-  }
+	if (!stepA || !stepB) {
+		return false;
+	}
 
-  if(stepA.index === stepB.index &&
-     stepA.id === stepB.id &&
-     stepA.type === stepB.type) {
-    return true;
-  }
+	if(stepA.index === stepB.index &&
+		 stepA.id === stepB.id &&
+		 stepA.type === stepB.type) {
+		return true;
+	}
 
-  return false;
+	return false;
 };
 EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
-  var cfi = {
-      range: false,
-      base: {},
-      path: {},
-      start: null,
-      end: null
-    };
+	var cfi = {
+			range: false,
+			base: {},
+			path: {},
+			start: null,
+			end: null
+		};
 
-  var start = range.startContainer;
-  var end = range.endContainer;
+	var start = range.startContainer;
+	var end = range.endContainer;
 
-  var startOffset = range.startOffset;
-  var endOffset = range.endOffset;
+	var startOffset = range.startOffset;
+	var endOffset = range.endOffset;
 
-  var needsIgnoring = false;
+	var needsIgnoring = false;
 
-  if (ignoreClass) {
-    // Tell pathTo if / what to ignore
-    needsIgnoring = (start.ownerDocument.querySelector('.' + ignoreClass) != null);
-  }
+	if (ignoreClass) {
+		// Tell pathTo if / what to ignore
+		needsIgnoring = (start.ownerDocument.querySelector('.' + ignoreClass) != null);
+	}
 
 
-  if (typeof base === 'string') {
-    cfi.base = this.parseComponent(base);
-    cfi.spinePos = cfi.base.steps[1].index;
-  } else if (typeof base === 'object') {
-    cfi.base = base;
-  }
+	if (typeof base === 'string') {
+		cfi.base = this.parseComponent(base);
+		cfi.spinePos = cfi.base.steps[1].index;
+	} else if (typeof base === 'object') {
+		cfi.base = base;
+	}
 
-  if (range.collapsed) {
-    if (needsIgnoring) {
-      startOffset = this.patchOffset(start, startOffset, ignoreClass);
-    }
-    cfi.path = this.pathTo(start, startOffset, ignoreClass);
-  } else {
-    cfi.range = true;
+	if (range.collapsed) {
+		if (needsIgnoring) {
+			startOffset = this.patchOffset(start, startOffset, ignoreClass);
+		}
+		cfi.path = this.pathTo(start, startOffset, ignoreClass);
+	} else {
+		cfi.range = true;
 
-    if (needsIgnoring) {
-      startOffset = this.patchOffset(start, startOffset, ignoreClass);
-    }
+		if (needsIgnoring) {
+			startOffset = this.patchOffset(start, startOffset, ignoreClass);
+		}
 
-    cfi.start = this.pathTo(start, startOffset, ignoreClass);
+		cfi.start = this.pathTo(start, startOffset, ignoreClass);
 
-    if (needsIgnoring) {
-      endOffset = this.patchOffset(end, endOffset, ignoreClass);
-    }
+		if (needsIgnoring) {
+			endOffset = this.patchOffset(end, endOffset, ignoreClass);
+		}
 
-    cfi.end = this.pathTo(end, endOffset, ignoreClass);
+		cfi.end = this.pathTo(end, endOffset, ignoreClass);
 
-    // Create a new empty path
-    cfi.path = {
-      steps: [],
-      terminal: null
-    };
+		// Create a new empty path
+		cfi.path = {
+			steps: [],
+			terminal: null
+		};
 
-    // Push steps that are shared between start and end to the common path
-    var len = cfi.start.steps.length;
-    var i;
+		// Push steps that are shared between start and end to the common path
+		var len = cfi.start.steps.length;
+		var i;
 
-    for (i = 0; i < len; i++) {
-      if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
-        if(i == len-1) {
-          // Last step is equal, check terminals
-          if(cfi.start.terminal === cfi.end.terminal) {
-            // CFI's are equal
-            cfi.path.steps.push(cfi.start.steps[i]);
-            // Not a range
-            cfi.range = false;
-          }
-        } else {
-          cfi.path.steps.push(cfi.start.steps[i]);
-        }
+		for (i = 0; i < len; i++) {
+			if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
+				if(i == len-1) {
+					// Last step is equal, check terminals
+					if(cfi.start.terminal === cfi.end.terminal) {
+						// CFI's are equal
+						cfi.path.steps.push(cfi.start.steps[i]);
+						// Not a range
+						cfi.range = false;
+					}
+				} else {
+					cfi.path.steps.push(cfi.start.steps[i]);
+				}
 
-      } else {
-        break;
-      }
-    };
+			} else {
+				break;
+			}
+		};
 
-    cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
-    cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
+		cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
+		cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
 
-    // TODO: Add Sanity check to make sure that the end if greater than the start
-  }
+		// TODO: Add Sanity check to make sure that the end if greater than the start
+	}
 
-  return cfi;
+	return cfi;
 }
 
 EpubCFI.prototype.fromNode = function(anchor, base, ignoreClass) {
-  var cfi = {
-      range: false,
-      base: {},
-      path: {},
-      start: null,
-      end: null
-    };
+	var cfi = {
+			range: false,
+			base: {},
+			path: {},
+			start: null,
+			end: null
+		};
 
-  var needsIgnoring = false;
+	var needsIgnoring = false;
 
-  if (ignoreClass) {
-    // Tell pathTo if / what to ignore
-    needsIgnoring = (anchor.ownerDocument.querySelector('.' + ignoreClass) != null);
-  }
+	if (ignoreClass) {
+		// Tell pathTo if / what to ignore
+		needsIgnoring = (anchor.ownerDocument.querySelector('.' + ignoreClass) != null);
+	}
 
-  if (typeof base === 'string') {
-    cfi.base = this.parseComponent(base);
-    cfi.spinePos = cfi.base.steps[1].index;
-  } else if (typeof base === 'object') {
-    cfi.base = base;
-  }
+	if (typeof base === 'string') {
+		cfi.base = this.parseComponent(base);
+		cfi.spinePos = cfi.base.steps[1].index;
+	} else if (typeof base === 'object') {
+		cfi.base = base;
+	}
 
-  cfi.path = this.pathTo(anchor, null, ignoreClass);
+	cfi.path = this.pathTo(anchor, null, ignoreClass);
 
-  return cfi;
+	return cfi;
 };
 
 
 EpubCFI.prototype.filter = function(anchor, ignoreClass) {
-  var needsIgnoring;
-  var sibling; // to join with
-  var parent, prevSibling, nextSibling;
-  var isText = false;
+	var needsIgnoring;
+	var sibling; // to join with
+	var parent, prevSibling, nextSibling;
+	var isText = false;
 
-  if (anchor.nodeType === Node.TEXT_NODE) {
-    isText = true;
-    parent = anchor.parentNode;
-    needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-  } else {
-    isText = false;
-    needsIgnoring = anchor.classList.contains(ignoreClass);
-  }
+	if (anchor.nodeType === Node.TEXT_NODE) {
+		isText = true;
+		parent = anchor.parentNode;
+		needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
+	} else {
+		isText = false;
+		needsIgnoring = anchor.classList.contains(ignoreClass);
+	}
 
-  if (needsIgnoring && isText) {
-    previousSibling = parent.previousSibling;
-    nextSibling = parent.nextSibling;
+	if (needsIgnoring && isText) {
+		previousSibling = parent.previousSibling;
+		nextSibling = parent.nextSibling;
 
-    // If the sibling is a text node, join the nodes
-    if (previousSibling && previousSibling.nodeType === Node.TEXT_NODE) {
-      sibling = previousSibling;
-    } else if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
-      sibling = nextSibling;
-    }
+		// If the sibling is a text node, join the nodes
+		if (previousSibling && previousSibling.nodeType === Node.TEXT_NODE) {
+			sibling = previousSibling;
+		} else if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+			sibling = nextSibling;
+		}
 
-    if (sibling) {
-      return sibling;
-    } else {
-      // Parent will be ignored on next step
-      return anchor;
-    }
+		if (sibling) {
+			return sibling;
+		} else {
+			// Parent will be ignored on next step
+			return anchor;
+		}
 
-  } else if (needsIgnoring && !isText) {
-    // Otherwise just skip the element node
-    return false;
-  } else {
-    // No need to filter
-    return anchor;
-  }
+	} else if (needsIgnoring && !isText) {
+		// Otherwise just skip the element node
+		return false;
+	} else {
+		// No need to filter
+		return anchor;
+	}
 
 };
 
 EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
-  var needsIgnoring;
-  var sibling;
+	var needsIgnoring;
+	var sibling;
 
-  if (anchor.nodeType != Node.TEXT_NODE) {
-    console.error("Anchor must be a text node");
-    return;
-  }
+	if (anchor.nodeType != Node.TEXT_NODE) {
+		console.error("Anchor must be a text node");
+		return;
+	}
 
-  var curr = anchor;
-  var totalOffset = offset;
+	var curr = anchor;
+	var totalOffset = offset;
 
-  // If the parent is a ignored node, get offset from it's start
-  if (anchor.parentNode.classList.contains(ignoreClass)) {
-    curr = anchor.parentNode;
-  }
+	// If the parent is a ignored node, get offset from it's start
+	if (anchor.parentNode.classList.contains(ignoreClass)) {
+		curr = anchor.parentNode;
+	}
 
-  while (curr.previousSibling) {
-    if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
-      // Originally a text node, so join
-      if(curr.previousSibling.classList.contains(ignoreClass)){
-        totalOffset += curr.previousSibling.textContent.length;
-      } else {
-        break; // Normal node, dont join
-      }
-    } else {
-      // If the previous sibling is a text node, join the nodes
-      totalOffset += curr.previousSibling.textContent.length;
-    }
+	while (curr.previousSibling) {
+		if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
+			// Originally a text node, so join
+			if(curr.previousSibling.classList.contains(ignoreClass)){
+				totalOffset += curr.previousSibling.textContent.length;
+			} else {
+				break; // Normal node, dont join
+			}
+		} else {
+			// If the previous sibling is a text node, join the nodes
+			totalOffset += curr.previousSibling.textContent.length;
+		}
 
-    curr = curr.previousSibling;
-  }
+		curr = curr.previousSibling;
+	}
 
-  return totalOffset;
+	return totalOffset;
 
 };
 
 EpubCFI.prototype.normalizedMap = function(children, nodeType, ignoreClass) {
-  var output = {};
-  var prevIndex = -1;
-  var i, len = children.length;
-  var currNodeType;
-  var prevNodeType;
+	var output = {};
+	var prevIndex = -1;
+	var i, len = children.length;
+	var currNodeType;
+	var prevNodeType;
 
-  for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 
-    currNodeType = children[i].nodeType;
+		currNodeType = children[i].nodeType;
 
-    // Check if needs ignoring
-    if (currNodeType === Node.ELEMENT_NODE &&
-        children[i].classList.contains(ignoreClass)) {
-      currNodeType = Node.TEXT_NODE;
-    }
+		// Check if needs ignoring
+		if (currNodeType === Node.ELEMENT_NODE &&
+				children[i].classList.contains(ignoreClass)) {
+			currNodeType = Node.TEXT_NODE;
+		}
 
-    if (i > 0 &&
-        currNodeType === Node.TEXT_NODE &&
-        prevNodeType === Node.TEXT_NODE) {
-      // join text nodes
-      output[i] = prevIndex;
-    } else if (nodeType === currNodeType){
-      prevIndex = prevIndex + 1;
-      output[i] = prevIndex;
-    }
+		if (i > 0 &&
+				currNodeType === Node.TEXT_NODE &&
+				prevNodeType === Node.TEXT_NODE) {
+			// join text nodes
+			output[i] = prevIndex;
+		} else if (nodeType === currNodeType){
+			prevIndex = prevIndex + 1;
+			output[i] = prevIndex;
+		}
 
-    prevNodeType = currNodeType;
+		prevNodeType = currNodeType;
 
-  }
+	}
 
-  return output;
+	return output;
 };
 
 EpubCFI.prototype.position = function(anchor) {
-  var children, index, map;
+	var children, index, map;
 
-  if (anchor.nodeType === Node.ELEMENT_NODE) {
-    children = anchor.parentNode.children;
-    index = Array.prototype.indexOf.call(children, anchor);
-  } else {
-    children = this.textNodes(anchor.parentNode);
-    index = children.indexOf(anchor);
-  }
+	if (anchor.nodeType === Node.ELEMENT_NODE) {
+		children = anchor.parentNode.children;
+		index = Array.prototype.indexOf.call(children, anchor);
+	} else {
+		children = this.textNodes(anchor.parentNode);
+		index = children.indexOf(anchor);
+	}
 
-  return index;
+	return index;
 };
 
 EpubCFI.prototype.filteredPosition = function(anchor, ignoreClass) {
-  var children, index, map;
+	var children, index, map;
 
-  if (anchor.nodeType === Node.ELEMENT_NODE) {
-    children = anchor.parentNode.children;
-    map = this.normalizedMap(children, Node.ELEMENT_NODE, ignoreClass);
-  } else {
-    children = anchor.parentNode.childNodes;
-    // Inside an ignored node
-    if(anchor.parentNode.classList.contains(ignoreClass)) {
-      anchor = anchor.parentNode;
-      children = anchor.parentNode.childNodes;
-    }
-    map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
-  }
+	if (anchor.nodeType === Node.ELEMENT_NODE) {
+		children = anchor.parentNode.children;
+		map = this.normalizedMap(children, Node.ELEMENT_NODE, ignoreClass);
+	} else {
+		children = anchor.parentNode.childNodes;
+		// Inside an ignored node
+		if(anchor.parentNode.classList.contains(ignoreClass)) {
+			anchor = anchor.parentNode;
+			children = anchor.parentNode.childNodes;
+		}
+		map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+	}
 
 
-  index = Array.prototype.indexOf.call(children, anchor);
+	index = Array.prototype.indexOf.call(children, anchor);
 
-  return map[index];
+	return map[index];
 };
 
 EpubCFI.prototype.stepsToXpath = function(steps) {
-  var xpath = [".", "*"];
+	var xpath = [".", "*"];
 
-  steps.forEach(function(step){
-    var position = step.index + 1;
+	steps.forEach(function(step){
+		var position = step.index + 1;
 
-    if(step.id){
-      xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
-    } else if(step.type === "text") {
-      xpath.push("text()[" + position + "]");
-    } else {
-      xpath.push("*[" + position + "]");
-    }
-  });
+		if(step.id){
+			xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
+		} else if(step.type === "text") {
+			xpath.push("text()[" + position + "]");
+		} else {
+			xpath.push("*[" + position + "]");
+		}
+	});
 
-  return xpath.join("/");
+	return xpath.join("/");
 };
 
 
@@ -7726,198 +7727,198 @@ query = this.stepsToQuery(steps);
 startContainerParent = doc.querySelector(query);
 // Find the text node within that element
 if(startContainerParent && lastStep.type == "text") {
-  container = startContainerParent.childNodes[lastStep.index];
+	container = startContainerParent.childNodes[lastStep.index];
 }
 */
 EpubCFI.prototype.stepsToQuerySelector = function(steps) {
-  var query = ["html"];
+	var query = ["html"];
 
-  steps.forEach(function(step){
-    var position = step.index + 1;
+	steps.forEach(function(step){
+		var position = step.index + 1;
 
-    if(step.id){
-      query.push("#" + step.id);
-    } else if(step.type === "text") {
-      // unsupported in querySelector
-      // query.push("text()[" + position + "]");
-    } else {
-      query.push("*:nth-child(" + position + ")");
-    }
-  });
+		if(step.id){
+			query.push("#" + step.id);
+		} else if(step.type === "text") {
+			// unsupported in querySelector
+			// query.push("text()[" + position + "]");
+		} else {
+			query.push("*:nth-child(" + position + ")");
+		}
+	});
 
-  return query.join(">");
+	return query.join(">");
 
 };
 
 EpubCFI.prototype.textNodes = function(container, ignoreClass) {
-  return Array.prototype.slice.call(container.childNodes).
-    filter(function (node) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        return true;
-      } else if (ignoreClass && node.classList.contains(ignoreClass)) {
-        return true;
-      }
-      return false;
-    });
+	return Array.prototype.slice.call(container.childNodes).
+		filter(function (node) {
+			if (node.nodeType === Node.TEXT_NODE) {
+				return true;
+			} else if (ignoreClass && node.classList.contains(ignoreClass)) {
+				return true;
+			}
+			return false;
+		});
 };
 
 EpubCFI.prototype.walkToNode = function(steps, _doc, ignoreClass) {
-  var doc = _doc || document;
-  var container = doc.documentElement;
-  var step;
-  var len = steps.length;
-  var i;
+	var doc = _doc || document;
+	var container = doc.documentElement;
+	var step;
+	var len = steps.length;
+	var i;
 
-  for (i = 0; i < len; i++) {
-    step = steps[i];
+	for (i = 0; i < len; i++) {
+		step = steps[i];
 
-    if(step.type === "element") {
-      container = container.children[step.index];
-    } else if(step.type === "text"){
-      container = this.textNodes(container, ignoreClass)[step.index];
-    }
+		if(step.type === "element") {
+			container = container.children[step.index];
+		} else if(step.type === "text"){
+			container = this.textNodes(container, ignoreClass)[step.index];
+		}
 
-  };
+	};
 
-  return container;
+	return container;
 };
 
 EpubCFI.prototype.findNode = function(steps, _doc, ignoreClass) {
-  var doc = _doc || document;
-  var container;
-  var xpath;
+	var doc = _doc || document;
+	var container;
+	var xpath;
 
-  if(!ignoreClass && typeof doc.evaluate != 'undefined') {
-    xpath = this.stepsToXpath(steps);
-    container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  } else if(ignoreClass) {
-    container = this.walkToNode(steps, doc, ignoreClass);
-  } else {
-    container = this.walkToNode(steps, doc);
-  }
+	if(!ignoreClass && typeof doc.evaluate != 'undefined') {
+		xpath = this.stepsToXpath(steps);
+		container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	} else if(ignoreClass) {
+		container = this.walkToNode(steps, doc, ignoreClass);
+	} else {
+		container = this.walkToNode(steps, doc);
+	}
 
-  return container;
+	return container;
 };
 
 EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
-  var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
-  var children = container.childNodes;
-  var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
-  var i;
-  var child;
-  var len;
-  var childIndex;
-  var lastStepIndex = steps[steps.length-1].index;
+	var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
+	var children = container.childNodes;
+	var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+	var i;
+	var child;
+	var len;
+	var childIndex;
+	var lastStepIndex = steps[steps.length-1].index;
 
-  for (var childIndex in map) {
-    if (!map.hasOwnProperty(childIndex)) return;
+	for (var childIndex in map) {
+		if (!map.hasOwnProperty(childIndex)) return;
 
-    if(map[childIndex] === lastStepIndex) {
-      child = children[childIndex];
-      len = child.textContent.length;
-      if(offset > len) {
-        offset = offset - len;
-      } else {
-        if (child.nodeType === Node.ELEMENT_NODE) {
-          container = child.childNodes[0];
-        } else {
-          container = child;
-        }
-        break;
-      }
-    }
-  }
+		if(map[childIndex] === lastStepIndex) {
+			child = children[childIndex];
+			len = child.textContent.length;
+			if(offset > len) {
+				offset = offset - len;
+			} else {
+				if (child.nodeType === Node.ELEMENT_NODE) {
+					container = child.childNodes[0];
+				} else {
+					container = child;
+				}
+				break;
+			}
+		}
+	}
 
-  return {
-    container: container,
-    offset: offset
-  };
+	return {
+		container: container,
+		offset: offset
+	};
 
 };
 
 EpubCFI.prototype.toRange = function(_doc, ignoreClass) {
-  var doc = _doc || document;
-  var range = doc.createRange();
-  var start, end, startContainer, endContainer;
-  var cfi = this;
-  var startSteps, endSteps;
-  var needsIgnoring = ignoreClass ? (doc.querySelector('.' + ignoreClass) != null) : false;
-  var missed;
+	var doc = _doc || document;
+	var range = doc.createRange();
+	var start, end, startContainer, endContainer;
+	var cfi = this;
+	var startSteps, endSteps;
+	var needsIgnoring = ignoreClass ? (doc.querySelector('.' + ignoreClass) != null) : false;
+	var missed;
 
-  if (cfi.range) {
-    start = cfi.start;
-    startSteps = cfi.path.steps.concat(start.steps);
-    startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
-    end = cfi.end;
-    endSteps = cfi.path.steps.concat(end.steps);
-    endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
-  } else {
-    start = cfi.path;
-    startSteps = cfi.path.steps;
-    startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
-  }
+	if (cfi.range) {
+		start = cfi.start;
+		startSteps = cfi.path.steps.concat(start.steps);
+		startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
+		end = cfi.end;
+		endSteps = cfi.path.steps.concat(end.steps);
+		endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
+	} else {
+		start = cfi.path;
+		startSteps = cfi.path.steps;
+		startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
+	}
 
-  if(startContainer) {
-    try {
+	if(startContainer) {
+		try {
 
-      if(start.terminal.offset != null) {
-        range.setStart(startContainer, start.terminal.offset);
-      } else {
-        range.setStart(startContainer, 0);
-      }
+			if(start.terminal.offset != null) {
+				range.setStart(startContainer, start.terminal.offset);
+			} else {
+				range.setStart(startContainer, 0);
+			}
 
-    } catch (e) {
-      missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-      range.setStart(missed.container, missed.offset);
-    }
-  } else {
-    // No start found
-    return null;
-  }
+		} catch (e) {
+			missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+			range.setStart(missed.container, missed.offset);
+		}
+	} else {
+		// No start found
+		return null;
+	}
 
-  if (endContainer) {
-    try {
+	if (endContainer) {
+		try {
 
-      if(end.terminal.offset != null) {
-        range.setEnd(endContainer, end.terminal.offset);
-      } else {
-        range.setEnd(endContainer, 0);
-      }
+			if(end.terminal.offset != null) {
+				range.setEnd(endContainer, end.terminal.offset);
+			} else {
+				range.setEnd(endContainer, 0);
+			}
 
-    } catch (e) {
-      missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-      range.setEnd(missed.container, missed.offset);
-    }
-  }
+		} catch (e) {
+			missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
+			range.setEnd(missed.container, missed.offset);
+		}
+	}
 
 
-  // doc.defaultView.getSelection().addRange(range);
-  return range;
+	// doc.defaultView.getSelection().addRange(range);
+	return range;
 };
 
 // is a cfi string, should be wrapped with "epubcfi()"
 EpubCFI.prototype.isCfiString = function(str) {
-  if(typeof str === 'string' &&
-      str.indexOf("epubcfi(") === 0 &&
-      str[str.length-1] === ")") {
-    return true;
-  }
+	if(typeof str === 'string' &&
+			str.indexOf("epubcfi(") === 0 &&
+			str[str.length-1] === ")") {
+		return true;
+	}
 
-  return false;
+	return false;
 };
 
 EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id) {
-  var pos = parseInt(_pos),
-    spineNodeIndex = _spineNodeIndex + 1,
-    cfi = '/'+spineNodeIndex+'/';
+	var pos = parseInt(_pos),
+		spineNodeIndex = _spineNodeIndex + 1,
+		cfi = '/'+spineNodeIndex+'/';
 
-  cfi += (pos + 1) * 2;
+	cfi += (pos + 1) * 2;
 
-  if(id) {
-    cfi += "[" + id + "]";
-  }
+	if(id) {
+		cfi += "[" + id + "]";
+	}
 
-  return cfi;
+	return cfi;
 };
 
 module.exports = EpubCFI;
@@ -7934,51 +7935,51 @@ var RSVP = require('rsvp');
 // this.content.trigger(args).then(function(){});
 
 function Hook(context){
-  this.context = context || this;
-  this.hooks = [];
+	this.context = context || this;
+	this.hooks = [];
 };
 
 // Adds a function to be run before a hook completes
 Hook.prototype.register = function(){
-  for(var i = 0; i < arguments.length; ++i) {
-    if (typeof arguments[i]  === "function") {
-      this.hooks.push(arguments[i]);
-    } else {
-      // unpack array
-      for(var j = 0; j < arguments[i].length; ++j) {
-        this.hooks.push(arguments[i][j]);
-      }
-    }
-  }
+	for(var i = 0; i < arguments.length; ++i) {
+		if (typeof arguments[i]  === "function") {
+			this.hooks.push(arguments[i]);
+		} else {
+			// unpack array
+			for(var j = 0; j < arguments[i].length; ++j) {
+				this.hooks.push(arguments[i][j]);
+			}
+		}
+	}
 };
 
 // Triggers a hook to run all functions
 Hook.prototype.trigger = function(){
-  var args = arguments;
-  var context = this.context;
-  var promises = [];
+	var args = arguments;
+	var context = this.context;
+	var promises = [];
 
-  this.hooks.forEach(function(task, i) {
-    var executing = task.apply(context, args);
+	this.hooks.forEach(function(task, i) {
+		var executing = task.apply(context, args);
 
-    if(executing && typeof executing["then"] === "function") {
-      // Task is a function that returns a promise
-      promises.push(executing);
-    }
-    // Otherwise Task resolves immediately, continue
-  });
+		if(executing && typeof executing["then"] === "function") {
+			// Task is a function that returns a promise
+			promises.push(executing);
+		}
+		// Otherwise Task resolves immediately, continue
+	});
 
 
-  return RSVP.all(promises);
+	return RSVP.all(promises);
 };
 
 // Adds a function to be run before a hook completes
 Hook.prototype.list = function(){
-  return this.hooks;
+	return this.hooks;
 };
 
 Hook.prototype.clear = function(){
-  return this.hooks = [];
+	return this.hooks = [];
 };
 
 module.exports = Hook;
@@ -7988,120 +7989,120 @@ var core = require('./core');
 var RSVP = require('rsvp');
 
 function Layout(settings){
-  this.name = settings.layout || "reflowable";
-  this._spread = (settings.spread === "none") ? false : true;
-  this._minSpreadWidth = settings.spread || 800;
-  this._evenSpreads = settings.evenSpreads || false;
+	this.name = settings.layout || "reflowable";
+	this._spread = (settings.spread === "none") ? false : true;
+	this._minSpreadWidth = settings.spread || 800;
+	this._evenSpreads = settings.evenSpreads || false;
 
-  if (settings.flow === "scrolled-continuous" ||
-      settings.flow === "scrolled-doc") {
-    this._flow = "scrolled";
-  } else {
-    this._flow = "paginated";
-  }
+	if (settings.flow === "scrolled-continuous" ||
+			settings.flow === "scrolled-doc") {
+		this._flow = "scrolled";
+	} else {
+		this._flow = "paginated";
+	}
 
 
-  this.width = 0;
-  this.height = 0;
-  this.spreadWidth = 0;
-  this.delta = 0;
+	this.width = 0;
+	this.height = 0;
+	this.spreadWidth = 0;
+	this.delta = 0;
 
-  this.columnWidth = 0;
-  this.gap = 0;
-  this.divisor = 1;
+	this.columnWidth = 0;
+	this.gap = 0;
+	this.divisor = 1;
 };
 
 // paginated | scrolled
 Layout.prototype.flow = function(flow) {
-  this._flow = (flow === "paginated") ? "paginated" : "scrolled";
+	this._flow = (flow === "paginated") ? "paginated" : "scrolled";
 }
 
 // true | false
 Layout.prototype.spread = function(spread, min) {
 
-  this._spread = (spread === "none") ? false : true;
+	this._spread = (spread === "none") ? false : true;
 
-  if (min >= 0) {
-    this._minSpreadWidth = min;
-  }
+	if (min >= 0) {
+		this._minSpreadWidth = min;
+	}
 }
 
 Layout.prototype.calculate = function(_width, _height, _gap){
 
-  var divisor = 1;
-  var gap = _gap || 0;
+	var divisor = 1;
+	var gap = _gap || 0;
 
-  //-- Check the width and create even width columns
-  var fullWidth = Math.floor(_width);
-  var width = _width;
+	//-- Check the width and create even width columns
+	var fullWidth = Math.floor(_width);
+	var width = _width;
 
-  var section = Math.floor(width / 8);
+	var section = Math.floor(width / 8);
 
-  var colWidth;
-  var spreadWidth;
-  var delta;
+	var colWidth;
+	var spreadWidth;
+	var delta;
 
-  if (this._spread && width >= this._minSpreadWidth) {
-    divisor = 2;
-  } else {
-    divisor = 1;
-  }
+	if (this._spread && width >= this._minSpreadWidth) {
+		divisor = 2;
+	} else {
+		divisor = 1;
+	}
 
-  if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
-    gap = ((section % 2 === 0) ? section : section - 1);
-  }
+	if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
+		gap = ((section % 2 === 0) ? section : section - 1);
+	}
 
-  if (this.name === "pre-paginated" ) {
-    gap = 0;
-  }
+	if (this.name === "pre-paginated" ) {
+		gap = 0;
+	}
 
-  //-- Double Page
-  if(divisor > 1) {
-    colWidth = Math.floor((width - gap) / divisor);
-  } else {
-    colWidth = width;
-  }
+	//-- Double Page
+	if(divisor > 1) {
+		colWidth = Math.floor((width - gap) / divisor);
+	} else {
+		colWidth = width;
+	}
 
-  if (this.name === "pre-paginated" && divisor > 1) {
-    width = colWidth;
-  }
+	if (this.name === "pre-paginated" && divisor > 1) {
+		width = colWidth;
+	}
 
-  spreadWidth = colWidth * divisor;
+	spreadWidth = colWidth * divisor;
 
-  delta = (colWidth + gap) * divisor;
+	delta = (colWidth + gap) * divisor;
 
-  this.width = width;
-  this.height = _height;
-  this.spreadWidth = spreadWidth;
-  this.delta = delta;
+	this.width = width;
+	this.height = _height;
+	this.spreadWidth = spreadWidth;
+	this.delta = delta;
 
-  this.columnWidth = colWidth;
-  this.gap = gap;
-  this.divisor = divisor;
+	this.columnWidth = colWidth;
+	this.gap = gap;
+	this.divisor = divisor;
 };
 
 Layout.prototype.format = function(contents){
-  var formating;
+	var formating;
 
-  if (this.name === "pre-paginated") {
-    formating = contents.fit(this.columnWidth, this.height);
-  } else if (this._flow === "paginated") {
-    formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
-  } else { // scrolled
-    formating = contents.size(this.width, null);
-  }
+	if (this.name === "pre-paginated") {
+		formating = contents.fit(this.columnWidth, this.height);
+	} else if (this._flow === "paginated") {
+		formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
+	} else { // scrolled
+		formating = contents.size(this.width, null);
+	}
 
-  return formating; // might be a promise in some View Managers
+	return formating; // might be a promise in some View Managers
 };
 
 Layout.prototype.count = function(totalWidth) {
-  // var totalWidth = contents.scrollWidth();
-  var spreads = Math.ceil( totalWidth / this.spreadWidth);
+	// var totalWidth = contents.scrollWidth();
+	var spreads = Math.ceil( totalWidth / this.spreadWidth);
 
-  return {
-    spreads : spreads,
-    pages : spreads * this.divisor
-  };
+	return {
+		spreads : spreads,
+		pages : spreads * this.divisor
+	};
 };
 
 module.exports = Layout;
@@ -8113,114 +8114,114 @@ var EpubCFI = require('./epubcfi');
 var RSVP = require('rsvp');
 
 function Locations(spine, request) {
-  this.spine = spine;
-  this.request = request;
+	this.spine = spine;
+	this.request = request;
 
-  this.q = new Queue(this);
-  this.epubcfi = new EpubCFI();
+	this.q = new Queue(this);
+	this.epubcfi = new EpubCFI();
 
-  this._locations = [];
-  this.total = 0;
+	this._locations = [];
+	this.total = 0;
 
-  this.break = 150;
+	this.break = 150;
 
-  this._current = 0;
+	this._current = 0;
 
 };
 
 // Load all of sections in the book
 Locations.prototype.generate = function(chars) {
 
-  if (chars) {
-    this.break = chars;
-  }
+	if (chars) {
+		this.break = chars;
+	}
 
-  this.q.pause();
+	this.q.pause();
 
-  this.spine.each(function(section) {
+	this.spine.each(function(section) {
 
-    this.q.enqueue(this.process, section);
+		this.q.enqueue(this.process, section);
 
-  }.bind(this));
+	}.bind(this));
 
-  return this.q.run().then(function() {
-    this.total = this._locations.length-1;
+	return this.q.run().then(function() {
+		this.total = this._locations.length-1;
 
-    if (this._currentCfi) {
-      this.currentLocation = this._currentCfi;
-    }
+		if (this._currentCfi) {
+			this.currentLocation = this._currentCfi;
+		}
 
-    return this._locations;
-    // console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
-  }.bind(this));
+		return this._locations;
+		// console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
+	}.bind(this));
 
 };
 
 Locations.prototype.process = function(section) {
 
-  return section.load(this.request)
-    .then(function(contents) {
+	return section.load(this.request)
+		.then(function(contents) {
 
-      var range;
-      var doc = contents.ownerDocument;
-      var counter = 0;
+			var range;
+			var doc = contents.ownerDocument;
+			var counter = 0;
 
-      this.sprint(contents, function(node) {
-        var len = node.length;
-        var dist;
-        var pos = 0;
+			this.sprint(contents, function(node) {
+				var len = node.length;
+				var dist;
+				var pos = 0;
 
-        // Start range
-        if (counter == 0) {
-          range = doc.createRange();
-          range.setStart(node, 0);
-        }
+				// Start range
+				if (counter == 0) {
+					range = doc.createRange();
+					range.setStart(node, 0);
+				}
 
-        dist = this.break - counter;
+				dist = this.break - counter;
 
-        // Node is smaller than a break
-        if(dist > len){
-          counter += len;
-          pos = len;
-        }
+				// Node is smaller than a break
+				if(dist > len){
+					counter += len;
+					pos = len;
+				}
 
-        while (pos < len) {
-          counter = this.break;
-          pos += this.break;
+				while (pos < len) {
+					counter = this.break;
+					pos += this.break;
 
-          // Gone over
-          if(pos >= len){
-            // Continue counter for next node
-            counter = len - (pos - this.break);
+					// Gone over
+					if(pos >= len){
+						// Continue counter for next node
+						counter = len - (pos - this.break);
 
-          // At End
-          } else {
-            // End the previous range
-            range.setEnd(node, pos);
-            cfi = section.cfiFromRange(range);
-            this._locations.push(cfi);
-            counter = 0;
+					// At End
+					} else {
+						// End the previous range
+						range.setEnd(node, pos);
+						cfi = section.cfiFromRange(range);
+						this._locations.push(cfi);
+						counter = 0;
 
-            // Start new range
-            pos += 1;
-            range = doc.createRange();
-            range.setStart(node, pos);
-          }
-        }
+						// Start new range
+						pos += 1;
+						range = doc.createRange();
+						range.setStart(node, pos);
+					}
+				}
 
 
 
-      }.bind(this));
+			}.bind(this));
 
-      // Close remaining
-      if (range) {
-        range.setEnd(prev, prev.length);
-        cfi = section.cfiFromRange(range);
-        this._locations.push(cfi)
-        counter = 0;
-      }
+			// Close remaining
+			if (range) {
+				range.setEnd(prev, prev.length);
+				cfi = section.cfiFromRange(range);
+				this._locations.push(cfi)
+				counter = 0;
+			}
 
-    }.bind(this));
+		}.bind(this));
 
 };
 
@@ -8234,26 +8235,26 @@ Locations.prototype.sprint = function(root, func) {
 };
 
 Locations.prototype.locationFromCfi = function(cfi){
-  // Check if the location has not been set yet
+	// Check if the location has not been set yet
 	if(this._locations.length === 0) {
 		return -1;
 	}
 
-  return core.locationOf(cfi, this._locations, this.epubcfi.compare);
+	return core.locationOf(cfi, this._locations, this.epubcfi.compare);
 };
 
 Locations.prototype.precentageFromCfi = function(cfi) {
-  // Find closest cfi
-  var loc = this.locationFromCfi(cfi);
-  // Get percentage in total
-  return this.precentageFromLocation(loc);
+	// Find closest cfi
+	var loc = this.locationFromCfi(cfi);
+	// Get percentage in total
+	return this.precentageFromLocation(loc);
 };
 
 Locations.prototype.percentageFromLocation = function(loc) {
-  if (!loc || !this.total) {
-    return 0;
-  }
-  return (loc / this.total);
+	if (!loc || !this.total) {
+		return 0;
+	}
+	return (loc / this.total);
 };
 
 Locations.prototype.cfiFromLocation = function(loc){
@@ -8271,7 +8272,7 @@ Locations.prototype.cfiFromLocation = function(loc){
 };
 
 Locations.prototype.cfiFromPercentage = function(value){
-  var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
+	var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
 	var loc = Math.ceil(this.total * percentage);
 
 	return this.cfiFromLocation(loc);
@@ -8279,8 +8280,8 @@ Locations.prototype.cfiFromPercentage = function(value){
 
 Locations.prototype.load = function(locations){
 	this._locations = JSON.parse(locations);
-  this.total = this._locations.length-1;
-  return this._locations;
+	this.total = this._locations.length-1;
+	return this._locations;
 };
 
 Locations.prototype.save = function(json){
@@ -8292,39 +8293,39 @@ Locations.prototype.getCurrent = function(json){
 };
 
 Locations.prototype.setCurrent = function(curr){
-  var loc;
+	var loc;
 
-  if(typeof curr == "string"){
-    this._currentCfi = curr;
-  } else if (typeof curr == "number") {
-    this._current = curr;
-  } else {
-    return;
-  }
-
-  if(this._locations.length === 0) {
-    return;
+	if(typeof curr == "string"){
+		this._currentCfi = curr;
+	} else if (typeof curr == "number") {
+		this._current = curr;
+	} else {
+		return;
 	}
 
-  if(typeof curr == "string"){
-    loc = this.locationFromCfi(curr);
-    this._current = loc;
-  } else {
-    loc = curr;
-  }
+	if(this._locations.length === 0) {
+		return;
+	}
 
-  this.trigger("changed", {
-    percentage: this.precentageFromLocation(loc)
-  });
+	if(typeof curr == "string"){
+		loc = this.locationFromCfi(curr);
+		this._current = loc;
+	} else {
+		loc = curr;
+	}
+
+	this.trigger("changed", {
+		percentage: this.precentageFromLocation(loc)
+	});
 };
 
 Object.defineProperty(Locations.prototype, 'currentLocation', {
-  get: function () {
-    return this._current;
-  },
-  set: function (curr) {
-    this.setCurrent(curr);
-  }
+	get: function () {
+		return this._current;
+	},
+	set: function (curr) {
+		this.setCurrent(curr);
+	}
 });
 
 RSVP.EventTarget.mixin(Locations.prototype);
@@ -8355,9 +8356,9 @@ function ContinuousViewManager(options) {
 	core.extend(this.settings, options.settings || {});
 
 	// Gap can be 0, byt defaults doesn't handle that
-  if (options.settings.gap != "undefined" && options.settings.gap === 0) {
-    this.settings.gap = options.settings.gap;
-  }
+	if (options.settings.gap != "undefined" && options.settings.gap === 0) {
+		this.settings.gap = options.settings.gap;
+	}
 
 	// this.viewSettings.axis = this.settings.axis;
 	this.viewSettings = {
@@ -8377,7 +8378,7 @@ ContinuousViewManager.prototype = Object.create(SingleViewManager.prototype);
 ContinuousViewManager.prototype.constructor = ContinuousViewManager;
 
 ContinuousViewManager.prototype.display = function(section, target){
-  return SingleViewManager.prototype.display.call(this, section, target)
+	return SingleViewManager.prototype.display.call(this, section, target)
 		.then(function () {
 			return this.fill();
 		}.bind(this));
@@ -8398,8 +8399,8 @@ ContinuousViewManager.prototype.fill = function(_full){
 }
 
 ContinuousViewManager.prototype.moveTo = function(offset){
-  // var bounds = this.stage.bounds();
-  // var dist = Math.floor(offset.top / bounds.height) * bounds.height;
+	// var bounds = this.stage.bounds();
+	// var dist = Math.floor(offset.top / bounds.height) * bounds.height;
 	var distX = 0,
 			distY = 0;
 
@@ -8414,10 +8415,10 @@ ContinuousViewManager.prototype.moveTo = function(offset){
 		offsetX = distX+this.settings.offset;
 	}
 
-  return this.check(offsetX, offsetY)
+	return this.check(offsetX, offsetY)
 		.then(function(){
-	    this.scrollBy(distX, distY);
-	  }.bind(this));
+			this.scrollBy(distX, distY);
+		}.bind(this));
 };
 
 /*
@@ -8447,7 +8448,7 @@ ContinuousViewManager.prototype.afterDisplayed = function(currView){
 ContinuousViewManager.prototype.resize = function(width, height){
 
 	// Clear the queue
-  this.q.clear();
+	this.q.clear();
 
 	this._stageSize = this.stage.size(width, height);
 	this._bounds = this.bounds();
@@ -8461,27 +8462,27 @@ ContinuousViewManager.prototype.resize = function(width, height){
 		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
-  this.updateLayout();
+	this.updateLayout();
 
-  // if(this.location) {
-  //   this.rendition.display(this.location.start);
-  // }
+	// if(this.location) {
+	//   this.rendition.display(this.location.start);
+	// }
 
-  this.trigger("resized", {
-    width: this.stage.width,
-    height: this.stage.height
-  });
+	this.trigger("resized", {
+		width: this.stage.width,
+		height: this.stage.height
+	});
 
 };
 
 ContinuousViewManager.prototype.onResized = function(e) {
 
-  // this.views.clear();
+	// this.views.clear();
 
-  clearTimeout(this.resizeTimeout);
-  this.resizeTimeout = setTimeout(function(){
-    this.resize();
-  }.bind(this), 150);
+	clearTimeout(this.resizeTimeout);
+	this.resizeTimeout = setTimeout(function(){
+		this.resize();
+	}.bind(this), 150);
 };
 
 ContinuousViewManager.prototype.afterResized = function(view){
@@ -8554,34 +8555,34 @@ ContinuousViewManager.prototype.update = function(_offset){
 	var promises = [];
 
 	for (var i = 0; i < viewsLength; i++) {
-    view = views[i];
+		view = views[i];
 
-    isVisible = this.isVisible(view, offset, offset, container);
+		isVisible = this.isVisible(view, offset, offset, container);
 
-    if(isVisible === true) {
+		if(isVisible === true) {
 			if (!view.displayed) {
 				promises.push(view.display(this.request).then(function (view) {
 					view.show();
 				}));
 			}
-      visible.push(view);
-    } else {
+			visible.push(view);
+		} else {
 			this.q.enqueue(view.destroy.bind(view));
 
 			clearTimeout(this.trimTimeout);
 			this.trimTimeout = setTimeout(function(){
 				this.q.enqueue(this.trim.bind(this));
 			}.bind(this), 250);
-    }
+		}
 
-  }
+	}
 
 	if(promises.length){
-    return RSVP.all(promises);
-  } else {
-    updating.resolve();
-    return updating.promise;
-  }
+		return RSVP.all(promises);
+	} else {
+		updating.resolve();
+		return updating.promise;
+	}
 
 };
 
@@ -8610,61 +8611,61 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 
 	if (offset + visibleLength + delta >= contentLength) {
 		last = this.views.last();
-    next = last && last.section.next();
-    if(next) {
-      newViews.push(this.append(next));
-    }
-  }
+		next = last && last.section.next();
+		if(next) {
+			newViews.push(this.append(next));
+		}
+	}
 
-  if (offset - delta < 0 ) {
+	if (offset - delta < 0 ) {
 		first = this.views.first();
-    prev = first && first.section.prev();
-    if(prev) {
-      newViews.push(this.prepend(prev));
-    }
-  }
+		prev = first && first.section.prev();
+		if(prev) {
+			newViews.push(this.prepend(prev));
+		}
+	}
 
-  if(newViews.length){
-    // RSVP.all(promises)
-      // .then(function() {
-        // Check to see if anything new is on screen after rendering
-        return this.q.enqueue(function(){
+	if(newViews.length){
+		// RSVP.all(promises)
+			// .then(function() {
+				// Check to see if anything new is on screen after rendering
+				return this.q.enqueue(function(){
 					return this.update(delta);
 				}.bind(this));
 
 
-      // }.bind(this));
+			// }.bind(this));
 
-  } else {
-    checking.resolve(false);
+	} else {
+		checking.resolve(false);
 		return checking.promise;
-  }
+	}
 
 
 };
 
 ContinuousViewManager.prototype.trim = function(){
-  var task = new RSVP.defer();
-  var displayed = this.views.displayed();
-  var first = displayed[0];
-  var last = displayed[displayed.length-1];
-  var firstIndex = this.views.indexOf(first);
-  var lastIndex = this.views.indexOf(last);
-  var above = this.views.slice(0, firstIndex);
-  var below = this.views.slice(lastIndex+1);
+	var task = new RSVP.defer();
+	var displayed = this.views.displayed();
+	var first = displayed[0];
+	var last = displayed[displayed.length-1];
+	var firstIndex = this.views.indexOf(first);
+	var lastIndex = this.views.indexOf(last);
+	var above = this.views.slice(0, firstIndex);
+	var below = this.views.slice(lastIndex+1);
 
-  // Erase all but last above
-  for (var i = 0; i < above.length-1; i++) {
-    this.erase(above[i], above);
-  }
+	// Erase all but last above
+	for (var i = 0; i < above.length-1; i++) {
+		this.erase(above[i], above);
+	}
 
-  // Erase all except first below
-  for (var j = 1; j < below.length; j++) {
-    this.erase(below[j]);
-  }
+	// Erase all except first below
+	for (var j = 1; j < below.length; j++) {
+		this.erase(below[j]);
+	}
 
-  task.resolve();
-  return task.promise;
+	task.resolve();
+	return task.promise;
 };
 
 ContinuousViewManager.prototype.erase = function(view, above){ //Trim
@@ -8673,12 +8674,12 @@ ContinuousViewManager.prototype.erase = function(view, above){ //Trim
 	var prevLeft;
 
 	if(this.settings.height) {
-  	prevTop = this.container.scrollTop;
+		prevTop = this.container.scrollTop;
 		prevLeft = this.container.scrollLeft;
-  } else {
-  	prevTop = window.scrollY;
+	} else {
+		prevTop = window.scrollY;
 		prevLeft = window.scrollX;
-  }
+	}
 
 	var bounds = view.bounds();
 
@@ -8707,60 +8708,60 @@ ContinuousViewManager.prototype.addEventListeners = function(stage){
 };
 
 ContinuousViewManager.prototype.addScrollListeners = function() {
-  var scroller;
+	var scroller;
 
-  this.tick = core.requestAnimationFrame;
+	this.tick = core.requestAnimationFrame;
 
-  if(this.settings.height) {
-  	this.prevScrollTop = this.container.scrollTop;
-  	this.prevScrollLeft = this.container.scrollLeft;
-  } else {
-  	this.prevScrollTop = window.scrollY;
+	if(this.settings.height) {
+		this.prevScrollTop = this.container.scrollTop;
+		this.prevScrollLeft = this.container.scrollLeft;
+	} else {
+		this.prevScrollTop = window.scrollY;
 		this.prevScrollLeft = window.scrollX;
-  }
+	}
 
-  this.scrollDeltaVert = 0;
-  this.scrollDeltaHorz = 0;
+	this.scrollDeltaVert = 0;
+	this.scrollDeltaHorz = 0;
 
-  if(this.settings.height) {
-  	scroller = this.container;
+	if(this.settings.height) {
+		scroller = this.container;
 		this.scrollTop = this.container.scrollTop;
 		this.scrollLeft = this.container.scrollLeft;
-  } else {
-  	scroller = window;
+	} else {
+		scroller = window;
 		this.scrollTop = window.scrollY;
 		this.scrollLeft = window.scrollX;
-  }
+	}
 
-  scroller.addEventListener("scroll", this.onScroll.bind(this));
+	scroller.addEventListener("scroll", this.onScroll.bind(this));
 
-  // this.tick.call(window, this.onScroll.bind(this));
+	// this.tick.call(window, this.onScroll.bind(this));
 
-  this.scrolled = false;
+	this.scrolled = false;
 
 };
 
 ContinuousViewManager.prototype.onScroll = function(){
 
-  // if(!this.ignore) {
+	// if(!this.ignore) {
 
-    if(this.settings.height) {
-	  	scrollTop = this.container.scrollTop;
-	  	scrollLeft = this.container.scrollLeft;
-	  } else {
-	  	scrollTop = window.scrollY;
+		if(this.settings.height) {
+			scrollTop = this.container.scrollTop;
+			scrollLeft = this.container.scrollLeft;
+		} else {
+			scrollTop = window.scrollY;
 			scrollLeft = window.scrollX;
-	  }
+		}
 
 		this.scrollTop = scrollTop;
 		this.scrollLeft = scrollLeft;
 
-    if(!this.ignore) {
+		if(!this.ignore) {
 
-	    if((this.scrollDeltaVert === 0 &&
-	    	 this.scrollDeltaHorz === 0) ||
-	    	 this.scrollDeltaVert > this.settings.offsetDelta ||
-	    	 this.scrollDeltaHorz > this.settings.offsetDelta) {
+			if((this.scrollDeltaVert === 0 &&
+				 this.scrollDeltaHorz === 0) ||
+				 this.scrollDeltaVert > this.settings.offsetDelta ||
+				 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
 				this.q.enqueue(function() {
 					this.check();
@@ -8768,44 +8769,44 @@ ContinuousViewManager.prototype.onScroll = function(){
 				// this.check();
 
 				this.scrollDeltaVert = 0;
-	    	this.scrollDeltaHorz = 0;
+				this.scrollDeltaHorz = 0;
 
 				this.trigger("scroll", {
-		      top: scrollTop,
-		      left: scrollLeft
-		    });
+					top: scrollTop,
+					left: scrollLeft
+				});
 
 				clearTimeout(this.afterScrolled);
 				this.afterScrolled = setTimeout(function () {
 					this.trigger("scrolled", {
-			      top: this.scrollTop,
-			      left: this.scrollLeft
-			    });
+						top: this.scrollTop,
+						left: this.scrollLeft
+					});
 				}.bind(this));
 
 			}
 
 		} else {
-	    this.ignore = false;
+			this.ignore = false;
 		}
 
-    this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
-    this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
+		this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
+		this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
 
 		this.prevScrollTop = scrollTop;
 		this.prevScrollLeft = scrollLeft;
 
-  	clearTimeout(this.scrollTimeout);
+		clearTimeout(this.scrollTimeout);
 		this.scrollTimeout = setTimeout(function(){
 			this.scrollDeltaVert = 0;
-	    this.scrollDeltaHorz = 0;
+			this.scrollDeltaHorz = 0;
 		}.bind(this), 150);
 
 
-    this.scrolled = false;
-  // }
+		this.scrolled = false;
+	// }
 
-  // this.tick.call(window, this.onScroll.bind(this));
+	// this.tick.call(window, this.onScroll.bind(this));
 
 };
 
@@ -8822,9 +8823,9 @@ ContinuousViewManager.prototype.onScroll = function(){
 
 ContinuousViewManager.prototype.currentLocation = function(){
 
-  if (this.settings.axis === "vertical") {
-  	this.location = this.scrolledLocation();
-  } else {
+	if (this.settings.axis === "vertical") {
+		this.location = this.scrolledLocation();
+	} else {
 		this.location = this.paginatedLocation();
 	}
 
@@ -8833,104 +8834,104 @@ ContinuousViewManager.prototype.currentLocation = function(){
 
 ContinuousViewManager.prototype.scrolledLocation = function(){
 
-  var visible = this.visible();
-  var startPage, endPage;
+	var visible = this.visible();
+	var startPage, endPage;
 
-  var container = this.container.getBoundingClientRect();
+	var container = this.container.getBoundingClientRect();
 
-  if(visible.length === 1) {
-    return this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
-  }
+	if(visible.length === 1) {
+		return this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+	}
 
-  if(visible.length > 1) {
+	if(visible.length > 1) {
 
-    startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
-    endPage = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase);
+		startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+		endPage = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase);
 
-    return {
-      start: startPage.start,
-      end: endPage.end
-    };
-  }
+		return {
+			start: startPage.start,
+			end: endPage.end
+		};
+	}
 
 };
 
 ContinuousViewManager.prototype.paginatedLocation = function(){
-  var visible = this.visible();
-  var startA, startB, endA, endB;
-  var pageLeft, pageRight;
-  var container = this.container.getBoundingClientRect();
+	var visible = this.visible();
+	var startA, startB, endA, endB;
+	var pageLeft, pageRight;
+	var container = this.container.getBoundingClientRect();
 
-  if(visible.length === 1) {
-    startA = container.left - visible[0].position().left;
-    endA = startA + this.layout.spreadWidth;
+	if(visible.length === 1) {
+		startA = container.left - visible[0].position().left;
+		endA = startA + this.layout.spreadWidth;
 
-    return this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
-  }
+		return this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
+	}
 
-  if(visible.length > 1) {
+	if(visible.length > 1) {
 
-    // Left Col
-    startA = container.left - visible[0].position().left;
-    endA = startA + this.layout.columnWidth;
+		// Left Col
+		startA = container.left - visible[0].position().left;
+		endA = startA + this.layout.columnWidth;
 
-    // Right Col
-    startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
-    endB = startB + this.layout.columnWidth;
+		// Right Col
+		startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
+		endB = startB + this.layout.columnWidth;
 
-    pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
-    pageRight = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase, startB, endB);
+		pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
+		pageRight = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase, startB, endB);
 
-    return {
-      start: pageLeft.start,
-      end: pageRight.end
-    };
-  }
+		return {
+			start: pageLeft.start,
+			end: pageRight.end
+		};
+	}
 };
 
 /*
 Continuous.prototype.current = function(what){
-  var view, top;
-  var container = this.container.getBoundingClientRect();
-  var length = this.views.length - 1;
+	var view, top;
+	var container = this.container.getBoundingClientRect();
+	var length = this.views.length - 1;
 
-  if(this.settings.axis === "horizontal") {
+	if(this.settings.axis === "horizontal") {
 
-    for (var i = length; i >= 0; i--) {
-      view = this.views[i];
-      left = view.position().left;
+		for (var i = length; i >= 0; i--) {
+			view = this.views[i];
+			left = view.position().left;
 
-      if(left < container.right) {
+			if(left < container.right) {
 
-        if(this._current == view) {
-          break;
-        }
+				if(this._current == view) {
+					break;
+				}
 
-        this._current = view;
-        break;
-      }
-    }
+				this._current = view;
+				break;
+			}
+		}
 
-  } else {
+	} else {
 
-    for (var i = length; i >= 0; i--) {
-      view = this.views[i];
-      top = view.bounds().top;
-      if(top < container.bottom) {
+		for (var i = length; i >= 0; i--) {
+			view = this.views[i];
+			top = view.bounds().top;
+			if(top < container.bottom) {
 
-        if(this._current == view) {
-          break;
-        }
+				if(this._current == view) {
+					break;
+				}
 
-        this._current = view;
+				this._current = view;
 
-        break;
-      }
-    }
+				break;
+			}
+		}
 
-  }
+	}
 
-  return this._current;
+	return this._current;
 };
 */
 
@@ -8960,7 +8961,7 @@ ContinuousViewManager.prototype.updateLayout = function() {
 	this.viewSettings.width = this.layout.width;
 	this.viewSettings.height = this.layout.height;
 
-  this.setLayout(this.layout);
+	this.setLayout(this.layout);
 
 };
 
@@ -8968,15 +8969,15 @@ ContinuousViewManager.prototype.next = function(){
 
 	if(this.settings.axis === "horizontal") {
 
-    this.scrollLeft = this.container.scrollLeft;
+		this.scrollLeft = this.container.scrollLeft;
 
-    if(this.container.scrollLeft +
-       this.container.offsetWidth +
-       this.layout.delta < this.container.scrollWidth) {
-      this.scrollBy(this.layout.delta, 0);
-    } else {
-      this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
-    }
+		if(this.container.scrollLeft +
+			 this.container.offsetWidth +
+			 this.layout.delta < this.container.scrollWidth) {
+			this.scrollBy(this.layout.delta, 0);
+		} else {
+			this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+		}
 
 	} else {
 		this.scrollBy(0, this.layout.height);
@@ -8985,7 +8986,7 @@ ContinuousViewManager.prototype.next = function(){
 
 ContinuousViewManager.prototype.prev = function(){
 	if(this.settings.axis === "horizontal") {
-    this.scrollBy(-this.layout.delta, 0);
+		this.scrollBy(-this.layout.delta, 0);
 	} else {
 		this.scrollBy(0, -this.layout.height);
 	}
@@ -9006,7 +9007,7 @@ ContinuousViewManager.prototype.updateFlow = function(flow){
 
 	if (this.settings.axis === "vertical") {
 		this.settings.infinite = true;
-  } else {
+	} else {
 		this.settings.infinite = false;
 	}
 
@@ -9109,15 +9110,15 @@ SingleViewManager.prototype.destroy = function(){
 
 SingleViewManager.prototype.onResized = function(e) {
 	clearTimeout(this.resizeTimeout);
-  this.resizeTimeout = setTimeout(function(){
-    this.resize();
-  }.bind(this), 150);
+	this.resizeTimeout = setTimeout(function(){
+		this.resize();
+	}.bind(this), 150);
 };
 
 SingleViewManager.prototype.resize = function(width, height){
 
 	// Clear the queue
-  this.q.clear();
+	this.q.clear();
 
 	this._stageSize = this.stage.size(width, height);
 	this._bounds = this.bounds();
@@ -9131,12 +9132,12 @@ SingleViewManager.prototype.resize = function(width, height){
 		view.size(this._stageSize.width, this._stageSize.height);
 	}.bind(this));
 
-  this.updateLayout();
+	this.updateLayout();
 
-  this.trigger("resized", {
-    width: this.stage.width,
-    height: this.stage.height
-  });
+	this.trigger("resized", {
+		width: this.stage.width,
+		height: this.stage.height
+	});
 
 };
 
@@ -9224,7 +9225,7 @@ SingleViewManager.prototype.moveTo = function(offset){
 		}
 	}
 
-  this.scrollTo(distX, distY);
+	this.scrollTo(distX, distY);
 };
 
 SingleViewManager.prototype.add = function(section){
@@ -9365,20 +9366,20 @@ SingleViewManager.prototype.current = function(){
 		// Current is the last visible view
 		return visible[visible.length-1];
 	}
-  return null;
+	return null;
 };
 
 SingleViewManager.prototype.currentLocation = function(){
-  var view;
-  var start, end;
+	var view;
+	var start, end;
 
-  if(this.views.length) {
-  	view = this.views.first();
-    start = container.left - view.position().left;
-    end = start + this.layout.spread;
+	if(this.views.length) {
+		view = this.views.first();
+		start = container.left - view.position().left;
+		end = start + this.layout.spread;
 
-    return this.mapping.page(view, view.section.cfiBase);
-  }
+		return this.mapping.page(view, view.section.cfiBase);
+	}
 
 };
 
@@ -9392,12 +9393,12 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 
 		return true;
 
-  } else if(this.settings.axis === "vertical" &&
-  	position.bottom > container.top - offsetPrev &&
+	} else if(this.settings.axis === "vertical" &&
+		position.bottom > container.top - offsetPrev &&
 		position.top < container.bottom + offsetNext) {
 
 		return true;
-  }
+	}
 
 	return false;
 
@@ -9408,60 +9409,60 @@ SingleViewManager.prototype.visible = function(){
 	var container = this.bounds();
 	var views = this.views.displayed();
 	var viewsLength = views.length;
-  var visible = [];
-  var isVisible;
-  var view;
+	var visible = [];
+	var isVisible;
+	var view;
 
-  for (var i = 0; i < viewsLength; i++) {
-    view = views[i];
-    isVisible = this.isVisible(view, 0, 0, container);
+	for (var i = 0; i < viewsLength; i++) {
+		view = views[i];
+		isVisible = this.isVisible(view, 0, 0, container);
 
-    if(isVisible === true) {
-      visible.push(view);
-    }
+		if(isVisible === true) {
+			visible.push(view);
+		}
 
-  }
-  return visible;
+	}
+	return visible;
 };
 
 SingleViewManager.prototype.scrollBy = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
+	if(silent) {
+		this.ignore = true;
+	}
 
-  if(this.settings.height) {
+	if(this.settings.height) {
 
-    if(x) this.container.scrollLeft += x;
-  	if(y) this.container.scrollTop += y;
+		if(x) this.container.scrollLeft += x;
+		if(y) this.container.scrollTop += y;
 
-  } else {
-  	window.scrollBy(x,y);
-  }
-  // console.log("scrollBy", x, y);
-  this.scrolled = true;
+	} else {
+		window.scrollBy(x,y);
+	}
+	// console.log("scrollBy", x, y);
+	this.scrolled = true;
 	this.onScroll();
 };
 
 SingleViewManager.prototype.scrollTo = function(x, y, silent){
-  if(silent) {
-    this.ignore = true;
-  }
+	if(silent) {
+		this.ignore = true;
+	}
 
-  if(this.settings.height) {
-  	this.container.scrollLeft = x;
-  	this.container.scrollTop = y;
-  } else {
-  	window.scrollTo(x,y);
-  }
-  // console.log("scrollTo", x, y);
-  this.scrolled = true;
+	if(this.settings.height) {
+		this.container.scrollLeft = x;
+		this.container.scrollTop = y;
+	} else {
+		window.scrollTo(x,y);
+	}
+	// console.log("scrollTo", x, y);
+	this.scrolled = true;
 	this.onScroll();
-  // if(this.container.scrollLeft != x){
-  //   setTimeout(function() {
-  //     this.scrollTo(x, y, silent);
-  //   }.bind(this), 10);
-  //   return;
-  // };
+	// if(this.container.scrollLeft != x){
+	//   setTimeout(function() {
+	//     this.scrollTo(x, y, silent);
+	//   }.bind(this), 10);
+	//   return;
+	// };
  };
 
 SingleViewManager.prototype.onScroll = function(){
@@ -9482,7 +9483,7 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 	this.updateLayout();
 
 	this.mapping = new Mapping(this.layout);
- 	// this.manager.layout(this.layout.format);
+	 // this.manager.layout(this.layout.format);
 };
 
 SingleViewManager.prototype.updateLayout = function() {
@@ -9553,297 +9554,297 @@ SingleViewManager.prototype.updateFlow = function(flow){
 var EpubCFI = require('./epubcfi');
 
 function Mapping(layout){
-  this.layout = layout;
+	this.layout = layout;
 };
 
 Mapping.prototype.section = function(view) {
-  var ranges = this.findRanges(view);
-  var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
+	var ranges = this.findRanges(view);
+	var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
 
-  return map;
+	return map;
 };
 
 Mapping.prototype.page = function(contents, cfiBase, start, end) {
-  var root = contents && contents.document ? contents.document.body : false;
+	var root = contents && contents.document ? contents.document.body : false;
 
-  if (!root) {
-    return;
-  }
+	if (!root) {
+		return;
+	}
 
-  return this.rangePairToCfiPair(cfiBase, {
-    start: this.findStart(root, start, end),
-    end: this.findEnd(root, start, end)
-  });
+	return this.rangePairToCfiPair(cfiBase, {
+		start: this.findStart(root, start, end),
+		end: this.findEnd(root, start, end)
+	});
 };
 
 Mapping.prototype.walk = function(root, func) {
-  //var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-  var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: function (node) {
-          if ( node.data.trim().length > 0 ) {
-            return NodeFilter.FILTER_ACCEPT;
-          } else {
-            return NodeFilter.FILTER_REJECT;
-          }
-      }
-  }, false);
-  var node;
-  var result;
-  while ((node = treeWalker.nextNode())) {
-    result = func(node);
-    if(result) break;
-  }
+	//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
+	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: function (node) {
+					if ( node.data.trim().length > 0 ) {
+						return NodeFilter.FILTER_ACCEPT;
+					} else {
+						return NodeFilter.FILTER_REJECT;
+					}
+			}
+	}, false);
+	var node;
+	var result;
+	while ((node = treeWalker.nextNode())) {
+		result = func(node);
+		if(result) break;
+	}
 
-  return result;
+	return result;
 };
 
 Mapping.prototype.findRanges = function(view){
-  var columns = [];
-  var scrollWidth = view.contents.scrollWidth();
-  var count = this.layout.count(scrollWidth);
-  var column = this.layout.column;
-  var gap = this.layout.gap;
-  var start, end;
+	var columns = [];
+	var scrollWidth = view.contents.scrollWidth();
+	var count = this.layout.count(scrollWidth);
+	var column = this.layout.column;
+	var gap = this.layout.gap;
+	var start, end;
 
-  for (var i = 0; i < count.pages; i++) {
-    start = (column + gap) * i;
-    end = (column * (i+1)) + (gap * i);
-    columns.push({
-      start: this.findStart(view.document.body, start, end),
-      end: this.findEnd(view.document.body, start, end)
-    });
-  }
+	for (var i = 0; i < count.pages; i++) {
+		start = (column + gap) * i;
+		end = (column * (i+1)) + (gap * i);
+		columns.push({
+			start: this.findStart(view.document.body, start, end),
+			end: this.findEnd(view.document.body, start, end)
+		});
+	}
 
-  return columns;
+	return columns;
 };
 
 Mapping.prototype.findStart = function(root, start, end){
-  var stack = [root];
-  var $el;
-  var found;
-  var $prev = root;
-  while (stack.length) {
+	var stack = [root];
+	var $el;
+	var found;
+	var $prev = root;
+	while (stack.length) {
 
-    $el = stack.shift();
+		$el = stack.shift();
 
-    found = this.walk($el, function(node){
-      var left, right;
-      var elPos;
-      var elRange;
+		found = this.walk($el, function(node){
+			var left, right;
+			var elPos;
+			var elRange;
 
 
-      if(node.nodeType == Node.TEXT_NODE){
-        elRange = document.createRange();
-        elRange.selectNodeContents(node);
-        elPos = elRange.getBoundingClientRect();
-      } else {
-        elPos = node.getBoundingClientRect();
-      }
+			if(node.nodeType == Node.TEXT_NODE){
+				elRange = document.createRange();
+				elRange.selectNodeContents(node);
+				elPos = elRange.getBoundingClientRect();
+			} else {
+				elPos = node.getBoundingClientRect();
+			}
 
-      left = elPos.left;
-      right = elPos.right;
+			left = elPos.left;
+			right = elPos.right;
 
-      if( left >= start && left <= end ) {
-        return node;
-      } else if (right > start) {
-        return node;
-      } else {
-        $prev = node;
-        stack.push(node);
-      }
+			if( left >= start && left <= end ) {
+				return node;
+			} else if (right > start) {
+				return node;
+			} else {
+				$prev = node;
+				stack.push(node);
+			}
 
-    });
+		});
 
-    if(found) {
-      return this.findTextStartRange(found, start, end);
-    }
+		if(found) {
+			return this.findTextStartRange(found, start, end);
+		}
 
-  }
+	}
 
-  // Return last element
-  return this.findTextStartRange($prev, start, end);
+	// Return last element
+	return this.findTextStartRange($prev, start, end);
 };
 
 Mapping.prototype.findEnd = function(root, start, end){
-  var stack = [root];
-  var $el;
-  var $prev = root;
-  var found;
+	var stack = [root];
+	var $el;
+	var $prev = root;
+	var found;
 
-  while (stack.length) {
+	while (stack.length) {
 
-    $el = stack.shift();
+		$el = stack.shift();
 
-    found = this.walk($el, function(node){
+		found = this.walk($el, function(node){
 
-      var left, right;
-      var elPos;
-      var elRange;
-
-
-      if(node.nodeType == Node.TEXT_NODE){
-        elRange = document.createRange();
-        elRange.selectNodeContents(node);
-        elPos = elRange.getBoundingClientRect();
-      } else {
-        elPos = node.getBoundingClientRect();
-      }
-
-      left = elPos.left;
-      right = elPos.right;
-
-      if(left > end && $prev) {
-        return $prev;
-      } else if(right > end) {
-        return node;
-      } else {
-        $prev = node;
-        stack.push(node);
-      }
-
-    });
+			var left, right;
+			var elPos;
+			var elRange;
 
 
-    if(found){
-      return this.findTextEndRange(found, start, end);
-    }
+			if(node.nodeType == Node.TEXT_NODE){
+				elRange = document.createRange();
+				elRange.selectNodeContents(node);
+				elPos = elRange.getBoundingClientRect();
+			} else {
+				elPos = node.getBoundingClientRect();
+			}
 
-  }
+			left = elPos.left;
+			right = elPos.right;
 
-  // end of chapter
-  return this.findTextEndRange($prev, start, end);
+			if(left > end && $prev) {
+				return $prev;
+			} else if(right > end) {
+				return node;
+			} else {
+				$prev = node;
+				stack.push(node);
+			}
+
+		});
+
+
+		if(found){
+			return this.findTextEndRange(found, start, end);
+		}
+
+	}
+
+	// end of chapter
+	return this.findTextEndRange($prev, start, end);
 };
 
 
 Mapping.prototype.findTextStartRange = function(node, start, end){
-  var ranges = this.splitTextNodeIntoRanges(node);
-  var prev;
-  var range;
-  var pos;
+	var ranges = this.splitTextNodeIntoRanges(node);
+	var prev;
+	var range;
+	var pos;
 
-  for (var i = 0; i < ranges.length; i++) {
-    range = ranges[i];
+	for (var i = 0; i < ranges.length; i++) {
+		range = ranges[i];
 
-    pos = range.getBoundingClientRect();
+		pos = range.getBoundingClientRect();
 
-    if( pos.left >= start ) {
-      return range;
-    }
+		if( pos.left >= start ) {
+			return range;
+		}
 
-    prev = range;
+		prev = range;
 
-  }
+	}
 
-  return ranges[0];
+	return ranges[0];
 };
 
 Mapping.prototype.findTextEndRange = function(node, start, end){
-  var ranges = this.splitTextNodeIntoRanges(node);
-  var prev;
-  var range;
-  var pos;
+	var ranges = this.splitTextNodeIntoRanges(node);
+	var prev;
+	var range;
+	var pos;
 
-  for (var i = 0; i < ranges.length; i++) {
-    range = ranges[i];
+	for (var i = 0; i < ranges.length; i++) {
+		range = ranges[i];
 
-    pos = range.getBoundingClientRect();
+		pos = range.getBoundingClientRect();
 
-    if(pos.left > end && prev) {
-      return prev;
-    } else if(pos.right > end) {
-      return range;
-    }
+		if(pos.left > end && prev) {
+			return prev;
+		} else if(pos.right > end) {
+			return range;
+		}
 
-    prev = range;
+		prev = range;
 
-  }
+	}
 
-  // Ends before limit
-  return ranges[ranges.length-1];
+	// Ends before limit
+	return ranges[ranges.length-1];
 
 };
 
 Mapping.prototype.splitTextNodeIntoRanges = function(node, _splitter){
-  var ranges = [];
-  var textContent = node.textContent || "";
-  var text = textContent.trim();
-  var range;
-  var rect;
-  var list;
-  var doc = node.ownerDocument;
-  var splitter = _splitter || " ";
+	var ranges = [];
+	var textContent = node.textContent || "";
+	var text = textContent.trim();
+	var range;
+	var rect;
+	var list;
+	var doc = node.ownerDocument;
+	var splitter = _splitter || " ";
 
-  pos = text.indexOf(splitter);
+	pos = text.indexOf(splitter);
 
-  if(pos === -1 || node.nodeType != Node.TEXT_NODE) {
-    range = doc.createRange();
-    range.selectNodeContents(node);
-    return [range];
-  }
+	if(pos === -1 || node.nodeType != Node.TEXT_NODE) {
+		range = doc.createRange();
+		range.selectNodeContents(node);
+		return [range];
+	}
 
-  range = doc.createRange();
-  range.setStart(node, 0);
-  range.setEnd(node, pos);
-  ranges.push(range);
-  range = false;
+	range = doc.createRange();
+	range.setStart(node, 0);
+	range.setEnd(node, pos);
+	ranges.push(range);
+	range = false;
 
-  while ( pos != -1 ) {
+	while ( pos != -1 ) {
 
-    pos = text.indexOf(splitter, pos + 1);
-    if(pos > 0) {
+		pos = text.indexOf(splitter, pos + 1);
+		if(pos > 0) {
 
-      if(range) {
-        range.setEnd(node, pos);
-        ranges.push(range);
-      }
+			if(range) {
+				range.setEnd(node, pos);
+				ranges.push(range);
+			}
 
-      range = doc.createRange();
-      range.setStart(node, pos+1);
-    }
-  }
+			range = doc.createRange();
+			range.setStart(node, pos+1);
+		}
+	}
 
-  if(range) {
-    range.setEnd(node, text.length);
-    ranges.push(range);
-  }
+	if(range) {
+		range.setEnd(node, text.length);
+		ranges.push(range);
+	}
 
-  return ranges;
+	return ranges;
 };
 
 
 
 Mapping.prototype.rangePairToCfiPair = function(cfiBase, rangePair){
 
-  var startRange = rangePair.start;
-  var endRange = rangePair.end;
+	var startRange = rangePair.start;
+	var endRange = rangePair.end;
 
-  startRange.collapse(true);
-  endRange.collapse(true);
+	startRange.collapse(true);
+	endRange.collapse(true);
 
-  // startCfi = section.cfiFromRange(startRange);
-  // endCfi = section.cfiFromRange(endRange);
-  startCfi = new EpubCFI(startRange, cfiBase).toString();
-  endCfi = new EpubCFI(endRange, cfiBase).toString();
+	// startCfi = section.cfiFromRange(startRange);
+	// endCfi = section.cfiFromRange(endRange);
+	startCfi = new EpubCFI(startRange, cfiBase).toString();
+	endCfi = new EpubCFI(endRange, cfiBase).toString();
 
-  return {
-    start: startCfi,
-    end: endCfi
-  };
+	return {
+		start: startCfi,
+		end: endCfi
+	};
 
 };
 
 Mapping.prototype.rangeListToCfiList = function(cfiBase, columns){
-  var map = [];
-  var rangePair, cifPair;
+	var map = [];
+	var rangePair, cifPair;
 
-  for (var i = 0; i < columns.length; i++) {
-    cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
+	for (var i = 0; i < columns.length; i++) {
+		cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
 
-    map.push(cifPair);
+		map.push(cifPair);
 
-  }
+	}
 
-  return map;
+	return map;
 };
 
 module.exports = Mapping;
@@ -9855,99 +9856,99 @@ var RSVP = require('rsvp');
 var URI = require('urijs');
 
 function Navigation(_package, _request){
-  var navigation = this;
-  var parse = new Parser();
-  var request = _request || require('./request');
+	var navigation = this;
+	var parse = new Parser();
+	var request = _request || require('./request');
 
-  this.package = _package;
-  this.toc = [];
-  this.tocByHref = {};
-  this.tocById = {};
+	this.package = _package;
+	this.toc = [];
+	this.tocByHref = {};
+	this.tocById = {};
 
-  if(_package.navPath) {
-    this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
-    this.nav = {};
+	if(_package.navPath) {
+		this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
+		this.nav = {};
 
-    this.nav.load = function(_request){
-      var loading = new RSVP.defer();
-      var loaded = loading.promise;
+		this.nav.load = function(_request){
+			var loading = new RSVP.defer();
+			var loaded = loading.promise;
 
-      request(navigation.navUrl, 'xml').then(function(xml){
-        navigation.toc = parse.nav(xml);
-        navigation.loaded(navigation.toc);
-        loading.resolve(navigation.toc);
-      });
+			request(navigation.navUrl, 'xml').then(function(xml){
+				navigation.toc = parse.nav(xml);
+				navigation.loaded(navigation.toc);
+				loading.resolve(navigation.toc);
+			});
 
-      return loaded;
-    };
+			return loaded;
+		};
 
-  }
+	}
 
-  if(_package.ncxPath) {
-    this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
-    this.ncx = {};
+	if(_package.ncxPath) {
+		this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
+		this.ncx = {};
 
-    this.ncx.load = function(_request){
-      var loading = new RSVP.defer();
-      var loaded = loading.promise;
+		this.ncx.load = function(_request){
+			var loading = new RSVP.defer();
+			var loaded = loading.promise;
 
-      request(navigation.ncxUrl, 'xml').then(function(xml){
-        navigation.toc = parse.toc(xml);
-        navigation.loaded(navigation.toc);
-        loading.resolve(navigation.toc);
-      });
+			request(navigation.ncxUrl, 'xml').then(function(xml){
+				navigation.toc = parse.toc(xml);
+				navigation.loaded(navigation.toc);
+				loading.resolve(navigation.toc);
+			});
 
-      return loaded;
-    };
+			return loaded;
+		};
 
-  }
+	}
 };
 
 // Load the navigation
 Navigation.prototype.load = function(_request) {
-  var request = _request || require('./request');
-  var loading, loaded;
+	var request = _request || require('./request');
+	var loading, loaded;
 
-  if(this.nav) {
-    loading = this.nav.load();
-  } else if(this.ncx) {
-    loading = this.ncx.load();
-  } else {
-    loaded = new RSVP.defer();
-    loaded.resolve([]);
-    loading = loaded.promise;
-  }
+	if(this.nav) {
+		loading = this.nav.load();
+	} else if(this.ncx) {
+		loading = this.ncx.load();
+	} else {
+		loaded = new RSVP.defer();
+		loaded.resolve([]);
+		loading = loaded.promise;
+	}
 
-  return loading;
+	return loading;
 
 };
 
 Navigation.prototype.loaded = function(toc) {
-  var item;
+	var item;
 
-  for (var i = 0; i < toc.length; i++) {
-    item = toc[i];
-    this.tocByHref[item.href] = i;
-    this.tocById[item.id] = i;
-  }
+	for (var i = 0; i < toc.length; i++) {
+		item = toc[i];
+		this.tocByHref[item.href] = i;
+		this.tocById[item.id] = i;
+	}
 
 };
 
 // Get an item from the navigation
 Navigation.prototype.get = function(target) {
-  var index;
+	var index;
 
-  if(!target) {
-    return this.toc;
-  }
+	if(!target) {
+		return this.toc;
+	}
 
-  if(target.indexOf("#") === 0) {
-    index = this.tocById[target.substring(1)];
-  } else if(target in this.tocByHref){
-    index = this.tocByHref[target];
-  }
+	if(target.indexOf("#") === 0) {
+		index = this.tocById[target.substring(1)];
+	} else if(target in this.tocByHref){
+		index = this.tocByHref[target];
+	}
 
-  return this.toc[index];
+	return this.toc[index];
 };
 
 module.exports = Navigation;
@@ -9961,120 +9962,120 @@ var EpubCFI = require('./epubcfi');
 function Parser(){};
 
 Parser.prototype.container = function(containerXml){
-    //-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-    var rootfile, fullpath, folder, encoding;
+		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
+		var rootfile, fullpath, folder, encoding;
 
-    if(!containerXml) {
-      console.error("Container File Not Found");
-      return;
-    }
+		if(!containerXml) {
+			console.error("Container File Not Found");
+			return;
+		}
 
-    rootfile = core.qs(containerXml, "rootfile");
+		rootfile = core.qs(containerXml, "rootfile");
 
-    if(!rootfile) {
-      console.error("No RootFile Found");
-      return;
-    }
+		if(!rootfile) {
+			console.error("No RootFile Found");
+			return;
+		}
 
-    fullpath = rootfile.getAttribute('full-path');
-    folder = URI(fullpath).directory();
-    encoding = containerXml.xmlEncoding;
+		fullpath = rootfile.getAttribute('full-path');
+		folder = URI(fullpath).directory();
+		encoding = containerXml.xmlEncoding;
 
-    //-- Now that we have the path we can parse the contents
-    return {
-      'packagePath' : fullpath,
-      'basePath' : folder,
-      'encoding' : encoding
-    };
+		//-- Now that we have the path we can parse the contents
+		return {
+			'packagePath' : fullpath,
+			'basePath' : folder,
+			'encoding' : encoding
+		};
 };
 
 Parser.prototype.identifier = function(packageXml){
-  var metadataNode;
+	var metadataNode;
 
-  if(!packageXml) {
-    console.error("Package File Not Found");
-    return;
-  }
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
 
-  metadataNode = core.qs(packageXml, "metadata");
+	metadataNode = core.qs(packageXml, "metadata");
 
-  if(!metadataNode) {
-    console.error("No Metadata Found");
-    return;
-  }
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
 
-  return this.getElementText(metadataNode, "identifier");
+	return this.getElementText(metadataNode, "identifier");
 };
 
 Parser.prototype.packageContents = function(packageXml){
-  var parse = this;
-  var metadataNode, manifestNode, spineNode;
-  var manifest, navPath, ncxPath, coverPath;
-  var spineNodeIndex;
-  var spine;
-  var spineIndexByURL;
-  var metadata;
+	var parse = this;
+	var metadataNode, manifestNode, spineNode;
+	var manifest, navPath, ncxPath, coverPath;
+	var spineNodeIndex;
+	var spine;
+	var spineIndexByURL;
+	var metadata;
 
-  if(!packageXml) {
-    console.error("Package File Not Found");
-    return;
-  }
+	if(!packageXml) {
+		console.error("Package File Not Found");
+		return;
+	}
 
-  metadataNode = core.qs(packageXml, "metadata");
-  if(!metadataNode) {
-    console.error("No Metadata Found");
-    return;
-  }
+	metadataNode = core.qs(packageXml, "metadata");
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
 
-  manifestNode = core.qs(packageXml, "manifest");
-  if(!manifestNode) {
-    console.error("No Manifest Found");
-    return;
-  }
+	manifestNode = core.qs(packageXml, "manifest");
+	if(!manifestNode) {
+		console.error("No Manifest Found");
+		return;
+	}
 
-  spineNode = core.qs(packageXml, "spine");
-  if(!spineNode) {
-    console.error("No Spine Found");
-    return;
-  }
+	spineNode = core.qs(packageXml, "spine");
+	if(!spineNode) {
+		console.error("No Spine Found");
+		return;
+	}
 
-  manifest = parse.manifest(manifestNode);
-  navPath = parse.findNavPath(manifestNode);
-  ncxPath = parse.findNcxPath(manifestNode, spineNode);
-  coverPath = parse.findCoverPath(packageXml);
+	manifest = parse.manifest(manifestNode);
+	navPath = parse.findNavPath(manifestNode);
+	ncxPath = parse.findNcxPath(manifestNode, spineNode);
+	coverPath = parse.findCoverPath(packageXml);
 
-  spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
 
-  spine = parse.spine(spineNode, manifest);
+	spine = parse.spine(spineNode, manifest);
 
-  metadata = parse.metadata(metadataNode);
+	metadata = parse.metadata(metadataNode);
 
 	metadata.direction = spineNode.getAttribute("page-progression-direction");
 
-  return {
-    'metadata' : metadata,
-    'spine'    : spine,
-    'manifest' : manifest,
-    'navPath'  : navPath,
-    'ncxPath'  : ncxPath,
-    'coverPath': coverPath,
-    'spineNodeIndex' : spineNodeIndex
-  };
+	return {
+		'metadata' : metadata,
+		'spine'    : spine,
+		'manifest' : manifest,
+		'navPath'  : navPath,
+		'ncxPath'  : ncxPath,
+		'coverPath': coverPath,
+		'spineNodeIndex' : spineNodeIndex
+	};
 };
 
 //-- Find TOC NAV
 Parser.prototype.findNavPath = function(manifestNode){
 	// Find item with property 'nav'
 	// Should catch nav irregardless of order
-  // var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
-  var node = core.qsp(manifestNode, "item", {"properties":"nav"});
-  return node ? node.getAttribute('href') : false;
+	// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
+	var node = core.qsp(manifestNode, "item", {"properties":"nav"});
+	return node ? node.getAttribute('href') : false;
 };
 
 //-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
 Parser.prototype.findNcxPath = function(manifestNode, spineNode){
 	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
-  var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
+	var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
 	var tocId;
 
 	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
@@ -10084,7 +10085,7 @@ Parser.prototype.findNcxPath = function(manifestNode, spineNode){
 		tocId = spineNode.getAttribute("toc");
 		if(tocId) {
 			// node = manifestNode.querySelector("item[id='" + tocId + "']");
-      node = manifestNode.getElementById(tocId);
+			node = manifestNode.getElementById(tocId);
 		}
 	}
 
@@ -10093,36 +10094,36 @@ Parser.prototype.findNcxPath = function(manifestNode, spineNode){
 
 //-- Expanded to match Readium web components
 Parser.prototype.metadata = function(xml){
-  var metadata = {},
-      p = this;
+	var metadata = {},
+			p = this;
 
-  metadata.title = p.getElementText(xml, 'title');
-  metadata.creator = p.getElementText(xml, 'creator');
-  metadata.description = p.getElementText(xml, 'description');
+	metadata.title = p.getElementText(xml, 'title');
+	metadata.creator = p.getElementText(xml, 'creator');
+	metadata.description = p.getElementText(xml, 'description');
 
-  metadata.pubdate = p.getElementText(xml, 'date');
+	metadata.pubdate = p.getElementText(xml, 'date');
 
-  metadata.publisher = p.getElementText(xml, 'publisher');
+	metadata.publisher = p.getElementText(xml, 'publisher');
 
-  metadata.identifier = p.getElementText(xml, "identifier");
-  metadata.language = p.getElementText(xml, "language");
-  metadata.rights = p.getElementText(xml, "rights");
+	metadata.identifier = p.getElementText(xml, "identifier");
+	metadata.language = p.getElementText(xml, "language");
+	metadata.rights = p.getElementText(xml, "rights");
 
-  metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
+	metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
 
-  metadata.layout = p.getPropertyText(xml, "rendition:layout");
-  metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
-  metadata.flow = p.getPropertyText(xml, 'rendition:flow');
-  metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
-  // metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
+	metadata.layout = p.getPropertyText(xml, "rendition:layout");
+	metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
+	metadata.flow = p.getPropertyText(xml, 'rendition:flow');
+	metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
+	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 
-  return metadata;
+	return metadata;
 };
 
 //-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
 //-- Fallback for Epub 2.0
 Parser.prototype.findCoverPath = function(packageXml){
-  var pkg = core.qs(packageXml, "package");
+	var pkg = core.qs(packageXml, "package");
 	var epubVersion = pkg.getAttribute('version');
 
 	if (epubVersion === '2.0') {
@@ -10130,7 +10131,7 @@ Parser.prototype.findCoverPath = function(packageXml){
 		if (metaCover) {
 			var coverId = metaCover.getAttribute('content');
 			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
-      var cover = packageXml.getElementById(coverId);
+			var cover = packageXml.getElementById(coverId);
 			return cover ? cover.getAttribute('href') : false;
 		}
 		else {
@@ -10138,113 +10139,113 @@ Parser.prototype.findCoverPath = function(packageXml){
 		}
 	}
 	else {
-    // var node = packageXml.querySelector("item[properties='cover-image']");
-    var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
+		// var node = packageXml.querySelector("item[properties='cover-image']");
+		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
 		return node ? node.getAttribute('href') : false;
 	}
 };
 
 Parser.prototype.getElementText = function(xml, tag){
-  var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
-    el;
+	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
+		el;
 
-  if(!found || found.length === 0) return '';
+	if(!found || found.length === 0) return '';
 
-  el = found[0];
+	el = found[0];
 
-  if(el.childNodes.length){
-    return el.childNodes[0].nodeValue;
-  }
+	if(el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
 
-  return '';
+	return '';
 
 };
 
 Parser.prototype.getPropertyText = function(xml, property){
-  var el = core.qsp(xml, "meta", {"property":property});
+	var el = core.qsp(xml, "meta", {"property":property});
 
-  if(el && el.childNodes.length){
-    return el.childNodes[0].nodeValue;
-  }
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
 
-  return '';
+	return '';
 };
 
 Parser.prototype.querySelectorText = function(xml, q){
-  var el = xml.querySelector(q);
+	var el = xml.querySelector(q);
 
-  if(el && el.childNodes.length){
-    return el.childNodes[0].nodeValue;
-  }
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
 
-  return '';
+	return '';
 };
 
 Parser.prototype.manifest = function(manifestXml){
-  var manifest = {};
+	var manifest = {};
 
-  //-- Turn items into an array
-  // var selected = manifestXml.querySelectorAll("item");
-  var selected = core.qsa(manifestXml, "item");
-  var items = Array.prototype.slice.call(selected);
+	//-- Turn items into an array
+	// var selected = manifestXml.querySelectorAll("item");
+	var selected = core.qsa(manifestXml, "item");
+	var items = Array.prototype.slice.call(selected);
 
-  //-- Create an object with the id as key
-  items.forEach(function(item){
-    var id = item.getAttribute('id'),
-        href = item.getAttribute('href') || '',
-        type = item.getAttribute('media-type') || '',
-        properties = item.getAttribute('properties') || '';
+	//-- Create an object with the id as key
+	items.forEach(function(item){
+		var id = item.getAttribute('id'),
+				href = item.getAttribute('href') || '',
+				type = item.getAttribute('media-type') || '',
+				properties = item.getAttribute('properties') || '';
 
-    manifest[id] = {
-      'href' : href,
-      // 'url' : href,
-      'type' : type,
-      'properties' : properties.length ? properties.split(' ') : []
-    };
+		manifest[id] = {
+			'href' : href,
+			// 'url' : href,
+			'type' : type,
+			'properties' : properties.length ? properties.split(' ') : []
+		};
 
-  });
+	});
 
-  return manifest;
+	return manifest;
 
 };
 
 Parser.prototype.spine = function(spineXml, manifest){
-  var spine = [];
+	var spine = [];
 
-  var selected = spineXml.getElementsByTagName("itemref"),
-      items = Array.prototype.slice.call(selected);
+	var selected = spineXml.getElementsByTagName("itemref"),
+			items = Array.prototype.slice.call(selected);
 
-  var epubcfi = new EpubCFI();
+	var epubcfi = new EpubCFI();
 
-  //-- Add to array to mantain ordering and cross reference with manifest
-  items.forEach(function(item, index){
-    var idref = item.getAttribute('idref');
-    // var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
-    var props = item.getAttribute('properties') || '';
-    var propArray = props.length ? props.split(' ') : [];
-    // var manifestProps = manifest[Id].properties;
-    // var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
+	//-- Add to array to mantain ordering and cross reference with manifest
+	items.forEach(function(item, index){
+		var idref = item.getAttribute('idref');
+		// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
+		var props = item.getAttribute('properties') || '';
+		var propArray = props.length ? props.split(' ') : [];
+		// var manifestProps = manifest[Id].properties;
+		// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
 
-    var itemref = {
-      'idref' : idref,
-      'linear' : item.getAttribute('linear') || '',
-      'properties' : propArray,
-      // 'href' : manifest[Id].href,
-      // 'url' :  manifest[Id].url,
-      'index' : index
-      // 'cfiBase' : cfiBase
-    };
-    spine.push(itemref);
-  });
+		var itemref = {
+			'idref' : idref,
+			'linear' : item.getAttribute('linear') || '',
+			'properties' : propArray,
+			// 'href' : manifest[Id].href,
+			// 'url' :  manifest[Id].url,
+			'index' : index
+			// 'cfiBase' : cfiBase
+		};
+		spine.push(itemref);
+	});
 
-  return spine;
+	return spine;
 };
 
 Parser.prototype.querySelectorByType = function(html, element, type){
-  var query;
-  if (typeof html.querySelector != "undefined") {
-    query = html.querySelector(element+'[*|type="'+type+'"]');
-  }
+	var query;
+	if (typeof html.querySelector != "undefined") {
+		query = html.querySelector(element+'[*|type="'+type+'"]');
+	}
 	// Handle IE not supporting namespaced epub:type in querySelector
 	if(!query || query.length === 0) {
 		query = core.qsa(html, element);
@@ -10260,7 +10261,7 @@ Parser.prototype.querySelectorByType = function(html, element, type){
 
 Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
-  // var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
 	var navItems = navElement ? core.qsa(navElement, "li") : [];
 	var length = navItems.length;
 	var i;
@@ -10287,7 +10288,7 @@ Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
 Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 	var id = item.getAttribute('id') || false,
 			// content = item.querySelector("a, span"),
-      content = core.qs(item, "a"),
+			content = core.qs(item, "a"),
 			src = content.getAttribute('href') || '',
 			text = content.textContent || "",
 			// split = src.split("#"),
@@ -10303,7 +10304,7 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 		parent = parentNode.getAttribute('id');
 	}
 
-  /*
+	/*
 	if(!id) {
 		if(spinePos) {
 			spineItem = bookSpine[spinePos];
@@ -10314,7 +10315,7 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 			item.setAttribute('id', id);
 		}
 	}
-  */
+	*/
 
 	return {
 		"id": id,
@@ -10327,7 +10328,7 @@ Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 
 Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
 	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
-  var navPoints = core.qsa(tocXml, "navPoint");
+	var navPoints = core.qsa(tocXml, "navPoint");
 	var length = navPoints.length;
 	var i;
 	var toc = {};
@@ -10355,8 +10356,8 @@ Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 			// content = item.querySelector("content"),
 			content = core.qs(item, "content"),
 			src = content.getAttribute('src'),
-      // navLabel = item.querySelector("navLabel"),
-      navLabel = core.qs(item, "navLabel"),
+			// navLabel = item.querySelector("navLabel"),
+			navLabel = core.qs(item, "navLabel"),
 			text = navLabel.textContent ? navLabel.textContent : "",
 			// split = src.split("#"),
 			// baseUrl = split[0],
@@ -10371,7 +10372,7 @@ Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 		parent = parentNode.getAttribute('id');
 	}
 
-  /*
+	/*
 	if(!id) {
 		if(spinePos) {
 			spineItem = bookSpine[spinePos];
@@ -10382,7 +10383,7 @@ Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 			item.setAttribute('id', id);
 		}
 	}
-  */
+	*/
 
 	return {
 		"id": id,
@@ -10395,7 +10396,7 @@ Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
 
 Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
 	var navElement = this.querySelectorByType(navHtml, "nav", "page-list");
-  // var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
 	var navItems = navElement ? core.qsa(navElement, "li") : [];
 	var length = navItems.length;
 	var i;
@@ -10416,7 +10417,7 @@ Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
 Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
 	var id = item.getAttribute('id') || false,
 		// content = item.querySelector("a"),
-    content = core.qs(item, "a"),
+		content = core.qs(item, "a"),
 		href = content.getAttribute('href') || '',
 		text = content.textContent || "",
 		page = parseInt(text),
@@ -10450,191 +10451,191 @@ var RSVP = require('rsvp');
 var core = require('./core');
 
 function Queue(_context){
-  this._q = [];
-  this.context = _context;
-  this.tick = core.requestAnimationFrame;
-  this.running = false;
-  this.paused = false;
+	this._q = [];
+	this.context = _context;
+	this.tick = core.requestAnimationFrame;
+	this.running = false;
+	this.paused = false;
 };
 
 // Add an item to the queue
 Queue.prototype.enqueue = function() {
-  var deferred, promise;
-  var queued;
-  var task = [].shift.call(arguments);
-  var args = arguments;
+	var deferred, promise;
+	var queued;
+	var task = [].shift.call(arguments);
+	var args = arguments;
 
-  // Handle single args without context
-  // if(args && !Array.isArray(args)) {
-  //   args = [args];
-  // }
-  if(!task) {
-    return console.error("No Task Provided");
-  }
+	// Handle single args without context
+	// if(args && !Array.isArray(args)) {
+	//   args = [args];
+	// }
+	if(!task) {
+		return console.error("No Task Provided");
+	}
 
-  if(typeof task === "function"){
+	if(typeof task === "function"){
 
-    deferred = new RSVP.defer();
-    promise = deferred.promise;
+		deferred = new RSVP.defer();
+		promise = deferred.promise;
 
-    queued = {
-      "task" : task,
-      "args"     : args,
-      //"context"  : context,
-      "deferred" : deferred,
-      "promise" : promise
-    };
+		queued = {
+			"task" : task,
+			"args"     : args,
+			//"context"  : context,
+			"deferred" : deferred,
+			"promise" : promise
+		};
 
-  } else {
-    // Task is a promise
-    queued = {
-      "promise" : task
-    };
+	} else {
+		// Task is a promise
+		queued = {
+			"promise" : task
+		};
 
-  }
+	}
 
-  this._q.push(queued);
+	this._q.push(queued);
 
-  // Wait to start queue flush
-  if (this.paused == false && !this.running) {
-    // setTimeout(this.flush.bind(this), 0);
-    // this.tick.call(window, this.run.bind(this));
-    this.run();
-  }
+	// Wait to start queue flush
+	if (this.paused == false && !this.running) {
+		// setTimeout(this.flush.bind(this), 0);
+		// this.tick.call(window, this.run.bind(this));
+		this.run();
+	}
 
-  return queued.promise;
+	return queued.promise;
 };
 
 // Run one item
 Queue.prototype.dequeue = function(){
-  var inwait, task, result;
+	var inwait, task, result;
 
-  if(this._q.length) {
-    inwait = this._q.shift();
-    task = inwait.task;
-    if(task){
-      // console.log(task)
+	if(this._q.length) {
+		inwait = this._q.shift();
+		task = inwait.task;
+		if(task){
+			// console.log(task)
 
-      result = task.apply(this.context, inwait.args);
+			result = task.apply(this.context, inwait.args);
 
-      if(result && typeof result["then"] === "function") {
-        // Task is a function that returns a promise
-        return result.then(function(){
-          inwait.deferred.resolve.apply(this.context, arguments);
-        }.bind(this));
-      } else {
-        // Task resolves immediately
-        inwait.deferred.resolve.apply(this.context, result);
-        return inwait.promise;
-      }
+			if(result && typeof result["then"] === "function") {
+				// Task is a function that returns a promise
+				return result.then(function(){
+					inwait.deferred.resolve.apply(this.context, arguments);
+				}.bind(this));
+			} else {
+				// Task resolves immediately
+				inwait.deferred.resolve.apply(this.context, result);
+				return inwait.promise;
+			}
 
 
 
-    } else if(inwait.promise) {
-      // Task is a promise
-      return inwait.promise;
-    }
+		} else if(inwait.promise) {
+			// Task is a promise
+			return inwait.promise;
+		}
 
-  } else {
-    inwait = new RSVP.defer();
-    inwait.deferred.resolve();
-    return inwait.promise;
-  }
+	} else {
+		inwait = new RSVP.defer();
+		inwait.deferred.resolve();
+		return inwait.promise;
+	}
 
 };
 
 // Run All Immediately
 Queue.prototype.dump = function(){
-  while(this._q.length) {
-    this.dequeue();
-  }
+	while(this._q.length) {
+		this.dequeue();
+	}
 };
 
 // Run all sequentially, at convince
 
 Queue.prototype.run = function(){
 
-  if(!this.running){
-    this.running = true;
-    this.defered = new RSVP.defer();
-  }
+	if(!this.running){
+		this.running = true;
+		this.defered = new RSVP.defer();
+	}
 
-  this.tick.call(window, function() {
+	this.tick.call(window, function() {
 
-    if(this._q.length) {
+		if(this._q.length) {
 
-      this.dequeue()
-        .then(function(){
-          this.run();
-        }.bind(this));
+			this.dequeue()
+				.then(function(){
+					this.run();
+				}.bind(this));
 
-    } else {
-      this.defered.resolve();
-      this.running = undefined;
-    }
+		} else {
+			this.defered.resolve();
+			this.running = undefined;
+		}
 
-  }.bind(this));
+	}.bind(this));
 
-  // Unpause
-  if(this.paused == true) {
-    this.paused = false;
-  }
+	// Unpause
+	if(this.paused == true) {
+		this.paused = false;
+	}
 
-  return this.defered.promise;
+	return this.defered.promise;
 };
 
 // Flush all, as quickly as possible
 Queue.prototype.flush = function(){
 
-  if(this.running){
-    return this.running;
-  }
+	if(this.running){
+		return this.running;
+	}
 
-  if(this._q.length) {
-    this.running = this.dequeue()
-      .then(function(){
-        this.running = undefined;
-        return this.flush();
-      }.bind(this));
+	if(this._q.length) {
+		this.running = this.dequeue()
+			.then(function(){
+				this.running = undefined;
+				return this.flush();
+			}.bind(this));
 
-    return this.running;
-  }
+		return this.running;
+	}
 
 };
 
 // Clear all items in wait
 Queue.prototype.clear = function(){
-  this._q = [];
-  this.running = false;
+	this._q = [];
+	this.running = false;
 };
 
 Queue.prototype.length = function(){
-  return this._q.length;
+	return this._q.length;
 };
 
 Queue.prototype.pause = function(){
-  this.paused = true;
+	this.paused = true;
 };
 
 // Create a new task from a callback
 function Task(task, args, context){
 
-  return function(){
-    var toApply = arguments || [];
+	return function(){
+		var toApply = arguments || [];
 
-    return new RSVP.Promise(function(resolve, reject) {
-      var callback = function(value){
-        resolve(value);
-      };
-      // Add the callback to the arguments list
-      toApply.push(callback);
+		return new RSVP.Promise(function(resolve, reject) {
+			var callback = function(value){
+				resolve(value);
+			};
+			// Add the callback to the arguments list
+			toApply.push(callback);
 
-      // Apply all arguments to the functions
-      task.apply(this, toApply);
+			// Apply all arguments to the functions
+			task.apply(this, toApply);
 
-  }.bind(this));
+	}.bind(this));
 
-  };
+	};
 
 };
 
@@ -10692,7 +10693,7 @@ function Rendition(book, options) {
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
-  this.epubcfi = new EpubCFI();
+	this.epubcfi = new EpubCFI();
 
 	this.q = new Queue(this);
 
@@ -10726,7 +10727,7 @@ Rendition.prototype.requireManager = function(manager) {
 		viewManager = manager
 	}
 
-  return viewManager;
+	return viewManager;
 };
 
 Rendition.prototype.requireView = function(view) {
@@ -10739,7 +10740,7 @@ Rendition.prototype.requireView = function(view) {
 		View = view
 	}
 
-  return View;
+	return View;
 };
 
 Rendition.prototype.start = function(){
@@ -11005,24 +11006,24 @@ Rendition.prototype.spread = function(spread, min){
 
 
 Rendition.prototype.reportLocation = function(){
-  return this.q.enqueue(function(){
-    var location = this.manager.currentLocation();
+	return this.q.enqueue(function(){
+		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
-		    this.trigger("locationChanged", this.location);
+				this.trigger("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
-	    this.trigger("locationChanged", this.location);
+			this.trigger("locationChanged", this.location);
 		}
 
-  }.bind(this));
+	}.bind(this));
 };
 
 
 Rendition.prototype.destroy = function(){
-  // Clear the queue
+	// Clear the queue
 	this.q.clear();
 
 	this.views.clear();
@@ -11037,7 +11038,7 @@ Rendition.prototype.destroy = function(){
 };
 
 Rendition.prototype.passViewEvents = function(view){
-  view.contents.listenedEvents.forEach(function(e){
+	view.contents.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
 	}.bind(this));
 
@@ -11045,11 +11046,11 @@ Rendition.prototype.passViewEvents = function(view){
 };
 
 Rendition.prototype.triggerViewEvent = function(e){
-  this.trigger(e.type, e);
+	this.trigger(e.type, e);
 };
 
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
-  this.trigger("selected", cfirange);
+	this.trigger("selected", cfirange);
 };
 
 Rendition.prototype.replacements = function(){
@@ -11057,27 +11058,27 @@ Rendition.prototype.replacements = function(){
 	// return this.q.enqueue(function () {
 		// Get thes books manifest
 		var manifest = this.book.package.manifest;
-	  var manifestArray = Object.keys(manifest).
-	    map(function (key){
-	      return manifest[key];
-	    });
+		var manifestArray = Object.keys(manifest).
+			map(function (key){
+				return manifest[key];
+			});
 
-	  // Exclude HTML
-	  var items = manifestArray.
-	    filter(function (item){
-	      if (item.type != "application/xhtml+xml" &&
-	          item.type != "text/html") {
-	        return true;
-	      }
-	    });
+		// Exclude HTML
+		var items = manifestArray.
+			filter(function (item){
+				if (item.type != "application/xhtml+xml" &&
+						item.type != "text/html") {
+					return true;
+				}
+			});
 
-	  // Only CSS
-	  var css = items.
-	    filter(function (item){
-	      if (item.type === "text/css") {
-	        return true;
-	      }
-	    });
+		// Only CSS
+		var css = items.
+			filter(function (item){
+				if (item.type === "text/css") {
+					return true;
+				}
+			});
 
 		// Css Urls
 		var cssUrls = css.map(function(item) {
@@ -11085,18 +11086,18 @@ Rendition.prototype.replacements = function(){
 		});
 
 		// All Assets Urls
-	  var urls = items.
-	    map(function(item) {
-	      return item.href;
-	    }.bind(this));
+		var urls = items.
+			map(function(item) {
+				return item.href;
+			}.bind(this));
 
 		// Create blob urls for all the assets
-	  var processing = urls.
-	    map(function(url) {
+		var processing = urls.
+			map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
 				// Full url from archive base
-	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
-	    }.bind(this));
+				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
+			}.bind(this));
 
 		var replacementUrls;
 
@@ -11110,11 +11111,11 @@ Rendition.prototype.replacements = function(){
 				// Replace Asset Urls in the text of all css files
 				cssUrls.forEach(function(href) {
 					replaced.push(this.replaceCss(href, urls, replacementUrls));
-		    }.bind(this));
+				}.bind(this));
 
 				return RSVP.all(replaced);
 
-	    }.bind(this))
+			}.bind(this))
 			.then(function () {
 				// Replace Asset Urls in chapters
 				// by registering a hook after the sections contents has been serialized
@@ -11126,8 +11127,8 @@ Rendition.prototype.replacements = function(){
 
 			}.bind(this))
 			.catch(function(reason){
-	      console.error(reason);
-	    });
+				console.error(reason);
+			});
 	// }.bind(this));
 };
 
@@ -11188,31 +11189,31 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 };
 
 Rendition.prototype.range = function(_cfi, ignoreClass){
-  var cfi = new EpubCFI(_cfi);
-  var found = this.visible().filter(function (view) {
+	var cfi = new EpubCFI(_cfi);
+	var found = this.visible().filter(function (view) {
 		if(cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
-  if (found.length) {
-    return found[0].range(cfi, ignoreClass);
-  }
+	if (found.length) {
+		return found[0].range(cfi, ignoreClass);
+	}
 };
 
 Rendition.prototype.adjustImages = function(view) {
 
-  view.addStylesheetRules([
-      ["img",
-        ["max-width", (view.layout.spreadWidth) + "px"],
-        ["max-height", (view.layout.height) + "px"]
-      ]
-  ]);
-  return new RSVP.Promise(function(resolve, reject){
-    // Wait to apply
-    setTimeout(function() {
-      resolve();
-    }, 1);
-  });
+	view.addStylesheetRules([
+			["img",
+				["max-width", (view.layout.spreadWidth) + "px"],
+				["max-height", (view.layout.height) + "px"]
+			]
+	]);
+	return new RSVP.Promise(function(resolve, reject){
+		// Wait to apply
+		setTimeout(function() {
+			resolve();
+		}, 1);
+	});
 };
 
 //-- Enable binding events to Renderer
@@ -11225,69 +11226,69 @@ var URI = require('urijs');
 var core = require('./core');
 
 function base(doc, section){
-  var base;
-  var head;
+	var base;
+	var head;
 
-  if(!doc){
-    return;
-  }
+	if(!doc){
+		return;
+	}
 
-  // head = doc.querySelector("head");
-  // base = head.querySelector("base");
-  head = core.qs(doc, "head");
-  base = core.qs(head, "base");
+	// head = doc.querySelector("head");
+	// base = head.querySelector("base");
+	head = core.qs(doc, "head");
+	base = core.qs(head, "base");
 
-  if(!base) {
-    base = doc.createElement("base");
-    head.insertBefore(base, head.firstChild);
-  }
+	if(!base) {
+		base = doc.createElement("base");
+		head.insertBefore(base, head.firstChild);
+	}
 
-  base.setAttribute("href", section.url);
+	base.setAttribute("href", section.url);
 }
 
 function canonical(doc, section){
-  var head;
-  var link;
-  var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
+	var head;
+	var link;
+	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
 
-  if(!doc){
-    return;
-  }
+	if(!doc){
+		return;
+	}
 
-  head = core.qs(doc, "head");
-  link = core.qs(head, "link[rel='canonical']");
+	head = core.qs(doc, "head");
+	link = core.qs(head, "link[rel='canonical']");
 
-  if (link) {
-    link.setAttribute("href", url);
-  } else {
-    link = doc.createElement("link");
-    link.setAttribute("rel", "canonical");
-    link.setAttribute("href", url);
-    head.appendChild(link);
-  }
+	if (link) {
+		link.setAttribute("href", url);
+	} else {
+		link = doc.createElement("link");
+		link.setAttribute("rel", "canonical");
+		link.setAttribute("href", url);
+		head.appendChild(link);
+	}
 }
 
 function links(view, renderer) {
 
-  var links = view.document.querySelectorAll("a[href]");
-  var replaceLinks = function(link){
-    var href = link.getAttribute("href");
+	var links = view.document.querySelectorAll("a[href]");
+	var replaceLinks = function(link){
+		var href = link.getAttribute("href");
 
-    if(href.indexOf("mailto:") === 0){
-      return;
-    }
+		if(href.indexOf("mailto:") === 0){
+			return;
+		}
 
-    var linkUri = URI(href);
-    var absolute = linkUri.absoluteTo(view.section.url);
-    var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		var linkUri = URI(href);
+		var absolute = linkUri.absoluteTo(view.section.url);
+		var relative = absolute.relativeTo(this.book.baseUrl).toString();
 
-    if(linkUri.protocol()){
+		if(linkUri.protocol()){
 
-      link.setAttribute("target", "_blank");
+			link.setAttribute("target", "_blank");
 
-    }else{
-      /*
-      if(baseDirectory) {
+		}else{
+			/*
+			if(baseDirectory) {
 				// We must ensure that the file:// protocol is preserved for
 				// local file links, as in certain contexts (such as under
 				// Titanium), file links without the file:// protocol will not
@@ -11300,40 +11301,40 @@ function links(view, renderer) {
 			} else {
 				relative = href;
 			}
-      */
+			*/
 
-      if(linkUri.fragment()) {
-        // do nothing with fragment yet
-      } else {
-        link.onclick = function(){
-          renderer.display(relative);
-          return false;
-        };
-      }
+			if(linkUri.fragment()) {
+				// do nothing with fragment yet
+			} else {
+				link.onclick = function(){
+					renderer.display(relative);
+					return false;
+				};
+			}
 
-    }
-  }.bind(this);
+		}
+	}.bind(this);
 
-  for (var i = 0; i < links.length; i++) {
-    replaceLinks(links[i]);
-  }
+	for (var i = 0; i < links.length; i++) {
+		replaceLinks(links[i]);
+	}
 
 
 };
 
 function substitute(content, urls, replacements) {
-  urls.forEach(function(url, i){
-    if (url && replacements[i]) {
-      content = content.replace(new RegExp(url, 'g'), replacements[i]);
-    }
-  });
-  return content;
+	urls.forEach(function(url, i){
+		if (url && replacements[i]) {
+			content = content.replace(new RegExp(url, 'g'), replacements[i]);
+		}
+	});
+	return content;
 }
 module.exports = {
-  'base': base,
-  'canonical' : canonical,
-  'links': links,
-  'substitute': substitute
+	'base': base,
+	'canonical' : canonical,
+	'links': links,
+	'substitute': substitute
 };
 
 },{"./core":10,"urijs":7}],23:[function(require,module,exports){
@@ -11342,55 +11343,55 @@ var URI = require('urijs');
 var core = require('./core');
 
 function request(url, type, withCredentials, headers) {
-  var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
-  var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-  var uri;
+	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
+	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+	var uri;
 
-  var deferred = new RSVP.defer();
+	var deferred = new RSVP.defer();
 
-  var xhr = new XMLHttpRequest();
+	var xhr = new XMLHttpRequest();
 
-  //-- Check from PDF.js:
-  //   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
-  var xhrPrototype = XMLHttpRequest.prototype;
+	//-- Check from PDF.js:
+	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+	var xhrPrototype = XMLHttpRequest.prototype;
 
-  var header;
+	var header;
 
-  if (!('overrideMimeType' in xhrPrototype)) {
-    // IE10 might have response, but not overrideMimeType
-    Object.defineProperty(xhrPrototype, 'overrideMimeType', {
-      value: function xmlHttpRequestOverrideMimeType(mimeType) {}
-    });
-  }
-  if(withCredentials) {
-    xhr.withCredentials = true;
-  }
+	if (!('overrideMimeType' in xhrPrototype)) {
+		// IE10 might have response, but not overrideMimeType
+		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
+			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+		});
+	}
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
 
-  xhr.onreadystatechange = handler;
-  xhr.onerror = err;
+	xhr.onreadystatechange = handler;
+	xhr.onerror = err;
 
-  xhr.open("GET", url, true);
+	xhr.open("GET", url, true);
 
-  for(header in headers) {
-    xhr.setRequestHeader(header, headers[header]);
-  }
+	for(header in headers) {
+		xhr.setRequestHeader(header, headers[header]);
+	}
 
-  if(type == "json") {
-    xhr.setRequestHeader("Accept", "application/json");
-  }
+	if(type == "json") {
+		xhr.setRequestHeader("Accept", "application/json");
+	}
 
-  // If type isn't set, determine it from the file extension
+	// If type isn't set, determine it from the file extension
 	if(!type) {
 		uri = URI(url);
 		type = uri.suffix();
 	}
 
-  if(type == 'blob'){
-    xhr.responseType = BLOB_RESPONSE;
-  }
+	if(type == 'blob'){
+		xhr.responseType = BLOB_RESPONSE;
+	}
 
 
-  if(core.isXml(type)) {
+	if(core.isXml(type)) {
 		// xhr.responseType = "document";
 		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
@@ -11401,89 +11402,89 @@ function request(url, type, withCredentials, headers) {
 
 	if(type == 'html' || type == 'htm') {
 		// xhr.responseType = "document";
- 	}
+	 }
 
-  if(type == "binary") {
-    xhr.responseType = "arraybuffer";
-  }
+	if(type == "binary") {
+		xhr.responseType = "arraybuffer";
+	}
 
-  xhr.send();
+	xhr.send();
 
-  function err(e) {
-    console.error(e);
-    deferred.reject(e);
-  }
+	function err(e) {
+		console.error(e);
+		deferred.reject(e);
+	}
 
-  function handler() {
-    if (this.readyState === XMLHttpRequest.DONE) {
+	function handler() {
+		if (this.readyState === XMLHttpRequest.DONE) {
 
-      if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
-        var r;
+			if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
+				var r;
 
-        if (!this.response && !this.responseXML) {
-          deferred.reject({
-            status: this.status,
-            message : "Empty Response",
-            stack : new Error().stack
-          });
-          return deferred.promise;
-        }
+				if (!this.response && !this.responseXML) {
+					deferred.reject({
+						status: this.status,
+						message : "Empty Response",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
 
-        if (this.status === 403) {
-          deferred.reject({
-            status: this.status,
-            response: this.response,
-            message : "Forbidden",
-            stack : new Error().stack
-          });
-          return deferred.promise;
-        }
+				if (this.status === 403) {
+					deferred.reject({
+						status: this.status,
+						response: this.response,
+						message : "Forbidden",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
 
-        if((this.responseType == '' || this.responseType == 'document')
-            && this.responseXML){
-          r = this.responseXML;
-        } else
-        if(core.isXml(type)){
-          // xhr.overrideMimeType('text/xml'); // for OPF parsing
-          // If this.responseXML wasn't set, try to parse using a DOMParser from text
-          r = core.parse(this.response, "text/xml");
-        }else
-        if(type == 'xhtml'){
-          r = core.parse(this.response, "application/xhtml+xml");
-        }else
-        if(type == 'html' || type == 'htm'){
-          r = core.parse(this.response, "text/html");
-        }else
-        if(type == 'json'){
-          r = JSON.parse(this.response);
-        }else
-        if(type == 'blob'){
+				if((this.responseType == '' || this.responseType == 'document')
+						&& this.responseXML){
+					r = this.responseXML;
+				} else
+				if(core.isXml(type)){
+					// xhr.overrideMimeType('text/xml'); // for OPF parsing
+					// If this.responseXML wasn't set, try to parse using a DOMParser from text
+					r = core.parse(this.response, "text/xml");
+				}else
+				if(type == 'xhtml'){
+					r = core.parse(this.response, "application/xhtml+xml");
+				}else
+				if(type == 'html' || type == 'htm'){
+					r = core.parse(this.response, "text/html");
+				}else
+				if(type == 'json'){
+					r = JSON.parse(this.response);
+				}else
+				if(type == 'blob'){
 
-          if(supportsURL) {
-            r = this.response;
-          } else {
-            //-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-            r = new Blob([this.response]);
-          }
+					if(supportsURL) {
+						r = this.response;
+					} else {
+						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+						r = new Blob([this.response]);
+					}
 
-        }else{
-          r = this.response;
-        }
+				}else{
+					r = this.response;
+				}
 
-        deferred.resolve(r);
-      } else {
+				deferred.resolve(r);
+			} else {
 
-        deferred.reject({
-          status: this.status,
-          message : this.response,
-          stack : new Error().stack
-        });
+				deferred.reject({
+					status: this.status,
+					message : this.response,
+					stack : new Error().stack
+				});
 
-      }
-    }
-  }
+			}
+		}
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 };
 
 module.exports = request;
@@ -11496,110 +11497,110 @@ var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
 
 function Section(item, hooks){
-    this.idref = item.idref;
-    this.linear = item.linear;
-    this.properties = item.properties;
-    this.index = item.index;
-    this.href = item.href;
-    this.url = item.url;
-    this.next = item.next;
-    this.prev = item.prev;
+		this.idref = item.idref;
+		this.linear = item.linear;
+		this.properties = item.properties;
+		this.index = item.index;
+		this.href = item.href;
+		this.url = item.url;
+		this.next = item.next;
+		this.prev = item.prev;
 
-    this.cfiBase = item.cfiBase;
+		this.cfiBase = item.cfiBase;
 
-    if (hooks) {
-      this.hooks = hooks;
-    } else {
-      this.hooks = {};
-      this.hooks.serialize = new Hook(this);
-      this.hooks.content = new Hook(this);
-    }
+		if (hooks) {
+			this.hooks = hooks;
+		} else {
+			this.hooks = {};
+			this.hooks.serialize = new Hook(this);
+			this.hooks.content = new Hook(this);
+		}
 
 };
 
 
 Section.prototype.load = function(_request){
-  var request = _request || this.request || require('./request');
-  var loading = new RSVP.defer();
-  var loaded = loading.promise;
+	var request = _request || this.request || require('./request');
+	var loading = new RSVP.defer();
+	var loaded = loading.promise;
 
-  if(this.contents) {
-    loading.resolve(this.contents);
-  } else {
-    request(this.url)
-      .then(function(xml){
-        var base;
-        var directory = URI(this.url).directory();
+	if(this.contents) {
+		loading.resolve(this.contents);
+	} else {
+		request(this.url)
+			.then(function(xml){
+				var base;
+				var directory = URI(this.url).directory();
 
-        this.document = xml;
-        this.contents = xml.documentElement;
+				this.document = xml;
+				this.contents = xml.documentElement;
 
-        return this.hooks.content.trigger(this.document, this);
-      }.bind(this))
-      .then(function(){
-        loading.resolve(this.contents);
-      }.bind(this))
-      .catch(function(error){
-        loading.reject(error);
-      });
-  }
+				return this.hooks.content.trigger(this.document, this);
+			}.bind(this))
+			.then(function(){
+				loading.resolve(this.contents);
+			}.bind(this))
+			.catch(function(error){
+				loading.reject(error);
+			});
+	}
 
-  return loaded;
+	return loaded;
 };
 
 Section.prototype.base = function(_document){
-    var task = new RSVP.defer();
-    var base = _document.createElement("base"); // TODO: check if exists
-    var head;
-    console.log(window.location.origin + "/" +this.url);
+		var task = new RSVP.defer();
+		var base = _document.createElement("base"); // TODO: check if exists
+		var head;
+		console.log(window.location.origin + "/" +this.url);
 
-    base.setAttribute("href", window.location.origin + "/" +this.url);
+		base.setAttribute("href", window.location.origin + "/" +this.url);
 
-    if(_document) {
-      head = _document.querySelector("head");
-    }
-    if(head) {
-      head.insertBefore(base, head.firstChild);
-      task.resolve();
-    } else {
-      task.reject(new Error("No head to insert into"));
-    }
+		if(_document) {
+			head = _document.querySelector("head");
+		}
+		if(head) {
+			head.insertBefore(base, head.firstChild);
+			task.resolve();
+		} else {
+			task.reject(new Error("No head to insert into"));
+		}
 
 
-    return task.promise;
+		return task.promise;
 };
 
 Section.prototype.beforeSectionLoad = function(){
-  // Stub for a hook - replace me for now
+	// Stub for a hook - replace me for now
 };
 
 Section.prototype.render = function(_request){
-  var rendering = new RSVP.defer();
-  var rendered = rendering.promise;
-  this.output; // TODO: better way to return this from hooks?
+	var rendering = new RSVP.defer();
+	var rendered = rendering.promise;
+	this.output; // TODO: better way to return this from hooks?
 
-  this.load(_request).
-    then(function(contents){
-      var serializer;
+	this.load(_request).
+		then(function(contents){
+			var serializer;
 
-      if (typeof XMLSerializer === "undefined") {
-        XMLSerializer = require('xmldom').XMLSerializer;
-      }
-      serializer = new XMLSerializer();
-      this.output = serializer.serializeToString(contents);
-      return this.output;
-    }.bind(this)).
-    then(function(){
-      return this.hooks.serialize.trigger(this.output, this);
-    }.bind(this)).
-    then(function(){
-      rendering.resolve(this.output);
-    }.bind(this))
-    .catch(function(error){
-      rendering.reject(error);
-    });
+			if (typeof XMLSerializer === "undefined") {
+				XMLSerializer = require('xmldom').XMLSerializer;
+			}
+			serializer = new XMLSerializer();
+			this.output = serializer.serializeToString(contents);
+			return this.output;
+		}.bind(this)).
+		then(function(){
+			return this.hooks.serialize.trigger(this.output, this);
+		}.bind(this)).
+		then(function(){
+			rendering.resolve(this.output);
+		}.bind(this))
+		.catch(function(error){
+			rendering.reject(error);
+		});
 
-  return rendered;
+	return rendered;
 };
 
 Section.prototype.find = function(_query){
@@ -11613,35 +11614,35 @@ Section.prototype.find = function(_query){
 * Returns: Object with layout properties
 */
 Section.prototype.reconcileLayoutSettings = function(global){
-  //-- Get the global defaults
-  var settings = {
-    layout : global.layout,
-    spread : global.spread,
-    orientation : global.orientation
-  };
+	//-- Get the global defaults
+	var settings = {
+		layout : global.layout,
+		spread : global.spread,
+		orientation : global.orientation
+	};
 
-  //-- Get the chapter's display type
-  this.properties.forEach(function(prop){
-    var rendition = prop.replace("rendition:", '');
-    var split = rendition.indexOf("-");
-    var property, value;
+	//-- Get the chapter's display type
+	this.properties.forEach(function(prop){
+		var rendition = prop.replace("rendition:", '');
+		var split = rendition.indexOf("-");
+		var property, value;
 
-    if(split != -1){
-      property = rendition.slice(0, split);
-      value = rendition.slice(split+1);
+		if(split != -1){
+			property = rendition.slice(0, split);
+			value = rendition.slice(split+1);
 
-      settings[property] = value;
-    }
-  });
+			settings[property] = value;
+		}
+	});
  return settings;
 };
 
 Section.prototype.cfiFromRange = function(_range) {
-  return new EpubCFI(_range, this.cfiBase).toString();
+	return new EpubCFI(_range, this.cfiBase).toString();
 };
 
 Section.prototype.cfiFromElement = function(el) {
-  return new EpubCFI(el, this.cfiBase).toString();
+	return new EpubCFI(el, this.cfiBase).toString();
 };
 
 module.exports = Section;
@@ -11655,64 +11656,64 @@ var Section = require('./section');
 var replacements = require('./replacements');
 
 function Spine(_request){
-  this.request = _request;
-  this.spineItems = [];
-  this.spineByHref = {};
-  this.spineById = {};
+	this.request = _request;
+	this.spineItems = [];
+	this.spineByHref = {};
+	this.spineById = {};
 
-  this.hooks = {};
-  this.hooks.serialize = new Hook();
-  this.hooks.content = new Hook();
+	this.hooks = {};
+	this.hooks.serialize = new Hook();
+	this.hooks.content = new Hook();
 
-  // Register replacements
-  this.hooks.content.register(replacements.base);
-  this.hooks.content.register(replacements.canonical);
+	// Register replacements
+	this.hooks.content.register(replacements.base);
+	this.hooks.content.register(replacements.canonical);
 
-  this.epubcfi = new EpubCFI();
+	this.epubcfi = new EpubCFI();
 
-  this.loaded = false;
+	this.loaded = false;
 };
 
 Spine.prototype.load = function(_package) {
 
-  this.items = _package.spine;
-  this.manifest = _package.manifest;
-  this.spineNodeIndex = _package.spineNodeIndex;
-  this.baseUrl = _package.baseUrl || '';
-  this.length = this.items.length;
+	this.items = _package.spine;
+	this.manifest = _package.manifest;
+	this.spineNodeIndex = _package.spineNodeIndex;
+	this.baseUrl = _package.baseUrl || '';
+	this.length = this.items.length;
 
-  this.items.forEach(function(item, index){
-    var href, url;
-    var manifestItem = this.manifest[item.idref];
-    var spineItem;
+	this.items.forEach(function(item, index){
+		var href, url;
+		var manifestItem = this.manifest[item.idref];
+		var spineItem;
 
-    item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
+		item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
-    if(manifestItem) {
-      item.href = manifestItem.href;
-      item.url = this.baseUrl + item.href;
+		if(manifestItem) {
+			item.href = manifestItem.href;
+			item.url = this.baseUrl + item.href;
 
-      if(manifestItem.properties.length){
-        item.properties.push.apply(item.properties, manifestItem.properties);
-      }
-    }
+			if(manifestItem.properties.length){
+				item.properties.push.apply(item.properties, manifestItem.properties);
+			}
+		}
 
-    // if(index > 0) {
-      item.prev = function(){ return this.get(index-1); }.bind(this);
-    // }
+		// if(index > 0) {
+			item.prev = function(){ return this.get(index-1); }.bind(this);
+		// }
 
-    // if(index+1 < this.items.length) {
-      item.next = function(){ return this.get(index+1); }.bind(this);
-    // }
+		// if(index+1 < this.items.length) {
+			item.next = function(){ return this.get(index+1); }.bind(this);
+		// }
 
-    spineItem = new Section(item, this.hooks);
+		spineItem = new Section(item, this.hooks);
 
-    this.append(spineItem);
+		this.append(spineItem);
 
 
-  }.bind(this));
+	}.bind(this));
 
-  this.loaded = true;
+	this.loaded = true;
 };
 
 // book.spine.get();
@@ -11720,47 +11721,47 @@ Spine.prototype.load = function(_package) {
 // book.spine.get("chap1.html");
 // book.spine.get("#id1234");
 Spine.prototype.get = function(target) {
-  var index = 0;
+	var index = 0;
 
-  if(this.epubcfi.isCfiString(target)) {
-    cfi = new EpubCFI(target);
-    index = cfi.spinePos;
-  } else if(target && (typeof target === "number" || isNaN(target) === false)){
-    index = target;
-  } else if(target && target.indexOf("#") === 0) {
-    index = this.spineById[target.substring(1)];
-  } else if(target) {
-    // Remove fragments
-    target = target.split("#")[0];
-    index = this.spineByHref[target];
-  }
+	if(this.epubcfi.isCfiString(target)) {
+		cfi = new EpubCFI(target);
+		index = cfi.spinePos;
+	} else if(target && (typeof target === "number" || isNaN(target) === false)){
+		index = target;
+	} else if(target && target.indexOf("#") === 0) {
+		index = this.spineById[target.substring(1)];
+	} else if(target) {
+		// Remove fragments
+		target = target.split("#")[0];
+		index = this.spineByHref[target];
+	}
 
-  return this.spineItems[index] || null;
+	return this.spineItems[index] || null;
 };
 
 Spine.prototype.append = function(section) {
-  var index = this.spineItems.length;
-  section.index = index;
+	var index = this.spineItems.length;
+	section.index = index;
 
-  this.spineItems.push(section);
+	this.spineItems.push(section);
 
-  this.spineByHref[section.href] = index;
-  this.spineById[section.idref] = index;
+	this.spineByHref[section.href] = index;
+	this.spineById[section.idref] = index;
 
-  return index;
+	return index;
 };
 
 Spine.prototype.prepend = function(section) {
-  var index = this.spineItems.unshift(section);
-  this.spineByHref[section.href] = 0;
-  this.spineById[section.idref] = 0;
+	var index = this.spineItems.unshift(section);
+	this.spineByHref[section.href] = 0;
+	this.spineById[section.idref] = 0;
 
-  // Re-index
-  this.spineItems.forEach(function(item, index){
-    item.index = index;
-  });
+	// Re-index
+	this.spineItems.forEach(function(item, index){
+		item.index = index;
+	});
 
-  return 0;
+	return 0;
 };
 
 Spine.prototype.insert = function(section, index) {
@@ -11768,14 +11769,14 @@ Spine.prototype.insert = function(section, index) {
 };
 
 Spine.prototype.remove = function(section) {
-  var index = this.spineItems.indexOf(section);
+	var index = this.spineItems.indexOf(section);
 
-  if(index > -1) {
-    delete this.spineByHref[section.href];
-    delete this.spineById[section.idref];
+	if(index > -1) {
+		delete this.spineByHref[section.href];
+		delete this.spineById[section.idref];
 
-    return this.spineItems.splice(index, 1);
-  }
+		return this.spineItems.splice(index, 1);
+	}
 };
 
 Spine.prototype.each = function() {
@@ -11807,7 +11808,7 @@ Stage.prototype.create = function(options){
 	var height  = options.height;// !== false ? options.height : "100%";
 	var width   = options.width;// !== false ? options.width : "100%";
 	var overflow  = options.overflow || false;
- 	var axis = options.axis || "vertical";
+	var axis = options.axis || "vertical";
 
 	if(options.height && core.isNumber(options.height)) {
 		height = options.height + "px";
@@ -12010,7 +12011,7 @@ Stage.prototype.addStyleRules = function(selector, rulesArray){
 		}
 	})
 
-  this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+	this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 }
 
 
@@ -12026,100 +12027,100 @@ var mime = require('../libs/mime/mime');
 
 function Unarchive() {
 
-  this.checkRequirements();
-  this.urlCache = {};
+	this.checkRequirements();
+	this.urlCache = {};
 
 }
 
 Unarchive.prototype.checkRequirements = function(callback){
-  try {
-    if (typeof JSZip !== 'undefined') {
-      this.zip = new JSZip();
-    } else {
-      JSZip = require('jszip');
-      this.zip = new JSZip();
-    }
-  } catch (e) {
-    console.error("JSZip lib not loaded");
-  }
+	try {
+		if (typeof JSZip !== 'undefined') {
+			this.zip = new JSZip();
+		} else {
+			JSZip = require('jszip');
+			this.zip = new JSZip();
+		}
+	} catch (e) {
+		console.error("JSZip lib not loaded");
+	}
 };
 
 Unarchive.prototype.open = function(zipUrl, isBase64){
 	if (zipUrl instanceof ArrayBuffer || isBase64) {
-    return this.zip.loadAsync(zipUrl, {"base64": isBase64});
+		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
 	} else {
 		return request(zipUrl, "binary")
-      .then(function(data){
-        return this.zip.loadAsync(data);
-		  }.bind(this));
+			.then(function(data){
+				return this.zip.loadAsync(data);
+			}.bind(this));
 	}
 };
 
 Unarchive.prototype.request = function(url, type){
-  var deferred = new RSVP.defer();
-  var response;
-  var r;
+	var deferred = new RSVP.defer();
+	var response;
+	var r;
 
-  // If type isn't set, determine it from the file extension
+	// If type isn't set, determine it from the file extension
 	if(!type) {
 		uri = URI(url);
 		type = uri.suffix();
 	}
 
-  if(type == 'blob'){
-    response = this.getBlob(url);
-  } else {
-    response = this.getText(url);
-  }
+	if(type == 'blob'){
+		response = this.getBlob(url);
+	} else {
+		response = this.getText(url);
+	}
 
-  if (response) {
-    response.then(function (r) {
-      result = this.handleResponse(r, type);
-      deferred.resolve(result);
-    }.bind(this));
-  } else {
-    deferred.reject({
-      message : "File not found in the epub: " + url,
-      stack : new Error().stack
-    });
-  }
-  return deferred.promise;
+	if (response) {
+		response.then(function (r) {
+			result = this.handleResponse(r, type);
+			deferred.resolve(result);
+		}.bind(this));
+	} else {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
+	return deferred.promise;
 };
 
 Unarchive.prototype.handleResponse = function(response, type){
-  var r;
+	var r;
 
-  if(type == "json") {
-    r = JSON.parse(response);
-  }
-  else
-  if(core.isXml(type)) {
-    r = core.parse(response, "text/xml");
+	if(type == "json") {
+		r = JSON.parse(response);
 	}
-  else
+	else
+	if(core.isXml(type)) {
+		r = core.parse(response, "text/xml");
+	}
+	else
 	if(type == 'xhtml') {
-    r = core.parse(response, "application/xhtml+xml");
+		r = core.parse(response, "application/xhtml+xml");
 	}
-  else
+	else
 	if(type == 'html' || type == 'htm') {
-    r = core.parse(response, "text/html");
- 	} else {
- 	  r = response;
- 	}
+		r = core.parse(response, "text/html");
+	 } else {
+		 r = response;
+	 }
 
-  return r;
+	return r;
 };
 
 Unarchive.prototype.getBlob = function(url, _mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
-  var mimeType;
+	var mimeType;
 
 	if(entry) {
-    mimeType = _mimeType || mime.lookup(entry.name);
-    return entry.async("uint8array").then(function(uint8array) {
-      return new Blob([uint8array], {type : mimeType});
-    });
+		mimeType = _mimeType || mime.lookup(entry.name);
+		return entry.async("uint8array").then(function(uint8array) {
+			return new Blob([uint8array], {type : mimeType});
+		});
 	}
 };
 
@@ -12128,22 +12129,22 @@ Unarchive.prototype.getText = function(url, encoding){
 	var entry = this.zip.file(decodededUrl);
 
 	if(entry) {
-    return entry.async("string").then(function(text) {
-      return text;
-    });
+		return entry.async("string").then(function(text) {
+			return text;
+		});
 	}
 };
 
 Unarchive.prototype.getBase64 = function(url, _mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
-  var mimeType;
+	var mimeType;
 
 	if(entry) {
-    mimeType = _mimeType || mime.lookup(entry.name);
-    return entry.async("base64").then(function(data) {
-      return "data:" + mimeType + ";base64," + data;
-    });
+		mimeType = _mimeType || mime.lookup(entry.name);
+		return entry.async("base64").then(function(data) {
+			return "data:" + mimeType + ";base64," + data;
+		});
 	}
 };
 
@@ -12151,51 +12152,51 @@ Unarchive.prototype.createUrl = function(url, options){
 	var deferred = new RSVP.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
-  var blob;
+	var blob;
 	var response;
-  var useBase64 = options && options.base64;
+	var useBase64 = options && options.base64;
 
 	if(url in this.urlCache) {
 		deferred.resolve(this.urlCache[url]);
 		return deferred.promise;
 	}
 
-  if (useBase64) {
-    response = this.getBase64(url);
+	if (useBase64) {
+		response = this.getBase64(url);
 
-    if (response) {
-      response.then(function(tempUrl) {
+		if (response) {
+			response.then(function(tempUrl) {
 
-        this.urlCache[url] = tempUrl;
-        deferred.resolve(tempUrl);
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
 
-      }.bind(this));
+			}.bind(this));
 
-    }
+		}
 
-  } else {
+	} else {
 
-    response = this.getBlob(url);
+		response = this.getBlob(url);
 
-    if (response) {
-      response.then(function(blob) {
+		if (response) {
+			response.then(function(blob) {
 
-        tempUrl = _URL.createObjectURL(blob);
-        this.urlCache[url] = tempUrl;
-        deferred.resolve(tempUrl);
+				tempUrl = _URL.createObjectURL(blob);
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
 
-      }.bind(this));
+			}.bind(this));
 
-    }
-  }
+		}
+	}
 
 
-  if (!response) {
-    deferred.reject({
-      message : "File not found in the epub: " + url,
-      stack : new Error().stack
-    });
-  }
+	if (!response) {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
 
 	return deferred.promise;
 };
@@ -12210,10 +12211,10 @@ module.exports = Unarchive;
 
 },{"../libs/mime/mime":1,"./core":10,"./request":23,"jszip":"jszip","rsvp":5,"urijs":7}],28:[function(require,module,exports){
 function Views(container) {
-  this.container = container;
-  this._views = [];
-  this.length = 0;
-  this.hidden = false;
+	this.container = container;
+	this._views = [];
+	this.length = 0;
+	this.hidden = false;
 };
 
 Views.prototype.all = function() {
@@ -12242,35 +12243,35 @@ Views.prototype.get = function(i) {
 
 Views.prototype.append = function(view){
 	this._views.push(view);
-  if(this.container){
-    this.container.appendChild(view.element);
-  }
-  this.length++;
-  return view;
+	if(this.container){
+		this.container.appendChild(view.element);
+	}
+	this.length++;
+	return view;
 };
 
 Views.prototype.prepend = function(view){
 	this._views.unshift(view);
-  if(this.container){
-    this.container.insertBefore(view.element, this.container.firstChild);
-  }
-  this.length++;
-  return view;
+	if(this.container){
+		this.container.insertBefore(view.element, this.container.firstChild);
+	}
+	this.length++;
+	return view;
 };
 
 Views.prototype.insert = function(view, index) {
 	this._views.splice(index, 0, view);
 
-  if(this.container){
-  	if(index < this.container.children.length){
-  		this.container.insertBefore(view.element, this.container.children[index]);
-  	} else {
-  		this.container.appendChild(view.element);
-  	}
-  }
+	if(this.container){
+		if(index < this.container.children.length){
+			this.container.insertBefore(view.element, this.container.children[index]);
+		} else {
+			this.container.appendChild(view.element);
+		}
+	}
 
-  this.length++;
-  return view;
+	this.length++;
+	return view;
 };
 
 Views.prototype.remove = function(view) {
@@ -12283,7 +12284,7 @@ Views.prototype.remove = function(view) {
 
 	this.destroy(view);
 
-  this.length--;
+	this.length--;
 };
 
 Views.prototype.destroy = function(view) {
@@ -12293,9 +12294,9 @@ Views.prototype.destroy = function(view) {
 		view.destroy();
 	}
 
-  if(this.container){
-	   this.container.removeChild(view.element);
-  }
+	if(this.container){
+		 this.container.removeChild(view.element);
+	}
 	view = null;
 };
 
@@ -12307,72 +12308,72 @@ Views.prototype.each = function() {
 
 Views.prototype.clear = function(){
 	// Remove all views
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  if(!this.length) return;
+	if(!this.length) return;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
 		this.destroy(view);
-  }
+	}
 
-  this._views = [];
-  this.length = 0;
+	this._views = [];
+	this.length = 0;
 };
 
 Views.prototype.find = function(section){
 
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
 		if(view.displayed && view.section.index == section.index) {
 			return view;
 		}
-  }
+	}
 
 };
 
 Views.prototype.displayed = function(){
-  var displayed = [];
-  var view;
-  var len = this.length;
+	var displayed = [];
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      displayed.push(view);
-    }
-  }
-  return displayed;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			displayed.push(view);
+		}
+	}
+	return displayed;
 };
 
 Views.prototype.show = function(){
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      view.show();
-    }
-  }
-  this.hidden = false;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.show();
+		}
+	}
+	this.hidden = false;
 };
 
 Views.prototype.hide = function(){
-  var view;
-  var len = this.length;
+	var view;
+	var len = this.length;
 
-  for (var i = 0; i < len; i++) {
-    view = this._views[i];
-    if(view.displayed){
-      view.hide();
-    }
-  }
-  this.hidden = true;
+	for (var i = 0; i < len; i++) {
+		view = this._views[i];
+		if(view.displayed){
+			view.hide();
+		}
+	}
+	this.hidden = true;
 };
 
 module.exports = Views;
@@ -12384,110 +12385,110 @@ var EpubCFI = require('../epubcfi');
 var Contents = require('../contents');
 
 function IframeView(section, options) {
-  this.settings = core.extend({
-    ignoreClass : '',
-    axis: 'vertical',
-    width: 0,
-    height: 0,
-    layout: undefined,
-    globalLayoutProperties: {},
-  }, options || {});
+	this.settings = core.extend({
+		ignoreClass : '',
+		axis: 'vertical',
+		width: 0,
+		height: 0,
+		layout: undefined,
+		globalLayoutProperties: {},
+	}, options || {});
 
-  this.id = "epubjs-view-" + core.uuid();
-  this.section = section;
-  this.index = section.index;
+	this.id = "epubjs-view-" + core.uuid();
+	this.section = section;
+	this.index = section.index;
 
-  this.element = this.container(this.settings.axis);
+	this.element = this.container(this.settings.axis);
 
-  this.added = false;
-  this.displayed = false;
-  this.rendered = false;
+	this.added = false;
+	this.displayed = false;
+	this.rendered = false;
 
-  this.width  = this.settings.width;
-  this.height = this.settings.height;
+	this.width  = this.settings.width;
+	this.height = this.settings.height;
 
-  this.fixedWidth  = 0;
-  this.fixedHeight = 0;
+	this.fixedWidth  = 0;
+	this.fixedHeight = 0;
 
-  // Blank Cfi for Parsing
-  this.epubcfi = new EpubCFI();
+	// Blank Cfi for Parsing
+	this.epubcfi = new EpubCFI();
 
-  this.layout = this.settings.layout;
-  // Dom events to listen for
-  // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+	this.layout = this.settings.layout;
+	// Dom events to listen for
+	// this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 };
 
 IframeView.prototype.container = function(axis) {
-  var element = document.createElement('div');
+	var element = document.createElement('div');
 
-  element.classList.add("epub-view");
+	element.classList.add("epub-view");
 
-  // this.element.style.minHeight = "100px";
-  element.style.height = "0px";
-  element.style.width = "0px";
-  element.style.overflow = "hidden";
+	// this.element.style.minHeight = "100px";
+	element.style.height = "0px";
+	element.style.width = "0px";
+	element.style.overflow = "hidden";
 
-  if(axis && axis == "horizontal"){
-    element.style.display = "inline-block";
-  } else {
-    element.style.display = "block";
-  }
+	if(axis && axis == "horizontal"){
+		element.style.display = "inline-block";
+	} else {
+		element.style.display = "block";
+	}
 
-  return element;
+	return element;
 };
 
 IframeView.prototype.create = function() {
 
-  if(this.iframe) {
-    return this.iframe;
-  }
+	if(this.iframe) {
+		return this.iframe;
+	}
 
-  if(!this.element) {
-    this.element = this.createContainer();
-  }
+	if(!this.element) {
+		this.element = this.createContainer();
+	}
 
-  this.iframe = document.createElement('iframe');
-  this.iframe.id = this.id;
-  this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
-  this.iframe.style.overflow = "hidden";
-  this.iframe.seamless = "seamless";
-  // Back up if seamless isn't supported
-  this.iframe.style.border = "none";
+	this.iframe = document.createElement('iframe');
+	this.iframe.id = this.id;
+	this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
+	this.iframe.style.overflow = "hidden";
+	this.iframe.seamless = "seamless";
+	// Back up if seamless isn't supported
+	this.iframe.style.border = "none";
 
-  this.resizing = true;
+	this.resizing = true;
 
-  // this.iframe.style.display = "none";
-  this.element.style.visibility = "hidden";
-  this.iframe.style.visibility = "hidden";
+	// this.iframe.style.display = "none";
+	this.element.style.visibility = "hidden";
+	this.iframe.style.visibility = "hidden";
 
-  this.iframe.style.width = "0";
-  this.iframe.style.height = "0";
-  this._width = 0;
-  this._height = 0;
+	this.iframe.style.width = "0";
+	this.iframe.style.height = "0";
+	this._width = 0;
+	this._height = 0;
 
-  this.element.appendChild(this.iframe);
-  this.added = true;
+	this.element.appendChild(this.iframe);
+	this.added = true;
 
-  this.elementBounds = core.bounds(this.element);
+	this.elementBounds = core.bounds(this.element);
 
-  // if(width || height){
-  //   this.resize(width, height);
-  // } else if(this.width && this.height){
-  //   this.resize(this.width, this.height);
-  // } else {
-  //   this.iframeBounds = core.bounds(this.iframe);
-  // }
+	// if(width || height){
+	//   this.resize(width, height);
+	// } else if(this.width && this.height){
+	//   this.resize(this.width, this.height);
+	// } else {
+	//   this.iframeBounds = core.bounds(this.iframe);
+	// }
 
-  // Firefox has trouble with baseURI and srcdoc
-  // TODO: Disable for now in firefox
+	// Firefox has trouble with baseURI and srcdoc
+	// TODO: Disable for now in firefox
 
-  if(!!("srcdoc" in this.iframe)) {
-    this.supportsSrcdoc = true;
-  } else {
-    this.supportsSrcdoc = false;
-  }
+	if(!!("srcdoc" in this.iframe)) {
+		this.supportsSrcdoc = true;
+	} else {
+		this.supportsSrcdoc = false;
+	}
 
-  return this.iframe;
+	return this.iframe;
 };
 
 IframeView.prototype.render = function(request, show) {
@@ -12496,11 +12497,11 @@ IframeView.prototype.render = function(request, show) {
 	this.create();
 
 	// Fit to size of the container, apply padding
-  this.size();
+	this.size();
 
-  if(!this.sectionRender) {
-    this.sectionRender = this.section.render(request);
-  }
+	if(!this.sectionRender) {
+		this.sectionRender = this.section.render(request);
+	}
 
 	// Render Chain
 	return this.sectionRender
@@ -12522,14 +12523,14 @@ IframeView.prototype.render = function(request, show) {
 		// }.bind(this))
 		.then(function(){
 
-      // apply the layout function to the contents
-      this.settings.layout.format(this.contents);
+			// apply the layout function to the contents
+			this.settings.layout.format(this.contents);
 
-      // Expand the iframe to the full size of the content
-      this.expand();
+			// Expand the iframe to the full size of the content
+			this.expand();
 
-      // Listen for events that require an expansion of the iframe
-      this.addListeners();
+			// Listen for events that require an expansion of the iframe
+			this.addListeners();
 
 			if(show !== false) {
 				//this.q.enqueue(function(view){
@@ -12549,12 +12550,12 @@ IframeView.prototype.render = function(request, show) {
 
 // Determine locks base on settings
 IframeView.prototype.size = function(_width, _height) {
-  var width = _width || this.settings.width;
-  var height = _height || this.settings.height;
+	var width = _width || this.settings.width;
+	var height = _height || this.settings.height;
 
-  if(this.layout.name === "pre-paginated") {
-    this.lock("both", width, height);
-  } else if(this.settings.axis === "horizontal") {
+	if(this.layout.name === "pre-paginated") {
+		this.lock("both", width, height);
+	} else if(this.settings.axis === "horizontal") {
 		this.lock("height", width, height);
 	} else {
 		this.lock("width", width, height);
@@ -12564,41 +12565,41 @@ IframeView.prototype.size = function(_width, _height) {
 
 // Lock an axis to element dimensions, taking borders into account
 IframeView.prototype.lock = function(what, width, height) {
-  var elBorders = core.borders(this.element);
-  var iframeBorders;
+	var elBorders = core.borders(this.element);
+	var iframeBorders;
 
-  if(this.iframe) {
-    iframeBorders = core.borders(this.iframe);
-  } else {
-    iframeBorders = {width: 0, height: 0};
-  }
+	if(this.iframe) {
+		iframeBorders = core.borders(this.iframe);
+	} else {
+		iframeBorders = {width: 0, height: 0};
+	}
 
-  if(what == "width" && core.isNumber(width)){
-    this.lockedWidth = width - elBorders.width - iframeBorders.width;
-    this.resize(this.lockedWidth, width); //  width keeps ratio correct
-  }
+	if(what == "width" && core.isNumber(width)){
+		this.lockedWidth = width - elBorders.width - iframeBorders.width;
+		this.resize(this.lockedWidth, width); //  width keeps ratio correct
+	}
 
-  if(what == "height" && core.isNumber(height)){
-    this.lockedHeight = height - elBorders.height - iframeBorders.height;
-    this.resize(width, this.lockedHeight);
-  }
+	if(what == "height" && core.isNumber(height)){
+		this.lockedHeight = height - elBorders.height - iframeBorders.height;
+		this.resize(width, this.lockedHeight);
+	}
 
-  if(what === "both" &&
-     core.isNumber(width) &&
-     core.isNumber(height)){
+	if(what === "both" &&
+		 core.isNumber(width) &&
+		 core.isNumber(height)){
 
-    this.lockedWidth = width - elBorders.width - iframeBorders.width;
-    this.lockedHeight = height - elBorders.height - iframeBorders.height;
+		this.lockedWidth = width - elBorders.width - iframeBorders.width;
+		this.lockedHeight = height - elBorders.height - iframeBorders.height;
 
-    this.resize(this.lockedWidth, this.lockedHeight);
-  }
+		this.resize(this.lockedWidth, this.lockedHeight);
+	}
 
-  if(this.displayed && this.iframe) {
+	if(this.displayed && this.iframe) {
 
-      // this.contents.layout();
-      this.expand();
+			// this.contents.layout();
+			this.expand();
 
-  }
+	}
 
 
 
@@ -12606,209 +12607,209 @@ IframeView.prototype.lock = function(what, width, height) {
 
 // Resize a single axis based on content dimensions
 IframeView.prototype.expand = function(force) {
-  var width = this.lockedWidth;
-  var height = this.lockedHeight;
-  var columns;
+	var width = this.lockedWidth;
+	var height = this.lockedHeight;
+	var columns;
 
-  var textWidth, textHeight;
+	var textWidth, textHeight;
 
-  if(!this.iframe || this._expanding) return;
+	if(!this.iframe || this._expanding) return;
 
-  this._expanding = true;
+	this._expanding = true;
 
-  // Expand Horizontally
-  // if(height && !width) {
-  if(this.settings.axis === "horizontal") {
-    // Get the width of the text
-    textWidth = this.contents.textWidth();
-    // Check if the textWidth has changed
-    if(textWidth != this._textWidth){
-      // Get the contentWidth by resizing the iframe
-      // Check with a min reset of the textWidth
-      width = this.contentWidth(textWidth);
+	// Expand Horizontally
+	// if(height && !width) {
+	if(this.settings.axis === "horizontal") {
+		// Get the width of the text
+		textWidth = this.contents.textWidth();
+		// Check if the textWidth has changed
+		if(textWidth != this._textWidth){
+			// Get the contentWidth by resizing the iframe
+			// Check with a min reset of the textWidth
+			width = this.contentWidth(textWidth);
 
-      columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
+			columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
-      if ( this.settings.layout.divisor > 1 &&
-           this.settings.layout.name === "reflowable" &&
-          (columns % 2 > 0)) {
-          // add a blank page
-          width += this.settings.layout.gap + this.settings.layout.columnWidth;
-      }
+			if ( this.settings.layout.divisor > 1 &&
+					 this.settings.layout.name === "reflowable" &&
+					(columns % 2 > 0)) {
+					// add a blank page
+					width += this.settings.layout.gap + this.settings.layout.columnWidth;
+			}
 
-      // Save the textWdith
-      this._textWidth = textWidth;
-      // Save the contentWidth
-      this._contentWidth = width;
-    } else {
-      // Otherwise assume content height hasn't changed
-      width = this._contentWidth;
-    }
-  } // Expand Vertically
-  else if(this.settings.axis === "vertical") {
-    textHeight = this.contents.textHeight();
-    if(textHeight != this._textHeight){
-      height = this.contentHeight(textHeight);
-      this._textHeight = textHeight;
-      this._contentHeight = height;
-    } else {
-      height = this._contentHeight;
-    }
+			// Save the textWdith
+			this._textWidth = textWidth;
+			// Save the contentWidth
+			this._contentWidth = width;
+		} else {
+			// Otherwise assume content height hasn't changed
+			width = this._contentWidth;
+		}
+	} // Expand Vertically
+	else if(this.settings.axis === "vertical") {
+		textHeight = this.contents.textHeight();
+		if(textHeight != this._textHeight){
+			height = this.contentHeight(textHeight);
+			this._textHeight = textHeight;
+			this._contentHeight = height;
+		} else {
+			height = this._contentHeight;
+		}
 
-  }
+	}
 
-  // Only Resize if dimensions have changed or
-  // if Frame is still hidden, so needs reframing
-  if(this._needsReframe || width != this._width || height != this._height){
-    this.resize(width, height);
-  }
+	// Only Resize if dimensions have changed or
+	// if Frame is still hidden, so needs reframing
+	if(this._needsReframe || width != this._width || height != this._height){
+		this.resize(width, height);
+	}
 
-  this._expanding = false;
+	this._expanding = false;
 };
 
 IframeView.prototype.contentWidth = function(min) {
-  var prev;
-  var width;
+	var prev;
+	var width;
 
-  // Save previous width
-  prev = this.iframe.style.width;
-  // Set the iframe size to min, width will only ever be greater
-  // Will preserve the aspect ratio
-  this.iframe.style.width = (min || 0) + "px";
-  // Get the scroll overflow width
-  width = this.contents.scrollWidth();
-  // Reset iframe size back
-  this.iframe.style.width = prev;
-  return width;
+	// Save previous width
+	prev = this.iframe.style.width;
+	// Set the iframe size to min, width will only ever be greater
+	// Will preserve the aspect ratio
+	this.iframe.style.width = (min || 0) + "px";
+	// Get the scroll overflow width
+	width = this.contents.scrollWidth();
+	// Reset iframe size back
+	this.iframe.style.width = prev;
+	return width;
 };
 
 IframeView.prototype.contentHeight = function(min) {
-  var prev;
-  var height;
+	var prev;
+	var height;
 
-  prev = this.iframe.style.height;
-  this.iframe.style.height = (min || 0) + "px";
-  height = this.contents.scrollHeight();
+	prev = this.iframe.style.height;
+	this.iframe.style.height = (min || 0) + "px";
+	height = this.contents.scrollHeight();
 
-  this.iframe.style.height = prev;
-  return height;
+	this.iframe.style.height = prev;
+	return height;
 };
 
 
 IframeView.prototype.resize = function(width, height) {
 
-  if(!this.iframe) return;
+	if(!this.iframe) return;
 
-  if(core.isNumber(width)){
-    this.iframe.style.width = width + "px";
-    this._width = width;
-  }
+	if(core.isNumber(width)){
+		this.iframe.style.width = width + "px";
+		this._width = width;
+	}
 
-  if(core.isNumber(height)){
-    this.iframe.style.height = height + "px";
-    this._height = height;
-  }
+	if(core.isNumber(height)){
+		this.iframe.style.height = height + "px";
+		this._height = height;
+	}
 
-  this.iframeBounds = core.bounds(this.iframe);
+	this.iframeBounds = core.bounds(this.iframe);
 
-  this.reframe(this.iframeBounds.width, this.iframeBounds.height);
+	this.reframe(this.iframeBounds.width, this.iframeBounds.height);
 
 };
 
 IframeView.prototype.reframe = function(width, height) {
-  var size;
+	var size;
 
-  // if(!this.displayed) {
-  //   this._needsReframe = true;
-  //   return;
-  // }
-  if(core.isNumber(width)){
-    this.element.style.width = width + "px";
-  }
+	// if(!this.displayed) {
+	//   this._needsReframe = true;
+	//   return;
+	// }
+	if(core.isNumber(width)){
+		this.element.style.width = width + "px";
+	}
 
-  if(core.isNumber(height)){
-    this.element.style.height = height + "px";
-  }
+	if(core.isNumber(height)){
+		this.element.style.height = height + "px";
+	}
 
-  this.prevBounds = this.elementBounds;
+	this.prevBounds = this.elementBounds;
 
-  this.elementBounds = core.bounds(this.element);
+	this.elementBounds = core.bounds(this.element);
 
-  size = {
-    width: this.elementBounds.width,
-    height: this.elementBounds.height,
-    widthDelta: this.elementBounds.width - this.prevBounds.width,
-    heightDelta: this.elementBounds.height - this.prevBounds.height,
-  };
+	size = {
+		width: this.elementBounds.width,
+		height: this.elementBounds.height,
+		widthDelta: this.elementBounds.width - this.prevBounds.width,
+		heightDelta: this.elementBounds.height - this.prevBounds.height,
+	};
 
-  this.onResize(this, size);
+	this.onResize(this, size);
 
-  this.trigger("resized", size);
+	this.trigger("resized", size);
 
 };
 
 
 IframeView.prototype.load = function(contents) {
-  var loading = new RSVP.defer();
-  var loaded = loading.promise;
+	var loading = new RSVP.defer();
+	var loaded = loading.promise;
 
-  if(!this.iframe) {
-    loading.reject(new Error("No Iframe Available"));
-    return loaded;
-  }
+	if(!this.iframe) {
+		loading.reject(new Error("No Iframe Available"));
+		return loaded;
+	}
 
-  this.iframe.onload = function(event) {
+	this.iframe.onload = function(event) {
 
-    this.onLoad(event, loading);
+		this.onLoad(event, loading);
 
-  }.bind(this);
+	}.bind(this);
 
-  if(this.supportsSrcdoc){
-    this.iframe.srcdoc = contents;
-  } else {
+	if(this.supportsSrcdoc){
+		this.iframe.srcdoc = contents;
+	} else {
 
-    this.document = this.iframe.contentDocument;
+		this.document = this.iframe.contentDocument;
 
-    if(!this.document) {
-      loading.reject(new Error("No Document Available"));
-      return loaded;
-    }
+		if(!this.document) {
+			loading.reject(new Error("No Document Available"));
+			return loaded;
+		}
 
-    this.iframe.contentDocument.open();
-    this.iframe.contentDocument.write(contents);
-    this.iframe.contentDocument.close();
+		this.iframe.contentDocument.open();
+		this.iframe.contentDocument.write(contents);
+		this.iframe.contentDocument.close();
 
-  }
+	}
 
-  return loaded;
+	return loaded;
 };
 
 IframeView.prototype.onLoad = function(event, promise) {
 
-    this.window = this.iframe.contentWindow;
-    this.document = this.iframe.contentDocument;
+		this.window = this.iframe.contentWindow;
+		this.document = this.iframe.contentDocument;
 
-    this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
+		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
 
-    this.rendering = false;
+		this.rendering = false;
 
-    var link = this.document.querySelector("link[rel='canonical']");
-    if (link) {
-      link.setAttribute("href", this.section.url);
-    } else {
-      link = this.document.createElement("link");
-      link.setAttribute("rel", "canonical");
-      link.setAttribute("href", this.section.url);
-      this.document.querySelector("head").appendChild(link);
-    }
+		var link = this.document.querySelector("link[rel='canonical']");
+		if (link) {
+			link.setAttribute("href", this.section.url);
+		} else {
+			link = this.document.createElement("link");
+			link.setAttribute("rel", "canonical");
+			link.setAttribute("href", this.section.url);
+			this.document.querySelector("head").appendChild(link);
+		}
 
-    this.contents.on("expand", function () {
-      if(this.displayed && this.iframe) {
-          this.expand();
-      }
-    });
+		this.contents.on("expand", function () {
+			if(this.displayed && this.iframe) {
+					this.expand();
+			}
+		});
 
-    promise.resolve(this.contents);
+		promise.resolve(this.contents);
 };
 
 
@@ -12835,118 +12836,118 @@ IframeView.prototype.onLoad = function(event, promise) {
 // };
 
 IframeView.prototype.setLayout = function(layout) {
-  this.layout = layout;
+	this.layout = layout;
 };
 
 IframeView.prototype.setAxis = function(axis) {
-  this.settings.axis = axis;
+	this.settings.axis = axis;
 };
 
 IframeView.prototype.resizeListenters = function() {
-  // Test size again
-  clearTimeout(this.expanding);
-  this.expanding = setTimeout(this.expand.bind(this), 350);
+	// Test size again
+	clearTimeout(this.expanding);
+	this.expanding = setTimeout(this.expand.bind(this), 350);
 };
 
 IframeView.prototype.addListeners = function() {
-  //TODO: Add content listeners for expanding
+	//TODO: Add content listeners for expanding
 };
 
 IframeView.prototype.removeListeners = function(layoutFunc) {
-  //TODO: remove content listeners for expanding
+	//TODO: remove content listeners for expanding
 };
 
 IframeView.prototype.display = function(request) {
-  var displayed = new RSVP.defer();
+	var displayed = new RSVP.defer();
 
-  if (!this.displayed) {
+	if (!this.displayed) {
 
-    this.render(request).then(function () {
+		this.render(request).then(function () {
 
-      this.trigger("displayed", this);
-      this.onDisplayed(this);
+			this.trigger("displayed", this);
+			this.onDisplayed(this);
 
-      this.displayed = true;
-      displayed.resolve(this);
+			this.displayed = true;
+			displayed.resolve(this);
 
-    }.bind(this));
+		}.bind(this));
 
-  } else {
-    displayed.resolve(this);
-  }
+	} else {
+		displayed.resolve(this);
+	}
 
 
-  return displayed.promise;
+	return displayed.promise;
 };
 
 IframeView.prototype.show = function() {
 
-  this.element.style.visibility = "visible";
+	this.element.style.visibility = "visible";
 
-  if(this.iframe){
-    this.iframe.style.visibility = "visible";
-  }
+	if(this.iframe){
+		this.iframe.style.visibility = "visible";
+	}
 
-  this.trigger("shown", this);
+	this.trigger("shown", this);
 };
 
 IframeView.prototype.hide = function() {
-  // this.iframe.style.display = "none";
-  this.element.style.visibility = "hidden";
-  this.iframe.style.visibility = "hidden";
+	// this.iframe.style.display = "none";
+	this.element.style.visibility = "hidden";
+	this.iframe.style.visibility = "hidden";
 
-  this.stopExpanding = true;
-  this.trigger("hidden", this);
+	this.stopExpanding = true;
+	this.trigger("hidden", this);
 };
 
 IframeView.prototype.position = function() {
-  return this.element.getBoundingClientRect();
+	return this.element.getBoundingClientRect();
 };
 
 IframeView.prototype.locationOf = function(target) {
-  var parentPos = this.iframe.getBoundingClientRect();
-  var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
+	var parentPos = this.iframe.getBoundingClientRect();
+	var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
-  return {
-    "left": window.scrollX + parentPos.left + targetPos.left,
-    "top": window.scrollY + parentPos.top + targetPos.top
-  };
+	return {
+		"left": window.scrollX + parentPos.left + targetPos.left,
+		"top": window.scrollY + parentPos.top + targetPos.top
+	};
 };
 
 IframeView.prototype.onDisplayed = function(view) {
-  // Stub, override with a custom functions
+	// Stub, override with a custom functions
 };
 
 IframeView.prototype.onResize = function(view, e) {
-  // Stub, override with a custom functions
+	// Stub, override with a custom functions
 };
 
 IframeView.prototype.bounds = function() {
-  if(!this.elementBounds) {
-    this.elementBounds = core.bounds(this.element);
-  }
-  return this.elementBounds;
+	if(!this.elementBounds) {
+		this.elementBounds = core.bounds(this.element);
+	}
+	return this.elementBounds;
 };
 
 IframeView.prototype.destroy = function() {
 
-  if(this.displayed){
-    this.displayed = false;
+	if(this.displayed){
+		this.displayed = false;
 
-    this.removeListeners();
+		this.removeListeners();
 
-    this.stopExpanding = true;
-    this.element.removeChild(this.iframe);
-    this.displayed = false;
-    this.iframe = null;
+		this.stopExpanding = true;
+		this.element.removeChild(this.iframe);
+		this.displayed = false;
+		this.iframe = null;
 
-    this._textWidth = null;
-    this._textHeight = null;
-    this._width = null;
-    this._height = null;
-  }
-  // this.element.style.height = "0px";
-  // this.element.style.width = "0px";
+		this._textWidth = null;
+		this._textHeight = null;
+		this._width = null;
+		this._height = null;
+	}
+	// this.element.style.height = "0px";
+	// this.element.style.width = "0px";
 };
 
 RSVP.EventTarget.mixin(IframeView.prototype);
@@ -12975,7 +12976,7 @@ ePub.ViewManagers = {};
 ePub.Views = {};
 ePub.register = {
 	manager : function(name, manager){
-  	return ePub.ViewManagers[name] = manager;
+		return ePub.ViewManagers[name] = manager;
 	},
 	view : function(name, view){
 		return ePub.Views[name] = view;

@@ -4,114 +4,114 @@ var EpubCFI = require('./epubcfi');
 var RSVP = require('rsvp');
 
 function Locations(spine, request) {
-  this.spine = spine;
-  this.request = request;
+	this.spine = spine;
+	this.request = request;
 
-  this.q = new Queue(this);
-  this.epubcfi = new EpubCFI();
+	this.q = new Queue(this);
+	this.epubcfi = new EpubCFI();
 
-  this._locations = [];
-  this.total = 0;
+	this._locations = [];
+	this.total = 0;
 
-  this.break = 150;
+	this.break = 150;
 
-  this._current = 0;
+	this._current = 0;
 
 };
 
 // Load all of sections in the book
 Locations.prototype.generate = function(chars) {
 
-  if (chars) {
-    this.break = chars;
-  }
+	if (chars) {
+		this.break = chars;
+	}
 
-  this.q.pause();
+	this.q.pause();
 
-  this.spine.each(function(section) {
+	this.spine.each(function(section) {
 
-    this.q.enqueue(this.process, section);
+		this.q.enqueue(this.process, section);
 
-  }.bind(this));
+	}.bind(this));
 
-  return this.q.run().then(function() {
-    this.total = this._locations.length-1;
+	return this.q.run().then(function() {
+		this.total = this._locations.length-1;
 
-    if (this._currentCfi) {
-      this.currentLocation = this._currentCfi;
-    }
+		if (this._currentCfi) {
+			this.currentLocation = this._currentCfi;
+		}
 
-    return this._locations;
-    // console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
-  }.bind(this));
+		return this._locations;
+		// console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
+	}.bind(this));
 
 };
 
 Locations.prototype.process = function(section) {
 
-  return section.load(this.request)
-    .then(function(contents) {
+	return section.load(this.request)
+		.then(function(contents) {
 
-      var range;
-      var doc = contents.ownerDocument;
-      var counter = 0;
+			var range;
+			var doc = contents.ownerDocument;
+			var counter = 0;
 
-      this.sprint(contents, function(node) {
-        var len = node.length;
-        var dist;
-        var pos = 0;
+			this.sprint(contents, function(node) {
+				var len = node.length;
+				var dist;
+				var pos = 0;
 
-        // Start range
-        if (counter == 0) {
-          range = doc.createRange();
-          range.setStart(node, 0);
-        }
+				// Start range
+				if (counter == 0) {
+					range = doc.createRange();
+					range.setStart(node, 0);
+				}
 
-        dist = this.break - counter;
+				dist = this.break - counter;
 
-        // Node is smaller than a break
-        if(dist > len){
-          counter += len;
-          pos = len;
-        }
+				// Node is smaller than a break
+				if(dist > len){
+					counter += len;
+					pos = len;
+				}
 
-        while (pos < len) {
-          counter = this.break;
-          pos += this.break;
+				while (pos < len) {
+					counter = this.break;
+					pos += this.break;
 
-          // Gone over
-          if(pos >= len){
-            // Continue counter for next node
-            counter = len - (pos - this.break);
+					// Gone over
+					if(pos >= len){
+						// Continue counter for next node
+						counter = len - (pos - this.break);
 
-          // At End
-          } else {
-            // End the previous range
-            range.setEnd(node, pos);
-            cfi = section.cfiFromRange(range);
-            this._locations.push(cfi);
-            counter = 0;
+					// At End
+					} else {
+						// End the previous range
+						range.setEnd(node, pos);
+						cfi = section.cfiFromRange(range);
+						this._locations.push(cfi);
+						counter = 0;
 
-            // Start new range
-            pos += 1;
-            range = doc.createRange();
-            range.setStart(node, pos);
-          }
-        }
+						// Start new range
+						pos += 1;
+						range = doc.createRange();
+						range.setStart(node, pos);
+					}
+				}
 
 
 
-      }.bind(this));
+			}.bind(this));
 
-      // Close remaining
-      if (range) {
-        range.setEnd(prev, prev.length);
-        cfi = section.cfiFromRange(range);
-        this._locations.push(cfi)
-        counter = 0;
-      }
+			// Close remaining
+			if (range) {
+				range.setEnd(prev, prev.length);
+				cfi = section.cfiFromRange(range);
+				this._locations.push(cfi)
+				counter = 0;
+			}
 
-    }.bind(this));
+		}.bind(this));
 
 };
 
@@ -125,26 +125,26 @@ Locations.prototype.sprint = function(root, func) {
 };
 
 Locations.prototype.locationFromCfi = function(cfi){
-  // Check if the location has not been set yet
+	// Check if the location has not been set yet
 	if(this._locations.length === 0) {
 		return -1;
 	}
 
-  return core.locationOf(cfi, this._locations, this.epubcfi.compare);
+	return core.locationOf(cfi, this._locations, this.epubcfi.compare);
 };
 
 Locations.prototype.precentageFromCfi = function(cfi) {
-  // Find closest cfi
-  var loc = this.locationFromCfi(cfi);
-  // Get percentage in total
-  return this.precentageFromLocation(loc);
+	// Find closest cfi
+	var loc = this.locationFromCfi(cfi);
+	// Get percentage in total
+	return this.precentageFromLocation(loc);
 };
 
 Locations.prototype.percentageFromLocation = function(loc) {
-  if (!loc || !this.total) {
-    return 0;
-  }
-  return (loc / this.total);
+	if (!loc || !this.total) {
+		return 0;
+	}
+	return (loc / this.total);
 };
 
 Locations.prototype.cfiFromLocation = function(loc){
@@ -162,7 +162,7 @@ Locations.prototype.cfiFromLocation = function(loc){
 };
 
 Locations.prototype.cfiFromPercentage = function(value){
-  var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
+	var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
 	var loc = Math.ceil(this.total * percentage);
 
 	return this.cfiFromLocation(loc);
@@ -170,8 +170,8 @@ Locations.prototype.cfiFromPercentage = function(value){
 
 Locations.prototype.load = function(locations){
 	this._locations = JSON.parse(locations);
-  this.total = this._locations.length-1;
-  return this._locations;
+	this.total = this._locations.length-1;
+	return this._locations;
 };
 
 Locations.prototype.save = function(json){
@@ -183,39 +183,39 @@ Locations.prototype.getCurrent = function(json){
 };
 
 Locations.prototype.setCurrent = function(curr){
-  var loc;
+	var loc;
 
-  if(typeof curr == "string"){
-    this._currentCfi = curr;
-  } else if (typeof curr == "number") {
-    this._current = curr;
-  } else {
-    return;
-  }
-
-  if(this._locations.length === 0) {
-    return;
+	if(typeof curr == "string"){
+		this._currentCfi = curr;
+	} else if (typeof curr == "number") {
+		this._current = curr;
+	} else {
+		return;
 	}
 
-  if(typeof curr == "string"){
-    loc = this.locationFromCfi(curr);
-    this._current = loc;
-  } else {
-    loc = curr;
-  }
+	if(this._locations.length === 0) {
+		return;
+	}
 
-  this.trigger("changed", {
-    percentage: this.precentageFromLocation(loc)
-  });
+	if(typeof curr == "string"){
+		loc = this.locationFromCfi(curr);
+		this._current = loc;
+	} else {
+		loc = curr;
+	}
+
+	this.trigger("changed", {
+		percentage: this.precentageFromLocation(loc)
+	});
 };
 
 Object.defineProperty(Locations.prototype, 'currentLocation', {
-  get: function () {
-    return this._current;
-  },
-  set: function (curr) {
-    this.setCurrent(curr);
-  }
+	get: function () {
+		return this._current;
+	},
+	set: function (curr) {
+		this.setCurrent(curr);
+	}
 });
 
 RSVP.EventTarget.mixin(Locations.prototype);

@@ -4,110 +4,110 @@ var EpubCFI = require('../epubcfi');
 var Contents = require('../contents');
 
 function IframeView(section, options) {
-  this.settings = core.extend({
-    ignoreClass : '',
-    axis: 'vertical',
-    width: 0,
-    height: 0,
-    layout: undefined,
-    globalLayoutProperties: {},
-  }, options || {});
+	this.settings = core.extend({
+		ignoreClass : '',
+		axis: 'vertical',
+		width: 0,
+		height: 0,
+		layout: undefined,
+		globalLayoutProperties: {},
+	}, options || {});
 
-  this.id = "epubjs-view-" + core.uuid();
-  this.section = section;
-  this.index = section.index;
+	this.id = "epubjs-view-" + core.uuid();
+	this.section = section;
+	this.index = section.index;
 
-  this.element = this.container(this.settings.axis);
+	this.element = this.container(this.settings.axis);
 
-  this.added = false;
-  this.displayed = false;
-  this.rendered = false;
+	this.added = false;
+	this.displayed = false;
+	this.rendered = false;
 
-  this.width  = this.settings.width;
-  this.height = this.settings.height;
+	this.width  = this.settings.width;
+	this.height = this.settings.height;
 
-  this.fixedWidth  = 0;
-  this.fixedHeight = 0;
+	this.fixedWidth  = 0;
+	this.fixedHeight = 0;
 
-  // Blank Cfi for Parsing
-  this.epubcfi = new EpubCFI();
+	// Blank Cfi for Parsing
+	this.epubcfi = new EpubCFI();
 
-  this.layout = this.settings.layout;
-  // Dom events to listen for
-  // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+	this.layout = this.settings.layout;
+	// Dom events to listen for
+	// this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 };
 
 IframeView.prototype.container = function(axis) {
-  var element = document.createElement('div');
+	var element = document.createElement('div');
 
-  element.classList.add("epub-view");
+	element.classList.add("epub-view");
 
-  // this.element.style.minHeight = "100px";
-  element.style.height = "0px";
-  element.style.width = "0px";
-  element.style.overflow = "hidden";
+	// this.element.style.minHeight = "100px";
+	element.style.height = "0px";
+	element.style.width = "0px";
+	element.style.overflow = "hidden";
 
-  if(axis && axis == "horizontal"){
-    element.style.display = "inline-block";
-  } else {
-    element.style.display = "block";
-  }
+	if(axis && axis == "horizontal"){
+		element.style.display = "inline-block";
+	} else {
+		element.style.display = "block";
+	}
 
-  return element;
+	return element;
 };
 
 IframeView.prototype.create = function() {
 
-  if(this.iframe) {
-    return this.iframe;
-  }
+	if(this.iframe) {
+		return this.iframe;
+	}
 
-  if(!this.element) {
-    this.element = this.createContainer();
-  }
+	if(!this.element) {
+		this.element = this.createContainer();
+	}
 
-  this.iframe = document.createElement('iframe');
-  this.iframe.id = this.id;
-  this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
-  this.iframe.style.overflow = "hidden";
-  this.iframe.seamless = "seamless";
-  // Back up if seamless isn't supported
-  this.iframe.style.border = "none";
+	this.iframe = document.createElement('iframe');
+	this.iframe.id = this.id;
+	this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
+	this.iframe.style.overflow = "hidden";
+	this.iframe.seamless = "seamless";
+	// Back up if seamless isn't supported
+	this.iframe.style.border = "none";
 
-  this.resizing = true;
+	this.resizing = true;
 
-  // this.iframe.style.display = "none";
-  this.element.style.visibility = "hidden";
-  this.iframe.style.visibility = "hidden";
+	// this.iframe.style.display = "none";
+	this.element.style.visibility = "hidden";
+	this.iframe.style.visibility = "hidden";
 
-  this.iframe.style.width = "0";
-  this.iframe.style.height = "0";
-  this._width = 0;
-  this._height = 0;
+	this.iframe.style.width = "0";
+	this.iframe.style.height = "0";
+	this._width = 0;
+	this._height = 0;
 
-  this.element.appendChild(this.iframe);
-  this.added = true;
+	this.element.appendChild(this.iframe);
+	this.added = true;
 
-  this.elementBounds = core.bounds(this.element);
+	this.elementBounds = core.bounds(this.element);
 
-  // if(width || height){
-  //   this.resize(width, height);
-  // } else if(this.width && this.height){
-  //   this.resize(this.width, this.height);
-  // } else {
-  //   this.iframeBounds = core.bounds(this.iframe);
-  // }
+	// if(width || height){
+	//   this.resize(width, height);
+	// } else if(this.width && this.height){
+	//   this.resize(this.width, this.height);
+	// } else {
+	//   this.iframeBounds = core.bounds(this.iframe);
+	// }
 
-  // Firefox has trouble with baseURI and srcdoc
-  // TODO: Disable for now in firefox
+	// Firefox has trouble with baseURI and srcdoc
+	// TODO: Disable for now in firefox
 
-  if(!!("srcdoc" in this.iframe)) {
-    this.supportsSrcdoc = true;
-  } else {
-    this.supportsSrcdoc = false;
-  }
+	if(!!("srcdoc" in this.iframe)) {
+		this.supportsSrcdoc = true;
+	} else {
+		this.supportsSrcdoc = false;
+	}
 
-  return this.iframe;
+	return this.iframe;
 };
 
 IframeView.prototype.render = function(request, show) {
@@ -116,11 +116,11 @@ IframeView.prototype.render = function(request, show) {
 	this.create();
 
 	// Fit to size of the container, apply padding
-  this.size();
+	this.size();
 
-  if(!this.sectionRender) {
-    this.sectionRender = this.section.render(request);
-  }
+	if(!this.sectionRender) {
+		this.sectionRender = this.section.render(request);
+	}
 
 	// Render Chain
 	return this.sectionRender
@@ -142,14 +142,14 @@ IframeView.prototype.render = function(request, show) {
 		// }.bind(this))
 		.then(function(){
 
-      // apply the layout function to the contents
-      this.settings.layout.format(this.contents);
+			// apply the layout function to the contents
+			this.settings.layout.format(this.contents);
 
-      // Expand the iframe to the full size of the content
-      this.expand();
+			// Expand the iframe to the full size of the content
+			this.expand();
 
-      // Listen for events that require an expansion of the iframe
-      this.addListeners();
+			// Listen for events that require an expansion of the iframe
+			this.addListeners();
 
 			if(show !== false) {
 				//this.q.enqueue(function(view){
@@ -169,12 +169,12 @@ IframeView.prototype.render = function(request, show) {
 
 // Determine locks base on settings
 IframeView.prototype.size = function(_width, _height) {
-  var width = _width || this.settings.width;
-  var height = _height || this.settings.height;
+	var width = _width || this.settings.width;
+	var height = _height || this.settings.height;
 
-  if(this.layout.name === "pre-paginated") {
-    this.lock("both", width, height);
-  } else if(this.settings.axis === "horizontal") {
+	if(this.layout.name === "pre-paginated") {
+		this.lock("both", width, height);
+	} else if(this.settings.axis === "horizontal") {
 		this.lock("height", width, height);
 	} else {
 		this.lock("width", width, height);
@@ -184,41 +184,41 @@ IframeView.prototype.size = function(_width, _height) {
 
 // Lock an axis to element dimensions, taking borders into account
 IframeView.prototype.lock = function(what, width, height) {
-  var elBorders = core.borders(this.element);
-  var iframeBorders;
+	var elBorders = core.borders(this.element);
+	var iframeBorders;
 
-  if(this.iframe) {
-    iframeBorders = core.borders(this.iframe);
-  } else {
-    iframeBorders = {width: 0, height: 0};
-  }
+	if(this.iframe) {
+		iframeBorders = core.borders(this.iframe);
+	} else {
+		iframeBorders = {width: 0, height: 0};
+	}
 
-  if(what == "width" && core.isNumber(width)){
-    this.lockedWidth = width - elBorders.width - iframeBorders.width;
-    this.resize(this.lockedWidth, width); //  width keeps ratio correct
-  }
+	if(what == "width" && core.isNumber(width)){
+		this.lockedWidth = width - elBorders.width - iframeBorders.width;
+		this.resize(this.lockedWidth, width); //  width keeps ratio correct
+	}
 
-  if(what == "height" && core.isNumber(height)){
-    this.lockedHeight = height - elBorders.height - iframeBorders.height;
-    this.resize(width, this.lockedHeight);
-  }
+	if(what == "height" && core.isNumber(height)){
+		this.lockedHeight = height - elBorders.height - iframeBorders.height;
+		this.resize(width, this.lockedHeight);
+	}
 
-  if(what === "both" &&
-     core.isNumber(width) &&
-     core.isNumber(height)){
+	if(what === "both" &&
+		 core.isNumber(width) &&
+		 core.isNumber(height)){
 
-    this.lockedWidth = width - elBorders.width - iframeBorders.width;
-    this.lockedHeight = height - elBorders.height - iframeBorders.height;
+		this.lockedWidth = width - elBorders.width - iframeBorders.width;
+		this.lockedHeight = height - elBorders.height - iframeBorders.height;
 
-    this.resize(this.lockedWidth, this.lockedHeight);
-  }
+		this.resize(this.lockedWidth, this.lockedHeight);
+	}
 
-  if(this.displayed && this.iframe) {
+	if(this.displayed && this.iframe) {
 
-      // this.contents.layout();
-      this.expand();
+			// this.contents.layout();
+			this.expand();
 
-  }
+	}
 
 
 
@@ -226,209 +226,209 @@ IframeView.prototype.lock = function(what, width, height) {
 
 // Resize a single axis based on content dimensions
 IframeView.prototype.expand = function(force) {
-  var width = this.lockedWidth;
-  var height = this.lockedHeight;
-  var columns;
+	var width = this.lockedWidth;
+	var height = this.lockedHeight;
+	var columns;
 
-  var textWidth, textHeight;
+	var textWidth, textHeight;
 
-  if(!this.iframe || this._expanding) return;
+	if(!this.iframe || this._expanding) return;
 
-  this._expanding = true;
+	this._expanding = true;
 
-  // Expand Horizontally
-  // if(height && !width) {
-  if(this.settings.axis === "horizontal") {
-    // Get the width of the text
-    textWidth = this.contents.textWidth();
-    // Check if the textWidth has changed
-    if(textWidth != this._textWidth){
-      // Get the contentWidth by resizing the iframe
-      // Check with a min reset of the textWidth
-      width = this.contentWidth(textWidth);
+	// Expand Horizontally
+	// if(height && !width) {
+	if(this.settings.axis === "horizontal") {
+		// Get the width of the text
+		textWidth = this.contents.textWidth();
+		// Check if the textWidth has changed
+		if(textWidth != this._textWidth){
+			// Get the contentWidth by resizing the iframe
+			// Check with a min reset of the textWidth
+			width = this.contentWidth(textWidth);
 
-      columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
+			columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
-      if ( this.settings.layout.divisor > 1 &&
-           this.settings.layout.name === "reflowable" &&
-          (columns % 2 > 0)) {
-          // add a blank page
-          width += this.settings.layout.gap + this.settings.layout.columnWidth;
-      }
+			if ( this.settings.layout.divisor > 1 &&
+					 this.settings.layout.name === "reflowable" &&
+					(columns % 2 > 0)) {
+					// add a blank page
+					width += this.settings.layout.gap + this.settings.layout.columnWidth;
+			}
 
-      // Save the textWdith
-      this._textWidth = textWidth;
-      // Save the contentWidth
-      this._contentWidth = width;
-    } else {
-      // Otherwise assume content height hasn't changed
-      width = this._contentWidth;
-    }
-  } // Expand Vertically
-  else if(this.settings.axis === "vertical") {
-    textHeight = this.contents.textHeight();
-    if(textHeight != this._textHeight){
-      height = this.contentHeight(textHeight);
-      this._textHeight = textHeight;
-      this._contentHeight = height;
-    } else {
-      height = this._contentHeight;
-    }
+			// Save the textWdith
+			this._textWidth = textWidth;
+			// Save the contentWidth
+			this._contentWidth = width;
+		} else {
+			// Otherwise assume content height hasn't changed
+			width = this._contentWidth;
+		}
+	} // Expand Vertically
+	else if(this.settings.axis === "vertical") {
+		textHeight = this.contents.textHeight();
+		if(textHeight != this._textHeight){
+			height = this.contentHeight(textHeight);
+			this._textHeight = textHeight;
+			this._contentHeight = height;
+		} else {
+			height = this._contentHeight;
+		}
 
-  }
+	}
 
-  // Only Resize if dimensions have changed or
-  // if Frame is still hidden, so needs reframing
-  if(this._needsReframe || width != this._width || height != this._height){
-    this.resize(width, height);
-  }
+	// Only Resize if dimensions have changed or
+	// if Frame is still hidden, so needs reframing
+	if(this._needsReframe || width != this._width || height != this._height){
+		this.resize(width, height);
+	}
 
-  this._expanding = false;
+	this._expanding = false;
 };
 
 IframeView.prototype.contentWidth = function(min) {
-  var prev;
-  var width;
+	var prev;
+	var width;
 
-  // Save previous width
-  prev = this.iframe.style.width;
-  // Set the iframe size to min, width will only ever be greater
-  // Will preserve the aspect ratio
-  this.iframe.style.width = (min || 0) + "px";
-  // Get the scroll overflow width
-  width = this.contents.scrollWidth();
-  // Reset iframe size back
-  this.iframe.style.width = prev;
-  return width;
+	// Save previous width
+	prev = this.iframe.style.width;
+	// Set the iframe size to min, width will only ever be greater
+	// Will preserve the aspect ratio
+	this.iframe.style.width = (min || 0) + "px";
+	// Get the scroll overflow width
+	width = this.contents.scrollWidth();
+	// Reset iframe size back
+	this.iframe.style.width = prev;
+	return width;
 };
 
 IframeView.prototype.contentHeight = function(min) {
-  var prev;
-  var height;
+	var prev;
+	var height;
 
-  prev = this.iframe.style.height;
-  this.iframe.style.height = (min || 0) + "px";
-  height = this.contents.scrollHeight();
+	prev = this.iframe.style.height;
+	this.iframe.style.height = (min || 0) + "px";
+	height = this.contents.scrollHeight();
 
-  this.iframe.style.height = prev;
-  return height;
+	this.iframe.style.height = prev;
+	return height;
 };
 
 
 IframeView.prototype.resize = function(width, height) {
 
-  if(!this.iframe) return;
+	if(!this.iframe) return;
 
-  if(core.isNumber(width)){
-    this.iframe.style.width = width + "px";
-    this._width = width;
-  }
+	if(core.isNumber(width)){
+		this.iframe.style.width = width + "px";
+		this._width = width;
+	}
 
-  if(core.isNumber(height)){
-    this.iframe.style.height = height + "px";
-    this._height = height;
-  }
+	if(core.isNumber(height)){
+		this.iframe.style.height = height + "px";
+		this._height = height;
+	}
 
-  this.iframeBounds = core.bounds(this.iframe);
+	this.iframeBounds = core.bounds(this.iframe);
 
-  this.reframe(this.iframeBounds.width, this.iframeBounds.height);
+	this.reframe(this.iframeBounds.width, this.iframeBounds.height);
 
 };
 
 IframeView.prototype.reframe = function(width, height) {
-  var size;
+	var size;
 
-  // if(!this.displayed) {
-  //   this._needsReframe = true;
-  //   return;
-  // }
-  if(core.isNumber(width)){
-    this.element.style.width = width + "px";
-  }
+	// if(!this.displayed) {
+	//   this._needsReframe = true;
+	//   return;
+	// }
+	if(core.isNumber(width)){
+		this.element.style.width = width + "px";
+	}
 
-  if(core.isNumber(height)){
-    this.element.style.height = height + "px";
-  }
+	if(core.isNumber(height)){
+		this.element.style.height = height + "px";
+	}
 
-  this.prevBounds = this.elementBounds;
+	this.prevBounds = this.elementBounds;
 
-  this.elementBounds = core.bounds(this.element);
+	this.elementBounds = core.bounds(this.element);
 
-  size = {
-    width: this.elementBounds.width,
-    height: this.elementBounds.height,
-    widthDelta: this.elementBounds.width - this.prevBounds.width,
-    heightDelta: this.elementBounds.height - this.prevBounds.height,
-  };
+	size = {
+		width: this.elementBounds.width,
+		height: this.elementBounds.height,
+		widthDelta: this.elementBounds.width - this.prevBounds.width,
+		heightDelta: this.elementBounds.height - this.prevBounds.height,
+	};
 
-  this.onResize(this, size);
+	this.onResize(this, size);
 
-  this.trigger("resized", size);
+	this.trigger("resized", size);
 
 };
 
 
 IframeView.prototype.load = function(contents) {
-  var loading = new RSVP.defer();
-  var loaded = loading.promise;
+	var loading = new RSVP.defer();
+	var loaded = loading.promise;
 
-  if(!this.iframe) {
-    loading.reject(new Error("No Iframe Available"));
-    return loaded;
-  }
+	if(!this.iframe) {
+		loading.reject(new Error("No Iframe Available"));
+		return loaded;
+	}
 
-  this.iframe.onload = function(event) {
+	this.iframe.onload = function(event) {
 
-    this.onLoad(event, loading);
+		this.onLoad(event, loading);
 
-  }.bind(this);
+	}.bind(this);
 
-  if(this.supportsSrcdoc){
-    this.iframe.srcdoc = contents;
-  } else {
+	if(this.supportsSrcdoc){
+		this.iframe.srcdoc = contents;
+	} else {
 
-    this.document = this.iframe.contentDocument;
+		this.document = this.iframe.contentDocument;
 
-    if(!this.document) {
-      loading.reject(new Error("No Document Available"));
-      return loaded;
-    }
+		if(!this.document) {
+			loading.reject(new Error("No Document Available"));
+			return loaded;
+		}
 
-    this.iframe.contentDocument.open();
-    this.iframe.contentDocument.write(contents);
-    this.iframe.contentDocument.close();
+		this.iframe.contentDocument.open();
+		this.iframe.contentDocument.write(contents);
+		this.iframe.contentDocument.close();
 
-  }
+	}
 
-  return loaded;
+	return loaded;
 };
 
 IframeView.prototype.onLoad = function(event, promise) {
 
-    this.window = this.iframe.contentWindow;
-    this.document = this.iframe.contentDocument;
+		this.window = this.iframe.contentWindow;
+		this.document = this.iframe.contentDocument;
 
-    this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
+		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
 
-    this.rendering = false;
+		this.rendering = false;
 
-    var link = this.document.querySelector("link[rel='canonical']");
-    if (link) {
-      link.setAttribute("href", this.section.url);
-    } else {
-      link = this.document.createElement("link");
-      link.setAttribute("rel", "canonical");
-      link.setAttribute("href", this.section.url);
-      this.document.querySelector("head").appendChild(link);
-    }
+		var link = this.document.querySelector("link[rel='canonical']");
+		if (link) {
+			link.setAttribute("href", this.section.url);
+		} else {
+			link = this.document.createElement("link");
+			link.setAttribute("rel", "canonical");
+			link.setAttribute("href", this.section.url);
+			this.document.querySelector("head").appendChild(link);
+		}
 
-    this.contents.on("expand", function () {
-      if(this.displayed && this.iframe) {
-          this.expand();
-      }
-    });
+		this.contents.on("expand", function () {
+			if(this.displayed && this.iframe) {
+					this.expand();
+			}
+		});
 
-    promise.resolve(this.contents);
+		promise.resolve(this.contents);
 };
 
 
@@ -455,118 +455,118 @@ IframeView.prototype.onLoad = function(event, promise) {
 // };
 
 IframeView.prototype.setLayout = function(layout) {
-  this.layout = layout;
+	this.layout = layout;
 };
 
 IframeView.prototype.setAxis = function(axis) {
-  this.settings.axis = axis;
+	this.settings.axis = axis;
 };
 
 IframeView.prototype.resizeListenters = function() {
-  // Test size again
-  clearTimeout(this.expanding);
-  this.expanding = setTimeout(this.expand.bind(this), 350);
+	// Test size again
+	clearTimeout(this.expanding);
+	this.expanding = setTimeout(this.expand.bind(this), 350);
 };
 
 IframeView.prototype.addListeners = function() {
-  //TODO: Add content listeners for expanding
+	//TODO: Add content listeners for expanding
 };
 
 IframeView.prototype.removeListeners = function(layoutFunc) {
-  //TODO: remove content listeners for expanding
+	//TODO: remove content listeners for expanding
 };
 
 IframeView.prototype.display = function(request) {
-  var displayed = new RSVP.defer();
+	var displayed = new RSVP.defer();
 
-  if (!this.displayed) {
+	if (!this.displayed) {
 
-    this.render(request).then(function () {
+		this.render(request).then(function () {
 
-      this.trigger("displayed", this);
-      this.onDisplayed(this);
+			this.trigger("displayed", this);
+			this.onDisplayed(this);
 
-      this.displayed = true;
-      displayed.resolve(this);
+			this.displayed = true;
+			displayed.resolve(this);
 
-    }.bind(this));
+		}.bind(this));
 
-  } else {
-    displayed.resolve(this);
-  }
+	} else {
+		displayed.resolve(this);
+	}
 
 
-  return displayed.promise;
+	return displayed.promise;
 };
 
 IframeView.prototype.show = function() {
 
-  this.element.style.visibility = "visible";
+	this.element.style.visibility = "visible";
 
-  if(this.iframe){
-    this.iframe.style.visibility = "visible";
-  }
+	if(this.iframe){
+		this.iframe.style.visibility = "visible";
+	}
 
-  this.trigger("shown", this);
+	this.trigger("shown", this);
 };
 
 IframeView.prototype.hide = function() {
-  // this.iframe.style.display = "none";
-  this.element.style.visibility = "hidden";
-  this.iframe.style.visibility = "hidden";
+	// this.iframe.style.display = "none";
+	this.element.style.visibility = "hidden";
+	this.iframe.style.visibility = "hidden";
 
-  this.stopExpanding = true;
-  this.trigger("hidden", this);
+	this.stopExpanding = true;
+	this.trigger("hidden", this);
 };
 
 IframeView.prototype.position = function() {
-  return this.element.getBoundingClientRect();
+	return this.element.getBoundingClientRect();
 };
 
 IframeView.prototype.locationOf = function(target) {
-  var parentPos = this.iframe.getBoundingClientRect();
-  var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
+	var parentPos = this.iframe.getBoundingClientRect();
+	var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
-  return {
-    "left": window.scrollX + parentPos.left + targetPos.left,
-    "top": window.scrollY + parentPos.top + targetPos.top
-  };
+	return {
+		"left": window.scrollX + parentPos.left + targetPos.left,
+		"top": window.scrollY + parentPos.top + targetPos.top
+	};
 };
 
 IframeView.prototype.onDisplayed = function(view) {
-  // Stub, override with a custom functions
+	// Stub, override with a custom functions
 };
 
 IframeView.prototype.onResize = function(view, e) {
-  // Stub, override with a custom functions
+	// Stub, override with a custom functions
 };
 
 IframeView.prototype.bounds = function() {
-  if(!this.elementBounds) {
-    this.elementBounds = core.bounds(this.element);
-  }
-  return this.elementBounds;
+	if(!this.elementBounds) {
+		this.elementBounds = core.bounds(this.element);
+	}
+	return this.elementBounds;
 };
 
 IframeView.prototype.destroy = function() {
 
-  if(this.displayed){
-    this.displayed = false;
+	if(this.displayed){
+		this.displayed = false;
 
-    this.removeListeners();
+		this.removeListeners();
 
-    this.stopExpanding = true;
-    this.element.removeChild(this.iframe);
-    this.displayed = false;
-    this.iframe = null;
+		this.stopExpanding = true;
+		this.element.removeChild(this.iframe);
+		this.displayed = false;
+		this.iframe = null;
 
-    this._textWidth = null;
-    this._textHeight = null;
-    this._width = null;
-    this._height = null;
-  }
-  // this.element.style.height = "0px";
-  // this.element.style.width = "0px";
+		this._textWidth = null;
+		this._textHeight = null;
+		this._width = null;
+		this._height = null;
+	}
+	// this.element.style.height = "0px";
+	// this.element.style.width = "0px";
 };
 
 RSVP.EventTarget.mixin(IframeView.prototype);

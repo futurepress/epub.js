@@ -49,7 +49,7 @@ function Rendition(book, options) {
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
 
-  this.epubcfi = new EpubCFI();
+	this.epubcfi = new EpubCFI();
 
 	this.q = new Queue(this);
 
@@ -83,7 +83,7 @@ Rendition.prototype.requireManager = function(manager) {
 		viewManager = manager
 	}
 
-  return viewManager;
+	return viewManager;
 };
 
 Rendition.prototype.requireView = function(view) {
@@ -96,7 +96,7 @@ Rendition.prototype.requireView = function(view) {
 		View = view
 	}
 
-  return View;
+	return View;
 };
 
 Rendition.prototype.start = function(){
@@ -362,24 +362,24 @@ Rendition.prototype.spread = function(spread, min){
 
 
 Rendition.prototype.reportLocation = function(){
-  return this.q.enqueue(function(){
-    var location = this.manager.currentLocation();
+	return this.q.enqueue(function(){
+		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
-		    this.trigger("locationChanged", this.location);
+				this.trigger("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
-	    this.trigger("locationChanged", this.location);
+			this.trigger("locationChanged", this.location);
 		}
 
-  }.bind(this));
+	}.bind(this));
 };
 
 
 Rendition.prototype.destroy = function(){
-  // Clear the queue
+	// Clear the queue
 	this.q.clear();
 
 	this.views.clear();
@@ -394,7 +394,7 @@ Rendition.prototype.destroy = function(){
 };
 
 Rendition.prototype.passViewEvents = function(view){
-  view.contents.listenedEvents.forEach(function(e){
+	view.contents.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
 	}.bind(this));
 
@@ -402,11 +402,11 @@ Rendition.prototype.passViewEvents = function(view){
 };
 
 Rendition.prototype.triggerViewEvent = function(e){
-  this.trigger(e.type, e);
+	this.trigger(e.type, e);
 };
 
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
-  this.trigger("selected", cfirange);
+	this.trigger("selected", cfirange);
 };
 
 Rendition.prototype.replacements = function(){
@@ -414,27 +414,27 @@ Rendition.prototype.replacements = function(){
 	// return this.q.enqueue(function () {
 		// Get thes books manifest
 		var manifest = this.book.package.manifest;
-	  var manifestArray = Object.keys(manifest).
-	    map(function (key){
-	      return manifest[key];
-	    });
+		var manifestArray = Object.keys(manifest).
+			map(function (key){
+				return manifest[key];
+			});
 
-	  // Exclude HTML
-	  var items = manifestArray.
-	    filter(function (item){
-	      if (item.type != "application/xhtml+xml" &&
-	          item.type != "text/html") {
-	        return true;
-	      }
-	    });
+		// Exclude HTML
+		var items = manifestArray.
+			filter(function (item){
+				if (item.type != "application/xhtml+xml" &&
+						item.type != "text/html") {
+					return true;
+				}
+			});
 
-	  // Only CSS
-	  var css = items.
-	    filter(function (item){
-	      if (item.type === "text/css") {
-	        return true;
-	      }
-	    });
+		// Only CSS
+		var css = items.
+			filter(function (item){
+				if (item.type === "text/css") {
+					return true;
+				}
+			});
 
 		// Css Urls
 		var cssUrls = css.map(function(item) {
@@ -442,18 +442,18 @@ Rendition.prototype.replacements = function(){
 		});
 
 		// All Assets Urls
-	  var urls = items.
-	    map(function(item) {
-	      return item.href;
-	    }.bind(this));
+		var urls = items.
+			map(function(item) {
+				return item.href;
+			}.bind(this));
 
 		// Create blob urls for all the assets
-	  var processing = urls.
-	    map(function(url) {
+		var processing = urls.
+			map(function(url) {
 				var absolute = URI(url).absoluteTo(this.book.baseUrl).toString();
 				// Full url from archive base
-	      return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
-	    }.bind(this));
+				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
+			}.bind(this));
 
 		var replacementUrls;
 
@@ -467,11 +467,11 @@ Rendition.prototype.replacements = function(){
 				// Replace Asset Urls in the text of all css files
 				cssUrls.forEach(function(href) {
 					replaced.push(this.replaceCss(href, urls, replacementUrls));
-		    }.bind(this));
+				}.bind(this));
 
 				return RSVP.all(replaced);
 
-	    }.bind(this))
+			}.bind(this))
 			.then(function () {
 				// Replace Asset Urls in chapters
 				// by registering a hook after the sections contents has been serialized
@@ -483,8 +483,8 @@ Rendition.prototype.replacements = function(){
 
 			}.bind(this))
 			.catch(function(reason){
-	      console.error(reason);
-	    });
+				console.error(reason);
+			});
 	// }.bind(this));
 };
 
@@ -545,31 +545,31 @@ Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 };
 
 Rendition.prototype.range = function(_cfi, ignoreClass){
-  var cfi = new EpubCFI(_cfi);
-  var found = this.visible().filter(function (view) {
+	var cfi = new EpubCFI(_cfi);
+	var found = this.visible().filter(function (view) {
 		if(cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
-  if (found.length) {
-    return found[0].range(cfi, ignoreClass);
-  }
+	if (found.length) {
+		return found[0].range(cfi, ignoreClass);
+	}
 };
 
 Rendition.prototype.adjustImages = function(view) {
 
-  view.addStylesheetRules([
-      ["img",
-        ["max-width", (view.layout.spreadWidth) + "px"],
-        ["max-height", (view.layout.height) + "px"]
-      ]
-  ]);
-  return new RSVP.Promise(function(resolve, reject){
-    // Wait to apply
-    setTimeout(function() {
-      resolve();
-    }, 1);
-  });
+	view.addStylesheetRules([
+			["img",
+				["max-width", (view.layout.spreadWidth) + "px"],
+				["max-height", (view.layout.height) + "px"]
+			]
+	]);
+	return new RSVP.Promise(function(resolve, reject){
+		// Wait to apply
+		setTimeout(function() {
+			resolve();
+		}, 1);
+	});
 };
 
 //-- Enable binding events to Renderer
