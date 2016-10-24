@@ -600,6 +600,7 @@ Contents.prototype.columns = function(width, height, columnWidth, gap){
   this.css("overflowY", "hidden");
   this.css("margin", "0");
   this.css("boxSizing", "border-box");
+  this.css("maxWidth", "inherit");
 
   this.css(COLUMN_AXIS, "horizontal");
   this.css(COLUMN_FILL, "auto");
