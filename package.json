@@ -51,6 +51,7 @@
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
+    "event-emitter": "^0.3.4",
     "jszip": "^3.1.1",
     "rsvp": "^3.0.18",
     "urijs": "^1.17.0",

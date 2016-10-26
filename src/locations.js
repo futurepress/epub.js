@@ -2,6 +2,7 @@ var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
 var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 
 function Locations(spine, request) {
 	this.spine = spine;
@@ -204,7 +205,7 @@ Locations.prototype.setCurrent = function(curr){
 		loc = curr;
 	}
 
-	this.trigger("changed", {
+	this.emit("changed", {
 		percentage: this.precentageFromLocation(loc)
 	});
 };
@@ -218,6 +219,6 @@ Object.defineProperty(Locations.prototype, 'currentLocation', {
 	}
 });
 
-RSVP.EventTarget.mixin(Locations.prototype);
+EventEmitter(Locations.prototype);
 
 module.exports = Locations;

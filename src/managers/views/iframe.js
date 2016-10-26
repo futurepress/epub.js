@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
 var Contents = require('../../contents');
@@ -158,11 +159,11 @@ IframeView.prototype.render = function(request, show) {
 			}
 			// this.map = new Map(view, this.layout);
 			//this.hooks.show.trigger(view, this);
-			this.trigger("rendered", this.section);
+			this.emit("rendered", this.section);
 
 		}.bind(this))
 		.catch(function(e){
-			this.trigger("loaderror", e);
+			this.emit("loaderror", e);
 		}.bind(this));
 
 };
@@ -363,7 +364,7 @@ IframeView.prototype.reframe = function(width, height) {
 
 	this.onResize(this, size);
 
-	this.trigger("resized", size);
+	this.emit("resized", size);
 
 };
 
@@ -483,7 +484,7 @@ IframeView.prototype.display = function(request) {
 
 		this.render(request).then(function () {
 
-			this.trigger("displayed", this);
+			this.emit("displayed", this);
 			this.onDisplayed(this);
 
 			this.displayed = true;
@@ -507,7 +508,7 @@ IframeView.prototype.show = function() {
 		this.iframe.style.visibility = "visible";
 	}
 
-	this.trigger("shown", this);
+	this.emit("shown", this);
 };
 
 IframeView.prototype.hide = function() {
@@ -516,7 +517,7 @@ IframeView.prototype.hide = function() {
 	this.iframe.style.visibility = "hidden";
 
 	this.stopExpanding = true;
-	this.trigger("hidden", this);
+	this.emit("hidden", this);
 };
 
 IframeView.prototype.position = function() {
@@ -569,6 +570,6 @@ IframeView.prototype.destroy = function() {
 	// this.element.style.width = "0px";
 };
 
-RSVP.EventTarget.mixin(IframeView.prototype);
+EventEmitter(IframeView.prototype);
 
 module.exports = IframeView;

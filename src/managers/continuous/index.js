@@ -105,7 +105,7 @@ ContinuousViewManager.prototype.afterDisplayed = function(currView){
 
 	// this.removeShownListeners(currView);
 	// currView.onShown = this.afterDisplayed.bind(this);
-	this.trigger("added", currView.section);
+	this.emit("added", currView.section);
 
 };
 */
@@ -133,7 +133,7 @@ ContinuousViewManager.prototype.resize = function(width, height){
 	//   this.rendition.display(this.location.start);
 	// }
 
-	this.trigger("resized", {
+	this.emit("resized", {
 		width: this.stage.width,
 		height: this.stage.height
 	});
@@ -151,7 +151,7 @@ ContinuousViewManager.prototype.onResized = function(e) {
 };
 
 ContinuousViewManager.prototype.afterResized = function(view){
-	this.trigger("resize", view.section);
+	this.emit("resize", view.section);
 };
 
 // Remove Previous Listeners if present
@@ -436,14 +436,14 @@ ContinuousViewManager.prototype.onScroll = function(){
 				this.scrollDeltaVert = 0;
 				this.scrollDeltaHorz = 0;
 
-				this.trigger("scroll", {
+				this.emit("scroll", {
 					top: scrollTop,
 					left: scrollLeft
 				});
 
 				clearTimeout(this.afterScrolled);
 				this.afterScrolled = setTimeout(function () {
-					this.trigger("scrolled", {
+					this.emit("scrolled", {
 						top: this.scrollTop,
 						left: this.scrollLeft
 					});

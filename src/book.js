@@ -1,4 +1,5 @@
 var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 var URI = require('urijs');
 var core = require('./core');
 var Spine = require('./spine');
@@ -60,7 +61,7 @@ function Book(_url, options){
 			var err = new Error("Cannot load book at "+ _url );
 			console.error(err);
 
-			this.trigger("loadFailed", error);
+			this.emit("loadFailed", error);
 		}.bind(this));
 	}
 };
@@ -331,7 +332,7 @@ Book.prototype.range = function(cfiRange) {
 module.exports = Book;
 
 //-- Enable binding events to book
-RSVP.EventTarget.mixin(Book.prototype);
+EventEmitter(Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
