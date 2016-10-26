@@ -14,7 +14,7 @@ function Rendition(book, options) {
 		width: null,
 		height: null,
 		ignoreClass: '',
-		manager: "single",
+		manager: "default",
 		view: "iframe",
 		flow: null,
 		layout: null,

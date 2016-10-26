@@ -86,7 +86,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	ePub.register.view("iframe", __webpack_require__(31));
 	
 	// Default View Managers
-	ePub.register.manager("single", __webpack_require__(32));
+	ePub.register.manager("default", __webpack_require__(32));
 	ePub.register.manager("continuous", __webpack_require__(35));
 	
 	module.exports = ePub;
@@ -8497,11 +8497,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 		function handler() {
 			if (this.readyState === XMLHttpRequest.DONE) {
+				var responseXML = false;
 	
-				if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
+				if(this.responseType === '' || this.responseType === "document") {
+					responseXML = this.responseXML;
+				}
+	
+				if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
 					var r;
 	
-					if (!this.response && !this.responseXML) {
+					if (!this.response && !responseXML) {
 						deferred.reject({
 							status: this.status,
 							message : "Empty Response",
@@ -8520,8 +8525,7 @@ return /******/ (function(modules) { // webpackBootstrap
 						return deferred.promise;
 					}
 	
-					if((this.responseType == '' || this.responseType == 'document')
-							&& this.responseXML){
+					if(responseXML){
 						r = this.responseXML;
 					} else
 					if(core.isXml(type)){
@@ -9743,7 +9747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			width: null,
 			height: null,
 			ignoreClass: '',
-			manager: "single",
+			manager: "default",
 			view: "iframe",
 			flow: null,
 			layout: null,
