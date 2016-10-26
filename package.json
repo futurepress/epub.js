@@ -36,6 +36,7 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.8.0",
+    "mocha": "^3.1.2",
     "mocha-loader": "^1.0.0",
     "morgan": "^1.1.1",
     "optimist": "^0.6.1",
