@@ -1,5 +1,5 @@
 var assert = require('assert');
-var fs = require('fs');
+// var fs = require('fs');
 if (typeof DOMParser === "undefined") {
 	global.DOMParser = require('xmldom').DOMParser;
 }
@@ -136,7 +136,9 @@ describe('EpubCFI', function() {
 
 	describe('#fromNode()', function() {
 		var base = "/6/4[chap01ref]";
-		var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		// var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		var contents = require('raw!./fixtures/chapter1-highlights.xhtml');
+
 		// var serializer = new XMLSerializer();
 		// var doc = serializer.serializeToString(contents);
 		var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
@@ -183,13 +185,17 @@ describe('EpubCFI', function() {
 	describe('#fromRange()', function() {
 		var base = "/6/4[chap01ref]";
 
-		var contentsClean = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
+		// var contentsClean = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
+		var contentsClean = require('raw!./fixtures/chapter1.xhtml');
+
 		var doc = new DOMParser().parseFromString(contentsClean, "application/xhtml+xml");
 
-		var contentsHighlights = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		// var contentsHighlights = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		var contentsHighlights = require('raw!./fixtures/chapter1-highlights.xhtml');
 		var docHighlights = new DOMParser().parseFromString(contentsHighlights, "application/xhtml+xml");
 
-		var highlightContents = fs.readFileSync(__dirname + '/fixtures/highlight.xhtml', 'utf8');
+		// var highlightContents = fs.readFileSync(__dirname + '/fixtures/highlight.xhtml', 'utf8');
+		var highlightContents = require('raw!./fixtures/highlight.xhtml');
 		var docHighlightsAlice = new DOMParser().parseFromString(highlightContents, "application/xhtml+xml");
 
 		it('get a cfi from a collapsed range', function() {
@@ -295,7 +301,8 @@ describe('EpubCFI', function() {
 
 	describe('#toRange()', function() {
 		var base = "/6/4[chap01ref]";
-		var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		// var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
+		var contents = require('raw!./fixtures/chapter1-highlights.xhtml');
 		var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
 
 		// var serializer = new XMLSerializer();

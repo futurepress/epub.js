@@ -5,8 +5,6 @@ var replace = require('./replacements');
 var Hook = require('./hook');
 var EpubCFI = require('./epubcfi');
 var Queue = require('./queue');
-// var View = require('./view');
-var Views = require('./views');
 var Layout = require('./layout');
 var Mapping = require('./mapping');
 
@@ -382,15 +380,7 @@ Rendition.prototype.destroy = function(){
 	// Clear the queue
 	this.q.clear();
 
-	this.views.clear();
-
-	clearTimeout(this.trimTimeout);
-	if(this.settings.hidden) {
-		this.element.removeChild(this.wrapper);
-	} else {
-		this.element.removeChild(this.container);
-	}
-
+	this.manager.destroy();
 };
 
 Rendition.prototype.passViewEvents = function(view){

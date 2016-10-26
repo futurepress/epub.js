@@ -1,10 +1,10 @@
 var RSVP = require('rsvp');
-var core = require('../core');
-var SingleViewManager = require('./single');
+var core = require('../../core');
+var DefaultViewManager = require('../default');
 
 function ContinuousViewManager(options) {
 
-	SingleViewManager.apply(this, arguments); // call super constructor.
+	DefaultViewManager.apply(this, arguments); // call super constructor.
 
 	this.name = "continuous";
 
@@ -39,11 +39,11 @@ function ContinuousViewManager(options) {
 };
 
 // subclass extends superclass
-ContinuousViewManager.prototype = Object.create(SingleViewManager.prototype);
+ContinuousViewManager.prototype = Object.create(DefaultViewManager.prototype);
 ContinuousViewManager.prototype.constructor = ContinuousViewManager;
 
 ContinuousViewManager.prototype.display = function(section, target){
-	return SingleViewManager.prototype.display.call(this, section, target)
+	return DefaultViewManager.prototype.display.call(this, section, target)
 		.then(function () {
 			return this.fill();
 		}.bind(this));

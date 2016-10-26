@@ -77,11 +77,16 @@ function request(url, type, withCredentials, headers) {
 
 	function handler() {
 		if (this.readyState === XMLHttpRequest.DONE) {
+			var responseXML = false;
 
-			if (this.status === 200 || this.responseXML ) { //-- Firefox is reporting 0 for blob urls
+			if(this.responseType === '' || this.responseType === "document") {
+				responseXML = this.responseXML;
+			}
+
+			if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
 				var r;
 
-				if (!this.response && !this.responseXML) {
+				if (!this.response && !responseXML) {
 					deferred.reject({
 						status: this.status,
 						message : "Empty Response",
@@ -100,8 +105,7 @@ function request(url, type, withCredentials, headers) {
 					return deferred.promise;
 				}
 
-				if((this.responseType == '' || this.responseType == 'document')
-						&& this.responseXML){
+				if(responseXML){
 					r = this.responseXML;
 				} else
 				if(core.isXml(type)){

@@ -1,15 +1,14 @@
 var RSVP = require('rsvp');
-var core = require('../core');
-var Stage = require('../stage');
-var Views = require('../views');
-var EpubCFI = require('../epubcfi');
-// var Layout = require('../layout');
-var Mapping = require('../mapping');
-var Queue = require('../queue');
+var core = require('../../core');
+var EpubCFI = require('../../epubcfi');
+var Mapping = require('../../mapping');
+var Queue = require('../../queue');
+var Stage = require('../helpers/stage');
+var Views = require('../helpers/views');
 
-function SingleViewManager(options) {
+function DefaultViewManager(options) {
 
-	this.name = "single";
+	this.name = "default";
 	this.View = options.view;
 	this.request = options.request;
 	this.renditionQueue = options.queue;
@@ -38,7 +37,7 @@ function SingleViewManager(options) {
 
 }
 
-SingleViewManager.prototype.render = function(element, size){
+DefaultViewManager.prototype.render = function(element, size){
 
 	// Save the stage
 	this.stage = new Stage({
@@ -79,26 +78,36 @@ SingleViewManager.prototype.render = function(element, size){
 	}
 };
 
-SingleViewManager.prototype.addEventListeners = function(){
+DefaultViewManager.prototype.addEventListeners = function(){
 	window.addEventListener('unload', function(e){
 		this.destroy();
 	}.bind(this));
 };
 
-SingleViewManager.prototype.destroy = function(){
+DefaultViewManager.prototype.destroy = function(){
 	// this.views.each(function(view){
 	// 	view.destroy();
 	// });
+
+	/*
+
+		clearTimeout(this.trimTimeout);
+		if(this.settings.hidden) {
+			this.element.removeChild(this.wrapper);
+		} else {
+			this.element.removeChild(this.container);
+		}
+	*/
 };
 
-SingleViewManager.prototype.onResized = function(e) {
+DefaultViewManager.prototype.onResized = function(e) {
 	clearTimeout(this.resizeTimeout);
 	this.resizeTimeout = setTimeout(function(){
 		this.resize();
 	}.bind(this), 150);
 };
 
-SingleViewManager.prototype.resize = function(width, height){
+DefaultViewManager.prototype.resize = function(width, height){
 
 	// Clear the queue
 	this.q.clear();
@@ -124,11 +133,11 @@ SingleViewManager.prototype.resize = function(width, height){
 
 };
 
-SingleViewManager.prototype.createView = function(section) {
+DefaultViewManager.prototype.createView = function(section) {
 	return new this.View(section, this.viewSettings);
 };
 
-SingleViewManager.prototype.display = function(section, target){
+DefaultViewManager.prototype.display = function(section, target){
 
 	var displaying = new RSVP.defer();
 	var displayed = displaying.promise;
@@ -182,19 +191,19 @@ SingleViewManager.prototype.display = function(section, target){
 		return displayed;
 };
 
-SingleViewManager.prototype.afterDisplayed = function(view){
+DefaultViewManager.prototype.afterDisplayed = function(view){
 	this.trigger("added", view);
 };
 
-SingleViewManager.prototype.afterResized = function(view){
+DefaultViewManager.prototype.afterResized = function(view){
 	this.trigger("resize", view.section);
 };
 
-// SingleViewManager.prototype.moveTo = function(offset){
+// DefaultViewManager.prototype.moveTo = function(offset){
 // 	this.scrollTo(offset.left, offset.top);
 // };
 
-SingleViewManager.prototype.moveTo = function(offset){
+DefaultViewManager.prototype.moveTo = function(offset){
 	var distX = 0,
 			distY = 0;
 
@@ -211,7 +220,7 @@ SingleViewManager.prototype.moveTo = function(offset){
 	this.scrollTo(distX, distY);
 };
 
-SingleViewManager.prototype.add = function(section){
+DefaultViewManager.prototype.add = function(section){
 	var view = this.createView(section);
 
 	this.views.append(view);
@@ -224,19 +233,19 @@ SingleViewManager.prototype.add = function(section){
 
 };
 
-SingleViewManager.prototype.append = function(section){
+DefaultViewManager.prototype.append = function(section){
 	var view = this.createView(section);
 	this.views.append(view);
 	return view.display(this.request);
 };
 
-SingleViewManager.prototype.prepend = function(section){
+DefaultViewManager.prototype.prepend = function(section){
 	var view = this.createView(section);
 
 	this.views.prepend(view);
 	return view.display(this.request);
 };
-// SingleViewManager.prototype.resizeView = function(view) {
+// DefaultViewManager.prototype.resizeView = function(view) {
 //
 // 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
 // 		view.lock("both", this.bounds.width, this.bounds.height);
@@ -246,7 +255,7 @@ SingleViewManager.prototype.prepend = function(section){
 //
 // };
 
-SingleViewManager.prototype.next = function(){
+DefaultViewManager.prototype.next = function(){
 	var next;
 	var view;
 	var left;
@@ -295,7 +304,7 @@ SingleViewManager.prototype.next = function(){
 
 };
 
-SingleViewManager.prototype.prev = function(){
+DefaultViewManager.prototype.prev = function(){
 	var prev;
 	var view;
 	var left;
@@ -343,7 +352,7 @@ SingleViewManager.prototype.prev = function(){
 	}
 };
 
-SingleViewManager.prototype.current = function(){
+DefaultViewManager.prototype.current = function(){
 	var visible = this.visible();
 	if(visible.length){
 		// Current is the last visible view
@@ -352,7 +361,7 @@ SingleViewManager.prototype.current = function(){
 	return null;
 };
 
-SingleViewManager.prototype.currentLocation = function(){
+DefaultViewManager.prototype.currentLocation = function(){
 	var view;
 	var start, end;
 
@@ -366,7 +375,7 @@ SingleViewManager.prototype.currentLocation = function(){
 
 };
 
-SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
+DefaultViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _container){
 	var position = view.position();
 	var container = _container || this.bounds();
 
@@ -387,7 +396,7 @@ SingleViewManager.prototype.isVisible = function(view, offsetPrev, offsetNext, _
 
 };
 
-SingleViewManager.prototype.visible = function(){
+DefaultViewManager.prototype.visible = function(){
 	// return this.views.displayed();
 	var container = this.bounds();
 	var views = this.views.displayed();
@@ -408,7 +417,7 @@ SingleViewManager.prototype.visible = function(){
 	return visible;
 };
 
-SingleViewManager.prototype.scrollBy = function(x, y, silent){
+DefaultViewManager.prototype.scrollBy = function(x, y, silent){
 	if(silent) {
 		this.ignore = true;
 	}
@@ -426,7 +435,7 @@ SingleViewManager.prototype.scrollBy = function(x, y, silent){
 	this.onScroll();
 };
 
-SingleViewManager.prototype.scrollTo = function(x, y, silent){
+DefaultViewManager.prototype.scrollTo = function(x, y, silent){
 	if(silent) {
 		this.ignore = true;
 	}
@@ -448,11 +457,11 @@ SingleViewManager.prototype.scrollTo = function(x, y, silent){
 	// };
  };
 
-SingleViewManager.prototype.onScroll = function(){
+DefaultViewManager.prototype.onScroll = function(){
 
 };
 
-SingleViewManager.prototype.bounds = function() {
+DefaultViewManager.prototype.bounds = function() {
 	var bounds;
 
 	bounds = this.stage.bounds();
@@ -460,7 +469,7 @@ SingleViewManager.prototype.bounds = function() {
 	return bounds;
 };
 
-SingleViewManager.prototype.applyLayout = function(layout) {
+DefaultViewManager.prototype.applyLayout = function(layout) {
 
 	this.layout = layout;
 	this.updateLayout();
@@ -469,7 +478,7 @@ SingleViewManager.prototype.applyLayout = function(layout) {
 	 // this.manager.layout(this.layout.format);
 };
 
-SingleViewManager.prototype.updateLayout = function() {
+DefaultViewManager.prototype.updateLayout = function() {
 	if (!this.stage) {
 		return;
 	}
@@ -500,7 +509,7 @@ SingleViewManager.prototype.updateLayout = function() {
 
 };
 
-SingleViewManager.prototype.setLayout = function(layout){
+DefaultViewManager.prototype.setLayout = function(layout){
 
 	this.viewSettings.layout = layout;
 
@@ -514,7 +523,7 @@ SingleViewManager.prototype.setLayout = function(layout){
 
 };
 
-SingleViewManager.prototype.updateFlow = function(flow){
+DefaultViewManager.prototype.updateFlow = function(flow){
 	var axis = (flow === "paginated") ? "horizontal" : "vertical";
 
 	this.settings.axis = axis;
@@ -529,6 +538,6 @@ SingleViewManager.prototype.updateFlow = function(flow){
 };
 
  //-- Enable binding events to Manager
- RSVP.EventTarget.mixin(SingleViewManager.prototype);
+ RSVP.EventTarget.mixin(DefaultViewManager.prototype);
 
- module.exports = SingleViewManager;
+ module.exports = DefaultViewManager;

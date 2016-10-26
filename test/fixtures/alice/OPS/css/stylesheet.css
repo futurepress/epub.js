@@ -1,0 +1,105 @@
+body {
+  font-family: Georgia, serif;
+  font-size: 1em;
+  line-height: 1.33em;
+}
+
+/* Book Title */
+h1 {
+  font-size: 1.5em;
+  line-height: 1.33em;
+}
+
+/* Chapter Title */
+h2 {
+  font-size: 1.33em;
+  line-height: 1.2em;
+}
+
+/* Subtitle */
+h3 {
+  font-size: 1.25em;
+  line-height: 1.12em;
+}
+
+/* Meta Info */
+h4 {
+  font-size: 1.1em;
+  line-height: 1.05em;
+}
+
+/* Chapter Container */
+section {
+  
+}
+
+section > p {
+    
+}
+
+/* Drop Cap */
+section > p:first-of-type:first-letter { 
+  float: left;
+  font-size: 4em;
+  line-height: .8;
+  padding: 0 .2em;
+  font-family: Georgia;
+}
+
+figure.small {
+  
+}
+
+figure.full {
+  
+}
+
+figure > img {
+  
+}
+
+figcaption {
+  
+}
+
+figcaption > p {
+
+}
+
+/* More specific Kindle Eink queries at: http://epubsecrets.com/media-queries-for-kindle-devices.php */
+
+/* Amazon Kindle */
+@media amzn-kf8 {
+
+}
+
+/* Many device available at: https://css-tricks.com/snippets/css/media-queries-for-standard-devices/ */
+
+/* Smartphone - Portrait */
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 667px)
+  and (orientation: portrait) {
+  
+}
+
+/* Smartphone - Landscape */
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 667px)
+  and (orientation: landscape) {
+
+}
+
+/* Tablet - Portrait and Landscape */
+@media only screen 
+  and (min-device-width: 768px) 
+  and (max-device-width: 1024px) {
+
+}
+
+/* Laptop & Desktops */
+@media only screen 
+  and (min-device-width: 1025px) {
+
+}
