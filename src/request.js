@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
 
@@ -7,7 +6,7 @@ function request(url, type, withCredentials, headers) {
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 	var uri;
 
-	var deferred = new RSVP.defer();
+	var deferred = new core.defer();
 
 	var xhr = new XMLHttpRequest();
 

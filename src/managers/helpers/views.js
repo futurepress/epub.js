@@ -76,8 +76,6 @@ Views.prototype.remove = function(view) {
 };
 
 Views.prototype.destroy = function(view) {
-	view.off("resized");
-
 	if(view.displayed){
 		view.destroy();
 	}

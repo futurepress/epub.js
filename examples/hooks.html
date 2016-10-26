@@ -85,7 +85,7 @@
     // Add several scripts / css
     rendition.hooks.content.register(function(view){
 
-        var loaded = RSVP.all([
+        var loaded = Promise.all([
             view.addScript("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"),
             view.addCss("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css")
         ]);

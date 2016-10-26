@@ -1,6 +1,5 @@
 var core = require('./core');
 var Parser = require('./parser');
-var RSVP = require('rsvp');
 var URI = require('urijs');
 
 function Navigation(_package, _request){
@@ -18,7 +17,7 @@ function Navigation(_package, _request){
 		this.nav = {};
 
 		this.nav.load = function(_request){
-			var loading = new RSVP.defer();
+			var loading = new core.defer();
 			var loaded = loading.promise;
 
 			request(navigation.navUrl, 'xml').then(function(xml){
@@ -37,7 +36,7 @@ function Navigation(_package, _request){
 		this.ncx = {};
 
 		this.ncx.load = function(_request){
-			var loading = new RSVP.defer();
+			var loading = new core.defer();
 			var loaded = loading.promise;
 
 			request(navigation.ncxUrl, 'xml').then(function(xml){
@@ -62,7 +61,7 @@ Navigation.prototype.load = function(_request) {
 	} else if(this.ncx) {
 		loading = this.ncx.load();
 	} else {
-		loaded = new RSVP.defer();
+		loaded = new core.defer();
 		loaded.resolve([]);
 		loading = loaded.promise;
 	}

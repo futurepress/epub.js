@@ -1,5 +1,3 @@
-var RSVP = require('rsvp');
-
 //-- Hooks allow for injecting functions that must all complete in order before finishing
 //   They will execute in parallel but all must finish before continuing
 //   Functions may return a promise if they are asycn.
@@ -44,7 +42,7 @@ Hook.prototype.trigger = function(){
 	});
 
 
-	return RSVP.all(promises);
+	return Promise.all(promises);
 };
 
 // Adds a function to be run before a hook completes

@@ -10,7 +10,7 @@
   "scripts": {
     "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
     "start": "webpack-dev-server --inline --hot",
-    "build": "gulp minify"
+    "build": "./node_modules/.bin/gulp minify"
   },
   "author": "fchasen@gmail.com",
   "license": "MIT",
@@ -51,6 +51,8 @@
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
+    "es6-promise": "^4.0.5",
+    "event-emitter": "^0.3.4",
     "jszip": "^3.1.1",
     "rsvp": "^3.0.18",
     "urijs": "^1.17.0",

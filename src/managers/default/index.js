@@ -1,4 +1,4 @@
-var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
 var Mapping = require('../../mapping');
@@ -126,7 +126,7 @@ DefaultViewManager.prototype.resize = function(width, height){
 
 	this.updateLayout();
 
-	this.trigger("resized", {
+	this.emit("resized", {
 		width: this.stage.width,
 		height: this.stage.height
 	});
@@ -139,7 +139,7 @@ DefaultViewManager.prototype.createView = function(section) {
 
 DefaultViewManager.prototype.display = function(section, target){
 
-	var displaying = new RSVP.defer();
+	var displaying = new core.defer();
 	var displayed = displaying.promise;
 
 	// Check to make sure the section we want isn't already shown
@@ -192,11 +192,11 @@ DefaultViewManager.prototype.display = function(section, target){
 };
 
 DefaultViewManager.prototype.afterDisplayed = function(view){
-	this.trigger("added", view);
+	this.emit("added", view);
 };
 
 DefaultViewManager.prototype.afterResized = function(view){
-	this.trigger("resize", view.section);
+	this.emit("resize", view.section);
 };
 
 // DefaultViewManager.prototype.moveTo = function(offset){
@@ -538,6 +538,6 @@ DefaultViewManager.prototype.updateFlow = function(flow){
 };
 
  //-- Enable binding events to Manager
- RSVP.EventTarget.mixin(DefaultViewManager.prototype);
+ EventEmitter(DefaultViewManager.prototype);
 
  module.exports = DefaultViewManager;

@@ -1,4 +1,4 @@
-var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Mapping = require('./mapping');
@@ -245,7 +245,7 @@ Contents.prototype.viewport = function(options) {
 // };
 
 Contents.prototype.expand = function() {
-	this.trigger("expand");
+	this.emit("expand");
 };
 
 Contents.prototype.listeners = function() {
@@ -286,7 +286,7 @@ Contents.prototype.resizeListeners = function() {
 			height: height
 		}
 
-		this.trigger("resize", this._size);
+		this.emit("resize", this._size);
 	}
 
 	this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
@@ -405,7 +405,7 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 };
 
 Contents.prototype.addStylesheet = function(src) {
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		var $stylesheet;
 		var ready = false;
 
@@ -468,7 +468,7 @@ Contents.prototype.addStylesheetRules = function(rules) {
 
 Contents.prototype.addScript = function(src) {
 
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		var $script;
 		var ready = false;
 
@@ -517,7 +517,7 @@ Contents.prototype.removeEventListeners = function(){
 
 // Pass browser events
 Contents.prototype.triggerEvent = function(e){
-	this.trigger(e.type, e);
+	this.emit(e.type, e);
 };
 
 Contents.prototype.addSelectionListeners = function(){
@@ -552,8 +552,8 @@ Contents.prototype.triggerSelectedEvent = function(selection){
 		if(!range.collapsed) {
 			// cfirange = this.section.cfiFromRange(range);
 			cfirange = new EpubCFI(range, this.cfiBase).toString();
-			this.trigger("selected", cfirange);
-			this.trigger("selectedRange", range);
+			this.emit("selected", cfirange);
+			this.emit("selectedRange", range);
 		}
 	}
 };
@@ -659,6 +659,6 @@ Contents.prototype.destroy = function() {
 
 };
 
-RSVP.EventTarget.mixin(Contents.prototype);
+EventEmitter(Contents.prototype);
 
 module.exports = Contents;

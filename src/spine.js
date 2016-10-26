@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');

@@ -7,10 +7,12 @@ var port = "8080";
 module.exports = {
 	entry: {
 		epub: "./src/epub.js",
+		polyfills: ["./node_modules/es6-promise/dist/es6-promise.auto.js"]
 	},
 	devtool: 'source-map',
 	output: {
-		path: path.resolve("./dist"),
+		// path: path.resolve("./dist"),
+		path: "./dist",
 		filename: "[name].js",
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",

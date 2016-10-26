@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
 var request = require('./request');
@@ -36,7 +35,7 @@ Unarchive.prototype.open = function(zipUrl, isBase64){
 };
 
 Unarchive.prototype.request = function(url, type){
-	var deferred = new RSVP.defer();
+	var deferred = new core.defer();
 	var response;
 	var r;
 
@@ -128,7 +127,7 @@ Unarchive.prototype.getBase64 = function(url, _mimeType){
 };
 
 Unarchive.prototype.createUrl = function(url, options){
-	var deferred = new RSVP.defer();
+	var deferred = new core.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob;

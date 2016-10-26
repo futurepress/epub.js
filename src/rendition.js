@@ -1,4 +1,4 @@
-var RSVP = require('rsvp');
+var EventEmitter = require('event-emitter');
 var URI = require('urijs');
 var core = require('./core');
 var replace = require('./replacements');
@@ -54,7 +54,7 @@ function Rendition(book, options) {
 	this.q.enqueue(this.book.opened);
 
 	// Block the queue until rendering is started
-	// this.starting = new RSVP.defer();
+	// this.starting = new core.defer();
 	// this.started = this.starting.promise;
 	this.q.enqueue(this.start);
 
@@ -131,7 +131,7 @@ Rendition.prototype.start = function(){
 	this.on('displayed', this.reportLocation.bind(this));
 
 	// Trigger that rendering has started
-	this.trigger("started");
+	this.emit("started");
 
 	// Start processing queue
 	// this.starting.resolve();
@@ -150,7 +150,7 @@ Rendition.prototype.attachTo = function(element){
 		});
 
 		// Trigger Attached
-		this.trigger("attached");
+		this.emit("attached");
 
 	}.bind(this));
 
@@ -169,7 +169,7 @@ Rendition.prototype.display = function(target){
 
 Rendition.prototype._display = function(target){
 	var isCfiString = this.epubcfi.isCfiString(target);
-	var displaying = new RSVP.defer();
+	var displaying = new core.defer();
 	var displayed = displaying.promise;
 	var section;
 	var moveTo;
@@ -194,7 +194,7 @@ Rendition.prototype._display = function(target){
 
 	return this.manager.display(section, moveTo)
 		.then(function(){
-			this.trigger("displayed", section);
+			this.emit("displayed", section);
 		}.bind(this));
 
 };
@@ -246,7 +246,7 @@ Rendition.prototype.render = function(view, show) {
 
 Rendition.prototype.afterDisplayed = function(view){
 	this.hooks.content.trigger(view, this);
-	this.trigger("rendered", view.section);
+	this.emit("rendered", view.section);
 	this.reportLocation();
 };
 
@@ -256,7 +256,7 @@ Rendition.prototype.onResized = function(size){
 		this.display(this.location.start);
 	}
 
-	this.trigger("resized", {
+	this.emit("resized", {
 		width: size.width,
 		height: size.height
 	});
@@ -365,11 +365,11 @@ Rendition.prototype.reportLocation = function(){
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
-				this.trigger("locationChanged", this.location);
+				this.emit("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
-			this.trigger("locationChanged", this.location);
+			this.emit("locationChanged", this.location);
 		}
 
 	}.bind(this));
@@ -392,11 +392,11 @@ Rendition.prototype.passViewEvents = function(view){
 };
 
 Rendition.prototype.triggerViewEvent = function(e){
-	this.trigger(e.type, e);
+	this.emit(e.type, e);
 };
 
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
-	this.trigger("selected", cfirange);
+	this.emit("selected", cfirange);
 };
 
 Rendition.prototype.replacements = function(){
@@ -448,7 +448,7 @@ Rendition.prototype.replacements = function(){
 		var replacementUrls;
 
 		// After all the urls are created
-		return RSVP.all(processing)
+		return Promise.all(processing)
 			.then(function(_replacementUrls) {
 				var replaced = [];
 
@@ -459,7 +459,7 @@ Rendition.prototype.replacements = function(){
 					replaced.push(this.replaceCss(href, urls, replacementUrls));
 				}.bind(this));
 
-				return RSVP.all(replaced);
+				return Promise.all(replaced);
 
 			}.bind(this))
 			.then(function () {
@@ -512,7 +512,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				replacementUrls[indexInUrls] = newUrl;
 			}
 
-			return new RSVP.Promise(function(resolve, reject){
+			return new Promise(function(resolve, reject){
 				resolve(urls, replacementUrls);
 			});
 
@@ -554,7 +554,7 @@ Rendition.prototype.adjustImages = function(view) {
 				["max-height", (view.layout.height) + "px"]
 			]
 	]);
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		// Wait to apply
 		setTimeout(function() {
 			resolve();
@@ -563,6 +563,6 @@ Rendition.prototype.adjustImages = function(view) {
 };
 
 //-- Enable binding events to Renderer
-RSVP.EventTarget.mixin(Rendition.prototype);
+EventEmitter(Rendition.prototype);
 
 module.exports = Rendition;
