@@ -10,15 +10,27 @@ var onError = function (err) {
 };
 var server = require("./tools/serve.js");
 
-var browserify = require('browserify');
-var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var sourcemaps = require('gulp-sourcemaps');
 
 var size = require('gulp-size');
-var URI = require('urijs');
-var mochify = require('mochify');
+
+var webpack = require("webpack");
+var WebpackDevServer = require("webpack-dev-server");
+var webpackConfig = require("./webpack.config");
+
+var Server = require('karma').Server;
+
+// modify some webpack config options
+var watchConfig = Object.create(webpackConfig);
+watchConfig.devtool = "sourcemap";
+watchConfig.debug = true;
+watchConfig.watch = true;
+
+// create a single instance of the compiler to allow caching
+var watchCompiler = webpack(watchConfig);
+
 // https://github.com/mishoo/UglifyJS2/pull/265
 // uglify.AST_Node.warn_function = function() {};
 
@@ -29,9 +41,20 @@ gulp.task('lint', function() {
 		.pipe(jshint.reporter('default'));
 });
 
-// set up the browserify instance on a task basis
-gulp.task('bundle', function () {
-	return bundle('epub.js');
+gulp.task('bundle', function (cb) {
+	webpack(webpackConfig, function(err, stats) {
+		if(err) {
+			throw new gutil.PluginError("webpack", err);
+		}
+
+		gutil.log("[webpack-bundle]", stats.toString({
+			colors: true,
+			chunks: true
+		}));
+
+		cb();
+
+	});
 });
 
 // Minify JS
@@ -52,97 +75,75 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-	bundle('epub.js', cb);
+	watchCompiler(watchConfig, function(err, stats) {
+		if(err) {
+			throw new gutil.PluginError("webpack", err);
+		}
+
+		gutil.log("[webpack-watch]", stats.toString({
+			colors: true,
+			chunks: false
+		}));
+
+	});
+
 });
 
-gulp.task('serve', function(cb) {
+gulp.task('test', function(done) {
+	new Server({
+		configFile: __dirname + '/karma.conf.js',
+		singleRun: false
+	}, done).start();
+});
+
+gulp.task('test:once', function(done) {
+	new Server({
+		configFile: __dirname + '/karma.conf.js',
+		singleRun: true
+	}, done).start();
+});
+
+gulp.task("serve", function(callback) {
 	server();
-	bundle('epub.js', cb);
-});
+	/*
+	var serverConfig = Object.create(webpackConfig);
 
-gulp.task('serve:no-watch', function(cb) {
-	server();
-});
+	serverConfig.devtool = "eval";
+	serverConfig.debug = true;
+	serverConfig.watch = true;
 
-gulp.task('test', function(cb) {
-	mochify('./test/*.js', {
-		reporter: 'spec',
-		transform: 'brfs',
-		"web-security": false,
-		"webSecurityEnabled": false,
-		// "localUrlAccess": true,
-		watch: true,
-		wd: false,
-		debug: false
-	})
-	.bundle();
-});
+	// Start a webpack-dev-server
+	new WebpackDevServer(webpack(serverConfig), {
+		stats: {
+			colors: true,
+			chunks: false
+		}
+	}).listen(8080, "localhost", function(err) {
+		if(err) throw new gutil.PluginError("webpack-dev-server", err);
+		gutil.log("[webpack-dev-server]", "http://localhost:8080/webpack-dev-server/examples/index.html");
+	});
+	*/
 
-
-gulp.task('test:once', function(cb) {
-	mochify('./test/*.js', {
-		reporter: 'spec',
-		transform: 'brfs',
-		"web-security": false,
-		"webSecurityEnabled": false,
-		// "localUrlAccess": true,
-		watch: false,
-		wd: false,
-		debug: false
-	})
-	.bundle();
 });
 
 // Default
 gulp.task('default', ['lint', 'bundle']);
 
-
-function bundle(file, watch) {
-	var opt = {
-		entries: ['src/'+file],
-		standalone: 'ePub',
-		debug : true
-	};
-
-	var b = browserify(opt);
-
-	// Expose epub module for require
-	b.require('./src/'+file, {expose: 'epub'});
-
-	// Keep JSZip library seperate,
-	// must be loaded to use Unarchive or `require` will throw an error
-	b.external('jszip');
-
-	b.external('xmldom');
-
-	// Ignore optional URI libraries
-	var urijsPath = URI(require.resolve('urijs'));
-	['./punycode.js', './IPv6.js'].forEach(function(lib) {
-		var libPath = URI(lib).absoluteTo(urijsPath).toString();
-		b.ignore(libPath);
-	});
-
-	// watchify() if watch requested, otherwise run browserify() once
-	var bundler = watch ? watchify(b) : b;
-
-	function rebundle() {
-		var stream = bundler.bundle();
-		return stream
-			.on('error', gutil.log)
-			.pipe(source(file))
-			.pipe(buffer())
-			.pipe(sourcemaps.init({loadMaps: true}))
-			.pipe(sourcemaps.write('./'))
-			.pipe(size({ showFiles: true }))
-			.pipe(gulp.dest('./dist/'));
+function bundle(done) {
+	if (!done) {
+		webpackConfig.watch = true;
+	} else {
+		webpackConfig.watch = false;
 	}
 
-	// listen for an update and run rebundle
-	bundler.on('update', function() {
-		rebundle();
-		gutil.log('Rebundle...');
-	});
+	watchCompiler(watchConfig, function(err, stats) {
+		if(err) throw new gutil.PluginError("webpack", err);
+		gutil.log("[webpack]", stats.toString({
+			colors: true,
+			chunks: false
+		}));
 
-	// run it once the first time buildScript is called
-	return rebundle();
+		done && done();
+
+	});
 }
