@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
@@ -278,7 +277,7 @@ InlineView.prototype.resize = function(width, height) {
 
 
 InlineView.prototype.load = function(contents) {
-	var loading = new RSVP.defer();
+	var loading = new core.defer();
 	var loaded = loading.promise;
 	var doc = core.parse(contents, "text/html");
 	var body = core.qs(doc, "body");
@@ -332,7 +331,7 @@ InlineView.prototype.removeListeners = function(layoutFunc) {
 };
 
 InlineView.prototype.display = function(request) {
-	var displayed = new RSVP.defer();
+	var displayed = new core.defer();
 
 	if (!this.displayed) {
 

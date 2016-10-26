@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var base64 = require('base64-js');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
@@ -505,6 +504,36 @@ function blob2base64(blob, cb) {
 	}
 }
 
+function defer() {
+	// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
+	/* A method to resolve the associated Promise with the value passed.
+	 * If the promise is already settled it does nothing.
+	 *
+	 * @param {anything} value : This value is used to resolve the promise
+	 * If the value is a Promise then the associated promise assumes the state
+	 * of Promise passed as value.
+	 */
+	this.resolve = null;
+
+	/* A method to reject the assocaited Promise with the value passed.
+	 * If the promise is already settled it does nothing.
+	 *
+	 * @param {anything} reason: The reason for the rejection of the Promise.
+	 * Generally its an Error object. If however a Promise is passed, then the Promise
+	 * itself will be the reason for rejection no matter the state of the Promise.
+	 */
+	this.reject = null;
+
+	/* A newly created Pomise object.
+	 * Initially in pending state.
+	 */
+	this.promise = new Promise(function(resolve, reject) {
+		this.resolve = resolve;
+		this.reject = reject;
+	}.bind(this));
+	Object.freeze(this);
+}
+
 module.exports = {
 	// 'uri': uri,
 	// 'folder': folder,
@@ -536,5 +565,6 @@ module.exports = {
 	'qsa' : qsa,
 	'qsp' : qsp,
 	'blob2base64' : blob2base64,
-	'createBase64Url': createBase64Url
+	'createBase64Url': createBase64Url,
+	'defer': defer
 };

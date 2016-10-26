@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -29,7 +28,7 @@ function Section(item, hooks){
 
 Section.prototype.load = function(_request){
 	var request = _request || this.request || require('./request');
-	var loading = new RSVP.defer();
+	var loading = new core.defer();
 	var loaded = loading.promise;
 
 	if(this.contents) {
@@ -57,7 +56,7 @@ Section.prototype.load = function(_request){
 };
 
 Section.prototype.base = function(_document){
-		var task = new RSVP.defer();
+		var task = new core.defer();
 		var base = _document.createElement("base"); // TODO: check if exists
 		var head;
 		console.log(window.location.origin + "/" +this.url);
@@ -83,7 +82,7 @@ Section.prototype.beforeSectionLoad = function(){
 };
 
 Section.prototype.render = function(_request){
-	var rendering = new RSVP.defer();
+	var rendering = new core.defer();
 	var rendered = rendering.promise;
 	this.output; // TODO: better way to return this from hooks?
 

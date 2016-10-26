@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var core = require('../../core');
 var DefaultViewManager = require('../default');
 
@@ -50,7 +49,7 @@ ContinuousViewManager.prototype.display = function(section, target){
 };
 
 ContinuousViewManager.prototype.fill = function(_full){
-	var full = _full || new RSVP.defer();
+	var full = _full || new core.defer();
 
 	this.check().then(function(result) {
 		if (result) {
@@ -216,7 +215,7 @@ ContinuousViewManager.prototype.update = function(_offset){
 	var isVisible;
 	var view;
 
-	var updating = new RSVP.defer();
+	var updating = new core.defer();
 	var promises = [];
 
 	for (var i = 0; i < viewsLength; i++) {
@@ -243,7 +242,7 @@ ContinuousViewManager.prototype.update = function(_offset){
 	}
 
 	if(promises.length){
-		return RSVP.all(promises);
+		return Promise.all(promises);
 	} else {
 		updating.resolve();
 		return updating.promise;
@@ -254,7 +253,7 @@ ContinuousViewManager.prototype.update = function(_offset){
 ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 	var last, first, next, prev;
 
-	var checking = new RSVP.defer();
+	var checking = new core.defer();
 	var newViews = [];
 
 	var horizontal = (this.settings.axis === "horizontal");
@@ -291,7 +290,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 	}
 
 	if(newViews.length){
-		// RSVP.all(promises)
+		// Promise.all(promises)
 			// .then(function() {
 				// Check to see if anything new is on screen after rendering
 				return this.q.enqueue(function(){
@@ -310,7 +309,7 @@ ContinuousViewManager.prototype.check = function(_offsetLeft, _offsetTop){
 };
 
 ContinuousViewManager.prototype.trim = function(){
-	var task = new RSVP.defer();
+	var task = new core.defer();
 	var displayed = this.views.displayed();
 	var first = displayed[0];
 	var last = displayed[displayed.length-1];

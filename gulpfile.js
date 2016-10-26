@@ -31,9 +31,6 @@ watchConfig.watch = true;
 // create a single instance of the compiler to allow caching
 var watchCompiler = webpack(watchConfig);
 
-// https://github.com/mishoo/UglifyJS2/pull/265
-// uglify.AST_Node.warn_function = function() {};
-
 // Lint JS
 gulp.task('lint', function() {
 	return gulp.src('src/*.js')
@@ -63,9 +60,9 @@ gulp.task('minify', ['bundle'], function(){
 			mangle: true,
 			preserveComments : "license"
 	};
-	return gulp.src('dist/epub.js')
+	return gulp.src(['dist/epub.js', 'dist/polyfills.js'])
 		.pipe(plumber({ errorHandler: onError }))
-		.pipe(rename('epub.min.js'))
+		.pipe(rename({suffix: '.min'}))
 		// .pipe(sourcemaps.init({loadMaps: true}))
 		.pipe(uglify(uglifyOptions))
 		// .pipe(sourcemaps.write('./'))
@@ -75,7 +72,7 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-	watchCompiler(watchConfig, function(err, stats) {
+	webpack(webpackConfig, function(err, stats) {
 		if(err) {
 			throw new gutil.PluginError("webpack", err);
 		}
@@ -136,7 +133,7 @@ function bundle(done) {
 		webpackConfig.watch = false;
 	}
 
-	watchCompiler(watchConfig, function(err, stats) {
+	webpack(webpackConfig, function(err, stats) {
 		if(err) throw new gutil.PluginError("webpack", err);
 		gutil.log("[webpack]", stats.toString({
 			colors: true,

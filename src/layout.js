@@ -1,5 +1,4 @@
 var core = require('./core');
-var RSVP = require('rsvp');
 
 function Layout(settings){
 	this.name = settings.layout || "reflowable";

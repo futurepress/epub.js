@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var core = require('./core');
 
 function Queue(_context){
@@ -26,7 +25,7 @@ Queue.prototype.enqueue = function() {
 
 	if(typeof task === "function"){
 
-		deferred = new RSVP.defer();
+		deferred = new core.defer();
 		promise = deferred.promise;
 
 		queued = {
@@ -88,7 +87,7 @@ Queue.prototype.dequeue = function(){
 		}
 
 	} else {
-		inwait = new RSVP.defer();
+		inwait = new core.defer();
 		inwait.deferred.resolve();
 		return inwait.promise;
 	}
@@ -108,7 +107,7 @@ Queue.prototype.run = function(){
 
 	if(!this.running){
 		this.running = true;
-		this.defered = new RSVP.defer();
+		this.defered = new core.defer();
 	}
 
 	this.tick.call(window, function() {
@@ -174,7 +173,7 @@ function Task(task, args, context){
 	return function(){
 		var toApply = arguments || [];
 
-		return new RSVP.Promise(function(resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			var callback = function(value){
 				resolve(value);
 			};

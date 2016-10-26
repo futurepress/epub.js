@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
@@ -370,7 +369,7 @@ IframeView.prototype.reframe = function(width, height) {
 
 
 IframeView.prototype.load = function(contents) {
-	var loading = new RSVP.defer();
+	var loading = new core.defer();
 	var loaded = loading.promise;
 
 	if(!this.iframe) {
@@ -478,7 +477,7 @@ IframeView.prototype.removeListeners = function(layoutFunc) {
 };
 
 IframeView.prototype.display = function(request) {
-	var displayed = new RSVP.defer();
+	var displayed = new core.defer();
 
 	if (!this.displayed) {
 

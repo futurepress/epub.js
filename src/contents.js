@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
@@ -406,7 +405,7 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 };
 
 Contents.prototype.addStylesheet = function(src) {
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		var $stylesheet;
 		var ready = false;
 
@@ -469,7 +468,7 @@ Contents.prototype.addStylesheetRules = function(rules) {
 
 Contents.prototype.addScript = function(src) {
 
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		var $script;
 		var ready = false;
 

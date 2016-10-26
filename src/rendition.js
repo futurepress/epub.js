@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var URI = require('urijs');
 var core = require('./core');
@@ -55,7 +54,7 @@ function Rendition(book, options) {
 	this.q.enqueue(this.book.opened);
 
 	// Block the queue until rendering is started
-	// this.starting = new RSVP.defer();
+	// this.starting = new core.defer();
 	// this.started = this.starting.promise;
 	this.q.enqueue(this.start);
 
@@ -170,7 +169,7 @@ Rendition.prototype.display = function(target){
 
 Rendition.prototype._display = function(target){
 	var isCfiString = this.epubcfi.isCfiString(target);
-	var displaying = new RSVP.defer();
+	var displaying = new core.defer();
 	var displayed = displaying.promise;
 	var section;
 	var moveTo;
@@ -449,7 +448,7 @@ Rendition.prototype.replacements = function(){
 		var replacementUrls;
 
 		// After all the urls are created
-		return RSVP.all(processing)
+		return Promise.all(processing)
 			.then(function(_replacementUrls) {
 				var replaced = [];
 
@@ -460,7 +459,7 @@ Rendition.prototype.replacements = function(){
 					replaced.push(this.replaceCss(href, urls, replacementUrls));
 				}.bind(this));
 
-				return RSVP.all(replaced);
+				return Promise.all(replaced);
 
 			}.bind(this))
 			.then(function () {
@@ -513,7 +512,7 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 				replacementUrls[indexInUrls] = newUrl;
 			}
 
-			return new RSVP.Promise(function(resolve, reject){
+			return new Promise(function(resolve, reject){
 				resolve(urls, replacementUrls);
 			});
 
@@ -555,7 +554,7 @@ Rendition.prototype.adjustImages = function(view) {
 				["max-height", (view.layout.height) + "px"]
 			]
 	]);
-	return new RSVP.Promise(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		// Wait to apply
 		setTimeout(function() {
 			resolve();

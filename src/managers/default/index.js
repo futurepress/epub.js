@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
@@ -140,7 +139,7 @@ DefaultViewManager.prototype.createView = function(section) {
 
 DefaultViewManager.prototype.display = function(section, target){
 
-	var displaying = new RSVP.defer();
+	var displaying = new core.defer();
 	var displayed = displaying.promise;
 
 	// Check to make sure the section we want isn't already shown

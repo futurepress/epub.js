@@ -1,4 +1,3 @@
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 var URI = require('urijs');
 var core = require('./core');
@@ -21,19 +20,19 @@ function Book(_url, options){
 
 
 	// Promises
-	this.opening = new RSVP.defer();
+	this.opening = new core.defer();
 	this.opened = this.opening.promise;
 	this.isOpen = false;
 
 	this.url = undefined;
 
 	this.loading = {
-		manifest: new RSVP.defer(),
-		spine: new RSVP.defer(),
-		metadata: new RSVP.defer(),
-		cover: new RSVP.defer(),
-		navigation: new RSVP.defer(),
-		pageList: new RSVP.defer()
+		manifest: new core.defer(),
+		spine: new core.defer(),
+		metadata: new core.defer(),
+		cover: new core.defer(),
+		navigation: new core.defer(),
+		pageList: new core.defer()
 	};
 
 	this.loaded = {
@@ -45,7 +44,14 @@ function Book(_url, options){
 		pageList: this.loading.pageList.promise
 	};
 
-	this.ready = RSVP.hash(this.loaded);
+	// this.ready = RSVP.hash(this.loaded);
+	this.ready = Promise.all([this.loaded.manifest,
+														this.loaded.spine,
+														this.loaded.metadata,
+														this.loaded.cover,
+														this.loaded.navigation,
+														this.loaded.pageList ]);
+
 
 	// Queue for methods used before opening
 	this.isRendered = false;
@@ -333,16 +339,3 @@ module.exports = Book;
 
 //-- Enable binding events to book
 EventEmitter(Book.prototype);
-
-//-- Handle RSVP Errors
-RSVP.on('error', function(event) {
-	console.error(event);
-});
-
-RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
-// RSVP.on('created', listener);
-// RSVP.on('chained', listener);
-// RSVP.on('fulfilled', listener);
-RSVP.on('rejected', function(event){
-	console.error(event.detail.message, event.detail.stack);
-});

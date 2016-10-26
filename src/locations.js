@@ -1,7 +1,6 @@
 var core = require('./core');
 var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
-var RSVP = require('rsvp');
 var EventEmitter = require('event-emitter');
 
 function Locations(spine, request) {
