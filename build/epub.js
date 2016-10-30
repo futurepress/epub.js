@@ -4298,11 +4298,13 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					done(url, full);
 				};
 
+				/*
 				link.onerror = function(e){
 					clearTimeout(timeout);
 					done(url, full);
 					console.error(e);
 				};
+				*/
 
 				if(query == "svg image") {
 					//-- SVG needs this to trigger a load event
