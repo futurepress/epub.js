@@ -1,5 +1,5 @@
 {
-  "name": "epub.js",
+  "name": "epubjs",
   "version": "0.2.15",
   "repository": "https://github.com/futurepress/epub.js",
   "description": "Render ePub documents in the browser, across many devices",
@@ -11,7 +11,7 @@
     "start": "node server.js"
   },
   "author": "fchasen@gmail.com",
-  "license": "FreeBSD",
+  "license": "BSD-2-Clause",
   "devDependencies": {
     "colors": "~0.6.2",
     "connect": "~2.14.4",
