@@ -13,7 +13,7 @@
     "build": "./node_modules/.bin/gulp minify"
   },
   "author": "fchasen@gmail.com",
-  "license": "MIT",
+  "license": "BSD-2-Clause",
   "devDependencies": {
     "colors": "^1.1.2",
     "connect": "^3.0.1",
