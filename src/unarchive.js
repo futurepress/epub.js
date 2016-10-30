@@ -1,4 +1,3 @@
-var URI = require('urijs');
 var core = require('./core');
 var request = require('./request');
 var mime = require('../libs/mime/mime');
@@ -41,8 +40,7 @@ Unarchive.prototype.request = function(url, type){
 
 	// If type isn't set, determine it from the file extension
 	if(!type) {
-		uri = URI(url);
-		type = uri.suffix();
+		type = core.extension(url);
 	}
 
 	if(type == 'blob'){

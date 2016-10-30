@@ -1,4 +1,5 @@
 var base64 = require('base64-js');
+var path = require('path');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 /*
@@ -82,6 +83,42 @@ function folder(url){
 
 };
 */
+
+function extension(_url) {
+	var url;
+	var pathname;
+	var ext;
+
+	try {
+		url = new Url(url);
+		pathname = url.pathname;
+	} catch (e) {
+		pathname = _url;
+	}
+
+	ext = path.extname(pathname);
+	if (ext) {
+		return ext.slice(1);
+	}
+
+	return '';
+}
+
+function directory(_url) {
+	var url;
+	var pathname;
+	var ext;
+
+	try {
+		url = new Url(url);
+		pathname = url.pathname;
+	} catch (e) {
+		pathname = _url;
+	}
+
+	return path.dirname(pathname);
+}
+
 function isElement(obj) {
 		return !!(obj && obj.nodeType == 1);
 };
@@ -537,6 +574,8 @@ function defer() {
 module.exports = {
 	// 'uri': uri,
 	// 'folder': folder,
+	'extension' : extension,
+	'directory' : directory,
 	'isElement': isElement,
 	'uuid': uuid,
 	'values': values,

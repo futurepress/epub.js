@@ -162,6 +162,7 @@ IframeView.prototype.render = function(request, show) {
 
 		}.bind(this))
 		.catch(function(e){
+			console.error(e);
 			this.emit("loaderror", e);
 		}.bind(this));
 

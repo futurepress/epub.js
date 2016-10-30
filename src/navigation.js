@@ -1,6 +1,6 @@
 var core = require('./core');
 var Parser = require('./parser');
-var URI = require('urijs');
+var path = require('path');
 
 function Navigation(_package, _request){
 	var navigation = this;
@@ -13,7 +13,11 @@ function Navigation(_package, _request){
 	this.tocById = {};
 
 	if(_package.navPath) {
-		this.navUrl = URI(_package.navPath).absoluteTo(_package.baseUrl).toString();
+		if (_package.baseUrl) {
+			this.navUrl = new URL(_package.navPath, _package.baseUrl).toString();
+		} else {
+			this.navUrl = path.resolve(_package.basePath, _package.navPath);
+		}
 		this.nav = {};
 
 		this.nav.load = function(_request){
@@ -32,7 +36,12 @@ function Navigation(_package, _request){
 	}
 
 	if(_package.ncxPath) {
-		this.ncxUrl = URI(_package.ncxPath).absoluteTo(_package.baseUrl).toString();
+		if (_package.baseUrl) {
+			this.ncxUrl = new URL(_package.ncxPath, _package.baseUrl).toString();
+		} else {
+			this.ncxUrl = path.resolve(_package.basePath, _package.ncxPath);
+		}
+
 		this.ncx = {};
 
 		this.ncx.load = function(_request){

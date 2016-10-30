@@ -72,7 +72,8 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-	webpack(webpackConfig, function(err, stats) {
+
+	watchCompiler.watch({}, function(err, stats) {
 		if(err) {
 			throw new gutil.PluginError("webpack", err);
 		}

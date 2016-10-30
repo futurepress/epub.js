@@ -1,4 +1,4 @@
-var URI = require('urijs');
+// var URI = require('urijs');
 var core = require('./core');
 
 function base(doc, section){
@@ -54,11 +54,22 @@ function links(view, renderer) {
 			return;
 		}
 
-		var linkUri = URI(href);
-		var absolute = linkUri.absoluteTo(view.section.url);
-		var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		// var linkUri = URI(href);
+		// var absolute = linkUri.absoluteTo(view.section.url);
+		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		var linkUrl;
+		var linkPath;
+		var relative;
 
-		if(linkUri.protocol()){
+		if (this.book.baseUrl) {
+			linkUrl = new URL(href, this.book.baseUrl);
+			relative = path.relative(path.dirname(linkUrl.pathname), this.book.packagePath);
+		} else {
+			linkPath = path.resolve(this.book.basePath, href);
+			relative = path.relative(this.book.packagePath, linkPath);
+		}
+
+		if(linkUrl && linkUrl.protocol){
 
 			link.setAttribute("target", "_blank");
 
@@ -79,14 +90,14 @@ function links(view, renderer) {
 			}
 			*/
 
-			if(linkUri.fragment()) {
+			// if(linkUri.fragment()) {
 				// do nothing with fragment yet
-			} else {
+			// } else {
 				link.onclick = function(){
 					renderer.display(relative);
 					return false;
 				};
-			}
+			// }
 
 		}
 	}.bind(this);

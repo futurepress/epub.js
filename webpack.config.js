@@ -16,7 +16,8 @@ module.exports = {
 		filename: "[name].js",
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
-		libraryTarget: "umd"
+		libraryTarget: "umd",
+		publicPath: "/dist/"
 	},
 	externals: {
 		"jszip": "JSZip",
