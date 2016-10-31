@@ -25,7 +25,6 @@ var Server = require('karma').Server;
 // modify some webpack config options
 var watchConfig = Object.create(webpackConfig);
 watchConfig.devtool = "sourcemap";
-watchConfig.debug = true;
 watchConfig.watch = true;
 
 // create a single instance of the compiler to allow caching

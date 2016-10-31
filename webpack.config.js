@@ -11,8 +11,8 @@ module.exports = {
 	},
 	devtool: 'source-map',
 	output: {
-		// path: path.resolve("./dist"),
-		path: "./dist",
+		path: path.resolve("./dist"),
+		// path: "./dist",
 		filename: "[name].js",
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
