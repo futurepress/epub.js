@@ -7,7 +7,7 @@
 		exports["ePub"] = factory((function webpackLoadOptionalExternalModule() { try { return require("JSZip"); } catch(e) {} }()), require("xmldom"));
 	else
 		root["ePub"] = factory(root["JSZip"], root["xmldom"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_44__, __WEBPACK_EXTERNAL_MODULE_14__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_45__, __WEBPACK_EXTERNAL_MODULE_14__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -71,14 +71,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "/dist/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 46);
+/******/ 	return __webpack_require__(__webpack_require__.s = 47);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-var base64 = __webpack_require__(20);
+var base64 = __webpack_require__(21);
 var path = __webpack_require__(3);
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
@@ -1639,8 +1639,8 @@ module.exports = EpubCFI;
 "use strict";
 'use strict';
 
-var d        = __webpack_require__(21)
-  , callable = __webpack_require__(30)
+var d        = __webpack_require__(22)
+  , callable = __webpack_require__(31)
 
   , apply = Function.prototype.apply, call = Function.prototype.call
   , create = Object.create, defineProperty = Object.defineProperty
@@ -3596,8 +3596,8 @@ var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
 var Mapping = __webpack_require__(7);
 var Queue = __webpack_require__(8);
-var Stage = __webpack_require__(38);
-var Views = __webpack_require__(39);
+var Stage = __webpack_require__(39);
+var Views = __webpack_require__(40);
 
 function DefaultViewManager(options) {
 
@@ -4147,7 +4147,7 @@ var replace = __webpack_require__(13);
 var Hook = __webpack_require__(6);
 var EpubCFI = __webpack_require__(1);
 var Queue = __webpack_require__(8);
-var Layout = __webpack_require__(36);
+var Layout = __webpack_require__(37);
 var Mapping = __webpack_require__(7);
 
 function Rendition(book, options) {
@@ -5395,18 +5395,19 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_14__;
 
 /***/ },
 /* 15 */,
-/* 16 */
+/* 16 */,
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(2);
 var path = __webpack_require__(3);
 var core = __webpack_require__(0);
-var Spine = __webpack_require__(42);
-var Locations = __webpack_require__(37);
+var Spine = __webpack_require__(43);
+var Locations = __webpack_require__(38);
 var Parser = __webpack_require__(12);
-var Navigation = __webpack_require__(40);
+var Navigation = __webpack_require__(41);
 var Rendition = __webpack_require__(11);
-var Unarchive = __webpack_require__(43);
+var Unarchive = __webpack_require__(44);
 var request = __webpack_require__(4);
 var EpubCFI = __webpack_require__(1);
 
@@ -5521,7 +5522,7 @@ Book.prototype.open = function(_url, options){
 
 		if(url.origin) {
 			// this.baseUrl = uri.origin() + uri.directory() + "/";
-			this.baseUrl = url.origin + "/" + path.dirname(pathname) + "/";
+			this.baseUrl = url.origin + path.dirname(pathname) + "/";
 		// } else if(absoluteUri){
 		// 	this.baseUrl = absoluteUri.origin();
 		// 	this.baseUrl += absoluteUri.directory() + "/";
@@ -5641,6 +5642,7 @@ Book.prototype.unpack = function(packageXml){
 
 	book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 	book.package.basePath = book.basePath; // Provides a url base for resolving paths
+	console.log("book.baseUrl", book.baseUrl );
 
 	this.spine.load(book.package);
 
@@ -5757,7 +5759,7 @@ EventEmitter(Book.prototype);
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -6442,7 +6444,7 @@ module.exports = ContinuousViewManager;
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(2);
@@ -7023,7 +7025,7 @@ module.exports = IframeView;
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 /*
@@ -7200,7 +7202,7 @@ module.exports = {
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7321,16 +7323,16 @@ function fromByteArray (uint8) {
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var assign        = __webpack_require__(22)
-  , normalizeOpts = __webpack_require__(29)
-  , isCallable    = __webpack_require__(25)
-  , contains      = __webpack_require__(32)
+var assign        = __webpack_require__(23)
+  , normalizeOpts = __webpack_require__(30)
+  , isCallable    = __webpack_require__(26)
+  , contains      = __webpack_require__(33)
 
   , d;
 
@@ -7391,19 +7393,19 @@ d.gs = function (dscr, get, set/*, options*/) {
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(23)()
+module.exports = __webpack_require__(24)()
 	? Object.assign
-	: __webpack_require__(24);
+	: __webpack_require__(25);
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7419,14 +7421,14 @@ module.exports = function () {
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var keys  = __webpack_require__(26)
-  , value = __webpack_require__(31)
+var keys  = __webpack_require__(27)
+  , value = __webpack_require__(32)
 
   , max = Math.max;
 
@@ -7448,7 +7450,7 @@ module.exports = function (dest, src/*, …srcn*/) {
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7460,19 +7462,19 @@ module.exports = function (obj) { return typeof obj === 'function'; };
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(27)()
+module.exports = __webpack_require__(28)()
 	? Object.keys
-	: __webpack_require__(28);
+	: __webpack_require__(29);
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7487,7 +7489,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7501,7 +7503,7 @@ module.exports = function (object) {
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7525,7 +7527,7 @@ module.exports = function (options/*, …options*/) {
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7538,7 +7540,7 @@ module.exports = function (fn) {
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7551,19 +7553,19 @@ module.exports = function (value) {
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(33)()
+module.exports = __webpack_require__(34)()
 	? String.prototype.contains
-	: __webpack_require__(34);
+	: __webpack_require__(35);
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7578,7 +7580,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7592,8 +7594,8 @@ module.exports = function (searchString/*, position*/) {
 
 
 /***/ },
-/* 35 */,
-/* 36 */
+/* 36 */,
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -7719,7 +7721,7 @@ module.exports = Layout;
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -7948,7 +7950,7 @@ module.exports = Locations;
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -8185,7 +8187,7 @@ module.exports = Stage;
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports) {
 
 function Views(container) {
@@ -8356,7 +8358,7 @@ module.exports = Views;
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -8472,7 +8474,7 @@ module.exports = Navigation;
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -8632,13 +8634,13 @@ module.exports = Section;
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
 var Hook = __webpack_require__(6);
-var Section = __webpack_require__(41);
+var Section = __webpack_require__(42);
 var replacements = __webpack_require__(13);
 
 function Spine(_request){
@@ -8773,12 +8775,12 @@ module.exports = Spine;
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 var request = __webpack_require__(4);
-var mime = __webpack_require__(19);
+var mime = __webpack_require__(20);
 
 function Unarchive() {
 
@@ -8792,7 +8794,7 @@ Unarchive.prototype.checkRequirements = function(callback){
 		if (typeof JSZip !== 'undefined') {
 			this.zip = new JSZip();
 		} else {
-			JSZip = __webpack_require__(44);
+			JSZip = __webpack_require__(45);
 			this.zip = new JSZip();
 		}
 	} catch (e) {
@@ -8965,18 +8967,18 @@ module.exports = Unarchive;
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
-if(typeof __WEBPACK_EXTERNAL_MODULE_44__ === 'undefined') {var e = new Error("Cannot find module \"JSZip\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
-module.exports = __WEBPACK_EXTERNAL_MODULE_44__;
+if(typeof __WEBPACK_EXTERNAL_MODULE_45__ === 'undefined') {var e = new Error("Cannot find module \"JSZip\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
+module.exports = __WEBPACK_EXTERNAL_MODULE_45__;
 
 /***/ },
-/* 45 */,
-/* 46 */
+/* 46 */,
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-var Book = __webpack_require__(16);
+var Book = __webpack_require__(17);
 var EpubCFI = __webpack_require__(1);
 var Rendition = __webpack_require__(11);
 var Contents = __webpack_require__(9);
@@ -9003,11 +9005,11 @@ ePub.register = {
 };
 
 // Default Views
-ePub.register.view("iframe", __webpack_require__(18));
+ePub.register.view("iframe", __webpack_require__(19));
 
 // Default View Managers
 ePub.register.manager("default", __webpack_require__(10));
-ePub.register.manager("continuous", __webpack_require__(17));
+ePub.register.manager("continuous", __webpack_require__(18));
 
 module.exports = ePub;
 
