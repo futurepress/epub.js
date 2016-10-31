@@ -1,4 +1,3 @@
-var URI = require('urijs');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
@@ -37,7 +36,7 @@ Section.prototype.load = function(_request){
 		request(this.url)
 			.then(function(xml){
 				var base;
-				var directory = URI(this.url).directory();
+				var directory = core.directory(this.url);
 
 				this.document = xml;
 				this.contents = xml.documentElement;

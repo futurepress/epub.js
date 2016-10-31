@@ -2,7 +2,7 @@ var EventEmitter = require('event-emitter');
 var core = require('../../core');
 var EpubCFI = require('../../epubcfi');
 var Contents = require('../../contents');
-var URI = require('urijs');
+// var URI = require('urijs');
 
 function InlineView(section, options) {
 	this.settings = core.extend({

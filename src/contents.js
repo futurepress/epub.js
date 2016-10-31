@@ -303,7 +303,13 @@ Contents.prototype.mediaQueryListeners = function() {
 		}.bind(this);
 
 		for (var i = 0; i < sheets.length; i += 1) {
-				var rules = sheets[i].cssRules;
+				var rules;
+				// Firefox errors if we access cssRules cross-domain
+				try {
+					rules = sheets[i].cssRules;
+				} catch (e) {
+					return;
+				}
 				if(!rules) return; // Stylesheets changed
 				for (var j = 0; j < rules.length; j += 1) {
 						//if (rules[j].constructor === CSSMediaRule) {

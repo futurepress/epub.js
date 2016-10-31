@@ -1,4 +1,3 @@
-var URI = require('urijs');
 var core = require('./core');
 
 function request(url, type, withCredentials, headers) {
@@ -41,8 +40,9 @@ function request(url, type, withCredentials, headers) {
 
 	// If type isn't set, determine it from the file extension
 	if(!type) {
-		uri = URI(url);
-		type = uri.suffix();
+		// uri = new URI(url);
+		// type = uri.suffix();
+		type = core.extension(url);
 	}
 
 	if(type == 'blob'){

@@ -25,7 +25,6 @@ var Server = require('karma').Server;
 // modify some webpack config options
 var watchConfig = Object.create(webpackConfig);
 watchConfig.devtool = "sourcemap";
-watchConfig.debug = true;
 watchConfig.watch = true;
 
 // create a single instance of the compiler to allow caching
@@ -72,7 +71,8 @@ gulp.task('minify', ['bundle'], function(){
 
 // Watch Our Files
 gulp.task('watch', function(cb) {
-	webpack(webpackConfig, function(err, stats) {
+
+	watchCompiler.watch({}, function(err, stats) {
 		if(err) {
 			throw new gutil.PluginError("webpack", err);
 		}

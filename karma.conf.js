@@ -15,14 +15,18 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+
+      {pattern: 'src/*.js', watched: true, included: false, served: false},
+
       {pattern: 'test/*.js', watched: false},
       // {pattern: 'test/**/*.js', watched: false}
       {pattern: 'test/fixtures/**/*', watched: false, included: false, served: true},
 
       {pattern: 'node_modules/jszip/dist/jszip.js', watched: false, included: true, served: true},
 
-      {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true}
+      {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
 
+      {pattern: 'node_modules/js-polyfills/url.js', watched: false, included: true, served: true}
 
     ],
 
@@ -66,7 +70,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_ERROR,
+    logLevel: config.LOG_DEBUG,
 
 
     // enable / disable watching file and executing tests whenever any file changes

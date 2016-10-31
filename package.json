@@ -13,7 +13,7 @@
     "build": "./node_modules/.bin/gulp minify"
   },
   "author": "fchasen@gmail.com",
-  "license": "MIT",
+  "license": "BSD-2-Clause",
   "devDependencies": {
     "colors": "^1.1.2",
     "connect": "^3.0.1",
@@ -46,16 +46,15 @@
     "uglify": "^0.1.5",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
-    "webpack": "^1.13.2",
+    "webpack": "^v2.1.0-beta.25",
     "webpack-dev-middleware": "^1.8.4",
-    "webpack-dev-server": "^1.16.2"
+    "webpack-dev-server": "^v2.1.0-beta.10"
   },
   "dependencies": {
     "es6-promise": "^4.0.5",
     "event-emitter": "^0.3.4",
+    "js-polyfills": "^0.1.27",
     "jszip": "^3.1.1",
-    "rsvp": "^3.0.18",
-    "urijs": "^1.17.0",
     "xmldom": "^0.1.22"
   }
 }

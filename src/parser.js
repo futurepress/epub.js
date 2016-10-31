@@ -1,4 +1,4 @@
-var URI = require('urijs');
+var path = require('path');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 
@@ -22,7 +22,7 @@ Parser.prototype.container = function(containerXml){
 		}
 
 		fullpath = rootfile.getAttribute('full-path');
-		folder = URI(fullpath).directory();
+		folder = path.dirname(fullpath);
 		encoding = containerXml.xmlEncoding;
 
 		//-- Now that we have the path we can parse the contents

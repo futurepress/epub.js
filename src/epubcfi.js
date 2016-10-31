@@ -1,4 +1,3 @@
-var URI = require('urijs');
 var core = require('./core');
 
 /**

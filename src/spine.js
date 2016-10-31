@@ -28,7 +28,7 @@ Spine.prototype.load = function(_package) {
 	this.items = _package.spine;
 	this.manifest = _package.manifest;
 	this.spineNodeIndex = _package.spineNodeIndex;
-	this.baseUrl = _package.baseUrl || '';
+	this.baseUrl = _package.baseUrl || _package.basePath || '';
 	this.length = this.items.length;
 
 	this.items.forEach(function(item, index){
