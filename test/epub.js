@@ -46,7 +46,7 @@ describe('ePub', function() {
 
 		book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
-			assert.equal( book.url, "/", "book url is empty as book is archived" );
+			assert.equal( book.url, "", "book url is empty as book is archived" );
 			done();
 		});
 	});

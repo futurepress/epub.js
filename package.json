@@ -53,6 +53,7 @@
   "dependencies": {
     "es6-promise": "^4.0.5",
     "event-emitter": "^0.3.4",
+    "js-polyfills": "^0.1.27",
     "jszip": "^3.1.1",
     "xmldom": "^0.1.22"
   }

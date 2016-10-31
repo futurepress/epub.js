@@ -121,7 +121,7 @@ Book.prototype.open = function(_url, options){
 
 		if(url.origin) {
 			// this.baseUrl = uri.origin() + uri.directory() + "/";
-			this.baseUrl = url.origin + "/" + path.dirname(pathname) + "/";
+			this.baseUrl = url.origin + path.dirname(pathname) + "/";
 		// } else if(absoluteUri){
 		// 	this.baseUrl = absoluteUri.origin();
 		// 	this.baseUrl += absoluteUri.directory() + "/";
@@ -241,6 +241,7 @@ Book.prototype.unpack = function(packageXml){
 
 	book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 	book.package.basePath = book.basePath; // Provides a url base for resolving paths
+	console.log("book.baseUrl", book.baseUrl );
 
 	this.spine.load(book.package);
 
