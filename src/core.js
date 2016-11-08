@@ -2,122 +2,136 @@ var base64 = require('base64-js');
 var path = require('path');
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
-/*
-//-- Parse the different parts of a url, returning a object
-function uri(url){
-	var uri = {
-				protocol : '',
-				host : '',
-				path : '',
-				origin : '',
-				directory : '',
-				base : '',
-				filename : '',
-				extension : '',
-				fragment : '',
-				href : url
-			},
-			doubleSlash = url.indexOf('://'),
-			search = url.indexOf('?'),
-			fragment = url.indexOf("#"),
-			withoutProtocol,
-			dot,
-			firstSlash;
 
-	if(fragment != -1) {
-		uri.fragment = url.slice(fragment + 1);
-		url = url.slice(0, fragment);
+/**
+ * creates a uri object
+ * @param	{string} urlString	a url string (relative or absolute)
+ * @param	{[string]} baseString optional base for the url,
+ * default to window.location.href
+ * @return {object} url
+ */
+function Url(urlString, baseString) {
+	var absolute = (urlString.indexOf('://') > -1);
+	var pathname = urlString;
+
+	this.Url = undefined;
+	this.href = urlString;
+	this.protocol = "";
+	this.origin = "";
+	this.fragment = "";
+	this.search = "";
+	this.base = baseString;
+
+	if (!absolute && (typeof(baseString) !== "string")) {
+		this.base = window && window.location.href;
 	}
 
-	if(search != -1) {
-		uri.search = url.slice(search + 1);
-		url = url.slice(0, search);
-		href = url;
-	}
+	// URL Polyfill doesn't throw an error if base is empty
+	if (absolute || this.base) {
+		try {
+			this.Url = new URL(urlString, this.base);
+			this.href = this.Url.href;
 
-	if(doubleSlash != -1) {
-		uri.protocol = url.slice(0, doubleSlash);
-		withoutProtocol = url.slice(doubleSlash+3);
-		firstSlash = withoutProtocol.indexOf('/');
+			this.protocol = this.Url.protocol;
+			this.origin = this.Url.origin;
+			this.fragment = this.Url.fragment;
+			this.search = this.Url.search;
 
-		if(firstSlash === -1) {
-			uri.host = uri.path;
-			uri.path = "";
-		} else {
-			uri.host = withoutProtocol.slice(0, firstSlash);
-			uri.path = withoutProtocol.slice(firstSlash);
+			pathname = this.Url.pathname;
+		} catch (e) {
+			// Skip URL parsing
+			this.Url = undefined;
 		}
+	}
 
+	this.Path = new Path(pathname);
+	this.directory = this.Path.directory;
+	this.filename = this.Path.filename;
+	this.extension = this.Path.extension;
 
-		uri.origin = uri.protocol + "://" + uri.host;
+}
 
-		uri.directory = folder(uri.path);
+Url.prototype.path = function () {
+	return this.Path;
+};
 
-		uri.base = uri.origin + uri.directory;
-		// return origin;
+Url.prototype.resolve = function (what) {
+	var isAbsolute = (what.indexOf('://') > -1);
+	var fullpath;
+
+	if (isAbsolute) {
+		return what;
+	}
+
+	fullpath = path.resolve(this.directory, what);
+	return this.origin + fullpath;
+};
+
+Url.prototype.relative = function (what) {
+	return path.relative(what, this.directory);
+};
+
+Url.prototype.toString = function () {
+	return this.href;
+};
+
+function Path(pathString) {
+	var protocol;
+	var parsed;
+
+	protocol = pathString.indexOf('://');
+	if (protocol > -1) {
+		pathString = new URL(pathString).pathname;
+	}
+
+	parsed = this.parse(pathString);
+
+	this.path = pathString;
+
+	if (this.isDirectory(pathString)) {
+		this.directory = pathString;
 	} else {
-		uri.path = url;
-		uri.directory = folder(url);
-		uri.base = uri.directory;
+		this.directory = parsed.dir + "/";
 	}
 
-	//-- Filename
-	uri.filename = url.replace(uri.base, '');
-	dot = uri.filename.lastIndexOf('.');
-	if(dot != -1) {
-		uri.extension = uri.filename.slice(dot+1);
-	}
-	return uri;
-};
+	this.filename = parsed.base;
+	this.extension = parsed.ext.slice(1);
 
-//-- Parse out the folder, will return everything before the last slash
-function folder(url){
-
-	var lastSlash = url.lastIndexOf('/');
-
-	if(lastSlash == -1) var folder = '';
-
-	folder = url.slice(0, lastSlash + 1);
-
-	return folder;
-
-};
-*/
-
-function extension(_url) {
-	var url;
-	var pathname;
-	var ext;
-
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
-	}
-
-	ext = path.extname(pathname);
-	if (ext) {
-		return ext.slice(1);
-	}
-
-	return '';
 }
 
-function directory(_url) {
-	var url;
-	var pathname;
-	var ext;
+Path.prototype.parse = function (what) {
+	return path.parse(what);
+};
 
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
+Path.prototype.isAbsolute = function (what) {
+	return path.isAbsolute(what || this.path);
+};
+
+Path.prototype.isDirectory = function (what) {
+	return (what.charAt(what.length-1) === '/');
+};
+
+Path.prototype.resolve = function (what) {
+	return path.resolve(this.directory, what);
+};
+
+Path.prototype.relative = function (what) {
+	return path.relative(this.directory, what);
+};
+
+Path.prototype.splitPath = function(filename) {
+	return this.splitPathRe.exec(filename).slice(1);
+};
+
+Path.prototype.toString = function () {
+	return this.path;
+};
+
+function assertPath(path) {
+	if (typeof path !== 'string') {
+		throw new TypeError('Path must be a string. Received ', path);
 	}
-
-	return path.dirname(pathname);
-}
+};
 
 function isElement(obj) {
 		return !!(obj && obj.nodeType == 1);
@@ -159,7 +173,7 @@ function resolveUrl(base, path) {
 		paths;
 
 	// if(uri.host) {
-	//   return path;
+	//	 return path;
 	// }
 
 	if(baseDirectory[0] === "/") {
@@ -399,10 +413,10 @@ function windowBounds() {
 };
 
 //https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
-function cleanStringForXpath(str)  {
+function cleanStringForXpath(str)	{
 		var parts = str.match(/[^'"]+|['"]/g);
 		parts = parts.map(function(part){
-				if (part === "'")  {
+				if (part === "'")	{
 						return '\"\'\"'; // output "'"
 				}
 
@@ -571,11 +585,27 @@ function defer() {
 	Object.freeze(this);
 }
 
+ function querySelectorByType(html, element, type){
+	var query;
+	if (typeof html.querySelector != "undefined") {
+		query = html.querySelector(element+'[*|type="'+type+'"]');
+	}
+	// Handle IE not supporting namespaced epub:type in querySelector
+	if(!query || query.length === 0) {
+		query = core.qsa(html, element);
+		for (var i = 0; i < query.length; i++) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+				return query[i];
+			}
+		}
+	} else {
+		return query;
+	}
+}
+
+
+
 module.exports = {
-	// 'uri': uri,
-	// 'folder': folder,
-	'extension' : extension,
-	'directory' : directory,
 	'isElement': isElement,
 	'uuid': uuid,
 	'values': values,
@@ -605,5 +635,8 @@ module.exports = {
 	'qsp' : qsp,
 	'blob2base64' : blob2base64,
 	'createBase64Url': createBase64Url,
-	'defer': defer
+	'defer': defer,
+	'Url': Url,
+	'Path': Path,
+	'querySelectorByType': querySelectorByType
 };

@@ -1,46 +1,46 @@
 var core = require('./core');
 var request = require('./request');
 var mime = require('../libs/mime/mime');
+var Path = require('./core').Path;
 
-function Unarchive() {
+function Archive() {
 
 	this.checkRequirements();
 	this.urlCache = {};
 
 }
 
-Unarchive.prototype.checkRequirements = function(callback){
+Archive.prototype.checkRequirements = function(callback){
 	try {
-		if (typeof JSZip !== 'undefined') {
-			this.zip = new JSZip();
-		} else {
+		if (typeof JSZip === 'undefined') {
 			JSZip = require('jszip');
-			this.zip = new JSZip();
 		}
+		this.zip = new JSZip();
 	} catch (e) {
 		console.error("JSZip lib not loaded");
 	}
 };
 
-Unarchive.prototype.open = function(zipUrl, isBase64){
-	if (zipUrl instanceof ArrayBuffer || isBase64) {
-		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
-	} else {
-		return request(zipUrl, "binary")
-			.then(function(data){
-				return this.zip.loadAsync(data);
-			}.bind(this));
-	}
+Archive.prototype.open = function(input, isBase64){
+	return this.zip.loadAsync(input, {"base64": isBase64});
 };
 
-Unarchive.prototype.request = function(url, type){
+Archive.prototype.openUrl = function(zipUrl, isBase64){
+	return request(zipUrl, "binary")
+		.then(function(data){
+			return this.zip.loadAsync(data, {"base64": isBase64});
+		}.bind(this));
+};
+
+Archive.prototype.request = function(url, type){
 	var deferred = new core.defer();
 	var response;
 	var r;
+	var path = new Path(url);
 
 	// If type isn't set, determine it from the file extension
 	if(!type) {
-		type = core.extension(url);
+		type = path.extension;
 	}
 
 	if(type == 'blob'){
@@ -63,7 +63,7 @@ Unarchive.prototype.request = function(url, type){
 	return deferred.promise;
 };
 
-Unarchive.prototype.handleResponse = function(response, type){
+Archive.prototype.handleResponse = function(response, type){
 	var r;
 
 	if(type == "json") {
@@ -87,7 +87,7 @@ Unarchive.prototype.handleResponse = function(response, type){
 	return r;
 };
 
-Unarchive.prototype.getBlob = function(url, _mimeType){
+Archive.prototype.getBlob = function(url, _mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
 	var mimeType;
@@ -100,7 +100,7 @@ Unarchive.prototype.getBlob = function(url, _mimeType){
 	}
 };
 
-Unarchive.prototype.getText = function(url, encoding){
+Archive.prototype.getText = function(url, encoding){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
 
@@ -111,7 +111,7 @@ Unarchive.prototype.getText = function(url, encoding){
 	}
 };
 
-Unarchive.prototype.getBase64 = function(url, _mimeType){
+Archive.prototype.getBase64 = function(url, _mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
 	var mimeType;
@@ -124,7 +124,7 @@ Unarchive.prototype.getBase64 = function(url, _mimeType){
 	}
 };
 
-Unarchive.prototype.createUrl = function(url, options){
+Archive.prototype.createUrl = function(url, options){
 	var deferred = new core.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
@@ -177,10 +177,10 @@ Unarchive.prototype.createUrl = function(url, options){
 	return deferred.promise;
 };
 
-Unarchive.prototype.revokeUrl = function(url){
+Archive.prototype.revokeUrl = function(url){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var fromCache = this.urlCache[url];
 	if(fromCache) _URL.revokeObjectURL(fromCache);
 };
 
-module.exports = Unarchive;
+module.exports = Archive;

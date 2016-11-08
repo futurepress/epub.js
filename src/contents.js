@@ -174,7 +174,7 @@ Contents.prototype.viewport = function(options) {
 	var $viewport = this.document.querySelector("meta[name='viewport']");
 	var newContent = '';
 
-	/**
+	/*
 	* check for the viewport size
 	* <meta name="viewport" content="width=1024,height=697" />
 	*/

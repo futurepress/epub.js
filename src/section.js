@@ -1,6 +1,7 @@
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
+var Url = require('./core').Url;
 
 function Section(item, hooks){
 		this.idref = item.idref;
@@ -36,7 +37,7 @@ Section.prototype.load = function(_request){
 		request(this.url)
 			.then(function(xml){
 				var base;
-				var directory = core.directory(this.url);
+				var directory = new Url(this.url).directory;
 
 				this.document = xml;
 				this.contents = xml.documentElement;
@@ -58,7 +59,6 @@ Section.prototype.base = function(_document){
 		var task = new core.defer();
 		var base = _document.createElement("base"); // TODO: check if exists
 		var head;
-		console.log(window.location.origin + "/" +this.url);
 
 		base.setAttribute("href", window.location.origin + "/" +this.url);
 
@@ -113,7 +113,7 @@ Section.prototype.find = function(_query){
 
 };
 
-/**
+/*
 * Reconciles the current chapters layout properies with
 * the global layout properities.
 * Takes: global layout settings object, chapter properties string

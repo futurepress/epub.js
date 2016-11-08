@@ -48,7 +48,12 @@ module.exports = function(config) {
         "jszip": "JSZip",
         "xmldom": "xmldom"
       },
-      devtool: 'inline-source-map'
+      devtool: 'inline-source-map',
+      resolve: {
+        alias: {
+          path: "path-webpack"
+        }
+      }
     },
 
     webpackMiddleware: {
@@ -70,7 +75,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_INFO,
 
 
     // enable / disable watching file and executing tests whenever any file changes

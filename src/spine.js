@@ -4,8 +4,7 @@ var Hook = require('./hook');
 var Section = require('./section');
 var replacements = require('./replacements');
 
-function Spine(_request){
-	this.request = _request;
+function Spine(){
 	this.spineItems = [];
 	this.spineByHref = {};
 	this.spineById = {};
@@ -23,7 +22,7 @@ function Spine(_request){
 	this.loaded = false;
 };
 
-Spine.prototype.load = function(_package) {
+Spine.prototype.unpack = function(_package, resolver) {
 
 	this.items = _package.spine;
 	this.manifest = _package.manifest;
@@ -40,7 +39,7 @@ Spine.prototype.load = function(_package) {
 
 		if(manifestItem) {
 			item.href = manifestItem.href;
-			item.url = this.baseUrl + item.href;
+			item.url = resolver(item.href, true);
 
 			if(manifestItem.properties.length){
 				item.properties.push.apply(item.properties, manifestItem.properties);
