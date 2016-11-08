@@ -45,7 +45,7 @@ describe('ePub', function() {
 
 		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
-			assert( book.unarchived, "book is unarchived" );
+			assert( book.archive, "book is unarchived" );
 		});
 	});
 

@@ -12,6 +12,7 @@ var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnim
  */
 function Url(urlString, baseString) {
 	var absolute = (urlString.indexOf('://') > -1);
+	var pathname;
 
 	this.href = urlString;
 	this.protocol = "";
@@ -20,7 +21,7 @@ function Url(urlString, baseString) {
 	this.search = "";
 	this.base = baseString || undefined;
 
-	if (!absolute && !baseString) {
+	if (!absolute && typeof(baseString) !== "string") {
 		this.base = window && window.location.href;
 	}
 
@@ -32,12 +33,15 @@ function Url(urlString, baseString) {
 		this.origin = this.Url.origin;
 		this.fragment = this.Url.fragment;
 		this.search = this.Url.search;
+
+		pathname = this.Url.pathname;
 	} catch (e) {
 		// console.error(e);
 		this.Url = undefined;
+		pathname = urlString;
 	}
 
-	this.Path = new Path(this.Url.pathname);
+	this.Path = new Path(pathname);
 	this.directory = this.Path.directory;
 	this.filename = this.Path.filename;
 	this.extension = this.Path.extension;
@@ -96,6 +100,10 @@ Path.prototype.parse = function (what) {
 	return path.parse(what);
 };
 
+Path.prototype.isAbsolute = function (what) {
+	return path.isAbsolute(what || this.path);
+};
+
 Path.prototype.isDirectory = function (what) {
 	return (what.charAt(what.length-1) === '/');
 };
@@ -121,41 +129,6 @@ function assertPath(path) {
 		throw new TypeError('Path must be a string. Received ', path);
 	}
 };
-
-function extension(_url) {
-	var url;
-	var pathname;
-	var ext;
-
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
-	}
-
-	ext = path.extname(pathname);
-	if (ext) {
-		return ext.slice(1);
-	}
-
-	return '';
-}
-
-function directory(_url) {
-	var url;
-	var pathname;
-	var ext;
-
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
-	}
-
-	return path.dirname(pathname);
-}
 
 function isElement(obj) {
 		return !!(obj && obj.nodeType == 1);
@@ -630,8 +603,6 @@ function defer() {
 
 
 module.exports = {
-	'extension' : extension,
-	'directory' : directory,
 	'isElement': isElement,
 	'uuid': uuid,
 	'values': values,

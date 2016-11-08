@@ -1,4 +1,5 @@
 var core = require('./core');
+var Path = require('./core').Path;
 
 function request(url, type, withCredentials, headers) {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
@@ -40,9 +41,7 @@ function request(url, type, withCredentials, headers) {
 
 	// If type isn't set, determine it from the file extension
 	if(!type) {
-		// uri = new URI(url);
-		// type = uri.suffix();
-		type = core.extension(url);
+		type = new Path(url).extension;
 	}
 
 	if(type == 'blob'){

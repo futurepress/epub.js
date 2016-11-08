@@ -1,6 +1,7 @@
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
+var Url = require('./core').Url;
 
 function Section(item, hooks){
 		this.idref = item.idref;
@@ -36,7 +37,7 @@ Section.prototype.load = function(_request){
 		request(this.url)
 			.then(function(xml){
 				var base;
-				var directory = core.directory(this.url);
+				var directory = new Url(this.url).directory;
 
 				this.document = xml;
 				this.contents = xml.documentElement;

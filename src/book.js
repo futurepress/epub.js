@@ -9,8 +9,9 @@ var Parser = require('./parser');
 var Container = require('./container');
 var Packaging = require('./packaging');
 var Navigation = require('./navigation');
+var Resources = require('./resources');
 var Rendition = require('./rendition');
-var Unarchive = require('./unarchive');
+var Archive = require('./archive');
 var request = require('./request');
 var EpubCFI = require('./epubcfi');
 
@@ -31,7 +32,8 @@ function Book(url, options){
 	this.settings = core.extend(this.settings || {}, {
 		requestMethod: this.requestMethod,
 		requestCredentials: undefined,
-		encoding: undefined // optional to pass 'binary' or base64' for archived Epubs
+		encoding: undefined, // optional to pass 'binary' or base64' for archived Epubs
+		base64: true
 	});
 
 	core.extend(this.settings, options);
@@ -51,7 +53,8 @@ function Book(url, options){
 		metadata: new core.defer(),
 		cover: new core.defer(),
 		navigation: new core.defer(),
-		pageList: new core.defer()
+		pageList: new core.defer(),
+		resources: new core.defer()
 	};
 
 	this.loaded = {
@@ -60,7 +63,8 @@ function Book(url, options){
 		metadata: this.loading.metadata.promise,
 		cover: this.loading.cover.promise,
 		navigation: this.loading.navigation.promise,
-		pageList: this.loading.pageList.promise
+		pageList: this.loading.pageList.promise,
+		resources: this.loading.resources.promise
 	};
 
 	// this.ready = RSVP.hash(this.loaded);
@@ -72,7 +76,7 @@ function Book(url, options){
 														this.loaded.metadata,
 														this.loaded.cover,
 														this.loaded.navigation,
-														this.loaded.pageList ]);
+														this.loaded.resources ]);
 
 
 	// Queue for methods used before opening
@@ -128,22 +132,20 @@ Book.prototype.open = function(input, what){
 
 	if (type === "binary") {
 		this.archived = true;
+		this.url = new Url("/", "");
 		opening = this.openEpub(input);
 	} else if (type === "epub") {
 		this.archived = true;
+		this.url = new Url("/", "");
 		opening = this.request(input, 'binary')
-			.then(function(epubData) {
-				return this.openEpub(epubData);
-			}.bind(this));
+			.then(this.openEpub.bind(this));
 	} else if(type == "opf") {
 		this.url = new Url(input);
 		opening = this.openPackaging(input);
 	} else {
 		this.url = new Url(input);
 		opening = this.openContainer(CONTAINER_PATH)
-			.then(function(packagePath) {
-				return this.openPackaging(packagePath);
-			}.bind(this))
+			.then(this.openPackaging.bind(this));
 	}
 
 	return opening;
@@ -152,10 +154,10 @@ Book.prototype.open = function(input, what){
 Book.prototype.openEpub = function(data, encoding){
 	return this.unarchive(data, encoding || this.settings.encoding)
 		.then(function() {
-			return this.openContainer("/" + CONTAINER_PATH);
+			return this.openContainer(CONTAINER_PATH);
 		}.bind(this))
 		.then(function(packagePath) {
-			return this.openPackaging("/" + packagePath);
+			return this.openPackaging(packagePath);
 		}.bind(this));
 };
 
@@ -163,7 +165,7 @@ Book.prototype.openContainer = function(url){
 	return this.load(url)
 		.then(function(xml) {
 			this.container = new Container(xml);
-			return this.container.packagePath;
+			return this.resolve(this.container.packagePath);
 		}.bind(this));
 };
 
@@ -180,9 +182,9 @@ Book.prototype.openPackaging = function(url){
 
 Book.prototype.load = function (path) {
 	var resolved;
-	if(this.unarchived) {
+	if(this.archived) {
 		resolved = this.resolve(path);
-		return this.unarchived.request(resolved);
+		return this.archive.request(resolved);
 	} else {
 		resolved = this.resolve(path);
 		return this.request(resolved, null, this.requestCredentials, this.requestHeaders);
@@ -244,6 +246,12 @@ Book.prototype.unpack = function(opf){
 
 	this.spine.unpack(this.package, this.resolve.bind(this));
 
+	this.resources = new Resources(this.package.manifest, {
+		archive: this.archive,
+		resolver: this.resolve.bind(this),
+		base64: this.settings.base64
+	});
+
 	this.loadNavigation(this.package).then(function(toc){
 		this.toc = toc;
 		this.loading.navigation.resolve(this.toc);
@@ -256,11 +264,20 @@ Book.prototype.unpack = function(opf){
 	this.loading.metadata.resolve(this.package.metadata);
 	this.loading.spine.resolve(this.spine);
 	this.loading.cover.resolve(this.cover);
+	this.loading.resources.resolve(this.resources);
+
 
 	this.isOpen = true;
 
-	// Resolve book opened promise
-	this.opening.resolve(this);
+	if(this.archived) {
+		this.replacements().then(function() {
+			this.opening.resolve(this);
+		}.bind(this));
+	} else {
+		// Resolve book opened promise
+		this.opening.resolve(this);
+	}
+
 };
 
 Book.prototype.loadNavigation = function(opf){
@@ -311,34 +328,8 @@ Book.prototype.setRequestHeaders = function(_headers) {
  * Unarchive a zipped epub
  */
 Book.prototype.unarchive = function(bookUrl, encoding){
-	this.unarchived = new Unarchive();
-	return this.unarchived.open(bookUrl, encoding);
-};
-
-/**
- * Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
- */
-Book.prototype.isArchivedUrl = function(bookUrl){
-	var extension;
-
-	if (bookUrl instanceof ArrayBuffer) {
-		return true;
-	}
-
-	// Reuse parsed url or create a new uri object
-	// if(typeof(bookUrl) === "object") {
-	//   uri = bookUrl;
-	// } else {
-	//   uri = core.uri(bookUrl);
-	// }
-	// uri = URI(bookUrl);
-	extension = core.extension(bookUrl);
-
-	if(extension && (extension == "epub" || extension == "zip")){
-		return true;
-	}
-
-	return false;
+	this.archive = new Archive();
+	return this.archive.open(bookUrl, encoding);
 };
 
 /**
@@ -347,8 +338,8 @@ Book.prototype.isArchivedUrl = function(bookUrl){
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
-			if(this.unarchived) {
-				return this.unarchived.createUrl(this.cover);
+			if(this.archived) {
+				return this.archive.createUrl(this.cover);
 			}else{
 				return this.cover;
 			}
@@ -357,6 +348,17 @@ Book.prototype.coverUrl = function(){
 
 
 	return retrieved;
+};
+
+Book.prototype.replacements = function(){
+	this.spine.hooks.serialize.register(function(output, section) {
+		section.output = this.resources.substitute(output, section.url);
+	}.bind(this));
+
+	return this.resources.replacements().
+		then(function() {
+			return this.resources.replaceCss();
+		}.bind(this));
 };
 
 /**
