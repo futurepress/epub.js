@@ -12,33 +12,36 @@ var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnim
  */
 function Url(urlString, baseString) {
 	var absolute = (urlString.indexOf('://') > -1);
-	var pathname;
+	var pathname = urlString;
 
+	this.Url = undefined;
 	this.href = urlString;
 	this.protocol = "";
 	this.origin = "";
 	this.fragment = "";
 	this.search = "";
-	this.base = baseString || undefined;
+	this.base = baseString;
 
-	if (!absolute && typeof(baseString) !== "string") {
+	if (!absolute && (typeof(baseString) !== "string")) {
 		this.base = window && window.location.href;
 	}
 
-	try {
-		this.Url = new URL(urlString, this.base);
-		this.href = this.Url.href;
+	// URL Polyfill doesn't throw an error if base is empty
+	if (absolute || this.base) {
+		try {
+			this.Url = new URL(urlString, this.base);
+			this.href = this.Url.href;
 
-		this.protocol = this.Url.protocol;
-		this.origin = this.Url.origin;
-		this.fragment = this.Url.fragment;
-		this.search = this.Url.search;
+			this.protocol = this.Url.protocol;
+			this.origin = this.Url.origin;
+			this.fragment = this.Url.fragment;
+			this.search = this.Url.search;
 
-		pathname = this.Url.pathname;
-	} catch (e) {
-		// console.error(e);
-		this.Url = undefined;
-		pathname = urlString;
+			pathname = this.Url.pathname;
+		} catch (e) {
+			// Skip URL parsing
+			this.Url = undefined;
+		}
 	}
 
 	this.Path = new Path(pathname);

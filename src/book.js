@@ -112,9 +112,8 @@ function Book(url, options){
 		this.open(url).catch(function (error) {
 			var err = new Error("Cannot load book at "+ url );
 			console.error(err);
-			console.error(error);
-
 			this.emit("openFailed", err);
+			console.log(error);
 		}.bind(this));
 	}
 };
