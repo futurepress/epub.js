@@ -29,25 +29,23 @@ describe('ePub', function() {
 		// server.restore();
 	});
 
-	it('should open a epub', function(done) {
+	it('should open a epub', function() {
 		var book = ePub("/fixtures/alice/OPS/package.opf");
 
-		book.opened.then(function(){
+		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
-			assert.equal( book.url, "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
-			done();
+			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
 		});
 	});
 
-	it('should open a archived epub', function(done) {
+	it('should open a archived epub', function() {
 		var book = ePub("/fixtures/alice.epub");
 
 		assert(typeof (JSZip) !== "undefined", "JSZip is present" );
 
-		book.opened.then(function(){
+		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
-			assert.equal( book.url, "", "book url is empty as book is archived" );
-			done();
+			assert( book.unarchived, "book is unarchived" );
 		});
 	});
 

@@ -11,26 +11,24 @@ function Unarchive() {
 
 Unarchive.prototype.checkRequirements = function(callback){
 	try {
-		if (typeof JSZip !== 'undefined') {
-			this.zip = new JSZip();
-		} else {
+		if (typeof JSZip === 'undefined') {
 			JSZip = require('jszip');
-			this.zip = new JSZip();
 		}
+		this.zip = new JSZip();
 	} catch (e) {
 		console.error("JSZip lib not loaded");
 	}
 };
 
-Unarchive.prototype.open = function(zipUrl, isBase64){
-	if (zipUrl instanceof ArrayBuffer || isBase64) {
-		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
-	} else {
-		return request(zipUrl, "binary")
-			.then(function(data){
-				return this.zip.loadAsync(data);
-			}.bind(this));
-	}
+Unarchive.prototype.open = function(input, isBase64){
+	return this.zip.loadAsync(input, {"base64": isBase64});
+};
+
+Unarchive.prototype.openUrl = function(zipUrl, isBase64){
+	return request(zipUrl, "binary")
+		.then(function(data){
+			return this.zip.loadAsync(data, {"base64": isBase64});
+		}.bind(this));
 };
 
 Unarchive.prototype.request = function(url, type){

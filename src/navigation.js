@@ -1,85 +1,30 @@
 var core = require('./core');
-var Parser = require('./parser');
 var path = require('path');
 
-function Navigation(_package, _request){
-	var navigation = this;
-	var parse = new Parser();
-	var request = _request || require('./request');
-
-	this.package = _package;
+function Navigation(xml){
 	this.toc = [];
 	this.tocByHref = {};
 	this.tocById = {};
 
-	if(_package.navPath) {
-		if (_package.baseUrl) {
-			this.navUrl = new URL(_package.navPath, _package.baseUrl).toString();
-		} else {
-			this.navUrl = path.resolve(_package.basePath, _package.navPath);
-		}
-		this.nav = {};
-
-		this.nav.load = function(_request){
-			var loading = new core.defer();
-			var loaded = loading.promise;
-
-			request(navigation.navUrl, 'xml').then(function(xml){
-				navigation.toc = parse.nav(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
-	}
-
-	if(_package.ncxPath) {
-		if (_package.baseUrl) {
-			this.ncxUrl = new URL(_package.ncxPath, _package.baseUrl).toString();
-		} else {
-			this.ncxUrl = path.resolve(_package.basePath, _package.ncxPath);
-		}
-
-		this.ncx = {};
-
-		this.ncx.load = function(_request){
-			var loading = new core.defer();
-			var loaded = loading.promise;
-
-			request(navigation.ncxUrl, 'xml').then(function(xml){
-				navigation.toc = parse.toc(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
+	if (xml) {
+		this.parse(xml);
 	}
 };
 
-// Load the navigation
-Navigation.prototype.load = function(_request) {
-	var request = _request || require('./request');
-	var loading, loaded;
+Navigation.prototype.parse = function(xml) {
+	var html = core.qs(xml, "html");
+	var ncx = core.qs(xml, "ncx");
 
-	if(this.nav) {
-		loading = this.nav.load();
-	} else if(this.ncx) {
-		loading = this.ncx.load();
-	} else {
-		loaded = new core.defer();
-		loaded.resolve([]);
-		loading = loaded.promise;
+	if(html) {
+		this.toc = this.parseNav(xml);
+	} else if(ncx){
+		this.toc = this.parseNcx(xml);
 	}
 
-	return loading;
-
+	this.unpack(this.toc);
 };
 
-Navigation.prototype.loaded = function(toc) {
+Navigation.prototype.unpack = function(toc) {
 	var item;
 
 	for (var i = 0; i < toc.length; i++) {
@@ -105,6 +50,141 @@ Navigation.prototype.get = function(target) {
 	}
 
 	return this.toc[index];
+};
+
+Navigation.prototype.parseNav = function(navHtml, spineIndexByURL, bookSpine){
+	var navElement = core.querySelectorByType(navHtml, "nav", "toc");
+	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
+	var navItems = navElement ? core.qsa(navElement, "li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navItems || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+Navigation.prototype.navItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+			// content = item.querySelector("a, span"),
+			content = core.qs(item, "a"),
+			src = content.getAttribute('href') || '',
+			text = content.textContent || "",
+			// split = src.split("#"),
+			// baseUrl = split[0],
+			// spinePos = spineIndexByURL[baseUrl],
+			// spineItem = bookSpine[spinePos],
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+			// cfi = spineItem ? spineItem.cfi : '';
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+	/*
+	if(!id) {
+		if(spinePos) {
+			spineItem = bookSpine[spinePos];
+			id = spineItem.id;
+			cfi = spineItem.cfi;
+		} else {
+			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
+			item.setAttribute('id', id);
+		}
+	}
+	*/
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
+};
+
+Navigation.prototype.parseNcx = function(tocXml, spineIndexByURL, bookSpine){
+	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
+	var navPoints = core.qsa(tocXml, "navPoint");
+	var length = navPoints.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navPoints || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.ncxItem(navPoints[i], spineIndexByURL, bookSpine);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+Navigation.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
+	var id = item.getAttribute('id') || false,
+			// content = item.querySelector("content"),
+			content = core.qs(item, "content"),
+			src = content.getAttribute('src'),
+			// navLabel = item.querySelector("navLabel"),
+			navLabel = core.qs(item, "navLabel"),
+			text = navLabel.textContent ? navLabel.textContent : "",
+			// split = src.split("#"),
+			// baseUrl = split[0],
+			// spinePos = spineIndexByURL[baseUrl],
+			// spineItem = bookSpine[spinePos],
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+			// cfi = spineItem ? spineItem.cfi : '';
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+	/*
+	if(!id) {
+		if(spinePos) {
+			spineItem = bookSpine[spinePos];
+			id = spineItem.id;
+			cfi = spineItem.cfi;
+		} else {
+			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
+			item.setAttribute('id', id);
+		}
+	}
+	*/
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
 };
 
 module.exports = Navigation;

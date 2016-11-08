@@ -26,6 +26,11 @@ module.exports = {
 	plugins: [
 		// new webpack.IgnorePlugin(/punycode|IPv6/),
 	],
+	resolve: {
+		alias: {
+			path: "path-webpack"
+		}
+	},
 	devServer: {
 		host: hostname,
 		port: port,

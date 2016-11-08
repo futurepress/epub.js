@@ -82,87 +82,109 @@ var base64 = __webpack_require__(21);
 var path = __webpack_require__(3);
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
-/*
-//-- Parse the different parts of a url, returning a object
-function uri(url){
-	var uri = {
-				protocol : '',
-				host : '',
-				path : '',
-				origin : '',
-				directory : '',
-				base : '',
-				filename : '',
-				extension : '',
-				fragment : '',
-				href : url
-			},
-			doubleSlash = url.indexOf('://'),
-			search = url.indexOf('?'),
-			fragment = url.indexOf("#"),
-			withoutProtocol,
-			dot,
-			firstSlash;
 
-	if(fragment != -1) {
-		uri.fragment = url.slice(fragment + 1);
-		url = url.slice(0, fragment);
+/**
+ * creates a uri object
+ * @param	{string} urlString	a url string (relative or absolute)
+ * @param	{[string]} baseString optional base for the url,
+ * default to window.location.href
+ * @return {object} url
+ */
+function Url(urlString, baseString) {
+	var absolute = (urlString.indexOf('://') > -1);
+
+	this.href = urlString;
+	this.protocol = "";
+	this.origin = "";
+	this.fragment = "";
+	this.search = "";
+	this.base = baseString || undefined;
+
+	if (!absolute && !baseString) {
+		this.base = window && window.location.href;
 	}
 
-	if(search != -1) {
-		uri.search = url.slice(search + 1);
-		url = url.slice(0, search);
-		href = url;
+	try {
+		this.Url = new URL(urlString, this.base);
+		this.href = this.Url.href;
+
+		this.protocol = this.Url.protocol;
+		this.origin = this.Url.origin;
+		this.fragment = this.Url.fragment;
+		this.search = this.Url.search;
+	} catch (e) {
+		// console.error(e);
+		this.Url = undefined;
 	}
 
-	if(doubleSlash != -1) {
-		uri.protocol = url.slice(0, doubleSlash);
-		withoutProtocol = url.slice(doubleSlash+3);
-		firstSlash = withoutProtocol.indexOf('/');
+	this.Path = new Path(this.Url.pathname);
+	this.directory = this.Path.directory;
+	this.filename = this.Path.filename;
+	this.extension = this.Path.extension;
 
-		if(firstSlash === -1) {
-			uri.host = uri.path;
-			uri.path = "";
-		} else {
-			uri.host = withoutProtocol.slice(0, firstSlash);
-			uri.path = withoutProtocol.slice(firstSlash);
-		}
+	this.path = this.origin + this.directory;
 
+}
 
-		uri.origin = uri.protocol + "://" + uri.host;
+Url.prototype.resolve = function (what) {
+	var fullpath = path.resolve(this.directory, what);
+	return this.origin + fullpath;
+};
 
-		uri.directory = folder(uri.path);
+Url.prototype.relative = function (what) {
+	return path.relative(what, this.directory);
+};
 
-		uri.base = uri.origin + uri.directory;
-		// return origin;
+function Path(pathString) {
+	var protocol;
+	var parsed;
+
+	protocol = pathString.indexOf('://');
+	if (protocol > -1) {
+		pathString = new URL(pathString).pathname;
+	}
+
+	parsed = this.parse(pathString);
+
+	this.path = pathString;
+
+	if (this.isDirectory(pathString)) {
+		this.directory = pathString;
 	} else {
-		uri.path = url;
-		uri.directory = folder(url);
-		uri.base = uri.directory;
+		this.directory = parsed.dir + "/";
 	}
 
-	//-- Filename
-	uri.filename = url.replace(uri.base, '');
-	dot = uri.filename.lastIndexOf('.');
-	if(dot != -1) {
-		uri.extension = uri.filename.slice(dot+1);
+	this.filename = parsed.base;
+	this.extension = parsed.ext.slice(1);
+
+}
+
+Path.prototype.parse = function (what) {
+	return path.parse(what);
+};
+
+Path.prototype.isDirectory = function (what) {
+	return (what.charAt(what.length-1) === '/');
+};
+
+Path.prototype.resolve = function (what) {
+	return path.resolve(this.directory, what);
+};
+
+Path.prototype.relative = function (what) {
+	console.log(what, this.directory);
+	return path.relative(what, this.directory);
+};
+
+Path.prototype.splitPath = function(filename) {
+	return this.splitPathRe.exec(filename).slice(1);
+};
+
+function assertPath(path) {
+	if (typeof path !== 'string') {
+		throw new TypeError('Path must be a string. Received ', path);
 	}
-	return uri;
 };
-
-//-- Parse out the folder, will return everything before the last slash
-function folder(url){
-
-	var lastSlash = url.lastIndexOf('/');
-
-	if(lastSlash == -1) var folder = '';
-
-	folder = url.slice(0, lastSlash + 1);
-
-	return folder;
-
-};
-*/
 
 function extension(_url) {
 	var url;
@@ -239,7 +261,7 @@ function resolveUrl(base, path) {
 		paths;
 
 	// if(uri.host) {
-	//   return path;
+	//	 return path;
 	// }
 
 	if(baseDirectory[0] === "/") {
@@ -479,10 +501,10 @@ function windowBounds() {
 };
 
 //https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
-function cleanStringForXpath(str)  {
+function cleanStringForXpath(str)	{
 		var parts = str.match(/[^'"]+|['"]/g);
 		parts = parts.map(function(part){
-				if (part === "'")  {
+				if (part === "'")	{
 						return '\"\'\"'; // output "'"
 				}
 
@@ -685,7 +707,10 @@ module.exports = {
 	'qsp' : qsp,
 	'blob2base64' : blob2base64,
 	'createBase64Url': createBase64Url,
-	'defer': defer
+	'defer': defer,
+	'Url': Url,
+	'Path': Path
+
 };
 
 
@@ -1775,230 +1800,555 @@ exports.methods = methods;
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
+function assertPath(path) {
+  if (typeof path !== 'string') {
+    throw new TypeError('Path must be a string. Received ' + path);
   }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
 }
 
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
+// Resolves . and .. elements in a path with directory names
+function normalizeStringPosix(path, allowAboveRoot) {
+  var res = '';
+  var lastSlash = -1;
+  var dots = 0;
+  var code;
+  for (var i = 0; i <= path.length; ++i) {
+    if (i < path.length)
+      code = path.charCodeAt(i);
+    else if (code === 47/*/*/)
       break;
+    else
+      code = 47/*/*/;
+    if (code === 47/*/*/) {
+      if (lastSlash === i - 1 || dots === 1) {
+        // NOOP
+      } else if (lastSlash !== i - 1 && dots === 2) {
+        if (res.length < 2 ||
+            res.charCodeAt(res.length - 1) !== 46/*.*/ ||
+            res.charCodeAt(res.length - 2) !== 46/*.*/) {
+          if (res.length > 2) {
+            const start = res.length - 1;
+            var j = start;
+            for (; j >= 0; --j) {
+              if (res.charCodeAt(j) === 47/*/*/)
+                break;
+            }
+            if (j !== start) {
+              if (j === -1)
+                res = '';
+              else
+                res = res.slice(0, j);
+              lastSlash = i;
+              dots = 0;
+              continue;
+            }
+          } else if (res.length === 2 || res.length === 1) {
+            res = '';
+            lastSlash = i;
+            dots = 0;
+            continue;
+          }
+        }
+        if (allowAboveRoot) {
+          if (res.length > 0)
+            res += '/..';
+          else
+            res = '..';
+        }
+      } else {
+        if (res.length > 0)
+          res += '/' + path.slice(lastSlash + 1, i);
+        else
+          res = path.slice(lastSlash + 1, i);
+      }
+      lastSlash = i;
+      dots = 0;
+    } else if (code === 46/*.*/ && dots !== -1) {
+      ++dots;
+    } else {
+      dots = -1;
     }
   }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
+  return res;
 }
 
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
+function _format(sep, pathObject) {
+  const dir = pathObject.dir || pathObject.root;
+  const base = pathObject.base ||
+    ((pathObject.name || '') + (pathObject.ext || ''));
+  if (!dir) {
+    return base;
+  }
+  if (dir === pathObject.root) {
+    return dir + base;
+  }
+  return dir + sep + base;
+}
+
+const posix = {
+  // path.resolve([from ...], to)
+  resolve: function resolve() {
+    var resolvedPath = '';
+    var resolvedAbsolute = false;
+    var cwd;
+
+    for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+      var path;
+      if (i >= 0)
+        path = arguments[i];
+      else {
+        if (cwd === undefined)
+          cwd = process.cwd();
+        path = cwd;
+      }
+
+      assertPath(path);
+
+      // Skip empty entries
+      if (path.length === 0) {
+        continue;
+      }
+
+      resolvedPath = path + '/' + resolvedPath;
+      resolvedAbsolute = path.charCodeAt(0) === 47/*/*/;
     }
-;
+
+    // At this point the path should be resolved to a full absolute path, but
+    // handle relative paths to be safe (might happen when process.cwd() fails)
+
+    // Normalize the path
+    resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
+
+    if (resolvedAbsolute) {
+      if (resolvedPath.length > 0)
+        return '/' + resolvedPath;
+      else
+        return '/';
+    } else if (resolvedPath.length > 0) {
+      return resolvedPath;
+    } else {
+      return '.';
+    }
+  },
+
+
+  normalize: function normalize(path) {
+    assertPath(path);
+
+    if (path.length === 0)
+      return '.';
+
+    const isAbsolute = path.charCodeAt(0) === 47/*/*/;
+    const trailingSeparator = path.charCodeAt(path.length - 1) === 47/*/*/;
+
+    // Normalize the path
+    path = normalizeStringPosix(path, !isAbsolute);
+
+    if (path.length === 0 && !isAbsolute)
+      path = '.';
+    if (path.length > 0 && trailingSeparator)
+      path += '/';
+
+    if (isAbsolute)
+      return '/' + path;
+    return path;
+  },
+
+
+  isAbsolute: function isAbsolute(path) {
+    assertPath(path);
+    return path.length > 0 && path.charCodeAt(0) === 47/*/*/;
+  },
+
+
+  join: function join() {
+    if (arguments.length === 0)
+      return '.';
+    var joined;
+    for (var i = 0; i < arguments.length; ++i) {
+      var arg = arguments[i];
+      assertPath(arg);
+      if (arg.length > 0) {
+        if (joined === undefined)
+          joined = arg;
+        else
+          joined += '/' + arg;
+      }
+    }
+    if (joined === undefined)
+      return '.';
+    return posix.normalize(joined);
+  },
+
+
+  relative: function relative(from, to) {
+    assertPath(from);
+    assertPath(to);
+
+    if (from === to)
+      return '';
+
+    from = posix.resolve(from);
+    to = posix.resolve(to);
+
+    if (from === to)
+      return '';
+
+    // Trim any leading backslashes
+    var fromStart = 1;
+    for (; fromStart < from.length; ++fromStart) {
+      if (from.charCodeAt(fromStart) !== 47/*/*/)
+        break;
+    }
+    var fromEnd = from.length;
+    var fromLen = (fromEnd - fromStart);
+
+    // Trim any leading backslashes
+    var toStart = 1;
+    for (; toStart < to.length; ++toStart) {
+      if (to.charCodeAt(toStart) !== 47/*/*/)
+        break;
+    }
+    var toEnd = to.length;
+    var toLen = (toEnd - toStart);
+
+    // Compare paths to find the longest common path from root
+    var length = (fromLen < toLen ? fromLen : toLen);
+    var lastCommonSep = -1;
+    var i = 0;
+    for (; i <= length; ++i) {
+      if (i === length) {
+        if (toLen > length) {
+          if (to.charCodeAt(toStart + i) === 47/*/*/) {
+            // We get here if `from` is the exact base path for `to`.
+            // For example: from='/foo/bar'; to='/foo/bar/baz'
+            return to.slice(toStart + i + 1);
+          } else if (i === 0) {
+            // We get here if `from` is the root
+            // For example: from='/'; to='/foo'
+            return to.slice(toStart + i);
+          }
+        } else if (fromLen > length) {
+          if (from.charCodeAt(fromStart + i) === 47/*/*/) {
+            // We get here if `to` is the exact base path for `from`.
+            // For example: from='/foo/bar/baz'; to='/foo/bar'
+            lastCommonSep = i;
+          } else if (i === 0) {
+            // We get here if `to` is the root.
+            // For example: from='/foo'; to='/'
+            lastCommonSep = 0;
+          }
+        }
+        break;
+      }
+      var fromCode = from.charCodeAt(fromStart + i);
+      var toCode = to.charCodeAt(toStart + i);
+      if (fromCode !== toCode)
+        break;
+      else if (fromCode === 47/*/*/)
+        lastCommonSep = i;
+    }
+
+    var out = '';
+    // Generate the relative path based on the path difference between `to`
+    // and `from`
+    for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
+      if (i === fromEnd || from.charCodeAt(i) === 47/*/*/) {
+        if (out.length === 0)
+          out += '..';
+        else
+          out += '/..';
+      }
+    }
+
+    // Lastly, append the rest of the destination (`to`) path that comes after
+    // the common path parts
+    if (out.length > 0)
+      return out + to.slice(toStart + lastCommonSep);
+    else {
+      toStart += lastCommonSep;
+      if (to.charCodeAt(toStart) === 47/*/*/)
+        ++toStart;
+      return to.slice(toStart);
+    }
+  },
+
+
+  _makeLong: function _makeLong(path) {
+    return path;
+  },
+
+
+  dirname: function dirname(path) {
+    assertPath(path);
+    if (path.length === 0)
+      return '.';
+    var code = path.charCodeAt(0);
+    var hasRoot = (code === 47/*/*/);
+    var end = -1;
+    var matchedSlash = true;
+    for (var i = path.length - 1; i >= 1; --i) {
+      code = path.charCodeAt(i);
+      if (code === 47/*/*/) {
+        if (!matchedSlash) {
+          end = i;
+          break;
+        }
+      } else {
+        // We saw the first non-path separator
+        matchedSlash = false;
+      }
+    }
+
+    if (end === -1)
+      return hasRoot ? '/' : '.';
+    if (hasRoot && end === 1)
+      return '//';
+    return path.slice(0, end);
+  },
+
+
+  basename: function basename(path, ext) {
+    if (ext !== undefined && typeof ext !== 'string')
+      throw new TypeError('"ext" argument must be a string');
+    assertPath(path);
+
+    var start = 0;
+    var end = -1;
+    var matchedSlash = true;
+    var i;
+
+    if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
+      if (ext.length === path.length && ext === path)
+        return '';
+      var extIdx = ext.length - 1;
+      var firstNonSlashEnd = -1;
+      for (i = path.length - 1; i >= 0; --i) {
+        const code = path.charCodeAt(i);
+        if (code === 47/*/*/) {
+          // If we reached a path separator that was not part of a set of path
+          // separators at the end of the string, stop now
+          if (!matchedSlash) {
+            start = i + 1;
+            break;
+          }
+        } else {
+          if (firstNonSlashEnd === -1) {
+            // We saw the first non-path separator, remember this index in case
+            // we need it if the extension ends up not matching
+            matchedSlash = false;
+            firstNonSlashEnd = i + 1;
+          }
+          if (extIdx >= 0) {
+            // Try to match the explicit extension
+            if (code === ext.charCodeAt(extIdx)) {
+              if (--extIdx === -1) {
+                // We matched the extension, so mark this as the end of our path
+                // component
+                end = i;
+              }
+            } else {
+              // Extension does not match, so our result is the entire path
+              // component
+              extIdx = -1;
+              end = firstNonSlashEnd;
+            }
+          }
+        }
+      }
+
+      if (start === end)
+        end = firstNonSlashEnd;
+      else if (end === -1)
+        end = path.length;
+      return path.slice(start, end);
+    } else {
+      for (i = path.length - 1; i >= 0; --i) {
+        if (path.charCodeAt(i) === 47/*/*/) {
+          // If we reached a path separator that was not part of a set of path
+          // separators at the end of the string, stop now
+          if (!matchedSlash) {
+            start = i + 1;
+            break;
+          }
+        } else if (end === -1) {
+          // We saw the first non-path separator, mark this as the end of our
+          // path component
+          matchedSlash = false;
+          end = i + 1;
+        }
+      }
+
+      if (end === -1)
+        return '';
+      return path.slice(start, end);
+    }
+  },
+
+
+  extname: function extname(path) {
+    assertPath(path);
+    var startDot = -1;
+    var startPart = 0;
+    var end = -1;
+    var matchedSlash = true;
+    // Track the state of characters (if any) we see before our first dot and
+    // after any path separator we find
+    var preDotState = 0;
+    for (var i = path.length - 1; i >= 0; --i) {
+      const code = path.charCodeAt(i);
+      if (code === 47/*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+      if (end === -1) {
+        // We saw the first non-path separator, mark this as the end of our
+        // extension
+        matchedSlash = false;
+        end = i + 1;
+      }
+      if (code === 46/*.*/) {
+        // If this is our first dot, mark it as the start of our extension
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+      } else if (startDot !== -1) {
+        // We saw a non-dot and non-path separator before our dot, so we should
+        // have a good chance at having a non-empty extension
+        preDotState = -1;
+      }
+    }
+
+    if (startDot === -1 ||
+        end === -1 ||
+        // We saw a non-dot character immediately before the dot
+        preDotState === 0 ||
+        // The (right-most) trimmed path component is exactly '..'
+        (preDotState === 1 &&
+         startDot === end - 1 &&
+         startDot === startPart + 1)) {
+      return '';
+    }
+    return path.slice(startDot, end);
+  },
+
+
+  format: function format(pathObject) {
+    if (pathObject === null || typeof pathObject !== 'object') {
+      throw new TypeError(
+        `Parameter "pathObject" must be an object, not ${typeof pathObject}`
+      );
+    }
+    return _format('/', pathObject);
+  },
+
+
+  parse: function parse(path) {
+    assertPath(path);
+
+    var ret = { root: '', dir: '', base: '', ext: '', name: '' };
+    if (path.length === 0)
+      return ret;
+    var code = path.charCodeAt(0);
+    var isAbsolute = (code === 47/*/*/);
+    var start;
+    if (isAbsolute) {
+      ret.root = '/';
+      start = 1;
+    } else {
+      start = 0;
+    }
+    var startDot = -1;
+    var startPart = 0;
+    var end = -1;
+    var matchedSlash = true;
+    var i = path.length - 1;
+
+    // Track the state of characters (if any) we see before our first dot and
+    // after any path separator we find
+    var preDotState = 0;
+
+    // Get non-dir info
+    for (; i >= start; --i) {
+      code = path.charCodeAt(i);
+      if (code === 47/*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+      if (end === -1) {
+        // We saw the first non-path separator, mark this as the end of our
+        // extension
+        matchedSlash = false;
+        end = i + 1;
+      }
+      if (code === 46/*.*/) {
+        // If this is our first dot, mark it as the start of our extension
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+      } else if (startDot !== -1) {
+        // We saw a non-dot and non-path separator before our dot, so we should
+        // have a good chance at having a non-empty extension
+        preDotState = -1;
+      }
+    }
+
+    if (startDot === -1 ||
+        end === -1 ||
+        // We saw a non-dot character immediately before the dot
+        preDotState === 0 ||
+        // The (right-most) trimmed path component is exactly '..'
+        (preDotState === 1 &&
+         startDot === end - 1 &&
+         startDot === startPart + 1)) {
+      if (end !== -1) {
+        if (startPart === 0 && isAbsolute)
+          ret.base = ret.name = path.slice(1, end);
+        else
+          ret.base = ret.name = path.slice(startPart, end);
+      }
+    } else {
+      if (startPart === 0 && isAbsolute) {
+        ret.name = path.slice(1, startDot);
+        ret.base = path.slice(1, end);
+      } else {
+        ret.name = path.slice(startPart, startDot);
+        ret.base = path.slice(startPart, end);
+      }
+      ret.ext = path.slice(startDot, end);
+    }
+
+    if (startPart > 0)
+      ret.dir = path.slice(0, startPart - 1);
+    else if (isAbsolute)
+      ret.dir = '/';
+
+    return ret;
+  },
+
+
+  sep: '/',
+  delimiter: ':',
+  posix: null
+};
+
+
+module.exports = posix;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
@@ -3091,7 +3441,7 @@ Contents.prototype.viewport = function(options) {
 	var $viewport = this.document.querySelector("meta[name='viewport']");
 	var newContent = '';
 
-	/**
+	/*
 	* check for the viewport size
 	* <meta name="viewport" content="width=1024,height=697" />
 	*/
@@ -5411,7 +5761,16 @@ var Unarchive = __webpack_require__(44);
 var request = __webpack_require__(4);
 var EpubCFI = __webpack_require__(1);
 
-function Book(_url, options){
+/**
+ * Creates a new Book
+ * @class
+ * @param {string} _url
+ * @param {object} options
+ * @param {method} options.requestMethod a request function to use instead of the default
+ * @returns {Book}
+ * @example new Book("/path/to/book.epub", {})
+ */
+function Book(url, options){
 
 	this.settings = core.extend(this.settings || {}, {
 		requestMethod: this.requestMethod
@@ -5422,10 +5781,11 @@ function Book(_url, options){
 
 	// Promises
 	this.opening = new core.defer();
+	/**
+	 * @property {promise} opened returns after the book is loaded
+	 */
 	this.opened = this.opening.promise;
 	this.isOpen = false;
-
-	this.url = undefined;
 
 	this.loading = {
 		manifest: new core.defer(),
@@ -5446,6 +5806,9 @@ function Book(_url, options){
 	};
 
 	// this.ready = RSVP.hash(this.loaded);
+	/**
+	 * @property {promise} ready returns after the book is loaded and parsed
+	 */
 	this.ready = Promise.all([this.loaded.manifest,
 														this.loaded.spine,
 														this.loaded.metadata,
@@ -5458,14 +5821,34 @@ function Book(_url, options){
 	this.isRendered = false;
 	// this._q = core.queue(this);
 
+	/**
+	 * @property {method} request
+	 */
 	this.request = this.settings.requestMethod.bind(this);
 
+	/**
+	 * @property {Spine} spine
+	 */
 	this.spine = new Spine(this.request);
+
+	/**
+	 * @property {Locations} locations
+	 */
 	this.locations = new Locations(this.spine, this.request);
 
-	if(_url) {
-		this.open(_url).catch(function (error) {
-			var err = new Error("Cannot load book at "+ _url );
+	/**
+	 * @property {Navigation} navigation
+	 */
+	this.navigation = undefined;
+
+	/**
+	 * @member {string} url the book url
+	 */
+	this.url = undefined;
+
+	if(url) {
+		this.open(url).catch(function (error) {
+			var err = new Error("Cannot load book at "+ url );
 			console.error(err);
 
 			this.emit("loadFailed", error);
@@ -5473,6 +5856,13 @@ function Book(_url, options){
 	}
 };
 
+/**
+ * open a url
+ * @param {string} _url URL, Path or ArrayBuffer
+ * @param {object} [options] to force opening
+ * @returns {Promise} of when the book has been loaded
+ * @example book.open("/path/to/book.epub", { base64: false })
+ */
 Book.prototype.open = function(_url, options){
 	var url;
 	var pathname;
@@ -5631,6 +6021,10 @@ Book.prototype.open = function(_url, options){
 	return this.opened;
 };
 
+/**
+ * unpack the contents of the Books packageXml
+ * @param {document} packageXml XML Document
+ */
 Book.prototype.unpack = function(packageXml){
 	var book = this,
 			parse = new Parser();
@@ -5642,7 +6036,6 @@ Book.prototype.unpack = function(packageXml){
 
 	book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
 	book.package.basePath = book.basePath; // Provides a url base for resolving paths
-	console.log("book.baseUrl", book.baseUrl );
 
 	this.spine.load(book.package);
 
@@ -5662,12 +6055,17 @@ Book.prototype.unpack = function(packageXml){
 	}
 };
 
-// Alias for book.spine.get
+/**
+ * Alias for book.spine.get
+ * @param {string} target
+ */
 Book.prototype.section = function(target) {
 	return this.spine.get(target);
 };
 
-// Sugar to render a book
+/**
+ * Sugar to render a book
+ */
 Book.prototype.renderTo = function(element, options) {
 	// var renderMethod = (options && options.method) ?
 	//     options.method :
@@ -5679,6 +6077,9 @@ Book.prototype.renderTo = function(element, options) {
 	return this.rendition;
 };
 
+/**
+ * Switch request methods depending on if book is archived or not
+ */
 Book.prototype.requestMethod = function(_url) {
 	// Switch request methods
 	if(this.unarchived) {
@@ -5697,12 +6098,17 @@ Book.prototype.setRequestHeaders = function(_headers) {
 	this.requestHeaders = _headers;
 };
 
+/**
+ * Unarchive a zipped epub
+ */
 Book.prototype.unarchive = function(bookUrl, isBase64){
 	this.unarchived = new Unarchive();
 	return this.unarchived.open(bookUrl, isBase64);
 };
 
-//-- Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
+/**
+ * Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
+ */
 Book.prototype.isArchivedUrl = function(bookUrl){
 	var extension;
 
@@ -5726,7 +6132,9 @@ Book.prototype.isArchivedUrl = function(bookUrl){
 	return false;
 };
 
-//-- Returns the cover
+/**
+ * Get the cover url
+ */
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
@@ -5742,6 +6150,9 @@ Book.prototype.coverUrl = function(){
 	return retrieved;
 };
 
+/**
+ * Find a DOM Range for a given CFI Range
+ */
 Book.prototype.range = function(cfiRange) {
 	var cfi = new EpubCFI(cfiRange);
 	var item = this.spine.get(cfi.spinePos);
@@ -7967,7 +8378,7 @@ function Stage(_options) {
 
 }
 
-/**
+/*
 * Creates an element to render to.
 * Resizes to passed width and height or to the elements size
 */
@@ -8592,7 +9003,7 @@ Section.prototype.find = function(_query){
 
 };
 
-/**
+/*
 * Reconciles the current chapters layout properies with
 * the global layout properities.
 * Takes: global layout settings object, chapter properties string
@@ -8791,12 +9202,10 @@ function Unarchive() {
 
 Unarchive.prototype.checkRequirements = function(callback){
 	try {
-		if (typeof JSZip !== 'undefined') {
-			this.zip = new JSZip();
-		} else {
+		if (typeof JSZip === 'undefined') {
 			JSZip = __webpack_require__(45);
-			this.zip = new JSZip();
 		}
+		this.zip = new JSZip();
 	} catch (e) {
 		console.error("JSZip lib not loaded");
 	}
@@ -8983,8 +9392,16 @@ var EpubCFI = __webpack_require__(1);
 var Rendition = __webpack_require__(11);
 var Contents = __webpack_require__(9);
 
-function ePub(_url) {
-	return new Book(_url);
+/**
+ * Creates a new Book
+ * @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
+ * @param {object} options to pass to the book
+ * @param options.requestMethod the request function to use
+ * @returns {Book} a new Book object
+ * @example ePub("/path/to/book.epub", {})
+ */
+function ePub(url, options) {
+	return new Book(url, options);
 };
 
 ePub.VERSION = "0.3.0";
@@ -8995,10 +9412,19 @@ ePub.Contents = Contents;
 
 ePub.ViewManagers = {};
 ePub.Views = {};
+/**
+ * register plugins
+ */
 ePub.register = {
+	/**
+	 * register a new view manager
+	 */
 	manager : function(name, manager){
 		return ePub.ViewManagers[name] = manager;
 	},
+	/**
+	 * register a new view
+	 */
 	view : function(name, view){
 		return ePub.Views[name] = view;
 	}

@@ -12,7 +12,7 @@ function Stage(_options) {
 
 }
 
-/**
+/*
 * Creates an element to render to.
 * Resizes to passed width and height or to the elements size
 */

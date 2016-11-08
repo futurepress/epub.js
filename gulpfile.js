@@ -30,6 +30,8 @@ watchConfig.watch = true;
 // create a single instance of the compiler to allow caching
 var watchCompiler = webpack(watchConfig);
 
+var buildDocs = require('gulp-documentation');
+
 // Lint JS
 gulp.task('lint', function() {
 	return gulp.src('src/*.js')
@@ -122,6 +124,24 @@ gulp.task("serve", function(callback) {
 	*/
 
 });
+
+gulp.task('docs:md', function () {
+	return gulp.src('./src/epub.js')
+		.pipe(buildDocs({ format: 'md' }))
+		.pipe(gulp.dest('documentation/md'));
+});
+
+gulp.task('docs:html', function () {
+	return gulp.src('./src/epub.js')
+		.pipe(buildDocs({ format: 'html' }))
+		.pipe(gulp.dest('documentation/html'));
+});
+
+gulp.task('docs:watch', function () {
+	return gulp.watch('./src/**/*.js', ['docs:html']);
+});
+
+gulp.task('docs', ['docs:html', 'docs:md']);
 
 // Default
 gulp.task('default', ['lint', 'bundle']);

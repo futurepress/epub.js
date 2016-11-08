@@ -3,8 +3,16 @@ var EpubCFI = require('./epubcfi');
 var Rendition = require('./rendition');
 var Contents = require('./contents');
 
-function ePub(_url) {
-	return new Book(_url);
+/**
+ * Creates a new Book
+ * @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
+ * @param {object} options to pass to the book
+ * @param options.requestMethod the request function to use
+ * @returns {Book} a new Book object
+ * @example ePub("/path/to/book.epub", {})
+ */
+function ePub(url, options) {
+	return new Book(url, options);
 };
 
 ePub.VERSION = "0.3.0";
@@ -15,10 +23,19 @@ ePub.Contents = Contents;
 
 ePub.ViewManagers = {};
 ePub.Views = {};
+/**
+ * register plugins
+ */
 ePub.register = {
+	/**
+	 * register a new view manager
+	 */
 	manager : function(name, manager){
 		return ePub.ViewManagers[name] = manager;
 	},
+	/**
+	 * register a new view
+	 */
 	view : function(name, view){
 		return ePub.Views[name] = view;
 	}

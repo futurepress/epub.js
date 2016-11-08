@@ -58,7 +58,6 @@ Section.prototype.base = function(_document){
 		var task = new core.defer();
 		var base = _document.createElement("base"); // TODO: check if exists
 		var head;
-		console.log(window.location.origin + "/" +this.url);
 
 		base.setAttribute("href", window.location.origin + "/" +this.url);
 
@@ -113,7 +112,7 @@ Section.prototype.find = function(_query){
 
 };
 
-/**
+/*
 * Reconciles the current chapters layout properies with
 * the global layout properities.
 * Takes: global layout settings object, chapter properties string

@@ -57,18 +57,8 @@ function links(view, renderer) {
 		// var linkUri = URI(href);
 		// var absolute = linkUri.absoluteTo(view.section.url);
 		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
-		var linkUrl;
-		var linkPath;
-		var relative;
-
-		if (this.book.baseUrl) {
-			linkUrl = new URL(href, this.book.baseUrl);
-			relative = path.relative(path.dirname(linkUrl.pathname), this.book.packagePath);
-		} else {
-			linkPath = path.resolve(this.book.basePath, href);
-			relative = path.relative(this.book.packagePath, linkPath);
-		}
-
+		var relative = this.book.resolve(href, false);
+		
 		if(linkUrl && linkUrl.protocol){
 
 			link.setAttribute("target", "_blank");

@@ -7,6 +7,7 @@ var EpubCFI = require('./epubcfi');
 var Queue = require('./queue');
 var Layout = require('./layout');
 var Mapping = require('./mapping');
+var Path = require('./core').Path;
 
 function Rendition(book, options) {
 
@@ -58,7 +59,7 @@ function Rendition(book, options) {
 	// this.started = this.starting.promise;
 	this.q.enqueue(this.start);
 
-	if(this.book.unarchived) {
+	if(this.book.archived) {
 		this.q.enqueue(this.replacements.bind(this));
 	}
 
@@ -106,7 +107,7 @@ Rendition.prototype.start = function(){
 		this.manager = new this.ViewManager({
 			view: this.View,
 			queue: this.q,
-			request: this.book.request,
+			request: this.book.load.bind(this.book),
 			settings: this.settings
 		});
 	}
@@ -441,7 +442,7 @@ Rendition.prototype.replacements = function(){
 		var processing = urls.
 			map(function(url) {
 				// var absolute = new URL(url, this.book.baseUrl).toString();
-				var absolute = path.resolve(this.book.basePath, url);
+				var absolute = this.book.resolve(url);
 				// Full url from archive base
 				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
 			}.bind(this));
@@ -494,32 +495,15 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 		}
 
 		var fileUri;
-		var absolute;
-		if (this.book.baseUrl) {
-			fileUri = new URL(href, this.book.baseUrl);
-			absolute = fileUri.toString();
-		} else {
-			absolute = path.resolve(this.book.basePath, href);
-		}
-
+		var absolute = this.book.resolve(href);
 
 		// Get the text of the css file from the archive
 		var textResponse = this.book.unarchived.getText(absolute);
 		// Get asset links relative to css file
 		var relUrls = urls.
 			map(function(assetHref) {
-				// var assetUri = URI(assetHref).absoluteTo(this.book.baseUrl);
-				// var relative = assetUri.relativeTo(absolute).toString();
-
-				var assetUrl;
-				var relativeUrl;
-				if (this.book.baseUrl) {
-					assetUrl = new URL(assetHref, this.book.baseUrl);
-					relative = path.relative(path.dirname(fileUri.pathname), assetUrl.pathname);
-				} else {
-					assetUrl = path.resolve(this.book.basePath, assetHref);
-					relative = path.relative(path.dirname(absolute), assetUrl);
-				}
+				var resolved = this.book.resolve(assetHref);
+				var relative = new Path(absolute).relative(resolved);
 
 				return relative;
 			}.bind(this));
@@ -552,33 +536,16 @@ Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
 Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
 	// var fileUri = URI(section.url);
 	var fileUri;
-	var absolute;
-	if (this.book.baseUrl) {
-		fileUri = new URL(section.url, this.book.baseUrl);
-		absolute = fileUri.toString();
-	} else {
-		absolute = path.resolve(this.book.basePath, section.url);
-	}
+	var absolute = section.url;
 
 	// Get Urls relative to current sections
 	var relUrls = urls.
 		map(function(href) {
-			// var assetUri = URI(href).absoluteTo(this.book.baseUrl);
-			// var relative = assetUri.relativeTo(fileUri).toString();
-
-			var assetUrl;
-			var relativeUrl;
-			if (this.book.baseUrl) {
-				assetUrl = new URL(href, this.book.baseUrl);
-				relative = path.relative(path.dirname(fileUri.pathname), assetUrl.pathname);
-			} else {
-				assetUrl = path.resolve(this.book.basePath, href);
-				relative = path.relative(path.dirname(absolute), assetUrl);
-			}
+			var resolved = this.book.resolve(href);
+			var relative = new Path(absolute).relative(resolved);
 
 			return relative;
 		}.bind(this));
-
 
 	section.output = replace.substitute(section.output, relUrls, replacementUrls);
 };
