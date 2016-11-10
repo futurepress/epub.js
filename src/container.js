@@ -2,13 +2,21 @@ var path = require('path');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 
-
+/**
+ * Handles Parsing and Accessing an Epub Container
+ * @class
+ * @param {[document]} containerDocument xml document
+ */
 function Container(containerDocument) {
 	if (containerDocument) {
 		this.parse(containerDocument);
 	}
 };
 
+/**
+ * Parse the Container XML
+ * @param  {document} containerDocument
+ */
 Container.prototype.parse = function(containerDocument){
 		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
 		var rootfile, fullpath, folder, encoding;

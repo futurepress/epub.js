@@ -4,6 +4,9 @@ var Hook = require('./hook');
 var Section = require('./section');
 var replacements = require('./replacements');
 
+/**
+ * A collection of Spine Items
+ */
 function Spine(){
 	this.spineItems = [];
 	this.spineByHref = {};
@@ -22,6 +25,11 @@ function Spine(){
 	this.loaded = false;
 };
 
+/**
+ * Unpack items from a opf into spine items
+ * @param  {Package} _package
+ * @param  {method} resolver URL resolver
+ */
 Spine.prototype.unpack = function(_package, resolver) {
 
 	this.items = _package.spine;
@@ -46,13 +54,8 @@ Spine.prototype.unpack = function(_package, resolver) {
 			}
 		}
 
-		// if(index > 0) {
-			item.prev = function(){ return this.get(index-1); }.bind(this);
-		// }
-
-		// if(index+1 < this.items.length) {
-			item.next = function(){ return this.get(index+1); }.bind(this);
-		// }
+		item.prev = function(){ return this.get(index-1); }.bind(this);
+		item.next = function(){ return this.get(index+1); }.bind(this);
 
 		spineItem = new Section(item, this.hooks);
 
@@ -64,10 +67,15 @@ Spine.prototype.unpack = function(_package, resolver) {
 	this.loaded = true;
 };
 
-// book.spine.get();
-// book.spine.get(1);
-// book.spine.get("chap1.html");
-// book.spine.get("#id1234");
+/**
+ * Get an item from the spine
+ * @param  {[string|int]} target
+ * @return {Section} section
+ * @example spine.get();
+ * @example spine.get(1);
+ * @example spine.get("chap1.html");
+ * @example spine.get("#id1234");
+ */
 Spine.prototype.get = function(target) {
 	var index = 0;
 
@@ -87,6 +95,11 @@ Spine.prototype.get = function(target) {
 	return this.spineItems[index] || null;
 };
 
+/**
+ * Append a Section to the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.append = function(section) {
 	var index = this.spineItems.length;
 	section.index = index;
@@ -99,6 +112,11 @@ Spine.prototype.append = function(section) {
 	return index;
 };
 
+/**
+ * Prepend a Section to the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.prepend = function(section) {
 	var index = this.spineItems.unshift(section);
 	this.spineByHref[section.href] = 0;
@@ -112,10 +130,15 @@ Spine.prototype.prepend = function(section) {
 	return 0;
 };
 
-Spine.prototype.insert = function(section, index) {
+// Spine.prototype.insert = function(section, index) {
+//
+// };
 
-};
-
+/**
+ * Remove a Section from the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.remove = function(section) {
 	var index = this.spineItems.indexOf(section);
 
@@ -127,6 +150,10 @@ Spine.prototype.remove = function(section) {
 	}
 };
 
+/**
+ * Loop over the Sections in the Spine
+ * @return {method} forEach
+ */
 Spine.prototype.each = function() {
 	return this.spineItems.forEach.apply(this.spineItems, arguments);
 };

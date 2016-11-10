@@ -1,14 +1,22 @@
 var core = require('./core');
 
-function Queue(_context){
+/**
+ * Queue for handling tasks one at a time
+ * @class
+ * @param {scope} context what this will resolve to in the tasks
+ */
+function Queue(context){
 	this._q = [];
-	this.context = _context;
+	this.context = context;
 	this.tick = core.requestAnimationFrame;
 	this.running = false;
 	this.paused = false;
 };
 
-// Add an item to the queue
+/**
+ * Add an item to the queue
+ * @return {Promise}
+ */
 Queue.prototype.enqueue = function() {
 	var deferred, promise;
 	var queued;
@@ -56,7 +64,10 @@ Queue.prototype.enqueue = function() {
 	return queued.promise;
 };
 
-// Run one item
+/**
+ * Run one item
+ * @return {Promise}
+ */
 Queue.prototype.dequeue = function(){
 	var inwait, task, result;
 
@@ -101,8 +112,10 @@ Queue.prototype.dump = function(){
 	}
 };
 
-// Run all sequentially, at convince
-
+/**
+ * Run all tasks sequentially, at convince
+ * @return {Promise}
+ */
 Queue.prototype.run = function(){
 
 	if(!this.running){
@@ -134,7 +147,10 @@ Queue.prototype.run = function(){
 	return this.defered.promise;
 };
 
-// Flush all, as quickly as possible
+/**
+ * Flush all, as quickly as possible
+ * @return {Promise}
+ */
 Queue.prototype.flush = function(){
 
 	if(this.running){
@@ -153,21 +169,38 @@ Queue.prototype.flush = function(){
 
 };
 
-// Clear all items in wait
+/**
+ * Clear all items in wait
+ */
 Queue.prototype.clear = function(){
 	this._q = [];
 	this.running = false;
 };
 
+/**
+ * Get the number of tasks in the queue
+ * @return {int} tasks
+ */
 Queue.prototype.length = function(){
 	return this._q.length;
 };
 
+/**
+ * Pause a running queue
+ */
 Queue.prototype.pause = function(){
 	this.paused = true;
 };
 
-// Create a new task from a callback
+/**
+ * Create a new task from a callback
+ * @class
+ * @private
+ * @param {function} task
+ * @param {array} args
+ * @param {scope} context
+ * @return {function} task
+ */
 function Task(task, args, context){
 
 	return function(){

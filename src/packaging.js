@@ -2,13 +2,22 @@ var path = require('path');
 var core = require('./core');
 var EpubCFI = require('./epubcfi');
 
-
+/**
+ * Open Packaging Format Parser
+ * @class
+ * @param {document} packageDocument OPF XML
+ */
 function Packaging(packageDocument) {
 	if (packageDocument) {
 		this.parse(packageDocument);
 	}
 };
 
+/**
+ * Parse OPF XML
+ * @param  {document} packageDocument OPF XML
+ * @return {object} parsed package parts
+ */
 Packaging.prototype.parse = function(packageDocument){
 	var metadataNode, manifestNode, spineNode;
 
@@ -60,6 +69,12 @@ Packaging.prototype.parse = function(packageDocument){
 	};
 };
 
+/**
+ * Parse Metadata
+ * @private
+ * @param  {document} xml
+ * @return {object} metadata
+ */
 Packaging.prototype.parseMetadata = function(xml){
 	var metadata = {};
 
@@ -86,6 +101,12 @@ Packaging.prototype.parseMetadata = function(xml){
 	return metadata;
 };
 
+/**
+ * Parse Manifest
+ * @private
+ * @param  {document} manifestXml
+ * @return {object} manifest
+ */
 Packaging.prototype.parseManifest = function(manifestXml){
 	var manifest = {};
 
@@ -114,6 +135,12 @@ Packaging.prototype.parseManifest = function(manifestXml){
 
 };
 
+/**
+ * Parse Spine
+ * @param  {document} spineXml
+ * @param  {Packaging.manifest} manifest
+ * @return {object} spine
+ */
 Packaging.prototype.parseSpine = function(spineXml, manifest){
 	var spine = [];
 
@@ -148,6 +175,7 @@ Packaging.prototype.parseSpine = function(spineXml, manifest){
 
 /**
  * Find TOC NAV
+ * @private
  */
 Packaging.prototype.findNavPath = function(manifestNode){
 	// Find item with property 'nav'
@@ -160,6 +188,7 @@ Packaging.prototype.findNavPath = function(manifestNode){
 /**
  * Find TOC NCX
  * media-type="application/x-dtbncx+xml" href="toc.ncx"
+ * @private
  */
 Packaging.prototype.findNcxPath = function(manifestNode, spineNode){
 	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
@@ -180,8 +209,13 @@ Packaging.prototype.findNcxPath = function(manifestNode, spineNode){
 	return node ? node.getAttribute('href') : false;
 };
 
-//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-//-- Fallback for Epub 2.0
+/**
+ * Find the Cover Path
+ * <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
+ * Fallback for Epub 2.0
+ * @param  {document} packageXml
+ * @return {string} href
+ */
 Packaging.prototype.findCoverPath = function(packageXml){
 	var pkg = core.qs(packageXml, "package");
 	var epubVersion = pkg.getAttribute('version');
@@ -205,6 +239,13 @@ Packaging.prototype.findCoverPath = function(packageXml){
 	}
 };
 
+/**
+ * Get text of a namespaced element
+ * @private
+ * @param  {document} xml
+ * @param  {string} tag
+ * @return {string} text
+ */
 Packaging.prototype.getElementText = function(xml, tag){
 	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
 		el;
@@ -221,6 +262,13 @@ Packaging.prototype.getElementText = function(xml, tag){
 
 };
 
+/**
+ * Get text by property
+ * @private
+ * @param  {document} xml
+ * @param  {string} property
+ * @return {string} text
+ */
 Packaging.prototype.getPropertyText = function(xml, property){
 	var el = core.qsp(xml, "meta", {"property":property});
 

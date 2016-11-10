@@ -592,7 +592,7 @@ function defer() {
 	}
 	// Handle IE not supporting namespaced epub:type in querySelector
 	if(!query || query.length === 0) {
-		query = core.qsa(html, element);
+		query = this.qsa(html, element);
 		for (var i = 0; i < query.length; i++) {
 			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
 				return query[i];

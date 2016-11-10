@@ -10,6 +10,7 @@ var Container = require('./container');
 var Packaging = require('./packaging');
 var Navigation = require('./navigation');
 var Resources = require('./resources');
+var PageList = require('./pagelist');
 var Rendition = require('./rendition');
 var Archive = require('./archive');
 var request = require('./request');
@@ -21,19 +22,24 @@ var CONTAINER_PATH = "META-INF/container.xml";
 /**
  * Creates a new Book
  * @class
- * @param {string} _url
+ * @param {string} url
  * @param {object} options
  * @param {method} options.requestMethod a request function to use instead of the default
+ * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
+ * @param {object} [options.requestHeaders=undefined] send the xhr request headers
+ * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
+ * @param {string} [options.replacements=base64] use base64, blobs, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  */
 function Book(url, options){
 
 	this.settings = core.extend(this.settings || {}, {
-		requestMethod: this.requestMethod,
+		requestMethod: undefined,
 		requestCredentials: undefined,
-		encoding: undefined, // optional to pass 'binary' or base64' for archived Epubs
-		base64: true
+		requestHeaders: undefined,
+		encoding: undefined,
+		replacements: 'base64'
 	});
 
 	core.extend(this.settings, options);
@@ -70,6 +76,7 @@ function Book(url, options){
 	// this.ready = RSVP.hash(this.loaded);
 	/**
 	 * @property {promise} ready returns after the book is loaded and parsed
+	 * @private
 	 */
 	this.ready = Promise.all([this.loaded.manifest,
 														this.loaded.spine,
@@ -85,6 +92,7 @@ function Book(url, options){
 
 	/**
 	 * @property {method} request
+	 * @private
 	 */
 	this.request = this.settings.requestMethod || request;
 
@@ -103,9 +111,27 @@ function Book(url, options){
 	 */
 	this.navigation = undefined;
 
+	/**
+	 * @property {PageList} pagelist
+	 */
+	this.pageList = new PageList();
+
+	/**
+	 * @property {Url} url
+	 * @private
+	 */
 	this.url = undefined;
+
+	/**
+	 * @property {Path} path
+	 * @private
+	 */
 	this.path = undefined;
 
+	/**
+	 * @property {boolean} archived
+	 * @private
+	 */
 	this.archived = false;
 
 	if(url) {
@@ -119,7 +145,7 @@ function Book(url, options){
 };
 
 /**
- * open a url
+ * Open a epub or url
  * @param {string} input URL, Path or ArrayBuffer
  * @param {string} [what] to force opening
  * @returns {Promise} of when the book has been loaded
@@ -150,6 +176,13 @@ Book.prototype.open = function(input, what){
 	return opening;
 };
 
+/**
+ * Open an archived epub
+ * @private
+ * @param  {binary} data
+ * @param  {[string]} encoding
+ * @return {Promise}
+ */
 Book.prototype.openEpub = function(data, encoding){
 	return this.unarchive(data, encoding || this.settings.encoding)
 		.then(function() {
@@ -160,6 +193,12 @@ Book.prototype.openEpub = function(data, encoding){
 		}.bind(this));
 };
 
+/**
+ * Open the epub container
+ * @private
+ * @param  {string} url
+ * @return {string} packagePath
+ */
 Book.prototype.openContainer = function(url){
 	return this.load(url)
 		.then(function(xml) {
@@ -168,6 +207,12 @@ Book.prototype.openContainer = function(url){
 		}.bind(this));
 };
 
+/**
+ * Open the Open Packaging Format Xml
+ * @private
+ * @param  {string} url
+ * @return {Promise}
+ */
 Book.prototype.openPackaging = function(url){
 	var packageUrl;
 	this.path = new Path(url);
@@ -179,6 +224,11 @@ Book.prototype.openPackaging = function(url){
 		}.bind(this));
 };
 
+/**
+ * Load a resource from the Book
+ * @param  {string} path path to the resource to load
+ * @return {Promise}     returns a promise with the requested resource
+ */
 Book.prototype.load = function (path) {
 	var resolved;
 	if(this.archived) {
@@ -186,10 +236,16 @@ Book.prototype.load = function (path) {
 		return this.archive.request(resolved);
 	} else {
 		resolved = this.resolve(path);
-		return this.request(resolved, null, this.requestCredentials, this.requestHeaders);
+		return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
 	}
 };
 
+/**
+ * Resolve a path to it's absolute position in the Book
+ * @param  {string} path
+ * @param  {[boolean]} absolute force resolving the full URL
+ * @return {string}          the resolved path string
+ */
 Book.prototype.resolve = function (path, absolute) {
 	var resolved = path;
 	var isAbsolute = (path.indexOf('://') > -1);
@@ -209,6 +265,12 @@ Book.prototype.resolve = function (path, absolute) {
 	return resolved;
 }
 
+/**
+ * Determine the type of they input passed to open
+ * @private
+ * @param  {string} input
+ * @return {string}  binary | directory | epub | opf
+ */
 Book.prototype.determineType = function(input) {
 	var url;
 	var path;
@@ -238,6 +300,7 @@ Book.prototype.determineType = function(input) {
 
 /**
  * unpack the contents of the Books packageXml
+ * @private
  * @param {document} packageXml XML Document
  */
 Book.prototype.unpack = function(opf){
@@ -248,7 +311,7 @@ Book.prototype.unpack = function(opf){
 	this.resources = new Resources(this.package.manifest, {
 		archive: this.archive,
 		resolver: this.resolve.bind(this),
-		base64: this.settings.base64
+		replacements: this.settings.replacements
 	});
 
 	this.loadNavigation(this.package).then(function(toc){
@@ -264,6 +327,7 @@ Book.prototype.unpack = function(opf){
 	this.loading.spine.resolve(this.spine);
 	this.loading.cover.resolve(this.cover);
 	this.loading.resources.resolve(this.resources);
+	this.loading.pageList.resolve(this.pageList);
 
 
 	this.isOpen = true;
@@ -279,6 +343,11 @@ Book.prototype.unpack = function(opf){
 
 };
 
+/**
+ * Load Navigation and PageList from package
+ * @private
+ * @param {document} opf XML Document
+ */
 Book.prototype.loadNavigation = function(opf){
 	var navPath = opf.navPath || opf.ncxPath;
 
@@ -289,6 +358,7 @@ Book.prototype.loadNavigation = function(opf){
 	return this.load(navPath, 'xml')
 		.then(function(xml) {
 			this.navigation = new Navigation(xml);
+			this.pageList = new PageList(xml);
 		}.bind(this));
 };
 
@@ -302,6 +372,9 @@ Book.prototype.section = function(target) {
 
 /**
  * Sugar to render a book
+ * @param  {element} element element to add the views to
+ * @param  {[object]} options
+ * @return {Rendition}
  */
 Book.prototype.renderTo = function(element, options) {
 	// var renderMethod = (options && options.method) ?
@@ -314,31 +387,44 @@ Book.prototype.renderTo = function(element, options) {
 	return this.rendition;
 };
 
-
-Book.prototype.setRequestCredentials = function(_credentials) {
-	this.requestCredentials = _credentials;
+/**
+ * Set if request should use withCredentials
+ * @param {boolean} credentials
+ */
+Book.prototype.setRequestCredentials = function(credentials) {
+	this.settings.requestCredentials = credentials;
 };
 
-Book.prototype.setRequestHeaders = function(_headers) {
-	this.requestHeaders = _headers;
+/**
+ * Set headers request should use
+ * @param {object} headers
+ */
+Book.prototype.setRequestHeaders = function(headers) {
+	this.settings.requestHeaders = headers;
 };
 
 /**
  * Unarchive a zipped epub
+ * @private
+ * @param  {binary} input epub data
+ * @param  {[string]} encoding
+ * @return {Archive}
  */
-Book.prototype.unarchive = function(bookUrl, encoding){
+Book.prototype.unarchive = function(input, encoding){
 	this.archive = new Archive();
-	return this.archive.open(bookUrl, encoding);
+	return this.archive.open(input, encoding);
 };
 
 /**
  * Get the cover url
+ * @return {string} coverUrl
  */
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
 			if(this.archived) {
-				return this.archive.createUrl(this.cover);
+				// return this.archive.createUrl(this.cover);
+				return this.resources.get(this.cover);
 			}else{
 				return this.cover;
 			}
@@ -349,6 +435,11 @@ Book.prototype.coverUrl = function(){
 	return retrieved;
 };
 
+/**
+ * load replacement urls
+ * @private
+ * @return {Promise} completed loading urls
+ */
 Book.prototype.replacements = function(){
 	this.spine.hooks.serialize.register(function(output, section) {
 		section.output = this.resources.substitute(output, section.url);
@@ -362,6 +453,8 @@ Book.prototype.replacements = function(){
 
 /**
  * Find a DOM Range for a given CFI Range
+ * @param  {EpubCFI} cfiRange a epub cfi range
+ * @return {Range}
  */
 Book.prototype.range = function(cfiRange) {
 	var cfi = new EpubCFI(cfiRange);

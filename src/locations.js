@@ -3,6 +3,11 @@ var Queue = require('./queue');
 var EpubCFI = require('./epubcfi');
 var EventEmitter = require('event-emitter');
 
+/**
+ * Find Locations for a Book
+ * @param {Spine} spine
+ * @param {request} request
+ */
 function Locations(spine, request) {
 	this.spine = spine;
 	this.request = request;
@@ -19,7 +24,11 @@ function Locations(spine, request) {
 
 };
 
-// Load all of sections in the book
+/**
+ * Load all of sections in the book to generate locations
+ * @param  {int} chars how many chars to split on
+ * @return {object} locations
+ */
 Locations.prototype.generate = function(chars) {
 
 	if (chars) {
