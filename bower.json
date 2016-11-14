@@ -26,7 +26,6 @@
     "examples"
   ],
   "dependencies": {
-    "rsvp": "~3.0.13",
     "es6-promise": "~4.0.5"
   }
 }

@@ -5,7 +5,6 @@ var Url = require('./core').Url;
 var Path = require('./core').Path;
 var Spine = require('./spine');
 var Locations = require('./locations');
-var Parser = require('./parser');
 var Container = require('./container');
 var Packaging = require('./packaging');
 var Navigation = require('./navigation');
