@@ -27,11 +27,19 @@ var CONTAINER_PATH = "META-INF/container.xml";
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
- * @param {string} [options.replacements=base64] use base64, blobs, or none for replacing assets in archived Epubs
+ * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
+ * @example new Book({ replacements: "blobUrl" })
  */
 function Book(url, options){
+
+	// Allow passing just options to the Book
+	if (typeof(options) === "undefined"
+		&& typeof(url) === "object") {
+		options = url;
+		url = undefined;
+	}
 
 	this.settings = core.extend(this.settings || {}, {
 		requestMethod: undefined,
@@ -230,6 +238,7 @@ Book.prototype.openPackaging = function(url){
  */
 Book.prototype.load = function (path) {
 	var resolved;
+
 	if(this.archived) {
 		resolved = this.resolve(path);
 		return this.archive.request(resolved);

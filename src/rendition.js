@@ -39,6 +39,10 @@ function Rendition(book, options) {
 
 	core.extend(this.settings, options);
 
+	if (typeof(this.settings.manager) === "object") {
+		this.manager = this.settings.manager;
+	}
+
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass
 	};

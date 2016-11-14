@@ -555,8 +555,8 @@ function blob2base64(blob, cb) {
 	}
 }
 
+// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 function defer() {
-	// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 	/* A method to resolve the associated Promise with the value passed.
 	 * If the promise is already settled it does nothing.
 	 *
@@ -574,6 +574,8 @@ function defer() {
 	 * itself will be the reason for rejection no matter the state of the Promise.
 	 */
 	this.reject = null;
+
+	this.id = uuid();
 
 	/* A newly created Pomise object.
 	 * Initially in pending state.
