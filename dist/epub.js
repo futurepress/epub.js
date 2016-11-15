@@ -7,7 +7,7 @@
 		exports["ePub"] = factory((function webpackLoadOptionalExternalModule() { try { return require("JSZip"); } catch(e) {} }()), require("xmldom"));
 	else
 		root["ePub"] = factory(root["JSZip"], root["xmldom"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_45__, __WEBPACK_EXTERNAL_MODULE_14__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_48__, __WEBPACK_EXTERNAL_MODULE_13__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -71,15 +71,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "/dist/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 47);
+/******/ 	return __webpack_require__(__webpack_require__.s = 50);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-var base64 = __webpack_require__(21);
-var path = __webpack_require__(3);
+var base64 = __webpack_require__(20);
+var path = __webpack_require__(2);
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 
@@ -92,47 +92,67 @@ var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnim
  */
 function Url(urlString, baseString) {
 	var absolute = (urlString.indexOf('://') > -1);
+	var pathname = urlString;
 
+	this.Url = undefined;
 	this.href = urlString;
 	this.protocol = "";
 	this.origin = "";
 	this.fragment = "";
 	this.search = "";
-	this.base = baseString || undefined;
+	this.base = baseString;
 
-	if (!absolute && !baseString) {
+	if (!absolute && (typeof(baseString) !== "string")) {
 		this.base = window && window.location.href;
 	}
 
-	try {
-		this.Url = new URL(urlString, this.base);
-		this.href = this.Url.href;
+	// URL Polyfill doesn't throw an error if base is empty
+	if (absolute || this.base) {
+		try {
+			this.Url = new URL(urlString, this.base);
+			this.href = this.Url.href;
 
-		this.protocol = this.Url.protocol;
-		this.origin = this.Url.origin;
-		this.fragment = this.Url.fragment;
-		this.search = this.Url.search;
-	} catch (e) {
-		// console.error(e);
-		this.Url = undefined;
+			this.protocol = this.Url.protocol;
+			this.origin = this.Url.origin;
+			this.fragment = this.Url.fragment;
+			this.search = this.Url.search;
+
+			pathname = this.Url.pathname;
+		} catch (e) {
+			// Skip URL parsing
+			this.Url = undefined;
+		}
 	}
 
-	this.Path = new Path(this.Url.pathname);
+	this.Path = new Path(pathname);
 	this.directory = this.Path.directory;
 	this.filename = this.Path.filename;
 	this.extension = this.Path.extension;
 
-	this.path = this.origin + this.directory;
-
 }
 
+Url.prototype.path = function () {
+	return this.Path;
+};
+
 Url.prototype.resolve = function (what) {
-	var fullpath = path.resolve(this.directory, what);
+	var isAbsolute = (what.indexOf('://') > -1);
+	var fullpath;
+
+	if (isAbsolute) {
+		return what;
+	}
+
+	fullpath = path.resolve(this.directory, what);
 	return this.origin + fullpath;
 };
 
 Url.prototype.relative = function (what) {
 	return path.relative(what, this.directory);
+};
+
+Url.prototype.toString = function () {
+	return this.href;
 };
 
 function Path(pathString) {
@@ -163,6 +183,10 @@ Path.prototype.parse = function (what) {
 	return path.parse(what);
 };
 
+Path.prototype.isAbsolute = function (what) {
+	return path.isAbsolute(what || this.path);
+};
+
 Path.prototype.isDirectory = function (what) {
 	return (what.charAt(what.length-1) === '/');
 };
@@ -172,12 +196,15 @@ Path.prototype.resolve = function (what) {
 };
 
 Path.prototype.relative = function (what) {
-	console.log(what, this.directory);
-	return path.relative(what, this.directory);
+	return path.relative(this.directory, what);
 };
 
 Path.prototype.splitPath = function(filename) {
 	return this.splitPathRe.exec(filename).slice(1);
+};
+
+Path.prototype.toString = function () {
+	return this.path;
 };
 
 function assertPath(path) {
@@ -185,41 +212,6 @@ function assertPath(path) {
 		throw new TypeError('Path must be a string. Received ', path);
 	}
 };
-
-function extension(_url) {
-	var url;
-	var pathname;
-	var ext;
-
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
-	}
-
-	ext = path.extname(pathname);
-	if (ext) {
-		return ext.slice(1);
-	}
-
-	return '';
-}
-
-function directory(_url) {
-	var url;
-	var pathname;
-	var ext;
-
-	try {
-		url = new Url(url);
-		pathname = url.pathname;
-	} catch (e) {
-		pathname = _url;
-	}
-
-	return path.dirname(pathname);
-}
 
 function isElement(obj) {
 		return !!(obj && obj.nodeType == 1);
@@ -578,7 +570,7 @@ function parse(markup, mime) {
 	// console.log("parse", markup);
 
 	if (typeof DOMParser === "undefined") {
-		DOMParser = __webpack_require__(14).DOMParser;
+		DOMParser = __webpack_require__(13).DOMParser;
 	}
 
 
@@ -643,8 +635,8 @@ function blob2base64(blob, cb) {
 	}
 }
 
+// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 function defer() {
-	// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 	/* A method to resolve the associated Promise with the value passed.
 	 * If the promise is already settled it does nothing.
 	 *
@@ -663,6 +655,8 @@ function defer() {
 	 */
 	this.reject = null;
 
+	this.id = uuid();
+
 	/* A newly created Pomise object.
 	 * Initially in pending state.
 	 */
@@ -673,11 +667,27 @@ function defer() {
 	Object.freeze(this);
 }
 
+ function querySelectorByType(html, element, type){
+	var query;
+	if (typeof html.querySelector != "undefined") {
+		query = html.querySelector(element+'[*|type="'+type+'"]');
+	}
+	// Handle IE not supporting namespaced epub:type in querySelector
+	if(!query || query.length === 0) {
+		query = this.qsa(html, element);
+		for (var i = 0; i < query.length; i++) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+				return query[i];
+			}
+		}
+	} else {
+		return query;
+	}
+}
+
+
+
 module.exports = {
-	// 'uri': uri,
-	// 'folder': folder,
-	'extension' : extension,
-	'directory' : directory,
 	'isElement': isElement,
 	'uuid': uuid,
 	'values': values,
@@ -709,8 +719,8 @@ module.exports = {
 	'createBase64Url': createBase64Url,
 	'defer': defer,
 	'Url': Url,
-	'Path': Path
-
+	'Path': Path,
+	'querySelectorByType': querySelectorByType
 };
 
 
@@ -1662,145 +1672,6 @@ module.exports = EpubCFI;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-'use strict';
-
-var d        = __webpack_require__(22)
-  , callable = __webpack_require__(31)
-
-  , apply = Function.prototype.apply, call = Function.prototype.call
-  , create = Object.create, defineProperty = Object.defineProperty
-  , defineProperties = Object.defineProperties
-  , hasOwnProperty = Object.prototype.hasOwnProperty
-  , descriptor = { configurable: true, enumerable: false, writable: true }
-
-  , on, once, off, emit, methods, descriptors, base;
-
-on = function (type, listener) {
-	var data;
-
-	callable(listener);
-
-	if (!hasOwnProperty.call(this, '__ee__')) {
-		data = descriptor.value = create(null);
-		defineProperty(this, '__ee__', descriptor);
-		descriptor.value = null;
-	} else {
-		data = this.__ee__;
-	}
-	if (!data[type]) data[type] = listener;
-	else if (typeof data[type] === 'object') data[type].push(listener);
-	else data[type] = [data[type], listener];
-
-	return this;
-};
-
-once = function (type, listener) {
-	var once, self;
-
-	callable(listener);
-	self = this;
-	on.call(this, type, once = function () {
-		off.call(self, type, once);
-		apply.call(listener, this, arguments);
-	});
-
-	once.__eeOnceListener__ = listener;
-	return this;
-};
-
-off = function (type, listener) {
-	var data, listeners, candidate, i;
-
-	callable(listener);
-
-	if (!hasOwnProperty.call(this, '__ee__')) return this;
-	data = this.__ee__;
-	if (!data[type]) return this;
-	listeners = data[type];
-
-	if (typeof listeners === 'object') {
-		for (i = 0; (candidate = listeners[i]); ++i) {
-			if ((candidate === listener) ||
-					(candidate.__eeOnceListener__ === listener)) {
-				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
-				else listeners.splice(i, 1);
-			}
-		}
-	} else {
-		if ((listeners === listener) ||
-				(listeners.__eeOnceListener__ === listener)) {
-			delete data[type];
-		}
-	}
-
-	return this;
-};
-
-emit = function (type) {
-	var i, l, listener, listeners, args;
-
-	if (!hasOwnProperty.call(this, '__ee__')) return;
-	listeners = this.__ee__[type];
-	if (!listeners) return;
-
-	if (typeof listeners === 'object') {
-		l = arguments.length;
-		args = new Array(l - 1);
-		for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
-
-		listeners = listeners.slice();
-		for (i = 0; (listener = listeners[i]); ++i) {
-			apply.call(listener, this, args);
-		}
-	} else {
-		switch (arguments.length) {
-		case 1:
-			call.call(listeners, this);
-			break;
-		case 2:
-			call.call(listeners, this, arguments[1]);
-			break;
-		case 3:
-			call.call(listeners, this, arguments[1], arguments[2]);
-			break;
-		default:
-			l = arguments.length;
-			args = new Array(l - 1);
-			for (i = 1; i < l; ++i) {
-				args[i - 1] = arguments[i];
-			}
-			apply.call(listeners, this, args);
-		}
-	}
-};
-
-methods = {
-	on: on,
-	once: once,
-	off: off,
-	emit: emit
-};
-
-descriptors = {
-	on: d(on),
-	once: d(once),
-	off: d(off),
-	emit: d(emit)
-};
-
-base = defineProperties({}, descriptors);
-
-module.exports = exports = function (o) {
-	return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
-};
-exports.methods = methods;
-
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
 function assertPath(path) {
@@ -1830,7 +1701,7 @@ function normalizeStringPosix(path, allowAboveRoot) {
             res.charCodeAt(res.length - 1) !== 46/*.*/ ||
             res.charCodeAt(res.length - 2) !== 46/*.*/) {
           if (res.length > 2) {
-            const start = res.length - 1;
+            var start = res.length - 1;
             var j = start;
             for (; j >= 0; --j) {
               if (res.charCodeAt(j) === 47/*/*/)
@@ -1876,8 +1747,8 @@ function normalizeStringPosix(path, allowAboveRoot) {
 }
 
 function _format(sep, pathObject) {
-  const dir = pathObject.dir || pathObject.root;
-  const base = pathObject.base ||
+  var dir = pathObject.dir || pathObject.root;
+  var base = pathObject.base ||
     ((pathObject.name || '') + (pathObject.ext || ''));
   if (!dir) {
     return base;
@@ -1888,7 +1759,7 @@ function _format(sep, pathObject) {
   return dir + sep + base;
 }
 
-const posix = {
+var posix = {
   // path.resolve([from ...], to)
   resolve: function resolve() {
     var resolvedPath = '';
@@ -1941,8 +1812,8 @@ const posix = {
     if (path.length === 0)
       return '.';
 
-    const isAbsolute = path.charCodeAt(0) === 47/*/*/;
-    const trailingSeparator = path.charCodeAt(path.length - 1) === 47/*/*/;
+    var isAbsolute = path.charCodeAt(0) === 47/*/*/;
+    var trailingSeparator = path.charCodeAt(path.length - 1) === 47/*/*/;
 
     // Normalize the path
     path = normalizeStringPosix(path, !isAbsolute);
@@ -2127,7 +1998,7 @@ const posix = {
       var extIdx = ext.length - 1;
       var firstNonSlashEnd = -1;
       for (i = path.length - 1; i >= 0; --i) {
-        const code = path.charCodeAt(i);
+        var code = path.charCodeAt(i);
         if (code === 47/*/*/) {
           // If we reached a path separator that was not part of a set of path
           // separators at the end of the string, stop now
@@ -2199,7 +2070,7 @@ const posix = {
     // after any path separator we find
     var preDotState = 0;
     for (var i = path.length - 1; i >= 0; --i) {
-      const code = path.charCodeAt(i);
+      var code = path.charCodeAt(i);
       if (code === 47/*/*/) {
         // If we reached a path separator that was not part of a set of path
         // separators at the end of the string, stop now
@@ -2245,7 +2116,7 @@ const posix = {
   format: function format(pathObject) {
     if (pathObject === null || typeof pathObject !== 'object') {
       throw new TypeError(
-        `Parameter "pathObject" must be an object, not ${typeof pathObject}`
+        'Parameter "pathObject" must be an object, not ' + typeof(pathObject)
       );
     }
     return _format('/', pathObject);
@@ -2350,169 +2221,149 @@ const posix = {
 
 module.exports = posix;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-var core = __webpack_require__(0);
+"use strict";
+'use strict';
 
-function request(url, type, withCredentials, headers) {
-	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
-	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-	var uri;
+var d        = __webpack_require__(21)
+  , callable = __webpack_require__(30)
 
-	var deferred = new core.defer();
+  , apply = Function.prototype.apply, call = Function.prototype.call
+  , create = Object.create, defineProperty = Object.defineProperty
+  , defineProperties = Object.defineProperties
+  , hasOwnProperty = Object.prototype.hasOwnProperty
+  , descriptor = { configurable: true, enumerable: false, writable: true }
 
-	var xhr = new XMLHttpRequest();
+  , on, once, off, emit, methods, descriptors, base;
 
-	//-- Check from PDF.js:
-	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
-	var xhrPrototype = XMLHttpRequest.prototype;
+on = function (type, listener) {
+	var data;
 
-	var header;
+	callable(listener);
 
-	if (!('overrideMimeType' in xhrPrototype)) {
-		// IE10 might have response, but not overrideMimeType
-		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
-			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
-		});
+	if (!hasOwnProperty.call(this, '__ee__')) {
+		data = descriptor.value = create(null);
+		defineProperty(this, '__ee__', descriptor);
+		descriptor.value = null;
+	} else {
+		data = this.__ee__;
 	}
-	if(withCredentials) {
-		xhr.withCredentials = true;
-	}
+	if (!data[type]) data[type] = listener;
+	else if (typeof data[type] === 'object') data[type].push(listener);
+	else data[type] = [data[type], listener];
 
-	xhr.onreadystatechange = handler;
-	xhr.onerror = err;
+	return this;
+};
 
-	xhr.open("GET", url, true);
+once = function (type, listener) {
+	var once, self;
 
-	for(header in headers) {
-		xhr.setRequestHeader(header, headers[header]);
-	}
+	callable(listener);
+	self = this;
+	on.call(this, type, once = function () {
+		off.call(self, type, once);
+		apply.call(listener, this, arguments);
+	});
 
-	if(type == "json") {
-		xhr.setRequestHeader("Accept", "application/json");
-	}
+	once.__eeOnceListener__ = listener;
+	return this;
+};
 
-	// If type isn't set, determine it from the file extension
-	if(!type) {
-		// uri = new URI(url);
-		// type = uri.suffix();
-		type = core.extension(url);
-	}
+off = function (type, listener) {
+	var data, listeners, candidate, i;
 
-	if(type == 'blob'){
-		xhr.responseType = BLOB_RESPONSE;
-	}
+	callable(listener);
 
+	if (!hasOwnProperty.call(this, '__ee__')) return this;
+	data = this.__ee__;
+	if (!data[type]) return this;
+	listeners = data[type];
 
-	if(core.isXml(type)) {
-		// xhr.responseType = "document";
-		xhr.overrideMimeType('text/xml'); // for OPF parsing
-	}
-
-	if(type == 'xhtml') {
-		// xhr.responseType = "document";
-	}
-
-	if(type == 'html' || type == 'htm') {
-		// xhr.responseType = "document";
-	 }
-
-	if(type == "binary") {
-		xhr.responseType = "arraybuffer";
-	}
-
-	xhr.send();
-
-	function err(e) {
-		console.error(e);
-		deferred.reject(e);
-	}
-
-	function handler() {
-		if (this.readyState === XMLHttpRequest.DONE) {
-			var responseXML = false;
-
-			if(this.responseType === '' || this.responseType === "document") {
-				responseXML = this.responseXML;
+	if (typeof listeners === 'object') {
+		for (i = 0; (candidate = listeners[i]); ++i) {
+			if ((candidate === listener) ||
+					(candidate.__eeOnceListener__ === listener)) {
+				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
+				else listeners.splice(i, 1);
 			}
-
-			if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
-				var r;
-
-				if (!this.response && !responseXML) {
-					deferred.reject({
-						status: this.status,
-						message : "Empty Response",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-
-				if (this.status === 403) {
-					deferred.reject({
-						status: this.status,
-						response: this.response,
-						message : "Forbidden",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-
-				if(responseXML){
-					r = this.responseXML;
-				} else
-				if(core.isXml(type)){
-					// xhr.overrideMimeType('text/xml'); // for OPF parsing
-					// If this.responseXML wasn't set, try to parse using a DOMParser from text
-					r = core.parse(this.response, "text/xml");
-				}else
-				if(type == 'xhtml'){
-					r = core.parse(this.response, "application/xhtml+xml");
-				}else
-				if(type == 'html' || type == 'htm'){
-					r = core.parse(this.response, "text/html");
-				}else
-				if(type == 'json'){
-					r = JSON.parse(this.response);
-				}else
-				if(type == 'blob'){
-
-					if(supportsURL) {
-						r = this.response;
-					} else {
-						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-						r = new Blob([this.response]);
-					}
-
-				}else{
-					r = this.response;
-				}
-
-				deferred.resolve(r);
-			} else {
-
-				deferred.reject({
-					status: this.status,
-					message : this.response,
-					stack : new Error().stack
-				});
-
-			}
+		}
+	} else {
+		if ((listeners === listener) ||
+				(listeners.__eeOnceListener__ === listener)) {
+			delete data[type];
 		}
 	}
 
-	return deferred.promise;
+	return this;
 };
 
-module.exports = request;
+emit = function (type) {
+	var i, l, listener, listeners, args;
+
+	if (!hasOwnProperty.call(this, '__ee__')) return;
+	listeners = this.__ee__[type];
+	if (!listeners) return;
+
+	if (typeof listeners === 'object') {
+		l = arguments.length;
+		args = new Array(l - 1);
+		for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
+
+		listeners = listeners.slice();
+		for (i = 0; (listener = listeners[i]); ++i) {
+			apply.call(listener, this, args);
+		}
+	} else {
+		switch (arguments.length) {
+		case 1:
+			call.call(listeners, this);
+			break;
+		case 2:
+			call.call(listeners, this, arguments[1]);
+			break;
+		case 3:
+			call.call(listeners, this, arguments[1], arguments[2]);
+			break;
+		default:
+			l = arguments.length;
+			args = new Array(l - 1);
+			for (i = 1; i < l; ++i) {
+				args[i - 1] = arguments[i];
+			}
+			apply.call(listeners, this, args);
+		}
+	}
+};
+
+methods = {
+	on: on,
+	once: once,
+	off: off,
+	emit: emit
+};
+
+descriptors = {
+	on: d(on),
+	once: d(once),
+	off: d(off),
+	emit: d(emit)
+};
+
+base = defineProperties({}, descriptors);
+
+module.exports = exports = function (o) {
+	return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
+};
+exports.methods = methods;
 
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 // shim for using process in browser
@@ -2698,23 +2549,25 @@ process.umask = function() { return 0; };
 
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports) {
 
-//-- Hooks allow for injecting functions that must all complete in order before finishing
-//   They will execute in parallel but all must finish before continuing
-//   Functions may return a promise if they are asycn.
-
-// this.content = new EPUBJS.Hook();
-// this.content.register(function(){});
-// this.content.trigger(args).then(function(){});
-
+/**
+ * Hooks allow for injecting functions that must all complete in order before finishing
+ * They will execute in parallel but all must finish before continuing
+ * Functions may return a promise if they are asycn.
+ * @param {any} context scope of this
+ * @example this.content = new EPUBJS.Hook(this);
+ */
 function Hook(context){
 	this.context = context || this;
 	this.hooks = [];
 };
 
-// Adds a function to be run before a hook completes
+/**
+ * Adds a function to be run before a hook completes
+ * @example this.content.register(function(){...});
+ */
 Hook.prototype.register = function(){
 	for(var i = 0; i < arguments.length; ++i) {
 		if (typeof arguments[i]  === "function") {
@@ -2728,7 +2581,10 @@ Hook.prototype.register = function(){
 	}
 };
 
-// Triggers a hook to run all functions
+/**
+ * Triggers a hook to run all functions
+ * @example this.content.trigger(args).then(function(){...});
+ */
 Hook.prototype.trigger = function(){
 	var args = arguments;
 	var context = this.context;
@@ -2761,7 +2617,7 @@ module.exports = Hook;
 
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EpubCFI = __webpack_require__(1);
@@ -3064,20 +2920,28 @@ module.exports = Mapping;
 
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 
-function Queue(_context){
+/**
+ * Queue for handling tasks one at a time
+ * @class
+ * @param {scope} context what this will resolve to in the tasks
+ */
+function Queue(context){
 	this._q = [];
-	this.context = _context;
+	this.context = context;
 	this.tick = core.requestAnimationFrame;
 	this.running = false;
 	this.paused = false;
 };
 
-// Add an item to the queue
+/**
+ * Add an item to the queue
+ * @return {Promise}
+ */
 Queue.prototype.enqueue = function() {
 	var deferred, promise;
 	var queued;
@@ -3125,7 +2989,10 @@ Queue.prototype.enqueue = function() {
 	return queued.promise;
 };
 
-// Run one item
+/**
+ * Run one item
+ * @return {Promise}
+ */
 Queue.prototype.dequeue = function(){
 	var inwait, task, result;
 
@@ -3170,8 +3037,10 @@ Queue.prototype.dump = function(){
 	}
 };
 
-// Run all sequentially, at convince
-
+/**
+ * Run all tasks sequentially, at convince
+ * @return {Promise}
+ */
 Queue.prototype.run = function(){
 
 	if(!this.running){
@@ -3203,7 +3072,10 @@ Queue.prototype.run = function(){
 	return this.defered.promise;
 };
 
-// Flush all, as quickly as possible
+/**
+ * Flush all, as quickly as possible
+ * @return {Promise}
+ */
 Queue.prototype.flush = function(){
 
 	if(this.running){
@@ -3222,21 +3094,38 @@ Queue.prototype.flush = function(){
 
 };
 
-// Clear all items in wait
+/**
+ * Clear all items in wait
+ */
 Queue.prototype.clear = function(){
 	this._q = [];
 	this.running = false;
 };
 
+/**
+ * Get the number of tasks in the queue
+ * @return {int} tasks
+ */
 Queue.prototype.length = function(){
 	return this._q.length;
 };
 
+/**
+ * Pause a running queue
+ */
 Queue.prototype.pause = function(){
 	this.paused = true;
 };
 
-// Create a new task from a callback
+/**
+ * Create a new task from a callback
+ * @class
+ * @private
+ * @param {function} task
+ * @param {array} args
+ * @param {scope} context
+ * @return {function} task
+ */
 function Task(task, args, context){
 
 	return function(){
@@ -3262,13 +3151,292 @@ module.exports = Queue;
 
 
 /***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+// var URI = require('urijs');
+var core = __webpack_require__(0);
+
+function base(doc, section){
+	var base;
+	var head;
+
+	if(!doc){
+		return;
+	}
+
+	// head = doc.querySelector("head");
+	// base = head.querySelector("base");
+	head = core.qs(doc, "head");
+	base = core.qs(head, "base");
+
+	if(!base) {
+		base = doc.createElement("base");
+		head.insertBefore(base, head.firstChild);
+	}
+
+	base.setAttribute("href", section.url);
+}
+
+function canonical(doc, section){
+	var head;
+	var link;
+	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
+
+	if(!doc){
+		return;
+	}
+
+	head = core.qs(doc, "head");
+	link = core.qs(head, "link[rel='canonical']");
+
+	if (link) {
+		link.setAttribute("href", url);
+	} else {
+		link = doc.createElement("link");
+		link.setAttribute("rel", "canonical");
+		link.setAttribute("href", url);
+		head.appendChild(link);
+	}
+}
+
+function links(view, renderer) {
+
+	var links = view.document.querySelectorAll("a[href]");
+	var replaceLinks = function(link){
+		var href = link.getAttribute("href");
+
+		if(href.indexOf("mailto:") === 0){
+			return;
+		}
+
+		// var linkUri = URI(href);
+		// var absolute = linkUri.absoluteTo(view.section.url);
+		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		var relative = this.book.resolve(href, false);
+		
+		if(linkUrl && linkUrl.protocol){
+
+			link.setAttribute("target", "_blank");
+
+		}else{
+			/*
+			if(baseDirectory) {
+				// We must ensure that the file:// protocol is preserved for
+				// local file links, as in certain contexts (such as under
+				// Titanium), file links without the file:// protocol will not
+				// work
+				if (baseUri.protocol === "file") {
+					relative = core.resolveUrl(baseUri.base, href);
+				} else {
+					relative = core.resolveUrl(baseDirectory, href);
+				}
+			} else {
+				relative = href;
+			}
+			*/
+
+			// if(linkUri.fragment()) {
+				// do nothing with fragment yet
+			// } else {
+				link.onclick = function(){
+					renderer.display(relative);
+					return false;
+				};
+			// }
+
+		}
+	}.bind(this);
+
+	for (var i = 0; i < links.length; i++) {
+		replaceLinks(links[i]);
+	}
+
+
+};
+
+function substitute(content, urls, replacements) {
+	urls.forEach(function(url, i){
+		if (url && replacements[i]) {
+			content = content.replace(new RegExp(url, 'g'), replacements[i]);
+		}
+	});
+	return content;
+}
+module.exports = {
+	'base': base,
+	'canonical' : canonical,
+	'links': links,
+	'substitute': substitute
+};
+
+
+/***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-var EventEmitter = __webpack_require__(2);
+var core = __webpack_require__(0);
+var Path = __webpack_require__(0).Path;
+
+function request(url, type, withCredentials, headers) {
+	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
+	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+	var uri;
+
+	var deferred = new core.defer();
+
+	var xhr = new XMLHttpRequest();
+
+	//-- Check from PDF.js:
+	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+	var xhrPrototype = XMLHttpRequest.prototype;
+
+	var header;
+
+	if (!('overrideMimeType' in xhrPrototype)) {
+		// IE10 might have response, but not overrideMimeType
+		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
+			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+		});
+	}
+	if(withCredentials) {
+		xhr.withCredentials = true;
+	}
+
+	xhr.onreadystatechange = handler;
+	xhr.onerror = err;
+
+	xhr.open("GET", url, true);
+
+	for(header in headers) {
+		xhr.setRequestHeader(header, headers[header]);
+	}
+
+	if(type == "json") {
+		xhr.setRequestHeader("Accept", "application/json");
+	}
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		type = new Path(url).extension;
+	}
+
+	if(type == 'blob'){
+		xhr.responseType = BLOB_RESPONSE;
+	}
+
+
+	if(core.isXml(type)) {
+		// xhr.responseType = "document";
+		xhr.overrideMimeType('text/xml'); // for OPF parsing
+	}
+
+	if(type == 'xhtml') {
+		// xhr.responseType = "document";
+	}
+
+	if(type == 'html' || type == 'htm') {
+		// xhr.responseType = "document";
+	 }
+
+	if(type == "binary") {
+		xhr.responseType = "arraybuffer";
+	}
+
+	xhr.send();
+
+	function err(e) {
+		console.error(e);
+		deferred.reject(e);
+	}
+
+	function handler() {
+		if (this.readyState === XMLHttpRequest.DONE) {
+			var responseXML = false;
+
+			if(this.responseType === '' || this.responseType === "document") {
+				responseXML = this.responseXML;
+			}
+
+			if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
+				var r;
+
+				if (!this.response && !responseXML) {
+					deferred.reject({
+						status: this.status,
+						message : "Empty Response",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
+
+				if (this.status === 403) {
+					deferred.reject({
+						status: this.status,
+						response: this.response,
+						message : "Forbidden",
+						stack : new Error().stack
+					});
+					return deferred.promise;
+				}
+
+				if(responseXML){
+					r = this.responseXML;
+				} else
+				if(core.isXml(type)){
+					// xhr.overrideMimeType('text/xml'); // for OPF parsing
+					// If this.responseXML wasn't set, try to parse using a DOMParser from text
+					r = core.parse(this.response, "text/xml");
+				}else
+				if(type == 'xhtml'){
+					r = core.parse(this.response, "application/xhtml+xml");
+				}else
+				if(type == 'html' || type == 'htm'){
+					r = core.parse(this.response, "text/html");
+				}else
+				if(type == 'json'){
+					r = JSON.parse(this.response);
+				}else
+				if(type == 'blob'){
+
+					if(supportsURL) {
+						r = this.response;
+					} else {
+						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+						r = new Blob([this.response]);
+					}
+
+				}else{
+					r = this.response;
+				}
+
+				deferred.resolve(r);
+			} else {
+
+				deferred.reject({
+					status: this.status,
+					message : this.response,
+					stack : new Error().stack
+				});
+
+			}
+		}
+	}
+
+	return deferred.promise;
+};
+
+module.exports = request;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Mapping = __webpack_require__(7);
+var Mapping = __webpack_require__(6);
 
 
 function Contents(doc, content, cfiBase) {
@@ -3938,16 +4106,16 @@ module.exports = Contents;
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-var EventEmitter = __webpack_require__(2);
+var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Mapping = __webpack_require__(7);
-var Queue = __webpack_require__(8);
-var Stage = __webpack_require__(39);
-var Views = __webpack_require__(40);
+var Mapping = __webpack_require__(6);
+var Queue = __webpack_require__(7);
+var Stage = __webpack_require__(40);
+var Views = __webpack_require__(41);
 
 function DefaultViewManager(options) {
 
@@ -4487,19 +4655,34 @@ DefaultViewManager.prototype.updateFlow = function(flow){
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-var EventEmitter = __webpack_require__(2);
-var path = __webpack_require__(3);
+var EventEmitter = __webpack_require__(3);
+var path = __webpack_require__(2);
 var core = __webpack_require__(0);
-var replace = __webpack_require__(13);
-var Hook = __webpack_require__(6);
+var replace = __webpack_require__(8);
+var Hook = __webpack_require__(5);
 var EpubCFI = __webpack_require__(1);
-var Queue = __webpack_require__(8);
-var Layout = __webpack_require__(37);
-var Mapping = __webpack_require__(7);
+var Queue = __webpack_require__(7);
+var Layout = __webpack_require__(38);
+var Mapping = __webpack_require__(6);
+var Path = __webpack_require__(0).Path;
 
+/**
+ * [Rendition description]
+ * @class
+ * @param {Book} book
+ * @param {object} options
+ * @param {int} options.width
+ * @param {int} options.height
+ * @param {string} options.ignoreClass
+ * @param {string} options.manager
+ * @param {string} options.view
+ * @param {string} options.layout
+ * @param {string} options.spread
+ * @param {int} options.minSpreadWidth overridden by spread: none (never) / both (always)
+ */
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
@@ -4511,11 +4694,14 @@ function Rendition(book, options) {
 		flow: null,
 		layout: null,
 		spread: null,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
-		useBase64: true
+		minSpreadWidth: 800
 	});
 
 	core.extend(this.settings, options);
+
+	if (typeof(this.settings.manager) === "object") {
+		this.manager = this.settings.manager;
+	}
 
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass
@@ -4525,10 +4711,17 @@ function Rendition(book, options) {
 
 	this.views = null;
 
-	//-- Adds Hook methods to the Rendition prototype
+	/**
+	 * Adds Hook methods to the Rendition prototype
+	 * @property {Hook} hooks
+	 */
 	this.hooks = {};
 	this.hooks.display = new Hook(this);
 	this.hooks.serialize = new Hook(this);
+	/**
+	 * @property {method} hooks.content
+	 * @type {Hook}
+	 */
 	this.hooks.content = new Hook(this);
 	this.hooks.layout = new Hook(this);
 	this.hooks.render = new Hook(this);
@@ -4546,20 +4739,24 @@ function Rendition(book, options) {
 	this.q.enqueue(this.book.opened);
 
 	// Block the queue until rendering is started
-	// this.starting = new core.defer();
-	// this.started = this.starting.promise;
+	this.starting = new core.defer();
+	this.started = this.starting.promise;
 	this.q.enqueue(this.start);
-
-	if(this.book.unarchived) {
-		this.q.enqueue(this.replacements.bind(this));
-	}
-
 };
 
+/**
+ * Set the manager function
+ * @param {function} manager
+ */
 Rendition.prototype.setManager = function(manager) {
 	this.manager = manager;
 };
 
+/**
+ * Require the manager from passed string, or as a function
+ * @param  {string|function} manager [description]
+ * @return {method}
+ */
 Rendition.prototype.requireManager = function(manager) {
 	var viewManager;
 
@@ -4576,6 +4773,11 @@ Rendition.prototype.requireManager = function(manager) {
 	return viewManager;
 };
 
+/**
+ * Require the view from passed string, or as a function
+ * @param  {string|function} view
+ * @return {view}
+ */
 Rendition.prototype.requireView = function(view) {
 	var View;
 
@@ -4589,6 +4791,10 @@ Rendition.prototype.requireView = function(view) {
 	return View;
 };
 
+/**
+ * Start the rendering
+ * @return {Promise} rendering has started
+ */
 Rendition.prototype.start = function(){
 
 	if(!this.manager) {
@@ -4598,7 +4804,7 @@ Rendition.prototype.start = function(){
 		this.manager = new this.ViewManager({
 			view: this.View,
 			queue: this.q,
-			request: this.book.request,
+			request: this.book.load.bind(this.book),
 			settings: this.settings
 		});
 	}
@@ -4626,11 +4832,15 @@ Rendition.prototype.start = function(){
 	this.emit("started");
 
 	// Start processing queue
-	// this.starting.resolve();
+	this.starting.resolve();
 };
 
-// Call to attach the container to an element in the dom
-// Container must be attached before rendering can begin
+/**
+ * Call to attach the container to an element in the dom
+ * Container must be attached before rendering can begin
+ * @param  {element} element to attach to
+ * @return {Promise}
+ */
 Rendition.prototype.attachTo = function(element){
 
 	return this.q.enqueue(function () {
@@ -4648,6 +4858,14 @@ Rendition.prototype.attachTo = function(element){
 
 };
 
+/**
+ * Display a point in the book
+ * The request will be added to the rendering Queue,
+ * so it will wait until book is opened, rendering started
+ * and all other rendering tasks have finished to be called.
+ * @param  {string} target Url or EpubCFI
+ * @return {Promise}
+ */
 Rendition.prototype.display = function(target){
 
 	// if (!this.book.spine.spineItems.length > 0) {
@@ -4659,6 +4877,12 @@ Rendition.prototype.display = function(target){
 
 };
 
+/**
+ * Tells the manager what to display immediately
+ * @private
+ * @param  {string} target Url or EpubCFI
+ * @return {Promise}
+ */
 Rendition.prototype._display = function(target){
 	var isCfiString = this.epubcfi.isCfiString(target);
 	var displaying = new core.defer();
@@ -4736,13 +4960,22 @@ Rendition.prototype.render = function(view, show) {
 };
 */
 
+/**
+ * Report what has been displayed
+ * @private
+ * @param  {*} view
+ */
 Rendition.prototype.afterDisplayed = function(view){
 	this.hooks.content.trigger(view, this);
 	this.emit("rendered", view.section);
 	this.reportLocation();
 };
 
-Rendition.prototype.onResized = function(size){
+/**
+ * Report resize events and display the last seen location
+ * @private
+ */
+Rendition.prototype.onResized = function(){
 
 	if(this.location) {
 		this.display(this.location.start);
@@ -4755,23 +4988,42 @@ Rendition.prototype.onResized = function(size){
 
 };
 
+/**
+ * Move the Rendition to a specific offset
+ * Usually you would be better off calling display()
+ * @param {object} offset
+ */
 Rendition.prototype.moveTo = function(offset){
 	this.manager.moveTo(offset);
 };
 
+/**
+ * Go to the next "page" in the rendition
+ * @return {Promise}
+ */
 Rendition.prototype.next = function(){
 	return this.q.enqueue(this.manager.next.bind(this.manager))
 		.then(this.reportLocation.bind(this));
 };
 
+/**
+ * Go to the previous "page" in the rendition
+ * @return {Promise}
+ */
 Rendition.prototype.prev = function(){
 	return this.q.enqueue(this.manager.prev.bind(this.manager))
 		.then(this.reportLocation.bind(this));
 };
 
 //-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
+/**
+ * Determine the Layout properties from metadata and settings
+ * @private
+ * @param  {object} metadata
+ * @return {object} properties
+ */
 Rendition.prototype.determineLayoutProperties = function(metadata){
-	var settings;
+	var properties;
 	var layout = this.settings.layout || metadata.layout || "reflowable";
 	var spread = this.settings.spread || metadata.spread || "auto";
 	var orientation = this.settings.orientation || metadata.orientation || "auto";
@@ -4783,7 +5035,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
 	}
 
-	settings = {
+	properties = {
 		layout : layout,
 		spread : spread,
 		orientation : orientation,
@@ -4792,7 +5044,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		minSpreadWidth : minSpreadWidth
 	};
 
-	return settings;
+	return properties;
 };
 
 // Rendition.prototype.applyLayoutProperties = function(){
@@ -4803,28 +5055,34 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 // 	this.layout(settings);
 // };
 
-// paginated | scrolled
-// (scrolled-continuous vs scrolled-doc are handled by different view managers)
-Rendition.prototype.flow = function(_flow){
-	var flow;
-	if (_flow === "scrolled-doc" || _flow === "scrolled-continuous") {
-		flow = "scrolled";
+/**
+ * Adjust the flow of the rendition to paginated or scrolled
+ * (scrolled-continuous vs scrolled-doc are handled by different view managers)
+ * @param  {string} flow
+ */
+Rendition.prototype.flow = function(flow){
+	var _flow;
+	if (flow === "scrolled-doc" || flow === "scrolled-continuous") {
+		_flow = "scrolled";
 	}
 
-	if (_flow === "auto" || _flow === "paginated") {
-		flow = "paginated";
+	if (flow === "auto" || flow === "paginated") {
+		_flow = "paginated";
 	}
 
 	if (this._layout) {
-		this._layout.flow(flow);
+		this._layout.flow(_flow);
 	}
 
 	if (this.manager) {
-		this.manager.updateFlow(flow);
+		this.manager.updateFlow(_flow);
 	}
 };
 
-// reflowable | pre-paginated
+/**
+ * Adjust the layout of the rendition to reflowable or pre-paginated
+ * @param  {object} settings
+ */
 Rendition.prototype.layout = function(settings){
 	if (settings) {
 		this._layout = new Layout(settings);
@@ -4840,7 +5098,11 @@ Rendition.prototype.layout = function(settings){
 	return this._layout;
 };
 
-// none | auto (TODO: implement landscape, portrait, both)
+/**
+ * Adjust if the rendition uses spreads
+ * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
+ * @param  {int} min min width to use spreads at
+ */
 Rendition.prototype.spread = function(spread, min){
 
 	this._layout.spread(spread, min);
@@ -4850,7 +5112,9 @@ Rendition.prototype.spread = function(spread, min){
 	}
 };
 
-
+/**
+ * Report the current location
+ */
 Rendition.prototype.reportLocation = function(){
 	return this.q.enqueue(function(){
 		var location = this.manager.currentLocation();
@@ -4867,7 +5131,9 @@ Rendition.prototype.reportLocation = function(){
 	}.bind(this));
 };
 
-
+/**
+ * Remove and Clean Up the Rendition
+ */
 Rendition.prototype.destroy = function(){
 	// Clear the queue
 	this.q.clear();
@@ -4875,6 +5141,11 @@ Rendition.prototype.destroy = function(){
 	this.manager.destroy();
 };
 
+/**
+ * Pass the events from a view
+ * @private
+ * @param  {View} view
+ */
 Rendition.prototype.passViewEvents = function(view){
 	view.contents.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
@@ -4883,210 +5154,46 @@ Rendition.prototype.passViewEvents = function(view){
 	view.on("selected", this.triggerSelectedEvent.bind(this));
 };
 
+/**
+ * Emit events passed by a view
+ * @private
+ * @param  {event} e
+ */
 Rendition.prototype.triggerViewEvent = function(e){
 	this.emit(e.type, e);
 };
 
+/**
+ * Emit a selection event's CFI Range passed from a a view
+ * @private
+ * @param  {EpubCFI} cfirange
+ */
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
 	this.emit("selected", cfirange);
 };
 
-Rendition.prototype.replacements = function(){
-	// Wait for loading
-	// return this.q.enqueue(function () {
-		// Get thes books manifest
-		var manifest = this.book.package.manifest;
-		var manifestArray = Object.keys(manifest).
-			map(function (key){
-				return manifest[key];
-			});
-
-		// Exclude HTML
-		var items = manifestArray.
-			filter(function (item){
-				if (item.type != "application/xhtml+xml" &&
-						item.type != "text/html") {
-					return true;
-				}
-			});
-
-		// Only CSS
-		var css = items.
-			filter(function (item){
-				if (item.type === "text/css") {
-					return true;
-				}
-			});
-
-		// Css Urls
-		var cssUrls = css.map(function(item) {
-			return item.href;
-		});
-
-		// All Assets Urls
-		var urls = items.
-			map(function(item) {
-				return item.href;
-			}.bind(this));
-
-		// Create blob urls for all the assets
-		var processing = urls.
-			map(function(url) {
-				// var absolute = new URL(url, this.book.baseUrl).toString();
-				var absolute = path.resolve(this.book.basePath, url);
-				// Full url from archive base
-				return this.book.unarchived.createUrl(absolute, {"base64": this.settings.useBase64});
-			}.bind(this));
-
-		var replacementUrls;
-
-		// After all the urls are created
-		return Promise.all(processing)
-			.then(function(_replacementUrls) {
-				var replaced = [];
-
-				replacementUrls = _replacementUrls;
-
-				// Replace Asset Urls in the text of all css files
-				cssUrls.forEach(function(href) {
-					replaced.push(this.replaceCss(href, urls, replacementUrls));
-				}.bind(this));
-
-				return Promise.all(replaced);
-
-			}.bind(this))
-			.then(function () {
-				// Replace Asset Urls in chapters
-				// by registering a hook after the sections contents has been serialized
-				this.book.spine.hooks.serialize.register(function(output, section) {
-
-					this.replaceAssets(section, urls, replacementUrls);
-
-				}.bind(this));
-
-			}.bind(this))
-			.catch(function(reason){
-				console.error(reason);
-			});
-	// }.bind(this));
-};
-
-Rendition.prototype.replaceCss = function(href, urls, replacementUrls){
-		var newUrl;
-		var indexInUrls;
-
-		// Find the absolute url of the css file
-		// var fileUri = URI(href);
-		// var absolute = fileUri.absoluteTo(this.book.baseUrl).toString();
-
-		if (path.isAbsolute(href)) {
-			return new Promise(function(resolve, reject){
-				resolve(urls, replacementUrls);
-			});
-		}
-
-		var fileUri;
-		var absolute;
-		if (this.book.baseUrl) {
-			fileUri = new URL(href, this.book.baseUrl);
-			absolute = fileUri.toString();
-		} else {
-			absolute = path.resolve(this.book.basePath, href);
-		}
-
-
-		// Get the text of the css file from the archive
-		var textResponse = this.book.unarchived.getText(absolute);
-		// Get asset links relative to css file
-		var relUrls = urls.
-			map(function(assetHref) {
-				// var assetUri = URI(assetHref).absoluteTo(this.book.baseUrl);
-				// var relative = assetUri.relativeTo(absolute).toString();
-
-				var assetUrl;
-				var relativeUrl;
-				if (this.book.baseUrl) {
-					assetUrl = new URL(assetHref, this.book.baseUrl);
-					relative = path.relative(path.dirname(fileUri.pathname), assetUrl.pathname);
-				} else {
-					assetUrl = path.resolve(this.book.basePath, assetHref);
-					relative = path.relative(path.dirname(absolute), assetUrl);
-				}
-
-				return relative;
-			}.bind(this));
-
-		return textResponse.then(function (text) {
-			// Replacements in the css text
-			text = replace.substitute(text, relUrls, replacementUrls);
-
-			// Get the new url
-			if (this.settings.useBase64) {
-				newUrl = core.createBase64Url(text, 'text/css');
-			} else {
-				newUrl = core.createBlobUrl(text, 'text/css');
-			}
-
-			// switch the url in the replacementUrls
-			indexInUrls = urls.indexOf(href);
-			if (indexInUrls > -1) {
-				replacementUrls[indexInUrls] = newUrl;
-			}
-
-			return new Promise(function(resolve, reject){
-				resolve(urls, replacementUrls);
-			});
-
-		}.bind(this));
-
-};
-
-Rendition.prototype.replaceAssets = function(section, urls, replacementUrls){
-	// var fileUri = URI(section.url);
-	var fileUri;
-	var absolute;
-	if (this.book.baseUrl) {
-		fileUri = new URL(section.url, this.book.baseUrl);
-		absolute = fileUri.toString();
-	} else {
-		absolute = path.resolve(this.book.basePath, section.url);
-	}
-
-	// Get Urls relative to current sections
-	var relUrls = urls.
-		map(function(href) {
-			// var assetUri = URI(href).absoluteTo(this.book.baseUrl);
-			// var relative = assetUri.relativeTo(fileUri).toString();
-
-			var assetUrl;
-			var relativeUrl;
-			if (this.book.baseUrl) {
-				assetUrl = new URL(href, this.book.baseUrl);
-				relative = path.relative(path.dirname(fileUri.pathname), assetUrl.pathname);
-			} else {
-				assetUrl = path.resolve(this.book.basePath, href);
-				relative = path.relative(path.dirname(absolute), assetUrl);
-			}
-
-			return relative;
-		}.bind(this));
-
-
-	section.output = replace.substitute(section.output, relUrls, replacementUrls);
-};
-
-Rendition.prototype.range = function(_cfi, ignoreClass){
-	var cfi = new EpubCFI(_cfi);
+/**
+ * Get a Range from a Visible CFI
+ * @param  {string} cfi EpubCfi String
+ * @param  {string} ignoreClass
+ * @return {range}
+ */
+Rendition.prototype.range = function(cfi, ignoreClass){
+	var _cfi = new EpubCFI(cfi);
 	var found = this.visible().filter(function (view) {
-		if(cfi.spinePos === view.index) return true;
+		if(_cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
 	if (found.length) {
-		return found[0].range(cfi, ignoreClass);
+		return found[0].range(_cfi, ignoreClass);
 	}
 };
 
+/**
+ * Hook to adjust images to fit in columns
+ * @param  {View} view
+ */
 Rendition.prototype.adjustImages = function(view) {
 
 	view.addStylesheetRules([
@@ -5110,670 +5217,66 @@ module.exports = Rendition;
 
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-var path = __webpack_require__(3);
-var core = __webpack_require__(0);
-var EpubCFI = __webpack_require__(1);
-
-
-function Parser(){};
-
-Parser.prototype.container = function(containerXml){
-		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-		var rootfile, fullpath, folder, encoding;
-
-		if(!containerXml) {
-			console.error("Container File Not Found");
-			return;
-		}
-
-		rootfile = core.qs(containerXml, "rootfile");
-
-		if(!rootfile) {
-			console.error("No RootFile Found");
-			return;
-		}
-
-		fullpath = rootfile.getAttribute('full-path');
-		folder = path.dirname(fullpath);
-		encoding = containerXml.xmlEncoding;
-
-		//-- Now that we have the path we can parse the contents
-		return {
-			'packagePath' : fullpath,
-			'basePath' : folder,
-			'encoding' : encoding
-		};
-};
-
-Parser.prototype.identifier = function(packageXml){
-	var metadataNode;
-
-	if(!packageXml) {
-		console.error("Package File Not Found");
-		return;
-	}
-
-	metadataNode = core.qs(packageXml, "metadata");
-
-	if(!metadataNode) {
-		console.error("No Metadata Found");
-		return;
-	}
-
-	return this.getElementText(metadataNode, "identifier");
-};
-
-Parser.prototype.packageContents = function(packageXml){
-	var parse = this;
-	var metadataNode, manifestNode, spineNode;
-	var manifest, navPath, ncxPath, coverPath;
-	var spineNodeIndex;
-	var spine;
-	var spineIndexByURL;
-	var metadata;
-
-	if(!packageXml) {
-		console.error("Package File Not Found");
-		return;
-	}
-
-	metadataNode = core.qs(packageXml, "metadata");
-	if(!metadataNode) {
-		console.error("No Metadata Found");
-		return;
-	}
-
-	manifestNode = core.qs(packageXml, "manifest");
-	if(!manifestNode) {
-		console.error("No Manifest Found");
-		return;
-	}
-
-	spineNode = core.qs(packageXml, "spine");
-	if(!spineNode) {
-		console.error("No Spine Found");
-		return;
-	}
-
-	manifest = parse.manifest(manifestNode);
-	navPath = parse.findNavPath(manifestNode);
-	ncxPath = parse.findNcxPath(manifestNode, spineNode);
-	coverPath = parse.findCoverPath(packageXml);
-
-	spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
-
-	spine = parse.spine(spineNode, manifest);
-
-	metadata = parse.metadata(metadataNode);
-
-	metadata.direction = spineNode.getAttribute("page-progression-direction");
-
-	return {
-		'metadata' : metadata,
-		'spine'    : spine,
-		'manifest' : manifest,
-		'navPath'  : navPath,
-		'ncxPath'  : ncxPath,
-		'coverPath': coverPath,
-		'spineNodeIndex' : spineNodeIndex
-	};
-};
-
-//-- Find TOC NAV
-Parser.prototype.findNavPath = function(manifestNode){
-	// Find item with property 'nav'
-	// Should catch nav irregardless of order
-	// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
-	var node = core.qsp(manifestNode, "item", {"properties":"nav"});
-	return node ? node.getAttribute('href') : false;
-};
-
-//-- Find TOC NCX: media-type="application/x-dtbncx+xml" href="toc.ncx"
-Parser.prototype.findNcxPath = function(manifestNode, spineNode){
-	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
-	var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
-	var tocId;
-
-	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
-	// according to http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2,
-	// "The item that describes the NCX must be referenced by the spine toc attribute."
-	if (!node) {
-		tocId = spineNode.getAttribute("toc");
-		if(tocId) {
-			// node = manifestNode.querySelector("item[id='" + tocId + "']");
-			node = manifestNode.getElementById(tocId);
-		}
-	}
-
-	return node ? node.getAttribute('href') : false;
-};
-
-//-- Expanded to match Readium web components
-Parser.prototype.metadata = function(xml){
-	var metadata = {},
-			p = this;
-
-	metadata.title = p.getElementText(xml, 'title');
-	metadata.creator = p.getElementText(xml, 'creator');
-	metadata.description = p.getElementText(xml, 'description');
-
-	metadata.pubdate = p.getElementText(xml, 'date');
-
-	metadata.publisher = p.getElementText(xml, 'publisher');
-
-	metadata.identifier = p.getElementText(xml, "identifier");
-	metadata.language = p.getElementText(xml, "language");
-	metadata.rights = p.getElementText(xml, "rights");
-
-	metadata.modified_date = p.getPropertyText(xml, 'dcterms:modified');
-
-	metadata.layout = p.getPropertyText(xml, "rendition:layout");
-	metadata.orientation = p.getPropertyText(xml, 'rendition:orientation');
-	metadata.flow = p.getPropertyText(xml, 'rendition:flow');
-	metadata.viewport = p.getPropertyText(xml, 'rendition:viewport');
-	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
-
-	return metadata;
-};
-
-//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-//-- Fallback for Epub 2.0
-Parser.prototype.findCoverPath = function(packageXml){
-	var pkg = core.qs(packageXml, "package");
-	var epubVersion = pkg.getAttribute('version');
-
-	if (epubVersion === '2.0') {
-		var metaCover = core.qsp(packageXml, 'meta', {'name':'cover'});
-		if (metaCover) {
-			var coverId = metaCover.getAttribute('content');
-			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
-			var cover = packageXml.getElementById(coverId);
-			return cover ? cover.getAttribute('href') : false;
-		}
-		else {
-			return false;
-		}
-	}
-	else {
-		// var node = packageXml.querySelector("item[properties='cover-image']");
-		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
-		return node ? node.getAttribute('href') : false;
-	}
-};
-
-Parser.prototype.getElementText = function(xml, tag){
-	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
-		el;
-
-	if(!found || found.length === 0) return '';
-
-	el = found[0];
-
-	if(el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-
-};
-
-Parser.prototype.getPropertyText = function(xml, property){
-	var el = core.qsp(xml, "meta", {"property":property});
-
-	if(el && el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-};
-
-Parser.prototype.querySelectorText = function(xml, q){
-	var el = xml.querySelector(q);
-
-	if(el && el.childNodes.length){
-		return el.childNodes[0].nodeValue;
-	}
-
-	return '';
-};
-
-Parser.prototype.manifest = function(manifestXml){
-	var manifest = {};
-
-	//-- Turn items into an array
-	// var selected = manifestXml.querySelectorAll("item");
-	var selected = core.qsa(manifestXml, "item");
-	var items = Array.prototype.slice.call(selected);
-
-	//-- Create an object with the id as key
-	items.forEach(function(item){
-		var id = item.getAttribute('id'),
-				href = item.getAttribute('href') || '',
-				type = item.getAttribute('media-type') || '',
-				properties = item.getAttribute('properties') || '';
-
-		manifest[id] = {
-			'href' : href,
-			// 'url' : href,
-			'type' : type,
-			'properties' : properties.length ? properties.split(' ') : []
-		};
-
-	});
-
-	return manifest;
-
-};
-
-Parser.prototype.spine = function(spineXml, manifest){
-	var spine = [];
-
-	var selected = spineXml.getElementsByTagName("itemref"),
-			items = Array.prototype.slice.call(selected);
-
-	var epubcfi = new EpubCFI();
-
-	//-- Add to array to mantain ordering and cross reference with manifest
-	items.forEach(function(item, index){
-		var idref = item.getAttribute('idref');
-		// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
-		var props = item.getAttribute('properties') || '';
-		var propArray = props.length ? props.split(' ') : [];
-		// var manifestProps = manifest[Id].properties;
-		// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
-
-		var itemref = {
-			'idref' : idref,
-			'linear' : item.getAttribute('linear') || '',
-			'properties' : propArray,
-			// 'href' : manifest[Id].href,
-			// 'url' :  manifest[Id].url,
-			'index' : index
-			// 'cfiBase' : cfiBase
-		};
-		spine.push(itemref);
-	});
-
-	return spine;
-};
-
-Parser.prototype.querySelectorByType = function(html, element, type){
-	var query;
-	if (typeof html.querySelector != "undefined") {
-		query = html.querySelector(element+'[*|type="'+type+'"]');
-	}
-	// Handle IE not supporting namespaced epub:type in querySelector
-	if(!query || query.length === 0) {
-		query = core.qsa(html, element);
-		for (var i = 0; i < query.length; i++) {
-			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
-				return query[i];
-			}
-		}
-	} else {
-		return query;
-	}
-};
-
-Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
-	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
-	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
-	var navItems = navElement ? core.qsa(navElement, "li") : [];
-	var length = navItems.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item, parent;
-
-	if(!navItems || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
-		toc[item.id] = item;
-		if(!item.parent) {
-			list.push(item);
-		} else {
-			parent = toc[item.parent];
-			parent.subitems.push(item);
-		}
-	}
-
-	return list;
-};
-
-Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("a, span"),
-			content = core.qs(item, "a"),
-			src = content.getAttribute('href') || '',
-			text = content.textContent || "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
-			subitems = [],
-			parentNode = item.parentNode,
-			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
-
-	if(parentNode && parentNode.nodeName === "navPoint") {
-		parent = parentNode.getAttribute('id');
-	}
-
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
-
-	return {
-		"id": id,
-		"href": src,
-		"label": text,
-		"subitems" : subitems,
-		"parent" : parent
-	};
-};
-
-Parser.prototype.ncx = function(tocXml, spineIndexByURL, bookSpine){
-	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
-	var navPoints = core.qsa(tocXml, "navPoint");
-	var length = navPoints.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item, parent;
-
-	if(!navPoints || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.ncxItem(navPoints[i], spineIndexByURL, bookSpine);
-		toc[item.id] = item;
-		if(!item.parent) {
-			list.push(item);
-		} else {
-			parent = toc[item.parent];
-			parent.subitems.push(item);
-		}
-	}
-
-	return list;
-};
-
-Parser.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("content"),
-			content = core.qs(item, "content"),
-			src = content.getAttribute('src'),
-			// navLabel = item.querySelector("navLabel"),
-			navLabel = core.qs(item, "navLabel"),
-			text = navLabel.textContent ? navLabel.textContent : "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
-			subitems = [],
-			parentNode = item.parentNode,
-			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
-
-	if(parentNode && parentNode.nodeName === "navPoint") {
-		parent = parentNode.getAttribute('id');
-	}
-
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
-
-	return {
-		"id": id,
-		"href": src,
-		"label": text,
-		"subitems" : subitems,
-		"parent" : parent
-	};
-};
-
-Parser.prototype.pageList = function(navHtml, spineIndexByURL, bookSpine){
-	var navElement = this.querySelectorByType(navHtml, "nav", "page-list");
-	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
-	var navItems = navElement ? core.qsa(navElement, "li") : [];
-	var length = navItems.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item;
-
-	if(!navItems || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.pageListItem(navItems[i], spineIndexByURL, bookSpine);
-		list.push(item);
-	}
-
-	return list;
-};
-
-Parser.prototype.pageListItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-		// content = item.querySelector("a"),
-		content = core.qs(item, "a"),
-		href = content.getAttribute('href') || '',
-		text = content.textContent || "",
-		page = parseInt(text),
-		isCfi = href.indexOf("epubcfi"),
-		split,
-		packageUrl,
-		cfi;
-
-	if(isCfi != -1) {
-		split = href.split("#");
-		packageUrl = split[0];
-		cfi = split.length > 1 ? split[1] : false;
-		return {
-			"cfi" : cfi,
-			"href" : href,
-			"packageUrl" : packageUrl,
-			"page" : page
-		};
-	} else {
-		return {
-			"href" : href,
-			"page" : page
-		};
-	}
-};
-
-module.exports = Parser;
-
-
-/***/ },
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-// var URI = require('urijs');
-var core = __webpack_require__(0);
-
-function base(doc, section){
-	var base;
-	var head;
-
-	if(!doc){
-		return;
-	}
-
-	// head = doc.querySelector("head");
-	// base = head.querySelector("base");
-	head = core.qs(doc, "head");
-	base = core.qs(head, "base");
-
-	if(!base) {
-		base = doc.createElement("base");
-		head.insertBefore(base, head.firstChild);
-	}
-
-	base.setAttribute("href", section.url);
-}
-
-function canonical(doc, section){
-	var head;
-	var link;
-	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
-
-	if(!doc){
-		return;
-	}
-
-	head = core.qs(doc, "head");
-	link = core.qs(head, "link[rel='canonical']");
-
-	if (link) {
-		link.setAttribute("href", url);
-	} else {
-		link = doc.createElement("link");
-		link.setAttribute("rel", "canonical");
-		link.setAttribute("href", url);
-		head.appendChild(link);
-	}
-}
-
-function links(view, renderer) {
-
-	var links = view.document.querySelectorAll("a[href]");
-	var replaceLinks = function(link){
-		var href = link.getAttribute("href");
-
-		if(href.indexOf("mailto:") === 0){
-			return;
-		}
-
-		// var linkUri = URI(href);
-		// var absolute = linkUri.absoluteTo(view.section.url);
-		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
-		var linkUrl;
-		var linkPath;
-		var relative;
-
-		if (this.book.baseUrl) {
-			linkUrl = new URL(href, this.book.baseUrl);
-			relative = path.relative(path.dirname(linkUrl.pathname), this.book.packagePath);
-		} else {
-			linkPath = path.resolve(this.book.basePath, href);
-			relative = path.relative(this.book.packagePath, linkPath);
-		}
-
-		if(linkUrl && linkUrl.protocol){
-
-			link.setAttribute("target", "_blank");
-
-		}else{
-			/*
-			if(baseDirectory) {
-				// We must ensure that the file:// protocol is preserved for
-				// local file links, as in certain contexts (such as under
-				// Titanium), file links without the file:// protocol will not
-				// work
-				if (baseUri.protocol === "file") {
-					relative = core.resolveUrl(baseUri.base, href);
-				} else {
-					relative = core.resolveUrl(baseDirectory, href);
-				}
-			} else {
-				relative = href;
-			}
-			*/
-
-			// if(linkUri.fragment()) {
-				// do nothing with fragment yet
-			// } else {
-				link.onclick = function(){
-					renderer.display(relative);
-					return false;
-				};
-			// }
-
-		}
-	}.bind(this);
-
-	for (var i = 0; i < links.length; i++) {
-		replaceLinks(links[i]);
-	}
-
-
-};
-
-function substitute(content, urls, replacements) {
-	urls.forEach(function(url, i){
-		if (url && replacements[i]) {
-			content = content.replace(new RegExp(url, 'g'), replacements[i]);
-		}
-	});
-	return content;
-}
-module.exports = {
-	'base': base,
-	'canonical' : canonical,
-	'links': links,
-	'substitute': substitute
-};
-
-
-/***/ },
-/* 14 */
 /***/ function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_14__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_13__;
 
 /***/ },
+/* 14 */,
 /* 15 */,
-/* 16 */,
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-var EventEmitter = __webpack_require__(2);
-var path = __webpack_require__(3);
+var EventEmitter = __webpack_require__(3);
+var path = __webpack_require__(2);
 var core = __webpack_require__(0);
-var Spine = __webpack_require__(43);
-var Locations = __webpack_require__(38);
-var Parser = __webpack_require__(12);
-var Navigation = __webpack_require__(41);
-var Rendition = __webpack_require__(11);
-var Unarchive = __webpack_require__(44);
-var request = __webpack_require__(4);
+var Url = __webpack_require__(0).Url;
+var Path = __webpack_require__(0).Path;
+var Spine = __webpack_require__(47);
+var Locations = __webpack_require__(39);
+var Container = __webpack_require__(37);
+var Packaging = __webpack_require__(43);
+var Navigation = __webpack_require__(42);
+var Resources = __webpack_require__(45);
+var PageList = __webpack_require__(44);
+var Rendition = __webpack_require__(12);
+var Archive = __webpack_require__(36);
+var request = __webpack_require__(9);
 var EpubCFI = __webpack_require__(1);
+
+// Const
+var CONTAINER_PATH = "META-INF/container.xml";
 
 /**
  * Creates a new Book
  * @class
- * @param {string} _url
+ * @param {string} url
  * @param {object} options
  * @param {method} options.requestMethod a request function to use instead of the default
+ * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
+ * @param {object} [options.requestHeaders=undefined] send the xhr request headers
+ * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
+ * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
+ * @example new Book({ replacements: "blobUrl" })
  */
 function Book(url, options){
 
+	// Allow passing just options to the Book
+	if (typeof(options) === "undefined"
+		&& typeof(url) === "object") {
+		options = url;
+		url = undefined;
+	}
+
 	this.settings = core.extend(this.settings || {}, {
-		requestMethod: this.requestMethod
+		requestMethod: undefined,
+		requestCredentials: undefined,
+		requestHeaders: undefined,
+		encoding: undefined,
+		replacements: 'base64'
 	});
 
 	core.extend(this.settings, options);
@@ -5793,7 +5296,8 @@ function Book(url, options){
 		metadata: new core.defer(),
 		cover: new core.defer(),
 		navigation: new core.defer(),
-		pageList: new core.defer()
+		pageList: new core.defer(),
+		resources: new core.defer()
 	};
 
 	this.loaded = {
@@ -5802,19 +5306,21 @@ function Book(url, options){
 		metadata: this.loading.metadata.promise,
 		cover: this.loading.cover.promise,
 		navigation: this.loading.navigation.promise,
-		pageList: this.loading.pageList.promise
+		pageList: this.loading.pageList.promise,
+		resources: this.loading.resources.promise
 	};
 
 	// this.ready = RSVP.hash(this.loaded);
 	/**
 	 * @property {promise} ready returns after the book is loaded and parsed
+	 * @private
 	 */
 	this.ready = Promise.all([this.loaded.manifest,
 														this.loaded.spine,
 														this.loaded.metadata,
 														this.loaded.cover,
 														this.loaded.navigation,
-														this.loaded.pageList ]);
+														this.loaded.resources ]);
 
 
 	// Queue for methods used before opening
@@ -5823,18 +5329,19 @@ function Book(url, options){
 
 	/**
 	 * @property {method} request
+	 * @private
 	 */
-	this.request = this.settings.requestMethod.bind(this);
+	this.request = this.settings.requestMethod || request;
 
 	/**
 	 * @property {Spine} spine
 	 */
-	this.spine = new Spine(this.request);
+	this.spine = new Spine();
 
 	/**
 	 * @property {Locations} locations
 	 */
-	this.locations = new Locations(this.spine, this.request);
+	this.locations = new Locations(this.spine, this.load);
 
 	/**
 	 * @property {Navigation} navigation
@@ -5842,217 +5349,255 @@ function Book(url, options){
 	this.navigation = undefined;
 
 	/**
-	 * @member {string} url the book url
+	 * @property {PageList} pagelist
+	 */
+	this.pageList = new PageList();
+
+	/**
+	 * @property {Url} url
+	 * @private
 	 */
 	this.url = undefined;
+
+	/**
+	 * @property {Path} path
+	 * @private
+	 */
+	this.path = undefined;
+
+	/**
+	 * @property {boolean} archived
+	 * @private
+	 */
+	this.archived = false;
 
 	if(url) {
 		this.open(url).catch(function (error) {
 			var err = new Error("Cannot load book at "+ url );
 			console.error(err);
-
-			this.emit("loadFailed", error);
+			this.emit("openFailed", err);
+			console.log(error);
 		}.bind(this));
 	}
 };
 
 /**
- * open a url
- * @param {string} _url URL, Path or ArrayBuffer
- * @param {object} [options] to force opening
+ * Open a epub or url
+ * @param {string} input URL, Path or ArrayBuffer
+ * @param {string} [what] to force opening
  * @returns {Promise} of when the book has been loaded
- * @example book.open("/path/to/book.epub", { base64: false })
+ * @example book.open("/path/to/book.epub")
  */
-Book.prototype.open = function(_url, options){
-	var url;
-	var pathname;
-	var parse = new Parser();
-	var epubPackage;
-	var epubContainer;
-	var book = this;
-	var containerPath = "META-INF/container.xml";
-	var location;
-	var isArrayBuffer = false;
-	var isBase64 = options && options.base64;
+Book.prototype.open = function(input, what){
+	var opening;
+	var type = what || this.determineType(input);
 
-	if(!_url) {
-		this.opening.resolve(this);
-		return this.opened;
-	}
-
-	// Reuse parsed url or create a new uri object
-	// if(typeof(_url) === "object") {
-	//   uri = _url;
-	// } else {
-	//   uri = core.uri(_url);
-	// }
-	if (_url instanceof ArrayBuffer || isBase64) {
-		isArrayBuffer = true;
-		this.url = '/';
-	}
-
-	if (window && window.location && !isArrayBuffer) {
-		// absoluteUri = uri.absoluteTo(window.location.href);
-		url = new URL(_url, window.location.href);
-		pathname = url.pathname;
-		// this.url = absoluteUri.toString();
-		this.url = url.toString();
-	} else if (window && window.location) {
-		this.url = window.location.href;
+	if (type === "binary") {
+		this.archived = true;
+		this.url = new Url("/", "");
+		opening = this.openEpub(input);
+	} else if (type === "epub") {
+		this.archived = true;
+		this.url = new Url("/", "");
+		opening = this.request(input, 'binary')
+			.then(this.openEpub.bind(this));
+	} else if(type == "opf") {
+		this.url = new Url(input);
+		opening = this.openPackaging(input);
 	} else {
-		this.url = _url;
+		this.url = new Url(input);
+		opening = this.openContainer(CONTAINER_PATH)
+			.then(this.openPackaging.bind(this));
 	}
 
-	// Find path to the Container
-	// if(uri && uri.suffix() === "opf") {
-	if(url && core.extension(pathname) === "opf") {
-		// Direct link to package, no container
-		this.packageUrl = _url;
-		this.containerUrl = '';
-
-		if(url.origin) {
-			// this.baseUrl = uri.origin() + uri.directory() + "/";
-			this.baseUrl = url.origin + path.dirname(pathname) + "/";
-		// } else if(absoluteUri){
-		// 	this.baseUrl = absoluteUri.origin();
-		// 	this.baseUrl += absoluteUri.directory() + "/";
-		} else {
-			this.baseUrl = path.dirname(pathname) + "/";
-		}
-
-		epubPackage = this.request(this.packageUrl)
-			.catch(function(error) {
-				book.opening.reject(error);
-			});
-
-	} else if(isArrayBuffer || isBase64 || this.isArchivedUrl(_url)) {
-		// Book is archived
-		this.url = '';
-		// this.containerUrl = URI(containerPath).absoluteTo(this.url).toString();
-		this.containerUrl = path.resolve("", containerPath);
-
-		epubContainer = this.unarchive(_url, isBase64).
-			then(function() {
-				return this.request(this.containerUrl);
-			}.bind(this))
-			.catch(function(error) {
-				book.opening.reject(error);
-			});
-	}
-	// Find the path to the Package from the container
-	else if (!core.extension(pathname)) {
-
-		this.containerUrl = this.url + containerPath;
-
-		epubContainer = this.request(this.containerUrl)
-			.catch(function(error) {
-				// handle errors in loading container
-				book.opening.reject(error);
-			});
-	}
-
-	if (epubContainer) {
-		epubPackage = epubContainer.
-			then(function(containerXml){
-				return parse.container(containerXml); // Container has path to content
-			}).
-			then(function(paths){
-				// var packageUri = URI(paths.packagePath);
-				// var absPackageUri = packageUri.absoluteTo(book.url);
-				var packageUrl;
-
-				if (book.url) {
-					packageUrl = new URL(paths.packagePath, book.url);
-					book.packageUrl = packageUrl.toString();
-				} else {
-					book.packageUrl = "/" + paths.packagePath;
-				}
-
-				book.packagePath = paths.packagePath;
-				book.encoding = paths.encoding;
-
-				// Set Url relative to the content
-				if(packageUrl && packageUrl.origin) {
-					book.baseUrl = book.url + path.dirname(paths.packagePath) + "/";
-				} else {
-					if(path.dirname(paths.packagePath)) {
-						book.baseUrl = ""
-						book.basePath = "/" + path.dirname(paths.packagePath) + "/";
-					} else {
-						book.basePath = "/"
-					}
-				}
-
-				return book.request(book.packageUrl);
-			}).catch(function(error) {
-				// handle errors in either of the two requests
-				book.opening.reject(error);
-			});
-	}
-
-	epubPackage.then(function(packageXml) {
-
-		if (!packageXml) {
-			return;
-		}
-
-		// Get package information from epub opf
-		book.unpack(packageXml);
-
-		// Resolve promises
-		book.loading.manifest.resolve(book.package.manifest);
-		book.loading.metadata.resolve(book.package.metadata);
-		book.loading.spine.resolve(book.spine);
-		book.loading.cover.resolve(book.cover);
-
-		book.isOpen = true;
-
-		// Clear queue of any waiting book request
-
-		// Resolve book opened promise
-		book.opening.resolve(book);
-
-	}).catch(function(error) {
-		// handle errors in parsing the book
-		// console.error(error.message, error.stack);
-		book.opening.reject(error);
-	});
-
-	return this.opened;
+	return opening;
 };
 
 /**
+ * Open an archived epub
+ * @private
+ * @param  {binary} data
+ * @param  {[string]} encoding
+ * @return {Promise}
+ */
+Book.prototype.openEpub = function(data, encoding){
+	return this.unarchive(data, encoding || this.settings.encoding)
+		.then(function() {
+			return this.openContainer(CONTAINER_PATH);
+		}.bind(this))
+		.then(function(packagePath) {
+			return this.openPackaging(packagePath);
+		}.bind(this));
+};
+
+/**
+ * Open the epub container
+ * @private
+ * @param  {string} url
+ * @return {string} packagePath
+ */
+Book.prototype.openContainer = function(url){
+	return this.load(url)
+		.then(function(xml) {
+			this.container = new Container(xml);
+			return this.resolve(this.container.packagePath);
+		}.bind(this));
+};
+
+/**
+ * Open the Open Packaging Format Xml
+ * @private
+ * @param  {string} url
+ * @return {Promise}
+ */
+Book.prototype.openPackaging = function(url){
+	var packageUrl;
+	this.path = new Path(url);
+
+	return this.load(url)
+		.then(function(xml) {
+			this.packaging = new Packaging(xml);
+			return this.unpack(this.packaging);
+		}.bind(this));
+};
+
+/**
+ * Load a resource from the Book
+ * @param  {string} path path to the resource to load
+ * @return {Promise}     returns a promise with the requested resource
+ */
+Book.prototype.load = function (path) {
+	var resolved;
+
+	if(this.archived) {
+		resolved = this.resolve(path);
+		return this.archive.request(resolved);
+	} else {
+		resolved = this.resolve(path);
+		return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
+	}
+};
+
+/**
+ * Resolve a path to it's absolute position in the Book
+ * @param  {string} path
+ * @param  {[boolean]} absolute force resolving the full URL
+ * @return {string}          the resolved path string
+ */
+Book.prototype.resolve = function (path, absolute) {
+	var resolved = path;
+	var isAbsolute = (path.indexOf('://') > -1);
+
+	if (isAbsolute) {
+		return path;
+	}
+
+	if (this.path) {
+		resolved = this.path.resolve(path);
+	}
+
+	if(absolute != false && this.url) {
+		resolved = this.url.resolve(resolved);
+	}
+
+	return resolved;
+}
+
+/**
+ * Determine the type of they input passed to open
+ * @private
+ * @param  {string} input
+ * @return {string}  binary | directory | epub | opf
+ */
+Book.prototype.determineType = function(input) {
+	var url;
+	var path;
+	var extension;
+
+	if (typeof(input) != "string") {
+		return "binary";
+	}
+
+	url = new Url(input);
+	path = url.path();
+	extension = path.extension;
+
+	if (!extension) {
+		return "directory";
+	}
+
+	if(extension === "epub"){
+		return "epub";
+	}
+
+	if(extension === "opf"){
+		return "opf";
+	}
+};
+
+
+/**
  * unpack the contents of the Books packageXml
+ * @private
  * @param {document} packageXml XML Document
  */
-Book.prototype.unpack = function(packageXml){
-	var book = this,
-			parse = new Parser();
+Book.prototype.unpack = function(opf){
+	this.package = opf;
 
-	book.package = parse.packageContents(packageXml); // Extract info from contents
-	if(!book.package) {
+	this.spine.unpack(this.package, this.resolve.bind(this));
+
+	this.resources = new Resources(this.package.manifest, {
+		archive: this.archive,
+		resolver: this.resolve.bind(this),
+		replacements: this.settings.replacements
+	});
+
+	this.loadNavigation(this.package).then(function(toc){
+		this.toc = toc;
+		this.loading.navigation.resolve(this.toc);
+	}.bind(this));
+
+	this.cover = this.resolve(this.package.coverPath);
+
+	// Resolve promises
+	this.loading.manifest.resolve(this.package.manifest);
+	this.loading.metadata.resolve(this.package.metadata);
+	this.loading.spine.resolve(this.spine);
+	this.loading.cover.resolve(this.cover);
+	this.loading.resources.resolve(this.resources);
+	this.loading.pageList.resolve(this.pageList);
+
+
+	this.isOpen = true;
+
+	if(this.archived) {
+		this.replacements().then(function() {
+			this.opening.resolve(this);
+		}.bind(this));
+	} else {
+		// Resolve book opened promise
+		this.opening.resolve(this);
+	}
+
+};
+
+/**
+ * Load Navigation and PageList from package
+ * @private
+ * @param {document} opf XML Document
+ */
+Book.prototype.loadNavigation = function(opf){
+	var navPath = opf.navPath || opf.ncxPath;
+
+	if (!navPath) {
 		return;
 	}
 
-	book.package.baseUrl = book.baseUrl; // Provides a url base for resolving paths
-	book.package.basePath = book.basePath; // Provides a url base for resolving paths
-
-	this.spine.load(book.package);
-
-	book.navigation = new Navigation(book.package, this.request);
-	book.navigation.load().then(function(toc){
-		book.toc = toc;
-		book.loading.navigation.resolve(book.toc);
-	});
-
-	// //-- Set Global Layout setting based on metadata
-	// MOVE TO RENDER
-	// book.globalLayoutProperties = book.parseLayoutProperties(book.package.metadata);
-	if (book.baseUrl) {
-		book.cover = new URL(book.package.coverPath, book.baseUrl).toString();
-	} else {
-		book.cover = path.resolve(book.baseUrl, book.package.coverPath);
-	}
+	return this.load(navPath, 'xml')
+		.then(function(xml) {
+			this.navigation = new Navigation(xml);
+			this.pageList = new PageList(xml);
+		}.bind(this));
 };
 
 /**
@@ -6065,6 +5610,9 @@ Book.prototype.section = function(target) {
 
 /**
  * Sugar to render a book
+ * @param  {element} element element to add the views to
+ * @param  {[object]} options
+ * @return {Rendition}
  */
 Book.prototype.renderTo = function(element, options) {
 	// var renderMethod = (options && options.method) ?
@@ -6078,68 +5626,43 @@ Book.prototype.renderTo = function(element, options) {
 };
 
 /**
- * Switch request methods depending on if book is archived or not
+ * Set if request should use withCredentials
+ * @param {boolean} credentials
  */
-Book.prototype.requestMethod = function(_url) {
-	// Switch request methods
-	if(this.unarchived) {
-		return this.unarchived.request(_url);
-	} else {
-		return request(_url, null, this.requestCredentials, this.requestHeaders);
-	}
-
+Book.prototype.setRequestCredentials = function(credentials) {
+	this.settings.requestCredentials = credentials;
 };
 
-Book.prototype.setRequestCredentials = function(_credentials) {
-	this.requestCredentials = _credentials;
-};
-
-Book.prototype.setRequestHeaders = function(_headers) {
-	this.requestHeaders = _headers;
+/**
+ * Set headers request should use
+ * @param {object} headers
+ */
+Book.prototype.setRequestHeaders = function(headers) {
+	this.settings.requestHeaders = headers;
 };
 
 /**
  * Unarchive a zipped epub
+ * @private
+ * @param  {binary} input epub data
+ * @param  {[string]} encoding
+ * @return {Archive}
  */
-Book.prototype.unarchive = function(bookUrl, isBase64){
-	this.unarchived = new Unarchive();
-	return this.unarchived.open(bookUrl, isBase64);
-};
-
-/**
- * Checks if url has a .epub or .zip extension, or is ArrayBuffer (of zip/epub)
- */
-Book.prototype.isArchivedUrl = function(bookUrl){
-	var extension;
-
-	if (bookUrl instanceof ArrayBuffer) {
-		return true;
-	}
-
-	// Reuse parsed url or create a new uri object
-	// if(typeof(bookUrl) === "object") {
-	//   uri = bookUrl;
-	// } else {
-	//   uri = core.uri(bookUrl);
-	// }
-	// uri = URI(bookUrl);
-	extension = core.extension(bookUrl);
-
-	if(extension && (extension == "epub" || extension == "zip")){
-		return true;
-	}
-
-	return false;
+Book.prototype.unarchive = function(input, encoding){
+	this.archive = new Archive();
+	return this.archive.open(input, encoding);
 };
 
 /**
  * Get the cover url
+ * @return {string} coverUrl
  */
 Book.prototype.coverUrl = function(){
 	var retrieved = this.loaded.cover.
 		then(function(url) {
-			if(this.unarchived) {
-				return this.unarchived.createUrl(this.cover);
+			if(this.archived) {
+				// return this.archive.createUrl(this.cover);
+				return this.resources.get(this.cover);
 			}else{
 				return this.cover;
 			}
@@ -6151,7 +5674,25 @@ Book.prototype.coverUrl = function(){
 };
 
 /**
+ * load replacement urls
+ * @private
+ * @return {Promise} completed loading urls
+ */
+Book.prototype.replacements = function(){
+	this.spine.hooks.serialize.register(function(output, section) {
+		section.output = this.resources.substitute(output, section.url);
+	}.bind(this));
+
+	return this.resources.replacements().
+		then(function() {
+			return this.resources.replaceCss();
+		}.bind(this));
+};
+
+/**
  * Find a DOM Range for a given CFI Range
+ * @param  {EpubCFI} cfiRange a epub cfi range
+ * @return {Range}
  */
 Book.prototype.range = function(cfiRange) {
 	var cfi = new EpubCFI(cfiRange);
@@ -6163,18 +5704,18 @@ Book.prototype.range = function(cfiRange) {
 	})
 };
 
-module.exports = Book;
-
 //-- Enable binding events to book
 EventEmitter(Book.prototype);
 
+module.exports = Book;
+
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var DefaultViewManager = __webpack_require__(10);
+var DefaultViewManager = __webpack_require__(11);
 
 function ContinuousViewManager(options) {
 
@@ -6855,13 +6396,13 @@ module.exports = ContinuousViewManager;
 
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-var EventEmitter = __webpack_require__(2);
+var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Contents = __webpack_require__(9);
+var Contents = __webpack_require__(10);
 
 function IframeView(section, options) {
 	this.settings = core.extend({
@@ -7436,7 +6977,7 @@ module.exports = IframeView;
 
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports) {
 
 /*
@@ -7613,7 +7154,7 @@ module.exports = {
 
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7734,16 +7275,16 @@ function fromByteArray (uint8) {
 
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var assign        = __webpack_require__(23)
-  , normalizeOpts = __webpack_require__(30)
-  , isCallable    = __webpack_require__(26)
-  , contains      = __webpack_require__(33)
+var assign        = __webpack_require__(22)
+  , normalizeOpts = __webpack_require__(29)
+  , isCallable    = __webpack_require__(25)
+  , contains      = __webpack_require__(32)
 
   , d;
 
@@ -7804,19 +7345,19 @@ d.gs = function (dscr, get, set/*, options*/) {
 
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(24)()
+module.exports = __webpack_require__(23)()
 	? Object.assign
-	: __webpack_require__(25);
+	: __webpack_require__(24);
 
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7832,14 +7373,14 @@ module.exports = function () {
 
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var keys  = __webpack_require__(27)
-  , value = __webpack_require__(32)
+var keys  = __webpack_require__(26)
+  , value = __webpack_require__(31)
 
   , max = Math.max;
 
@@ -7861,7 +7402,7 @@ module.exports = function (dest, src/*, …srcn*/) {
 
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7873,19 +7414,19 @@ module.exports = function (obj) { return typeof obj === 'function'; };
 
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(28)()
+module.exports = __webpack_require__(27)()
 	? Object.keys
-	: __webpack_require__(29);
+	: __webpack_require__(28);
 
 
 /***/ },
-/* 28 */
+/* 27 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7900,7 +7441,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7914,7 +7455,7 @@ module.exports = function (object) {
 
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7938,7 +7479,7 @@ module.exports = function (options/*, …options*/) {
 
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7951,7 +7492,7 @@ module.exports = function (fn) {
 
 
 /***/ },
-/* 32 */
+/* 31 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7964,19 +7505,19 @@ module.exports = function (value) {
 
 
 /***/ },
-/* 33 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(34)()
+module.exports = __webpack_require__(33)()
 	? String.prototype.contains
-	: __webpack_require__(35);
+	: __webpack_require__(34);
 
 
 /***/ },
-/* 34 */
+/* 33 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7991,7 +7532,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 35 */
+/* 34 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -8005,16 +7546,323 @@ module.exports = function (searchString/*, position*/) {
 
 
 /***/ },
-/* 36 */,
+/* 35 */,
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+var core = __webpack_require__(0);
+var request = __webpack_require__(9);
+var mime = __webpack_require__(19);
+var Path = __webpack_require__(0).Path;
+
+/**
+ * Handles Unzipping a requesting files from an Epub Archive
+ * @class
+ */
+function Archive() {
+	this.zip = undefined;
+	this.checkRequirements();
+	this.urlCache = {};
+}
+
+/**
+ * Checks to see if JSZip exists in global namspace,
+ * Requires JSZip if it isn't there
+ * @private
+ */
+Archive.prototype.checkRequirements = function(){
+	try {
+		if (typeof JSZip === 'undefined') {
+			JSZip = __webpack_require__(48);
+		}
+		this.zip = new JSZip();
+	} catch (e) {
+		console.error("JSZip lib not loaded");
+	}
+};
+
+/**
+ * Open an archive
+ * @param  {binary} input
+ * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+ * @return {Promise} zipfile
+ */
+Archive.prototype.open = function(input, isBase64){
+	return this.zip.loadAsync(input, {"base64": isBase64});
+};
+
+/**
+ * Load and Open an archive
+ * @param  {string} zipUrl
+ * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+ * @return {Promise} zipfile
+ */
+Archive.prototype.openUrl = function(zipUrl, isBase64){
+	return request(zipUrl, "binary")
+		.then(function(data){
+			return this.zip.loadAsync(data, {"base64": isBase64});
+		}.bind(this));
+};
+
+/**
+ * Request
+ * @param  {string} url  a url to request from the archive
+ * @param  {[string]} type specify the type of the returned result
+ * @return {Promise}
+ */
+Archive.prototype.request = function(url, type){
+	var deferred = new core.defer();
+	var response;
+	var r;
+	var path = new Path(url);
+
+	// If type isn't set, determine it from the file extension
+	if(!type) {
+		type = path.extension;
+	}
+
+	if(type == 'blob'){
+		response = this.getBlob(url);
+	} else {
+		response = this.getText(url);
+	}
+
+	if (response) {
+		response.then(function (r) {
+			result = this.handleResponse(r, type);
+			deferred.resolve(result);
+		}.bind(this));
+	} else {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
+	return deferred.promise;
+};
+
+/**
+ * Handle the response from request
+ * @private
+ * @param  {any} response
+ * @param  {[string]} type
+ * @return {any} the parsed result
+ */
+Archive.prototype.handleResponse = function(response, type){
+	var r;
+
+	if(type == "json") {
+		r = JSON.parse(response);
+	}
+	else
+	if(core.isXml(type)) {
+		r = core.parse(response, "text/xml");
+	}
+	else
+	if(type == 'xhtml') {
+		r = core.parse(response, "application/xhtml+xml");
+	}
+	else
+	if(type == 'html' || type == 'htm') {
+		r = core.parse(response, "text/html");
+	 } else {
+		 r = response;
+	 }
+
+	return r;
+};
+
+/**
+ * Get a Blob from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} mimeType
+ * @return {Blob}
+ */
+Archive.prototype.getBlob = function(url, mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+
+	if(entry) {
+		mimeType = mimeType || mime.lookup(entry.name);
+		return entry.async("uint8array").then(function(uint8array) {
+			return new Blob([uint8array], {type : mimeType});
+		});
+	}
+};
+
+/**
+ * Get Text from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} encoding
+ * @return {string}
+ */
+Archive.prototype.getText = function(url, encoding){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+
+	if(entry) {
+		return entry.async("string").then(function(text) {
+			return text;
+		});
+	}
+};
+
+/**
+ * Get a base64 encoded result from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} mimeType
+ * @return {string} base64 encoded
+ */
+Archive.prototype.getBase64 = function(url, mimeType){
+	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+	var entry = this.zip.file(decodededUrl);
+
+	if(entry) {
+		mimeType = mimeType || mime.lookup(entry.name);
+		return entry.async("base64").then(function(data) {
+			return "data:" + mimeType + ";base64," + data;
+		});
+	}
+};
+
+/**
+ * Create a Url from an unarchived item
+ * @param  {string} url
+ * @param  {[object]} options.base64 use base64 encoding or blob url
+ * @return {Promise} url promise with Url string
+ */
+Archive.prototype.createUrl = function(url, options){
+	var deferred = new core.defer();
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var tempUrl;
+	var blob;
+	var response;
+	var useBase64 = options && options.base64;
+
+	if(url in this.urlCache) {
+		deferred.resolve(this.urlCache[url]);
+		return deferred.promise;
+	}
+
+	if (useBase64) {
+		response = this.getBase64(url);
+
+		if (response) {
+			response.then(function(tempUrl) {
+
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
+
+			}.bind(this));
+
+		}
+
+	} else {
+
+		response = this.getBlob(url);
+
+		if (response) {
+			response.then(function(blob) {
+
+				tempUrl = _URL.createObjectURL(blob);
+				this.urlCache[url] = tempUrl;
+				deferred.resolve(tempUrl);
+
+			}.bind(this));
+
+		}
+	}
+
+
+	if (!response) {
+		deferred.reject({
+			message : "File not found in the epub: " + url,
+			stack : new Error().stack
+		});
+	}
+
+	return deferred.promise;
+};
+
+/**
+ * Revoke Temp Url for a achive item
+ * @param  {string} url url of the item in the archive
+ */
+Archive.prototype.revokeUrl = function(url){
+	var _URL = window.URL || window.webkitURL || window.mozURL;
+	var fromCache = this.urlCache[url];
+	if(fromCache) _URL.revokeObjectURL(fromCache);
+};
+
+module.exports = Archive;
+
+
+/***/ },
 /* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+var path = __webpack_require__(2);
+var core = __webpack_require__(0);
+var EpubCFI = __webpack_require__(1);
+
+/**
+ * Handles Parsing and Accessing an Epub Container
+ * @class
+ * @param {[document]} containerDocument xml document
+ */
+function Container(containerDocument) {
+	if (containerDocument) {
+		this.parse(containerDocument);
+	}
+};
+
+/**
+ * Parse the Container XML
+ * @param  {document} containerDocument
+ */
+Container.prototype.parse = function(containerDocument){
+		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
+		var rootfile, fullpath, folder, encoding;
+
+		if(!containerDocument) {
+			console.error("Container File Not Found");
+			return;
+		}
+
+		rootfile = core.qs(containerDocument, "rootfile");
+
+		if(!rootfile) {
+			console.error("No RootFile Found");
+			return;
+		}
+
+		this.packagePath = rootfile.getAttribute('full-path');
+		this.directory = path.dirname(this.packagePath);
+		this.encoding = containerDocument.xmlEncoding;
+};
+
+module.exports = Container;
+
+
+/***/ },
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 
+/**
+ * Figures out the CSS to apply for a layout
+ * @class
+ * @param {object} settings
+ * @param {[string=reflowable]} settings.layout
+ * @param {[string]} settings.spread
+ * @param {[int=800]} settings.minSpreadWidth
+ * @param {[boolean=false]} settings.evenSpreads
+ */
 function Layout(settings){
 	this.name = settings.layout || "reflowable";
 	this._spread = (settings.spread === "none") ? false : true;
-	this._minSpreadWidth = settings.spread || 800;
+	this._minSpreadWidth = settings.minSpreadWidth || 800;
 	this._evenSpreads = settings.evenSpreads || false;
 
 	if (settings.flow === "scrolled-continuous" ||
@@ -8035,12 +7883,20 @@ function Layout(settings){
 	this.divisor = 1;
 };
 
-// paginated | scrolled
+/**
+ * Switch the flow between paginated and scrolled
+ * @param  {string} flow paginated | scrolled
+ */
 Layout.prototype.flow = function(flow) {
 	this._flow = (flow === "paginated") ? "paginated" : "scrolled";
 }
 
-// true | false
+/**
+ * Switch between using spreads or not, and set the
+ * width at which they switch to single.
+ * @param  {string} spread true | false
+ * @param  {boolean} min integer in pixels
+ */
 Layout.prototype.spread = function(spread, min) {
 
 	this._spread = (spread === "none") ? false : true;
@@ -8050,6 +7906,12 @@ Layout.prototype.spread = function(spread, min) {
 	}
 }
 
+/**
+ * Calculate the dimensions of the pagination
+ * @param  {number} _width  [description]
+ * @param  {number} _height [description]
+ * @param  {number} _gap    [description]
+ */
 Layout.prototype.calculate = function(_width, _height, _gap){
 
 	var divisor = 1;
@@ -8104,6 +7966,11 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 	this.divisor = divisor;
 };
 
+/**
+ * Apply Css to a Document
+ * @param  {Contents} contents
+ * @return {[Promise]}
+ */
 Layout.prototype.format = function(contents){
 	var formating;
 
@@ -8118,6 +7985,12 @@ Layout.prototype.format = function(contents){
 	return formating; // might be a promise in some View Managers
 };
 
+/**
+ * Count number of pages
+ * @param  {number} totalWidth
+ * @return {number} spreads
+ * @return {number} pages
+ */
 Layout.prototype.count = function(totalWidth) {
 	// var totalWidth = contents.scrollWidth();
 	var spreads = Math.ceil( totalWidth / this.spreadWidth);
@@ -8132,14 +8005,19 @@ module.exports = Layout;
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var Queue = __webpack_require__(8);
+var Queue = __webpack_require__(7);
 var EpubCFI = __webpack_require__(1);
-var EventEmitter = __webpack_require__(2);
+var EventEmitter = __webpack_require__(3);
 
+/**
+ * Find Locations for a Book
+ * @param {Spine} spine
+ * @param {request} request
+ */
 function Locations(spine, request) {
 	this.spine = spine;
 	this.request = request;
@@ -8156,7 +8034,11 @@ function Locations(spine, request) {
 
 };
 
-// Load all of sections in the book
+/**
+ * Load all of sections in the book to generate locations
+ * @param  {int} chars how many chars to split on
+ * @return {object} locations
+ */
 Locations.prototype.generate = function(chars) {
 
 	if (chars) {
@@ -8361,7 +8243,7 @@ module.exports = Locations;
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -8598,7 +8480,7 @@ module.exports = Stage;
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports) {
 
 function Views(container) {
@@ -8769,91 +8651,49 @@ module.exports = Views;
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var Parser = __webpack_require__(12);
-var path = __webpack_require__(3);
+var path = __webpack_require__(2);
 
-function Navigation(_package, _request){
-	var navigation = this;
-	var parse = new Parser();
-	var request = _request || __webpack_require__(4);
-
-	this.package = _package;
+/**
+ * Navigation Parser
+ * @param {document} xml navigation html / xhtml / ncx
+ */
+function Navigation(xml){
 	this.toc = [];
 	this.tocByHref = {};
 	this.tocById = {};
 
-	if(_package.navPath) {
-		if (_package.baseUrl) {
-			this.navUrl = new URL(_package.navPath, _package.baseUrl).toString();
-		} else {
-			this.navUrl = path.resolve(_package.basePath, _package.navPath);
-		}
-		this.nav = {};
-
-		this.nav.load = function(_request){
-			var loading = new core.defer();
-			var loaded = loading.promise;
-
-			request(navigation.navUrl, 'xml').then(function(xml){
-				navigation.toc = parse.nav(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
-	}
-
-	if(_package.ncxPath) {
-		if (_package.baseUrl) {
-			this.ncxUrl = new URL(_package.ncxPath, _package.baseUrl).toString();
-		} else {
-			this.ncxUrl = path.resolve(_package.basePath, _package.ncxPath);
-		}
-
-		this.ncx = {};
-
-		this.ncx.load = function(_request){
-			var loading = new core.defer();
-			var loaded = loading.promise;
-
-			request(navigation.ncxUrl, 'xml').then(function(xml){
-				navigation.toc = parse.toc(xml);
-				navigation.loaded(navigation.toc);
-				loading.resolve(navigation.toc);
-			});
-
-			return loaded;
-		};
-
+	if (xml) {
+		this.parse(xml);
 	}
 };
 
-// Load the navigation
-Navigation.prototype.load = function(_request) {
-	var request = _request || __webpack_require__(4);
-	var loading, loaded;
+/**
+ * Parse out the navigation items
+ * @param {document} xml navigation html / xhtml / ncx
+ */
+Navigation.prototype.parse = function(xml) {
+	var html = core.qs(xml, "html");
+	var ncx = core.qs(xml, "ncx");
 
-	if(this.nav) {
-		loading = this.nav.load();
-	} else if(this.ncx) {
-		loading = this.ncx.load();
-	} else {
-		loaded = new core.defer();
-		loaded.resolve([]);
-		loading = loaded.promise;
+	if(html) {
+		this.toc = this.parseNav(xml);
+	} else if(ncx){
+		this.toc = this.parseNcx(xml);
 	}
 
-	return loading;
-
+	this.unpack(this.toc);
 };
 
-Navigation.prototype.loaded = function(toc) {
+/**
+ * Unpack navigation items
+ * @private
+ * @param  {array} toc
+ */
+Navigation.prototype.unpack = function(toc) {
 	var item;
 
 	for (var i = 0; i < toc.length; i++) {
@@ -8864,7 +8704,11 @@ Navigation.prototype.loaded = function(toc) {
 
 };
 
-// Get an item from the navigation
+/**
+ * Get an item from the navigation
+ * @param  {string} target
+ * @return {object} navItems
+ */
 Navigation.prototype.get = function(target) {
 	var index;
 
@@ -8881,17 +8725,919 @@ Navigation.prototype.get = function(target) {
 	return this.toc[index];
 };
 
+/**
+ * Parse from a Epub > 3.0 Nav
+ * @private
+ * @param  {document} navHtml
+ * @return {array} navigation list
+ */
+Navigation.prototype.parseNav = function(navHtml){
+	var navElement = core.querySelectorByType(navHtml, "nav", "toc");
+	var navItems = navElement ? core.qsa(navElement, "li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navItems || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.navItem(navItems[i]);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+/**
+ * Create a navItem
+ * @private
+ * @param  {element} item
+ * @return {object} navItem
+ */
+Navigation.prototype.navItem = function(item){
+	var id = item.getAttribute('id') || false,
+			content = core.qs(item, "a"),
+			src = content.getAttribute('href') || '',
+			text = content.textContent || "",
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
+};
+
+/**
+ * Parse from a Epub > 3.0 NC
+ * @private
+ * @param  {document} navHtml
+ * @return {array} navigation list
+ */
+Navigation.prototype.parseNcx = function(tocXml){
+	var navPoints = core.qsa(tocXml, "navPoint");
+	var length = navPoints.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item, parent;
+
+	if(!navPoints || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.ncxItem(navPoints[i]);
+		toc[item.id] = item;
+		if(!item.parent) {
+			list.push(item);
+		} else {
+			parent = toc[item.parent];
+			parent.subitems.push(item);
+		}
+	}
+
+	return list;
+};
+
+/**
+ * Create a ncxItem
+ * @private
+ * @param  {element} item
+ * @return {object} ncxItem
+ */
+Navigation.prototype.ncxItem = function(item){
+	var id = item.getAttribute('id') || false,
+			content = core.qs(item, "content"),
+			src = content.getAttribute('src'),
+			navLabel = core.qs(item, "navLabel"),
+			text = navLabel.textContent ? navLabel.textContent : "",
+			subitems = [],
+			parentNode = item.parentNode,
+			parent;
+
+	if(parentNode && parentNode.nodeName === "navPoint") {
+		parent = parentNode.getAttribute('id');
+	}
+
+
+	return {
+		"id": id,
+		"href": src,
+		"label": text,
+		"subitems" : subitems,
+		"parent" : parent
+	};
+};
+
 module.exports = Navigation;
 
 
 /***/ },
-/* 42 */
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+var path = __webpack_require__(2);
+var core = __webpack_require__(0);
+var EpubCFI = __webpack_require__(1);
+
+/**
+ * Open Packaging Format Parser
+ * @class
+ * @param {document} packageDocument OPF XML
+ */
+function Packaging(packageDocument) {
+	if (packageDocument) {
+		this.parse(packageDocument);
+	}
+};
+
+/**
+ * Parse OPF XML
+ * @param  {document} packageDocument OPF XML
+ * @return {object} parsed package parts
+ */
+Packaging.prototype.parse = function(packageDocument){
+	var metadataNode, manifestNode, spineNode;
+
+	if(!packageDocument) {
+		console.error("Package File Not Found");
+		return;
+	}
+
+	metadataNode = core.qs(packageDocument, "metadata");
+	if(!metadataNode) {
+		console.error("No Metadata Found");
+		return;
+	}
+
+	manifestNode = core.qs(packageDocument, "manifest");
+	if(!manifestNode) {
+		console.error("No Manifest Found");
+		return;
+	}
+
+	spineNode = core.qs(packageDocument, "spine");
+	if(!spineNode) {
+		console.error("No Spine Found");
+		return;
+	}
+
+	this.manifest = this.parseManifest(manifestNode);
+	this.navPath = this.findNavPath(manifestNode);
+	this.ncxPath = this.findNcxPath(manifestNode, spineNode);
+	this.coverPath = this.findCoverPath(packageDocument);
+
+	this.spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+
+	this.spine = this.parseSpine(spineNode, this.manifest);
+
+	this.metadata = this.parseMetadata(metadataNode);
+
+	this.metadata.direction = spineNode.getAttribute("page-progression-direction");
+
+
+	return {
+		'metadata' : this.metadata,
+		'spine'    : this.spine,
+		'manifest' : this.manifest,
+		'navPath'  : this.navPath,
+		'ncxPath'  : this.ncxPath,
+		'coverPath': this.coverPath,
+		'spineNodeIndex' : this.spineNodeIndex
+	};
+};
+
+/**
+ * Parse Metadata
+ * @private
+ * @param  {document} xml
+ * @return {object} metadata
+ */
+Packaging.prototype.parseMetadata = function(xml){
+	var metadata = {};
+
+	metadata.title = this.getElementText(xml, 'title');
+	metadata.creator = this.getElementText(xml, 'creator');
+	metadata.description = this.getElementText(xml, 'description');
+
+	metadata.pubdate = this.getElementText(xml, 'date');
+
+	metadata.publisher = this.getElementText(xml, 'publisher');
+
+	metadata.identifier = this.getElementText(xml, "identifier");
+	metadata.language = this.getElementText(xml, "language");
+	metadata.rights = this.getElementText(xml, "rights");
+
+	metadata.modified_date = this.getPropertyText(xml, 'dcterms:modified');
+
+	metadata.layout = this.getPropertyText(xml, "rendition:layout");
+	metadata.orientation = this.getPropertyText(xml, 'rendition:orientation');
+	metadata.flow = this.getPropertyText(xml, 'rendition:flow');
+	metadata.viewport = this.getPropertyText(xml, 'rendition:viewport');
+	// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
+
+	return metadata;
+};
+
+/**
+ * Parse Manifest
+ * @private
+ * @param  {document} manifestXml
+ * @return {object} manifest
+ */
+Packaging.prototype.parseManifest = function(manifestXml){
+	var manifest = {};
+
+	//-- Turn items into an array
+	// var selected = manifestXml.querySelectorAll("item");
+	var selected = core.qsa(manifestXml, "item");
+	var items = Array.prototype.slice.call(selected);
+
+	//-- Create an object with the id as key
+	items.forEach(function(item){
+		var id = item.getAttribute('id'),
+				href = item.getAttribute('href') || '',
+				type = item.getAttribute('media-type') || '',
+				properties = item.getAttribute('properties') || '';
+
+		manifest[id] = {
+			'href' : href,
+			// 'url' : href,
+			'type' : type,
+			'properties' : properties.length ? properties.split(' ') : []
+		};
+
+	});
+
+	return manifest;
+
+};
+
+/**
+ * Parse Spine
+ * @param  {document} spineXml
+ * @param  {Packaging.manifest} manifest
+ * @return {object} spine
+ */
+Packaging.prototype.parseSpine = function(spineXml, manifest){
+	var spine = [];
+
+	var selected = spineXml.getElementsByTagName("itemref"),
+			items = Array.prototype.slice.call(selected);
+
+	var epubcfi = new EpubCFI();
+
+	//-- Add to array to mantain ordering and cross reference with manifest
+	items.forEach(function(item, index){
+		var idref = item.getAttribute('idref');
+		// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
+		var props = item.getAttribute('properties') || '';
+		var propArray = props.length ? props.split(' ') : [];
+		// var manifestProps = manifest[Id].properties;
+		// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
+
+		var itemref = {
+			'idref' : idref,
+			'linear' : item.getAttribute('linear') || '',
+			'properties' : propArray,
+			// 'href' : manifest[Id].href,
+			// 'url' :  manifest[Id].url,
+			'index' : index
+			// 'cfiBase' : cfiBase
+		};
+		spine.push(itemref);
+	});
+
+	return spine;
+};
+
+/**
+ * Find TOC NAV
+ * @private
+ */
+Packaging.prototype.findNavPath = function(manifestNode){
+	// Find item with property 'nav'
+	// Should catch nav irregardless of order
+	// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
+	var node = core.qsp(manifestNode, "item", {"properties":"nav"});
+	return node ? node.getAttribute('href') : false;
+};
+
+/**
+ * Find TOC NCX
+ * media-type="application/x-dtbncx+xml" href="toc.ncx"
+ * @private
+ */
+Packaging.prototype.findNcxPath = function(manifestNode, spineNode){
+	// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
+	var node = core.qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
+	var tocId;
+
+	// If we can't find the toc by media-type then try to look for id of the item in the spine attributes as
+	// according to http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2,
+	// "The item that describes the NCX must be referenced by the spine toc attribute."
+	if (!node) {
+		tocId = spineNode.getAttribute("toc");
+		if(tocId) {
+			// node = manifestNode.querySelector("item[id='" + tocId + "']");
+			node = manifestNode.getElementById(tocId);
+		}
+	}
+
+	return node ? node.getAttribute('href') : false;
+};
+
+/**
+ * Find the Cover Path
+ * <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
+ * Fallback for Epub 2.0
+ * @param  {document} packageXml
+ * @return {string} href
+ */
+Packaging.prototype.findCoverPath = function(packageXml){
+	var pkg = core.qs(packageXml, "package");
+	var epubVersion = pkg.getAttribute('version');
+
+	if (epubVersion === '2.0') {
+		var metaCover = core.qsp(packageXml, 'meta', {'name':'cover'});
+		if (metaCover) {
+			var coverId = metaCover.getAttribute('content');
+			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
+			var cover = packageXml.getElementById(coverId);
+			return cover ? cover.getAttribute('href') : false;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		// var node = packageXml.querySelector("item[properties='cover-image']");
+		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
+		return node ? node.getAttribute('href') : false;
+	}
+};
+
+/**
+ * Get text of a namespaced element
+ * @private
+ * @param  {document} xml
+ * @param  {string} tag
+ * @return {string} text
+ */
+Packaging.prototype.getElementText = function(xml, tag){
+	var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
+		el;
+
+	if(!found || found.length === 0) return '';
+
+	el = found[0];
+
+	if(el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+
+};
+
+/**
+ * Get text by property
+ * @private
+ * @param  {document} xml
+ * @param  {string} property
+ * @return {string} text
+ */
+Packaging.prototype.getPropertyText = function(xml, property){
+	var el = core.qsp(xml, "meta", {"property":property});
+
+	if(el && el.childNodes.length){
+		return el.childNodes[0].nodeValue;
+	}
+
+	return '';
+};
+
+module.exports = Packaging;
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+var EpubCFI = __webpack_require__(1);
+var core = __webpack_require__(0);
+
+/**
+ * Page List Parser
+ * @param {[document]} xml
+ */
+function PageList(xml) {
+	this.pages = [];
+	this.locations = [];
+	this.epubcfi = new EpubCFI();
+
+	if (xml) {
+		this.pageList = this.parse(xml);
+	}
+
+	if(this.pageList && this.pageList.length) {
+		this.process(this.pageList);
+	}
+};
+
+/**
+ * Parse PageList Xml
+ * @param  {document} xml
+ */
+PageList.prototype.parse = function(xml) {
+	var html = core.qs(xml, "html");
+	// var ncx = core.qs(xml, "ncx");
+
+	if(html) {
+		this.toc = this.parseNav(xml);
+	} else if(ncx){ // Not supported
+		// this.toc = this.parseNcx(xml);
+		return;
+	}
+
+};
+
+/**
+ * Parse a Nav PageList
+ * @private
+ * @param  {document} navHtml
+ * @return {PageList.item[]} list
+ */
+PageList.prototype.parseNav = function(navHtml){
+	var navElement = core.querySelectorByType(navHtml, "nav", "page-list");
+	var navItems = navElement ? core.qsa(navElement, "li") : [];
+	var length = navItems.length;
+	var i;
+	var toc = {};
+	var list = [];
+	var item;
+
+	if(!navItems || length === 0) return list;
+
+	for (i = 0; i < length; ++i) {
+		item = this.item(navItems[i]);
+		list.push(item);
+	}
+
+	return list;
+};
+
+/**
+ * Page List Item
+ * @private
+ * @param  {object} item
+ * @return {object} pageListItem
+ */
+PageList.prototype.item = function(item){
+	var id = item.getAttribute('id') || false,
+		content = core.qs(item, "a"),
+		href = content.getAttribute('href') || '',
+		text = content.textContent || "",
+		page = parseInt(text),
+		isCfi = href.indexOf("epubcfi"),
+		split,
+		packageUrl,
+		cfi;
+
+	if(isCfi != -1) {
+		split = href.split("#");
+		packageUrl = split[0];
+		cfi = split.length > 1 ? split[1] : false;
+		return {
+			"cfi" : cfi,
+			"href" : href,
+			"packageUrl" : packageUrl,
+			"page" : page
+		};
+	} else {
+		return {
+			"href" : href,
+			"page" : page
+		};
+	}
+};
+
+/**
+ * Process pageList items
+ * @private
+ * @param  {array} pageList
+ */
+PageList.prototype.process = function(pageList){
+	pageList.forEach(function(item){
+		this.pages.push(item.page);
+		if (item.cfi) {
+			this.locations.push(item.cfi);
+		}
+	}, this);
+	this.firstPage = parseInt(this.pages[0]);
+	this.lastPage = parseInt(this.pages[this.pages.length-1]);
+	this.totalPages = this.lastPage - this.firstPage;
+};
+
+
+/**
+ * Replace HREFs with CFI
+ * TODO: implement getting CFI from Href
+ */
+PageList.prototype.addCFIs = function() {
+	this.pageList.forEach(function(pg){
+		if(!pg.cfi) {
+			// epubcfi.generateCfiFromHref(pg.href, book).then(function(cfi){
+			// 	pg.cfi = cfi;
+			// 	pg.packageUrl = book.settings.packageUrl;
+			// });
+		}
+	});
+}
+
+/*
+EPUBJS.EpubCFI.prototype.generateCfiFromHref = function(href, book) {
+  var uri = EPUBJS.core.uri(href);
+  var path = uri.path;
+  var fragment = uri.fragment;
+  var spinePos = book.spineIndexByURL[path];
+  var loaded;
+  var deferred = new RSVP.defer();
+  var epubcfi = new EPUBJS.EpubCFI();
+  var spineItem;
+
+  if(typeof spinePos !== "undefined"){
+    spineItem = book.spine[spinePos];
+    loaded = book.loadXml(spineItem.url);
+    loaded.then(function(doc){
+      var element = doc.getElementById(fragment);
+      var cfi;
+      cfi = epubcfi.generateCfiFromElement(element, spineItem.cfiBase);
+      deferred.resolve(cfi);
+    });
+  }
+
+  return deferred.promise;
+};
+*/
+
+/**
+ * Get a PageList result from a EpubCFI
+ * @param  {string} cfi EpubCFI String
+ * @return {string} page
+ */
+PageList.prototype.pageFromCfi = function(cfi){
+	var pg = -1;
+
+	// Check if the pageList has not been set yet
+	if(this.locations.length === 0) {
+		return -1;
+	}
+
+	// TODO: check if CFI is valid?
+
+	// check if the cfi is in the location list
+	// var index = this.locations.indexOf(cfi);
+	var index = core.indexOfSorted(cfi, this.locations, this.epubcfi.compare);
+	if(index != -1) {
+		pg = this.pages[index];
+	} else {
+		// Otherwise add it to the list of locations
+		// Insert it in the correct position in the locations page
+		//index = EPUBJS.core.insert(cfi, this.locations, this.epubcfi.compare);
+		index = EPUBJS.core.locationOf(cfi, this.locations, this.epubcfi.compare);
+		// Get the page at the location just before the new one, or return the first
+		pg = index-1 >= 0 ? this.pages[index-1] : this.pages[0];
+		if(pg !== undefined) {
+			// Add the new page in so that the locations and page array match up
+			//this.pages.splice(index, 0, pg);
+		} else {
+			pg = -1;
+		}
+
+	}
+	return pg;
+};
+
+/**
+ * Get an EpubCFI from a Page List Item
+ * @param  {string} pg
+ * @return {string} cfi
+ */
+PageList.prototype.cfiFromPage = function(pg){
+	var cfi = -1;
+	// check that pg is an int
+	if(typeof pg != "number"){
+		pg = parseInt(pg);
+	}
+
+	// check if the cfi is in the page list
+	// Pages could be unsorted.
+	var index = this.pages.indexOf(pg);
+	if(index != -1) {
+		cfi = this.locations[index];
+	}
+	// TODO: handle pages not in the list
+	return cfi;
+};
+
+/**
+ * Get a Page from Book percentage
+ * @param  {number} percent
+ * @return {string} page
+ */
+PageList.prototype.pageFromPercentage = function(percent){
+	var pg = Math.round(this.totalPages * percent);
+	return pg;
+};
+
+/**
+ * Returns a value between 0 - 1 corresponding to the location of a page
+ * @param  {int} pg the page
+ * @return {number} percentage
+ */
+PageList.prototype.percentageFromPage = function(pg){
+	var percentage = (pg - this.firstPage) / this.totalPages;
+	return Math.round(percentage * 1000) / 1000;
+};
+
+/**
+ * Returns a value between 0 - 1 corresponding to the location of a cfi
+ * @param  {string} cfi EpubCFI String
+ * @return {number} percentage
+ */
+PageList.prototype.percentageFromCfi = function(cfi){
+	var pg = this.pageFromCfi(cfi);
+	var percentage = this.percentageFromPage(pg);
+	return percentage;
+};
+
+module.exports = PageList;
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+var replace = __webpack_require__(8);
+var core = __webpack_require__(0);
+var Path = __webpack_require__(0).Path;
+var path = __webpack_require__(2);
+
+/**
+ * Handle Package Resources
+ * @class
+ * @param {Manifest} manifest
+ * @param {[object]} options
+ * @param {[string='base64']} options.replacements
+ * @param {[Archive]} options.archive
+ * @param {[method]} options.resolver
+ */
+function Resources(manifest, options) {
+	this.settings = {
+		replacements: (options && options.replacements) || 'base64',
+		archive: (options && options.archive),
+		resolver: (options && options.resolver)
+	};
+	this.manifest = manifest;
+	this.resources = Object.keys(manifest).
+		map(function (key){
+			return manifest[key];
+		});
+
+	this.replacementUrls = [];
+
+	this.split();
+	this.splitUrls();
+}
+
+/**
+ * Split resources by type
+ * @private
+ */
+Resources.prototype.split = function(){
+
+	// HTML
+	this.html = this.resources.
+		filter(function (item){
+			if (item.type === "application/xhtml+xml" ||
+					item.type === "text/html") {
+				return true;
+			}
+		});
+
+	// Exclude HTML
+	this.assets = this.resources.
+		filter(function (item){
+			if (item.type !== "application/xhtml+xml" &&
+					item.type !== "text/html") {
+				return true;
+			}
+		});
+
+	// Only CSS
+	this.css = this.resources.
+		filter(function (item){
+			if (item.type === "text/css") {
+				return true;
+			}
+		});
+};
+
+/**
+ * Convert split resources into Urls
+ * @private
+ */
+Resources.prototype.splitUrls = function(){
+
+	// All Assets Urls
+	this.urls = this.assets.
+		map(function(item) {
+			return item.href;
+		}.bind(this));
+
+	// Css Urls
+	this.cssUrls = this.css.map(function(item) {
+		return item.href;
+	});
+
+};
+
+/**
+ * Create blob urls for all the assets
+ * @param  {Archive} archive
+ * @param  {resolver} resolver Url resolver
+ * @return {Promise}         returns replacement urls
+ */
+Resources.prototype.replacements = function(archive, resolver){
+	archive = archive || this.settings.archive;
+	resolver = resolver || this.settings.resolver;
+
+	if (this.settings.replacements === "none") {
+		return new Promise(function(resolve, reject) {
+			resolve(this.urls);
+		}.bind(this));
+	}
+
+	var replacements = this.urls.
+		map(function(url) {
+			var absolute = resolver(url);
+
+			return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")});
+		}.bind(this))
+
+	return Promise.all(replacements)
+		.then(function(replacementUrls) {
+			this.replacementUrls = replacementUrls;
+			return replacementUrls;
+		}.bind(this));
+};
+
+/**
+ * Replace URLs in CSS resources
+ * @private
+ * @param  {[Archive]} archive
+ * @param  {[method]} resolver
+ * @return {Promise}
+ */
+Resources.prototype.replaceCss = function(archive, resolver){
+	var replaced = [];
+	archive = archive || this.settings.archive;
+	resolver = resolver || this.settings.resolver;
+	this.cssUrls.forEach(function(href) {
+		var replacement = this.createCssFile(href, archive, resolver)
+			.then(function (replacementUrl) {
+				// switch the url in the replacementUrls
+				var indexInUrls = this.urls.indexOf(href);
+				if (indexInUrls > -1) {
+					this.replacementUrls[indexInUrls] = replacementUrl;
+				}
+			}.bind(this));
+
+		replaced.push(replacement);
+	}.bind(this));
+	return Promise.all(replaced);
+};
+
+/**
+ * Create a new CSS file with the replaced URLs
+ * @private
+ * @param  {string} href the original css file
+ * @param  {[Archive]} archive
+ * @param  {[method]} resolver
+ * @return {Promise}  returns a BlobUrl to the new CSS file or a data url
+ */
+Resources.prototype.createCssFile = function(href, archive, resolver){
+		var newUrl;
+		var indexInUrls;
+		archive = archive || this.settings.archive;
+		resolver = resolver || this.settings.resolver;
+
+		if (path.isAbsolute(href)) {
+			return new Promise(function(resolve, reject){
+				resolve(urls, replacementUrls);
+			});
+		}
+
+		var absolute = resolver(href);
+
+		// Get the text of the css file from the archive
+		var textResponse = archive.getText(absolute);
+		// Get asset links relative to css file
+		var relUrls = this.urls.map(function(assetHref) {
+				var resolved = resolver(assetHref);
+				var relative = new Path(absolute).relative(resolved);
+
+				return relative;
+			}.bind(this));
+
+		return textResponse.then(function (text) {
+			// Replacements in the css text
+			text = replace.substitute(text, relUrls, this.replacementUrls);
+
+			// Get the new url
+			if (this.settings.replacements === "base64") {
+				newUrl = core.createBase64Url(text, 'text/css');
+			} else {
+				newUrl = core.createBlobUrl(text, 'text/css');
+			}
+
+			return newUrl;
+		}.bind(this));
+
+};
+
+/**
+ * Resolve all resources URLs relative to an absolute URL
+ * @param  {string} absolute to be resolved to
+ * @param  {[resolver]} resolver
+ * @return {string[]} array with relative Urls
+ */
+Resources.prototype.relativeTo = function(absolute, resolver){
+	resolver = resolver || this.settings.resolver;
+
+	// Get Urls relative to current sections
+	return this.urls.
+		map(function(href) {
+			var resolved = resolver(href);
+			var relative = new Path(absolute).relative(resolved);
+			return relative;
+		}.bind(this));
+};
+
+/**
+ * Get a URL for a resource
+ * @param  {string} path
+ * @return {string} url
+ */
+Resources.prototype.get = function(path) {
+	var indexInUrls = this.urls.indexOf(path);
+	if (indexInUrls === -1) {
+		return;
+	}
+	if (this.replacementUrls.length) {
+		return new Promise(function(resolve, reject) {
+			resolve(this.replacementUrls[indexInUrls]);
+		}.bind(this));
+	} else {
+		return archive.createUrl(absolute,
+			{"base64": (this.settings.replacements === "base64")})
+	}
+}
+
+module.exports = Resources;
+
+
+/***/ },
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Hook = __webpack_require__(6);
+var Hook = __webpack_require__(5);
+var Url = __webpack_require__(0).Url;
 
+/**
+ * Represents a Section of the Book
+ * In most books this is equivelent to a Chapter
+ * @param {object} item  The spine item representing the section
+ * @param {object} hooks hooks for serialize and content
+ */
 function Section(item, hooks){
 		this.idref = item.idref;
 		this.linear = item.linear;
@@ -8914,9 +9660,13 @@ function Section(item, hooks){
 
 };
 
-
+/**
+ * Load the section from its url
+ * @param  {method} _request a request method to use for loading
+ * @return {document} a promise with the xml document
+ */
 Section.prototype.load = function(_request){
-	var request = _request || this.request || __webpack_require__(4);
+	var request = _request || this.request || __webpack_require__(9);
 	var loading = new core.defer();
 	var loaded = loading.promise;
 
@@ -8926,7 +9676,7 @@ Section.prototype.load = function(_request){
 		request(this.url)
 			.then(function(xml){
 				var base;
-				var directory = core.directory(this.url);
+				var directory = new Url(this.url).directory;
 
 				this.document = xml;
 				this.contents = xml.documentElement;
@@ -8944,11 +9694,15 @@ Section.prototype.load = function(_request){
 	return loaded;
 };
 
+/**
+ * Adds a base tag for resolving urls in the section
+ * @private
+ * @param  {document} _document
+ */
 Section.prototype.base = function(_document){
 		var task = new core.defer();
 		var base = _document.createElement("base"); // TODO: check if exists
 		var head;
-		console.log(window.location.origin + "/" +this.url);
 
 		base.setAttribute("href", window.location.origin + "/" +this.url);
 
@@ -8966,10 +9720,11 @@ Section.prototype.base = function(_document){
 		return task.promise;
 };
 
-Section.prototype.beforeSectionLoad = function(){
-	// Stub for a hook - replace me for now
-};
-
+/**
+ * Render the contents of a section
+ * @param  {method} _request a request method to use for loading
+ * @return {string} output a serialized XML Document
+ */
 Section.prototype.render = function(_request){
 	var rendering = new core.defer();
 	var rendered = rendering.promise;
@@ -8980,7 +9735,7 @@ Section.prototype.render = function(_request){
 			var serializer;
 
 			if (typeof XMLSerializer === "undefined") {
-				XMLSerializer = __webpack_require__(14).XMLSerializer;
+				XMLSerializer = __webpack_require__(13).XMLSerializer;
 			}
 			serializer = new XMLSerializer();
 			this.output = serializer.serializeToString(contents);
@@ -8999,15 +9754,21 @@ Section.prototype.render = function(_request){
 	return rendered;
 };
 
-Section.prototype.find = function(_query){
+/**
+ * Find a string in a section
+ * TODO: need reimplementation from v0.2
+ * @param  {string} query [description]
+ * @return {[type]} [description]
+ */
+Section.prototype.find = function(query){
 
 };
 
-/*
+/**
 * Reconciles the current chapters layout properies with
 * the global layout properities.
-* Takes: global layout settings object, chapter properties string
-* Returns: Object with layout properties
+* @param {object} global  The globa layout settings object, chapter properties string
+* @return {object} layoutProperties Object with layout properties
 */
 Section.prototype.reconcileLayoutSettings = function(global){
 	//-- Get the global defaults
@@ -9033,10 +9794,20 @@ Section.prototype.reconcileLayoutSettings = function(global){
  return settings;
 };
 
+/**
+ * Get a CFI from a Range in the Section
+ * @param  {range} _range
+ * @return {string} cfi an EpubCFI string
+ */
 Section.prototype.cfiFromRange = function(_range) {
 	return new EpubCFI(_range, this.cfiBase).toString();
 };
 
+/**
+ * Get a CFI from an Element in the Section
+ * @param  {element} el
+ * @return {string} cfi an EpubCFI string
+ */
 Section.prototype.cfiFromElement = function(el) {
 	return new EpubCFI(el, this.cfiBase).toString();
 };
@@ -9045,17 +9816,19 @@ module.exports = Section;
 
 
 /***/ },
-/* 43 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Hook = __webpack_require__(6);
-var Section = __webpack_require__(42);
-var replacements = __webpack_require__(13);
+var Hook = __webpack_require__(5);
+var Section = __webpack_require__(46);
+var replacements = __webpack_require__(8);
 
-function Spine(_request){
-	this.request = _request;
+/**
+ * A collection of Spine Items
+ */
+function Spine(){
 	this.spineItems = [];
 	this.spineByHref = {};
 	this.spineById = {};
@@ -9073,7 +9846,12 @@ function Spine(_request){
 	this.loaded = false;
 };
 
-Spine.prototype.load = function(_package) {
+/**
+ * Unpack items from a opf into spine items
+ * @param  {Package} _package
+ * @param  {method} resolver URL resolver
+ */
+Spine.prototype.unpack = function(_package, resolver) {
 
 	this.items = _package.spine;
 	this.manifest = _package.manifest;
@@ -9090,20 +9868,15 @@ Spine.prototype.load = function(_package) {
 
 		if(manifestItem) {
 			item.href = manifestItem.href;
-			item.url = this.baseUrl + item.href;
+			item.url = resolver(item.href, true);
 
 			if(manifestItem.properties.length){
 				item.properties.push.apply(item.properties, manifestItem.properties);
 			}
 		}
 
-		// if(index > 0) {
-			item.prev = function(){ return this.get(index-1); }.bind(this);
-		// }
-
-		// if(index+1 < this.items.length) {
-			item.next = function(){ return this.get(index+1); }.bind(this);
-		// }
+		item.prev = function(){ return this.get(index-1); }.bind(this);
+		item.next = function(){ return this.get(index+1); }.bind(this);
 
 		spineItem = new Section(item, this.hooks);
 
@@ -9115,10 +9888,15 @@ Spine.prototype.load = function(_package) {
 	this.loaded = true;
 };
 
-// book.spine.get();
-// book.spine.get(1);
-// book.spine.get("chap1.html");
-// book.spine.get("#id1234");
+/**
+ * Get an item from the spine
+ * @param  {[string|int]} target
+ * @return {Section} section
+ * @example spine.get();
+ * @example spine.get(1);
+ * @example spine.get("chap1.html");
+ * @example spine.get("#id1234");
+ */
 Spine.prototype.get = function(target) {
 	var index = 0;
 
@@ -9138,6 +9916,11 @@ Spine.prototype.get = function(target) {
 	return this.spineItems[index] || null;
 };
 
+/**
+ * Append a Section to the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.append = function(section) {
 	var index = this.spineItems.length;
 	section.index = index;
@@ -9150,6 +9933,11 @@ Spine.prototype.append = function(section) {
 	return index;
 };
 
+/**
+ * Prepend a Section to the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.prepend = function(section) {
 	var index = this.spineItems.unshift(section);
 	this.spineByHref[section.href] = 0;
@@ -9163,10 +9951,15 @@ Spine.prototype.prepend = function(section) {
 	return 0;
 };
 
-Spine.prototype.insert = function(section, index) {
+// Spine.prototype.insert = function(section, index) {
+//
+// };
 
-};
-
+/**
+ * Remove a Section from the Spine
+ * @private
+ * @param  {Section} section
+ */
 Spine.prototype.remove = function(section) {
 	var index = this.spineItems.indexOf(section);
 
@@ -9178,6 +9971,10 @@ Spine.prototype.remove = function(section) {
 	}
 };
 
+/**
+ * Loop over the Sections in the Spine
+ * @return {method} forEach
+ */
 Spine.prototype.each = function() {
 	return this.spineItems.forEach.apply(this.spineItems, arguments);
 };
@@ -9186,217 +9983,26 @@ module.exports = Spine;
 
 
 /***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-var core = __webpack_require__(0);
-var request = __webpack_require__(4);
-var mime = __webpack_require__(20);
-
-function Unarchive() {
-
-	this.checkRequirements();
-	this.urlCache = {};
-
-}
-
-Unarchive.prototype.checkRequirements = function(callback){
-	try {
-		if (typeof JSZip === 'undefined') {
-			JSZip = __webpack_require__(45);
-		}
-		this.zip = new JSZip();
-	} catch (e) {
-		console.error("JSZip lib not loaded");
-	}
-};
-
-Unarchive.prototype.open = function(zipUrl, isBase64){
-	if (zipUrl instanceof ArrayBuffer || isBase64) {
-		return this.zip.loadAsync(zipUrl, {"base64": isBase64});
-	} else {
-		return request(zipUrl, "binary")
-			.then(function(data){
-				return this.zip.loadAsync(data);
-			}.bind(this));
-	}
-};
-
-Unarchive.prototype.request = function(url, type){
-	var deferred = new core.defer();
-	var response;
-	var r;
-
-	// If type isn't set, determine it from the file extension
-	if(!type) {
-		type = core.extension(url);
-	}
-
-	if(type == 'blob'){
-		response = this.getBlob(url);
-	} else {
-		response = this.getText(url);
-	}
-
-	if (response) {
-		response.then(function (r) {
-			result = this.handleResponse(r, type);
-			deferred.resolve(result);
-		}.bind(this));
-	} else {
-		deferred.reject({
-			message : "File not found in the epub: " + url,
-			stack : new Error().stack
-		});
-	}
-	return deferred.promise;
-};
-
-Unarchive.prototype.handleResponse = function(response, type){
-	var r;
-
-	if(type == "json") {
-		r = JSON.parse(response);
-	}
-	else
-	if(core.isXml(type)) {
-		r = core.parse(response, "text/xml");
-	}
-	else
-	if(type == 'xhtml') {
-		r = core.parse(response, "application/xhtml+xml");
-	}
-	else
-	if(type == 'html' || type == 'htm') {
-		r = core.parse(response, "text/html");
-	 } else {
-		 r = response;
-	 }
-
-	return r;
-};
-
-Unarchive.prototype.getBlob = function(url, _mimeType){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-	var mimeType;
-
-	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
-		return entry.async("uint8array").then(function(uint8array) {
-			return new Blob([uint8array], {type : mimeType});
-		});
-	}
-};
-
-Unarchive.prototype.getText = function(url, encoding){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-
-	if(entry) {
-		return entry.async("string").then(function(text) {
-			return text;
-		});
-	}
-};
-
-Unarchive.prototype.getBase64 = function(url, _mimeType){
-	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
-	var entry = this.zip.file(decodededUrl);
-	var mimeType;
-
-	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
-		return entry.async("base64").then(function(data) {
-			return "data:" + mimeType + ";base64," + data;
-		});
-	}
-};
-
-Unarchive.prototype.createUrl = function(url, options){
-	var deferred = new core.defer();
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var tempUrl;
-	var blob;
-	var response;
-	var useBase64 = options && options.base64;
-
-	if(url in this.urlCache) {
-		deferred.resolve(this.urlCache[url]);
-		return deferred.promise;
-	}
-
-	if (useBase64) {
-		response = this.getBase64(url);
-
-		if (response) {
-			response.then(function(tempUrl) {
-
-				this.urlCache[url] = tempUrl;
-				deferred.resolve(tempUrl);
-
-			}.bind(this));
-
-		}
-
-	} else {
-
-		response = this.getBlob(url);
-
-		if (response) {
-			response.then(function(blob) {
-
-				tempUrl = _URL.createObjectURL(blob);
-				this.urlCache[url] = tempUrl;
-				deferred.resolve(tempUrl);
-
-			}.bind(this));
-
-		}
-	}
-
-
-	if (!response) {
-		deferred.reject({
-			message : "File not found in the epub: " + url,
-			stack : new Error().stack
-		});
-	}
-
-	return deferred.promise;
-};
-
-Unarchive.prototype.revokeUrl = function(url){
-	var _URL = window.URL || window.webkitURL || window.mozURL;
-	var fromCache = this.urlCache[url];
-	if(fromCache) _URL.revokeObjectURL(fromCache);
-};
-
-module.exports = Unarchive;
-
-
-/***/ },
-/* 45 */
+/* 48 */
 /***/ function(module, exports) {
 
-if(typeof __WEBPACK_EXTERNAL_MODULE_45__ === 'undefined') {var e = new Error("Cannot find module \"JSZip\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
-module.exports = __WEBPACK_EXTERNAL_MODULE_45__;
+if(typeof __WEBPACK_EXTERNAL_MODULE_48__ === 'undefined') {var e = new Error("Cannot find module \"JSZip\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
+module.exports = __WEBPACK_EXTERNAL_MODULE_48__;
 
 /***/ },
-/* 46 */,
-/* 47 */
+/* 49 */,
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-var Book = __webpack_require__(17);
+var Book = __webpack_require__(16);
 var EpubCFI = __webpack_require__(1);
-var Rendition = __webpack_require__(11);
-var Contents = __webpack_require__(9);
+var Rendition = __webpack_require__(12);
+var Contents = __webpack_require__(10);
 
 /**
  * Creates a new Book
  * @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
  * @param {object} options to pass to the book
- * @param options.requestMethod the request function to use
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
@@ -9431,11 +10037,11 @@ ePub.register = {
 };
 
 // Default Views
-ePub.register.view("iframe", __webpack_require__(19));
+ePub.register.view("iframe", __webpack_require__(18));
 
 // Default View Managers
-ePub.register.manager("default", __webpack_require__(10));
-ePub.register.manager("continuous", __webpack_require__(18));
+ePub.register.manager("default", __webpack_require__(11));
+ePub.register.manager("continuous", __webpack_require__(17));
 
 module.exports = ePub;
 
