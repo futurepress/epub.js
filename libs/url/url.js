@@ -1,8 +1,18 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
-
-(function(scope) {
-  'use strict';
+'use strict';
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        // Node
+        module.exports = factory(global);
+    } else {
+        // Browser globals (root is window)
+        root.URL = factory(root);
+  }
+}(this, function (scope) {
 
   // feature detect for URL constructor
   var hasWorkingUrl = false;
@@ -15,7 +25,7 @@
   }
 
   if (hasWorkingUrl)
-    return;
+    return scope.URL;
 
   var relative = Object.create(null);
   relative['ftp'] = 21;
@@ -611,11 +621,5 @@
     };
   }
 
-  scope.URL = jURL;
-
-	// Export for CommonJS
-  if (typeof module === 'object' && module.exports) {
-    module.exports = jURL;
-  }
-
-})(this);
+  return jURL;
+}));
