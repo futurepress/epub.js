@@ -3,6 +3,12 @@ var EpubCFI = require('./epubcfi');
 var Hook = require('./hook');
 var Url = require('./core').Url;
 
+/**
+ * Represents a Section of the Book
+ * In most books this is equivelent to a Chapter
+ * @param {object} item  The spine item representing the section
+ * @param {object} hooks hooks for serialize and content
+ */
 function Section(item, hooks){
 		this.idref = item.idref;
 		this.linear = item.linear;
@@ -25,7 +31,11 @@ function Section(item, hooks){
 
 };
 
-
+/**
+ * Load the section from its url
+ * @param  {method} _request a request method to use for loading
+ * @return {document} a promise with the xml document
+ */
 Section.prototype.load = function(_request){
 	var request = _request || this.request || require('./request');
 	var loading = new core.defer();
@@ -55,6 +65,11 @@ Section.prototype.load = function(_request){
 	return loaded;
 };
 
+/**
+ * Adds a base tag for resolving urls in the section
+ * @private
+ * @param  {document} _document
+ */
 Section.prototype.base = function(_document){
 		var task = new core.defer();
 		var base = _document.createElement("base"); // TODO: check if exists
@@ -76,10 +91,11 @@ Section.prototype.base = function(_document){
 		return task.promise;
 };
 
-Section.prototype.beforeSectionLoad = function(){
-	// Stub for a hook - replace me for now
-};
-
+/**
+ * Render the contents of a section
+ * @param  {method} _request a request method to use for loading
+ * @return {string} output a serialized XML Document
+ */
 Section.prototype.render = function(_request){
 	var rendering = new core.defer();
 	var rendered = rendering.promise;
@@ -109,15 +125,21 @@ Section.prototype.render = function(_request){
 	return rendered;
 };
 
-Section.prototype.find = function(_query){
+/**
+ * Find a string in a section
+ * TODO: need reimplementation from v0.2
+ * @param  {string} query [description]
+ * @return {[type]} [description]
+ */
+Section.prototype.find = function(query){
 
 };
 
-/*
+/**
 * Reconciles the current chapters layout properies with
 * the global layout properities.
-* Takes: global layout settings object, chapter properties string
-* Returns: Object with layout properties
+* @param {object} global  The globa layout settings object, chapter properties string
+* @return {object} layoutProperties Object with layout properties
 */
 Section.prototype.reconcileLayoutSettings = function(global){
 	//-- Get the global defaults
@@ -143,10 +165,20 @@ Section.prototype.reconcileLayoutSettings = function(global){
  return settings;
 };
 
+/**
+ * Get a CFI from a Range in the Section
+ * @param  {range} _range
+ * @return {string} cfi an EpubCFI string
+ */
 Section.prototype.cfiFromRange = function(_range) {
 	return new EpubCFI(_range, this.cfiBase).toString();
 };
 
+/**
+ * Get a CFI from an Element in the Section
+ * @param  {element} el
+ * @return {string} cfi an EpubCFI string
+ */
 Section.prototype.cfiFromElement = function(el) {
 	return new EpubCFI(el, this.cfiBase).toString();
 };

@@ -1,6 +1,10 @@
 var core = require('./core');
 var path = require('path');
 
+/**
+ * Navigation Parser
+ * @param {document} xml navigation html / xhtml / ncx
+ */
 function Navigation(xml){
 	this.toc = [];
 	this.tocByHref = {};
@@ -11,6 +15,10 @@ function Navigation(xml){
 	}
 };
 
+/**
+ * Parse out the navigation items
+ * @param {document} xml navigation html / xhtml / ncx
+ */
 Navigation.prototype.parse = function(xml) {
 	var html = core.qs(xml, "html");
 	var ncx = core.qs(xml, "ncx");
@@ -24,6 +32,11 @@ Navigation.prototype.parse = function(xml) {
 	this.unpack(this.toc);
 };
 
+/**
+ * Unpack navigation items
+ * @private
+ * @param  {array} toc
+ */
 Navigation.prototype.unpack = function(toc) {
 	var item;
 
@@ -35,7 +48,11 @@ Navigation.prototype.unpack = function(toc) {
 
 };
 
-// Get an item from the navigation
+/**
+ * Get an item from the navigation
+ * @param  {string} target
+ * @return {object} navItems
+ */
 Navigation.prototype.get = function(target) {
 	var index;
 
@@ -52,9 +69,14 @@ Navigation.prototype.get = function(target) {
 	return this.toc[index];
 };
 
-Navigation.prototype.parseNav = function(navHtml, spineIndexByURL, bookSpine){
+/**
+ * Parse from a Epub > 3.0 Nav
+ * @private
+ * @param  {document} navHtml
+ * @return {array} navigation list
+ */
+Navigation.prototype.parseNav = function(navHtml){
 	var navElement = core.querySelectorByType(navHtml, "nav", "toc");
-	// var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
 	var navItems = navElement ? core.qsa(navElement, "li") : [];
 	var length = navItems.length;
 	var i;
@@ -65,7 +87,7 @@ Navigation.prototype.parseNav = function(navHtml, spineIndexByURL, bookSpine){
 	if(!navItems || length === 0) return list;
 
 	for (i = 0; i < length; ++i) {
-		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
+		item = this.navItem(navItems[i]);
 		toc[item.id] = item;
 		if(!item.parent) {
 			list.push(item);
@@ -78,37 +100,24 @@ Navigation.prototype.parseNav = function(navHtml, spineIndexByURL, bookSpine){
 	return list;
 };
 
-Navigation.prototype.navItem = function(item, spineIndexByURL, bookSpine){
+/**
+ * Create a navItem
+ * @private
+ * @param  {element} item
+ * @return {object} navItem
+ */
+Navigation.prototype.navItem = function(item){
 	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("a, span"),
 			content = core.qs(item, "a"),
 			src = content.getAttribute('href') || '',
 			text = content.textContent || "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
 			subitems = [],
 			parentNode = item.parentNode,
 			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
 
 	if(parentNode && parentNode.nodeName === "navPoint") {
 		parent = parentNode.getAttribute('id');
 	}
-
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
 
 	return {
 		"id": id,
@@ -119,8 +128,13 @@ Navigation.prototype.navItem = function(item, spineIndexByURL, bookSpine){
 	};
 };
 
-Navigation.prototype.parseNcx = function(tocXml, spineIndexByURL, bookSpine){
-	// var navPoints = tocXml.querySelectorAll("navMap navPoint");
+/**
+ * Parse from a Epub > 3.0 NC
+ * @private
+ * @param  {document} navHtml
+ * @return {array} navigation list
+ */
+Navigation.prototype.parseNcx = function(tocXml){
 	var navPoints = core.qsa(tocXml, "navPoint");
 	var length = navPoints.length;
 	var i;
@@ -131,7 +145,7 @@ Navigation.prototype.parseNcx = function(tocXml, spineIndexByURL, bookSpine){
 	if(!navPoints || length === 0) return list;
 
 	for (i = 0; i < length; ++i) {
-		item = this.ncxItem(navPoints[i], spineIndexByURL, bookSpine);
+		item = this.ncxItem(navPoints[i]);
 		toc[item.id] = item;
 		if(!item.parent) {
 			list.push(item);
@@ -144,39 +158,26 @@ Navigation.prototype.parseNcx = function(tocXml, spineIndexByURL, bookSpine){
 	return list;
 };
 
-Navigation.prototype.ncxItem = function(item, spineIndexByURL, bookSpine){
+/**
+ * Create a ncxItem
+ * @private
+ * @param  {element} item
+ * @return {object} ncxItem
+ */
+Navigation.prototype.ncxItem = function(item){
 	var id = item.getAttribute('id') || false,
-			// content = item.querySelector("content"),
 			content = core.qs(item, "content"),
 			src = content.getAttribute('src'),
-			// navLabel = item.querySelector("navLabel"),
 			navLabel = core.qs(item, "navLabel"),
 			text = navLabel.textContent ? navLabel.textContent : "",
-			// split = src.split("#"),
-			// baseUrl = split[0],
-			// spinePos = spineIndexByURL[baseUrl],
-			// spineItem = bookSpine[spinePos],
 			subitems = [],
 			parentNode = item.parentNode,
 			parent;
-			// cfi = spineItem ? spineItem.cfi : '';
 
 	if(parentNode && parentNode.nodeName === "navPoint") {
 		parent = parentNode.getAttribute('id');
 	}
 
-	/*
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
-	*/
 
 	return {
 		"id": id,

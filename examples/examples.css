@@ -139,3 +139,17 @@ body {
 #book-viewer iframe {
   padding: 40px 40px;
 }
+
+#controls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  width: 400px;
+  margin-left: -200px;
+  text-align: center;
+  display: none;
+}
+
+#controls > input[type=range] {
+    width: 400px;
+}

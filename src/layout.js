@@ -1,9 +1,18 @@
 var core = require('./core');
 
+/**
+ * Figures out the CSS to apply for a layout
+ * @class
+ * @param {object} settings
+ * @param {[string=reflowable]} settings.layout
+ * @param {[string]} settings.spread
+ * @param {[int=800]} settings.minSpreadWidth
+ * @param {[boolean=false]} settings.evenSpreads
+ */
 function Layout(settings){
 	this.name = settings.layout || "reflowable";
 	this._spread = (settings.spread === "none") ? false : true;
-	this._minSpreadWidth = settings.spread || 800;
+	this._minSpreadWidth = settings.minSpreadWidth || 800;
 	this._evenSpreads = settings.evenSpreads || false;
 
 	if (settings.flow === "scrolled-continuous" ||
@@ -24,12 +33,20 @@ function Layout(settings){
 	this.divisor = 1;
 };
 
-// paginated | scrolled
+/**
+ * Switch the flow between paginated and scrolled
+ * @param  {string} flow paginated | scrolled
+ */
 Layout.prototype.flow = function(flow) {
 	this._flow = (flow === "paginated") ? "paginated" : "scrolled";
 }
 
-// true | false
+/**
+ * Switch between using spreads or not, and set the
+ * width at which they switch to single.
+ * @param  {string} spread true | false
+ * @param  {boolean} min integer in pixels
+ */
 Layout.prototype.spread = function(spread, min) {
 
 	this._spread = (spread === "none") ? false : true;
@@ -39,6 +56,12 @@ Layout.prototype.spread = function(spread, min) {
 	}
 }
 
+/**
+ * Calculate the dimensions of the pagination
+ * @param  {number} _width  [description]
+ * @param  {number} _height [description]
+ * @param  {number} _gap    [description]
+ */
 Layout.prototype.calculate = function(_width, _height, _gap){
 
 	var divisor = 1;
@@ -93,6 +116,11 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 	this.divisor = divisor;
 };
 
+/**
+ * Apply Css to a Document
+ * @param  {Contents} contents
+ * @return {[Promise]}
+ */
 Layout.prototype.format = function(contents){
 	var formating;
 
@@ -107,6 +135,12 @@ Layout.prototype.format = function(contents){
 	return formating; // might be a promise in some View Managers
 };
 
+/**
+ * Count number of pages
+ * @param  {number} totalWidth
+ * @return {number} spreads
+ * @return {number} pages
+ */
 Layout.prototype.count = function(totalWidth) {
 	// var totalWidth = contents.scrollWidth();
 	var spreads = Math.ceil( totalWidth / this.spreadWidth);

@@ -3,14 +3,22 @@ var request = require('./request');
 var mime = require('../libs/mime/mime');
 var Path = require('./core').Path;
 
+/**
+ * Handles Unzipping a requesting files from an Epub Archive
+ * @class
+ */
 function Archive() {
-
+	this.zip = undefined;
 	this.checkRequirements();
 	this.urlCache = {};
-
 }
 
-Archive.prototype.checkRequirements = function(callback){
+/**
+ * Checks to see if JSZip exists in global namspace,
+ * Requires JSZip if it isn't there
+ * @private
+ */
+Archive.prototype.checkRequirements = function(){
 	try {
 		if (typeof JSZip === 'undefined') {
 			JSZip = require('jszip');
@@ -21,10 +29,22 @@ Archive.prototype.checkRequirements = function(callback){
 	}
 };
 
+/**
+ * Open an archive
+ * @param  {binary} input
+ * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+ * @return {Promise} zipfile
+ */
 Archive.prototype.open = function(input, isBase64){
 	return this.zip.loadAsync(input, {"base64": isBase64});
 };
 
+/**
+ * Load and Open an archive
+ * @param  {string} zipUrl
+ * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+ * @return {Promise} zipfile
+ */
 Archive.prototype.openUrl = function(zipUrl, isBase64){
 	return request(zipUrl, "binary")
 		.then(function(data){
@@ -32,6 +52,12 @@ Archive.prototype.openUrl = function(zipUrl, isBase64){
 		}.bind(this));
 };
 
+/**
+ * Request
+ * @param  {string} url  a url to request from the archive
+ * @param  {[string]} type specify the type of the returned result
+ * @return {Promise}
+ */
 Archive.prototype.request = function(url, type){
 	var deferred = new core.defer();
 	var response;
@@ -63,6 +89,13 @@ Archive.prototype.request = function(url, type){
 	return deferred.promise;
 };
 
+/**
+ * Handle the response from request
+ * @private
+ * @param  {any} response
+ * @param  {[string]} type
+ * @return {any} the parsed result
+ */
 Archive.prototype.handleResponse = function(response, type){
 	var r;
 
@@ -87,19 +120,30 @@ Archive.prototype.handleResponse = function(response, type){
 	return r;
 };
 
-Archive.prototype.getBlob = function(url, _mimeType){
+/**
+ * Get a Blob from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} mimeType
+ * @return {Blob}
+ */
+Archive.prototype.getBlob = function(url, mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
-	var mimeType;
 
 	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
+		mimeType = mimeType || mime.lookup(entry.name);
 		return entry.async("uint8array").then(function(uint8array) {
 			return new Blob([uint8array], {type : mimeType});
 		});
 	}
 };
 
+/**
+ * Get Text from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} encoding
+ * @return {string}
+ */
 Archive.prototype.getText = function(url, encoding){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
@@ -111,19 +155,30 @@ Archive.prototype.getText = function(url, encoding){
 	}
 };
 
-Archive.prototype.getBase64 = function(url, _mimeType){
+/**
+ * Get a base64 encoded result from Archive by Url
+ * @param  {string} url
+ * @param  {[string]} mimeType
+ * @return {string} base64 encoded
+ */
+Archive.prototype.getBase64 = function(url, mimeType){
 	var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
 	var entry = this.zip.file(decodededUrl);
-	var mimeType;
 
 	if(entry) {
-		mimeType = _mimeType || mime.lookup(entry.name);
+		mimeType = mimeType || mime.lookup(entry.name);
 		return entry.async("base64").then(function(data) {
 			return "data:" + mimeType + ";base64," + data;
 		});
 	}
 };
 
+/**
+ * Create a Url from an unarchived item
+ * @param  {string} url
+ * @param  {[object]} options.base64 use base64 encoding or blob url
+ * @return {Promise} url promise with Url string
+ */
 Archive.prototype.createUrl = function(url, options){
 	var deferred = new core.defer();
 	var _URL = window.URL || window.webkitURL || window.mozURL;
@@ -177,6 +232,10 @@ Archive.prototype.createUrl = function(url, options){
 	return deferred.promise;
 };
 
+/**
+ * Revoke Temp Url for a achive item
+ * @param  {string} url url of the item in the archive
+ */
 Archive.prototype.revokeUrl = function(url){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var fromCache = this.urlCache[url];

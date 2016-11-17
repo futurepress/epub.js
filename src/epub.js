@@ -7,7 +7,6 @@ var Contents = require('./contents');
  * Creates a new Book
  * @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
  * @param {object} options to pass to the book
- * @param options.requestMethod the request function to use
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */

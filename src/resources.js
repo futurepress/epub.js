@@ -3,9 +3,18 @@ var core = require('./core');
 var Path = require('./core').Path;
 var path = require('path');
 
+/**
+ * Handle Package Resources
+ * @class
+ * @param {Manifest} manifest
+ * @param {[object]} options
+ * @param {[string='base64']} options.replacements
+ * @param {[Archive]} options.archive
+ * @param {[method]} options.resolver
+ */
 function Resources(manifest, options) {
 	this.settings = {
-		base64: (options && options.base64) || true,
+		replacements: (options && options.replacements) || 'base64',
 		archive: (options && options.archive),
 		resolver: (options && options.resolver)
 	};
@@ -15,12 +24,16 @@ function Resources(manifest, options) {
 			return manifest[key];
 		});
 
-	this.replacementUrls = undefined;
+	this.replacementUrls = [];
 
 	this.split();
-	this.urls();
+	this.splitUrls();
 }
 
+/**
+ * Split resources by type
+ * @private
+ */
 Resources.prototype.split = function(){
 
 	// HTML
@@ -50,7 +63,11 @@ Resources.prototype.split = function(){
 		});
 };
 
-Resources.prototype.urls = function(){
+/**
+ * Convert split resources into Urls
+ * @private
+ */
+Resources.prototype.splitUrls = function(){
 
 	// All Assets Urls
 	this.urls = this.assets.
@@ -74,11 +91,18 @@ Resources.prototype.urls = function(){
 Resources.prototype.replacements = function(archive, resolver){
 	archive = archive || this.settings.archive;
 	resolver = resolver || this.settings.resolver;
+
+	if (this.settings.replacements === "none") {
+		return new Promise(function(resolve, reject) {
+			resolve(this.urls);
+		}.bind(this));
+	}
+
 	var replacements = this.urls.
 		map(function(url) {
 			var absolute = resolver(url);
 
-			return archive.createUrl(absolute, {"base64": this.settings.base64});
+			return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")});
 		}.bind(this))
 
 	return Promise.all(replacements)
@@ -88,12 +112,19 @@ Resources.prototype.replacements = function(archive, resolver){
 		}.bind(this));
 };
 
+/**
+ * Replace URLs in CSS resources
+ * @private
+ * @param  {[Archive]} archive
+ * @param  {[method]} resolver
+ * @return {Promise}
+ */
 Resources.prototype.replaceCss = function(archive, resolver){
 	var replaced = [];
 	archive = archive || this.settings.archive;
 	resolver = resolver || this.settings.resolver;
 	this.cssUrls.forEach(function(href) {
-		var replacment = this.createCssFile(href, archive, resolver)
+		var replacement = this.createCssFile(href, archive, resolver)
 			.then(function (replacementUrl) {
 				// switch the url in the replacementUrls
 				var indexInUrls = this.urls.indexOf(href);
@@ -102,11 +133,19 @@ Resources.prototype.replaceCss = function(archive, resolver){
 				}
 			}.bind(this));
 
-		replaced.push(replacment);
+		replaced.push(replacement);
 	}.bind(this));
 	return Promise.all(replaced);
 };
 
+/**
+ * Create a new CSS file with the replaced URLs
+ * @private
+ * @param  {string} href the original css file
+ * @param  {[Archive]} archive
+ * @param  {[method]} resolver
+ * @return {Promise}  returns a BlobUrl to the new CSS file or a data url
+ */
 Resources.prototype.createCssFile = function(href, archive, resolver){
 		var newUrl;
 		var indexInUrls;
@@ -136,7 +175,7 @@ Resources.prototype.createCssFile = function(href, archive, resolver){
 			text = replace.substitute(text, relUrls, this.replacementUrls);
 
 			// Get the new url
-			if (this.settings.base64) {
+			if (this.settings.replacements === "base64") {
 				newUrl = core.createBase64Url(text, 'text/css');
 			} else {
 				newUrl = core.createBlobUrl(text, 'text/css');
@@ -147,6 +186,12 @@ Resources.prototype.createCssFile = function(href, archive, resolver){
 
 };
 
+/**
+ * Resolve all resources URLs relative to an absolute URL
+ * @param  {string} absolute to be resolved to
+ * @param  {[resolver]} resolver
+ * @return {string[]} array with relative Urls
+ */
 Resources.prototype.relativeTo = function(absolute, resolver){
 	resolver = resolver || this.settings.resolver;
 
@@ -159,14 +204,24 @@ Resources.prototype.relativeTo = function(absolute, resolver){
 		}.bind(this));
 };
 
-Resources.prototype.substitute = function(content, url) {
-	var relUrls;
-	if (url) {
-		relUrls = this.relativeTo(url);
-	} else {
-		relUrls = this.urls;
+/**
+ * Get a URL for a resource
+ * @param  {string} path
+ * @return {string} url
+ */
+Resources.prototype.get = function(path) {
+	var indexInUrls = this.urls.indexOf(path);
+	if (indexInUrls === -1) {
+		return;
 	}
-	return replace.substitute(content, relUrls, this.replacementUrls);
-};
+	if (this.replacementUrls.length) {
+		return new Promise(function(resolve, reject) {
+			resolve(this.replacementUrls[indexInUrls]);
+		}.bind(this));
+	} else {
+		return archive.createUrl(absolute,
+			{"base64": (this.settings.replacements === "base64")})
+	}
+}
 
 module.exports = Resources;

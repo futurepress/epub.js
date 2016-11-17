@@ -9,8 +9,8 @@ describe('ePub', function() {
 		/*
 		// var packageContents = fs.readFileSync(__dirname + '/../books/moby-dick/OPS/package.opf', 'utf8');
 		// var tocContents = fs.readFileSync(__dirname + '/../books/moby-dick/OPS/toc.xhtml', 'utf8');
-		var packageContents = require('raw!./fixtures/moby-dick/OPS/package.opf');
-		var tocContents = require('raw!./fixtures/moby-dick/OPS/toc.xhtml');
+		var packageContents = require('raw-loader!./fixtures/moby-dick/OPS/package.opf');
+		var tocContents = require('raw-loader!./fixtures/moby-dick/OPS/toc.xhtml');
 
 		server = sinon.fakeServer.create();
 		server.autoRespond = true;

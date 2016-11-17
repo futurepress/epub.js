@@ -9,6 +9,20 @@ var Layout = require('./layout');
 var Mapping = require('./mapping');
 var Path = require('./core').Path;
 
+/**
+ * [Rendition description]
+ * @class
+ * @param {Book} book
+ * @param {object} options
+ * @param {int} options.width
+ * @param {int} options.height
+ * @param {string} options.ignoreClass
+ * @param {string} options.manager
+ * @param {string} options.view
+ * @param {string} options.layout
+ * @param {string} options.spread
+ * @param {int} options.minSpreadWidth overridden by spread: none (never) / both (always)
+ */
 function Rendition(book, options) {
 
 	this.settings = core.extend(this.settings || {}, {
@@ -20,11 +34,14 @@ function Rendition(book, options) {
 		flow: null,
 		layout: null,
 		spread: null,
-		minSpreadWidth: 800, //-- overridden by spread: none (never) / both (always),
-		useBase64: true
+		minSpreadWidth: 800
 	});
 
 	core.extend(this.settings, options);
+
+	if (typeof(this.settings.manager) === "object") {
+		this.manager = this.settings.manager;
+	}
 
 	this.viewSettings = {
 		ignoreClass: this.settings.ignoreClass
@@ -34,10 +51,17 @@ function Rendition(book, options) {
 
 	this.views = null;
 
-	//-- Adds Hook methods to the Rendition prototype
+	/**
+	 * Adds Hook methods to the Rendition prototype
+	 * @property {Hook} hooks
+	 */
 	this.hooks = {};
 	this.hooks.display = new Hook(this);
 	this.hooks.serialize = new Hook(this);
+	/**
+	 * @property {method} hooks.content
+	 * @type {Hook}
+	 */
 	this.hooks.content = new Hook(this);
 	this.hooks.layout = new Hook(this);
 	this.hooks.render = new Hook(this);
@@ -55,15 +79,24 @@ function Rendition(book, options) {
 	this.q.enqueue(this.book.opened);
 
 	// Block the queue until rendering is started
-	// this.starting = new core.defer();
-	// this.started = this.starting.promise;
+	this.starting = new core.defer();
+	this.started = this.starting.promise;
 	this.q.enqueue(this.start);
 };
 
+/**
+ * Set the manager function
+ * @param {function} manager
+ */
 Rendition.prototype.setManager = function(manager) {
 	this.manager = manager;
 };
 
+/**
+ * Require the manager from passed string, or as a function
+ * @param  {string|function} manager [description]
+ * @return {method}
+ */
 Rendition.prototype.requireManager = function(manager) {
 	var viewManager;
 
@@ -80,6 +113,11 @@ Rendition.prototype.requireManager = function(manager) {
 	return viewManager;
 };
 
+/**
+ * Require the view from passed string, or as a function
+ * @param  {string|function} view
+ * @return {view}
+ */
 Rendition.prototype.requireView = function(view) {
 	var View;
 
@@ -93,6 +131,10 @@ Rendition.prototype.requireView = function(view) {
 	return View;
 };
 
+/**
+ * Start the rendering
+ * @return {Promise} rendering has started
+ */
 Rendition.prototype.start = function(){
 
 	if(!this.manager) {
@@ -130,11 +172,15 @@ Rendition.prototype.start = function(){
 	this.emit("started");
 
 	// Start processing queue
-	// this.starting.resolve();
+	this.starting.resolve();
 };
 
-// Call to attach the container to an element in the dom
-// Container must be attached before rendering can begin
+/**
+ * Call to attach the container to an element in the dom
+ * Container must be attached before rendering can begin
+ * @param  {element} element to attach to
+ * @return {Promise}
+ */
 Rendition.prototype.attachTo = function(element){
 
 	return this.q.enqueue(function () {
@@ -152,6 +198,14 @@ Rendition.prototype.attachTo = function(element){
 
 };
 
+/**
+ * Display a point in the book
+ * The request will be added to the rendering Queue,
+ * so it will wait until book is opened, rendering started
+ * and all other rendering tasks have finished to be called.
+ * @param  {string} target Url or EpubCFI
+ * @return {Promise}
+ */
 Rendition.prototype.display = function(target){
 
 	// if (!this.book.spine.spineItems.length > 0) {
@@ -163,6 +217,12 @@ Rendition.prototype.display = function(target){
 
 };
 
+/**
+ * Tells the manager what to display immediately
+ * @private
+ * @param  {string} target Url or EpubCFI
+ * @return {Promise}
+ */
 Rendition.prototype._display = function(target){
 	var isCfiString = this.epubcfi.isCfiString(target);
 	var displaying = new core.defer();
@@ -240,12 +300,21 @@ Rendition.prototype.render = function(view, show) {
 };
 */
 
+/**
+ * Report what has been displayed
+ * @private
+ * @param  {*} view
+ */
 Rendition.prototype.afterDisplayed = function(view){
 	this.hooks.content.trigger(view, this);
 	this.emit("rendered", view.section);
 	this.reportLocation();
 };
 
+/**
+ * Report resize events and display the last seen location
+ * @private
+ */
 Rendition.prototype.onResized = function(size){
 
 	if(this.location) {
@@ -259,23 +328,42 @@ Rendition.prototype.onResized = function(size){
 
 };
 
+/**
+ * Move the Rendition to a specific offset
+ * Usually you would be better off calling display()
+ * @param {object} offset
+ */
 Rendition.prototype.moveTo = function(offset){
 	this.manager.moveTo(offset);
 };
 
+/**
+ * Go to the next "page" in the rendition
+ * @return {Promise}
+ */
 Rendition.prototype.next = function(){
 	return this.q.enqueue(this.manager.next.bind(this.manager))
 		.then(this.reportLocation.bind(this));
 };
 
+/**
+ * Go to the previous "page" in the rendition
+ * @return {Promise}
+ */
 Rendition.prototype.prev = function(){
 	return this.q.enqueue(this.manager.prev.bind(this.manager))
 		.then(this.reportLocation.bind(this));
 };
 
 //-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
+/**
+ * Determine the Layout properties from metadata and settings
+ * @private
+ * @param  {object} metadata
+ * @return {object} properties
+ */
 Rendition.prototype.determineLayoutProperties = function(metadata){
-	var settings;
+	var properties;
 	var layout = this.settings.layout || metadata.layout || "reflowable";
 	var spread = this.settings.spread || metadata.spread || "auto";
 	var orientation = this.settings.orientation || metadata.orientation || "auto";
@@ -287,7 +375,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		viewport = "width="+this.settings.width+", height="+this.settings.height+"";
 	}
 
-	settings = {
+	properties = {
 		layout : layout,
 		spread : spread,
 		orientation : orientation,
@@ -296,7 +384,7 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 		minSpreadWidth : minSpreadWidth
 	};
 
-	return settings;
+	return properties;
 };
 
 // Rendition.prototype.applyLayoutProperties = function(){
@@ -307,28 +395,34 @@ Rendition.prototype.determineLayoutProperties = function(metadata){
 // 	this.layout(settings);
 // };
 
-// paginated | scrolled
-// (scrolled-continuous vs scrolled-doc are handled by different view managers)
-Rendition.prototype.flow = function(_flow){
-	var flow;
-	if (_flow === "scrolled-doc" || _flow === "scrolled-continuous") {
-		flow = "scrolled";
+/**
+ * Adjust the flow of the rendition to paginated or scrolled
+ * (scrolled-continuous vs scrolled-doc are handled by different view managers)
+ * @param  {string} flow
+ */
+Rendition.prototype.flow = function(flow){
+	var _flow;
+	if (flow === "scrolled-doc" || flow === "scrolled-continuous") {
+		_flow = "scrolled";
 	}
 
-	if (_flow === "auto" || _flow === "paginated") {
-		flow = "paginated";
+	if (flow === "auto" || flow === "paginated") {
+		_flow = "paginated";
 	}
 
 	if (this._layout) {
-		this._layout.flow(flow);
+		this._layout.flow(_flow);
 	}
 
 	if (this.manager) {
-		this.manager.updateFlow(flow);
+		this.manager.updateFlow(_flow);
 	}
 };
 
-// reflowable | pre-paginated
+/**
+ * Adjust the layout of the rendition to reflowable or pre-paginated
+ * @param  {object} settings
+ */
 Rendition.prototype.layout = function(settings){
 	if (settings) {
 		this._layout = new Layout(settings);
@@ -344,7 +438,11 @@ Rendition.prototype.layout = function(settings){
 	return this._layout;
 };
 
-// none | auto (TODO: implement landscape, portrait, both)
+/**
+ * Adjust if the rendition uses spreads
+ * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
+ * @param  {int} min min width to use spreads at
+ */
 Rendition.prototype.spread = function(spread, min){
 
 	this._layout.spread(spread, min);
@@ -354,24 +452,63 @@ Rendition.prototype.spread = function(spread, min){
 	}
 };
 
-
+/**
+ * Report the current location
+ * @private
+ */
 Rendition.prototype.reportLocation = function(){
 	return this.q.enqueue(function(){
 		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
+
+				this.percentage = this.book.locations.percentageFromCfi(result);
+				if (this.percentage != null) {
+					this.location.percentage = this.percentage;
+				}
+
 				this.emit("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
+			this.percentage = this.book.locations.percentageFromCfi(location);
+			if (this.percentage != null) {
+				this.location.percentage = this.percentage;
+			}
+
 			this.emit("locationChanged", this.location);
 		}
 
 	}.bind(this));
 };
 
+/**
+ * Get the Current Location CFI
+ * @return {EpubCFI} location (may be a promise)
+ */
+Rendition.prototype.currentLocation = function(){
+	var location = this.manager.currentLocation();
+	if (location && location.then && typeof location.then === 'function') {
+		location.then(function(result) {
+			var percentage = this.book.locations.percentageFromCfi(result);
+			if (percentage != null) {
+				result.percentage = percentage;
+			}
+			return result;
+		}.bind(this));
+	} else if (location) {
+		var percentage = this.book.locations.percentageFromCfi(location);
+		if (percentage != null) {
+			location.percentage = percentage;
+		}
+		return location;
+	}
+};
 
+/**
+ * Remove and Clean Up the Rendition
+ */
 Rendition.prototype.destroy = function(){
 	// Clear the queue
 	this.q.clear();
@@ -379,6 +516,11 @@ Rendition.prototype.destroy = function(){
 	this.manager.destroy();
 };
 
+/**
+ * Pass the events from a view
+ * @private
+ * @param  {View} view
+ */
 Rendition.prototype.passViewEvents = function(view){
 	view.contents.listenedEvents.forEach(function(e){
 		view.on(e, this.triggerViewEvent.bind(this));
@@ -387,26 +529,46 @@ Rendition.prototype.passViewEvents = function(view){
 	view.on("selected", this.triggerSelectedEvent.bind(this));
 };
 
+/**
+ * Emit events passed by a view
+ * @private
+ * @param  {event} e
+ */
 Rendition.prototype.triggerViewEvent = function(e){
 	this.emit(e.type, e);
 };
 
+/**
+ * Emit a selection event's CFI Range passed from a a view
+ * @private
+ * @param  {EpubCFI} cfirange
+ */
 Rendition.prototype.triggerSelectedEvent = function(cfirange){
 	this.emit("selected", cfirange);
 };
 
-Rendition.prototype.range = function(_cfi, ignoreClass){
-	var cfi = new EpubCFI(_cfi);
+/**
+ * Get a Range from a Visible CFI
+ * @param  {string} cfi EpubCfi String
+ * @param  {string} ignoreClass
+ * @return {range}
+ */
+Rendition.prototype.range = function(cfi, ignoreClass){
+	var _cfi = new EpubCFI(cfi);
 	var found = this.visible().filter(function (view) {
-		if(cfi.spinePos === view.index) return true;
+		if(_cfi.spinePos === view.index) return true;
 	});
 
 	// Should only every return 1 item
 	if (found.length) {
-		return found[0].range(cfi, ignoreClass);
+		return found[0].range(_cfi, ignoreClass);
 	}
 };
 
+/**
+ * Hook to adjust images to fit in columns
+ * @param  {View} view
+ */
 Rendition.prototype.adjustImages = function(view) {
 
 	view.addStylesheetRules([

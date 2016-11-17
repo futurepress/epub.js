@@ -1,17 +1,19 @@
-//-- Hooks allow for injecting functions that must all complete in order before finishing
-//   They will execute in parallel but all must finish before continuing
-//   Functions may return a promise if they are asycn.
-
-// this.content = new EPUBJS.Hook();
-// this.content.register(function(){});
-// this.content.trigger(args).then(function(){});
-
+/**
+ * Hooks allow for injecting functions that must all complete in order before finishing
+ * They will execute in parallel but all must finish before continuing
+ * Functions may return a promise if they are asycn.
+ * @param {any} context scope of this
+ * @example this.content = new EPUBJS.Hook(this);
+ */
 function Hook(context){
 	this.context = context || this;
 	this.hooks = [];
 };
 
-// Adds a function to be run before a hook completes
+/**
+ * Adds a function to be run before a hook completes
+ * @example this.content.register(function(){...});
+ */
 Hook.prototype.register = function(){
 	for(var i = 0; i < arguments.length; ++i) {
 		if (typeof arguments[i]  === "function") {
@@ -25,7 +27,10 @@ Hook.prototype.register = function(){
 	}
 };
 
-// Triggers a hook to run all functions
+/**
+ * Triggers a hook to run all functions
+ * @example this.content.trigger(args).then(function(){...});
+ */
 Hook.prototype.trigger = function(){
 	var args = arguments;
 	var context = this.context;

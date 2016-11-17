@@ -555,8 +555,8 @@ function blob2base64(blob, cb) {
 	}
 }
 
+// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 function defer() {
-	// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
 	/* A method to resolve the associated Promise with the value passed.
 	 * If the promise is already settled it does nothing.
 	 *
@@ -575,6 +575,8 @@ function defer() {
 	 */
 	this.reject = null;
 
+	this.id = uuid();
+
 	/* A newly created Pomise object.
 	 * Initially in pending state.
 	 */
@@ -592,7 +594,7 @@ function defer() {
 	}
 	// Handle IE not supporting namespaced epub:type in querySelector
 	if(!query || query.length === 0) {
-		query = core.qsa(html, element);
+		query = this.qsa(html, element);
 		for (var i = 0; i < query.length; i++) {
 			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
 				return query[i];
