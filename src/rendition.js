@@ -315,7 +315,7 @@ Rendition.prototype.afterDisplayed = function(view){
  * Report resize events and display the last seen location
  * @private
  */
-Rendition.prototype.onResized = function(){
+Rendition.prototype.onResized = function(size){
 
 	if(this.location) {
 		this.display(this.location.start);
@@ -454,6 +454,7 @@ Rendition.prototype.spread = function(spread, min){
 
 /**
  * Report the current location
+ * @private
  */
 Rendition.prototype.reportLocation = function(){
 	return this.q.enqueue(function(){
@@ -461,14 +462,48 @@ Rendition.prototype.reportLocation = function(){
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
+
+				this.percentage = this.book.locations.percentageFromCfi(result);
+				if (this.percentage != null) {
+					this.location.percentage = this.percentage;
+				}
+
 				this.emit("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
+			this.percentage = this.book.locations.percentageFromCfi(location);
+			if (this.percentage != null) {
+				this.location.percentage = this.percentage;
+			}
+
 			this.emit("locationChanged", this.location);
 		}
 
 	}.bind(this));
+};
+
+/**
+ * Get the Current Location CFI
+ * @return {EpubCFI} location (may be a promise)
+ */
+Rendition.prototype.currentLocation = function(){
+	var location = this.manager.currentLocation();
+	if (location && location.then && typeof location.then === 'function') {
+		location.then(function(result) {
+			var percentage = this.book.locations.percentageFromCfi(result);
+			if (percentage != null) {
+				result.percentage = percentage;
+			}
+			return result;
+		}.bind(this));
+	} else if (location) {
+		var percentage = this.book.locations.percentageFromCfi(location);
+		if (percentage != null) {
+			location.percentage = percentage;
+		}
+		return location;
+	}
 };
 
 /**

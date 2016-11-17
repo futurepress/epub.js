@@ -159,6 +159,15 @@ DefaultViewManager.prototype.display = function(section, target){
 	this.views.clear();
 
 	this.add(section)
+		.then(function(view){
+
+			// Move to correct place within the section, if needed
+			if(target) {
+				offset = view.locationOf(target);
+				this.moveTo(offset);
+			}
+
+		}.bind(this))
 		.then(function(){
 			var next;
 			if (this.layout.name === "pre-paginated" &&
@@ -169,13 +178,7 @@ DefaultViewManager.prototype.display = function(section, target){
 				}
 			}
 		}.bind(this))
-		.then(function(view){
-
-			// Move to correct place within the section, if needed
-			if(target) {
-				offset = view.locationOf(target);
-				this.moveTo(offset);
-			}
+		.then(function(){
 
 			this.views.show();
 
@@ -362,15 +365,34 @@ DefaultViewManager.prototype.current = function(){
 };
 
 DefaultViewManager.prototype.currentLocation = function(){
+
+	if (this.settings.axis === "vertical") {
+		this.location = this.scrolledLocation();
+	} else {
+		this.location = this.paginatedLocation();
+	}
+	return this.location;
+};
+
+DefaultViewManager.prototype.scrolledLocation = function(){
+	var view;
+
+	if(this.views.length) {
+		view = this.views.first();
+		return this.mapping.page(view, view.section.cfiBase);
+	}
+
+};
+
+DefaultViewManager.prototype.paginatedLocation = function(){
 	var view;
 	var start, end;
 
 	if(this.views.length) {
 		view = this.views.first();
-		start = container.left - view.position().left;
-		end = start + this.layout.spread;
-
-		return this.mapping.page(view, view.section.cfiBase);
+		start = this._bounds.left - view.position().left;
+		end = start + this.layout.spreadWidth;
+		return this.mapping.page(view, view.section.cfiBase, start, end);
 	}
 
 };

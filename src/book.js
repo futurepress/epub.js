@@ -111,7 +111,7 @@ function Book(url, options){
 	/**
 	 * @property {Locations} locations
 	 */
-	this.locations = new Locations(this.spine, this.load);
+	this.locations = new Locations(this.spine, this.load.bind(this));
 
 	/**
 	 * @property {Navigation} navigation
@@ -173,7 +173,7 @@ Book.prototype.open = function(input, what){
 			.then(this.openEpub.bind(this));
 	} else if(type == "opf") {
 		this.url = new Url(input);
-		opening = this.openPackaging(input);
+		opening = this.openPackaging(this.url.Path.toString());
 	} else {
 		this.url = new Url(input);
 		opening = this.openContainer(CONTAINER_PATH)
@@ -223,7 +223,6 @@ Book.prototype.openContainer = function(url){
 Book.prototype.openPackaging = function(url){
 	var packageUrl;
 	this.path = new Path(url);
-
 	return this.load(url)
 		.then(function(xml) {
 			this.packaging = new Packaging(xml);
@@ -472,6 +471,16 @@ Book.prototype.range = function(cfiRange) {
 		var range = cfi.toRange(item.document);
 		return range;
 	})
+};
+
+/**
+ * Generates the Book Key using the identifer in the manifest or other string provided
+ * @param  {[string]} identifier to use instead of metadata identifier
+ * @return {string} key
+ */
+Book.prototype.key = function(identifier){
+	var ident = identifier || this.package.metadata.identifier || this.url.filename;
+	return "epubjs:" + ePub.VERSION + ":" + ident;
 };
 
 //-- Enable binding events to book

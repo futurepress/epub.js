@@ -304,6 +304,9 @@ EpubCFI.prototype.toString = function() {
 };
 
 EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
+	var stepsA, stepsB;
+	var terminalA, terminalB;
+
 	if(typeof cfiOne === 'string') {
 		cfiOne = new EpubCFI(cfiOne);
 	}
@@ -318,35 +321,51 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 		return -1;
 	}
 
+	if (cfiOne.range) {
+		stepsA = cfiOne.path.steps.concat(cfiOne.start.steps);
+		terminalA = cfiOne.start.terminal;
+	} else {
+		stepsA = cfiOne.path.steps;
+		terminalA = cfiOne.path.terminal;
+	}
+
+	if (cfiTwo.range) {
+		stepsB = cfiTwo.path.steps.concat(cfiTwo.start.steps);
+		terminalB = cfiTwo.start.terminal;
+	} else {
+		stepsB = cfiTwo.path.steps;
+		terminalB = cfiTwo.path.terminal;
+	}
 
 	// Compare Each Step in the First item
-	for (var i = 0; i < cfiOne.path.steps.length; i++) {
-		if(!cfiTwo.path.steps[i]) {
+	for (var i = 0; i < stepsA.length; i++) {
+		if(!stepsA[i]) {
+			return -1;
+		}
+		if(!stepsB[i]) {
 			return 1;
 		}
-		if(cfiOne.path.steps[i].index > cfiTwo.path.steps[i].index) {
+		if(stepsA[i].index > stepsB[i].index) {
 			return 1;
 		}
-		if(cfiOne.path.steps[i].index < cfiTwo.path.steps[i].index) {
+		if(stepsA[i].index < stepsB[i].index) {
 			return -1;
 		}
 		// Otherwise continue checking
 	}
 
 	// All steps in First equal to Second and First is Less Specific
-	if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
+	if(stepsA.length < stepsB.length) {
 		return 1;
 	}
 
 	// Compare the charecter offset of the text node
-	if(cfiOne.path.terminal.offset > cfiTwo.path.terminal.offset) {
+	if(terminalA.offset > terminalB.offset) {
 		return 1;
 	}
-	if(cfiOne.path.terminal.offset < cfiTwo.path.terminal.offset) {
+	if(terminalA.offset < terminalB.offset) {
 		return -1;
 	}
-
-	// TODO: compare ranges
 
 	// CFI's are equal
 	return 0;
@@ -485,7 +504,6 @@ EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 		}
 
 		cfi.start = this.pathTo(start, startOffset, ignoreClass);
-
 		if (needsIgnoring) {
 			endOffset = this.patchOffset(end, endOffset, ignoreClass);
 		}
@@ -504,7 +522,7 @@ EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 
 		for (i = 0; i < len; i++) {
 			if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
-				if(i == len-1) {
+				if(i === len-1) {
 					// Last step is equal, check terminals
 					if(cfi.start.terminal === cfi.end.terminal) {
 						// CFI's are equal

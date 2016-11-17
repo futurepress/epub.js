@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
-    "start": "webpack-dev-server --inline --hot",
+    "start": "webpack-dev-server --inline",
     "build": "./node_modules/.bin/gulp minify"
   },
   "author": "fchasen@gmail.com",

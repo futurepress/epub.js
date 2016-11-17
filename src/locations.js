@@ -51,7 +51,7 @@ Locations.prototype.generate = function(chars) {
 		}
 
 		return this._locations;
-		// console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
+		// console.log(this.percentage(this.book.rendition.location.start), this.percentage(this.book.rendition.location.end));
 	}.bind(this));
 
 };
@@ -63,9 +63,10 @@ Locations.prototype.process = function(section) {
 
 			var range;
 			var doc = contents.ownerDocument;
+			var body = core.qs(doc, 'body');
 			var counter = 0;
 
-			this.sprint(contents, function(node) {
+			this.sprint(body, function(node) {
 				var len = node.length;
 				var dist;
 				var pos = 0;
@@ -138,15 +139,17 @@ Locations.prototype.locationFromCfi = function(cfi){
 	if(this._locations.length === 0) {
 		return -1;
 	}
-
-	return core.locationOf(cfi, this._locations, this.epubcfi.compare);
+	return core.locationOf(cfi.start, this._locations, this.epubcfi.compare);
 };
 
-Locations.prototype.precentageFromCfi = function(cfi) {
+Locations.prototype.percentageFromCfi = function(cfi) {
+	if(this._locations.length === 0) {
+		return null;
+	}
 	// Find closest cfi
 	var loc = this.locationFromCfi(cfi);
 	// Get percentage in total
-	return this.precentageFromLocation(loc);
+	return this.percentageFromLocation(loc);
 };
 
 Locations.prototype.percentageFromLocation = function(loc) {
@@ -214,7 +217,7 @@ Locations.prototype.setCurrent = function(curr){
 	}
 
 	this.emit("changed", {
-		percentage: this.precentageFromLocation(loc)
+		percentage: this.percentageFromLocation(loc)
 	});
 };
 
