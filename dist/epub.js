@@ -1034,6 +1034,9 @@ EpubCFI.prototype.toString = function() {
 };
 
 EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
+	var stepsA, stepsB;
+	var terminalA, terminalB;
+
 	if(typeof cfiOne === 'string') {
 		cfiOne = new EpubCFI(cfiOne);
 	}
@@ -1048,35 +1051,51 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 		return -1;
 	}
 
+	if (cfiOne.range) {
+		stepsA = cfiOne.path.steps.concat(cfiOne.start.steps);
+		terminalA = cfiOne.start.terminal;
+	} else {
+		stepsA = cfiOne.path.steps;
+		terminalA = cfiOne.path.terminal;
+	}
+
+	if (cfiTwo.range) {
+		stepsB = cfiTwo.path.steps.concat(cfiTwo.start.steps);
+		terminalB = cfiTwo.start.terminal;
+	} else {
+		stepsB = cfiTwo.path.steps;
+		terminalB = cfiTwo.path.terminal;
+	}
 
 	// Compare Each Step in the First item
-	for (var i = 0; i < cfiOne.path.steps.length; i++) {
-		if(!cfiTwo.path.steps[i]) {
+	for (var i = 0; i < stepsA.length; i++) {
+		if(!stepsA[i]) {
+			return -1;
+		}
+		if(!stepsB[i]) {
 			return 1;
 		}
-		if(cfiOne.path.steps[i].index > cfiTwo.path.steps[i].index) {
+		if(stepsA[i].index > stepsB[i].index) {
 			return 1;
 		}
-		if(cfiOne.path.steps[i].index < cfiTwo.path.steps[i].index) {
+		if(stepsA[i].index < stepsB[i].index) {
 			return -1;
 		}
 		// Otherwise continue checking
 	}
 
 	// All steps in First equal to Second and First is Less Specific
-	if(cfiOne.path.steps.length < cfiTwo.path.steps.length) {
+	if(stepsA.length < stepsB.length) {
 		return 1;
 	}
 
 	// Compare the charecter offset of the text node
-	if(cfiOne.path.terminal.offset > cfiTwo.path.terminal.offset) {
+	if(terminalA.offset > terminalB.offset) {
 		return 1;
 	}
-	if(cfiOne.path.terminal.offset < cfiTwo.path.terminal.offset) {
+	if(terminalA.offset < terminalB.offset) {
 		return -1;
 	}
-
-	// TODO: compare ranges
 
 	// CFI's are equal
 	return 0;
@@ -1215,7 +1234,6 @@ EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 		}
 
 		cfi.start = this.pathTo(start, startOffset, ignoreClass);
-
 		if (needsIgnoring) {
 			endOffset = this.patchOffset(end, endOffset, ignoreClass);
 		}
@@ -1234,7 +1252,7 @@ EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 
 		for (i = 0; i < len; i++) {
 			if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
-				if(i == len-1) {
+				if(i === len-1) {
 					// Last step is equal, check terminals
 					if(cfi.start.terminal === cfi.end.terminal) {
 						// CFI's are equal
@@ -4270,6 +4288,15 @@ DefaultViewManager.prototype.display = function(section, target){
 	this.views.clear();
 
 	this.add(section)
+		.then(function(view){
+
+			// Move to correct place within the section, if needed
+			if(target) {
+				offset = view.locationOf(target);
+				this.moveTo(offset);
+			}
+
+		}.bind(this))
 		.then(function(){
 			var next;
 			if (this.layout.name === "pre-paginated" &&
@@ -4280,13 +4307,7 @@ DefaultViewManager.prototype.display = function(section, target){
 				}
 			}
 		}.bind(this))
-		.then(function(view){
-
-			// Move to correct place within the section, if needed
-			if(target) {
-				offset = view.locationOf(target);
-				this.moveTo(offset);
-			}
+		.then(function(){
 
 			this.views.show();
 
@@ -4473,15 +4494,34 @@ DefaultViewManager.prototype.current = function(){
 };
 
 DefaultViewManager.prototype.currentLocation = function(){
+
+	if (this.settings.axis === "vertical") {
+		this.location = this.scrolledLocation();
+	} else {
+		this.location = this.paginatedLocation();
+	}
+	return this.location;
+};
+
+DefaultViewManager.prototype.scrolledLocation = function(){
+	var view;
+
+	if(this.views.length) {
+		view = this.views.first();
+		return this.mapping.page(view, view.section.cfiBase);
+	}
+
+};
+
+DefaultViewManager.prototype.paginatedLocation = function(){
 	var view;
 	var start, end;
 
 	if(this.views.length) {
 		view = this.views.first();
-		start = container.left - view.position().left;
-		end = start + this.layout.spread;
-
-		return this.mapping.page(view, view.section.cfiBase);
+		start = this._bounds.left - view.position().left;
+		end = start + this.layout.spreadWidth;
+		return this.mapping.page(view, view.section.cfiBase, start, end);
 	}
 
 };
@@ -4975,7 +5015,7 @@ Rendition.prototype.afterDisplayed = function(view){
  * Report resize events and display the last seen location
  * @private
  */
-Rendition.prototype.onResized = function(){
+Rendition.prototype.onResized = function(size){
 
 	if(this.location) {
 		this.display(this.location.start);
@@ -5114,6 +5154,7 @@ Rendition.prototype.spread = function(spread, min){
 
 /**
  * Report the current location
+ * @private
  */
 Rendition.prototype.reportLocation = function(){
 	return this.q.enqueue(function(){
@@ -5121,14 +5162,48 @@ Rendition.prototype.reportLocation = function(){
 		if (location && location.then && typeof location.then === 'function') {
 			location.then(function(result) {
 				this.location = result;
+
+				this.percentage = this.book.locations.percentageFromCfi(result);
+				if (this.percentage != null) {
+					this.location.percentage = this.percentage;
+				}
+
 				this.emit("locationChanged", this.location);
 			}.bind(this));
 		} else if (location) {
 			this.location = location;
+			this.percentage = this.book.locations.percentageFromCfi(location);
+			if (this.percentage != null) {
+				this.location.percentage = this.percentage;
+			}
+
 			this.emit("locationChanged", this.location);
 		}
 
 	}.bind(this));
+};
+
+/**
+ * Get the Current Location CFI
+ * @return {EpubCFI} location (may be a promise)
+ */
+Rendition.prototype.currentLocation = function(){
+	var location = this.manager.currentLocation();
+	if (location && location.then && typeof location.then === 'function') {
+		location.then(function(result) {
+			var percentage = this.book.locations.percentageFromCfi(result);
+			if (percentage != null) {
+				result.percentage = percentage;
+			}
+			return result;
+		}.bind(this));
+	} else if (location) {
+		var percentage = this.book.locations.percentageFromCfi(location);
+		if (percentage != null) {
+			location.percentage = percentage;
+		}
+		return location;
+	}
 };
 
 /**
@@ -5341,7 +5416,7 @@ function Book(url, options){
 	/**
 	 * @property {Locations} locations
 	 */
-	this.locations = new Locations(this.spine, this.load);
+	this.locations = new Locations(this.spine, this.load.bind(this));
 
 	/**
 	 * @property {Navigation} navigation
@@ -5403,7 +5478,7 @@ Book.prototype.open = function(input, what){
 			.then(this.openEpub.bind(this));
 	} else if(type == "opf") {
 		this.url = new Url(input);
-		opening = this.openPackaging(input);
+		opening = this.openPackaging(this.url.Path.toString());
 	} else {
 		this.url = new Url(input);
 		opening = this.openContainer(CONTAINER_PATH)
@@ -5453,7 +5528,6 @@ Book.prototype.openContainer = function(url){
 Book.prototype.openPackaging = function(url){
 	var packageUrl;
 	this.path = new Path(url);
-
 	return this.load(url)
 		.then(function(xml) {
 			this.packaging = new Packaging(xml);
@@ -5702,6 +5776,16 @@ Book.prototype.range = function(cfiRange) {
 		var range = cfi.toRange(item.document);
 		return range;
 	})
+};
+
+/**
+ * Generates the Book Key using the identifer in the manifest or other string provided
+ * @param  {[string]} identifier to use instead of metadata identifier
+ * @return {string} key
+ */
+Book.prototype.key = function(identifier){
+	var ident = identifier || this.package.metadata.identifier || this.url.filename;
+	return "epubjs:" + ePub.VERSION + ":" + ident;
 };
 
 //-- Enable binding events to book
@@ -8061,7 +8145,7 @@ Locations.prototype.generate = function(chars) {
 		}
 
 		return this._locations;
-		// console.log(this.precentage(this.book.rendition.location.start), this.precentage(this.book.rendition.location.end));
+		// console.log(this.percentage(this.book.rendition.location.start), this.percentage(this.book.rendition.location.end));
 	}.bind(this));
 
 };
@@ -8073,9 +8157,10 @@ Locations.prototype.process = function(section) {
 
 			var range;
 			var doc = contents.ownerDocument;
+			var body = core.qs(doc, 'body');
 			var counter = 0;
 
-			this.sprint(contents, function(node) {
+			this.sprint(body, function(node) {
 				var len = node.length;
 				var dist;
 				var pos = 0;
@@ -8148,15 +8233,17 @@ Locations.prototype.locationFromCfi = function(cfi){
 	if(this._locations.length === 0) {
 		return -1;
 	}
-
-	return core.locationOf(cfi, this._locations, this.epubcfi.compare);
+	return core.locationOf(cfi.start, this._locations, this.epubcfi.compare);
 };
 
-Locations.prototype.precentageFromCfi = function(cfi) {
+Locations.prototype.percentageFromCfi = function(cfi) {
+	if(this._locations.length === 0) {
+		return null;
+	}
 	// Find closest cfi
 	var loc = this.locationFromCfi(cfi);
 	// Get percentage in total
-	return this.precentageFromLocation(loc);
+	return this.percentageFromLocation(loc);
 };
 
 Locations.prototype.percentageFromLocation = function(loc) {
@@ -8224,7 +8311,7 @@ Locations.prototype.setCurrent = function(curr){
 	}
 
 	this.emit("changed", {
-		percentage: this.precentageFromLocation(loc)
+		percentage: this.percentageFromLocation(loc)
 	});
 };
 

@@ -148,6 +148,12 @@
                         #range
                       </a></li>
                       
+                      <li><a
+                        href='#Book#key'
+                        class='regular pre-open'>
+                        #key
+                      </a></li>
+                      
                     </ul>
                   
                   
@@ -671,9 +677,9 @@
                       </a></li>
                       
                       <li><a
-                        href='#Rendition#reportLocation'
+                        href='#Rendition#currentLocation'
                         class='regular pre-open'>
-                        #reportLocation
+                        #currentLocation
                       </a></li>
                       
                       <li><a
@@ -1176,7 +1182,7 @@
                   
                     (default <code>base64</code>)
                   </td>
-                  <td class='break-word'><span>use base64, blobs, or none for replacing assets in archived Epubs
+                  <td class='break-word'><span>use base64, blobUrl, or none for replacing assets in archived Epubs
 </span></td>
                 </tr>
               
@@ -1207,6 +1213,9 @@
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">new</span> Book(<span class="hljs-string">"/path/to/book.epub"</span>, {})</pre>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">new</span> Book({ <span class="hljs-attr">replacements</span>: <span class="hljs-string">"blobUrl"</span> })</pre>
     
   
 
@@ -2055,6 +2064,72 @@
       <div class='py1 quiet mt1 prose-big'>Returns</div>
       <code><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input">Range</a></code>:
         
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='Book#key'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>key(identifier)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Generates the Book Key using the identifer in the manifest or other string provided</p>
+
+
+  <div class='pre p1 fill-light mt0'>key(identifier: [<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>]): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+
+  
+
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>identifier</span> <code class='quiet'>([<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>])</code> to use instead of metadata identifier
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        key
 
       
     
@@ -6067,11 +6142,11 @@ Usually you would be better off calling display()</p>
       </div>
     </div>
   
-    <div class='border-bottom' id='Rendition#reportLocation'>
+    <div class='border-bottom' id='Rendition#currentLocation'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>reportLocation()</span>
+            <span class='code strong strong truncate'>currentLocation()</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -6079,23 +6154,31 @@ Usually you would be better off calling display()</p>
 
   
 
-  <p>Report the current location</p>
+  <p>Get the Current Location CFI</p>
 
 
-  <div class='pre p1 fill-light mt0'>reportLocation()</div>
-
-  
-
-  
-  
-  
-  
-  
+  <div class='pre p1 fill-light mt0'>currentLocation(): <a href="#epubcfi">EpubCFI</a></div>
 
   
 
   
+  
+  
+  
+  
 
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="#epubcfi">EpubCFI</a></code>:
+        location (may be a promise)
+
+      
+    
   
 
   

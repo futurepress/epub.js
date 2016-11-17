@@ -77,13 +77,24 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ({
 
 /***/ 14:
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-/* Any copyright is dedicated to the Public Domain.
+"use strict";
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
-
-(function(scope) {
-  'use strict';
+'use strict';
+(function (root, factory) {
+    if (true) {
+        // AMD. Register as an anonymous module.
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof module === 'object' && module.exports) {
+        // Node
+        module.exports = factory(global);
+    } else {
+        // Browser globals (root is window)
+        root.URL = factory(root);
+  }
+}(this, function (scope) {
 
   // feature detect for URL constructor
   var hasWorkingUrl = false;
@@ -96,7 +107,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   if (hasWorkingUrl)
-    return;
+    return scope.URL;
 
   var relative = Object.create(null);
   relative['ftp'] = 21;
@@ -692,14 +703,8 @@ return /******/ (function(modules) { // webpackBootstrap
     };
   }
 
-  scope.URL = jURL;
-
-	// Export for CommonJS
-  if (typeof module === 'object' && module.exports) {
-    module.exports = jURL;
-  }
-
-})(this);
+  return jURL;
+}));
 
 
 /***/ },

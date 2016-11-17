@@ -41,12 +41,16 @@ Creates a new Book
     -   `options.requestCredentials` **\[[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)]** send the xhr request withCredentials (optional, default `undefined`)
     -   `options.requestHeaders` **\[[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)]** send the xhr request headers (optional, default `undefined`)
     -   `options.encoding` **\[[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)]** optional to pass 'binary' or base64' for archived Epubs (optional, default `binary`)
-    -   `options.replacements` **\[[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)]** use base64, blobs, or none for replacing assets in archived Epubs (optional, default `base64`)
+    -   `options.replacements` **\[[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)]** use base64, blobUrl, or none for replacing assets in archived Epubs (optional, default `base64`)
 
 **Examples**
 
 ```javascript
 new Book("/path/to/book.epub", {})
+```
+
+```javascript
+new Book({ replacements: "blobUrl" })
 ```
 
 Returns **[Book](#book)** 
@@ -169,6 +173,16 @@ Find a DOM Range for a given CFI Range
 -   `cfiRange` **[EpubCFI](#epubcfi)** a epub cfi range
 
 Returns **[Range](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input)** 
+
+## key
+
+Generates the Book Key using the identifer in the manifest or other string provided
+
+**Parameters**
+
+-   `identifier` **\[[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)]** to use instead of metadata identifier
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** key
 
 # Url
 
@@ -765,9 +779,11 @@ Adjust if the rendition uses spreads
 -   `spread` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** none | auto (TODO: implement landscape, portrait, both)
 -   `min` **int** min width to use spreads at
 
-## reportLocation
+## currentLocation
 
-Report the current location
+Get the Current Location CFI
+
+Returns **[EpubCFI](#epubcfi)** location (may be a promise)
 
 ## destroy
 
