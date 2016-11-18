@@ -321,9 +321,9 @@ Book.prototype.unpack = function(opf){
 		replacements: this.settings.replacements
 	});
 
-	this.loadNavigation(this.package).then(function(toc){
-		this.toc = toc;
-		this.loading.navigation.resolve(this.toc);
+	this.loadNavigation(this.package).then(function(){
+		this.toc = this.navigation.toc;
+		this.loading.navigation.resolve(this.navigation);
 	}.bind(this));
 
 	this.cover = this.resolve(this.package.coverPath);
@@ -366,6 +366,7 @@ Book.prototype.loadNavigation = function(opf){
 		.then(function(xml) {
 			this.navigation = new Navigation(xml);
 			this.pageList = new PageList(xml);
+			return this.navigation;
 		}.bind(this));
 };
 
@@ -480,7 +481,7 @@ Book.prototype.range = function(cfiRange) {
  */
 Book.prototype.key = function(identifier){
 	var ident = identifier || this.package.metadata.identifier || this.url.filename;
-	return "epubjs:" + ePub.VERSION + ":" + ident;
+	return "epubjs:" + (EPUBJS_VERSION || ePub.VERSION) + ":" + ident;
 };
 
 //-- Enable binding events to book

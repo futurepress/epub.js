@@ -250,7 +250,7 @@ Rendition.prototype._display = function(target){
 
 	return this.manager.display(section, moveTo)
 		.then(function(){
-			this.emit("displayed", section);
+			// this.emit("displayed", section);
 		}.bind(this));
 
 };

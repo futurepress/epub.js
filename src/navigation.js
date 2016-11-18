@@ -188,4 +188,13 @@ Navigation.prototype.ncxItem = function(item){
 	};
 };
 
+/**
+ * forEach pass through
+ * @param  {Function} fn function to run on each item
+ * @return {method} forEach loop
+ */
+Navigation.prototype.forEach = function(fn) {
+	return this.toc.forEach(fn);
+};
+
 module.exports = Navigation;

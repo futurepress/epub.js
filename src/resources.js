@@ -224,4 +224,22 @@ Resources.prototype.get = function(path) {
 	}
 }
 
+/**
+ * Substitute urls in content, with replacements,
+ * relative to a url if provided
+ * @param  {string} content
+ * @param  {[string]} url   url to resolve to
+ * @return {string}         content with urls substituted
+ */
+Resources.prototype.substitute = function(content, url) {
+	var relUrls;
+	if (url) {
+		relUrls = this.relativeTo(url);
+	} else {
+		relUrls = this.urls;
+	}
+	return replace.substitute(content, relUrls, this.replacementUrls);
+};
+
+
 module.exports = Resources;

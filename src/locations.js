@@ -70,7 +70,7 @@ Locations.prototype.process = function(section) {
 				var len = node.length;
 				var dist;
 				var pos = 0;
-
+				console.log(counter);
 				// Start range
 				if (counter == 0) {
 					range = doc.createRange();
@@ -84,6 +84,7 @@ Locations.prototype.process = function(section) {
 					counter += len;
 					pos = len;
 				}
+				console.log(counter);
 
 				while (pos < len) {
 					counter = this.break;
@@ -101,12 +102,14 @@ Locations.prototype.process = function(section) {
 						cfi = section.cfiFromRange(range);
 						this._locations.push(cfi);
 						counter = 0;
+						console.log(cfi);
 
 						// Start new range
 						pos += 1;
 						range = doc.createRange();
 						range.setStart(node, pos);
 					}
+					console.log(counter);
 				}
 
 

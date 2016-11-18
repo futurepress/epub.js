@@ -16,6 +16,10 @@ function ePub(url, options) {
 
 ePub.VERSION = "0.3.0";
 
+if (typeof(global) !== "undefined") {
+	global.EPUBJS_VERSION = ePub.VERSION;
+}
+
 ePub.CFI = EpubCFI;
 ePub.Rendition = Rendition;
 ePub.Contents = Contents;
