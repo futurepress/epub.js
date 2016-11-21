@@ -14,6 +14,11 @@ var core = require('./core');
 	- Text Location Assertion ([)
 */
 
+var ELEMENT_NODE = 1;
+var TEXT_NODE = 3;
+var COMMENT_NODE = 8;
+var DOCUMENT_NODE = 9;
+
 function EpubCFI(cfiFrom, base, ignoreClass){
 	var type;
 
@@ -64,7 +69,7 @@ EpubCFI.prototype.checkType = function(cfi) {
 	if (this.isCfiString(cfi)) {
 		return 'string';
 	// Is a range object
-	} else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
+} else if (typeof cfi === 'object' && (core.type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
 		return 'range';
 	} else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
 		return 'node';
@@ -372,7 +377,7 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 };
 
 EpubCFI.prototype.step = function(node) {
-	var nodeType = (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	var nodeType = (node.nodeType === TEXT_NODE) ? 'text' : 'element';
 
 	return {
 		'id' : node.id,
@@ -392,7 +397,7 @@ EpubCFI.prototype.filteredStep = function(node, ignoreClass) {
 	}
 
 	// Otherwise add the filter node in
-	nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	nodeType = (filteredNode.nodeType === TEXT_NODE) ? 'text' : 'element';
 
 	return {
 		'id' : filteredNode.id,
@@ -414,7 +419,7 @@ EpubCFI.prototype.pathTo = function(node, offset, ignoreClass) {
 	var step;
 
 	while(currentNode && currentNode.parentNode &&
-				currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
+				currentNode.parentNode.nodeType != DOCUMENT_NODE) {
 
 		if (ignoreClass) {
 			step = this.filteredStep(currentNode, ignoreClass);
@@ -461,6 +466,7 @@ EpubCFI.prototype.equalStep = function(stepA, stepB) {
 
 	return false;
 };
+
 EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 	var cfi = {
 			range: false,
@@ -576,14 +582,13 @@ EpubCFI.prototype.fromNode = function(anchor, base, ignoreClass) {
 	return cfi;
 };
 
-
 EpubCFI.prototype.filter = function(anchor, ignoreClass) {
 	var needsIgnoring;
 	var sibling; // to join with
 	var parent, prevSibling, nextSibling;
 	var isText = false;
 
-	if (anchor.nodeType === Node.TEXT_NODE) {
+	if (anchor.nodeType === TEXT_NODE) {
 		isText = true;
 		parent = anchor.parentNode;
 		needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
@@ -597,9 +602,9 @@ EpubCFI.prototype.filter = function(anchor, ignoreClass) {
 		nextSibling = parent.nextSibling;
 
 		// If the sibling is a text node, join the nodes
-		if (previousSibling && previousSibling.nodeType === Node.TEXT_NODE) {
+		if (previousSibling && previousSibling.nodeType === TEXT_NODE) {
 			sibling = previousSibling;
-		} else if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+		} else if (nextSibling && nextSibling.nodeType === TEXT_NODE) {
 			sibling = nextSibling;
 		}
 
@@ -624,7 +629,7 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
 	var needsIgnoring;
 	var sibling;
 
-	if (anchor.nodeType != Node.TEXT_NODE) {
+	if (anchor.nodeType != TEXT_NODE) {
 		console.error("Anchor must be a text node");
 		return;
 	}
@@ -638,7 +643,7 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
 	}
 
 	while (curr.previousSibling) {
-		if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
+		if(curr.previousSibling.nodeType === ELEMENT_NODE) {
 			// Originally a text node, so join
 			if(curr.previousSibling.classList.contains(ignoreClass)){
 				totalOffset += curr.previousSibling.textContent.length;
@@ -669,14 +674,14 @@ EpubCFI.prototype.normalizedMap = function(children, nodeType, ignoreClass) {
 		currNodeType = children[i].nodeType;
 
 		// Check if needs ignoring
-		if (currNodeType === Node.ELEMENT_NODE &&
+		if (currNodeType === ELEMENT_NODE &&
 				children[i].classList.contains(ignoreClass)) {
-			currNodeType = Node.TEXT_NODE;
+			currNodeType = TEXT_NODE;
 		}
 
 		if (i > 0 &&
-				currNodeType === Node.TEXT_NODE &&
-				prevNodeType === Node.TEXT_NODE) {
+				currNodeType === TEXT_NODE &&
+				prevNodeType === TEXT_NODE) {
 			// join text nodes
 			output[i] = prevIndex;
 		} else if (nodeType === currNodeType){
@@ -693,9 +698,12 @@ EpubCFI.prototype.normalizedMap = function(children, nodeType, ignoreClass) {
 
 EpubCFI.prototype.position = function(anchor) {
 	var children, index, map;
-
-	if (anchor.nodeType === Node.ELEMENT_NODE) {
+	var childNodes, node;
+	if (anchor.nodeType === ELEMENT_NODE) {
 		children = anchor.parentNode.children;
+		if (!children) {
+			children = core.children(anchor.parentNode);
+		}
 		index = Array.prototype.indexOf.call(children, anchor);
 	} else {
 		children = this.textNodes(anchor.parentNode);
@@ -708,9 +716,9 @@ EpubCFI.prototype.position = function(anchor) {
 EpubCFI.prototype.filteredPosition = function(anchor, ignoreClass) {
 	var children, index, map;
 
-	if (anchor.nodeType === Node.ELEMENT_NODE) {
+	if (anchor.nodeType === ELEMENT_NODE) {
 		children = anchor.parentNode.children;
-		map = this.normalizedMap(children, Node.ELEMENT_NODE, ignoreClass);
+		map = this.normalizedMap(children, ELEMENT_NODE, ignoreClass);
 	} else {
 		children = anchor.parentNode.childNodes;
 		// Inside an ignored node
@@ -718,7 +726,7 @@ EpubCFI.prototype.filteredPosition = function(anchor, ignoreClass) {
 			anchor = anchor.parentNode;
 			children = anchor.parentNode.childNodes;
 		}
-		map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+		map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
 	}
 
 
@@ -784,7 +792,7 @@ EpubCFI.prototype.stepsToQuerySelector = function(steps) {
 EpubCFI.prototype.textNodes = function(container, ignoreClass) {
 	return Array.prototype.slice.call(container.childNodes).
 		filter(function (node) {
-			if (node.nodeType === Node.TEXT_NODE) {
+			if (node.nodeType === TEXT_NODE) {
 				return true;
 			} else if (ignoreClass && node.classList.contains(ignoreClass)) {
 				return true;
@@ -834,7 +842,7 @@ EpubCFI.prototype.findNode = function(steps, _doc, ignoreClass) {
 EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 	var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
 	var children = container.childNodes;
-	var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+	var map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
 	var i;
 	var child;
 	var len;
@@ -850,7 +858,7 @@ EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 			if(offset > len) {
 				offset = offset - len;
 			} else {
-				if (child.nodeType === Node.ELEMENT_NODE) {
+				if (child.nodeType === ELEMENT_NODE) {
 					container = child.childNodes[0];
 				} else {
 					container = child;

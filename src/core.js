@@ -485,11 +485,10 @@ function type(obj){
 	return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
-function parse(markup, mime) {
+function parse(markup, mime, forceXMLDom) {
 	var doc;
-	// console.log("parse", markup);
 
-	if (typeof DOMParser === "undefined") {
+	if (typeof DOMParser === "undefined" || forceXMLDom) {
 		DOMParser = require('xmldom').DOMParser;
 	}
 
@@ -501,6 +500,9 @@ function parse(markup, mime) {
 
 function qs(el, sel) {
 	var elements;
+	if (!el) {
+		throw new Error('No Element Provided');
+	}
 
 	if (typeof el.querySelector != "undefined") {
 		return el.querySelector(sel);
@@ -544,6 +546,61 @@ function qsp(el, sel, props) {
 		if (filtered) {
 			return filtered[0];
 		}
+	}
+}
+
+/**
+ * Sprint through all text nodes in a document
+ * @param  {element} root element to start with
+ * @param  {function} func function to run on each element
+ */
+function sprint(root, func) {
+	var doc = root.ownerDocument || root;
+	if (typeof(doc.createTreeWalker) !== "undefined") {
+		treeWalker(root, func, NodeFilter.SHOW_TEXT);
+	} else {
+		walk(root, function(node) {
+			if (node && node.nodeType === 3) { // Node.TEXT_NODE
+				func(node);
+			}
+		}, true);
+	}
+}
+
+function treeWalker(root, func, filter) {
+	var treeWalker = document.createTreeWalker(root, filter, null, false);
+	while ((node = treeWalker.nextNode())) {
+		func(node);
+	}
+}
+
+// function walk(root, func, onlyText) {
+// 	var node = root;
+//
+// 	if (node && !onlyText || node.nodeType === 3) { // Node.TEXT_NODE
+// 		func(node);
+// 	}
+// 	console.log(root);
+//
+// 	node = node.firstChild;
+// 	while(node) {
+// 		walk(node, func, onlyText);
+// 		node = node.nextSibling;
+// 	}
+// }
+
+/**
+ * @param callback return false for continue,true for break
+ * @return boolean true: break visit;
+ */
+function walk(node,callback){
+	if(callback(node)){
+		return true;
+	}
+	if(node = node.firstChild){
+		do{
+			if(walk(node,callback)){return true}
+		}while(node=node.nextSibling)
 	}
 }
 
@@ -605,7 +662,17 @@ function defer() {
 	}
 }
 
-
+function children(el) {
+	var children = [];
+	var childNodes = el.parentNode.childNodes;
+	for (var i = 0; i < childNodes.length; i++) {
+		node = childNodes[i];
+		if (node.nodeType === 1) {
+			children.push(node);
+		}
+	};
+	return children;
+}
 
 module.exports = {
 	'isElement': isElement,
@@ -640,5 +707,7 @@ module.exports = {
 	'defer': defer,
 	'Url': Url,
 	'Path': Path,
-	'querySelectorByType': querySelectorByType
+	'querySelectorByType': querySelectorByType,
+	'sprint' : sprint,
+	'children' : children
 };

@@ -39,7 +39,7 @@ Locations.prototype.generate = function(chars) {
 
 	this.spine.each(function(section) {
 
-		this.q.enqueue(this.process, section);
+		this.q.enqueue(this.process.bind(this), section);
 
 	}.bind(this));
 
@@ -56,85 +56,100 @@ Locations.prototype.generate = function(chars) {
 
 };
 
+Locations.prototype.createRange = function () {
+	return {
+		startContainer: undefined,
+		startOffset: undefined,
+		endContainer: undefined,
+		endOffset: undefined
+	}
+};
+
 Locations.prototype.process = function(section) {
 
 	return section.load(this.request)
 		.then(function(contents) {
-
-			var range;
-			var doc = contents.ownerDocument;
-			var body = core.qs(doc, 'body');
-			var counter = 0;
-
-			this.sprint(body, function(node) {
-				var len = node.length;
-				var dist;
-				var pos = 0;
-				console.log(counter);
-				// Start range
-				if (counter == 0) {
-					range = doc.createRange();
-					range.setStart(node, 0);
-				}
-
-				dist = this.break - counter;
-
-				// Node is smaller than a break
-				if(dist > len){
-					counter += len;
-					pos = len;
-				}
-				console.log(counter);
-
-				while (pos < len) {
-					counter = this.break;
-					pos += this.break;
-
-					// Gone over
-					if(pos >= len){
-						// Continue counter for next node
-						counter = len - (pos - this.break);
-
-					// At End
-					} else {
-						// End the previous range
-						range.setEnd(node, pos);
-						cfi = section.cfiFromRange(range);
-						this._locations.push(cfi);
-						counter = 0;
-						console.log(cfi);
-
-						// Start new range
-						pos += 1;
-						range = doc.createRange();
-						range.setStart(node, pos);
-					}
-					console.log(counter);
-				}
-
-
-
-			}.bind(this));
-
-			// Close remaining
-			if (range) {
-				range.setEnd(prev, prev.length);
-				cfi = section.cfiFromRange(range);
-				this._locations.push(cfi)
-				counter = 0;
-			}
-
+			var locations = this.parse(contents, section.cfiBase);
+			this._locations = this._locations.concat(locations);
 		}.bind(this));
 
 };
 
-Locations.prototype.sprint = function(root, func) {
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+Locations.prototype.parse = function(contents, cfiBase, chars) {
+	var locations = [];
+	var range;
+	var doc = contents.ownerDocument;
+	var body = core.qs(doc, 'body');
+	var counter = 0;
+	var prev;
+	var _break = chars || this.break;
+	var parser = function(node) {
+		var len = node.length;
+		var dist;
+		var pos = 0;
 
-	while ((node = treeWalker.nextNode())) {
-		func(node);
+		if (node.textContent.trim().length === 0) {
+			return false; // continue
+		}
+
+		// Start range
+		if (counter == 0) {
+			range = this.createRange();
+			range.startContainer = node;
+			range.startOffset = 0;
+		}
+
+		dist = _break - counter;
+
+		// Node is smaller than a break,
+		// skip over it
+		if(dist > len){
+			counter += len;
+			pos = len;
+		}
+
+		while (pos < len) {
+			// counter = this.break;
+			pos += dist;
+			// Gone over
+			if(pos >= len){
+				// Continue counter for next node
+				counter = len - (pos - _break);
+			// At End
+			} else {
+				// End the previous range
+				range.endContainer = node;
+				range.endOffset = pos;
+				// cfi = section.cfiFromRange(range);
+				cfi = new EpubCFI(range, cfiBase).toString();
+				locations.push(cfi);
+				counter = 0;
+
+				// Start new range
+				pos += 1;
+				range = this.createRange();
+				range.startContainer = node;
+				range.startOffset = pos;
+
+				dist = _break;
+			}
+		}
+		prev = node;
+	};
+
+	core.sprint(body, parser.bind(this));
+
+	// Close remaining
+	if (range && range.startContainer && prev) {
+		range.endContainer = prev;
+		range.endOffset = prev.length;
+		// cfi = section.cfiFromRange(range);
+		cfi = new EpubCFI(range, cfiBase).toString();
+		locations.push(cfi);
+		counter = 0;
 	}
 
+	return locations;
 };
 
 Locations.prototype.locationFromCfi = function(cfi){

@@ -77,7 +77,7 @@
 		book.ready.then(function(){
 			// Load in stored locations from json or local storage
 			var key = book.key()+'-locations';
-			var stored = false;//localStorage.getItem(key);
+			var stored = localStorage.getItem(key);
 			if (stored) {
 				 return book.locations.load(stored);
 			} else {
@@ -88,7 +88,6 @@
 			}
 		})
 		.then(function(locations){
-
 				controls.style.display = "block";
 				slider.setAttribute("type", "range");
 				slider.setAttribute("min", 0);

@@ -45,8 +45,8 @@ module.exports = function(config) {
 
     webpack:{
       externals: {
-        "jszip": "JSZip",
-        "xmldom": "xmldom"
+        "jszip": "JSZip"
+        // "xmldom": "xmldom"
       },
       devtool: 'inline-source-map',
       resolve: {
