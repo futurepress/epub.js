@@ -238,6 +238,10 @@ function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
+function isFloat(n) {
+	return isNumber(n) && (Math.floor(n) !== n);
+}
+
 function prefixed(unprefixed) {
 	var vendors = ["Webkit", "Moz", "O", "ms" ],
 		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
@@ -682,6 +686,7 @@ module.exports = {
 	'indexOfSorted': indexOfSorted,
 	'documentHeight': documentHeight,
 	'isNumber': isNumber,
+	'isFloat': isFloat,
 	'prefixed': prefixed,
 	'defaults': defaults,
 	'extend': extend,

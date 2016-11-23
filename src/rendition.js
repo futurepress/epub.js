@@ -208,11 +208,6 @@ Rendition.prototype.attachTo = function(element){
  */
 Rendition.prototype.display = function(target){
 
-	// if (!this.book.spine.spineItems.length > 0) {
-		// Book isn't open yet
-		// return this.q.enqueue(this.display, target);
-	// }
-
 	return this.q.enqueue(this._display, target);
 
 };
@@ -229,6 +224,13 @@ Rendition.prototype._display = function(target){
 	var displayed = displaying.promise;
 	var section;
 	var moveTo;
+
+	// Check if this is a book percentage
+	if (this.book.locations.length && core.isFloat(target)) {
+		console.log("percentage", target);
+		target = book.locations.cfiFromPercentage(target);
+		console.log("cfi", target);
+	}
 
 	section = this.book.spine.get(target);
 

@@ -248,6 +248,10 @@ Object.defineProperty(Locations.prototype, 'currentLocation', {
 	}
 });
 
+Locations.prototype.length = function () {
+	return this._locations.length;
+};
+
 EventEmitter(Locations.prototype);
 
 module.exports = Locations;

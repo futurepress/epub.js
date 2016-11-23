@@ -93,7 +93,7 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 
 	//-- Double Page
 	if(divisor > 1) {
-		colWidth = Math.floor((width - gap) / divisor);
+		colWidth = (width - gap) / divisor;
 	} else {
 		colWidth = width;
 	}

@@ -388,7 +388,13 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 				targetPos.left = position.left;
 				targetPos.top = position.top;
 			} else {
-				position = range.getBoundingClientRect();
+				// Webkit does not handle collapsed range bounds correctly
+				// https://bugs.webkit.org/show_bug.cgi?id=138949
+				if (range.collapsed) {
+					position = range.getClientRects()[0];
+				} else {
+					position = range.getBoundingClientRect();
+				}
 				targetPos.left = position.left;
 				targetPos.top = position.top;
 			}

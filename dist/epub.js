@@ -7,7 +7,7 @@
 		exports["ePub"] = factory((function webpackLoadOptionalExternalModule() { try { return require("JSZip"); } catch(e) {} }()), require("xmldom"));
 	else
 		root["ePub"] = factory(root["JSZip"], root["xmldom"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_48__, __WEBPACK_EXTERNAL_MODULE_13__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_48__, __WEBPACK_EXTERNAL_MODULE_14__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -78,7 +78,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-var base64 = __webpack_require__(20);
+var base64 = __webpack_require__(21);
 var path = __webpack_require__(2);
 
 var requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
@@ -317,6 +317,10 @@ function documentHeight() {
 function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 };
+
+function isFloat(n) {
+	return isNumber(n) && (Math.floor(n) !== n);
+}
 
 function prefixed(unprefixed) {
 	var vendors = ["Webkit", "Moz", "O", "ms" ],
@@ -565,12 +569,11 @@ function type(obj){
 	return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
-function parse(markup, mime) {
+function parse(markup, mime, forceXMLDom) {
 	var doc;
-	// console.log("parse", markup);
 
-	if (typeof DOMParser === "undefined") {
-		DOMParser = __webpack_require__(13).DOMParser;
+	if (typeof DOMParser === "undefined" || forceXMLDom) {
+		DOMParser = __webpack_require__(14).DOMParser;
 	}
 
 
@@ -581,6 +584,9 @@ function parse(markup, mime) {
 
 function qs(el, sel) {
 	var elements;
+	if (!el) {
+		throw new Error('No Element Provided');
+	}
 
 	if (typeof el.querySelector != "undefined") {
 		return el.querySelector(sel);
@@ -624,6 +630,61 @@ function qsp(el, sel, props) {
 		if (filtered) {
 			return filtered[0];
 		}
+	}
+}
+
+/**
+ * Sprint through all text nodes in a document
+ * @param  {element} root element to start with
+ * @param  {function} func function to run on each element
+ */
+function sprint(root, func) {
+	var doc = root.ownerDocument || root;
+	if (typeof(doc.createTreeWalker) !== "undefined") {
+		treeWalker(root, func, NodeFilter.SHOW_TEXT);
+	} else {
+		walk(root, function(node) {
+			if (node && node.nodeType === 3) { // Node.TEXT_NODE
+				func(node);
+			}
+		}, true);
+	}
+}
+
+function treeWalker(root, func, filter) {
+	var treeWalker = document.createTreeWalker(root, filter, null, false);
+	while ((node = treeWalker.nextNode())) {
+		func(node);
+	}
+}
+
+// function walk(root, func, onlyText) {
+// 	var node = root;
+//
+// 	if (node && !onlyText || node.nodeType === 3) { // Node.TEXT_NODE
+// 		func(node);
+// 	}
+// 	console.log(root);
+//
+// 	node = node.firstChild;
+// 	while(node) {
+// 		walk(node, func, onlyText);
+// 		node = node.nextSibling;
+// 	}
+// }
+
+/**
+ * @param callback return false for continue,true for break
+ * @return boolean true: break visit;
+ */
+function walk(node,callback){
+	if(callback(node)){
+		return true;
+	}
+	if(node = node.firstChild){
+		do{
+			if(walk(node,callback)){return true}
+		}while(node=node.nextSibling)
 	}
 }
 
@@ -685,7 +746,17 @@ function defer() {
 	}
 }
 
-
+function children(el) {
+	var children = [];
+	var childNodes = el.parentNode.childNodes;
+	for (var i = 0; i < childNodes.length; i++) {
+		node = childNodes[i];
+		if (node.nodeType === 1) {
+			children.push(node);
+		}
+	};
+	return children;
+}
 
 module.exports = {
 	'isElement': isElement,
@@ -695,6 +766,7 @@ module.exports = {
 	'indexOfSorted': indexOfSorted,
 	'documentHeight': documentHeight,
 	'isNumber': isNumber,
+	'isFloat': isFloat,
 	'prefixed': prefixed,
 	'defaults': defaults,
 	'extend': extend,
@@ -720,7 +792,9 @@ module.exports = {
 	'defer': defer,
 	'Url': Url,
 	'Path': Path,
-	'querySelectorByType': querySelectorByType
+	'querySelectorByType': querySelectorByType,
+	'sprint' : sprint,
+	'children' : children
 };
 
 
@@ -743,6 +817,11 @@ var core = __webpack_require__(0);
 	- Temporal-Spatial Offset (~ + @)
 	- Text Location Assertion ([)
 */
+
+var ELEMENT_NODE = 1;
+var TEXT_NODE = 3;
+var COMMENT_NODE = 8;
+var DOCUMENT_NODE = 9;
 
 function EpubCFI(cfiFrom, base, ignoreClass){
 	var type;
@@ -794,7 +873,7 @@ EpubCFI.prototype.checkType = function(cfi) {
 	if (this.isCfiString(cfi)) {
 		return 'string';
 	// Is a range object
-	} else if (typeof cfi === 'object' && core.type(cfi) === "Range"){
+	} else if (typeof cfi === 'object' && (core.type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
 		return 'range';
 	} else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
 		return 'node';
@@ -1102,7 +1181,7 @@ EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
 };
 
 EpubCFI.prototype.step = function(node) {
-	var nodeType = (node.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	var nodeType = (node.nodeType === TEXT_NODE) ? 'text' : 'element';
 
 	return {
 		'id' : node.id,
@@ -1122,7 +1201,7 @@ EpubCFI.prototype.filteredStep = function(node, ignoreClass) {
 	}
 
 	// Otherwise add the filter node in
-	nodeType = (filteredNode.nodeType === Node.TEXT_NODE) ? 'text' : 'element';
+	nodeType = (filteredNode.nodeType === TEXT_NODE) ? 'text' : 'element';
 
 	return {
 		'id' : filteredNode.id,
@@ -1144,7 +1223,7 @@ EpubCFI.prototype.pathTo = function(node, offset, ignoreClass) {
 	var step;
 
 	while(currentNode && currentNode.parentNode &&
-				currentNode.parentNode.nodeType != Node.DOCUMENT_NODE) {
+				currentNode.parentNode.nodeType != DOCUMENT_NODE) {
 
 		if (ignoreClass) {
 			step = this.filteredStep(currentNode, ignoreClass);
@@ -1191,6 +1270,7 @@ EpubCFI.prototype.equalStep = function(stepA, stepB) {
 
 	return false;
 };
+
 EpubCFI.prototype.fromRange = function(range, base, ignoreClass) {
 	var cfi = {
 			range: false,
@@ -1306,14 +1386,13 @@ EpubCFI.prototype.fromNode = function(anchor, base, ignoreClass) {
 	return cfi;
 };
 
-
 EpubCFI.prototype.filter = function(anchor, ignoreClass) {
 	var needsIgnoring;
 	var sibling; // to join with
 	var parent, prevSibling, nextSibling;
 	var isText = false;
 
-	if (anchor.nodeType === Node.TEXT_NODE) {
+	if (anchor.nodeType === TEXT_NODE) {
 		isText = true;
 		parent = anchor.parentNode;
 		needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
@@ -1327,9 +1406,9 @@ EpubCFI.prototype.filter = function(anchor, ignoreClass) {
 		nextSibling = parent.nextSibling;
 
 		// If the sibling is a text node, join the nodes
-		if (previousSibling && previousSibling.nodeType === Node.TEXT_NODE) {
+		if (previousSibling && previousSibling.nodeType === TEXT_NODE) {
 			sibling = previousSibling;
-		} else if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+		} else if (nextSibling && nextSibling.nodeType === TEXT_NODE) {
 			sibling = nextSibling;
 		}
 
@@ -1354,7 +1433,7 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
 	var needsIgnoring;
 	var sibling;
 
-	if (anchor.nodeType != Node.TEXT_NODE) {
+	if (anchor.nodeType != TEXT_NODE) {
 		console.error("Anchor must be a text node");
 		return;
 	}
@@ -1368,7 +1447,7 @@ EpubCFI.prototype.patchOffset = function(anchor, offset, ignoreClass) {
 	}
 
 	while (curr.previousSibling) {
-		if(curr.previousSibling.nodeType === Node.ELEMENT_NODE) {
+		if(curr.previousSibling.nodeType === ELEMENT_NODE) {
 			// Originally a text node, so join
 			if(curr.previousSibling.classList.contains(ignoreClass)){
 				totalOffset += curr.previousSibling.textContent.length;
@@ -1399,14 +1478,14 @@ EpubCFI.prototype.normalizedMap = function(children, nodeType, ignoreClass) {
 		currNodeType = children[i].nodeType;
 
 		// Check if needs ignoring
-		if (currNodeType === Node.ELEMENT_NODE &&
+		if (currNodeType === ELEMENT_NODE &&
 				children[i].classList.contains(ignoreClass)) {
-			currNodeType = Node.TEXT_NODE;
+			currNodeType = TEXT_NODE;
 		}
 
 		if (i > 0 &&
-				currNodeType === Node.TEXT_NODE &&
-				prevNodeType === Node.TEXT_NODE) {
+				currNodeType === TEXT_NODE &&
+				prevNodeType === TEXT_NODE) {
 			// join text nodes
 			output[i] = prevIndex;
 		} else if (nodeType === currNodeType){
@@ -1423,9 +1502,12 @@ EpubCFI.prototype.normalizedMap = function(children, nodeType, ignoreClass) {
 
 EpubCFI.prototype.position = function(anchor) {
 	var children, index, map;
-
-	if (anchor.nodeType === Node.ELEMENT_NODE) {
+	var childNodes, node;
+	if (anchor.nodeType === ELEMENT_NODE) {
 		children = anchor.parentNode.children;
+		if (!children) {
+			children = core.children(anchor.parentNode);
+		}
 		index = Array.prototype.indexOf.call(children, anchor);
 	} else {
 		children = this.textNodes(anchor.parentNode);
@@ -1438,9 +1520,9 @@ EpubCFI.prototype.position = function(anchor) {
 EpubCFI.prototype.filteredPosition = function(anchor, ignoreClass) {
 	var children, index, map;
 
-	if (anchor.nodeType === Node.ELEMENT_NODE) {
+	if (anchor.nodeType === ELEMENT_NODE) {
 		children = anchor.parentNode.children;
-		map = this.normalizedMap(children, Node.ELEMENT_NODE, ignoreClass);
+		map = this.normalizedMap(children, ELEMENT_NODE, ignoreClass);
 	} else {
 		children = anchor.parentNode.childNodes;
 		// Inside an ignored node
@@ -1448,7 +1530,7 @@ EpubCFI.prototype.filteredPosition = function(anchor, ignoreClass) {
 			anchor = anchor.parentNode;
 			children = anchor.parentNode.childNodes;
 		}
-		map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+		map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
 	}
 
 
@@ -1514,7 +1596,7 @@ EpubCFI.prototype.stepsToQuerySelector = function(steps) {
 EpubCFI.prototype.textNodes = function(container, ignoreClass) {
 	return Array.prototype.slice.call(container.childNodes).
 		filter(function (node) {
-			if (node.nodeType === Node.TEXT_NODE) {
+			if (node.nodeType === TEXT_NODE) {
 				return true;
 			} else if (ignoreClass && node.classList.contains(ignoreClass)) {
 				return true;
@@ -1564,7 +1646,7 @@ EpubCFI.prototype.findNode = function(steps, _doc, ignoreClass) {
 EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 	var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
 	var children = container.childNodes;
-	var map = this.normalizedMap(children, Node.TEXT_NODE, ignoreClass);
+	var map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
 	var i;
 	var child;
 	var len;
@@ -1580,7 +1662,7 @@ EpubCFI.prototype.fixMiss = function(steps, offset, _doc, ignoreClass) {
 			if(offset > len) {
 				offset = offset - len;
 			} else {
-				if (child.nodeType === Node.ELEMENT_NODE) {
+				if (child.nodeType === ELEMENT_NODE) {
 					container = child.childNodes[0];
 				} else {
 					container = child;
@@ -2239,7 +2321,7 @@ var posix = {
 
 module.exports = posix;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ },
 /* 3 */
@@ -2248,8 +2330,8 @@ module.exports = posix;
 "use strict";
 'use strict';
 
-var d        = __webpack_require__(21)
-  , callable = __webpack_require__(30)
+var d        = __webpack_require__(22)
+  , callable = __webpack_require__(31)
 
   , apply = Function.prototype.apply, call = Function.prototype.call
   , create = Object.create, defineProperty = Object.defineProperty
@@ -2382,6 +2464,31 @@ exports.methods = methods;
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() { return this; })();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports) {
 
 // shim for using process in browser
@@ -2567,7 +2674,7 @@ process.umask = function() { return 0; };
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 /**
@@ -2635,7 +2742,7 @@ module.exports = Hook;
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EpubCFI = __webpack_require__(1);
@@ -2938,7 +3045,7 @@ module.exports = Mapping;
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -3169,7 +3276,7 @@ module.exports = Queue;
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 // var URI = require('urijs');
@@ -3290,7 +3397,7 @@ module.exports = {
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -3448,13 +3555,13 @@ module.exports = request;
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Mapping = __webpack_require__(6);
+var Mapping = __webpack_require__(7);
 
 
 function Contents(doc, content, cfiBase) {
@@ -3841,7 +3948,13 @@ Contents.prototype.locationOf = function(target, ignoreClass) {
 				targetPos.left = position.left;
 				targetPos.top = position.top;
 			} else {
-				position = range.getBoundingClientRect();
+				// Webkit does not handle collapsed range bounds correctly
+				// https://bugs.webkit.org/show_bug.cgi?id=138949
+				if (range.collapsed) {
+					position = range.getClientRects()[0];
+				} else {
+					position = range.getBoundingClientRect();
+				}
 				targetPos.left = position.left;
 				targetPos.top = position.top;
 			}
@@ -4124,14 +4237,14 @@ module.exports = Contents;
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Mapping = __webpack_require__(6);
-var Queue = __webpack_require__(7);
+var Mapping = __webpack_require__(7);
+var Queue = __webpack_require__(8);
 var Stage = __webpack_require__(40);
 var Views = __webpack_require__(41);
 
@@ -4695,18 +4808,18 @@ DefaultViewManager.prototype.updateFlow = function(flow){
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(3);
 var path = __webpack_require__(2);
 var core = __webpack_require__(0);
-var replace = __webpack_require__(8);
-var Hook = __webpack_require__(5);
+var replace = __webpack_require__(9);
+var Hook = __webpack_require__(6);
 var EpubCFI = __webpack_require__(1);
-var Queue = __webpack_require__(7);
+var Queue = __webpack_require__(8);
 var Layout = __webpack_require__(38);
-var Mapping = __webpack_require__(6);
+var Mapping = __webpack_require__(7);
 var Path = __webpack_require__(0).Path;
 
 /**
@@ -4908,11 +5021,6 @@ Rendition.prototype.attachTo = function(element){
  */
 Rendition.prototype.display = function(target){
 
-	// if (!this.book.spine.spineItems.length > 0) {
-		// Book isn't open yet
-		// return this.q.enqueue(this.display, target);
-	// }
-
 	return this.q.enqueue(this._display, target);
 
 };
@@ -4929,6 +5037,13 @@ Rendition.prototype._display = function(target){
 	var displayed = displaying.promise;
 	var section;
 	var moveTo;
+
+	// Check if this is a book percentage
+	if (this.book.locations.length && core.isFloat(target)) {
+		console.log("percentage", target);
+		target = book.locations.cfiFromPercentage(target);
+		console.log("cfi", target);
+	}
 
 	section = this.book.spine.get(target);
 
@@ -4950,7 +5065,7 @@ Rendition.prototype._display = function(target){
 
 	return this.manager.display(section, moveTo)
 		.then(function(){
-			this.emit("displayed", section);
+			// this.emit("displayed", section);
 		}.bind(this));
 
 };
@@ -5292,15 +5407,15 @@ module.exports = Rendition;
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_13__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_14__;
 
 /***/ },
-/* 14 */,
 /* 15 */,
-/* 16 */
+/* 16 */,
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(3);
@@ -5315,9 +5430,9 @@ var Packaging = __webpack_require__(43);
 var Navigation = __webpack_require__(42);
 var Resources = __webpack_require__(45);
 var PageList = __webpack_require__(44);
-var Rendition = __webpack_require__(12);
+var Rendition = __webpack_require__(13);
 var Archive = __webpack_require__(36);
-var request = __webpack_require__(9);
+var request = __webpack_require__(10);
 var EpubCFI = __webpack_require__(1);
 
 // Const
@@ -5626,9 +5741,9 @@ Book.prototype.unpack = function(opf){
 		replacements: this.settings.replacements
 	});
 
-	this.loadNavigation(this.package).then(function(toc){
-		this.toc = toc;
-		this.loading.navigation.resolve(this.toc);
+	this.loadNavigation(this.package).then(function(){
+		this.toc = this.navigation.toc;
+		this.loading.navigation.resolve(this.navigation);
 	}.bind(this));
 
 	this.cover = this.resolve(this.package.coverPath);
@@ -5671,6 +5786,7 @@ Book.prototype.loadNavigation = function(opf){
 		.then(function(xml) {
 			this.navigation = new Navigation(xml);
 			this.pageList = new PageList(xml);
+			return this.navigation;
 		}.bind(this));
 };
 
@@ -5785,7 +5901,7 @@ Book.prototype.range = function(cfiRange) {
  */
 Book.prototype.key = function(identifier){
 	var ident = identifier || this.package.metadata.identifier || this.url.filename;
-	return "epubjs:" + ePub.VERSION + ":" + ident;
+	return "epubjs:" + (EPUBJS_VERSION || ePub.VERSION) + ":" + ident;
 };
 
 //-- Enable binding events to book
@@ -5795,11 +5911,11 @@ module.exports = Book;
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var DefaultViewManager = __webpack_require__(11);
+var DefaultViewManager = __webpack_require__(12);
 
 function ContinuousViewManager(options) {
 
@@ -6480,13 +6596,13 @@ module.exports = ContinuousViewManager;
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 var EventEmitter = __webpack_require__(3);
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Contents = __webpack_require__(10);
+var Contents = __webpack_require__(11);
 
 function IframeView(section, options) {
 	this.settings = core.extend({
@@ -7061,7 +7177,7 @@ module.exports = IframeView;
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 /*
@@ -7238,7 +7354,7 @@ module.exports = {
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7359,16 +7475,16 @@ function fromByteArray (uint8) {
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var assign        = __webpack_require__(22)
-  , normalizeOpts = __webpack_require__(29)
-  , isCallable    = __webpack_require__(25)
-  , contains      = __webpack_require__(32)
+var assign        = __webpack_require__(23)
+  , normalizeOpts = __webpack_require__(30)
+  , isCallable    = __webpack_require__(26)
+  , contains      = __webpack_require__(33)
 
   , d;
 
@@ -7429,19 +7545,19 @@ d.gs = function (dscr, get, set/*, options*/) {
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(23)()
+module.exports = __webpack_require__(24)()
 	? Object.assign
-	: __webpack_require__(24);
+	: __webpack_require__(25);
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7457,14 +7573,14 @@ module.exports = function () {
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-var keys  = __webpack_require__(26)
-  , value = __webpack_require__(31)
+var keys  = __webpack_require__(27)
+  , value = __webpack_require__(32)
 
   , max = Math.max;
 
@@ -7486,7 +7602,7 @@ module.exports = function (dest, src/*, …srcn*/) {
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7498,19 +7614,19 @@ module.exports = function (obj) { return typeof obj === 'function'; };
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(27)()
+module.exports = __webpack_require__(28)()
 	? Object.keys
-	: __webpack_require__(28);
+	: __webpack_require__(29);
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7525,7 +7641,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7539,7 +7655,7 @@ module.exports = function (object) {
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7563,7 +7679,7 @@ module.exports = function (options/*, …options*/) {
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7576,7 +7692,7 @@ module.exports = function (fn) {
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7589,19 +7705,19 @@ module.exports = function (value) {
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
-module.exports = __webpack_require__(33)()
+module.exports = __webpack_require__(34)()
 	? String.prototype.contains
-	: __webpack_require__(34);
+	: __webpack_require__(35);
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7616,7 +7732,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -7630,13 +7746,12 @@ module.exports = function (searchString/*, position*/) {
 
 
 /***/ },
-/* 35 */,
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var request = __webpack_require__(9);
-var mime = __webpack_require__(19);
+var request = __webpack_require__(10);
+var mime = __webpack_require__(20);
 var Path = __webpack_require__(0).Path;
 
 /**
@@ -8027,7 +8142,7 @@ Layout.prototype.calculate = function(_width, _height, _gap){
 
 	//-- Double Page
 	if(divisor > 1) {
-		colWidth = Math.floor((width - gap) / divisor);
+		colWidth = (width - gap) / divisor;
 	} else {
 		colWidth = width;
 	}
@@ -8093,7 +8208,7 @@ module.exports = Layout;
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
-var Queue = __webpack_require__(7);
+var Queue = __webpack_require__(8);
 var EpubCFI = __webpack_require__(1);
 var EventEmitter = __webpack_require__(3);
 
@@ -8133,7 +8248,7 @@ Locations.prototype.generate = function(chars) {
 
 	this.spine.each(function(section) {
 
-		this.q.enqueue(this.process, section);
+		this.q.enqueue(this.process.bind(this), section);
 
 	}.bind(this));
 
@@ -8150,82 +8265,100 @@ Locations.prototype.generate = function(chars) {
 
 };
 
+Locations.prototype.createRange = function () {
+	return {
+		startContainer: undefined,
+		startOffset: undefined,
+		endContainer: undefined,
+		endOffset: undefined
+	}
+};
+
 Locations.prototype.process = function(section) {
 
 	return section.load(this.request)
 		.then(function(contents) {
-
-			var range;
-			var doc = contents.ownerDocument;
-			var body = core.qs(doc, 'body');
-			var counter = 0;
-
-			this.sprint(body, function(node) {
-				var len = node.length;
-				var dist;
-				var pos = 0;
-
-				// Start range
-				if (counter == 0) {
-					range = doc.createRange();
-					range.setStart(node, 0);
-				}
-
-				dist = this.break - counter;
-
-				// Node is smaller than a break
-				if(dist > len){
-					counter += len;
-					pos = len;
-				}
-
-				while (pos < len) {
-					counter = this.break;
-					pos += this.break;
-
-					// Gone over
-					if(pos >= len){
-						// Continue counter for next node
-						counter = len - (pos - this.break);
-
-					// At End
-					} else {
-						// End the previous range
-						range.setEnd(node, pos);
-						cfi = section.cfiFromRange(range);
-						this._locations.push(cfi);
-						counter = 0;
-
-						// Start new range
-						pos += 1;
-						range = doc.createRange();
-						range.setStart(node, pos);
-					}
-				}
-
-
-
-			}.bind(this));
-
-			// Close remaining
-			if (range) {
-				range.setEnd(prev, prev.length);
-				cfi = section.cfiFromRange(range);
-				this._locations.push(cfi)
-				counter = 0;
-			}
-
+			var locations = this.parse(contents, section.cfiBase);
+			this._locations = this._locations.concat(locations);
 		}.bind(this));
 
 };
 
-Locations.prototype.sprint = function(root, func) {
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+Locations.prototype.parse = function(contents, cfiBase, chars) {
+	var locations = [];
+	var range;
+	var doc = contents.ownerDocument;
+	var body = core.qs(doc, 'body');
+	var counter = 0;
+	var prev;
+	var _break = chars || this.break;
+	var parser = function(node) {
+		var len = node.length;
+		var dist;
+		var pos = 0;
 
-	while ((node = treeWalker.nextNode())) {
-		func(node);
+		if (node.textContent.trim().length === 0) {
+			return false; // continue
+		}
+
+		// Start range
+		if (counter == 0) {
+			range = this.createRange();
+			range.startContainer = node;
+			range.startOffset = 0;
+		}
+
+		dist = _break - counter;
+
+		// Node is smaller than a break,
+		// skip over it
+		if(dist > len){
+			counter += len;
+			pos = len;
+		}
+
+		while (pos < len) {
+			// counter = this.break;
+			pos += dist;
+			// Gone over
+			if(pos >= len){
+				// Continue counter for next node
+				counter = len - (pos - _break);
+			// At End
+			} else {
+				// End the previous range
+				range.endContainer = node;
+				range.endOffset = pos;
+				// cfi = section.cfiFromRange(range);
+				cfi = new EpubCFI(range, cfiBase).toString();
+				locations.push(cfi);
+				counter = 0;
+
+				// Start new range
+				pos += 1;
+				range = this.createRange();
+				range.startContainer = node;
+				range.startOffset = pos;
+
+				dist = _break;
+			}
+		}
+		prev = node;
+	};
+
+	core.sprint(body, parser.bind(this));
+
+	// Close remaining
+	if (range && range.startContainer && prev) {
+		range.endContainer = prev;
+		range.endOffset = prev.length;
+		// cfi = section.cfiFromRange(range);
+		cfi = new EpubCFI(range, cfiBase).toString();
+		locations.push(cfi);
+		counter = 0;
 	}
 
+	return locations;
 };
 
 Locations.prototype.locationFromCfi = function(cfi){
@@ -8323,6 +8456,10 @@ Object.defineProperty(Locations.prototype, 'currentLocation', {
 		this.setCurrent(curr);
 	}
 });
+
+Locations.prototype.length = function () {
+	return this._locations.length;
+};
 
 EventEmitter(Locations.prototype);
 
@@ -8931,6 +9068,15 @@ Navigation.prototype.ncxItem = function(item){
 	};
 };
 
+/**
+ * forEach pass through
+ * @param  {Function} fn function to run on each item
+ * @return {method} forEach loop
+ */
+Navigation.prototype.forEach = function(fn) {
+	return this.toc.forEach(fn);
+};
+
 module.exports = Navigation;
 
 
@@ -9481,7 +9627,7 @@ module.exports = PageList;
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
-var replace = __webpack_require__(8);
+var replace = __webpack_require__(9);
 var core = __webpack_require__(0);
 var Path = __webpack_require__(0).Path;
 var path = __webpack_require__(2);
@@ -9707,6 +9853,24 @@ Resources.prototype.get = function(path) {
 	}
 }
 
+/**
+ * Substitute urls in content, with replacements,
+ * relative to a url if provided
+ * @param  {string} content
+ * @param  {[string]} url   url to resolve to
+ * @return {string}         content with urls substituted
+ */
+Resources.prototype.substitute = function(content, url) {
+	var relUrls;
+	if (url) {
+		relUrls = this.relativeTo(url);
+	} else {
+		relUrls = this.urls;
+	}
+	return replace.substitute(content, relUrls, this.replacementUrls);
+};
+
+
 module.exports = Resources;
 
 
@@ -9716,7 +9880,7 @@ module.exports = Resources;
 
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Hook = __webpack_require__(5);
+var Hook = __webpack_require__(6);
 var Url = __webpack_require__(0).Url;
 
 /**
@@ -9753,7 +9917,7 @@ function Section(item, hooks){
  * @return {document} a promise with the xml document
  */
 Section.prototype.load = function(_request){
-	var request = _request || this.request || __webpack_require__(9);
+	var request = _request || this.request || __webpack_require__(10);
 	var loading = new core.defer();
 	var loaded = loading.promise;
 
@@ -9822,7 +9986,7 @@ Section.prototype.render = function(_request){
 			var serializer;
 
 			if (typeof XMLSerializer === "undefined") {
-				XMLSerializer = __webpack_require__(13).XMLSerializer;
+				XMLSerializer = __webpack_require__(14).XMLSerializer;
 			}
 			serializer = new XMLSerializer();
 			this.output = serializer.serializeToString(contents);
@@ -9908,9 +10072,9 @@ module.exports = Section;
 
 var core = __webpack_require__(0);
 var EpubCFI = __webpack_require__(1);
-var Hook = __webpack_require__(5);
+var Hook = __webpack_require__(6);
 var Section = __webpack_require__(46);
-var replacements = __webpack_require__(8);
+var replacements = __webpack_require__(9);
 
 /**
  * A collection of Spine Items
@@ -10081,10 +10245,10 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_48__;
 /* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-var Book = __webpack_require__(16);
+/* WEBPACK VAR INJECTION */(function(global) {var Book = __webpack_require__(17);
 var EpubCFI = __webpack_require__(1);
-var Rendition = __webpack_require__(12);
-var Contents = __webpack_require__(10);
+var Rendition = __webpack_require__(13);
+var Contents = __webpack_require__(11);
 
 /**
  * Creates a new Book
@@ -10098,6 +10262,10 @@ function ePub(url, options) {
 };
 
 ePub.VERSION = "0.3.0";
+
+if (typeof(global) !== "undefined") {
+	global.EPUBJS_VERSION = ePub.VERSION;
+}
 
 ePub.CFI = EpubCFI;
 ePub.Rendition = Rendition;
@@ -10124,14 +10292,15 @@ ePub.register = {
 };
 
 // Default Views
-ePub.register.view("iframe", __webpack_require__(18));
+ePub.register.view("iframe", __webpack_require__(19));
 
 // Default View Managers
-ePub.register.manager("default", __webpack_require__(11));
-ePub.register.manager("continuous", __webpack_require__(17));
+ePub.register.manager("default", __webpack_require__(12));
+ePub.register.manager("continuous", __webpack_require__(18));
 
 module.exports = ePub;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ }
 /******/ ])

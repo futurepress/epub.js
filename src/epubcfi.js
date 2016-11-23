@@ -69,7 +69,7 @@ EpubCFI.prototype.checkType = function(cfi) {
 	if (this.isCfiString(cfi)) {
 		return 'string';
 	// Is a range object
-} else if (typeof cfi === 'object' && (core.type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
+	} else if (typeof cfi === 'object' && (core.type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
 		return 'range';
 	} else if (typeof cfi === 'object' && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === 'function'
 		return 'node';
