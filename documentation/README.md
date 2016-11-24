@@ -162,6 +162,20 @@ Book.getToc().then(function(toc){
 });
 ```
 
+#### Book.generatePagination()
+
+````javascript
+book.generatePagination().then(function(toc){
+	console.log("Pagination generated");
+});
+````
+
+````javascript
+book.generatePagination(pageWidth, pageHeight).then(function(toc){
+	console.log("Pagination generated");
+});
+````
+
 ## Events
 
 book:ready
