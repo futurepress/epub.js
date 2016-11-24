@@ -1,5 +1,7 @@
 # EPUB.JS Documentation
 
+You can also find some short guides [here](https://github.com/futurepress/epub.js/wiki/Tips-and-Tricks).
+
 ## Methods
 
 #### ePub(bookPath, options)
