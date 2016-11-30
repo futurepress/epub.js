@@ -226,7 +226,7 @@ Packaging.prototype.findCoverPath = function(packageXml){
 			var coverId = metaCover.getAttribute('content');
 			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
 			var cover = packageXml.getElementById(coverId);
-			return cover ? cover.getAttribute('href') : false;
+			return cover ? cover.getAttribute('href') : '';
 		}
 		else {
 			return false;
@@ -235,7 +235,7 @@ Packaging.prototype.findCoverPath = function(packageXml){
 	else {
 		// var node = packageXml.querySelector("item[properties='cover-image']");
 		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
-		return node ? node.getAttribute('href') : false;
+		return node ? node.getAttribute('href') : '';
 	}
 };
 

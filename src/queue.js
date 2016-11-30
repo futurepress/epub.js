@@ -83,6 +83,8 @@ Queue.prototype.dequeue = function(){
 				// Task is a function that returns a promise
 				return result.then(function(){
 					inwait.deferred.resolve.apply(this.context, arguments);
+				}, function(reason) {
+				  	inwait.deferred.reject.apply(this.context, arguments);
 				}.bind(this));
 			} else {
 				// Task resolves immediately
