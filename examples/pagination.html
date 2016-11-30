@@ -121,7 +121,7 @@
             var slide = function(){
                 book.gotoPage(slider.value);
             };
-            var throttledSlide = _.throttle(slide, 200);
+            // var throttledSlide = _.throttle(slide, 200);
             var mouseDown = false;
 
             var rendered = book.renderTo("area");
@@ -149,7 +149,7 @@
                 slider.setAttribute("step", 1);
                 slider.setAttribute("value", 0);
 
-                slider.addEventListener("change", throttledSlide, false);
+                slider.addEventListener("change", slide, false);
                 slider.addEventListener("mousedown", function(){
                     mouseDown = true;
                 }, false);
