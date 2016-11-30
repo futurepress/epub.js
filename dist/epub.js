@@ -3133,6 +3133,8 @@ Queue.prototype.dequeue = function(){
 				// Task is a function that returns a promise
 				return result.then(function(){
 					inwait.deferred.resolve.apply(this.context, arguments);
+				}, function(reason) {
+				  	inwait.deferred.reject.apply(this.context, arguments);
 				}.bind(this));
 			} else {
 				// Task resolves immediately
@@ -3281,6 +3283,7 @@ module.exports = Queue;
 
 // var URI = require('urijs');
 var core = __webpack_require__(0);
+var Url = __webpack_require__(0).Url;
 
 function base(doc, section){
 	var base;
@@ -3335,11 +3338,9 @@ function links(view, renderer) {
 			return;
 		}
 
-		// var linkUri = URI(href);
-		// var absolute = linkUri.absoluteTo(view.section.url);
-		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		var linkUrl = Url(href);
 		var relative = this.book.resolve(href, false);
-		
+
 		if(linkUrl && linkUrl.protocol){
 
 			link.setAttribute("target", "_blank");
@@ -3361,14 +3362,14 @@ function links(view, renderer) {
 			}
 			*/
 
-			// if(linkUri.fragment()) {
+			if(linkUrl.fragment) {
 				// do nothing with fragment yet
-			// } else {
+			} else {
 				link.onclick = function(){
 					renderer.display(relative);
 					return false;
 				};
-			// }
+			}
 
 		}
 	}.bind(this);
@@ -9312,7 +9313,7 @@ Packaging.prototype.findCoverPath = function(packageXml){
 			var coverId = metaCover.getAttribute('content');
 			// var cover = packageXml.querySelector("item[id='" + coverId + "']");
 			var cover = packageXml.getElementById(coverId);
-			return cover ? cover.getAttribute('href') : false;
+			return cover ? cover.getAttribute('href') : '';
 		}
 		else {
 			return false;
@@ -9321,7 +9322,7 @@ Packaging.prototype.findCoverPath = function(packageXml){
 	else {
 		// var node = packageXml.querySelector("item[properties='cover-image']");
 		var node = core.qsp(packageXml, 'item', {'properties':'cover-image'});
-		return node ? node.getAttribute('href') : false;
+		return node ? node.getAttribute('href') : '';
 	}
 };
 

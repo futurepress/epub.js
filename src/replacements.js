@@ -1,5 +1,6 @@
 // var URI = require('urijs');
 var core = require('./core');
+var Url = require('./core').Url;
 
 function base(doc, section){
 	var base;
@@ -54,11 +55,9 @@ function links(view, renderer) {
 			return;
 		}
 
-		// var linkUri = URI(href);
-		// var absolute = linkUri.absoluteTo(view.section.url);
-		// var relative = absolute.relativeTo(this.book.baseUrl).toString();
+		var linkUrl = Url(href);
 		var relative = this.book.resolve(href, false);
-		
+
 		if(linkUrl && linkUrl.protocol){
 
 			link.setAttribute("target", "_blank");
@@ -80,14 +79,14 @@ function links(view, renderer) {
 			}
 			*/
 
-			// if(linkUri.fragment()) {
+			if(linkUrl.fragment) {
 				// do nothing with fragment yet
-			// } else {
+			} else {
 				link.onclick = function(){
 					renderer.display(relative);
 					return false;
 				};
-			// }
+			}
 
 		}
 	}.bind(this);
