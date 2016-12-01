@@ -166,6 +166,8 @@ Book.getToc().then(function(toc){
 
 #### Book.generatePagination()
 
+NOTE: This method will be deprecated in v0.3
+
 ````javascript
 book.generatePagination().then(function(toc){
 	console.log("Pagination generated");
