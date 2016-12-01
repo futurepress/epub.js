@@ -156,6 +156,26 @@ Book.getMetadata().then(function(meta){
 });
 ```
 
+Returns an object like this (but do not count on all of the properties being there):
+
+````json
+{
+  "bookTitle": "The title of the book",
+  "creator": "Book Author",
+  "description": "The description/synopsis of the book",
+  "pubdate": "",
+  "publisher": "The Publisher",
+  "identifier": "The ISBN",
+  "language": "en-US",
+  "rights": "Copyright text",
+  "modified_date": "",
+  "layout": "",
+  "orientation": "",
+  "spread": "",
+  "direction": null
+}
+````
+
 #### Book.getToc()
 
 ```javascript
