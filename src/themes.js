@@ -24,6 +24,9 @@ Themes.prototype.register = function () {
 	if (arguments.length === 1 && typeof(arguments[0]) === "object") {
 		return this.registerThemes(arguments[0]);
 	}
+	if (arguments.length === 1 && typeof(arguments[0]) === "string") {
+		return this.default(arguments[0]);
+	}
 	if (arguments.length === 2 && typeof(arguments[1]) === "string") {
 		return this.registerUrl(arguments[0], arguments[1]);
 	}

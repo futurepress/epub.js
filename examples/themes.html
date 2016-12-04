@@ -89,12 +89,14 @@
     rendition.on("locationChanged", function(location){
       console.log(location);
     });
-
+    /*
     rendition.themes.register({
       "dark" : "themes.css",
       "light" : "themes.css",
       "tan" : "themes.css"
     });
+    */
+    rendition.themes.register("themes.css");
 
     rendition.themes.apply("tan");
     rendition.themes.fontSize("140%");
