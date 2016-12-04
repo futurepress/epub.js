@@ -426,6 +426,13 @@ Contents.prototype.addStylesheet = function(src) {
 			return;
 		}
 
+		// Check if link already exists
+		$stylesheet = this.document.querySelector('link[href="'+src+'"]');
+		if ($stylesheet) {
+			resolve(true);
+			return; // already present
+		}
+
 		$stylesheet = this.document.createElement('link');
 		$stylesheet.type = 'text/css';
 		$stylesheet.rel = "stylesheet";
@@ -449,10 +456,16 @@ Contents.prototype.addStylesheet = function(src) {
 Contents.prototype.addStylesheetRules = function(rules) {
 	var styleEl;
 	var styleSheet;
+	var key = "epubjs-inserted-css";
 
 	if(!this.document) return;
 
-	styleEl = this.document.createElement('style');
+	// Check if link already exists
+	styleEl = this.document.getElementById("#"+key);
+	if (!styleEl) {
+		styleEl = this.document.createElement('style');
+		styleEl.id = key;
+	}
 
 	// Append style element to head
 	this.document.head.appendChild(styleEl);
@@ -505,6 +518,28 @@ Contents.prototype.addScript = function(src) {
 		this.document.head.appendChild($script);
 
 	}.bind(this));
+};
+
+Contents.prototype.addClass = function(className) {
+	var content;
+
+	if(!this.document) return;
+
+	content = this.content || this.document.body;
+
+	content.classList.add(className);
+
+};
+
+Contents.prototype.removeClass = function(className) {
+	var content;
+
+	if(!this.document) return;
+
+	content = this.content || this.document.body;
+
+	content.classList.remove(className);
+
 };
 
 Contents.prototype.addEventListeners = function(){
