@@ -559,6 +559,14 @@ DefaultViewManager.prototype.updateFlow = function(flow){
 
 };
 
+DefaultViewManager.prototype.getContents = function(){
+	var contents = [];
+	this.views.each(function(view){
+		contents.push(view.contents);
+	});
+	return contents;
+};
+
  //-- Enable binding events to Manager
  EventEmitter(DefaultViewManager.prototype);
 

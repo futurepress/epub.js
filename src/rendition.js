@@ -7,6 +7,7 @@ var EpubCFI = require('./epubcfi');
 var Queue = require('./queue');
 var Layout = require('./layout');
 var Mapping = require('./mapping');
+var Themes = require('./themes');
 var Path = require('./core').Path;
 
 /**
@@ -71,6 +72,7 @@ function Rendition(book, options) {
 	this.hooks.content.register(this.passViewEvents.bind(this));
 
 	// this.hooks.display.register(this.afterDisplay.bind(this));
+	this.themes = new Themes(this);
 
 	this.epubcfi = new EpubCFI();
 
@@ -585,6 +587,10 @@ Rendition.prototype.adjustImages = function(view) {
 			resolve();
 		}, 1);
 	});
+};
+
+Rendition.prototype.getContents = function () {
+	return this.manager ? this.manager.getContents() : [];
 };
 
 //-- Enable binding events to Renderer
