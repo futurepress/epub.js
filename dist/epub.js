@@ -3362,7 +3362,7 @@ function links(view, renderer) {
 			}
 			*/
 
-			if(linkUrl.fragment) {
+			if(linkUrl && linkUrl.fragment) {
 				// do nothing with fragment yet
 			} else {
 				link.onclick = function(){
@@ -5053,17 +5053,8 @@ Rendition.prototype._display = function(target){
 		return displayed;
 	}
 
-	// Trim the target fragment
-	// removing the chapter
-	if(!isCfiString && typeof target === "string" &&
-		target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
-	}
-
-	if (isCfiString) {
-		moveTo = target;
-	}
-
+	moveTo = target;
+	
 	return this.manager.display(section, moveTo)
 		.then(function(){
 			// this.emit("displayed", section);
@@ -9404,11 +9395,11 @@ PageList.prototype.parse = function(xml) {
 
 	if(html) {
 		this.toc = this.parseNav(xml);
-	} else if(ncx){ // Not supported
-		// this.toc = this.parseNcx(xml);
+	} /*else if(ncx){ // Not supported
+		this.toc = this.parseNcx(xml);
 		return;
 	}
-
+*/
 };
 
 /**
@@ -10304,7 +10295,6 @@ module.exports = ePub;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ }
-/******/ ])
+/******/ ]);
 });
-;
 //# sourceMappingURL=epub.js.map

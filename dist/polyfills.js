@@ -2104,7 +2104,6 @@ module.exports = __webpack_require__(15);
 
 /***/ }
 
-/******/ })
+/******/ });
 });
-;
 //# sourceMappingURL=polyfills.js.map

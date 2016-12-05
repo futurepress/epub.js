@@ -241,17 +241,8 @@ Rendition.prototype._display = function(target){
 		return displayed;
 	}
 
-	// Trim the target fragment
-	// removing the chapter
-	if(!isCfiString && typeof target === "string" &&
-		target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
-	}
-
-	if (isCfiString) {
-		moveTo = target;
-	}
-
+	moveTo = target;
+	
 	return this.manager.display(section, moveTo)
 		.then(function(){
 			// this.emit("displayed", section);

@@ -79,7 +79,7 @@ function links(view, renderer) {
 			}
 			*/
 
-			if(linkUrl.fragment) {
+			if(linkUrl && linkUrl.fragment) {
 				// do nothing with fragment yet
 			} else {
 				link.onclick = function(){
