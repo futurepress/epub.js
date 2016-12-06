@@ -381,7 +381,7 @@ class Contents {
 		if(!this.document) return;
 
 		if(this.epubcfi.isCfiString(target)) {
-			range = new EpubCFI(target).toRange(this.document, ignoreClass);
+			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
 
 			if(range) {
 				if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
