@@ -148,7 +148,7 @@ class DefaultViewManager {
 
 		// View is already shown, just move to correct location
 		if(visible && target) {
-			offset = visible.locationOf(target);
+			let offset = visible.locationOf(target);
 			this.moveTo(offset);
 			displaying.resolve();
 			return displayed;
@@ -164,7 +164,7 @@ class DefaultViewManager {
 
 				// Move to correct place within the section, if needed
 				if(target) {
-					offset = view.locationOf(target);
+					let offset = view.locationOf(target);
 					this.moveTo(offset);
 				}
 
