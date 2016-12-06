@@ -1,165 +1,167 @@
-function Views(container) {
-	this.container = container;
-	this._views = [];
-	this.length = 0;
-	this.hidden = false;
-};
+class Views {
+	constructor(container) {
+		this.container = container;
+		this._views = [];
+		this.length = 0;
+		this.hidden = false;
+	};
 
-Views.prototype.all = function() {
-	return this._views;
-};
+	all() {
+		return this._views;
+	};
 
-Views.prototype.first = function() {
-	return this._views[0];
-};
+	first() {
+		return this._views[0];
+	};
 
-Views.prototype.last = function() {
-	return this._views[this._views.length-1];
-};
+	last() {
+		return this._views[this._views.length-1];
+	};
 
-Views.prototype.indexOf = function(view) {
-	return this._views.indexOf(view);
-};
+	indexOf(view) {
+		return this._views.indexOf(view);
+	};
 
-Views.prototype.slice = function() {
-	return this._views.slice.apply(this._views, arguments);
-};
+	slice() {
+		return this._views.slice.apply(this._views, arguments);
+	};
 
-Views.prototype.get = function(i) {
-	return this._views[i];
-};
+	get(i) {
+		return this._views[i];
+	};
 
-Views.prototype.append = function(view){
-	this._views.push(view);
-	if(this.container){
-		this.container.appendChild(view.element);
-	}
-	this.length++;
-	return view;
-};
-
-Views.prototype.prepend = function(view){
-	this._views.unshift(view);
-	if(this.container){
-		this.container.insertBefore(view.element, this.container.firstChild);
-	}
-	this.length++;
-	return view;
-};
-
-Views.prototype.insert = function(view, index) {
-	this._views.splice(index, 0, view);
-
-	if(this.container){
-		if(index < this.container.children.length){
-			this.container.insertBefore(view.element, this.container.children[index]);
-		} else {
+	append(view){
+		this._views.push(view);
+		if(this.container){
 			this.container.appendChild(view.element);
 		}
-	}
+		this.length++;
+		return view;
+	};
 
-	this.length++;
-	return view;
-};
+	prepend(view){
+		this._views.unshift(view);
+		if(this.container){
+			this.container.insertBefore(view.element, this.container.firstChild);
+		}
+		this.length++;
+		return view;
+	};
 
-Views.prototype.remove = function(view) {
-	var index = this._views.indexOf(view);
+	insert(view, index) {
+		this._views.splice(index, 0, view);
 
-	if(index > -1) {
-		this._views.splice(index, 1);
-	}
+		if(this.container){
+			if(index < this.container.children.length){
+				this.container.insertBefore(view.element, this.container.children[index]);
+			} else {
+				this.container.appendChild(view.element);
+			}
+		}
+
+		this.length++;
+		return view;
+	};
+
+	remove(view) {
+		var index = this._views.indexOf(view);
+
+		if(index > -1) {
+			this._views.splice(index, 1);
+		}
 
 
-	this.destroy(view);
-
-	this.length--;
-};
-
-Views.prototype.destroy = function(view) {
-	if(view.displayed){
-		view.destroy();
-	}
-
-	if(this.container){
-		 this.container.removeChild(view.element);
-	}
-	view = null;
-};
-
-// Iterators
-
-Views.prototype.each = function() {
-	return this._views.forEach.apply(this._views, arguments);
-};
-
-Views.prototype.clear = function(){
-	// Remove all views
-	var view;
-	var len = this.length;
-
-	if(!this.length) return;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
 		this.destroy(view);
-	}
 
-	this._views = [];
-	this.length = 0;
-};
+		this.length--;
+	};
 
-Views.prototype.find = function(section){
-
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed && view.section.index == section.index) {
-			return view;
-		}
-	}
-
-};
-
-Views.prototype.displayed = function(){
-	var displayed = [];
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
+	destroy(view) {
 		if(view.displayed){
-			displayed.push(view);
+			view.destroy();
 		}
-	}
-	return displayed;
-};
 
-Views.prototype.show = function(){
-	var view;
-	var len = this.length;
-
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed){
-			view.show();
+		if(this.container){
+			 this.container.removeChild(view.element);
 		}
-	}
-	this.hidden = false;
-};
+		view = null;
+	};
 
-Views.prototype.hide = function(){
-	var view;
-	var len = this.length;
+	// Iterators
 
-	for (var i = 0; i < len; i++) {
-		view = this._views[i];
-		if(view.displayed){
-			view.hide();
+	each() {
+		return this._views.forEach.apply(this._views, arguments);
+	};
+
+	clear(){
+		// Remove all views
+		var view;
+		var len = this.length;
+
+		if(!this.length) return;
+
+		for (var i = 0; i < len; i++) {
+			view = this._views[i];
+			this.destroy(view);
 		}
-	}
-	this.hidden = true;
-};
 
-module.exports = Views;
+		this._views = [];
+		this.length = 0;
+	};
+
+	find(section){
+
+		var view;
+		var len = this.length;
+
+		for (var i = 0; i < len; i++) {
+			view = this._views[i];
+			if(view.displayed && view.section.index == section.index) {
+				return view;
+			}
+		}
+
+	};
+
+	displayed(){
+		var displayed = [];
+		var view;
+		var len = this.length;
+
+		for (var i = 0; i < len; i++) {
+			view = this._views[i];
+			if(view.displayed){
+				displayed.push(view);
+			}
+		}
+		return displayed;
+	};
+
+	show(){
+		var view;
+		var len = this.length;
+
+		for (var i = 0; i < len; i++) {
+			view = this._views[i];
+			if(view.displayed){
+				view.show();
+			}
+		}
+		this.hidden = false;
+	};
+
+	hide(){
+		var view;
+		var len = this.length;
+
+		for (var i = 0; i < len; i++) {
+			view = this._views[i];
+			if(view.displayed){
+				view.hide();
+			}
+		}
+		this.hidden = true;
+	};
+}
+
+export default Views;

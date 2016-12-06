@@ -1,7 +1,7 @@
-var Book = require('./book');
-var EpubCFI = require('./epubcfi');
-var Rendition = require('./rendition');
-var Contents = require('./contents');
+import Book from './book';
+import EpubCFI from './epubcfi';
+import Rendition from './rendition';
+import Contents from './contents';
 
 /**
  * Creates a new Book
@@ -51,4 +51,4 @@ ePub.register.view("iframe", require('./managers/views/iframe'));
 ePub.register.manager("default", require('./managers/default'));
 ePub.register.manager("continuous", require('./managers/continuous'));
 
-module.exports = ePub;
+export default ePub;

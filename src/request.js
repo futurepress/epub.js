@@ -1,12 +1,12 @@
-var core = require('./core');
-var Path = require('./core').Path;
+import {defer, isXml, parse} from './utils/core';
+import Path from './utils/path';
 
 function request(url, type, withCredentials, headers) {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 	var uri;
 
-	var deferred = new core.defer();
+	var deferred = new defer();
 
 	var xhr = new XMLHttpRequest();
 
@@ -49,7 +49,7 @@ function request(url, type, withCredentials, headers) {
 	}
 
 
-	if(core.isXml(type)) {
+	if(isXml(type)) {
 		// xhr.responseType = "document";
 		xhr.overrideMimeType('text/xml'); // for OPF parsing
 	}
@@ -106,16 +106,16 @@ function request(url, type, withCredentials, headers) {
 				if(responseXML){
 					r = this.responseXML;
 				} else
-				if(core.isXml(type)){
+				if(isXml(type)){
 					// xhr.overrideMimeType('text/xml'); // for OPF parsing
 					// If this.responseXML wasn't set, try to parse using a DOMParser from text
-					r = core.parse(this.response, "text/xml");
+					r = parse(this.response, "text/xml");
 				}else
 				if(type == 'xhtml'){
-					r = core.parse(this.response, "application/xhtml+xml");
+					r = parse(this.response, "application/xhtml+xml");
 				}else
 				if(type == 'html' || type == 'htm'){
-					r = core.parse(this.response, "text/html");
+					r = parse(this.response, "text/html");
 				}else
 				if(type == 'json'){
 					r = JSON.parse(this.response);
@@ -149,4 +149,4 @@ function request(url, type, withCredentials, headers) {
 	return deferred.promise;
 };
 
-module.exports = request;
+export default request;

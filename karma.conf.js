@@ -24,7 +24,7 @@ module.exports = function(config) {
 
       {pattern: 'node_modules/jszip/dist/jszip.js', watched: false, included: true, served: true},
 
-      {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
+      // {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
 
       {pattern: 'libs/url/url.js', watched: false, included: true, served: true}
 
@@ -53,6 +53,22 @@ module.exports = function(config) {
         alias: {
           path: "path-webpack"
         }
+      },
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: "babel-loader",
+            query: {
+              presets: ['es2015'],
+              plugins: [
+                "add-module-exports",
+                "transform-runtime"
+              ]
+            }
+          }
+        ]
       }
     },
 

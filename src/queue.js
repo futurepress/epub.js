@@ -1,198 +1,201 @@
-var core = require('./core');
+import {defer, requestAnimationFrame} from './utils/core';
 
 /**
  * Queue for handling tasks one at a time
  * @class
  * @param {scope} context what this will resolve to in the tasks
  */
-function Queue(context){
-	this._q = [];
-	this.context = context;
-	this.tick = core.requestAnimationFrame;
-	this.running = false;
-	this.paused = false;
-};
+class Queue {
+	constructor(context){
+		this._q = [];
+		this.context = context;
+		this.tick = requestAnimationFrame;
+		this.running = false;
+		this.paused = false;
+	};
 
-/**
- * Add an item to the queue
- * @return {Promise}
- */
-Queue.prototype.enqueue = function() {
-	var deferred, promise;
-	var queued;
-	var task = [].shift.call(arguments);
-	var args = arguments;
+	/**
+	 * Add an item to the queue
+	 * @return {Promise}
+	 */
+	enqueue() {
+		var deferred, promise;
+		var queued;
+		var task = [].shift.call(arguments);
+		var args = arguments;
 
-	// Handle single args without context
-	// if(args && !Array.isArray(args)) {
-	//   args = [args];
-	// }
-	if(!task) {
-		return console.error("No Task Provided");
-	}
+		// Handle single args without context
+		// if(args && !Array.isArray(args)) {
+		//   args = [args];
+		// }
+		if(!task) {
+			return console.error("No Task Provided");
+		}
 
-	if(typeof task === "function"){
+		if(typeof task === "function"){
 
-		deferred = new core.defer();
-		promise = deferred.promise;
+			deferred = new defer();
+			promise = deferred.promise;
 
-		queued = {
-			"task" : task,
-			"args"     : args,
-			//"context"  : context,
-			"deferred" : deferred,
-			"promise" : promise
-		};
+			queued = {
+				"task" : task,
+				"args"     : args,
+				//"context"  : context,
+				"deferred" : deferred,
+				"promise" : promise
+			};
 
-	} else {
-		// Task is a promise
-		queued = {
-			"promise" : task
-		};
+		} else {
+			// Task is a promise
+			queued = {
+				"promise" : task
+			};
 
-	}
+		}
 
-	this._q.push(queued);
+		this._q.push(queued);
 
-	// Wait to start queue flush
-	if (this.paused == false && !this.running) {
-		// setTimeout(this.flush.bind(this), 0);
-		// this.tick.call(window, this.run.bind(this));
-		this.run();
-	}
+		// Wait to start queue flush
+		if (this.paused == false && !this.running) {
+			// setTimeout(this.flush.bind(this), 0);
+			// this.tick.call(window, this.run.bind(this));
+			this.run();
+		}
 
-	return queued.promise;
-};
+		return queued.promise;
+	};
 
-/**
- * Run one item
- * @return {Promise}
- */
-Queue.prototype.dequeue = function(){
-	var inwait, task, result;
+	/**
+	 * Run one item
+	 * @return {Promise}
+	 */
+	dequeue(){
+		var inwait, task, result;
 
-	if(this._q.length) {
-		inwait = this._q.shift();
-		task = inwait.task;
-		if(task){
-			// console.log(task)
+		if(this._q.length) {
+			inwait = this._q.shift();
+			task = inwait.task;
+			if(task){
+				// console.log(task)
 
-			result = task.apply(this.context, inwait.args);
+				result = task.apply(this.context, inwait.args);
 
-			if(result && typeof result["then"] === "function") {
-				// Task is a function that returns a promise
-				return result.then(function(){
-					inwait.deferred.resolve.apply(this.context, arguments);
-				}, function(reason) {
-				  	inwait.deferred.reject.apply(this.context, arguments);
-				}.bind(this));
-			} else {
-				// Task resolves immediately
-				inwait.deferred.resolve.apply(this.context, result);
+				if(result && typeof result["then"] === "function") {
+					// Task is a function that returns a promise
+					return result.then(function(){
+						inwait.deferred.resolve.apply(this.context, arguments);
+					}.bind(this), function(reason) {
+						inwait.deferred.reject.apply(this.context, arguments);
+					}.bind(this));
+				} else {
+					// Task resolves immediately
+					inwait.deferred.resolve.apply(this.context, result);
+					return inwait.promise;
+				}
+
+
+
+			} else if(inwait.promise) {
+				// Task is a promise
 				return inwait.promise;
 			}
 
-
-
-		} else if(inwait.promise) {
-			// Task is a promise
+		} else {
+			inwait = new defer();
+			inwait.deferred.resolve();
 			return inwait.promise;
 		}
 
-	} else {
-		inwait = new core.defer();
-		inwait.deferred.resolve();
-		return inwait.promise;
-	}
+	};
 
-};
+	// Run All Immediately
+	dump(){
+		while(this._q.length) {
+			this.dequeue();
+		}
+	};
 
-// Run All Immediately
-Queue.prototype.dump = function(){
-	while(this._q.length) {
-		this.dequeue();
-	}
-};
+	/**
+	 * Run all tasks sequentially, at convince
+	 * @return {Promise}
+	 */
+	run(){
 
-/**
- * Run all tasks sequentially, at convince
- * @return {Promise}
- */
-Queue.prototype.run = function(){
-
-	if(!this.running){
-		this.running = true;
-		this.defered = new core.defer();
-	}
-
-	this.tick.call(window, function() {
-
-		if(this._q.length) {
-
-			this.dequeue()
-				.then(function(){
-					this.run();
-				}.bind(this));
-
-		} else {
-			this.defered.resolve();
-			this.running = undefined;
+		if(!this.running){
+			this.running = true;
+			this.defered = new defer();
 		}
 
-	}.bind(this));
+		this.tick.call(window, function() {
 
-	// Unpause
-	if(this.paused == true) {
-		this.paused = false;
-	}
+			if(this._q.length) {
 
-	return this.defered.promise;
-};
+				this.dequeue()
+					.then(function(){
+						this.run();
+					}.bind(this));
 
-/**
- * Flush all, as quickly as possible
- * @return {Promise}
- */
-Queue.prototype.flush = function(){
-
-	if(this.running){
-		return this.running;
-	}
-
-	if(this._q.length) {
-		this.running = this.dequeue()
-			.then(function(){
+			} else {
+				this.defered.resolve();
 				this.running = undefined;
-				return this.flush();
-			}.bind(this));
+			}
 
-		return this.running;
-	}
+		}.bind(this));
 
-};
+		// Unpause
+		if(this.paused == true) {
+			this.paused = false;
+		}
 
-/**
- * Clear all items in wait
- */
-Queue.prototype.clear = function(){
-	this._q = [];
-	this.running = false;
-};
+		return this.defered.promise;
+	};
 
-/**
- * Get the number of tasks in the queue
- * @return {int} tasks
- */
-Queue.prototype.length = function(){
-	return this._q.length;
-};
+	/**
+	 * Flush all, as quickly as possible
+	 * @return {Promise}
+	 */
+	flush(){
 
-/**
- * Pause a running queue
- */
-Queue.prototype.pause = function(){
-	this.paused = true;
-};
+		if(this.running){
+			return this.running;
+		}
+
+		if(this._q.length) {
+			this.running = this.dequeue()
+				.then(function(){
+					this.running = undefined;
+					return this.flush();
+				}.bind(this));
+
+			return this.running;
+		}
+
+	};
+
+	/**
+	 * Clear all items in wait
+	 */
+	clear(){
+		this._q = [];
+		this.running = false;
+	};
+
+	/**
+	 * Get the number of tasks in the queue
+	 * @return {int} tasks
+	 */
+	length(){
+		return this._q.length;
+	};
+
+	/**
+	 * Pause a running queue
+	 */
+	pause(){
+		this.paused = true;
+	};
+}
+
 
 /**
  * Create a new task from a callback
@@ -203,25 +206,28 @@ Queue.prototype.pause = function(){
  * @param {scope} context
  * @return {function} task
  */
-function Task(task, args, context){
+class Task {
+	constructor(task, args, context){
 
-	return function(){
-		var toApply = arguments || [];
+		return function(){
+			var toApply = arguments || [];
 
-		return new Promise(function(resolve, reject) {
-			var callback = function(value){
-				resolve(value);
-			};
-			// Add the callback to the arguments list
-			toApply.push(callback);
+			return new Promise(function(resolve, reject) {
+				var callback = function(value){
+					resolve(value);
+				};
+				// Add the callback to the arguments list
+				toApply.push(callback);
 
-			// Apply all arguments to the functions
-			task.apply(this, toApply);
+				// Apply all arguments to the functions
+				task.apply(this, toApply);
 
-	}.bind(this));
+			}.bind(this));
+
+		};
 
 	};
+}
 
-};
 
-module.exports = Queue;
+export default Queue;

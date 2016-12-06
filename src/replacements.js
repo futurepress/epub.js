@@ -1,8 +1,8 @@
-// var URI = require('urijs');
-var core = require('./core');
-var Url = require('./core').Url;
+// import URI from 'urijs';
+import { qs } from './utils/core';
+import Url from './utils/url';
 
-function base(doc, section){
+export function replaceBase(doc, section){
 	var base;
 	var head;
 
@@ -12,8 +12,8 @@ function base(doc, section){
 
 	// head = doc.querySelector("head");
 	// base = head.querySelector("base");
-	head = core.qs(doc, "head");
-	base = core.qs(head, "base");
+	head = qs(doc, "head");
+	base = qs(head, "base");
 
 	if(!base) {
 		base = doc.createElement("base");
@@ -23,7 +23,7 @@ function base(doc, section){
 	base.setAttribute("href", section.url);
 }
 
-function canonical(doc, section){
+export function replaceCanonical(doc, section){
 	var head;
 	var link;
 	var url = section.url; // window.location.origin +  window.location.pathname + "?loc=" + encodeURIComponent(section.url);
@@ -32,8 +32,8 @@ function canonical(doc, section){
 		return;
 	}
 
-	head = core.qs(doc, "head");
-	link = core.qs(head, "link[rel='canonical']");
+	head = qs(doc, "head");
+	link = qs(head, "link[rel='canonical']");
 
 	if (link) {
 		link.setAttribute("href", url);
@@ -45,10 +45,10 @@ function canonical(doc, section){
 	}
 }
 
-function links(view, renderer) {
+export function replaceLinks(view, renderer) {
 
 	var links = view.document.querySelectorAll("a[href]");
-	var replaceLinks = function(link){
+	var replaceLink = function(link){
 		var href = link.getAttribute("href");
 
 		if(href.indexOf("mailto:") === 0){
@@ -92,13 +92,13 @@ function links(view, renderer) {
 	}.bind(this);
 
 	for (var i = 0; i < links.length; i++) {
-		replaceLinks(links[i]);
+		replaceLink(links[i]);
 	}
 
 
 };
 
-function substitute(content, urls, replacements) {
+export function substitute(content, urls, replacements) {
 	urls.forEach(function(url, i){
 		if (url && replacements[i]) {
 			content = content.replace(new RegExp(url, 'g'), replacements[i]);
@@ -106,9 +106,3 @@ function substitute(content, urls, replacements) {
 	});
 	return content;
 }
-module.exports = {
-	'base': base,
-	'canonical' : canonical,
-	'links': links,
-	'substitute': substitute
-};

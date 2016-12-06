@@ -26,6 +26,10 @@
     "examples"
   ],
   "dependencies": {
-    "es6-promise": "~4.0.5"
+    "es6-promise": "~4.0.5",
+    "jszip": "^3.1.1",
+    "path-webpack": "^0.0.2",
+    "stream-browserify": "^2.0.1",
+    "xmldom": "^0.1.22"
   }
 }

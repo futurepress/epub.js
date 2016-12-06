@@ -5,58 +5,59 @@
  * @param {any} context scope of this
  * @example this.content = new EPUBJS.Hook(this);
  */
-function Hook(context){
-	this.context = context || this;
-	this.hooks = [];
-};
+class Hook {
+	constructor(context){
+		this.context = context || this;
+		this.hooks = [];
+	};
 
-/**
- * Adds a function to be run before a hook completes
- * @example this.content.register(function(){...});
- */
-Hook.prototype.register = function(){
-	for(var i = 0; i < arguments.length; ++i) {
-		if (typeof arguments[i]  === "function") {
-			this.hooks.push(arguments[i]);
-		} else {
-			// unpack array
-			for(var j = 0; j < arguments[i].length; ++j) {
-				this.hooks.push(arguments[i][j]);
+	/**
+	 * Adds a function to be run before a hook completes
+	 * @example this.content.register(function(){...});
+	 */
+	register(){
+		for(var i = 0; i < arguments.length; ++i) {
+			if (typeof arguments[i]  === "function") {
+				this.hooks.push(arguments[i]);
+			} else {
+				// unpack array
+				for(var j = 0; j < arguments[i].length; ++j) {
+					this.hooks.push(arguments[i][j]);
+				}
 			}
 		}
-	}
-};
+	};
 
-/**
- * Triggers a hook to run all functions
- * @example this.content.trigger(args).then(function(){...});
- */
-Hook.prototype.trigger = function(){
-	var args = arguments;
-	var context = this.context;
-	var promises = [];
+	/**
+	 * Triggers a hook to run all functions
+	 * @example this.content.trigger(args).then(function(){...});
+	 */
+	trigger(){
+		var args = arguments;
+		var context = this.context;
+		var promises = [];
 
-	this.hooks.forEach(function(task, i) {
-		var executing = task.apply(context, args);
+		this.hooks.forEach(function(task, i) {
+			var executing = task.apply(context, args);
 
-		if(executing && typeof executing["then"] === "function") {
-			// Task is a function that returns a promise
-			promises.push(executing);
-		}
-		// Otherwise Task resolves immediately, continue
-	});
+			if(executing && typeof executing["then"] === "function") {
+				// Task is a function that returns a promise
+				promises.push(executing);
+			}
+			// Otherwise Task resolves immediately, continue
+		});
 
 
-	return Promise.all(promises);
-};
+		return Promise.all(promises);
+	};
 
-// Adds a function to be run before a hook completes
-Hook.prototype.list = function(){
-	return this.hooks;
-};
+	// Adds a function to be run before a hook completes
+	list(){
+		return this.hooks;
+	};
 
-Hook.prototype.clear = function(){
-	return this.hooks = [];
-};
-
-module.exports = Hook;
+	clear(){
+		return this.hooks = [];
+	};
+}
+export default Hook;
