@@ -81,7 +81,7 @@ class Spine {
 		var index = 0;
 
 		if(this.epubcfi.isCfiString(target)) {
-			cfi = new EpubCFI(target);
+			let cfi = new EpubCFI(target);
 			index = cfi.spinePos;
 		} else if(target && (typeof target === "number" || isNaN(target) === false)){
 			index = target;
