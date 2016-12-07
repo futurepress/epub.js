@@ -1,5 +1,5 @@
-import Path from './path'
-import path from 'path-webpack';
+import Path from "./path"
+import path from "path-webpack";
 
 /**
  * creates a uri object
@@ -11,7 +11,7 @@ import path from 'path-webpack';
 
 class Url {
 	constructor(urlString, baseString) {
-		var absolute = (urlString.indexOf('://') > -1);
+		var absolute = (urlString.indexOf("://") > -1);
 		var pathname = urlString;
 
 		this.Url = undefined;
@@ -57,10 +57,10 @@ class Url {
 
 	path () {
 		return this.Path;
-	};
+	}
 
 	resolve (what) {
-		var isAbsolute = (what.indexOf('://') > -1);
+		var isAbsolute = (what.indexOf("://") > -1);
 		var fullpath;
 
 		if (isAbsolute) {
@@ -69,15 +69,15 @@ class Url {
 
 		fullpath = path.resolve(this.directory, what);
 		return this.origin + fullpath;
-	};
+	}
 
 	relative (what) {
 		return path.relative(what, this.directory);
-	};
+	}
 
 	toString () {
 		return this.href;
-	};
+	}
 }
 
-export default Url
+export default Url;

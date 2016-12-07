@@ -3,7 +3,8 @@
   "version": "0.3.1",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
-  "jsnext:main" : "src/index.js",
+  "jsnext:main": "src/index.js",
+  "module": "src/index.js",
   "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
@@ -11,6 +12,7 @@
   "scripts": {
     "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
     "documentation": "./node_modules/.bin/gulp docs",
+    "lint": "./node_modules/.bin/eslint -c .eslintrc.js src; exit 0",
     "start": "webpack-dev-server --inline --d",
     "build": "webpack --progress",
     "minify": "NODE_ENV=production webpack --progress",
@@ -31,6 +33,7 @@
     "babili-webpack-plugin": "0.0.7",
     "colors": "^1.1.2",
     "connect": "^3.0.1",
+    "eslint": "^3.11.1",
     "express": "^4.5.1",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.3.4",

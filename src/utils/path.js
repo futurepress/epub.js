@@ -1,11 +1,11 @@
-import path from 'path-webpack';
+import path from "path-webpack";
 
 class Path {
 	constructor(pathString) {
 		var protocol;
 		var parsed;
 
-		protocol = pathString.indexOf('://');
+		protocol = pathString.indexOf("://");
 		if (protocol > -1) {
 			pathString = new URL(pathString).pathname;
 		}
@@ -27,31 +27,31 @@ class Path {
 
 	parse (what) {
 		return path.parse(what);
-	};
+	}
 
 	isAbsolute (what) {
 		return path.isAbsolute(what || this.path);
-	};
+	}
 
 	isDirectory (what) {
-		return (what.charAt(what.length-1) === '/');
-	};
+		return (what.charAt(what.length-1) === "/");
+	}
 
 	resolve (what) {
 		return path.resolve(this.directory, what);
-	};
+	}
 
 	relative (what) {
 		return path.relative(this.directory, what);
-	};
+	}
 
 	splitPath(filename) {
 		return this.splitPathRe.exec(filename).slice(1);
-	};
+	}
 
 	toString () {
 		return this.path;
-	};
+	}
 }
 
-export default Path
+export default Path;

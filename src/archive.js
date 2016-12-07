@@ -8,6 +8,7 @@ import Path from './utils/path';
  * @class
  */
 class Archive {
+
 	constructor() {
 		this.zip = undefined;
 		this.checkRequirements();
@@ -22,7 +23,7 @@ class Archive {
 	checkRequirements(){
 		try {
 			if (typeof JSZip === 'undefined') {
-				JSZip = require('jszip');
+				let JSZip = require('jszip');
 			}
 			this.zip = new JSZip();
 		} catch (e) {

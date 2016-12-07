@@ -165,6 +165,10 @@ class Book {
 			this.archived = true;
 			this.url = new Url("/", "");
 			opening = this.openEpub(input);
+		} else if (type === "base64") {
+			this.archived = true;
+			this.url = new Url("/", "");
+			opening = this.openEpub(input, type);
 		} else if (type === "epub") {
 			this.archived = true;
 			this.url = new Url("/", "");
@@ -282,7 +286,11 @@ class Book {
 		var path;
 		var extension;
 
-		if (typeof(input) != "string") {
+		if (this.settings.encoding === "base64") {
+			return "base64";
+		}
+
+		if(typeof(input) != "string") {
 			return "binary";
 		}
 

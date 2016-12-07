@@ -295,13 +295,16 @@ export function type(obj){
 
 export function parse(markup, mime, forceXMLDom) {
 	var doc;
+	var Parser;
 
 	if (typeof DOMParser === "undefined" || forceXMLDom) {
-		DOMParser = require('xmldom').DOMParser;
+		Parser = require('xmldom').DOMParser;
+	} else {
+		Parser = DOMParser;
 	}
 
 
-	doc = new DOMParser().parseFromString(markup, mime);
+	doc = new Parser().parseFromString(markup, mime);
 
 	return doc;
 }
@@ -446,10 +449,10 @@ export function defer() {
 	/* A newly created Pomise object.
 	 * Initially in pending state.
 	 */
-	this.promise = new Promise(function(resolve, reject) {
+	this.promise = new Promise((resolve, reject) => {
 		this.resolve = resolve;
 		this.reject = reject;
-	}.bind(this));
+	});
 	Object.freeze(this);
 }
 

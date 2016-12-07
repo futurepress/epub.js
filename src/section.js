@@ -105,11 +105,14 @@ class Section {
 		this.load(_request).
 			then(function(contents){
 				var serializer;
+				var Serializer;
 
 				if (typeof XMLSerializer === "undefined") {
-					XMLSerializer = require('xmldom').XMLSerializer;
+					Serializer = require('xmldom').XMLSerializer;
+				} else {
+					Serializer = XMLSerializer;
 				}
-				serializer = new XMLSerializer();
+				serializer = new Serializer();
 				this.output = serializer.serializeToString(contents);
 				return this.output;
 			}.bind(this)).
