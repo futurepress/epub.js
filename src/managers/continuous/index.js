@@ -1,9 +1,9 @@
-import {extend, defer, requestAnimationFrame} from '../../utils/core';
-import DefaultViewManager from '../default';
+import {extend, defer, requestAnimationFrame} from "../../utils/core";
+import DefaultViewManager from "../default";
 
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
-		super(options)
+		super(options);
 		// DefaultViewManager.apply(this, arguments); // call super constructor.
 
 		this.name = "continuous";
@@ -36,14 +36,14 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.scrollTop = 0;
 		this.scrollLeft = 0;
-	};
+	}
 
 	display(section, target){
 		return DefaultViewManager.prototype.display.call(this, section, target)
 			.then(function () {
 				return this.fill();
 			}.bind(this));
-	};
+	}
 
 	fill(_full){
 		var full = _full || new defer();
@@ -80,7 +80,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			.then(function(){
 				this.scrollBy(distX, distY);
 			}.bind(this));
-	};
+	}
 
 	/*
 	afterDisplayed(currView){
@@ -103,7 +103,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		// currView.onShown = this.afterDisplayed.bind(this);
 		this.emit("added", currView.section);
 
-	};
+	}
 	*/
 
 	resize(width, height){
@@ -134,7 +134,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			height: this.stage.height
 		});
 
-	};
+	}
 
 	onResized(e) {
 
@@ -144,11 +144,11 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.resizeTimeout = setTimeout(function(){
 			this.resize();
 		}.bind(this), 150);
-	};
+	}
 
 	afterResized(view){
 		this.emit("resize", view.section);
-	};
+	}
 
 	// Remove Previous Listeners if present
 	removeShownListeners(view){
@@ -157,7 +157,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		// view.off("shown", this.afterDisplayedAbove);
 		view.onDisplayed = function(){};
 
-	};
+	}
 
 
 	// append(section){
@@ -182,7 +182,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var view = this.createView(section);
 		this.views.append(view);
 		return view;
-	};
+	}
 
 	prepend(section){
 		var view = this.createView(section);
@@ -191,7 +191,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.views.prepend(view);
 		return view;
-	};
+	}
 
 	counter(bounds){
 
@@ -201,7 +201,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.scrollBy(bounds.widthDelta, 0, true);
 		}
 
-	};
+	}
 
 	update(_offset){
 		var container = this.bounds();
@@ -245,7 +245,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			return updating.promise;
 		}
 
-	};
+	}
 
 	check(_offsetLeft, _offsetTop){
 		var last, first, next, prev;
@@ -290,9 +290,9 @@ class ContinuousViewManager extends DefaultViewManager {
 			// Promise.all(promises)
 				// .then(function() {
 					// Check to see if anything new is on screen after rendering
-					return this.q.enqueue(function(){
-						return this.update(delta);
-					}.bind(this));
+			return this.q.enqueue(function(){
+				return this.update(delta);
+			}.bind(this));
 
 
 				// }.bind(this));
@@ -303,7 +303,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 
-	};
+	}
 
 	trim(){
 		var task = new defer();
@@ -327,7 +327,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		task.resolve();
 		return task.promise;
-	};
+	}
 
 	erase(view, above){ //Trim
 
@@ -355,18 +355,18 @@ class ContinuousViewManager extends DefaultViewManager {
 			}
 		}
 
-	};
+	}
 
 	addEventListeners(stage){
 
-		window.addEventListener('unload', function(e){
+		window.addEventListener("unload", function(e){
 			this.ignore = true;
 			// this.scrollTo(0,0);
 			this.destroy();
 		}.bind(this));
 
 		this.addScrollListeners();
-	};
+	}
 
 	addScrollListeners() {
 		var scroller;
@@ -400,7 +400,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.scrolled = false;
 
-	};
+	}
 
 	onScroll(){
 		let scrollTop;
@@ -408,70 +408,70 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		// if(!this.ignore) {
 
-			if(this.settings.height) {
-				scrollTop = this.container.scrollTop;
-				scrollLeft = this.container.scrollLeft;
-			} else {
-				scrollTop = window.scrollY;
-				scrollLeft = window.scrollX;
-			}
+		if(this.settings.height) {
+			scrollTop = this.container.scrollTop;
+			scrollLeft = this.container.scrollLeft;
+		} else {
+			scrollTop = window.scrollY;
+			scrollLeft = window.scrollX;
+		}
 
-			this.scrollTop = scrollTop;
-			this.scrollLeft = scrollLeft;
+		this.scrollTop = scrollTop;
+		this.scrollLeft = scrollLeft;
 
-			if(!this.ignore) {
+		if(!this.ignore) {
 
-				if((this.scrollDeltaVert === 0 &&
-					 this.scrollDeltaHorz === 0) ||
-					 this.scrollDeltaVert > this.settings.offsetDelta ||
-					 this.scrollDeltaHorz > this.settings.offsetDelta) {
+			if((this.scrollDeltaVert === 0 &&
+				 this.scrollDeltaHorz === 0) ||
+				 this.scrollDeltaVert > this.settings.offsetDelta ||
+				 this.scrollDeltaHorz > this.settings.offsetDelta) {
 
-					this.q.enqueue(function() {
-						this.check();
-					}.bind(this));
-					// this.check();
+				this.q.enqueue(function() {
+					this.check();
+				}.bind(this));
+				// this.check();
 
-					this.scrollDeltaVert = 0;
-					this.scrollDeltaHorz = 0;
-
-					this.emit("scroll", {
-						top: scrollTop,
-						left: scrollLeft
-					});
-
-					clearTimeout(this.afterScrolled);
-					this.afterScrolled = setTimeout(function () {
-						this.emit("scrolled", {
-							top: this.scrollTop,
-							left: this.scrollLeft
-						});
-					}.bind(this));
-
-				}
-
-			} else {
-				this.ignore = false;
-			}
-
-			this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
-			this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
-
-			this.prevScrollTop = scrollTop;
-			this.prevScrollLeft = scrollLeft;
-
-			clearTimeout(this.scrollTimeout);
-			this.scrollTimeout = setTimeout(function(){
 				this.scrollDeltaVert = 0;
 				this.scrollDeltaHorz = 0;
-			}.bind(this), 150);
+
+				this.emit("scroll", {
+					top: scrollTop,
+					left: scrollLeft
+				});
+
+				clearTimeout(this.afterScrolled);
+				this.afterScrolled = setTimeout(function () {
+					this.emit("scrolled", {
+						top: this.scrollTop,
+						left: this.scrollLeft
+					});
+				}.bind(this));
+
+			}
+
+		} else {
+			this.ignore = false;
+		}
+
+		this.scrollDeltaVert += Math.abs(scrollTop-this.prevScrollTop);
+		this.scrollDeltaHorz += Math.abs(scrollLeft-this.prevScrollLeft);
+
+		this.prevScrollTop = scrollTop;
+		this.prevScrollLeft = scrollLeft;
+
+		clearTimeout(this.scrollTimeout);
+		this.scrollTimeout = setTimeout(function(){
+			this.scrollDeltaVert = 0;
+			this.scrollDeltaHorz = 0;
+		}.bind(this), 150);
 
 
-			this.scrolled = false;
+		this.scrolled = false;
 		// }
 
 		// this.tick.call(window, this.onScroll.bind(this));
 
-	};
+	}
 
 
 	//  resizeView(view) {
@@ -493,14 +493,14 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		return this.location;
-	};
+	}
 
 	scrolledLocation(){
 
 		var visible = this.visible();
 		var startPage, endPage;
 
-		var container = this.container.getBoundingClientRect();
+		// var container = this.container.getBoundingClientRect();
 
 		if(visible.length === 1) {
 			return this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
@@ -517,7 +517,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			};
 		}
 
-	};
+	}
 
 	paginatedLocation(){
 		var visible = this.visible();
@@ -550,7 +550,7 @@ class ContinuousViewManager extends DefaultViewManager {
 				end: pageRight.end
 			};
 		}
-	};
+	}
 
 	/*
 	current(what){
@@ -595,7 +595,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		return this._current;
-	};
+	}
 	*/
 
 	updateLayout() {
@@ -626,7 +626,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.setLayout(this.layout);
 
-	};
+	}
 
 	next(){
 
@@ -645,7 +645,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		} else {
 			this.scrollBy(0, this.layout.height);
 		}
-	};
+	}
 
 	prev(){
 		if(this.settings.axis === "horizontal") {
@@ -653,7 +653,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		} else {
 			this.scrollBy(0, -this.layout.height);
 		}
-	};
+	}
 
 	updateFlow(flow){
 		var axis = (flow === "paginated") ? "horizontal" : "vertical";
@@ -674,7 +674,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.settings.infinite = false;
 		}
 
-	};
+	}
 }
 
 export default ContinuousViewManager;

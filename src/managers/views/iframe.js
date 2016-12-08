@@ -1,13 +1,13 @@
-import EventEmitter from 'event-emitter';
-import {extend, borders, uuid, isNumber, bounds, defer} from '../../utils/core';
-import EpubCFI from '../../epubcfi';
-import Contents from '../../contents';
+import EventEmitter from "event-emitter";
+import {extend, borders, uuid, isNumber, bounds, defer} from "../../utils/core";
+import EpubCFI from "../../epubcfi";
+import Contents from "../../contents";
 
 class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
-			ignoreClass : '',
-			axis: 'vertical',
+			ignoreClass : "",
+			axis: "vertical",
 			width: 0,
 			height: 0,
 			layout: undefined,
@@ -36,10 +36,10 @@ class IframeView {
 		this.layout = this.settings.layout;
 		// Dom events to listen for
 		// this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
-	};
+	}
 
 	container(axis) {
-		var element = document.createElement('div');
+		var element = document.createElement("div");
 
 		element.classList.add("epub-view");
 
@@ -55,7 +55,7 @@ class IframeView {
 		}
 
 		return element;
-	};
+	}
 
 	create() {
 
@@ -67,7 +67,7 @@ class IframeView {
 			this.element = this.createContainer();
 		}
 
-		this.iframe = document.createElement('iframe');
+		this.iframe = document.createElement("iframe");
 		this.iframe.id = this.id;
 		this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
 		this.iframe.style.overflow = "hidden";
@@ -102,14 +102,14 @@ class IframeView {
 		// Firefox has trouble with baseURI and srcdoc
 		// TODO: Disable for now in firefox
 
-		if(!!("srcdoc" in this.iframe)) {
+		if(!("srcdoc" in this.iframe)) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
 		}
 
 		return this.iframe;
-	};
+	}
 
 	render(request, show) {
 
@@ -163,11 +163,10 @@ class IframeView {
 
 			}.bind(this))
 			.catch(function(e){
-				console.error(e);
 				this.emit("loaderror", e);
 			}.bind(this));
 
-	};
+	}
 
 	// Determine locks base on settings
 	size(_width, _height) {
@@ -182,7 +181,7 @@ class IframeView {
 			this.lock("width", width, height);
 		}
 
-	};
+	}
 
 	// Lock an axis to element dimensions, taking borders into account
 	lock(what, width, height) {
@@ -217,14 +216,14 @@ class IframeView {
 
 		if(this.displayed && this.iframe) {
 
-				// this.contents.layout();
-				this.expand();
+			// this.contents.layout();
+			this.expand();
 
 		}
 
 
 
-	};
+	}
 
 	// Resize a single axis based on content dimensions
 	expand(force) {
@@ -254,8 +253,8 @@ class IframeView {
 				if ( this.settings.layout.divisor > 1 &&
 						 this.settings.layout.name === "reflowable" &&
 						(columns % 2 > 0)) {
-						// add a blank page
-						width += this.settings.layout.gap + this.settings.layout.columnWidth;
+					// add a blank page
+					width += this.settings.layout.gap + this.settings.layout.columnWidth;
 				}
 
 				// Save the textWdith
@@ -286,7 +285,7 @@ class IframeView {
 		}
 
 		this._expanding = false;
-	};
+	}
 
 	contentWidth(min) {
 		var prev;
@@ -302,7 +301,7 @@ class IframeView {
 		// Reset iframe size back
 		this.iframe.style.width = prev;
 		return width;
-	};
+	}
 
 	contentHeight(min) {
 		var prev;
@@ -314,7 +313,7 @@ class IframeView {
 
 		this.iframe.style.height = prev;
 		return height;
-	};
+	}
 
 
 	resize(width, height) {
@@ -335,7 +334,7 @@ class IframeView {
 
 		this.reframe(this.iframeBounds.width, this.iframeBounds.height);
 
-	};
+	}
 
 	reframe(width, height) {
 		var size;
@@ -367,7 +366,7 @@ class IframeView {
 
 		this.emit("resized", size);
 
-	};
+	}
 
 
 	load(contents) {
@@ -403,35 +402,35 @@ class IframeView {
 		}
 
 		return loaded;
-	};
+	}
 
 	onLoad(event, promise) {
 
-			this.window = this.iframe.contentWindow;
-			this.document = this.iframe.contentDocument;
+		this.window = this.iframe.contentWindow;
+		this.document = this.iframe.contentDocument;
 
-			this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
+		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
 
-			this.rendering = false;
+		this.rendering = false;
 
-			var link = this.document.querySelector("link[rel='canonical']");
-			if (link) {
-				link.setAttribute("href", this.section.url);
-			} else {
-				link = this.document.createElement("link");
-				link.setAttribute("rel", "canonical");
-				link.setAttribute("href", this.section.url);
-				this.document.querySelector("head").appendChild(link);
+		var link = this.document.querySelector("link[rel='canonical']");
+		if (link) {
+			link.setAttribute("href", this.section.url);
+		} else {
+			link = this.document.createElement("link");
+			link.setAttribute("rel", "canonical");
+			link.setAttribute("href", this.section.url);
+			this.document.querySelector("head").appendChild(link);
+		}
+
+		this.contents.on("expand", function () {
+			if(this.displayed && this.iframe) {
+				this.expand();
 			}
+		});
 
-			this.contents.on("expand", function () {
-				if(this.displayed && this.iframe) {
-						this.expand();
-				}
-			});
-
-			promise.resolve(this.contents);
-	};
+		promise.resolve(this.contents);
+	}
 
 
 
@@ -458,25 +457,25 @@ class IframeView {
 
 	setLayout(layout) {
 		this.layout = layout;
-	};
+	}
 
 	setAxis(axis) {
 		this.settings.axis = axis;
-	};
+	}
 
 	resizeListenters() {
 		// Test size again
 		clearTimeout(this.expanding);
 		this.expanding = setTimeout(this.expand.bind(this), 350);
-	};
+	}
 
 	addListeners() {
 		//TODO: Add content listeners for expanding
-	};
+	}
 
 	removeListeners(layoutFunc) {
 		//TODO: remove content listeners for expanding
-	};
+	}
 
 	display(request) {
 		var displayed = new defer();
@@ -499,7 +498,7 @@ class IframeView {
 
 
 		return displayed.promise;
-	};
+	}
 
 	show() {
 
@@ -510,7 +509,7 @@ class IframeView {
 		}
 
 		this.emit("shown", this);
-	};
+	}
 
 	hide() {
 		// this.iframe.style.display = "none";
@@ -519,11 +518,11 @@ class IframeView {
 
 		this.stopExpanding = true;
 		this.emit("hidden", this);
-	};
+	}
 
 	position() {
 		return this.element.getBoundingClientRect();
-	};
+	}
 
 	locationOf(target) {
 		var parentPos = this.iframe.getBoundingClientRect();
@@ -533,22 +532,22 @@ class IframeView {
 			"left": window.scrollX + parentPos.left + targetPos.left,
 			"top": window.scrollY + parentPos.top + targetPos.top
 		};
-	};
+	}
 
 	onDisplayed(view) {
 		// Stub, override with a custom functions
-	};
+	}
 
 	onResize(view, e) {
 		// Stub, override with a custom functions
-	};
+	}
 
 	bounds() {
 		if(!this.elementBounds) {
 			this.elementBounds = bounds(this.element);
 		}
 		return this.elementBounds;
-	};
+	}
 
 	destroy() {
 
@@ -569,7 +568,7 @@ class IframeView {
 		}
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";
-	};
+	}
 }
 
 EventEmitter(IframeView.prototype);

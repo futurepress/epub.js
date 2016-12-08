@@ -1,7 +1,7 @@
-import {defer, isXml, parse} from './utils/core';
-import request from './request';
-import mime from '../libs/mime/mime';
-import Path from './utils/path';
+import {defer, isXml, parse} from "./utils/core";
+import request from "./utils/request";
+import mime from "../libs/mime/mime";
+import Path from "./utils/path";
 
 /**
  * Handles Unzipping a requesting files from an Epub Archive
@@ -22,14 +22,16 @@ class Archive {
 	 */
 	checkRequirements(){
 		try {
-			if (typeof JSZip === 'undefined') {
-				let JSZip = require('jszip');
+			if (typeof JSZip === "undefined") {
+				let JSZip = require("jszip");
+				this.zip = new JSZip();
+			} else {
+				this.zip = new JSZip();
 			}
-			this.zip = new JSZip();
 		} catch (e) {
-			console.error("JSZip lib not loaded");
+			throw new Error("JSZip lib not loaded");
 		}
-	};
+	}
 
 	/**
 	 * Open an archive
@@ -39,7 +41,7 @@ class Archive {
 	 */
 	open(input, isBase64){
 		return this.zip.loadAsync(input, {"base64": isBase64});
-	};
+	}
 
 	/**
 	 * Load and Open an archive
@@ -52,7 +54,7 @@ class Archive {
 			.then(function(data){
 				return this.zip.loadAsync(data, {"base64": isBase64});
 			}.bind(this));
-	};
+	}
 
 	/**
 	 * Request
@@ -63,7 +65,6 @@ class Archive {
 	request(url, type){
 		var deferred = new defer();
 		var response;
-		var r;
 		var path = new Path(url);
 
 		// If type isn't set, determine it from the file extension
@@ -71,7 +72,7 @@ class Archive {
 			type = path.extension;
 		}
 
-		if(type == 'blob'){
+		if(type == "blob"){
 			response = this.getBlob(url);
 		} else {
 			response = this.getText(url);
@@ -89,7 +90,7 @@ class Archive {
 			});
 		}
 		return deferred.promise;
-	};
+	}
 
 	/**
 	 * Handle the response from request
@@ -109,18 +110,18 @@ class Archive {
 			r = parse(response, "text/xml");
 		}
 		else
-		if(type == 'xhtml') {
+		if(type == "xhtml") {
 			r = parse(response, "application/xhtml+xml");
 		}
 		else
-		if(type == 'html' || type == 'htm') {
+		if(type == "html" || type == "htm") {
 			r = parse(response, "text/html");
 		 } else {
 			 r = response;
 		 }
 
 		return r;
-	};
+	}
 
 	/**
 	 * Get a Blob from Archive by Url
@@ -138,7 +139,7 @@ class Archive {
 				return new Blob([uint8array], {type : mimeType});
 			});
 		}
-	};
+	}
 
 	/**
 	 * Get Text from Archive by Url
@@ -155,7 +156,7 @@ class Archive {
 				return text;
 			});
 		}
-	};
+	}
 
 	/**
 	 * Get a base64 encoded result from Archive by Url
@@ -173,7 +174,7 @@ class Archive {
 				return "data:" + mimeType + ";base64," + data;
 			});
 		}
-	};
+	}
 
 	/**
 	 * Create a Url from an unarchived item
@@ -185,7 +186,6 @@ class Archive {
 		var deferred = new defer();
 		var _URL = window.URL || window.webkitURL || window.mozURL;
 		var tempUrl;
-		var blob;
 		var response;
 		var useBase64 = options && options.base64;
 
@@ -232,7 +232,7 @@ class Archive {
 		}
 
 		return deferred.promise;
-	};
+	}
 
 	/**
 	 * Revoke Temp Url for a achive item
@@ -242,7 +242,7 @@ class Archive {
 		var _URL = window.URL || window.webkitURL || window.mozURL;
 		var fromCache = this.urlCache[url];
 		if(fromCache) _URL.revokeObjectURL(fromCache);
-	};
+	}
 }
 
 export default Archive;

@@ -1,21 +1,22 @@
-import EventEmitter from 'event-emitter';
-// import path from 'path';
-import {extend, defer} from './utils/core';
-import Url from './utils/url';
-import Path from './utils/path';
-import Spine from './spine';
-import Locations from './locations';
-import Container from './container';
-import Packaging from './packaging';
-import Navigation from './navigation';
-import Resources from './resources';
-import PageList from './pagelist';
-import Rendition from './rendition';
-import Archive from './archive';
-import request from './request';
-import EpubCFI from './epubcfi';
+import EventEmitter from "event-emitter";
+// import path from "path";
+import {extend, defer} from "./utils/core";
+import Url from "./utils/url";
+import Path from "./utils/path";
+import Spine from "./spine";
+import Locations from "./locations";
+import Container from "./container";
+import Packaging from "./packaging";
+import Navigation from "./navigation";
+import Resources from "./resources";
+import PageList from "./pagelist";
+import Rendition from "./rendition";
+import Archive from "./archive";
+import request from "./utils/request";
+import EpubCFI from "./epubcfi";
 
 const CONTAINER_PATH = "META-INF/container.xml";
+const EPUBJS_VERSION = "0.3.1";
 
 /**
  * Creates a new Book
@@ -45,7 +46,7 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: 'base64'
+			replacements: "base64"
 		});
 
 		extend(this.settings, options);
@@ -84,12 +85,14 @@ class Book {
 		 * @property {promise} ready returns after the book is loaded and parsed
 		 * @private
 		 */
-		this.ready = Promise.all([this.loaded.manifest,
-															this.loaded.spine,
-															this.loaded.metadata,
-															this.loaded.cover,
-															this.loaded.navigation,
-															this.loaded.resources ]);
+		this.ready = Promise.all([
+			this.loaded.manifest,
+			this.loaded.spine,
+			this.loaded.metadata,
+			this.loaded.cover,
+			this.loaded.navigation,
+			this.loaded.resources
+		]);
 
 
 		// Queue for methods used before opening
@@ -143,12 +146,11 @@ class Book {
 		if(url) {
 			this.open(url).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
-				console.error(err);
+				// console.error(err);
 				this.emit("openFailed", err);
-				console.log(error);
 			});
 		}
-	};
+	}
 
 	/**
 	 * Open a epub or url
@@ -172,7 +174,7 @@ class Book {
 		} else if (type === "epub") {
 			this.archived = true;
 			this.url = new Url("/", "");
-			opening = this.request(input, 'binary')
+			opening = this.request(input, "binary")
 				.then(this.openEpub.bind(this));
 		} else if(type == "opf") {
 			this.url = new Url(input);
@@ -224,7 +226,6 @@ class Book {
 	 * @return {Promise}
 	 */
 	openPackaging(url) {
-		var packageUrl;
 		this.path = new Path(url);
 		return this.load(url)
 			.then((xml) => {
@@ -258,7 +259,7 @@ class Book {
 	 */
 	resolve(path, absolute) {
 		var resolved = path;
-		var isAbsolute = (path.indexOf('://') > -1);
+		var isAbsolute = (path.indexOf("://") > -1);
 
 		if (isAbsolute) {
 			return path;
@@ -309,7 +310,7 @@ class Book {
 		if(extension === "opf"){
 			return "opf";
 		}
-	};
+	}
 
 
 	/**
@@ -369,7 +370,7 @@ class Book {
 			return;
 		}
 
-		return this.load(navPath, 'xml')
+		return this.load(navPath, "xml")
 			.then((xml) => {
 				this.navigation = new Navigation(xml);
 				this.pageList = new PageList(xml);
@@ -400,7 +401,7 @@ class Book {
 		this.rendition.attachTo(element);
 
 		return this.rendition;
-	};
+	}
 
 	/**
 	 * Set if request should use withCredentials
@@ -408,7 +409,7 @@ class Book {
 	 */
 	setRequestCredentials(credentials) {
 		this.settings.requestCredentials = credentials;
-	};
+	}
 
 	/**
 	 * Set headers request should use
@@ -416,7 +417,7 @@ class Book {
 	 */
 	setRequestHeaders(headers) {
 		this.settings.requestHeaders = headers;
-	};
+	}
 
 	/**
 	 * Unarchive a zipped epub
@@ -478,7 +479,7 @@ class Book {
 		return item.load().then(function (contents) {
 			var range = cfi.toRange(item.document);
 			return range;
-		})
+		});
 	}
 
 	/**
@@ -488,7 +489,7 @@ class Book {
 	 */
 	key(identifier) {
 		var ident = identifier || this.package.metadata.identifier || this.url.filename;
-		return "epubjs:" + (EPUBJS_VERSION || ePub.VERSION) + ":" + ident;
+		return `epubjs:${EPUBJS_VERSION}:${ident}`;
 	}
 
 }

@@ -1,7 +1,7 @@
-import { defer } from './utils/core';
-import EpubCFI from './epubcfi';
-import Hook from './hook';
-import Url from './utils/url';
+import { defer } from "./utils/core";
+import EpubCFI from "./epubcfi";
+import Hook from "./utils/hook";
+import { replaceBase } from "./utils/replacements";
 
 /**
  * Represents a Section of the Book
@@ -11,26 +11,25 @@ import Url from './utils/url';
  */
 class Section {
 	constructor(item, hooks){
-			this.idref = item.idref;
-			this.linear = item.linear;
-			this.properties = item.properties;
-			this.index = item.index;
-			this.href = item.href;
-			this.url = item.url;
-			this.next = item.next;
-			this.prev = item.prev;
+		this.idref = item.idref;
+		this.linear = item.linear;
+		this.properties = item.properties;
+		this.index = item.index;
+		this.href = item.href;
+		this.url = item.url;
+		this.next = item.next;
+		this.prev = item.prev;
 
-			this.cfiBase = item.cfiBase;
+		this.cfiBase = item.cfiBase;
 
-			if (hooks) {
-				this.hooks = hooks;
-			} else {
-				this.hooks = {};
-				this.hooks.serialize = new Hook(this);
-				this.hooks.content = new Hook(this);
-			}
-
-	};
+		if (hooks) {
+			this.hooks = hooks;
+		} else {
+			this.hooks = {};
+			this.hooks.serialize = new Hook(this);
+			this.hooks.content = new Hook(this);
+		}
+	}
 
 	/**
 	 * Load the section from its url
@@ -38,7 +37,7 @@ class Section {
 	 * @return {document} a promise with the xml document
 	 */
 	load(_request){
-		var request = _request || this.request || require('./request');
+		var request = _request || this.request || require("./utils/request");
 		var loading = new defer();
 		var loaded = loading.promise;
 
@@ -47,8 +46,7 @@ class Section {
 		} else {
 			request(this.url)
 				.then(function(xml){
-					var base;
-					var directory = new Url(this.url).directory;
+					// var directory = new Url(this.url).directory;
 
 					this.document = xml;
 					this.contents = xml.documentElement;
@@ -64,33 +62,15 @@ class Section {
 		}
 
 		return loaded;
-	};
+	}
 
 	/**
 	 * Adds a base tag for resolving urls in the section
 	 * @private
-	 * @param  {document} _document
 	 */
-	base(_document){
-			var task = new defer();
-			var base = _document.createElement("base"); // TODO: check if exists
-			var head;
-
-			base.setAttribute("href", window.location.origin + "/" +this.url);
-
-			if(_document) {
-				head = _document.querySelector("head");
-			}
-			if(head) {
-				head.insertBefore(base, head.firstChild);
-				task.resolve();
-			} else {
-				task.reject(new Error("No head to insert into"));
-			}
-
-
-			return task.promise;
-	};
+	base(){
+		return replaceBase(this.document, this);
+	}
 
 	/**
 	 * Render the contents of a section
@@ -108,7 +88,7 @@ class Section {
 				var Serializer;
 
 				if (typeof XMLSerializer === "undefined") {
-					Serializer = require('xmldom').XMLSerializer;
+					Serializer = require("xmldom").XMLSerializer;
 				} else {
 					Serializer = XMLSerializer;
 				}
@@ -127,7 +107,7 @@ class Section {
 			});
 
 		return rendered;
-	};
+	}
 
 	/**
 	 * Find a string in a section
@@ -135,9 +115,9 @@ class Section {
 	 * @param  {string} query [description]
 	 * @return {[type]} [description]
 	 */
-	find(query){
+	find(){
 
-	};
+	}
 
 	/**
 	* Reconciles the current chapters layout properies with
@@ -155,7 +135,7 @@ class Section {
 
 		//-- Get the chapter's display type
 		this.properties.forEach(function(prop){
-			var rendition = prop.replace("rendition:", '');
+			var rendition = prop.replace("rendition:", "");
 			var split = rendition.indexOf("-");
 			var property, value;
 
@@ -166,8 +146,8 @@ class Section {
 				settings[property] = value;
 			}
 		});
-	 return settings;
-	};
+		return settings;
+	}
 
 	/**
 	 * Get a CFI from a Range in the Section
@@ -176,7 +156,7 @@ class Section {
 	 */
 	cfiFromRange(_range) {
 		return new EpubCFI(_range, this.cfiBase).toString();
-	};
+	}
 
 	/**
 	 * Get a CFI from an Element in the Section
@@ -185,7 +165,7 @@ class Section {
 	 */
 	cfiFromElement(el) {
 		return new EpubCFI(el, this.cfiBase).toString();
-	};
+	}
 }
 
 export default Section;

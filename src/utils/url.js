@@ -1,4 +1,4 @@
-import Path from "./path"
+import Path from "./path";
 import path from "path-webpack";
 
 /**

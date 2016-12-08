@@ -1,7 +1,7 @@
-import EventEmitter from 'event-emitter';
-import {isNumber, prefixed} from './utils/core';
-import EpubCFI from './epubcfi';
-import Mapping from './mapping';
+import EventEmitter from "event-emitter";
+import {isNumber, prefixed} from "./utils/core";
+import EpubCFI from "./epubcfi";
+import Mapping from "./mapping";
 
 
 class Contents {
@@ -19,12 +19,12 @@ class Contents {
 		this._size = {
 			width: 0,
 			height: 0
-		}
+		};
 
 		this.cfiBase = cfiBase || "";
 
 		this.listeners();
-	};
+	}
 
 	width(w) {
 		// var frame = this.documentElement;
@@ -39,10 +39,10 @@ class Contents {
 			// this.content.style.width = w;
 		}
 
-		return this.window.getComputedStyle(frame)['width'];
+		return this.window.getComputedStyle(frame)["width"];
 
 
-	};
+	}
 
 	height(h) {
 		// var frame = this.documentElement;
@@ -57,9 +57,9 @@ class Contents {
 			// this.content.style.height = h;
 		}
 
-		return this.window.getComputedStyle(frame)['height'];
+		return this.window.getComputedStyle(frame)["height"];
 
-	};
+	}
 
 	contentWidth(w) {
 
@@ -73,10 +73,10 @@ class Contents {
 			content.style.width = w;
 		}
 
-		return this.window.getComputedStyle(content)['width'];
+		return this.window.getComputedStyle(content)["width"];
 
 
-	};
+	}
 
 	contentHeight(h) {
 
@@ -90,9 +90,9 @@ class Contents {
 			content.style.height = h;
 		}
 
-		return this.window.getComputedStyle(content)['height'];
+		return this.window.getComputedStyle(content)["height"];
 
-	};
+	}
 
 	textWidth() {
 		var width;
@@ -107,7 +107,7 @@ class Contents {
 
 		return width;
 
-	};
+	}
 
 	textHeight() {
 		var height;
@@ -119,19 +119,19 @@ class Contents {
 		height = range.getBoundingClientRect().height;
 
 		return height;
-	};
+	}
 
 	scrollWidth() {
 		var width = this.documentElement.scrollWidth;
 
 		return width;
-	};
+	}
 
 	scrollHeight() {
 		var height = this.documentElement.scrollHeight;
 
 		return height;
-	};
+	}
 
 	overflow(overflow) {
 
@@ -139,8 +139,8 @@ class Contents {
 			this.documentElement.style.overflow = overflow;
 		}
 
-		return this.window.getComputedStyle(this.documentElement)['overflow'];
-	};
+		return this.window.getComputedStyle(this.documentElement)["overflow"];
+	}
 
 	overflowX(overflow) {
 
@@ -148,8 +148,8 @@ class Contents {
 			this.documentElement.style.overflowX = overflow;
 		}
 
-		return this.window.getComputedStyle(this.documentElement)['overflowX'];
-	};
+		return this.window.getComputedStyle(this.documentElement)["overflowX"];
+	}
 
 	overflowY(overflow) {
 
@@ -157,8 +157,8 @@ class Contents {
 			this.documentElement.style.overflowY = overflow;
 		}
 
-		return this.window.getComputedStyle(this.documentElement)['overflowY'];
-	};
+		return this.window.getComputedStyle(this.documentElement)["overflowY"];
+	}
 
 	css(property, value) {
 		var content = this.content || this.document.body;
@@ -168,31 +168,31 @@ class Contents {
 		}
 
 		return this.window.getComputedStyle(content)[property];
-	};
+	}
 
 	viewport(options) {
 		var width, height, scale, scalable;
 		var $viewport = this.document.querySelector("meta[name='viewport']");
-		var newContent = '';
+		var newContent = "";
 
 		/*
 		* check for the viewport size
 		* <meta name="viewport" content="width=1024,height=697" />
 		*/
 		if($viewport && $viewport.hasAttribute("content")) {
-			content = $viewport.getAttribute("content");
-			contents = content.split(/\s*,\s*/);
+			let content = $viewport.getAttribute("content");
+			let contents = content.split(/\s*,\s*/);
 			if(contents[0]){
-				width = contents[0].replace("width=", '').trim();
+				width = contents[0].replace("width=", "").trim();
 			}
 			if(contents[1]){
-				height = contents[1].replace("height=", '').trim();
+				height = contents[1].replace("height=", "").trim();
 			}
 			if(contents[2]){
-				scale = contents[2].replace("initial-scale=", '').trim();
+				scale = contents[2].replace("initial-scale=", "").trim();
 			}
 			if(contents[3]){
-				scalable = contents[3].replace("user-scalable=", '').trim();
+				scalable = contents[3].replace("user-scalable=", "").trim();
 			}
 		}
 
@@ -210,7 +210,7 @@ class Contents {
 			if (!$viewport) {
 				$viewport = this.document.createElement("meta");
 				$viewport.setAttribute("name", "viewport");
-				this.document.querySelector('head').appendChild($viewport);
+				this.document.querySelector("head").appendChild($viewport);
 			}
 
 			$viewport.setAttribute("content", newContent);
@@ -221,7 +221,7 @@ class Contents {
 			width: parseInt(width),
 			height: parseInt(height)
 		};
-	};
+	}
 
 
 	// layout(layoutFunc) {
@@ -247,7 +247,7 @@ class Contents {
 
 	expand() {
 		this.emit("expand");
-	};
+	}
 
 	listeners() {
 
@@ -263,14 +263,14 @@ class Contents {
 
 		this.resizeListeners();
 
-	};
+	}
 
 	removeListeners() {
 
 		this.removeEventListeners();
 
 		this.removeSelectionListeners();
-	};
+	}
 
 	resizeListeners() {
 		var width, height;
@@ -285,43 +285,43 @@ class Contents {
 			this._size = {
 				width: width,
 				height: height
-			}
+			};
 
 			this.emit("resize", this._size);
 		}
 
 		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
-	};
+	}
 
 	//https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
 	mediaQueryListeners() {
-			var sheets = this.document.styleSheets;
-			var mediaChangeHandler = function(m){
-				if(m.matches && !this._expanding) {
-					setTimeout(this.expand.bind(this), 1);
-					// this.expand();
-				}
-			}.bind(this);
-
-			for (var i = 0; i < sheets.length; i += 1) {
-					var rules;
-					// Firefox errors if we access cssRules cross-domain
-					try {
-						rules = sheets[i].cssRules;
-					} catch (e) {
-						return;
-					}
-					if(!rules) return; // Stylesheets changed
-					for (var j = 0; j < rules.length; j += 1) {
-							//if (rules[j].constructor === CSSMediaRule) {
-							if(rules[j].media){
-									var mql = this.window.matchMedia(rules[j].media.mediaText);
-									mql.addListener(mediaChangeHandler);
-									//mql.onchange = mediaChangeHandler;
-							}
-					}
+		var sheets = this.document.styleSheets;
+		var mediaChangeHandler = function(m){
+			if(m.matches && !this._expanding) {
+				setTimeout(this.expand.bind(this), 1);
+				// this.expand();
 			}
-	};
+		}.bind(this);
+
+		for (var i = 0; i < sheets.length; i += 1) {
+			var rules;
+			// Firefox errors if we access cssRules cross-domain
+			try {
+				rules = sheets[i].cssRules;
+			} catch (e) {
+				return;
+			}
+			if(!rules) return; // Stylesheets changed
+			for (var j = 0; j < rules.length; j += 1) {
+				//if (rules[j].constructor === CSSMediaRule) {
+				if(rules[j].media){
+					var mql = this.window.matchMedia(rules[j].media.mediaText);
+					mql.addListener(mediaChangeHandler);
+					//mql.onchange = mediaChangeHandler;
+				}
+			}
+		}
+	}
 
 	observe(target) {
 		var renderer = this;
@@ -343,7 +343,7 @@ class Contents {
 		observer.observe(target, config);
 
 		return observer;
-	};
+	}
 
 	imageLoadListeners(target) {
 		var images = this.document.querySelectorAll("img");
@@ -356,7 +356,7 @@ class Contents {
 				img.onload = this.expand.bind(this);
 			}
 		}
-	};
+	}
 
 	fontLoadListeners(target) {
 		if (!this.document || !this.document.fonts) {
@@ -367,12 +367,12 @@ class Contents {
 			this.expand();
 		}.bind(this));
 
-	};
+	}
 
 	root() {
 		if(!this.document) return null;
 		return this.document.documentElement;
-	};
+	}
 
 	locationOf(target, ignoreClass) {
 		var position;
@@ -404,8 +404,8 @@ class Contents {
 		} else if(typeof target === "string" &&
 			target.indexOf("#") > -1) {
 
-			id = target.substring(target.indexOf("#")+1);
-			el = this.document.getElementById(id);
+			let id = target.substring(target.indexOf("#")+1);
+			let el = this.document.getElementById(id);
 
 			if(el) {
 				position = el.getBoundingClientRect();
@@ -415,7 +415,7 @@ class Contents {
 		}
 
 		return targetPos;
-	};
+	}
 
 	addStylesheet(src) {
 		return new Promise(function(resolve, reject){
@@ -428,18 +428,18 @@ class Contents {
 			}
 
 			// Check if link already exists
-			$stylesheet = this.document.querySelector('link[href="'+src+'"]');
+			$stylesheet = this.document.querySelector("link[href='"+src+"']");
 			if ($stylesheet) {
 				resolve(true);
 				return; // already present
 			}
 
-			$stylesheet = this.document.createElement('link');
-			$stylesheet.type = 'text/css';
+			$stylesheet = this.document.createElement("link");
+			$stylesheet.type = "text/css";
 			$stylesheet.rel = "stylesheet";
 			$stylesheet.href = src;
 			$stylesheet.onload = $stylesheet.onreadystatechange = function() {
-				if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					// Let apply
 					setTimeout(function(){
@@ -451,7 +451,7 @@ class Contents {
 			this.document.head.appendChild($stylesheet);
 
 		}.bind(this));
-	};
+	}
 
 	// https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
 	addStylesheetRules(rules) {
@@ -464,7 +464,7 @@ class Contents {
 		// Check if link already exists
 		styleEl = this.document.getElementById("#"+key);
 		if (!styleEl) {
-			styleEl = this.document.createElement('style');
+			styleEl = this.document.createElement("style");
 			styleEl.id = key;
 		}
 
@@ -475,22 +475,22 @@ class Contents {
 		styleSheet = styleEl.sheet;
 
 		for (var i = 0, rl = rules.length; i < rl; i++) {
-			var j = 1, rule = rules[i], selector = rules[i][0], propStr = '';
+			var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
 			// If the second argument of a rule is an array of arrays, correct our variables.
-			if (Object.prototype.toString.call(rule[1][0]) === '[object Array]') {
+			if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
 				rule = rule[1];
 				j = 0;
 			}
 
 			for (var pl = rule.length; j < pl; j++) {
 				var prop = rule[j];
-				propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+				propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
 			}
 
 			// Insert CSS Rule
-			styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet.cssRules.length);
+			styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
 		}
-	};
+	}
 
 	addScript(src) {
 
@@ -503,12 +503,12 @@ class Contents {
 				return;
 			}
 
-			$script = this.document.createElement('script');
-			$script.type = 'text/javascript';
+			$script = this.document.createElement("script");
+			$script.type = "text/javascript";
 			$script.async = true;
 			$script.src = src;
 			$script.onload = $script.onreadystatechange = function() {
-				if ( !ready && (!this.readyState || this.readyState == 'complete') ) {
+				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					setTimeout(function(){
 						resolve(true);
@@ -519,7 +519,7 @@ class Contents {
 			this.document.head.appendChild($script);
 
 		}.bind(this));
-	};
+	}
 
 	addClass(className) {
 		var content;
@@ -530,7 +530,7 @@ class Contents {
 
 		content.classList.add(className);
 
-	};
+	}
 
 	removeClass(className) {
 		var content;
@@ -541,7 +541,7 @@ class Contents {
 
 		content.classList.remove(className);
 
-	};
+	}
 
 	addEventListeners(){
 		if(!this.document) {
@@ -551,7 +551,7 @@ class Contents {
 			this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
 		}, this);
 
-	};
+	}
 
 	removeEventListeners(){
 		if(!this.document) {
@@ -561,26 +561,26 @@ class Contents {
 			this.document.removeEventListener(eventName, this.triggerEvent, false);
 		}, this);
 
-	};
+	}
 
 	// Pass browser events
 	triggerEvent(e){
 		this.emit(e.type, e);
-	};
+	}
 
 	addSelectionListeners(){
 		if(!this.document) {
 			return;
 		}
 		this.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
-	};
+	}
 
 	removeSelectionListeners(){
 		if(!this.document) {
 			return;
 		}
 		this.document.removeEventListener("selectionchange", this.onSelectionChange, false);
-	};
+	}
 
 	onSelectionChange(e){
 		if (this.selectionEndTimeout) {
@@ -590,7 +590,7 @@ class Contents {
 			var selection = this.window.getSelection();
 			this.triggerSelectedEvent(selection);
 		}.bind(this), 500);
-	};
+	}
 
 	triggerSelectedEvent(selection){
 		var range, cfirange;
@@ -604,17 +604,17 @@ class Contents {
 				this.emit("selectedRange", range);
 			}
 		}
-	};
+	}
 
 	range(_cfi, ignoreClass){
 		var cfi = new EpubCFI(_cfi);
 		return cfi.toRange(this.document, ignoreClass);
-	};
+	}
 
 	map(layout){
 		var map = new Mapping(layout);
 		return map.section();
-	};
+	}
 
 	size(width, height){
 
@@ -629,14 +629,13 @@ class Contents {
 		this.css("margin", "0");
 		this.css("boxSizing", "border-box");
 
-	};
+	}
 
 	columns(width, height, columnWidth, gap){
-		var COLUMN_AXIS = prefixed('columnAxis');
-		var COLUMN_GAP = prefixed('columnGap');
-		var COLUMN_WIDTH = prefixed('columnWidth');
-		var COLUMN_FILL = prefixed('columnFill');
-		var textWidth;
+		var COLUMN_AXIS = prefixed("columnAxis");
+		var COLUMN_GAP = prefixed("columnGap");
+		var COLUMN_WIDTH = prefixed("columnWidth");
+		var COLUMN_FILL = prefixed("columnFill");
 
 		this.width(width);
 		this.height(height);
@@ -655,20 +654,20 @@ class Contents {
 
 		this.css(COLUMN_GAP, gap+"px");
 		this.css(COLUMN_WIDTH, columnWidth+"px");
-	};
+	}
 
 	scaler(scale, offsetX, offsetY){
-		var scale = "scale(" + scale + ")";
-		var translate = '';
+		var scaleStr = "scale(" + scale + ")";
+		var translateStr = "";
 		// this.css("position", "absolute"));
 		this.css("transformOrigin", "top left");
 
 		if (offsetX >= 0 || offsetY >= 0) {
-			translate = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
+			translateStr = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
 		}
 
-		this.css("transform", scale + translate);
-	};
+		this.css("transform", scaleStr + translateStr);
+	}
 
 	fit(width, height){
 		var viewport = this.viewport();
@@ -689,13 +688,13 @@ class Contents {
 		this.scaler(scale, 0, offsetY);
 
 		this.css("backgroundColor", "transparent");
-	};
+	}
 
 	mapPage(cfiBase, start, end) {
 		var mapping = new Mapping();
 
 		return mapping.page(this, cfiBase, start, end);
-	};
+	}
 
 	destroy() {
 		// Stop observing
@@ -705,7 +704,7 @@ class Contents {
 
 		this.removeListeners();
 
-	};
+	}
 }
 
 EventEmitter(Contents.prototype);

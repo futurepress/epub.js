@@ -9,7 +9,7 @@ class Hook {
 	constructor(context){
 		this.context = context || this;
 		this.hooks = [];
-	};
+	}
 
 	/**
 	 * Adds a function to be run before a hook completes
@@ -26,7 +26,7 @@ class Hook {
 				}
 			}
 		}
-	};
+	}
 
 	/**
 	 * Triggers a hook to run all functions
@@ -37,7 +37,7 @@ class Hook {
 		var context = this.context;
 		var promises = [];
 
-		this.hooks.forEach(function(task, i) {
+		this.hooks.forEach(function(task) {
 			var executing = task.apply(context, args);
 
 			if(executing && typeof executing["then"] === "function") {
@@ -49,15 +49,15 @@ class Hook {
 
 
 		return Promise.all(promises);
-	};
+	}
 
 	// Adds a function to be run before a hook completes
 	list(){
 		return this.hooks;
-	};
+	}
 
 	clear(){
 		return this.hooks = [];
-	};
+	}
 }
 export default Hook;

@@ -1,16 +1,16 @@
-import EpubCFI from './epubcfi';
+import EpubCFI from "./epubcfi";
 
 class Mapping {
 	constructor(layout) {
 		this.layout = layout;
-	};
+	}
 
 	section(view) {
 		var ranges = this.findRanges(view);
 		var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
 
 		return map;
-	};
+	}
 
 	page(contents, cfiBase, start, end) {
 		var root = contents && contents.document ? contents.document.body : false;
@@ -23,18 +23,18 @@ class Mapping {
 			start: this.findStart(root, start, end),
 			end: this.findEnd(root, start, end)
 		});
-	};
+	}
 
 	walk(root, func) {
 		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
 		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-				acceptNode: function (node) {
-						if ( node.data.trim().length > 0 ) {
-							return NodeFilter.FILTER_ACCEPT;
-						} else {
-							return NodeFilter.FILTER_REJECT;
-						}
+			acceptNode: function (node) {
+				if ( node.data.trim().length > 0 ) {
+					return NodeFilter.FILTER_ACCEPT;
+				} else {
+					return NodeFilter.FILTER_REJECT;
 				}
+			}
 		}, false);
 		var node;
 		var result;
@@ -44,7 +44,7 @@ class Mapping {
 		}
 
 		return result;
-	};
+	}
 
 	findRanges(view){
 		var columns = [];
@@ -64,7 +64,7 @@ class Mapping {
 		}
 
 		return columns;
-	};
+	}
 
 	findStart(root, start, end){
 		var stack = [root];
@@ -111,7 +111,7 @@ class Mapping {
 
 		// Return last element
 		return this.findTextStartRange($prev, start, end);
-	};
+	}
 
 	findEnd(root, start, end){
 		var stack = [root];
@@ -161,12 +161,11 @@ class Mapping {
 
 		// end of chapter
 		return this.findTextEndRange($prev, start, end);
-	};
+	}
 
 
 	findTextStartRange(node, start, end){
 		var ranges = this.splitTextNodeIntoRanges(node);
-		var prev;
 		var range;
 		var pos;
 
@@ -179,12 +178,12 @@ class Mapping {
 				return range;
 			}
 
-			prev = range;
+			// prev = range;
 
 		}
 
 		return ranges[0];
-	};
+	}
 
 	findTextEndRange(node, start, end){
 		var ranges = this.splitTextNodeIntoRanges(node);
@@ -210,15 +209,13 @@ class Mapping {
 		// Ends before limit
 		return ranges[ranges.length-1];
 
-	};
+	}
 
 	splitTextNodeIntoRanges(node, _splitter){
 		var ranges = [];
 		var textContent = node.textContent || "";
 		var text = textContent.trim();
 		var range;
-		var rect;
-		var list;
 		var doc = node.ownerDocument;
 		var splitter = _splitter || " ";
 
@@ -257,7 +254,7 @@ class Mapping {
 		}
 
 		return ranges;
-	};
+	}
 
 
 
@@ -279,11 +276,11 @@ class Mapping {
 			end: endCfi
 		};
 
-	};
+	}
 
 	rangeListToCfiList(cfiBase, columns){
 		var map = [];
-		var rangePair, cifPair;
+		var cifPair;
 
 		for (var i = 0; i < columns.length; i++) {
 			cifPair = this.rangePairToCfiPair(cfiBase, columns[i]);
@@ -293,7 +290,7 @@ class Mapping {
 		}
 
 		return map;
-	};
+	}
 }
 
 export default Mapping;

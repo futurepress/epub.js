@@ -1,6 +1,5 @@
-// import URI from 'urijs';
-import { qs } from './utils/core';
-import Url from './utils/url';
+import { qs } from "./core";
+import Url from "./url";
 
 export function replaceBase(doc, section){
 	var base;
@@ -96,12 +95,12 @@ export function replaceLinks(view, renderer) {
 	}
 
 
-};
+}
 
 export function substitute(content, urls, replacements) {
 	urls.forEach(function(url, i){
 		if (url && replacements[i]) {
-			content = content.replace(new RegExp(url, 'g'), replacements[i]);
+			content = content.replace(new RegExp(url, "g"), replacements[i]);
 		}
 	});
 	return content;

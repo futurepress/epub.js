@@ -1,32 +1,19 @@
-export const requestAnimationFrame = (typeof window != 'undefined') ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
+export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 
 export function isElement(obj) {
-		return !!(obj && obj.nodeType == 1);
-};
+	return !!(obj && obj.nodeType == 1);
+}
 
 // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 export function uuid() {
 	var d = new Date().getTime();
-	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-			var r = (d + Math.random()*16)%16 | 0;
-			d = Math.floor(d/16);
-			return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+	var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+		var r = (d + Math.random()*16)%16 | 0;
+		d = Math.floor(d/16);
+		return (c=="x" ? r : (r&0x7|0x8)).toString(16);
 	});
 	return uuid;
-};
-
-// From Lodash
-export function values(object) {
-	var index = -1,
-			props = Object.keys(object),
-			length = props.length,
-			result = Array(length);
-
-	while (++index < length) {
-		result[index] = object[props[index]];
-	}
-	return result;
-};
+}
 
 export function documentHeight() {
 	return Math.max(
@@ -36,34 +23,34 @@ export function documentHeight() {
 			document.body.offsetHeight,
 			document.documentElement.offsetHeight
 	);
-};
+}
 
 export function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
-};
+}
 
 export function isFloat(n) {
 	return isNumber(n) && (Math.floor(n) !== n);
 }
 
 export function prefixed(unprefixed) {
-	var vendors = ["Webkit", "Moz", "O", "ms" ],
-		prefixes = ['-Webkit-', '-moz-', '-o-', '-ms-'],
-		upper = unprefixed[0].toUpperCase() + unprefixed.slice(1),
-		length = vendors.length;
+	var vendors = ["Webkit", "Moz", "O", "ms" ];
+	// var prefixes = ["-Webkit-", "-moz-", "-o-", "-ms-"];
+	var upper = unprefixed[0].toUpperCase() + unprefixed.slice(1);
+	var length = vendors.length;
 
-	if (typeof(document) === 'undefined' || typeof(document.body.style[unprefixed]) != 'undefined') {
+	if (typeof(document) === "undefined" || typeof(document.body.style[unprefixed]) != "undefined") {
 		return unprefixed;
 	}
 
 	for ( var i=0; i < length; i++ ) {
-		if (typeof(document.body.style[vendors[i] + upper]) != 'undefined') {
+		if (typeof(document.body.style[vendors[i] + upper]) != "undefined") {
 			return vendors[i] + upper;
 		}
 	}
 
 	return unprefixed;
-};
+}
 
 export function defaults(obj) {
 	for (var i = 1, length = arguments.length; i < length; i++) {
@@ -73,18 +60,18 @@ export function defaults(obj) {
 		}
 	}
 	return obj;
-};
+}
 
 export function extend(target) {
-		var sources = [].slice.call(arguments, 1);
-		sources.forEach(function (source) {
-			if(!source) return;
-			Object.getOwnPropertyNames(source).forEach(function(propName) {
-				Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
-			});
+	var sources = [].slice.call(arguments, 1);
+	sources.forEach(function (source) {
+		if(!source) return;
+		Object.getOwnPropertyNames(source).forEach(function(propName) {
+			Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
 		});
-		return target;
-};
+	});
+	return target;
+}
 
 // Fast quicksort insert for sorted array -- based on:
 // http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
@@ -93,7 +80,8 @@ export function insert(item, array, compareFunction) {
 	array.splice(location, 0, item);
 
 	return location;
-};
+}
+
 // Returns where something would fit in
 export function locationOf(item, array, compareFunction, _start, _end) {
 	var start = _start || 0;
@@ -104,7 +92,7 @@ export function locationOf(item, array, compareFunction, _start, _end) {
 		compareFunction = function(a, b) {
 			if(a > b) return 1;
 			if(a < b) return -1;
-			if(a = b) return 0;
+			if(a == b) return 0;
 		};
 	}
 	if(end-start <= 0) {
@@ -124,7 +112,8 @@ export function locationOf(item, array, compareFunction, _start, _end) {
 	} else{
 		return locationOf(item, array, compareFunction, start, pivot);
 	}
-};
+}
+
 // Returns -1 of mpt found
 export function indexOfSorted(item, array, compareFunction, _start, _end) {
 	var start = _start || 0;
@@ -135,7 +124,7 @@ export function indexOfSorted(item, array, compareFunction, _start, _end) {
 		compareFunction = function(a, b) {
 			if(a > b) return 1;
 			if(a < b) return -1;
-			if(a = b) return 0;
+			if(a == b) return 0;
 		};
 	}
 	if(end-start <= 0) {
@@ -154,7 +143,7 @@ export function indexOfSorted(item, array, compareFunction, _start, _end) {
 	} else{
 		return indexOfSorted(item, array, compareFunction, start, pivot);
 	}
-};
+}
 
 export function bounds(el) {
 
@@ -178,7 +167,7 @@ export function bounds(el) {
 		width: width
 	};
 
-};
+}
 
 export function borders(el) {
 
@@ -202,7 +191,7 @@ export function borders(el) {
 		width: width
 	};
 
-};
+}
 
 export function windowBounds() {
 
@@ -218,23 +207,23 @@ export function windowBounds() {
 		height: height
 	};
 
-};
+}
 
-//https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
+//-- https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
 export function cleanStringForXpath(str)	{
-		var parts = str.match(/[^'"]+|['"]/g);
-		parts = parts.map(function(part){
-				if (part === "'")	{
-						return '\"\'\"'; // output "'"
-				}
+	var parts = str.match(/[^'"]+|['"]/g);
+	parts = parts.map(function(part){
+		if (part === "'")	{
+			return "\"\'\""; // output "'"
+		}
 
-				if (part === '"') {
-						return "\'\"\'"; // output '"'
-				}
-				return "\'" + part + "\'";
-		});
-		return "concat(\'\'," + parts.join(",") + ")";
-};
+		if (part === "\"") {
+			return "\'\"\'"; // output '"'
+		}
+		return `\'${part}\'`;
+	});
+	return `concat(\'\',${ parts.join(",") })`;
+}
 
 export function indexOfTextNode(textNode){
 	var parent = textNode.parentNode;
@@ -250,17 +239,15 @@ export function indexOfTextNode(textNode){
 	}
 
 	return index;
-};
+}
 
 export function isXml(ext) {
-	return ['xml', 'opf', 'ncx'].indexOf(ext) > -1;
+	return ["xml", "opf", "ncx"].indexOf(ext) > -1;
 }
 
 export function createBlob(content, mime){
-	var blob = new Blob([content], {type : mime });
-
-	return blob;
-};
+	return new Blob([content], {type : mime });
+}
 
 export function createBlobUrl(content, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
@@ -270,10 +257,9 @@ export function createBlobUrl(content, mime){
 	tempUrl = _URL.createObjectURL(blob);
 
 	return tempUrl;
-};
+}
 
 export function createBase64Url(content, mime){
-	var string;
 	var data;
 	var datauri;
 
@@ -287,7 +273,7 @@ export function createBase64Url(content, mime){
 	datauri = "data:" + mime + ";base64," + data;
 
 	return datauri;
-};
+}
 
 export function type(obj){
 	return Object.prototype.toString.call(obj).slice(8, -1);
@@ -298,7 +284,7 @@ export function parse(markup, mime, forceXMLDom) {
 	var Parser;
 
 	if (typeof DOMParser === "undefined" || forceXMLDom) {
-		Parser = require('xmldom').DOMParser;
+		Parser = require("xmldom").DOMParser;
 	} else {
 		Parser = DOMParser;
 	}
@@ -312,7 +298,7 @@ export function parse(markup, mime, forceXMLDom) {
 export function qs(el, sel) {
 	var elements;
 	if (!el) {
-		throw new Error('No Element Provided');
+		throw new Error("No Element Provided");
 	}
 
 	if (typeof el.querySelector != "undefined") {
@@ -337,11 +323,11 @@ export function qsa(el, sel) {
 export function qsp(el, sel, props) {
 	var q, filtered;
 	if (typeof el.querySelector != "undefined") {
-		sel += '[';
+		sel += "[";
 		for (var prop in props) {
 			sel += prop + "='" + props[prop] + "'";
 		}
-		sel += ']';
+		sel += "]";
 		return el.querySelector(sel);
 	} else {
 		q = el.getElementsByTagName(sel);
@@ -409,10 +395,15 @@ export function walk(node,callback){
 	if(callback(node)){
 		return true;
 	}
-	if(node = node.firstChild){
+	node = node.firstChild;
+	if(node){
 		do{
-			if(walk(node,callback)){return true}
-		}while(node=node.nextSibling)
+			let walked = walk(node,callback);
+			if(walked){
+				return true;
+			}
+			node = node.nextSibling;
+		} while(node);
 	}
 }
 
@@ -421,7 +412,7 @@ export function blob2base64(blob, cb) {
 	reader.readAsDataURL(blob);
 	reader.onloadend = function() {
 		cb(reader.result);
-	}
+	};
 }
 
 // From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
@@ -456,10 +447,10 @@ export function defer() {
 	Object.freeze(this);
 }
 
- export function querySelectorByType(html, element, type){
+export function querySelectorByType(html, element, type){
 	var query;
 	if (typeof html.querySelector != "undefined") {
-		query = html.querySelector(element+'[*|type="'+type+'"]');
+		query = html.querySelector(`${element}[*|type="${type}"]`);
 	}
 	// Handle IE not supporting namespaced epub:type in querySelector
 	if(!query || query.length === 0) {
@@ -482,6 +473,6 @@ export function findChildren(el) {
 		if (node.nodeType === 1) {
 			result.push(node);
 		}
-	};
+	}
 	return result;
 }

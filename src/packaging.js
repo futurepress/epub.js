@@ -1,5 +1,4 @@
-import {qs, qsa, qsp} from './utils/core';
-import EpubCFI from './epubcfi';
+import {qs, qsa, qsp} from "./utils/core";
 
 /**
  * Open Packaging Format Parser
@@ -11,7 +10,7 @@ class Packaging {
 		if (packageDocument) {
 			this.parse(packageDocument);
 		}
-	};
+	}
 
 	/**
 	 * Parse OPF XML
@@ -22,26 +21,22 @@ class Packaging {
 		var metadataNode, manifestNode, spineNode;
 
 		if(!packageDocument) {
-			console.error("Package File Not Found");
-			return;
+			throw new Error("Package File Not Found");
 		}
 
 		metadataNode = qs(packageDocument, "metadata");
 		if(!metadataNode) {
-			console.error("No Metadata Found");
-			return;
+			throw new Error("No Metadata Found");
 		}
 
 		manifestNode = qs(packageDocument, "manifest");
 		if(!manifestNode) {
-			console.error("No Manifest Found");
-			return;
+			throw new Error("No Manifest Found");
 		}
 
 		spineNode = qs(packageDocument, "spine");
 		if(!spineNode) {
-			console.error("No Spine Found");
-			return;
+			throw new Error("No Spine Found");
 		}
 
 		this.manifest = this.parseManifest(manifestNode);
@@ -59,15 +54,15 @@ class Packaging {
 
 
 		return {
-			'metadata' : this.metadata,
-			'spine'    : this.spine,
-			'manifest' : this.manifest,
-			'navPath'  : this.navPath,
-			'ncxPath'  : this.ncxPath,
-			'coverPath': this.coverPath,
-			'spineNodeIndex' : this.spineNodeIndex
+			"metadata" : this.metadata,
+			"spine"    : this.spine,
+			"manifest" : this.manifest,
+			"navPath"  : this.navPath,
+			"ncxPath"  : this.ncxPath,
+			"coverPath": this.coverPath,
+			"spineNodeIndex" : this.spineNodeIndex
 		};
-	};
+	}
 
 	/**
 	 * Parse Metadata
@@ -78,28 +73,28 @@ class Packaging {
 	parseMetadata(xml){
 		var metadata = {};
 
-		metadata.title = this.getElementText(xml, 'title');
-		metadata.creator = this.getElementText(xml, 'creator');
-		metadata.description = this.getElementText(xml, 'description');
+		metadata.title = this.getElementText(xml, "title");
+		metadata.creator = this.getElementText(xml, "creator");
+		metadata.description = this.getElementText(xml, "description");
 
-		metadata.pubdate = this.getElementText(xml, 'date');
+		metadata.pubdate = this.getElementText(xml, "date");
 
-		metadata.publisher = this.getElementText(xml, 'publisher');
+		metadata.publisher = this.getElementText(xml, "publisher");
 
 		metadata.identifier = this.getElementText(xml, "identifier");
 		metadata.language = this.getElementText(xml, "language");
 		metadata.rights = this.getElementText(xml, "rights");
 
-		metadata.modified_date = this.getPropertyText(xml, 'dcterms:modified');
+		metadata.modified_date = this.getPropertyText(xml, "dcterms:modified");
 
 		metadata.layout = this.getPropertyText(xml, "rendition:layout");
-		metadata.orientation = this.getPropertyText(xml, 'rendition:orientation');
-		metadata.flow = this.getPropertyText(xml, 'rendition:flow');
-		metadata.viewport = this.getPropertyText(xml, 'rendition:viewport');
+		metadata.orientation = this.getPropertyText(xml, "rendition:orientation");
+		metadata.flow = this.getPropertyText(xml, "rendition:flow");
+		metadata.viewport = this.getPropertyText(xml, "rendition:viewport");
 		// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 
 		return metadata;
-	};
+	}
 
 	/**
 	 * Parse Manifest
@@ -117,23 +112,23 @@ class Packaging {
 
 		//-- Create an object with the id as key
 		items.forEach(function(item){
-			var id = item.getAttribute('id'),
-					href = item.getAttribute('href') || '',
-					type = item.getAttribute('media-type') || '',
-					properties = item.getAttribute('properties') || '';
+			var id = item.getAttribute("id"),
+					href = item.getAttribute("href") || "",
+					type = item.getAttribute("media-type") || "",
+					properties = item.getAttribute("properties") || "";
 
 			manifest[id] = {
-				'href' : href,
-				// 'url' : href,
-				'type' : type,
-				'properties' : properties.length ? properties.split(' ') : []
+				"href" : href,
+				// "url" : href,
+				"type" : type,
+				"properties" : properties.length ? properties.split(" ") : []
 			};
 
 		});
 
 		return manifest;
 
-	};
+	}
 
 	/**
 	 * Parse Spine
@@ -144,46 +139,46 @@ class Packaging {
 	parseSpine(spineXml, manifest){
 		var spine = [];
 
-		var selected = spineXml.getElementsByTagName("itemref"),
-				items = Array.prototype.slice.call(selected);
+		var selected = spineXml.getElementsByTagName("itemref");
+		var items = Array.prototype.slice.call(selected);
 
-		var epubcfi = new EpubCFI();
+		// var epubcfi = new EpubCFI();
 
 		//-- Add to array to mantain ordering and cross reference with manifest
 		items.forEach(function(item, index){
-			var idref = item.getAttribute('idref');
+			var idref = item.getAttribute("idref");
 			// var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
-			var props = item.getAttribute('properties') || '';
-			var propArray = props.length ? props.split(' ') : [];
+			var props = item.getAttribute("properties") || "";
+			var propArray = props.length ? props.split(" ") : [];
 			// var manifestProps = manifest[Id].properties;
-			// var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
+			// var manifestPropArray = manifestProps.length ? manifestProps.split(" ") : [];
 
 			var itemref = {
-				'idref' : idref,
-				'linear' : item.getAttribute('linear') || '',
-				'properties' : propArray,
-				// 'href' : manifest[Id].href,
-				// 'url' :  manifest[Id].url,
-				'index' : index
-				// 'cfiBase' : cfiBase
+				"idref" : idref,
+				"linear" : item.getAttribute("linear") || "",
+				"properties" : propArray,
+				// "href" : manifest[Id].href,
+				// "url" :  manifest[Id].url,
+				"index" : index
+				// "cfiBase" : cfiBase
 			};
 			spine.push(itemref);
 		});
 
 		return spine;
-	};
+	}
 
 	/**
 	 * Find TOC NAV
 	 * @private
 	 */
 	findNavPath(manifestNode){
-		// Find item with property 'nav'
+		// Find item with property "nav"
 		// Should catch nav irregardless of order
 		// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
 		var node = qsp(manifestNode, "item", {"properties":"nav"});
-		return node ? node.getAttribute('href') : false;
-	};
+		return node ? node.getAttribute("href") : false;
+	}
 
 	/**
 	 * Find TOC NCX
@@ -206,8 +201,8 @@ class Packaging {
 			}
 		}
 
-		return node ? node.getAttribute('href') : false;
-	};
+		return node ? node.getAttribute("href") : false;
+	}
 
 	/**
 	 * Find the Cover Path
@@ -218,15 +213,15 @@ class Packaging {
 	 */
 	findCoverPath(packageXml){
 		var pkg = qs(packageXml, "package");
-		var epubVersion = pkg.getAttribute('version');
+		var epubVersion = pkg.getAttribute("version");
 
-		if (epubVersion === '2.0') {
-			var metaCover = qsp(packageXml, 'meta', {'name':'cover'});
+		if (epubVersion === "2.0") {
+			var metaCover = qsp(packageXml, "meta", {"name":"cover"});
 			if (metaCover) {
-				var coverId = metaCover.getAttribute('content');
+				var coverId = metaCover.getAttribute("content");
 				// var cover = packageXml.querySelector("item[id='" + coverId + "']");
 				var cover = packageXml.getElementById(coverId);
-				return cover ? cover.getAttribute('href') : '';
+				return cover ? cover.getAttribute("href") : "";
 			}
 			else {
 				return false;
@@ -234,10 +229,10 @@ class Packaging {
 		}
 		else {
 			// var node = packageXml.querySelector("item[properties='cover-image']");
-			var node = qsp(packageXml, 'item', {'properties':'cover-image'});
-			return node ? node.getAttribute('href') : '';
+			var node = qsp(packageXml, "item", {"properties":"cover-image"});
+			return node ? node.getAttribute("href") : "";
 		}
-	};
+	}
 
 	/**
 	 * Get text of a namespaced element
@@ -247,10 +242,10 @@ class Packaging {
 	 * @return {string} text
 	 */
 	getElementText(xml, tag){
-		var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag),
-			el;
+		var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag);
+		var el;
 
-		if(!found || found.length === 0) return '';
+		if(!found || found.length === 0) return "";
 
 		el = found[0];
 
@@ -258,9 +253,9 @@ class Packaging {
 			return el.childNodes[0].nodeValue;
 		}
 
-		return '';
+		return "";
 
-	};
+	}
 
 	/**
 	 * Get text by property
@@ -276,8 +271,8 @@ class Packaging {
 			return el.childNodes[0].nodeValue;
 		}
 
-		return '';
-	};
+		return "";
+	}
 }
 
 export default Packaging;

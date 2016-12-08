@@ -1,11 +1,11 @@
-import EpubCFI from './epubcfi';
+import EpubCFI from "./epubcfi";
 import {
 	qs,
 	qsa,
 	querySelectorByType,
 	indexOfSorted,
 	locationOf
-} from './utils/core';
+} from "./utils/core";
 
 /**
  * Page List Parser
@@ -24,7 +24,7 @@ class PageList {
 		if(this.pageList && this.pageList.length) {
 			this.process(this.pageList);
 		}
-	};
+	}
 
 	/**
 	 * Parse PageList Xml
@@ -32,7 +32,7 @@ class PageList {
 	 */
 	parse(xml) {
 		var html = qs(xml, "html");
-		// var ncx = qs(xml, "ncx");
+		var ncx = qs(xml, "ncx");
 
 		if(html) {
 			this.toc = this.parseNav(xml);
@@ -41,7 +41,7 @@ class PageList {
 			return;
 		}
 
-	};
+	}
 
 	/**
 	 * Parse a Nav PageList
@@ -54,7 +54,6 @@ class PageList {
 		var navItems = navElement ? qsa(navElement, "li") : [];
 		var length = navItems.length;
 		var i;
-		var toc = {};
 		var list = [];
 		var item;
 
@@ -66,7 +65,7 @@ class PageList {
 		}
 
 		return list;
-	};
+	}
 
 	/**
 	 * Page List Item
@@ -75,15 +74,14 @@ class PageList {
 	 * @return {object} pageListItem
 	 */
 	item(item){
-		var id = item.getAttribute('id') || false,
-			content = qs(item, "a"),
-			href = content.getAttribute('href') || '',
-			text = content.textContent || "",
-			page = parseInt(text),
-			isCfi = href.indexOf("epubcfi"),
-			split,
-			packageUrl,
-			cfi;
+		var content = qs(item, "a"),
+				href = content.getAttribute("href") || "",
+				text = content.textContent || "",
+				page = parseInt(text),
+				isCfi = href.indexOf("epubcfi"),
+				split,
+				packageUrl,
+				cfi;
 
 		if(isCfi != -1) {
 			split = href.split("#");
@@ -101,7 +99,7 @@ class PageList {
 				"page" : page
 			};
 		}
-	};
+	}
 
 	/**
 	 * Process pageList items
@@ -118,7 +116,7 @@ class PageList {
 		this.firstPage = parseInt(this.pages[0]);
 		this.lastPage = parseInt(this.pages[this.pages.length-1]);
 		this.totalPages = this.lastPage - this.firstPage;
-	};
+	}
 
 
 	/**
@@ -159,7 +157,7 @@ class PageList {
 	  }
 
 	  return deferred.promise;
-	};
+	}
 	*/
 
 	/**
@@ -198,7 +196,7 @@ class PageList {
 
 		}
 		return pg;
-	};
+	}
 
 	/**
 	 * Get an EpubCFI from a Page List Item
@@ -220,7 +218,7 @@ class PageList {
 		}
 		// TODO: handle pages not in the list
 		return cfi;
-	};
+	}
 
 	/**
 	 * Get a Page from Book percentage
@@ -230,7 +228,7 @@ class PageList {
 	pageFromPercentage(percent){
 		var pg = Math.round(this.totalPages * percent);
 		return pg;
-	};
+	}
 
 	/**
 	 * Returns a value between 0 - 1 corresponding to the location of a page
@@ -240,7 +238,7 @@ class PageList {
 	percentageFromPage(pg){
 		var percentage = (pg - this.firstPage) / this.totalPages;
 		return Math.round(percentage * 1000) / 1000;
-	};
+	}
 
 	/**
 	 * Returns a value between 0 - 1 corresponding to the location of a cfi
@@ -251,7 +249,7 @@ class PageList {
 		var pg = this.pageFromCfi(cfi);
 		var percentage = this.percentageFromPage(pg);
 		return percentage;
-	};
+	}
 }
 
 export default PageList;

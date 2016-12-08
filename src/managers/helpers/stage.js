@@ -1,4 +1,4 @@
-import {uuid, isNumber, isElement, windowBounds} from '../../utils/core';
+import {uuid, isNumber, isElement, windowBounds} from "../../utils/core";
 
 class Stage {
 	constructor(_options) {
@@ -60,7 +60,7 @@ class Stage {
 		}
 
 		return container;
-	};
+	}
 
 	wrap(container) {
 		var wrapper = document.createElement("div");
@@ -72,7 +72,7 @@ class Stage {
 
 		wrapper.appendChild(container);
 		return wrapper;
-	};
+	}
 
 
 	getElement(_element){
@@ -85,12 +85,11 @@ class Stage {
 		}
 
 		if(!element){
-			console.error("Not an Element");
-			return;
+			throw new Error("Not an Element");
 		}
 
 		return element;
-	};
+	}
 
 	attachTo(what){
 
@@ -113,11 +112,11 @@ class Stage {
 
 		return element;
 
-	};
+	}
 
 	getContainer() {
 		return this.container;
-	};
+	}
 
 	onResize(func){
 		// Only listen to window for resize event if width and height are not fixed.
@@ -127,7 +126,7 @@ class Stage {
 			window.addEventListener("resize", func, false);
 		}
 
-	};
+	}
 
 	size(width, height){
 		var bounds;
@@ -185,7 +184,7 @@ class Stage {
 							this.containerPadding.bottom
 		};
 
-	};
+	}
 
 	bounds(){
 
@@ -222,7 +221,7 @@ class Stage {
 					rules += prop + ":" + set[prop] + ";";
 				}
 			}
-		})
+		});
 
 		this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 	}

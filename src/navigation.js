@@ -1,4 +1,4 @@
-import {qs, qsa, querySelectorByType} from './utils/core';
+import {qs, qsa, querySelectorByType} from "./utils/core";
 
 /**
  * Navigation Parser
@@ -13,7 +13,7 @@ class Navigation {
 		if (xml) {
 			this.parse(xml);
 		}
-	};
+	}
 
 	/**
 	 * Parse out the navigation items
@@ -30,7 +30,7 @@ class Navigation {
 		}
 
 		this.unpack(this.toc);
-	};
+	}
 
 	/**
 	 * Unpack navigation items
@@ -46,7 +46,7 @@ class Navigation {
 			this.tocById[item.id] = i;
 		}
 
-	};
+	}
 
 	/**
 	 * Get an item from the navigation
@@ -67,7 +67,7 @@ class Navigation {
 		}
 
 		return this.toc[index];
-	};
+	}
 
 	/**
 	 * Parse from a Epub > 3.0 Nav
@@ -98,7 +98,7 @@ class Navigation {
 		}
 
 		return list;
-	};
+	}
 
 	/**
 	 * Create a navItem
@@ -107,16 +107,16 @@ class Navigation {
 	 * @return {object} navItem
 	 */
 	navItem(item){
-		var id = item.getAttribute('id') || false,
+		var id = item.getAttribute("id") || false,
 				content = qs(item, "a"),
-				src = content.getAttribute('href') || '',
+				src = content.getAttribute("href") || "",
 				text = content.textContent || "",
 				subitems = [],
 				parentNode = item.parentNode,
 				parent;
 
 		if(parentNode && parentNode.nodeName === "navPoint") {
-			parent = parentNode.getAttribute('id');
+			parent = parentNode.getAttribute("id");
 		}
 
 		return {
@@ -126,7 +126,7 @@ class Navigation {
 			"subitems" : subitems,
 			"parent" : parent
 		};
-	};
+	}
 
 	/**
 	 * Parse from a Epub > 3.0 NC
@@ -156,7 +156,7 @@ class Navigation {
 		}
 
 		return list;
-	};
+	}
 
 	/**
 	 * Create a ncxItem
@@ -165,9 +165,9 @@ class Navigation {
 	 * @return {object} ncxItem
 	 */
 	ncxItem(item){
-		var id = item.getAttribute('id') || false,
+		var id = item.getAttribute("id") || false,
 				content = qs(item, "content"),
-				src = content.getAttribute('src'),
+				src = content.getAttribute("src"),
 				navLabel = qs(item, "navLabel"),
 				text = navLabel.textContent ? navLabel.textContent : "",
 				subitems = [],
@@ -175,7 +175,7 @@ class Navigation {
 				parent;
 
 		if(parentNode && parentNode.nodeName === "navPoint") {
-			parent = parentNode.getAttribute('id');
+			parent = parentNode.getAttribute("id");
 		}
 
 
@@ -186,7 +186,7 @@ class Navigation {
 			"subitems" : subitems,
 			"parent" : parent
 		};
-	};
+	}
 
 	/**
 	 * forEach pass through
@@ -195,7 +195,7 @@ class Navigation {
 	 */
 	forEach(fn) {
 		return this.toc.forEach(fn);
-	};
+	}
 }
 
 export default Navigation;

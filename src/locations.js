@@ -1,7 +1,7 @@
-import {qs, sprint, locationOf} from './utils/core';
-import Queue from './queue';
-import EpubCFI from './epubcfi';
-import EventEmitter from 'event-emitter';
+import {qs, sprint, locationOf} from "./utils/core";
+import Queue from "./utils/queue";
+import EpubCFI from "./epubcfi";
+import EventEmitter from "event-emitter";
 
 /**
  * Find Locations for a Book
@@ -23,7 +23,7 @@ class Locations {
 
 		this._current = 0;
 
-	};
+	}
 
 	/**
 	 * Load all of sections in the book to generate locations
@@ -55,7 +55,7 @@ class Locations {
 			// console.log(this.percentage(this.book.rendition.location.start), this.percentage(this.book.rendition.location.end));
 		}.bind(this));
 
-	};
+	}
 
 	createRange () {
 		return {
@@ -63,8 +63,8 @@ class Locations {
 			startOffset: undefined,
 			endContainer: undefined,
 			endOffset: undefined
-		}
-	};
+		};
+	}
 
 	process(section) {
 
@@ -74,13 +74,13 @@ class Locations {
 				this._locations = this._locations.concat(locations);
 			}.bind(this));
 
-	};
+	}
 
 	parse(contents, cfiBase, chars) {
 		var locations = [];
 		var range;
 		var doc = contents.ownerDocument;
-		var body = qs(doc, 'body');
+		var body = qs(doc, "body");
 		var counter = 0;
 		var prev;
 		var _break = chars || this.break;
@@ -151,7 +151,7 @@ class Locations {
 		}
 
 		return locations;
-	};
+	}
 
 	locationFromCfi(cfi){
 		// Check if the location has not been set yet
@@ -159,7 +159,7 @@ class Locations {
 			return -1;
 		}
 		return locationOf(cfi.start, this._locations, this.epubcfi.compare);
-	};
+	}
 
 	percentageFromCfi(cfi) {
 		if(this._locations.length === 0) {
@@ -169,20 +169,20 @@ class Locations {
 		var loc = this.locationFromCfi(cfi);
 		// Get percentage in total
 		return this.percentageFromLocation(loc);
-	};
+	}
 
 	percentageFromLocation(loc) {
 		if (!loc || !this.total) {
 			return 0;
 		}
 		return (loc / this.total);
-	};
+	}
 
 	cfiFromLocation(loc){
 		var cfi = -1;
 		// check that pg is an int
 		if(typeof loc != "number"){
-			loc = parseInt(pg);
+			loc = parseInt(loc);
 		}
 
 		if(loc >= 0 && loc < this._locations.length) {
@@ -190,28 +190,28 @@ class Locations {
 		}
 
 		return cfi;
-	};
+	}
 
 	cfiFromPercentage(value){
 		var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
 		var loc = Math.ceil(this.total * percentage);
 
 		return this.cfiFromLocation(loc);
-	};
+	}
 
 	load(locations){
 		this._locations = JSON.parse(locations);
 		this.total = this._locations.length-1;
 		return this._locations;
-	};
+	}
 
 	save(json){
 		return JSON.stringify(this._locations);
-	};
+	}
 
 	getCurrent(json){
 		return this._current;
-	};
+	}
 
 	setCurrent(curr){
 		var loc;
@@ -238,7 +238,7 @@ class Locations {
 		this.emit("changed", {
 			percentage: this.percentageFromLocation(loc)
 		});
-	};
+	}
 
 	get currentLocation() {
 		return this._current;
@@ -250,7 +250,7 @@ class Locations {
 
 	length () {
 		return this._locations.length;
-	};
+	}
 }
 
 EventEmitter(Locations.prototype);

@@ -4,31 +4,31 @@ class Views {
 		this._views = [];
 		this.length = 0;
 		this.hidden = false;
-	};
+	}
 
 	all() {
 		return this._views;
-	};
+	}
 
 	first() {
 		return this._views[0];
-	};
+	}
 
 	last() {
 		return this._views[this._views.length-1];
-	};
+	}
 
 	indexOf(view) {
 		return this._views.indexOf(view);
-	};
+	}
 
 	slice() {
 		return this._views.slice.apply(this._views, arguments);
-	};
+	}
 
 	get(i) {
 		return this._views[i];
-	};
+	}
 
 	append(view){
 		this._views.push(view);
@@ -37,7 +37,7 @@ class Views {
 		}
 		this.length++;
 		return view;
-	};
+	}
 
 	prepend(view){
 		this._views.unshift(view);
@@ -46,7 +46,7 @@ class Views {
 		}
 		this.length++;
 		return view;
-	};
+	}
 
 	insert(view, index) {
 		this._views.splice(index, 0, view);
@@ -61,7 +61,7 @@ class Views {
 
 		this.length++;
 		return view;
-	};
+	}
 
 	remove(view) {
 		var index = this._views.indexOf(view);
@@ -74,7 +74,7 @@ class Views {
 		this.destroy(view);
 
 		this.length--;
-	};
+	}
 
 	destroy(view) {
 		if(view.displayed){
@@ -85,13 +85,13 @@ class Views {
 			 this.container.removeChild(view.element);
 		}
 		view = null;
-	};
+	}
 
 	// Iterators
 
 	each() {
 		return this._views.forEach.apply(this._views, arguments);
-	};
+	}
 
 	clear(){
 		// Remove all views
@@ -107,7 +107,7 @@ class Views {
 
 		this._views = [];
 		this.length = 0;
-	};
+	}
 
 	find(section){
 
@@ -121,7 +121,7 @@ class Views {
 			}
 		}
 
-	};
+	}
 
 	displayed(){
 		var displayed = [];
@@ -135,7 +135,7 @@ class Views {
 			}
 		}
 		return displayed;
-	};
+	}
 
 	show(){
 		var view;
@@ -148,7 +148,7 @@ class Views {
 			}
 		}
 		this.hidden = false;
-	};
+	}
 
 	hide(){
 		var view;
@@ -161,7 +161,7 @@ class Views {
 			}
 		}
 		this.hidden = true;
-	};
+	}
 }
 
 export default Views;

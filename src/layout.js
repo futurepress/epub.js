@@ -1,5 +1,3 @@
-import core from './utils/core';
-
 /**
  * Figures out the CSS to apply for a layout
  * @class
@@ -32,7 +30,7 @@ class Layout {
 		this.columnWidth = 0;
 		this.gap = 0;
 		this.divisor = 1;
-	};
+	}
 
 	/**
 	 * Switch the flow between paginated and scrolled
@@ -69,7 +67,7 @@ class Layout {
 		var gap = _gap || 0;
 
 		//-- Check the width and create even width columns
-		var fullWidth = Math.floor(_width);
+		// var fullWidth = Math.floor(_width);
 		var width = _width;
 
 		var section = Math.floor(width / 8);
@@ -115,7 +113,7 @@ class Layout {
 		this.columnWidth = colWidth;
 		this.gap = gap;
 		this.divisor = divisor;
-	};
+	}
 
 	/**
 	 * Apply Css to a Document
@@ -134,7 +132,7 @@ class Layout {
 		}
 
 		return formating; // might be a promise in some View Managers
-	};
+	}
 
 	/**
 	 * Count number of pages
@@ -150,7 +148,7 @@ class Layout {
 			spreads : spreads,
 			pages : spreads * this.divisor
 		};
-	};
+	}
 }
 
 export default Layout;

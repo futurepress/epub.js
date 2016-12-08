@@ -1,14 +1,13 @@
-import EventEmitter from 'event-emitter';
-import {extend, borders, uuid, isNumber, bounds, defer} from '../../utils/core';
-import EpubCFI from '../../epubcfi';
-import Contents from '../../contents';
-// import URI from 'urijs';
+import EventEmitter from "event-emitter";
+import {extend, borders, uuid, isNumber, bounds, defer, qs, parse} from "../../utils/core";
+import EpubCFI from "../../epubcfi";
+import Contents from "../../contents";
 
 class InlineView {
 	constructor(section, options) {
 		this.settings = extend({
-			ignoreClass : '',
-			axis: 'vertical',
+			ignoreClass : "",
+			axis: "vertical",
 			width: 0,
 			height: 0,
 			layout: undefined,
@@ -38,10 +37,10 @@ class InlineView {
 		// Dom events to listen for
 		// this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
-	};
+	}
 
 	container(axis) {
-		var element = document.createElement('div');
+		var element = document.createElement("div");
 
 		element.classList.add("epub-view");
 
@@ -62,7 +61,7 @@ class InlineView {
 		}
 
 		return element;
-	};
+	}
 
 	create() {
 
@@ -74,7 +73,7 @@ class InlineView {
 			this.element = this.createContainer();
 		}
 
-		this.frame = document.createElement('div');
+		this.frame = document.createElement("div");
 		this.frame.id = this.id;
 		this.frame.style.overflow = "hidden";
 		this.frame.style.wordSpacing = "initial";
@@ -103,7 +102,7 @@ class InlineView {
 		this.elementBounds = bounds(this.element);
 
 		return this.frame;
-	};
+	}
 
 	render(request, show) {
 
@@ -144,7 +143,7 @@ class InlineView {
 
 				if(show !== false) {
 					//this.q.enqueue(function(view){
-						this.show();
+					this.show();
 					//}, view);
 				}
 				// this.map = new Map(view, this.layout);
@@ -156,7 +155,7 @@ class InlineView {
 				this.emit("loaderror", e);
 			}.bind(this));
 
-	};
+	}
 
 	// Determine locks base on settings
 	size(_width, _height) {
@@ -172,7 +171,7 @@ class InlineView {
 			this.lock("width", width, height);
 		}
 
-	};
+	}
 
 	// Lock an axis to element dimensions, taking borders into account
 	lock(what, width, height) {
@@ -196,8 +195,8 @@ class InlineView {
 		}
 
 		if(what === "both" &&
-			 isNumber(width) &&
-			 isNumber(height)){
+				isNumber(width) &&
+				isNumber(height)){
 
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
@@ -205,7 +204,7 @@ class InlineView {
 			this.resize(this.lockedWidth, this.lockedHeight);
 		}
 
-	};
+	}
 
 	// Resize a single axis based on content dimensions
 	expand(force) {
@@ -233,16 +232,15 @@ class InlineView {
 		}
 
 		this._expanding = false;
-	};
+	}
 
 	contentWidth(min) {
 		return this.frame.scrollWidth;
-	};
+	}
 
 	contentHeight(min) {
-		console.log(this.frame.scrollHeight);
 		return this.frame.scrollHeight;
-	};
+	}
 
 
 	resize(width, height) {
@@ -263,7 +261,7 @@ class InlineView {
 
 		this.elementBounds = bounds(this.element);
 
-		size = {
+		let size = {
 			width: this.elementBounds.width,
 			height: this.elementBounds.height,
 			widthDelta: this.elementBounds.width - this.prevBounds.width,
@@ -274,7 +272,7 @@ class InlineView {
 
 		this.emit("resized", size);
 
-	};
+	}
 
 
 	load(contents) {
@@ -283,10 +281,12 @@ class InlineView {
 		var doc = parse(contents, "text/html");
 		var body = qs(doc, "body");
 
+		/*
 		var srcs = doc.querySelectorAll("[src]");
+
 		Array.prototype.slice.call(srcs)
 			.forEach(function(item) {
-				var src = item.getAttribute('src');
+				var src = item.getAttribute("src");
 				var assetUri = URI(src);
 				var origin = assetUri.origin();
 				var absoluteUri;
@@ -296,7 +296,7 @@ class InlineView {
 					item.src = absoluteUri;
 				}
 			}.bind(this));
-
+		*/
 		this.frame.innerHTML = body.innerHTML;
 
 		this.document = this.frame.ownerDocument;
@@ -310,26 +310,26 @@ class InlineView {
 
 
 		return loaded;
-	};
+	}
 
 	setLayout(layout) {
 		this.layout = layout;
-	};
+	}
 
 
 	resizeListenters() {
 		// Test size again
 		// clearTimeout(this.expanding);
 		// this.expanding = setTimeout(this.expand.bind(this), 350);
-	};
+	}
 
 	addListeners() {
 		//TODO: Add content listeners for expanding
-	};
+	}
 
 	removeListeners(layoutFunc) {
 		//TODO: remove content listeners for expanding
-	};
+	}
 
 	display(request) {
 		var displayed = new defer();
@@ -353,7 +353,7 @@ class InlineView {
 
 
 		return displayed.promise;
-	};
+	}
 
 	show() {
 
@@ -364,7 +364,7 @@ class InlineView {
 		}
 
 		this.emit("shown", this);
-	};
+	}
 
 	hide() {
 		// this.frame.style.display = "none";
@@ -373,11 +373,11 @@ class InlineView {
 
 		this.stopExpanding = true;
 		this.emit("hidden", this);
-	};
+	}
 
 	position() {
 		return this.element.getBoundingClientRect();
-	};
+	}
 
 	locationOf(target) {
 		var parentPos = this.frame.getBoundingClientRect();
@@ -387,22 +387,22 @@ class InlineView {
 			"left": window.scrollX + parentPos.left + targetPos.left,
 			"top": window.scrollY + parentPos.top + targetPos.top
 		};
-	};
+	}
 
 	onDisplayed(view) {
 		// Stub, override with a custom functions
-	};
+	}
 
 	onResize(view, e) {
 		// Stub, override with a custom functions
-	};
+	}
 
 	bounds() {
 		if(!this.elementBounds) {
 			this.elementBounds = bounds(this.element);
 		}
 		return this.elementBounds;
-	};
+	}
 
 	destroy() {
 
@@ -423,7 +423,7 @@ class InlineView {
 		}
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";
-	};
+	}
 }
 
 EventEmitter(InlineView.prototype);

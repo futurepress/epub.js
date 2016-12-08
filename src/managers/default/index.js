@@ -1,10 +1,9 @@
-import EventEmitter from 'event-emitter';
-import {extend, defer} from '../../utils/core';
-import EpubCFI from '../../epubcfi';
-import Mapping from '../../mapping';
-import Queue from '../../queue';
-import Stage from '../helpers/stage';
-import Views from '../helpers/views';
+import EventEmitter from "event-emitter";
+import {extend, defer} from "../../utils/core";
+import Mapping from "../../mapping";
+import Queue from "../../utils/queue";
+import Stage from "../helpers/stage";
+import Views from "../helpers/views";
 
 class DefaultViewManager {
 	constructor(options) {
@@ -20,10 +19,10 @@ class DefaultViewManager {
 			hidden: false,
 			width: undefined,
 			height: undefined,
-			// globalLayoutProperties : { layout: 'reflowable', spread: 'auto', orientation: 'auto'},
+			// globalLayoutProperties : { layout: "reflowable", spread: "auto", orientation: "auto"},
 			// layout: null,
 			axis: "vertical",
-			ignoreClass: ''
+			ignoreClass: ""
 		});
 
 		extend(this.settings, options.settings || {});
@@ -77,13 +76,13 @@ class DefaultViewManager {
 		if (this.layout) {
 			this.updateLayout();
 		}
-	};
+	}
 
 	addEventListeners(){
-		window.addEventListener('unload', function(e){
+		window.addEventListener("unload", function(e){
 			this.destroy();
 		}.bind(this));
-	};
+	}
 
 	destroy(){
 		// this.views.each(function(view){
@@ -99,14 +98,14 @@ class DefaultViewManager {
 				this.element.removeChild(this.container);
 			}
 		*/
-	};
+	}
 
 	onResized(e) {
 		clearTimeout(this.resizeTimeout);
 		this.resizeTimeout = setTimeout(function(){
 			this.resize();
 		}.bind(this), 150);
-	};
+	}
 
 	resize(width, height){
 
@@ -132,11 +131,11 @@ class DefaultViewManager {
 			height: this.stage.height
 		});
 
-	};
+	}
 
 	createView(section) {
 		return new this.View(section, this.viewSettings);
-	};
+	}
 
 	display(section, target){
 
@@ -185,23 +184,23 @@ class DefaultViewManager {
 
 				displaying.resolve();
 
-			}.bind(this))
+			}.bind(this));
 			// .then(function(){
 			// 	return this.hooks.display.trigger(view);
 			// }.bind(this))
 			// .then(function(){
 			// 	this.views.show();
 			// }.bind(this));
-			return displayed;
-	};
+		return displayed;
+	}
 
 	afterDisplayed(view){
 		this.emit("added", view);
-	};
+	}
 
 	afterResized(view){
 		this.emit("resize", view.section);
-	};
+	}
 
 	// moveTo(offset){
 	// 	this.scrollTo(offset.left, offset.top);
@@ -209,7 +208,7 @@ class DefaultViewManager {
 
 	moveTo(offset){
 		var distX = 0,
-				distY = 0;
+			  distY = 0;
 
 		if(this.settings.axis === "vertical") {
 			distY = offset.top;
@@ -222,7 +221,7 @@ class DefaultViewManager {
 		}
 
 		this.scrollTo(distX, distY);
-	};
+	}
 
 	add(section){
 		var view = this.createView(section);
@@ -235,20 +234,20 @@ class DefaultViewManager {
 
 		return view.display(this.request);
 
-	};
+	}
 
 	append(section){
 		var view = this.createView(section);
 		this.views.append(view);
 		return view.display(this.request);
-	};
+	}
 
 	prepend(section){
 		var view = this.createView(section);
 
 		this.views.prepend(view);
 		return view.display(this.request);
-	};
+	}
 	// resizeView(view) {
 	//
 	// 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
@@ -261,7 +260,6 @@ class DefaultViewManager {
 
 	next(){
 		var next;
-		var view;
 		var left;
 
 		if(!this.views.length) return;
@@ -306,11 +304,10 @@ class DefaultViewManager {
 		}
 
 
-	};
+	}
 
 	prev(){
 		var prev;
-		var view;
 		var left;
 
 		if(!this.views.length) return;
@@ -354,7 +351,7 @@ class DefaultViewManager {
 					this.views.show();
 				}.bind(this));
 		}
-	};
+	}
 
 	current(){
 		var visible = this.visible();
@@ -363,7 +360,7 @@ class DefaultViewManager {
 			return visible[visible.length-1];
 		}
 		return null;
-	};
+	}
 
 	currentLocation(){
 
@@ -373,7 +370,7 @@ class DefaultViewManager {
 			this.location = this.paginatedLocation();
 		}
 		return this.location;
-	};
+	}
 
 	scrolledLocation(){
 		var view;
@@ -383,7 +380,7 @@ class DefaultViewManager {
 			return this.mapping.page(view, view.section.cfiBase);
 		}
 
-	};
+	}
 
 	paginatedLocation(){
 		var view;
@@ -396,7 +393,7 @@ class DefaultViewManager {
 			return this.mapping.page(view, view.section.cfiBase, start, end);
 		}
 
-	};
+	}
 
 	isVisible(view, offsetPrev, offsetNext, _container){
 		var position = view.position();
@@ -417,7 +414,7 @@ class DefaultViewManager {
 
 		return false;
 
-	};
+	}
 
 	visible(){
 		// return this.views.displayed();
@@ -438,7 +435,7 @@ class DefaultViewManager {
 
 		}
 		return visible;
-	};
+	}
 
 	scrollBy(x, y, silent){
 		if(silent) {
@@ -456,7 +453,7 @@ class DefaultViewManager {
 		// console.log("scrollBy", x, y);
 		this.scrolled = true;
 		this.onScroll();
-	};
+	}
 
 	scrollTo(x, y, silent){
 		if(silent) {
@@ -478,11 +475,11 @@ class DefaultViewManager {
 		//   }.bind(this), 10);
 		//   return;
 		// };
-	 };
+	}
 
 	onScroll(){
 
-	};
+	}
 
 	bounds() {
 		var bounds;
@@ -490,7 +487,7 @@ class DefaultViewManager {
 		bounds = this.stage.bounds();
 
 		return bounds;
-	};
+	}
 
 	applyLayout(layout) {
 
@@ -499,7 +496,7 @@ class DefaultViewManager {
 
 		this.mapping = new Mapping(this.layout);
 		 // this.manager.layout(this.layout.format);
-	};
+	}
 
 	updateLayout() {
 		if (!this.stage) {
@@ -530,7 +527,7 @@ class DefaultViewManager {
 
 		this.setLayout(this.layout);
 
-	};
+	}
 
 	setLayout(layout){
 
@@ -544,7 +541,7 @@ class DefaultViewManager {
 
 		}
 
-	};
+	}
 
 	updateFlow(flow){
 		var axis = (flow === "paginated") ? "horizontal" : "vertical";
@@ -558,7 +555,7 @@ class DefaultViewManager {
 		// 	view.setAxis(axis);
 		// });
 
-	};
+	}
 
 	getContents(){
 		var contents = [];
@@ -566,10 +563,10 @@ class DefaultViewManager {
 			contents.push(view.contents);
 		});
 		return contents;
-	};
+	}
 }
 
- //-- Enable binding events to Manager
- EventEmitter(DefaultViewManager.prototype);
+//-- Enable binding events to Manager
+EventEmitter(DefaultViewManager.prototype);
 
 export default DefaultViewManager;

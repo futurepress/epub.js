@@ -1,8 +1,7 @@
-import core from './utils/core';
-import EpubCFI from './epubcfi';
-import Hook from './hook';
-import Section from './section';
-import {replaceBase, replaceCanonical} from './replacements';
+import EpubCFI from "./epubcfi";
+import Hook from "./utils/hook";
+import Section from "./section";
+import {replaceBase, replaceCanonical} from "./utils/replacements";
 
 /**
  * A collection of Spine Items
@@ -24,7 +23,7 @@ class Spine {
 		this.epubcfi = new EpubCFI();
 
 		this.loaded = false;
-	};
+	}
 
 	/**
 	 * Unpack items from a opf into spine items
@@ -36,11 +35,10 @@ class Spine {
 		this.items = _package.spine;
 		this.manifest = _package.manifest;
 		this.spineNodeIndex = _package.spineNodeIndex;
-		this.baseUrl = _package.baseUrl || _package.basePath || '';
+		this.baseUrl = _package.baseUrl || _package.basePath || "";
 		this.length = this.items.length;
 
-		this.items.forEach(function(item, index){
-			var href, url;
+		this.items.forEach( (item, index) => {
 			var manifestItem = this.manifest[item.idref];
 			var spineItem;
 
@@ -63,10 +61,10 @@ class Spine {
 			this.append(spineItem);
 
 
-		}.bind(this));
+		});
 
 		this.loaded = true;
-	};
+	}
 
 	/**
 	 * Get an item from the spine
@@ -94,7 +92,7 @@ class Spine {
 		}
 
 		return this.spineItems[index] || null;
-	};
+	}
 
 	/**
 	 * Append a Section to the Spine
@@ -111,7 +109,7 @@ class Spine {
 		this.spineById[section.idref] = index;
 
 		return index;
-	};
+	}
 
 	/**
 	 * Prepend a Section to the Spine
@@ -119,7 +117,7 @@ class Spine {
 	 * @param  {Section} section
 	 */
 	prepend(section) {
-		var index = this.spineItems.unshift(section);
+		// var index = this.spineItems.unshift(section);
 		this.spineByHref[section.href] = 0;
 		this.spineById[section.idref] = 0;
 
@@ -129,7 +127,7 @@ class Spine {
 		});
 
 		return 0;
-	};
+	}
 
 	// insert(section, index) {
 	//
@@ -149,7 +147,7 @@ class Spine {
 
 			return this.spineItems.splice(index, 1);
 		}
-	};
+	}
 
 	/**
 	 * Loop over the Sections in the Spine
@@ -157,7 +155,7 @@ class Spine {
 	 */
 	each() {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
-	};
+	}
 }
 
 export default Spine;

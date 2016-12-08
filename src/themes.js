@@ -1,4 +1,4 @@
-import Url from './utils/url';
+import Url from "./utils/url";
 
 class Themes {
 	constructor(rendition) {
@@ -7,7 +7,7 @@ class Themes {
 			"default" : {
 				"rules" : [],
 				"url" : "",
-				"serialized" : ''
+				"serialized" : ""
 			}
 		};
 		this._overrides = {};
@@ -34,7 +34,7 @@ class Themes {
 		if (arguments.length === 2 && typeof(arguments[1]) === "object") {
 			return this.registerRules(arguments[0], arguments[1]);
 		}
-	};
+	}
 
 	default (theme) {
 		if (!theme) {
@@ -46,7 +46,7 @@ class Themes {
 		if (typeof(theme) === "object") {
 			return this.registerRules("default", theme);
 		}
-	};
+	}
 
 	registerThemes (themes) {
 		for (var theme in themes) {
@@ -58,17 +58,17 @@ class Themes {
 				}
 			}
 		}
-	};
+	}
 
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
-	};
+	}
 
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
-	};
+	}
 
 	apply (name) {
 		var prev = this._current;
@@ -78,18 +78,18 @@ class Themes {
 		this.update(name);
 
 		contents = this.rendition.getContents();
-		contents.forEach(function (content) {
+		contents.forEach( (content) => {
 			content.removeClass(prev);
 			content.addClass(name);
-		}.bind(this));
-	};
+		});
+	}
 
 	update (name) {
 		var contents = this.rendition.getContents();
-		contents.forEach(function (content) {
+		contents.forEach( (content) => {
 			this.add(name, content);
-		}.bind(this));
-	};
+		});
+	}
 
 	inject (view) {
 		var links = [];
@@ -108,7 +108,7 @@ class Themes {
 		if(this._current) {
 			view.contents.addClass(this._current);
 		}
-	};
+	}
 
 	add (name, contents) {
 		var theme = this._themes[name];
@@ -125,33 +125,32 @@ class Themes {
 			contents.addStylesheetRules(theme.rules);
 			theme.injected = true;
 		}
-	};
+	}
 
 	override (name, value) {
 		var contents = this.rendition.getContents();
 
 		this._overrides[name] = value;
 
-		contents.forEach(function (content) {
+		contents.forEach( (content) => {
 			content.css(name, this._overrides[name]);
-		}.bind(this));
-	};
+		});
+	}
 
 	overrides (view) {
 		var contents = view.contents;
 		var overrides = this._overrides;
-		var rules = [];
 
 		for (var rule in overrides) {
 			if (overrides.hasOwnProperty(rule)) {
 				contents.css(rule, overrides[rule]);
 			}
 		}
-	};
+	}
 
 	fontSize (size) {
 		this.override("font-size", size);
-	};
+	}
 
 }
 

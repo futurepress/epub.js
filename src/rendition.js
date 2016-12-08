@@ -1,13 +1,12 @@
-import EventEmitter from 'event-emitter';
-import { extend, defer, isFloat } from './utils/core';
-import {replaceLinks} from './replacements';
-import Hook from './hook';
-import EpubCFI from './epubcfi';
-import Queue from './queue';
-import Layout from './layout';
-import Mapping from './mapping';
-import Themes from './themes';
-import Path from './utils/path';
+import EventEmitter from "event-emitter";
+import { extend, defer, isFloat } from "./utils/core";
+import {replaceLinks} from "./utils/replacements";
+import Hook from "./utils/hook";
+import EpubCFI from "./epubcfi";
+import Queue from "./utils/queue";
+import Layout from "./layout";
+import Mapping from "./mapping";
+import Themes from "./themes";
 
 /**
  * [Rendition description]
@@ -29,7 +28,7 @@ class Rendition {
 		this.settings = extend(this.settings || {}, {
 			width: null,
 			height: null,
-			ignoreClass: '',
+			ignoreClass: "",
 			manager: "default",
 			view: "iframe",
 			flow: null,
@@ -84,7 +83,7 @@ class Rendition {
 		this.starting = new defer();
 		this.started = this.starting.promise;
 		this.q.enqueue(this.start);
-	};
+	}
 
 	/**
 	 * Set the manager function
@@ -92,7 +91,7 @@ class Rendition {
 	 */
 	setManager(manager) {
 		this.manager = manager;
-	};
+	}
 
 	/**
 	 * Require the manager from passed string, or as a function
@@ -106,14 +105,14 @@ class Rendition {
 		// or require included managers directly
 		if (typeof manager === "string") {
 			// Use global or require
-			viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require('./managers/'+manager);
+			viewManager = typeof ePub != "undefined" ? ePub.ViewManagers[manager] : undefined; //require("./managers/"+manager);
 		} else {
 			// otherwise, assume we were passed a function
-			viewManager = manager
+			viewManager = manager;
 		}
 
 		return viewManager;
-	};
+	}
 
 	/**
 	 * Require the view from passed string, or as a function
@@ -124,14 +123,14 @@ class Rendition {
 		var View;
 
 		if (typeof view == "string") {
-			View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require('./views/'+view);
+			View = typeof ePub != "undefined" ? ePub.Views[view] : undefined; //require("./views/"+view);
 		} else {
 			// otherwise, assume we were passed a function
-			View = view
+			View = view;
 		}
 
 		return View;
-	};
+	}
 
 	/**
 	 * Start the rendering
@@ -168,14 +167,14 @@ class Rendition {
 		this.manager.on("scroll", this.reportLocation.bind(this));
 
 
-		this.on('displayed', this.reportLocation.bind(this));
+		this.on("displayed", this.reportLocation.bind(this));
 
 		// Trigger that rendering has started
 		this.emit("started");
 
 		// Start processing queue
 		this.starting.resolve();
-	};
+	}
 
 	/**
 	 * Call to attach the container to an element in the dom
@@ -198,7 +197,7 @@ class Rendition {
 
 		}.bind(this));
 
-	};
+	}
 
 	/**
 	 * Display a point in the book
@@ -212,7 +211,7 @@ class Rendition {
 
 		return this.q.enqueue(this._display, target);
 
-	};
+	}
 
 	/**
 	 * Tells the manager what to display immediately
@@ -229,9 +228,7 @@ class Rendition {
 
 		// Check if this is a book percentage
 		if (this.book.locations.length && isFloat(target)) {
-			console.log("percentage", target);
-			target = book.locations.cfiFromPercentage(target);
-			console.log("cfi", target);
+			target = this.book.locations.cfiFromPercentage(target);
 		}
 
 		section = this.book.spine.get(target);
@@ -245,7 +242,7 @@ class Rendition {
 		// removing the chapter
 		if(!isCfiString && typeof target === "string" &&
 			target.indexOf("#") > -1) {
-				moveTo = target.substring(target.indexOf("#")+1);
+			moveTo = target.substring(target.indexOf("#")+1);
 		}
 
 		if (isCfiString) {
@@ -257,7 +254,7 @@ class Rendition {
 				// this.emit("displayed", section);
 			}.bind(this));
 
-	};
+	}
 
 	/*
 	render(view, show) {
@@ -301,7 +298,7 @@ class Rendition {
 				this.trigger("loaderror", e);
 			}.bind(this));
 
-	};
+	}
 	*/
 
 	/**
@@ -313,7 +310,7 @@ class Rendition {
 		this.hooks.content.trigger(view, this);
 		this.emit("rendered", view.section);
 		this.reportLocation();
-	};
+	}
 
 	/**
 	 * Report resize events and display the last seen location
@@ -330,7 +327,7 @@ class Rendition {
 			height: size.height
 		});
 
-	};
+	}
 
 	/**
 	 * Move the Rendition to a specific offset
@@ -339,7 +336,7 @@ class Rendition {
 	 */
 	moveTo(offset){
 		this.manager.moveTo(offset);
-	};
+	}
 
 	/**
 	 * Go to the next "page" in the rendition
@@ -348,7 +345,7 @@ class Rendition {
 	next(){
 		return this.q.enqueue(this.manager.next.bind(this.manager))
 			.then(this.reportLocation.bind(this));
-	};
+	}
 
 	/**
 	 * Go to the previous "page" in the rendition
@@ -357,7 +354,7 @@ class Rendition {
 	prev(){
 		return this.q.enqueue(this.manager.prev.bind(this.manager))
 			.then(this.reportLocation.bind(this));
-	};
+	}
 
 	//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
 	/**
@@ -389,7 +386,7 @@ class Rendition {
 		};
 
 		return properties;
-	};
+	}
 
 	// applyLayoutProperties(){
 	// 	var settings = this.determineLayoutProperties(this.book.package.metadata);
@@ -421,7 +418,7 @@ class Rendition {
 		if (this.manager) {
 			this.manager.updateFlow(_flow);
 		}
-	};
+	}
 
 	/**
 	 * Adjust the layout of the rendition to reflowable or pre-paginated
@@ -440,7 +437,7 @@ class Rendition {
 		}
 
 		return this._layout;
-	};
+	}
 
 	/**
 	 * Adjust if the rendition uses spreads
@@ -454,7 +451,7 @@ class Rendition {
 		if (this.manager.isRendered()) {
 			this.manager.updateLayout();
 		}
-	};
+	}
 
 	/**
 	 * Report the current location
@@ -463,7 +460,7 @@ class Rendition {
 	reportLocation(){
 		return this.q.enqueue(function(){
 			var location = this.manager.currentLocation();
-			if (location && location.then && typeof location.then === 'function') {
+			if (location && location.then && typeof location.then === "function") {
 				location.then(function(result) {
 					this.location = result;
 
@@ -485,7 +482,7 @@ class Rendition {
 			}
 
 		}.bind(this));
-	};
+	}
 
 	/**
 	 * Get the Current Location CFI
@@ -493,7 +490,7 @@ class Rendition {
 	 */
 	currentLocation(){
 		var location = this.manager.currentLocation();
-		if (location && location.then && typeof location.then === 'function') {
+		if (location && location.then && typeof location.then === "function") {
 			location.then(function(result) {
 				var percentage = this.book.locations.percentageFromCfi(result);
 				if (percentage != null) {
@@ -508,7 +505,7 @@ class Rendition {
 			}
 			return location;
 		}
-	};
+	}
 
 	/**
 	 * Remove and Clean Up the Rendition
@@ -518,7 +515,7 @@ class Rendition {
 		this.q.clear();
 
 		this.manager.destroy();
-	};
+	}
 
 	/**
 	 * Pass the events from a view
@@ -531,7 +528,7 @@ class Rendition {
 		}.bind(this));
 
 		view.on("selected", this.triggerSelectedEvent.bind(this));
-	};
+	}
 
 	/**
 	 * Emit events passed by a view
@@ -540,7 +537,7 @@ class Rendition {
 	 */
 	triggerViewEvent(e){
 		this.emit(e.type, e);
-	};
+	}
 
 	/**
 	 * Emit a selection event's CFI Range passed from a a view
@@ -549,7 +546,7 @@ class Rendition {
 	 */
 	triggerSelectedEvent(cfirange){
 		this.emit("selected", cfirange);
-	};
+	}
 
 	/**
 	 * Get a Range from a Visible CFI
@@ -567,7 +564,7 @@ class Rendition {
 		if (found.length) {
 			return found[0].range(_cfi, ignoreClass);
 		}
-	};
+	}
 
 	/**
 	 * Hook to adjust images to fit in columns
@@ -576,10 +573,10 @@ class Rendition {
 	adjustImages(view) {
 
 		view.addStylesheetRules([
-				["img",
-					["max-width", (view.layout.spreadWidth) + "px"],
-					["max-height", (view.layout.height) + "px"]
-				]
+			["img",
+				["max-width", (view.layout.spreadWidth) + "px"],
+				["max-height", (view.layout.height) + "px"]
+			]
 		]);
 		return new Promise(function(resolve, reject){
 			// Wait to apply
@@ -587,11 +584,11 @@ class Rendition {
 				resolve();
 			}, 1);
 		});
-	};
+	}
 
 	getContents () {
 		return this.manager ? this.manager.getContents() : [];
-	};
+	}
 }
 
 //-- Enable binding events to Renderer

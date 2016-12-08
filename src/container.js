@@ -1,6 +1,5 @@
-import path from 'path-webpack';
-import {qs} from './utils/core';
-import EpubCFI from './epubcfi';
+import path from "path-webpack";
+import {qs} from "./utils/core";
 
 /**
  * Handles Parsing and Accessing an Epub Container
@@ -12,32 +11,30 @@ class Container {
 		if (containerDocument) {
 			this.parse(containerDocument);
 		}
-	};
+	}
 
 	/**
 	 * Parse the Container XML
 	 * @param  {document} containerDocument
 	 */
 	parse(containerDocument){
-			//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
-			var rootfile, fullpath, folder, encoding;
+		//-- <rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/>
+		var rootfile;
 
-			if(!containerDocument) {
-				console.error("Container File Not Found");
-				return;
-			}
+		if(!containerDocument) {
+			throw new Error("Container File Not Found");
+		}
 
-			rootfile = qs(containerDocument, "rootfile");
+		rootfile = qs(containerDocument, "rootfile");
 
-			if(!rootfile) {
-				console.error("No RootFile Found");
-				return;
-			}
+		if(!rootfile) {
+			throw new Error("No RootFile Found");
+		}
 
-			this.packagePath = rootfile.getAttribute('full-path');
-			this.directory = path.dirname(this.packagePath);
-			this.encoding = containerDocument.xmlEncoding;
-	};
+		this.packagePath = rootfile.getAttribute("full-path");
+		this.directory = path.dirname(this.packagePath);
+		this.encoding = containerDocument.xmlEncoding;
+	}
 }
 
 export default Container;
