@@ -1,7 +1,7 @@
-var Book = require('./book');
-var EpubCFI = require('./epubcfi');
-var Rendition = require('./rendition');
-var Contents = require('./contents');
+import Book from "./book";
+import EpubCFI from "./epubcfi";
+import Rendition from "./rendition";
+import Contents from "./contents";
 
 /**
  * Creates a new Book
@@ -12,9 +12,9 @@ var Contents = require('./contents');
  */
 function ePub(url, options) {
 	return new Book(url, options);
-};
+}
 
-ePub.VERSION = "0.3.0";
+ePub.VERSION = "0.3.1";
 
 if (typeof(global) !== "undefined") {
 	global.EPUBJS_VERSION = ePub.VERSION;
@@ -45,10 +45,10 @@ ePub.register = {
 };
 
 // Default Views
-ePub.register.view("iframe", require('./managers/views/iframe'));
+ePub.register.view("iframe", require("./managers/views/iframe"));
 
 // Default View Managers
-ePub.register.manager("default", require('./managers/default'));
-ePub.register.manager("continuous", require('./managers/continuous'));
+ePub.register.manager("default", require("./managers/default"));
+ePub.register.manager("continuous", require("./managers/continuous"));
 
-module.exports = ePub;
+export default ePub;

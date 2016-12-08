@@ -2,12 +2,10 @@ var assert = require('assert');
 
 describe('Locations', function() {
 	var Locations = require('../src/locations');
-	var core = require('../src/core');
-	var chapter = require('raw-loader!./fixtures/locations.xhtml');
+	var core = require('../src/utils/core');
 
 	describe('#parse', function() {
 		var Locations = require('../src/locations');
-		var core = require('../src/core');
 		var chapter = require('raw-loader!./fixtures/locations.xhtml');
 
 		it('parse locations from a document', function() {
@@ -25,7 +23,6 @@ describe('Locations', function() {
 
 			var locations = new Locations();
 			var result = locations.parse(contents, "/6/4[chap01ref]", 100);
-			console.log(result);
 			assert.equal(result.length, 15);
 
 		});

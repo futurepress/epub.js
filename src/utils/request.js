@@ -1,12 +1,11 @@
-var core = require('./core');
-var Path = require('./core').Path;
+import {defer, isXml, parse} from "./core";
+import Path from "./path";
 
 function request(url, type, withCredentials, headers) {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-	var uri;
 
-	var deferred = new core.defer();
+	var deferred = new defer();
 
 	var xhr = new XMLHttpRequest();
 
@@ -16,12 +15,13 @@ function request(url, type, withCredentials, headers) {
 
 	var header;
 
-	if (!('overrideMimeType' in xhrPrototype)) {
+	if (!("overrideMimeType" in xhrPrototype)) {
 		// IE10 might have response, but not overrideMimeType
-		Object.defineProperty(xhrPrototype, 'overrideMimeType', {
-			value: function xmlHttpRequestOverrideMimeType(mimeType) {}
+		Object.defineProperty(xhrPrototype, "overrideMimeType", {
+			value: function xmlHttpRequestOverrideMimeType() {}
 		});
 	}
+
 	if(withCredentials) {
 		xhr.withCredentials = true;
 	}
@@ -39,28 +39,28 @@ function request(url, type, withCredentials, headers) {
 		xhr.setRequestHeader("Accept", "application/json");
 	}
 
-	// If type isn't set, determine it from the file extension
+	// If type isn"t set, determine it from the file extension
 	if(!type) {
 		type = new Path(url).extension;
 	}
 
-	if(type == 'blob'){
+	if(type == "blob"){
 		xhr.responseType = BLOB_RESPONSE;
 	}
 
 
-	if(core.isXml(type)) {
+	if(isXml(type)) {
 		// xhr.responseType = "document";
-		xhr.overrideMimeType('text/xml'); // for OPF parsing
+		xhr.overrideMimeType("text/xml"); // for OPF parsing
 	}
 
-	if(type == 'xhtml') {
+	if(type == "xhtml") {
 		// xhr.responseType = "document";
 	}
 
-	if(type == 'html' || type == 'htm') {
+	if(type == "html" || type == "htm") {
 		// xhr.responseType = "document";
-	 }
+	}
 
 	if(type == "binary") {
 		xhr.responseType = "arraybuffer";
@@ -69,7 +69,6 @@ function request(url, type, withCredentials, headers) {
 	xhr.send();
 
 	function err(e) {
-		console.error(e);
 		deferred.reject(e);
 	}
 
@@ -77,7 +76,7 @@ function request(url, type, withCredentials, headers) {
 		if (this.readyState === XMLHttpRequest.DONE) {
 			var responseXML = false;
 
-			if(this.responseType === '' || this.responseType === "document") {
+			if(this.responseType === "" || this.responseType === "document") {
 				responseXML = this.responseXML;
 			}
 
@@ -106,21 +105,21 @@ function request(url, type, withCredentials, headers) {
 				if(responseXML){
 					r = this.responseXML;
 				} else
-				if(core.isXml(type)){
-					// xhr.overrideMimeType('text/xml'); // for OPF parsing
+				if(isXml(type)){
+					// xhr.overrideMimeType("text/xml"); // for OPF parsing
 					// If this.responseXML wasn't set, try to parse using a DOMParser from text
-					r = core.parse(this.response, "text/xml");
+					r = parse(this.response, "text/xml");
 				}else
-				if(type == 'xhtml'){
-					r = core.parse(this.response, "application/xhtml+xml");
+				if(type == "xhtml"){
+					r = parse(this.response, "application/xhtml+xml");
 				}else
-				if(type == 'html' || type == 'htm'){
-					r = core.parse(this.response, "text/html");
+				if(type == "html" || type == "htm"){
+					r = parse(this.response, "text/html");
 				}else
-				if(type == 'json'){
+				if(type == "json"){
 					r = JSON.parse(this.response);
 				}else
-				if(type == 'blob'){
+				if(type == "blob"){
 
 					if(supportsURL) {
 						r = this.response;
@@ -147,6 +146,6 @@ function request(url, type, withCredentials, headers) {
 	}
 
 	return deferred.promise;
-};
+}
 
-module.exports = request;
+export default request;
