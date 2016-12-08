@@ -22,8 +22,9 @@ class Url {
 		this.search = "";
 		this.base = baseString;
 
-		if (!absolute && (typeof(baseString) !== "string")) {
-			this.base = window && window.location.href;
+		if (!absolute && (typeof(baseString) !== "string") &&
+				window && window.location) {
+			this.base = window.location.href;
 		}
 
 		// URL Polyfill doesn't throw an error if base is empty
