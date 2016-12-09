@@ -14,7 +14,7 @@ function ePub(url, options) {
 	return new Book(url, options);
 }
 
-ePub.VERSION = "0.3.2";
+ePub.VERSION = "0.3.3";
 
 if (typeof(global) !== "undefined") {
 	global.EPUBJS_VERSION = ePub.VERSION;
