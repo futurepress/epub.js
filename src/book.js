@@ -333,9 +333,9 @@ class Book {
 			this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
-
-		this.cover = this.resolve(this.package.coverPath);
-
+		if (this.package.coverPath) {
+			this.cover = this.resolve(this.package.coverPath);
+		}
 		// Resolve promises
 		this.loading.manifest.resolve(this.package.manifest);
 		this.loading.metadata.resolve(this.package.metadata);
