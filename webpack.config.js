@@ -42,20 +42,28 @@ module.exports = {
 	},
 	module: {
 		loaders: [
-			LEGACY ? {
+			{
 				test: /\.js$/,
 				exclude: /node_modules/,
 				loader: "babel-loader",
-				query: {
+				query: LEGACY ? {
 					presets: ['es2015'],
 					plugins: [
 						"add-module-exports",
 					]
+				} : {
+					presets: [["env", {
+						"targets": {
+							"chrome": 54,
+							"safari" : 10,
+							"firefox" : 50,
+							"edge" : 14
+						}
+					}]],
+					plugins: [
+						"add-module-exports",
+					]
 				}
-			} : {
-				test: /\.js$/,
-				exclude: /node_modules/,
-				loader: "babel-loader"
 			}
 		]
 	}
