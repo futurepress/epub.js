@@ -1,22 +1,39 @@
 {
   "name": "epubjs",
-  "version": "0.3.0",
-  "description": "Render Epubs",
-  "main": "src/epub.js",
+  "version": "0.3.1",
+  "description": "Parse and Render Epubs",
+  "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
+  "module": "src/index.js",
   "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
-    "start": "webpack-dev-server --inline",
-    "build": "./node_modules/.bin/gulp minify"
+    "documentation": "./node_modules/.bin/gulp docs",
+    "lint": "./node_modules/.bin/eslint -c .eslintrc.js src; exit 0",
+    "start": "webpack-dev-server --inline --d",
+    "build": "webpack --progress",
+    "minify": "NODE_ENV=production webpack --progress",
+    "legacy": "NODE_ENV=production LEGACY=true webpack --progress",
+    "compile": "babel --optional runtime -d lib/ src/",
+    "prepublish": "npm run compile && npm run build && npm run minify && npm run legacy"
   },
   "author": "fchasen@gmail.com",
   "license": "BSD-2-Clause",
   "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.8",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-polyfill": "^6.16.0",
+    "babel-preset-env": "0.0.9",
+    "babili-webpack-plugin": "0.0.7",
     "colors": "^1.1.2",
     "connect": "^3.0.1",
+    "eslint": "^3.11.1",
     "express": "^4.5.1",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.3.4",
@@ -52,11 +69,10 @@
     "webpack-dev-server": "^v2.1.0-beta.10"
   },
   "dependencies": {
-    "es6-promise": "^4.0.5",
     "event-emitter": "^0.3.4",
     "jszip": "^3.1.1",
-    "xmldom": "^0.1.22",
     "path-webpack": "^0.0.2",
-    "stream-browserify": "^2.0.1"
+    "stream-browserify": "^2.0.1",
+    "xmldom": "^0.1.22"
   }
 }

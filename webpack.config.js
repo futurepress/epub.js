@@ -1,19 +1,23 @@
 var webpack = require("webpack");
 var path = require('path');
+var BabiliPlugin = require("babili-webpack-plugin");
 var PROD = (process.env.NODE_ENV === 'production')
+var LEGACY = (process.env.LEGACY)
 var hostname = "localhost";
 var port = "8080";
+var enter = LEGACY ? {
+		"epub.legacy": ["babel-polyfill", "./libs/url/url.js", "./src/epub.js"]
+	} : {
+		"epub": "./src/epub.js",
+	};
 
 module.exports = {
-	entry: {
-		epub: "./src/epub.js",
-		polyfills: ["./node_modules/es6-promise/dist/es6-promise.auto.js", "./libs/url/url.js"]
-	},
-	devtool: 'source-map',
+	entry: enter,
+	devtool: PROD ? false : 'source-map',
 	output: {
 		path: path.resolve("./dist"),
 		// path: "./dist",
-		filename: "[name].js",
+		filename: PROD ? "[name].min.js" : "[name].js",
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
 		libraryTarget: "umd",
@@ -23,9 +27,9 @@ module.exports = {
 		"jszip": "JSZip",
 		"xmldom": "xmldom"
 	},
-	plugins: [
-		// new webpack.IgnorePlugin(/punycode|IPv6/),
-	],
+	plugins: PROD ? [
+		new BabiliPlugin()
+	] : [],
 	resolve: {
 		alias: {
 			path: "path-webpack"
@@ -35,5 +39,24 @@ module.exports = {
 		host: hostname,
 		port: port,
 		inline: true
+	},
+	module: {
+		loaders: [
+			LEGACY ? {
+				test: /\.js$/,
+				exclude: /node_modules/,
+				loader: "babel-loader",
+				query: {
+					presets: ['es2015'],
+					plugins: [
+						"add-module-exports",
+					]
+				}
+			} : {
+				test: /\.js$/,
+				exclude: /node_modules/,
+				loader: "babel-loader"
+			}
+		]
 	}
 }

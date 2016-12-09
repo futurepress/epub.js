@@ -1,22 +1,22 @@
-var EventEmitter = require('event-emitter');
-var path = require('path');
-var core = require('./core');
-var Url = require('./core').Url;
-var Path = require('./core').Path;
-var Spine = require('./spine');
-var Locations = require('./locations');
-var Container = require('./container');
-var Packaging = require('./packaging');
-var Navigation = require('./navigation');
-var Resources = require('./resources');
-var PageList = require('./pagelist');
-var Rendition = require('./rendition');
-var Archive = require('./archive');
-var request = require('./request');
-var EpubCFI = require('./epubcfi');
+import EventEmitter from "event-emitter";
+// import path from "path";
+import {extend, defer} from "./utils/core";
+import Url from "./utils/url";
+import Path from "./utils/path";
+import Spine from "./spine";
+import Locations from "./locations";
+import Container from "./container";
+import Packaging from "./packaging";
+import Navigation from "./navigation";
+import Resources from "./resources";
+import PageList from "./pagelist";
+import Rendition from "./rendition";
+import Archive from "./archive";
+import request from "./utils/request";
+import EpubCFI from "./epubcfi";
 
-// Const
-var CONTAINER_PATH = "META-INF/container.xml";
+const CONTAINER_PATH = "META-INF/container.xml";
+const EPUBJS_VERSION = "0.3.1";
 
 /**
  * Creates a new Book
@@ -32,459 +32,469 @@ var CONTAINER_PATH = "META-INF/container.xml";
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
  */
-function Book(url, options){
+class Book {
+	constructor(url, options) {
+		// Allow passing just options to the Book
+		if (typeof(options) === "undefined"
+			&& typeof(url) === "object") {
+			options = url;
+			url = undefined;
+		}
 
-	// Allow passing just options to the Book
-	if (typeof(options) === "undefined"
-		&& typeof(url) === "object") {
-		options = url;
-		url = undefined;
+		this.settings = extend(this.settings || {}, {
+			requestMethod: undefined,
+			requestCredentials: undefined,
+			requestHeaders: undefined,
+			encoding: undefined,
+			replacements: "base64"
+		});
+
+		extend(this.settings, options);
+
+
+		// Promises
+		this.opening = new defer();
+		/**
+		 * @property {promise} opened returns after the book is loaded
+		 */
+		this.opened = this.opening.promise;
+		this.isOpen = false;
+
+		this.loading = {
+			manifest: new defer(),
+			spine: new defer(),
+			metadata: new defer(),
+			cover: new defer(),
+			navigation: new defer(),
+			pageList: new defer(),
+			resources: new defer()
+		};
+
+		this.loaded = {
+			manifest: this.loading.manifest.promise,
+			spine: this.loading.spine.promise,
+			metadata: this.loading.metadata.promise,
+			cover: this.loading.cover.promise,
+			navigation: this.loading.navigation.promise,
+			pageList: this.loading.pageList.promise,
+			resources: this.loading.resources.promise
+		};
+
+		// this.ready = RSVP.hash(this.loaded);
+		/**
+		 * @property {promise} ready returns after the book is loaded and parsed
+		 * @private
+		 */
+		this.ready = Promise.all([
+			this.loaded.manifest,
+			this.loaded.spine,
+			this.loaded.metadata,
+			this.loaded.cover,
+			this.loaded.navigation,
+			this.loaded.resources
+		]);
+
+
+		// Queue for methods used before opening
+		this.isRendered = false;
+		// this._q = queue(this);
+
+		/**
+		 * @property {method} request
+		 * @private
+		 */
+		this.request = this.settings.requestMethod || request;
+
+		/**
+		 * @property {Spine} spine
+		 */
+		this.spine = new Spine();
+
+		/**
+		 * @property {Locations} locations
+		 */
+		this.locations = new Locations(this.spine, this.load.bind(this));
+
+		/**
+		 * @property {Navigation} navigation
+		 */
+		this.navigation = undefined;
+
+		/**
+		 * @property {PageList} pagelist
+		 */
+		this.pageList = new PageList();
+
+		/**
+		 * @property {Url} url
+		 * @private
+		 */
+		this.url = undefined;
+
+		/**
+		 * @property {Path} path
+		 * @private
+		 */
+		this.path = undefined;
+
+		/**
+		 * @property {boolean} archived
+		 * @private
+		 */
+		this.archived = false;
+
+		if(url) {
+			this.open(url).catch((error) => {
+				var err = new Error("Cannot load book at "+ url );
+				// console.error(err);
+				this.emit("openFailed", err);
+			});
+		}
 	}
 
-	this.settings = core.extend(this.settings || {}, {
-		requestMethod: undefined,
-		requestCredentials: undefined,
-		requestHeaders: undefined,
-		encoding: undefined,
-		replacements: 'base64'
-	});
-
-	core.extend(this.settings, options);
-
-
-	// Promises
-	this.opening = new core.defer();
 	/**
-	 * @property {promise} opened returns after the book is loaded
+	 * Open a epub or url
+	 * @param {string} input URL, Path or ArrayBuffer
+	 * @param {string} [what] to force opening
+	 * @returns {Promise} of when the book has been loaded
+	 * @example book.open("/path/to/book.epub")
 	 */
-	this.opened = this.opening.promise;
-	this.isOpen = false;
+	open(input, what) {
+		var opening;
+		var type = what || this.determineType(input);
 
-	this.loading = {
-		manifest: new core.defer(),
-		spine: new core.defer(),
-		metadata: new core.defer(),
-		cover: new core.defer(),
-		navigation: new core.defer(),
-		pageList: new core.defer(),
-		resources: new core.defer()
-	};
+		if (type === "binary") {
+			this.archived = true;
+			this.url = new Url("/", "");
+			opening = this.openEpub(input);
+		} else if (type === "base64") {
+			this.archived = true;
+			this.url = new Url("/", "");
+			opening = this.openEpub(input, type);
+		} else if (type === "epub") {
+			this.archived = true;
+			this.url = new Url("/", "");
+			opening = this.request(input, "binary")
+				.then(this.openEpub.bind(this));
+		} else if(type == "opf") {
+			this.url = new Url(input);
+			opening = this.openPackaging(this.url.Path.toString());
+		} else {
+			this.url = new Url(input);
+			opening = this.openContainer(CONTAINER_PATH)
+				.then(this.openPackaging.bind(this));
+		}
 
-	this.loaded = {
-		manifest: this.loading.manifest.promise,
-		spine: this.loading.spine.promise,
-		metadata: this.loading.metadata.promise,
-		cover: this.loading.cover.promise,
-		navigation: this.loading.navigation.promise,
-		pageList: this.loading.pageList.promise,
-		resources: this.loading.resources.promise
-	};
+		return opening;
+	}
 
-	// this.ready = RSVP.hash(this.loaded);
 	/**
-	 * @property {promise} ready returns after the book is loaded and parsed
+	 * Open an archived epub
 	 * @private
+	 * @param  {binary} data
+	 * @param  {[string]} encoding
+	 * @return {Promise}
 	 */
-	this.ready = Promise.all([this.loaded.manifest,
-														this.loaded.spine,
-														this.loaded.metadata,
-														this.loaded.cover,
-														this.loaded.navigation,
-														this.loaded.resources ]);
-
-
-	// Queue for methods used before opening
-	this.isRendered = false;
-	// this._q = core.queue(this);
+	openEpub(data, encoding) {
+		return this.unarchive(data, encoding || this.settings.encoding)
+			.then(() => {
+				return this.openContainer(CONTAINER_PATH);
+			})
+			.then((packagePath) => {
+				return this.openPackaging(packagePath);
+			});
+	}
 
 	/**
-	 * @property {method} request
+	 * Open the epub container
 	 * @private
+	 * @param  {string} url
+	 * @return {string} packagePath
 	 */
-	this.request = this.settings.requestMethod || request;
+	openContainer(url) {
+		return this.load(url)
+			.then((xml) => {
+				this.container = new Container(xml);
+				return this.resolve(this.container.packagePath);
+			});
+	}
 
 	/**
-	 * @property {Spine} spine
-	 */
-	this.spine = new Spine();
-
-	/**
-	 * @property {Locations} locations
-	 */
-	this.locations = new Locations(this.spine, this.load.bind(this));
-
-	/**
-	 * @property {Navigation} navigation
-	 */
-	this.navigation = undefined;
-
-	/**
-	 * @property {PageList} pagelist
-	 */
-	this.pageList = new PageList();
-
-	/**
-	 * @property {Url} url
+	 * Open the Open Packaging Format Xml
 	 * @private
+	 * @param  {string} url
+	 * @return {Promise}
 	 */
-	this.url = undefined;
+	openPackaging(url) {
+		this.path = new Path(url);
+		return this.load(url)
+			.then((xml) => {
+				this.packaging = new Packaging(xml);
+				return this.unpack(this.packaging);
+			});
+	}
 
 	/**
-	 * @property {Path} path
-	 * @private
+	 * Load a resource from the Book
+	 * @param  {string} path path to the resource to load
+	 * @return {Promise}     returns a promise with the requested resource
 	 */
-	this.path = undefined;
+	load(path) {
+		var resolved;
+
+		if(this.archived) {
+			resolved = this.resolve(path);
+			return this.archive.request(resolved);
+		} else {
+			resolved = this.resolve(path);
+			return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
+		}
+	}
 
 	/**
-	 * @property {boolean} archived
-	 * @private
+	 * Resolve a path to it's absolute position in the Book
+	 * @param  {string} path
+	 * @param  {[boolean]} absolute force resolving the full URL
+	 * @return {string}          the resolved path string
 	 */
-	this.archived = false;
+	resolve(path, absolute) {
+		var resolved = path;
+		var isAbsolute = (path.indexOf("://") > -1);
 
-	if(url) {
-		this.open(url).catch(function (error) {
-			var err = new Error("Cannot load book at "+ url );
-			console.error(err);
-			this.emit("openFailed", err);
-			console.log(error);
-		}.bind(this));
-	}
-};
+		if (isAbsolute) {
+			return path;
+		}
 
-/**
- * Open a epub or url
- * @param {string} input URL, Path or ArrayBuffer
- * @param {string} [what] to force opening
- * @returns {Promise} of when the book has been loaded
- * @example book.open("/path/to/book.epub")
- */
-Book.prototype.open = function(input, what){
-	var opening;
-	var type = what || this.determineType(input);
+		if (this.path) {
+			resolved = this.path.resolve(path);
+		}
 
-	if (type === "binary") {
-		this.archived = true;
-		this.url = new Url("/", "");
-		opening = this.openEpub(input);
-	} else if (type === "epub") {
-		this.archived = true;
-		this.url = new Url("/", "");
-		opening = this.request(input, 'binary')
-			.then(this.openEpub.bind(this));
-	} else if(type == "opf") {
-		this.url = new Url(input);
-		opening = this.openPackaging(this.url.Path.toString());
-	} else {
-		this.url = new Url(input);
-		opening = this.openContainer(CONTAINER_PATH)
-			.then(this.openPackaging.bind(this));
+		if(absolute != false && this.url) {
+			resolved = this.url.resolve(resolved);
+		}
+
+		return resolved;
 	}
 
-	return opening;
-};
+	/**
+	 * Determine the type of they input passed to open
+	 * @private
+	 * @param  {string} input
+	 * @return {string}  binary | directory | epub | opf
+	 */
+	determineType(input) {
+		var url;
+		var path;
+		var extension;
 
-/**
- * Open an archived epub
- * @private
- * @param  {binary} data
- * @param  {[string]} encoding
- * @return {Promise}
- */
-Book.prototype.openEpub = function(data, encoding){
-	return this.unarchive(data, encoding || this.settings.encoding)
-		.then(function() {
-			return this.openContainer(CONTAINER_PATH);
-		}.bind(this))
-		.then(function(packagePath) {
-			return this.openPackaging(packagePath);
-		}.bind(this));
-};
+		if (this.settings.encoding === "base64") {
+			return "base64";
+		}
 
-/**
- * Open the epub container
- * @private
- * @param  {string} url
- * @return {string} packagePath
- */
-Book.prototype.openContainer = function(url){
-	return this.load(url)
-		.then(function(xml) {
-			this.container = new Container(xml);
-			return this.resolve(this.container.packagePath);
-		}.bind(this));
-};
+		if(typeof(input) != "string") {
+			return "binary";
+		}
 
-/**
- * Open the Open Packaging Format Xml
- * @private
- * @param  {string} url
- * @return {Promise}
- */
-Book.prototype.openPackaging = function(url){
-	var packageUrl;
-	this.path = new Path(url);
-	return this.load(url)
-		.then(function(xml) {
-			this.packaging = new Packaging(xml);
-			return this.unpack(this.packaging);
-		}.bind(this));
-};
+		url = new Url(input);
+		path = url.path();
+		extension = path.extension;
 
-/**
- * Load a resource from the Book
- * @param  {string} path path to the resource to load
- * @return {Promise}     returns a promise with the requested resource
- */
-Book.prototype.load = function (path) {
-	var resolved;
+		if (!extension) {
+			return "directory";
+		}
 
-	if(this.archived) {
-		resolved = this.resolve(path);
-		return this.archive.request(resolved);
-	} else {
-		resolved = this.resolve(path);
-		return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
-	}
-};
+		if(extension === "epub"){
+			return "epub";
+		}
 
-/**
- * Resolve a path to it's absolute position in the Book
- * @param  {string} path
- * @param  {[boolean]} absolute force resolving the full URL
- * @return {string}          the resolved path string
- */
-Book.prototype.resolve = function (path, absolute) {
-	var resolved = path;
-	var isAbsolute = (path.indexOf('://') > -1);
-
-	if (isAbsolute) {
-		return path;
+		if(extension === "opf"){
+			return "opf";
+		}
 	}
 
-	if (this.path) {
-		resolved = this.path.resolve(path);
-	}
 
-	if(absolute != false && this.url) {
-		resolved = this.url.resolve(resolved);
-	}
+	/**
+	 * unpack the contents of the Books packageXml
+	 * @private
+	 * @param {document} packageXml XML Document
+	 */
+	unpack(opf) {
+		this.package = opf;
 
-	return resolved;
-}
+		this.spine.unpack(this.package, this.resolve.bind(this));
 
-/**
- * Determine the type of they input passed to open
- * @private
- * @param  {string} input
- * @return {string}  binary | directory | epub | opf
- */
-Book.prototype.determineType = function(input) {
-	var url;
-	var path;
-	var extension;
+		this.resources = new Resources(this.package.manifest, {
+			archive: this.archive,
+			resolver: this.resolve.bind(this),
+			replacements: this.settings.replacements
+		});
 
-	if (typeof(input) != "string") {
-		return "binary";
-	}
+		this.loadNavigation(this.package).then(() => {
+			this.toc = this.navigation.toc;
+			this.loading.navigation.resolve(this.navigation);
+		});
 
-	url = new Url(input);
-	path = url.path();
-	extension = path.extension;
+		this.cover = this.resolve(this.package.coverPath);
 
-	if (!extension) {
-		return "directory";
-	}
-
-	if(extension === "epub"){
-		return "epub";
-	}
-
-	if(extension === "opf"){
-		return "opf";
-	}
-};
+		// Resolve promises
+		this.loading.manifest.resolve(this.package.manifest);
+		this.loading.metadata.resolve(this.package.metadata);
+		this.loading.spine.resolve(this.spine);
+		this.loading.cover.resolve(this.cover);
+		this.loading.resources.resolve(this.resources);
+		this.loading.pageList.resolve(this.pageList);
 
 
-/**
- * unpack the contents of the Books packageXml
- * @private
- * @param {document} packageXml XML Document
- */
-Book.prototype.unpack = function(opf){
-	this.package = opf;
+		this.isOpen = true;
 
-	this.spine.unpack(this.package, this.resolve.bind(this));
-
-	this.resources = new Resources(this.package.manifest, {
-		archive: this.archive,
-		resolver: this.resolve.bind(this),
-		replacements: this.settings.replacements
-	});
-
-	this.loadNavigation(this.package).then(function(){
-		this.toc = this.navigation.toc;
-		this.loading.navigation.resolve(this.navigation);
-	}.bind(this));
-
-	this.cover = this.resolve(this.package.coverPath);
-
-	// Resolve promises
-	this.loading.manifest.resolve(this.package.manifest);
-	this.loading.metadata.resolve(this.package.metadata);
-	this.loading.spine.resolve(this.spine);
-	this.loading.cover.resolve(this.cover);
-	this.loading.resources.resolve(this.resources);
-	this.loading.pageList.resolve(this.pageList);
-
-
-	this.isOpen = true;
-
-	if(this.archived) {
-		this.replacements().then(function() {
+		if(this.archived) {
+			this.replacements().then(() => {
+				this.opening.resolve(this);
+			});
+		} else {
+			// Resolve book opened promise
 			this.opening.resolve(this);
-		}.bind(this));
-	} else {
-		// Resolve book opened promise
-		this.opening.resolve(this);
+		}
+
 	}
 
-};
+	/**
+	 * Load Navigation and PageList from package
+	 * @private
+	 * @param {document} opf XML Document
+	 */
+	loadNavigation(opf) {
+		var navPath = opf.navPath || opf.ncxPath;
 
-/**
- * Load Navigation and PageList from package
- * @private
- * @param {document} opf XML Document
- */
-Book.prototype.loadNavigation = function(opf){
-	var navPath = opf.navPath || opf.ncxPath;
+		if (!navPath) {
+			return;
+		}
 
-	if (!navPath) {
-		return;
+		return this.load(navPath, "xml")
+			.then((xml) => {
+				this.navigation = new Navigation(xml);
+				this.pageList = new PageList(xml);
+				return this.navigation;
+			});
 	}
 
-	return this.load(navPath, 'xml')
-		.then(function(xml) {
-			this.navigation = new Navigation(xml);
-			this.pageList = new PageList(xml);
-			return this.navigation;
-		}.bind(this));
-};
+	/**
+	 * Alias for book.spine.get
+	 * @param {string} target
+	 */
+	section(target) {
+		return this.spine.get(target);
+	}
 
-/**
- * Alias for book.spine.get
- * @param {string} target
- */
-Book.prototype.section = function(target) {
-	return this.spine.get(target);
-};
+	/**
+	 * Sugar to render a book
+	 * @param  {element} element element to add the views to
+	 * @param  {[object]} options
+	 * @return {Rendition}
+	 */
+	renderTo(element, options) {
+		// var renderMethod = (options && options.method) ?
+		//     options.method :
+		//     "single";
 
-/**
- * Sugar to render a book
- * @param  {element} element element to add the views to
- * @param  {[object]} options
- * @return {Rendition}
- */
-Book.prototype.renderTo = function(element, options) {
-	// var renderMethod = (options && options.method) ?
-	//     options.method :
-	//     "single";
+		this.rendition = new Rendition(this, options);
+		this.rendition.attachTo(element);
 
-	this.rendition = new Rendition(this, options);
-	this.rendition.attachTo(element);
+		return this.rendition;
+	}
 
-	return this.rendition;
-};
+	/**
+	 * Set if request should use withCredentials
+	 * @param {boolean} credentials
+	 */
+	setRequestCredentials(credentials) {
+		this.settings.requestCredentials = credentials;
+	}
 
-/**
- * Set if request should use withCredentials
- * @param {boolean} credentials
- */
-Book.prototype.setRequestCredentials = function(credentials) {
-	this.settings.requestCredentials = credentials;
-};
+	/**
+	 * Set headers request should use
+	 * @param {object} headers
+	 */
+	setRequestHeaders(headers) {
+		this.settings.requestHeaders = headers;
+	}
 
-/**
- * Set headers request should use
- * @param {object} headers
- */
-Book.prototype.setRequestHeaders = function(headers) {
-	this.settings.requestHeaders = headers;
-};
+	/**
+	 * Unarchive a zipped epub
+	 * @private
+	 * @param  {binary} input epub data
+	 * @param  {[string]} encoding
+	 * @return {Archive}
+	 */
+	unarchive(input, encoding) {
+		this.archive = new Archive();
+		return this.archive.open(input, encoding);
+	}
 
-/**
- * Unarchive a zipped epub
- * @private
- * @param  {binary} input epub data
- * @param  {[string]} encoding
- * @return {Archive}
- */
-Book.prototype.unarchive = function(input, encoding){
-	this.archive = new Archive();
-	return this.archive.open(input, encoding);
-};
-
-/**
- * Get the cover url
- * @return {string} coverUrl
- */
-Book.prototype.coverUrl = function(){
-	var retrieved = this.loaded.cover.
-		then(function(url) {
-			if(this.archived) {
-				// return this.archive.createUrl(this.cover);
-				return this.resources.get(this.cover);
-			}else{
-				return this.cover;
-			}
-		}.bind(this));
+	/**
+	 * Get the cover url
+	 * @return {string} coverUrl
+	 */
+	coverUrl() {
+		var retrieved = this.loaded.cover.
+			then((url) => {
+				if(this.archived) {
+					// return this.archive.createUrl(this.cover);
+					return this.resources.get(this.cover);
+				}else{
+					return this.cover;
+				}
+			});
 
 
 
-	return retrieved;
-};
+		return retrieved;
+	}
 
-/**
- * load replacement urls
- * @private
- * @return {Promise} completed loading urls
- */
-Book.prototype.replacements = function(){
-	this.spine.hooks.serialize.register(function(output, section) {
-		section.output = this.resources.substitute(output, section.url);
-	}.bind(this));
+	/**
+	 * load replacement urls
+	 * @private
+	 * @return {Promise} completed loading urls
+	 */
+	replacements() {
+		this.spine.hooks.serialize.register((output, section) => {
+			section.output = this.resources.substitute(output, section.url);
+		});
 
-	return this.resources.replacements().
-		then(function() {
-			return this.resources.replaceCss();
-		}.bind(this));
-};
+		return this.resources.replacements().
+			then(() => {
+				return this.resources.replaceCss();
+			});
+	}
 
-/**
- * Find a DOM Range for a given CFI Range
- * @param  {EpubCFI} cfiRange a epub cfi range
- * @return {Range}
- */
-Book.prototype.range = function(cfiRange) {
-	var cfi = new EpubCFI(cfiRange);
-	var item = this.spine.get(cfi.spinePos);
+	/**
+	 * Find a DOM Range for a given CFI Range
+	 * @param  {EpubCFI} cfiRange a epub cfi range
+	 * @return {Range}
+	 */
+	 range(cfiRange) {
+		var cfi = new EpubCFI(cfiRange);
+		var item = this.spine.get(cfi.spinePos);
 
-	return item.load().then(function (contents) {
-		var range = cfi.toRange(item.document);
-		return range;
-	})
-};
+		return item.load().then(function (contents) {
+			var range = cfi.toRange(item.document);
+			return range;
+		});
+	}
 
-/**
- * Generates the Book Key using the identifer in the manifest or other string provided
- * @param  {[string]} identifier to use instead of metadata identifier
- * @return {string} key
- */
-Book.prototype.key = function(identifier){
-	var ident = identifier || this.package.metadata.identifier || this.url.filename;
-	return "epubjs:" + (EPUBJS_VERSION || ePub.VERSION) + ":" + ident;
-};
+	/**
+	 * Generates the Book Key using the identifer in the manifest or other string provided
+	 * @param  {[string]} identifier to use instead of metadata identifier
+	 * @return {string} key
+	 */
+	key(identifier) {
+		var ident = identifier || this.package.metadata.identifier || this.url.filename;
+		return `epubjs:${EPUBJS_VERSION}:${ident}`;
+	}
+
+}
 
 //-- Enable binding events to book
 EventEmitter(Book.prototype);
 
-module.exports = Book;
+export default Book;

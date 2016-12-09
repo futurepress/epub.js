@@ -1,161 +1,161 @@
-var core = require('./core');
-var EpubCFI = require('./epubcfi');
-var Hook = require('./hook');
-var Section = require('./section');
-var replacements = require('./replacements');
+import EpubCFI from "./epubcfi";
+import Hook from "./utils/hook";
+import Section from "./section";
+import {replaceBase, replaceCanonical} from "./utils/replacements";
 
 /**
  * A collection of Spine Items
  */
-function Spine(){
-	this.spineItems = [];
-	this.spineByHref = {};
-	this.spineById = {};
+class Spine {
+	constructor() {
+		this.spineItems = [];
+		this.spineByHref = {};
+		this.spineById = {};
 
-	this.hooks = {};
-	this.hooks.serialize = new Hook();
-	this.hooks.content = new Hook();
+		this.hooks = {};
+		this.hooks.serialize = new Hook();
+		this.hooks.content = new Hook();
 
-	// Register replacements
-	this.hooks.content.register(replacements.base);
-	this.hooks.content.register(replacements.canonical);
+		// Register replacements
+		this.hooks.content.register(replaceBase);
+		this.hooks.content.register(replaceCanonical);
 
-	this.epubcfi = new EpubCFI();
+		this.epubcfi = new EpubCFI();
 
-	this.loaded = false;
-};
+		this.loaded = false;
+	}
 
-/**
- * Unpack items from a opf into spine items
- * @param  {Package} _package
- * @param  {method} resolver URL resolver
- */
-Spine.prototype.unpack = function(_package, resolver) {
+	/**
+	 * Unpack items from a opf into spine items
+	 * @param  {Package} _package
+	 * @param  {method} resolver URL resolver
+	 */
+	unpack(_package, resolver) {
 
-	this.items = _package.spine;
-	this.manifest = _package.manifest;
-	this.spineNodeIndex = _package.spineNodeIndex;
-	this.baseUrl = _package.baseUrl || _package.basePath || '';
-	this.length = this.items.length;
+		this.items = _package.spine;
+		this.manifest = _package.manifest;
+		this.spineNodeIndex = _package.spineNodeIndex;
+		this.baseUrl = _package.baseUrl || _package.basePath || "";
+		this.length = this.items.length;
 
-	this.items.forEach(function(item, index){
-		var href, url;
-		var manifestItem = this.manifest[item.idref];
-		var spineItem;
+		this.items.forEach( (item, index) => {
+			var manifestItem = this.manifest[item.idref];
+			var spineItem;
 
-		item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
+			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
-		if(manifestItem) {
-			item.href = manifestItem.href;
-			item.url = resolver(item.href, true);
+			if(manifestItem) {
+				item.href = manifestItem.href;
+				item.url = resolver(item.href, true);
 
-			if(manifestItem.properties.length){
-				item.properties.push.apply(item.properties, manifestItem.properties);
+				if(manifestItem.properties.length){
+					item.properties.push.apply(item.properties, manifestItem.properties);
+				}
 			}
+
+			item.prev = function(){ return this.get(index-1); }.bind(this);
+			item.next = function(){ return this.get(index+1); }.bind(this);
+
+			spineItem = new Section(item, this.hooks);
+
+			this.append(spineItem);
+
+
+		});
+
+		this.loaded = true;
+	}
+
+	/**
+	 * Get an item from the spine
+	 * @param  {[string|int]} target
+	 * @return {Section} section
+	 * @example spine.get();
+	 * @example spine.get(1);
+	 * @example spine.get("chap1.html");
+	 * @example spine.get("#id1234");
+	 */
+	get(target) {
+		var index = 0;
+
+		if(this.epubcfi.isCfiString(target)) {
+			let cfi = new EpubCFI(target);
+			index = cfi.spinePos;
+		} else if(target && (typeof target === "number" || isNaN(target) === false)){
+			index = target;
+		} else if(target && target.indexOf("#") === 0) {
+			index = this.spineById[target.substring(1)];
+		} else if(target) {
+			// Remove fragments
+			target = target.split("#")[0];
+			index = this.spineByHref[target];
 		}
 
-		item.prev = function(){ return this.get(index-1); }.bind(this);
-		item.next = function(){ return this.get(index+1); }.bind(this);
-
-		spineItem = new Section(item, this.hooks);
-
-		this.append(spineItem);
-
-
-	}.bind(this));
-
-	this.loaded = true;
-};
-
-/**
- * Get an item from the spine
- * @param  {[string|int]} target
- * @return {Section} section
- * @example spine.get();
- * @example spine.get(1);
- * @example spine.get("chap1.html");
- * @example spine.get("#id1234");
- */
-Spine.prototype.get = function(target) {
-	var index = 0;
-
-	if(this.epubcfi.isCfiString(target)) {
-		cfi = new EpubCFI(target);
-		index = cfi.spinePos;
-	} else if(target && (typeof target === "number" || isNaN(target) === false)){
-		index = target;
-	} else if(target && target.indexOf("#") === 0) {
-		index = this.spineById[target.substring(1)];
-	} else if(target) {
-		// Remove fragments
-		target = target.split("#")[0];
-		index = this.spineByHref[target];
+		return this.spineItems[index] || null;
 	}
 
-	return this.spineItems[index] || null;
-};
+	/**
+	 * Append a Section to the Spine
+	 * @private
+	 * @param  {Section} section
+	 */
+	append(section) {
+		var index = this.spineItems.length;
+		section.index = index;
 
-/**
- * Append a Section to the Spine
- * @private
- * @param  {Section} section
- */
-Spine.prototype.append = function(section) {
-	var index = this.spineItems.length;
-	section.index = index;
+		this.spineItems.push(section);
 
-	this.spineItems.push(section);
+		this.spineByHref[section.href] = index;
+		this.spineById[section.idref] = index;
 
-	this.spineByHref[section.href] = index;
-	this.spineById[section.idref] = index;
-
-	return index;
-};
-
-/**
- * Prepend a Section to the Spine
- * @private
- * @param  {Section} section
- */
-Spine.prototype.prepend = function(section) {
-	var index = this.spineItems.unshift(section);
-	this.spineByHref[section.href] = 0;
-	this.spineById[section.idref] = 0;
-
-	// Re-index
-	this.spineItems.forEach(function(item, index){
-		item.index = index;
-	});
-
-	return 0;
-};
-
-// Spine.prototype.insert = function(section, index) {
-//
-// };
-
-/**
- * Remove a Section from the Spine
- * @private
- * @param  {Section} section
- */
-Spine.prototype.remove = function(section) {
-	var index = this.spineItems.indexOf(section);
-
-	if(index > -1) {
-		delete this.spineByHref[section.href];
-		delete this.spineById[section.idref];
-
-		return this.spineItems.splice(index, 1);
+		return index;
 	}
-};
 
-/**
- * Loop over the Sections in the Spine
- * @return {method} forEach
- */
-Spine.prototype.each = function() {
-	return this.spineItems.forEach.apply(this.spineItems, arguments);
-};
+	/**
+	 * Prepend a Section to the Spine
+	 * @private
+	 * @param  {Section} section
+	 */
+	prepend(section) {
+		// var index = this.spineItems.unshift(section);
+		this.spineByHref[section.href] = 0;
+		this.spineById[section.idref] = 0;
 
-module.exports = Spine;
+		// Re-index
+		this.spineItems.forEach(function(item, index){
+			item.index = index;
+		});
+
+		return 0;
+	}
+
+	// insert(section, index) {
+	//
+	// };
+
+	/**
+	 * Remove a Section from the Spine
+	 * @private
+	 * @param  {Section} section
+	 */
+	remove(section) {
+		var index = this.spineItems.indexOf(section);
+
+		if(index > -1) {
+			delete this.spineByHref[section.href];
+			delete this.spineById[section.idref];
+
+			return this.spineItems.splice(index, 1);
+		}
+	}
+
+	/**
+	 * Loop over the Sections in the Spine
+	 * @return {method} forEach
+	 */
+	each() {
+		return this.spineItems.forEach.apply(this.spineItems, arguments);
+	}
+}
+
+export default Spine;

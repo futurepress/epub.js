@@ -1,0 +1,84 @@
+import Path from "./path";
+import path from "path-webpack";
+
+/**
+ * creates a uri object
+ * @param	{string} urlString	a url string (relative or absolute)
+ * @param	{[string]} baseString optional base for the url,
+ * default to window.location.href
+ * @return {object} url
+ */
+
+class Url {
+	constructor(urlString, baseString) {
+		var absolute = (urlString.indexOf("://") > -1);
+		var pathname = urlString;
+
+		this.Url = undefined;
+		this.href = urlString;
+		this.protocol = "";
+		this.origin = "";
+		this.fragment = "";
+		this.search = "";
+		this.base = baseString;
+
+		if (!absolute && (typeof(baseString) !== "string") &&
+				window && window.location) {
+			this.base = window.location.href;
+		}
+
+		// URL Polyfill doesn't throw an error if base is empty
+		if (absolute || this.base) {
+			try {
+				if (this.base) { // Safari doesn't like an undefined base
+					this.Url = new URL(urlString, this.base);
+				} else {
+					this.Url = new URL(urlString);
+				}
+				this.href = this.Url.href;
+
+				this.protocol = this.Url.protocol;
+				this.origin = this.Url.origin;
+				this.fragment = this.Url.fragment;
+				this.search = this.Url.search;
+
+				pathname = this.Url.pathname;
+			} catch (e) {
+				// Skip URL parsing
+				this.Url = undefined;
+			}
+		}
+
+		this.Path = new Path(pathname);
+		this.directory = this.Path.directory;
+		this.filename = this.Path.filename;
+		this.extension = this.Path.extension;
+
+	}
+
+	path () {
+		return this.Path;
+	}
+
+	resolve (what) {
+		var isAbsolute = (what.indexOf("://") > -1);
+		var fullpath;
+
+		if (isAbsolute) {
+			return what;
+		}
+
+		fullpath = path.resolve(this.directory, what);
+		return this.origin + fullpath;
+	}
+
+	relative (what) {
+		return path.relative(what, this.directory);
+	}
+
+	toString () {
+		return this.href;
+	}
+}
+
+export default Url;
