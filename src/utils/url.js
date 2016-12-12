@@ -22,7 +22,9 @@ class Url {
 		this.search = "";
 		this.base = baseString;
 
-		if (!absolute && (typeof(baseString) !== "string") &&
+		if (!absolute &&
+				baseString !== false &&
+				typeof(baseString) !== "string" &&
 				window && window.location) {
 			this.base = window.location.href;
 		}

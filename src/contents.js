@@ -2,7 +2,7 @@ import EventEmitter from "event-emitter";
 import {isNumber, prefixed} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
-
+import {replaceLinks} from "./utils/replacements";
 
 class Contents {
 	constructor(doc, content, cfiBase) {
@@ -396,8 +396,7 @@ class Contents {
 					} else {
 						position = range.getBoundingClientRect();
 					}
-					targetPos.left = position.left;
-					targetPos.top = position.top;
+
 				}
 			}
 
@@ -409,9 +408,12 @@ class Contents {
 
 			if(el) {
 				position = el.getBoundingClientRect();
-				targetPos.left = position.left;
-				targetPos.top = position.top;
 			}
+		}
+
+		if (position) {
+			targetPos.left = position.left;
+			targetPos.top = position.top;
 		}
 
 		return targetPos;
@@ -694,6 +696,14 @@ class Contents {
 		var mapping = new Mapping();
 
 		return mapping.page(this, cfiBase, start, end);
+	}
+
+	linksHandler(fn) {
+		replaceLinks(this.content, fn);
+	}
+
+	passEvents() {
+
 	}
 
 	destroy() {

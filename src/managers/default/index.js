@@ -239,6 +239,10 @@ class DefaultViewManager {
 	append(section){
 		var view = this.createView(section);
 		this.views.append(view);
+
+		view.onDisplayed = this.afterDisplayed.bind(this);
+		view.onResize = this.afterResized.bind(this);
+
 		return view.display(this.request);
 	}
 
@@ -246,6 +250,10 @@ class DefaultViewManager {
 		var view = this.createView(section);
 
 		this.views.prepend(view);
+
+		view.onDisplayed = this.afterDisplayed.bind(this);
+		view.onResize = this.afterResized.bind(this);
+
 		return view.display(this.request);
 	}
 	// resizeView(view) {

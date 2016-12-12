@@ -181,6 +181,9 @@ class ContinuousViewManager extends DefaultViewManager {
 	append(section){
 		var view = this.createView(section);
 		this.views.append(view);
+
+		view.onDisplayed = this.afterDisplayed.bind(this);
+
 		return view;
 	}
 
@@ -190,6 +193,9 @@ class ContinuousViewManager extends DefaultViewManager {
 		view.on("resized", this.counter.bind(this));
 
 		this.views.prepend(view);
+
+		view.onDisplayed = this.afterDisplayed.bind(this);
+		
 		return view;
 	}
 

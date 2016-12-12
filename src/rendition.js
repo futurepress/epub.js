@@ -1,6 +1,5 @@
 import EventEmitter from "event-emitter";
 import { extend, defer, isFloat } from "./utils/core";
-import {replaceLinks} from "./utils/replacements";
 import Hook from "./utils/hook";
 import EpubCFI from "./epubcfi";
 import Queue from "./utils/queue";
@@ -67,7 +66,7 @@ class Rendition {
 		this.hooks.render = new Hook(this);
 		this.hooks.show = new Hook(this);
 
-		this.hooks.content.register(replaceLinks.bind(this));
+		this.hooks.content.register(this.handleLinks.bind(this));
 		this.hooks.content.register(this.passViewEvents.bind(this));
 
 		// this.hooks.display.register(this.afterDisplay.bind(this));
@@ -588,6 +587,12 @@ class Rendition {
 
 	getContents () {
 		return this.manager ? this.manager.getContents() : [];
+	}
+
+	handleLinks(view) {
+		view.contents.linksHandler((href) => {
+			this.display(href);
+		});
 	}
 }
 
