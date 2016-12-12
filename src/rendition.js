@@ -591,7 +591,8 @@ class Rendition {
 
 	handleLinks(view) {
 		view.contents.linksHandler((href) => {
-			this.display(href);
+			let relative = this.book.path.relative(href);
+			this.display(relative);
 		});
 	}
 }

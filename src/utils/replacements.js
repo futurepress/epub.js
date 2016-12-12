@@ -1,4 +1,5 @@
-import { qs } from "./core";
+import { qs, qsa } from "./core";
+import Url from "./url";
 
 export function replaceBase(doc, section){
 	var base;
@@ -46,7 +47,8 @@ export function replaceCanonical(doc, section){
 export function replaceLinks(contents, fn) {
 
 	var links = contents.querySelectorAll("a[href]");
-
+	var base = qs(contents.ownerDocument, "base");
+	var location = base ? base.href : undefined;
 	var replaceLink = function(link){
 		var href = link.getAttribute("href");
 
@@ -55,7 +57,7 @@ export function replaceLinks(contents, fn) {
 		}
 
 		var absolute = (href.indexOf("://") > -1);
-
+		var linkUrl = new Url(href, location);
 
 		if(absolute){
 
@@ -63,8 +65,15 @@ export function replaceLinks(contents, fn) {
 
 		}else{
 			link.onclick = function(){
-				// renderer.display(relative);
-				fn(href);
+
+				if(linkUrl && linkUrl.hash) {
+					fn(linkUrl.Path.path + linkUrl.hash);
+				} else if(linkUrl){
+					fn(linkUrl.Path.path);
+				} else {
+					fn(href);
+				}
+
 				return false;
 			};
 		}
