@@ -17,20 +17,9 @@ EPUBJS.EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _p
 };
 
 EPUBJS.EpubCFI.prototype.generatePathComponent = function(steps) {
-  var parts = [];
-
-  steps.forEach(function(part){
-    var segment = '';
-    segment += (part.index + 1) * 2;
-
-    if(part.id) {
-      segment += "[" + part.id + "]";
-    }
-
-    parts.push(segment);
-  });
-
-  return parts.join('/');
+  return steps.map(function(part) {
+    return (part.index + 1) * 2 + (part.id ? '[' + part.id + ']' : '');
+  }).join('/');
 };
 
 EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
@@ -543,10 +532,5 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
 };
 
 EPUBJS.EpubCFI.prototype.isCfiString = function(target) {
-  if(typeof target === "string" &&
-    target.indexOf("epubcfi(") === 0) {
-      return true;
-  }
-
-  return false;
+  return typeof target === 'string' && target.indexOf('epubcfi(') === 0;
 };

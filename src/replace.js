@@ -171,7 +171,6 @@ EPUBJS.replace.cssImports = function (_store, base, text) {
 
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
-		promises = [],
 		matches = text.match(/url\(\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)/g);
 
 	if(!_store) return;
@@ -181,15 +180,13 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		return deferred.promise;
 	}
 
-	matches.forEach(function(str){
+	var promises = matches.map(function(str) {
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]|\?.*$/g, ''));
-		var replaced = _store.getUrl(full).then(function(url){
+		return _store.getUrl(full).then(function(url) {
 			text = text.replace(str, 'url("'+url+'")');
 		}, function(reason) {
 			deferred.reject(reason);
 		});
-
-		promises.push(replaced);
 	});
 
 	RSVP.all(promises).then(function(){

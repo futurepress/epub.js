@@ -240,8 +240,6 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 };
 
 EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
-	var spine = [];
-
 	var selected = spineXml.getElementsByTagName("itemref"),
 			items = Array.prototype.slice.call(selected);
 
@@ -250,14 +248,14 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	var epubcfi = new EPUBJS.EpubCFI();
 
 	//-- Add to array to mantain ordering and cross reference with manifest
-	items.forEach(function(item, index){
+	return items.map(function(item, index) {
 		var Id = item.getAttribute('idref');
 		var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
 		var props = item.getAttribute('properties') || '';
 		var propArray = props.length ? props.split(' ') : [];
 		var manifestProps = manifest[Id].properties;
 		var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
-		var vert = {
+		return {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
 			'properties' : propArray,
@@ -268,10 +266,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 			'cfiBase' : cfiBase,
 			'cfi' : "epubcfi(" + cfiBase + ")"
 		};
-		spine.push(vert);
 	});
-
-	return spine;
 };
 
 EPUBJS.Parser.prototype.querySelectorByType = function(html, element, type){
