@@ -1,5 +1,7 @@
 # EPUB.JS Documentation
 
+You can also find some short guides [here](https://github.com/futurepress/epub.js/wiki/Tips-and-Tricks).
+
 ## Methods
 
 #### ePub(bookPath, options)
@@ -154,6 +156,26 @@ Book.getMetadata().then(function(meta){
 });
 ```
 
+Returns an object like this (but do not count on all of the properties being there):
+
+````json
+{
+  "bookTitle": "The title of the book",
+  "creator": "Book Author",
+  "description": "The description/synopsis of the book",
+  "pubdate": "",
+  "publisher": "The Publisher",
+  "identifier": "The ISBN",
+  "language": "en-US",
+  "rights": "Copyright text",
+  "modified_date": "",
+  "layout": "",
+  "orientation": "",
+  "spread": "",
+  "direction": null
+}
+````
+
 #### Book.getToc()
 
 ```javascript
@@ -161,6 +183,22 @@ Book.getToc().then(function(toc){
 	console.log(toc);
 });
 ```
+
+#### Book.generatePagination()
+
+NOTE: This method will be deprecated in v0.3
+
+````javascript
+book.generatePagination().then(function(toc){
+	console.log("Pagination generated");
+});
+````
+
+````javascript
+book.generatePagination(pageWidth, pageHeight).then(function(toc){
+	console.log("Pagination generated");
+});
+````
 
 ## Events
 
