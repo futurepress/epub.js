@@ -16,7 +16,7 @@ import request from "./utils/request";
 import EpubCFI from "./epubcfi";
 
 const CONTAINER_PATH = "META-INF/container.xml";
-const EPUBJS_VERSION = "0.3.3";
+const EPUBJS_VERSION = "0.3";
 
 /**
  * Creates a new Book
