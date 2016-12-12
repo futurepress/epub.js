@@ -93,6 +93,8 @@ EPUBJS.Parser.prototype.packageContents = function(packageXml, baseUrl){
 
 	spineIndexByURL = {};
 	spine.forEach(function(item){
+		spineIndexByURL[decodeURI(item.href)] = item.index;
+		spineIndexByURL[encodeURI(item.href)] = item.index;
 		spineIndexByURL[item.href] = item.index;
 	});
 
@@ -242,7 +244,7 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	var spine = [];
 
-	var selected = spineXml.getElementsByTagName("itemref"),
+	var selected = spineXml.getElementsByTagNameNS("*", "itemref"),
 			items = Array.prototype.slice.call(selected);
 
 	var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
