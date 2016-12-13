@@ -6,6 +6,7 @@ import Queue from "./utils/queue";
 import Layout from "./layout";
 import Mapping from "./mapping";
 import Themes from "./themes";
+import Contents from "./contents";
 
 /**
  * [Rendition description]
@@ -67,7 +68,8 @@ class Rendition {
 		this.hooks.show = new Hook(this);
 
 		this.hooks.content.register(this.handleLinks.bind(this));
-		this.hooks.content.register(this.passViewEvents.bind(this));
+		this.hooks.content.register(this.passEvents.bind(this));
+		this.hooks.content.register(this.adjustImages.bind(this));
 
 		// this.hooks.display.register(this.afterDisplay.bind(this));
 		this.themes = new Themes(this);
@@ -306,7 +308,7 @@ class Rendition {
 	 * @param  {*} view
 	 */
 	afterDisplayed(view){
-		this.hooks.content.trigger(view, this);
+		this.hooks.content.trigger(view.contents, this);
 		this.emit("rendered", view.section);
 		this.reportLocation();
 	}
@@ -521,12 +523,14 @@ class Rendition {
 	 * @private
 	 * @param  {View} view
 	 */
-	passViewEvents(view){
-		view.contents.listenedEvents.forEach(function(e){
-			view.on(e, this.triggerViewEvent.bind(this));
+	passEvents(contents){
+		var listenedEvents = Contents.listenedEvents;
+
+		listenedEvents.forEach(function(e){
+			contents.on(e, this.triggerViewEvent.bind(this));
 		}.bind(this));
 
-		view.on("selected", this.triggerSelectedEvent.bind(this));
+		contents.on("selected", this.triggerSelectedEvent.bind(this));
 	}
 
 	/**
@@ -569,12 +573,12 @@ class Rendition {
 	 * Hook to adjust images to fit in columns
 	 * @param  {View} view
 	 */
-	adjustImages(view) {
+	adjustImages(contents) {
 
-		view.addStylesheetRules([
+		contents.addStylesheetRules([
 			["img",
-				["max-width", (view.layout.spreadWidth) + "px"],
-				["max-height", (view.layout.height) + "px"]
+				["max-width", (this._layout.spreadWidth) + "px"],
+				["max-height", (this._layout.height) + "px"]
 			]
 		]);
 		return new Promise(function(resolve, reject){
@@ -589,8 +593,8 @@ class Rendition {
 		return this.manager ? this.manager.getContents() : [];
 	}
 
-	handleLinks(view) {
-		view.contents.linksHandler((href) => {
+	handleLinks(contents) {
+		contents.on("link", (href) => {
 			let relative = this.book.path.relative(href);
 			this.display(relative);
 		});

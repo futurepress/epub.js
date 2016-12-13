@@ -4,6 +4,9 @@ import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
 
+// Dom events to listen for
+const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+
 class Contents {
 	constructor(doc, content, cfiBase) {
 		// Blank Cfi for Parsing
@@ -13,8 +16,6 @@ class Contents {
 		this.documentElement =  this.document.documentElement;
 		this.content = content || this.document.body;
 		this.window = this.document.defaultView;
-		// Dom events to listen for
-		this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 		this._size = {
 			width: 0,
@@ -24,6 +25,10 @@ class Contents {
 		this.cfiBase = cfiBase || "";
 
 		this.listeners();
+	}
+
+	static get listenedEvents() {
+		return EVENTS;
 	}
 
 	width(w) {
@@ -263,6 +268,7 @@ class Contents {
 
 		this.resizeListeners();
 
+		this.linksHandler();
 	}
 
 	removeListeners() {
@@ -549,7 +555,8 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		this.listenedEvents.forEach(function(eventName){
+
+		EVENTS.forEach(function(eventName){
 			this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
 		}, this);
 
@@ -559,7 +566,7 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		this.listenedEvents.forEach(function(eventName){
+		EVENTS.forEach(function(eventName){
 			this.document.removeEventListener(eventName, this.triggerEvent, false);
 		}, this);
 
@@ -698,12 +705,10 @@ class Contents {
 		return mapping.page(this, cfiBase, start, end);
 	}
 
-	linksHandler(fn) {
-		replaceLinks(this.content, fn);
-	}
-
-	passEvents() {
-
+	linksHandler() {
+		replaceLinks(this.content, (href) => {
+			this.emit("link", href);
+		});
 	}
 
 	destroy() {

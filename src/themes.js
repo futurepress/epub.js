@@ -91,7 +91,7 @@ class Themes {
 		});
 	}
 
-	inject (view) {
+	inject (contents) {
 		var links = [];
 		var themes = this._themes;
 		var theme;
@@ -100,13 +100,13 @@ class Themes {
 			if (themes.hasOwnProperty(name)) {
 				theme = themes[name];
 				if(theme.rules || (theme.url && links.indexOf(theme.url) === -1)) {
-					this.add(name, view.contents);
+					this.add(name, contents);
 				}
 			}
 		}
 
 		if(this._current) {
-			view.contents.addClass(this._current);
+			contents.addClass(this._current);
 		}
 	}
 
@@ -137,8 +137,7 @@ class Themes {
 		});
 	}
 
-	overrides (view) {
-		var contents = view.contents;
+	overrides (contents) {
 		var overrides = this._overrides;
 
 		for (var rule in overrides) {
