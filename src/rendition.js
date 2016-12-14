@@ -575,9 +575,15 @@ class Rendition {
 	 */
 	adjustImages(contents) {
 
+		if (this._layout.name === "pre-paginated") {
+			return new Promise(function(resolve){
+				resolve();
+			});
+		}
+
 		contents.addStylesheetRules([
 			["img",
-				["max-width", (this._layout.spreadWidth) + "px"],
+				["max-width", (this._layout.columnWidth) + "px"],
 				["max-height", (this._layout.height) + "px"]
 			]
 		]);

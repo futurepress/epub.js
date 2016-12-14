@@ -210,7 +210,6 @@ class IframeView {
 
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
-
 			this.resize(this.lockedWidth, this.lockedHeight);
 		}
 
@@ -234,6 +233,8 @@ class IframeView {
 		var textWidth, textHeight;
 
 		if(!this.iframe || this._expanding) return;
+
+		if(this.layout.name === "pre-paginated") return;
 
 		this._expanding = true;
 
