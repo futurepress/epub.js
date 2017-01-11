@@ -80,25 +80,21 @@ function request(url, type, withCredentials, headers) {
 				responseXML = this.responseXML;
 			}
 
+			if (this.status === 403) {
+				deferred.reject({
+					status: this.status,
+					response: this.response,
+					message : "Forbidden",
+					stack : new Error().stack
+				});
+				return deferred.promise;
+			}
+
 			if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
 				var r;
 
 				if (!this.response && !responseXML) {
-					deferred.reject({
-						status: this.status,
-						message : "Empty Response",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-
-				if (this.status === 403) {
-					deferred.reject({
-						status: this.status,
-						response: this.response,
-						message : "Forbidden",
-						stack : new Error().stack
-					});
+					deferred.resolve();
 					return deferred.promise;
 				}
 

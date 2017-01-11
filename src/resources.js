@@ -84,7 +84,7 @@ class Resources {
 	}
 
 	/**
-	 * Create blob urls for all the assets
+	 * Create urls for all the assets
 	 * @param  {Archive} archive
 	 * @param  {resolver} resolver Url resolver
 	 * @return {Promise}         returns replacement urls
@@ -102,7 +102,6 @@ class Resources {
 		var replacements = this.urls.
 			map( (url) => {
 				var absolute = resolver(url);
-
 				return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")});
 			});
 
@@ -198,8 +197,10 @@ class Resources {
 		// Get Urls relative to current sections
 		return this.urls.
 			map(function(href) {
-				var resolved = resolver(href);
+				var resolved = resolver(href, false);
 				var relative = new Path(absolute).relative(resolved);
+				console.log(relative, absolute, resolved);
+
 				return relative;
 			}.bind(this));
 	}

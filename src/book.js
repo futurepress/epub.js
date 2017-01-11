@@ -14,6 +14,7 @@ import Rendition from "./rendition";
 import Archive from "./archive";
 import request from "./utils/request";
 import EpubCFI from "./epubcfi";
+import Storage from "./storage";
 
 const CONTAINER_PATH = "META-INF/container.xml";
 const EPUBJS_VERSION = "0.3";
@@ -28,6 +29,7 @@ const EPUBJS_VERSION = "0.3";
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
  * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {string} [options.storage=none] use "localForage" / true to save with localForage library or pass a storage method
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -46,7 +48,8 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: "base64"
+			replacements: "base64",
+			storage: false
 		});
 
 		extend(this.settings, options);
@@ -104,6 +107,11 @@ class Book {
 		 * @private
 		 */
 		this.request = this.settings.requestMethod || request;
+
+		if (this.settings.storage) {
+			this.store = new Storage(this.settings.storage, this.settings.requestMethod || request);
+			this.request = this.store.request.bind(this.store);
+		}
 
 		/**
 		 * @property {Spine} spine
@@ -333,9 +341,11 @@ class Book {
 			this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
+
 		if (this.package.coverPath) {
 			this.cover = this.resolve(this.package.coverPath);
 		}
+
 		// Resolve promises
 		this.loading.manifest.resolve(this.package.manifest);
 		this.loading.metadata.resolve(this.package.metadata);
@@ -347,8 +357,16 @@ class Book {
 
 		this.isOpen = true;
 
-		if(this.archived) {
-			this.replacements().then(() => {
+		if (this.settings.storage) {
+			this.store.put(this.resources.urls, this.resolve.bind(this)).then(()=>{
+				console.log("all stored");
+				this.replacements(this.store).then(() => {
+					console.log("all replaced");
+					this.opening.resolve(this);
+				});
+			})
+		} else if(this.archived) {
+			this.replacements(this.archive).then(() => {
 				this.opening.resolve(this);
 			});
 		} else {
@@ -456,14 +474,14 @@ class Book {
 	 * @private
 	 * @return {Promise} completed loading urls
 	 */
-	replacements() {
+	replacements(store) {
 		this.spine.hooks.serialize.register((output, section) => {
 			section.output = this.resources.substitute(output, section.url);
 		});
 
-		return this.resources.replacements().
+		return this.resources.replacements(store).
 			then(() => {
-				return this.resources.replaceCss();
+				return this.resources.replaceCss(store);
 			});
 	}
 

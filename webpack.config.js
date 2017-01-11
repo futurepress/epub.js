@@ -25,7 +25,8 @@ module.exports = {
 	},
 	externals: {
 		"jszip": "JSZip",
-		"xmldom": "xmldom"
+		"xmldom": "xmldom",
+		"localforage": "localforage"
 	},
 	plugins: PROD ? [
 		new BabiliPlugin()
