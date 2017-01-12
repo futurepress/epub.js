@@ -103,12 +103,17 @@ class Resources {
 			map( (url) => {
 				var absolute = resolver(url);
 
-				return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")});
+				return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")}).
+					catch((err) => {
+						return null;
+					});
 			});
 
 		return Promise.all(replacements)
 			.then( (replacementUrls) => {
-				this.replacementUrls = replacementUrls;
+				this.replacementUrls = replacementUrls.filter((url) => {
+					return (typeof(url) === "string");
+				});
 				return replacementUrls;
 			});
 	}
@@ -132,7 +137,8 @@ class Resources {
 					if (indexInUrls > -1) {
 						this.replacementUrls[indexInUrls] = replacementUrl;
 					}
-				}.bind(this));
+				}.bind(this))
+
 
 			replaced.push(replacement);
 		}.bind(this));
@@ -162,6 +168,7 @@ class Resources {
 
 		// Get the text of the css file from the archive
 		var textResponse = archive.getText(absolute);
+
 		// Get asset links relative to css file
 		var relUrls = this.urls.map( (assetHref) => {
 			var resolved = resolver(assetHref);
@@ -169,6 +176,13 @@ class Resources {
 
 			return relative;
 		});
+
+		if (!textResponse) {
+			// file not found, don't replace
+			return new Promise(function(resolve){
+				resolve();
+			});
+		}
 
 		return textResponse.then( (text) => {
 			// Replacements in the css text
@@ -182,6 +196,11 @@ class Resources {
 			}
 
 			return newUrl;
+		}, (err) => {
+			// handle response errors
+			return new Promise(function(resolve){
+				resolve();
+			});
 		});
 
 	}

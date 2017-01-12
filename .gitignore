@@ -1,7 +1,7 @@
 .DS_Store
 */**/.DS_Store
 node_modules/
-components
+∑
 node_modules
 bower_components
 books
