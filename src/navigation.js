@@ -69,6 +69,41 @@ class Navigation {
 		return this.toc[index];
 	}
 
+    createTocItem(linkElement, id) {
+        var list = [],
+            tocLinkElms = linkElement.childNodes,
+            tocLinkArry = Array.prototype.slice.call(tocLinkElms);
+        var index = id ? id : 0;
+        for (var linkElm of tocLinkArry) {
+            if (linkElm.nodeName === 'li') {
+                var tocLink = qs(linkElm, 'a'),
+                    tocLinkData = {
+                        id: -1,
+                        href: tocLink.getAttribute('href'),
+                        label: tocLink.textContent,
+                        parent: null
+                    },
+                    subItemElm = qs(linkElm, 'ol');
+                index++;
+                tocLinkData.id = index;
+                if (id) {
+                    tocLinkData.parent = id;
+                }
+                list.push(tocLinkData);
+                if (subItemElm) {
+                    var subitems = this.createTocItem(subItemElm, index);
+                    if (subitems && subitems.length > 0) {
+                        index = index + subitems.length;
+                        list = list.concat(subitems);
+                    }
+                }
+            }
+        }
+        return list;
+    }
+
+
+	
 	/**
 	 * Parse from a Epub > 3.0 Nav
 	 * @private
@@ -77,27 +112,7 @@ class Navigation {
 	 */
 	parseNav(navHtml){
 		var navElement = querySelectorByType(navHtml, "nav", "toc");
-		var navItems = navElement ? qsa(navElement, "li") : [];
-		var length = navItems.length;
-		var i;
-		var toc = {};
-		var list = [];
-		var item, parent;
-
-		if(!navItems || length === 0) return list;
-
-		for (i = 0; i < length; ++i) {
-			item = this.navItem(navItems[i]);
-			toc[item.id] = item;
-			if(!item.parent) {
-				list.push(item);
-			} else {
-				parent = toc[item.parent];
-				parent.subitems.push(item);
-			}
-		}
-
-		return list;
+ 		return this.createTocItem(qs(navElement, "ol"));
 	}
 
 	/**
