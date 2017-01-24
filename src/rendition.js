@@ -583,8 +583,10 @@ class Rendition {
 
 		contents.addStylesheetRules([
 			["img",
-				["max-width", (this._layout.columnWidth) + "px"],
-				["max-height", (this._layout.height) + "px"]
+				["max-width", (this._layout.columnWidth) + "px; !important"],
+				["max-height", (this._layout.height) + "px; !important"],
+				["object-fit", "contain"],
+				["page-break-inside", "avoid"]
 			]
 		]);
 		return new Promise(function(resolve, reject){

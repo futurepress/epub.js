@@ -4,7 +4,7 @@ var BabiliPlugin = require("babili-webpack-plugin");
 var PROD = (process.env.NODE_ENV === 'production')
 var LEGACY = (process.env.LEGACY)
 var hostname = "localhost";
-var port = "8080";
+var port = 8080;
 var enter = LEGACY ? {
 		"epub.legacy": ["babel-polyfill", "./libs/url/url.js", "./src/epub.js"]
 	} : {
