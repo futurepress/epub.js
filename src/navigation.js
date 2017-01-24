@@ -69,41 +69,40 @@ class Navigation {
 		return this.toc[index];
 	}
 
-    createTocItem(linkElement, id) {
-        var list = [],
-            tocLinkElms = linkElement.childNodes,
-            tocLinkArry = Array.prototype.slice.call(tocLinkElms);
-        var index = id ? id : 0;
-        for (var linkElm of tocLinkArry) {
-            if (linkElm.nodeName === 'li') {
-                var tocLink = qs(linkElm, 'a'),
-                    tocLinkData = {
-                        id: -1,
-                        href: tocLink.getAttribute('href'),
-                        label: tocLink.textContent,
-                        parent: null
-                    },
-                    subItemElm = qs(linkElm, 'ol');
-                index++;
-                tocLinkData.id = index;
-                if (id) {
-                    tocLinkData.parent = id;
-                }
-                list.push(tocLinkData);
-                if (subItemElm) {
-                    var subitems = this.createTocItem(subItemElm, index);
-                    if (subitems && subitems.length > 0) {
-                        index = index + subitems.length;
-                        list = list.concat(subitems);
-                    }
-                }
-            }
-        }
-        return list;
-    }
+	createTocItem(linkElement, id) {
+		var list = [],
+				tocLinkElms = linkElement.childNodes,
+				tocLinkArray = Array.prototype.slice.call(tocLinkElms);
 
+		var index = id ? id : 0;
+		tocLinkArray.forEach((linkElm) => {
+			if (linkElm.nodeName === 'li') {
+				var tocLink = qs(linkElm, 'a'),
+						tocLinkData = {
+							id: -1,
+							href: tocLink.getAttribute('href'),
+							label: tocLink.textContent,
+							parent: null
+						},
+						subItemElm = qs(linkElm, 'ol');
+				index++;
+				tocLinkData.id = index;
+				if (id) {
+					tocLinkData.parent = id;
+				}
+				list.push(tocLinkData);
+				if (subItemElm) {
+					var subitems = this.createTocItem(subItemElm, index);
+					if (subitems && subitems.length > 0) {
+						index = index + subitems.length;
+						list = list.concat(subitems);
+					}
+				}
+			}
+		});
+		return list;
+	}
 
-	
 	/**
 	 * Parse from a Epub > 3.0 Nav
 	 * @private
@@ -112,7 +111,8 @@ class Navigation {
 	 */
 	parseNav(navHtml){
 		var navElement = querySelectorByType(navHtml, "nav", "toc");
- 		return this.createTocItem(qs(navElement, "ol"));
+		var tocItems = qs(navElement, "ol");
+		return this.createTocItem(tocItems);
 	}
 
 	/**
