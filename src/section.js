@@ -29,6 +29,10 @@ class Section {
 			this.hooks.serialize = new Hook(this);
 			this.hooks.content = new Hook(this);
 		}
+
+		this.document = undefined;
+		this.contents = undefined;
+		this.output = undefined;
 	}
 
 	/**
@@ -165,6 +169,12 @@ class Section {
 	 */
 	cfiFromElement(el) {
 		return new EpubCFI(el, this.cfiBase).toString();
+	}
+
+	unload() {
+		this.document = undefined;
+		this.contents = undefined;
+		this.output = undefined;
 	}
 }
 

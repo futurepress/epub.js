@@ -1,4 +1,4 @@
-import {qs, sprint, locationOf} from "./utils/core";
+import {qs, sprint, locationOf, defer} from "./utils/core";
 import Queue from "./utils/queue";
 import EpubCFI from "./epubcfi";
 import EventEmitter from "event-emitter";
@@ -9,9 +9,10 @@ import EventEmitter from "event-emitter";
  * @param {request} request
  */
 class Locations {
-	constructor(spine, request) {
+	constructor(spine, request, pause) {
 		this.spine = spine;
 		this.request = request;
+		this.pause = pause || 100;
 
 		this.q = new Queue(this);
 		this.epubcfi = new EpubCFI();
@@ -22,7 +23,6 @@ class Locations {
 		this.break = 150;
 
 		this._current = 0;
-
 	}
 
 	/**
@@ -70,8 +70,14 @@ class Locations {
 
 		return section.load(this.request)
 			.then(function(contents) {
+				var completed = new defer();
 				var locations = this.parse(contents, section.cfiBase);
 				this._locations = this._locations.concat(locations);
+
+				section.unload();
+
+				setTimeout(() => completed.resolve(locations), this.pause);
+				return completed.promise;
 			}.bind(this));
 
 	}
