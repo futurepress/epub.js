@@ -151,7 +151,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-	var cleanTextContent, cleanEndTextContent;
+	var cleanTextContent, cleanStartTextContent, cleanEndTextContent;
 
 	// Check for Contents
 	if(!this.document) return;
