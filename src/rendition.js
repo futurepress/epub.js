@@ -243,7 +243,7 @@ class Rendition {
 		// removing the chapter
 		if(!isCfiString && typeof target === "string" &&
 			target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
+			moveTo = target;
 		}
 
 		if (isCfiString) {
