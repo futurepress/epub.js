@@ -22,6 +22,7 @@ EPUBJS.Book = function(options){
 		reload : false,
 		goto : false,
 		styles : {},
+		classes : [],
 		headTags : {},
 		withCredentials: false,
 		render_method: "Iframe",
