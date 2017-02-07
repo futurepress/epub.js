@@ -282,6 +282,7 @@ class DefaultViewManager {
 				this.scrollBy(this.layout.delta, 0);
 			} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
 				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				next = this.views.last().section.next();
 			} else {
 				next = this.views.last().section.next();
 			}
