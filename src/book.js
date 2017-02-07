@@ -1212,6 +1212,47 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 	delete this.settings.styles[style];
 };
 
+EPUBJS.Book.prototype.resetClasses = function(classes) {
+
+	if(!this.isRendered) return this._q.enqueue("setClasses", arguments);
+
+  if(classes.constructor === String) classes = [ classes ];
+  
+  this.settings.classes = classes;
+
+	this.renderer.setClasses(this.settings.classes);
+  this.renderer.reformat();
+};
+
+EPUBJS.Book.prototype.addClass = function(aClass) {
+
+	if(!this.isRendered) return this._q.enqueue("addClass", arguments);
+
+  if(this.settings.classes.indexOf(aClass) == -1) {
+    this.settings.classes.push(aClass);
+  }
+
+	this.renderer.setClasses(this.settings.classes);
+  this.renderer.reformat();
+};
+
+EPUBJS.Book.prototype.removeClass = function(aClass) {
+
+	if(!this.isRendered) return this._q.enqueue("removeClass", arguments);
+
+  var idx = this.settings.classes.indexOf(aClass);
+
+  if(idx != -1) {
+
+    delete this.settings.classes[idx];
+
+    this.renderer.setClasses(this.settings.classes);
+    this.renderer.reformat();
+
+  }
+
+};
+
 EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
 	if(!this.isRendered) return this._q.enqueue("addHeadTag", arguments);
 	this.settings.headTags[tag] = attrs;
@@ -1310,6 +1351,12 @@ EPUBJS.Book.prototype.applyStyles = function(renderer, callback){
 	callback();
 };
 
+EPUBJS.Book.prototype.applyClasses = function(renderer, callback){
+	// if(!this.isRendered) return this._q.enqueue("applyClasses", arguments);
+	renderer.setClasses(this.settings.classes);
+	callback();
+};
+
 EPUBJS.Book.prototype.applyHeadTags = function(renderer, callback){
 	// if(!this.isRendered) return this._q.enqueue("applyHeadTags", arguments);
 	renderer.applyHeadTags(this.settings.headTags);
@@ -1319,6 +1366,7 @@ EPUBJS.Book.prototype.applyHeadTags = function(renderer, callback){
 EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this, renderer), true);
+	renderer.registerHook("beforeChapterDisplay", this.applyClasses.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs.bind(this), true);
 };
 

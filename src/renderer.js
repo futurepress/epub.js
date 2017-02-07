@@ -422,6 +422,10 @@ EPUBJS.Renderer.prototype.removeStyle = function(style){
 	this.render.removeStyle(style);
 };
 
+EPUBJS.Renderer.prototype.setClasses = function(classes){
+  this.render.setClasses(classes);
+};
+
 //-- HEAD TAGS
 EPUBJS.Renderer.prototype.applyHeadTags = function(headTags) {
 	for ( var headTag in headTags ) {

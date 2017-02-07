@@ -224,6 +224,10 @@ EPUBJS.Render.Iframe.prototype.removeStyle = function(style){
 
 };
 
+EPUBJS.Render.Iframe.prototype.setClasses = function(classes){
+	if(this.bodyEl) this.bodyEl.className = classes.join(" ");
+};
+
 EPUBJS.Render.Iframe.prototype.addHeadTag = function(tag, attrs, _doc) {
 	var doc = _doc || this.document;
 	var tagEl = doc.createElement(tag);
