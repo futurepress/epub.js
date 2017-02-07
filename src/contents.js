@@ -406,8 +406,10 @@ class Contents {
 				}
 			}
 
-		} else if(typeof target === "string") {
-			let id = target;
+		} else if(typeof target === "string" &&
+			target.indexOf("#") > -1) {
+
+			let id = target.substring(target.indexOf("#")+1);
 			let el = this.document.getElementById(id);
 
 			if(el) {

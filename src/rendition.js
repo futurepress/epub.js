@@ -239,18 +239,7 @@ class Rendition {
 			return displayed;
 		}
 
-		// Trim the target fragment
-		// removing the chapter
-		if(!isCfiString && typeof target === "string" &&
-			target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
-		}
-
-		if (isCfiString) {
-			moveTo = target;
-		}
-
-		return this.manager.display(section, moveTo)
+		return this.manager.display(section, target)
 			.then(function(){
 				// this.emit("displayed", section);
 			}.bind(this));
