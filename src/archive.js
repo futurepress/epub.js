@@ -11,8 +11,10 @@ class Archive {
 
 	constructor() {
 		this.zip = undefined;
-		this.checkRequirements();
 		this.urlCache = {};
+
+		this.checkRequirements();
+
 	}
 
 	/**
@@ -242,6 +244,13 @@ class Archive {
 		var _URL = window.URL || window.webkitURL || window.mozURL;
 		var fromCache = this.urlCache[url];
 		if(fromCache) _URL.revokeObjectURL(fromCache);
+	}
+
+	destroy() {
+		this.urlCache.forEach((fromCache) => _URL.revokeObjectURL(fromCache));
+
+		this.zip = undefined;
+		this.urlCache = {};
 	}
 }
 

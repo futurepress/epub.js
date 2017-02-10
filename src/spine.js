@@ -23,6 +23,12 @@ class Spine {
 		this.epubcfi = new EpubCFI();
 
 		this.loaded = false;
+
+		this.items = undefined;
+		this.manifest = undefined;
+		this.spineNodeIndex = undefined;
+		this.baseUrl = undefined;
+		this.length = undefined;
 	}
 
 	/**
@@ -158,7 +164,25 @@ class Spine {
 	}
 
 	destroy() {
+		this.each((section) => section.destroy());
 
+		this.spineItems = undefined
+		this.spineByHref = undefined
+		this.spineById = undefined
+
+		this.hooks.serialize.clear();
+		this.hooks.content.clear();
+		this.hooks = undefined;
+
+		this.epubcfi = undefined;
+
+		this.loaded = false;
+
+		this.items = undefined;
+		this.manifest = undefined;
+		this.spineNodeIndex = undefined;
+		this.baseUrl = undefined;
+		this.length = undefined;
 	}
 }
 

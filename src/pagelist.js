@@ -17,6 +17,14 @@ class PageList {
 		this.locations = [];
 		this.epubcfi = new EpubCFI();
 
+		this.firstPage = 0;
+		this.lastPage = 0;
+		this.totalPages = 0;
+
+		this.toc = undefined;
+		this.ncx = undefined;
+
+		this.lastPage
 		if (xml) {
 			this.pageList = this.parse(xml);
 		}
@@ -249,6 +257,17 @@ class PageList {
 		var pg = this.pageFromCfi(cfi);
 		var percentage = this.percentageFromPage(pg);
 		return percentage;
+	}
+
+	destroy() {
+		this.pages = undefined;
+		this.locations = undefined;
+		this.epubcfi = undefined;
+
+		this.pageList = undefined;
+
+		this.toc = undefined;
+		this.ncx = undefined;
 	}
 }
 

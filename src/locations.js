@@ -23,6 +23,10 @@ class Locations {
 		this.break = 150;
 
 		this._current = 0;
+
+		this.currentLocation = '';
+		this._currentCfi ='';
+		this.processingTimeout = undefined;
 	}
 
 	/**
@@ -76,7 +80,7 @@ class Locations {
 
 				section.unload();
 
-				setTimeout(() => completed.resolve(locations), this.pause);
+				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
 				return completed.promise;
 			}.bind(this));
 
@@ -256,6 +260,26 @@ class Locations {
 
 	length () {
 		return this._locations.length;
+	}
+
+	destroy () {
+		this.spine = undefined;
+		this.request = undefined;
+		this.pause = undefined;
+
+		this.q.clear();
+		this.q = undefined;
+		this.epubcfi = undefined;
+
+		this._locations = undefined
+		this.total = undefined;
+
+		this.break = undefined;
+		this._current = undefined;
+
+		this.currentLocation = undefined;
+		this._currentCfi = undefined;
+		clearTimeout(this.processingTimeout);
 	}
 }
 

@@ -27,6 +27,13 @@ class Resources {
 
 		this.replacementUrls = [];
 
+		this.html = [];
+		this.assets = [];
+		this.css = [];
+
+		this.urls = [];
+		this.cssUrls = [];
+
 		this.split();
 		this.splitUrls();
 	}
@@ -258,6 +265,19 @@ class Resources {
 			relUrls = this.urls;
 		}
 		return substitute(content, relUrls, this.replacementUrls);
+	}
+
+	destroy() {
+		this.settings = undefined;
+		this.manifest = undefined;
+		this.resources = undefined;
+		this.replacementUrls = undefined;
+		this.html = undefined;
+		this.assets = undefined;
+		this.css = undefined;
+
+		this.urls = undefined;
+		this.cssUrls = undefined;
 	}
 }
 

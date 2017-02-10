@@ -171,10 +171,31 @@ class Section {
 		return new EpubCFI(el, this.cfiBase).toString();
 	}
 
+	/**
+	 * Unload the section document
+	 */
 	unload() {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+	}
+
+	destroy() {
+		this.unload();
+		this.hooks.serialize.clear();
+		this.hooks.content.clear();
+
+		this.hooks = undefined;
+		this.idref = undefined;
+		this.linear = undefined;
+		this.properties = undefined;
+		this.index = undefined;
+		this.href = undefined;
+		this.url = undefined;
+		this.next = undefined;
+		this.prev = undefined;
+
+		this.cfiBase = undefined;
 	}
 }
 

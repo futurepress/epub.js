@@ -151,6 +151,14 @@ class Themes {
 		this.override("font-size", size);
 	}
 
+	destroy() {
+		this.rendition = undefined;
+		this._themes = undefined;
+		this._overrides = undefined;
+		this._current = undefined;
+		this._injected = undefined;
+	}
+
 }
 
 export default Themes;
