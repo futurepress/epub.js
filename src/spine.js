@@ -156,6 +156,10 @@ class Spine {
 	each() {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
 	}
+
+	destroy() {
+
+	}
 }
 
 export default Spine;

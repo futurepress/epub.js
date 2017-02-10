@@ -594,8 +594,9 @@
       // Gecko returns String("") for file: mailto:
       // WebKit/Blink returns String("SCHEME://") for file: mailto:
       switch (this._scheme) {
-        case 'data':
         case 'file':
+          return 'file://'
+        case 'data':
         case 'javascript':
         case 'mailto':
           return 'null';

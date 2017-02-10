@@ -143,6 +143,28 @@ class Book {
 		 */
 		this.archived = false;
 
+		/**
+		 * @property {Archive} archive
+		 * @private
+		 */
+		this.archive = undefined;
+
+		/**
+		 * @property {Resources} resources
+		 * @private
+		 */
+		this.resources = undefined;
+
+		/**
+		 * @property {Rendition} rendition
+		 * @private
+		 */
+		this.rendition = undefined;
+
+		this.container = undefined;
+		this.packaging = undefined;
+		this.toc = undefined;
+
 		if(url) {
 			this.open(url).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
@@ -258,6 +280,9 @@ class Book {
 	 * @return {string}          the resolved path string
 	 */
 	resolve(path, absolute) {
+		if (!path) {
+			return;
+		}
 		var resolved = path;
 		var isAbsolute = (path.indexOf("://") > -1);
 
@@ -347,7 +372,7 @@ class Book {
 
 		this.isOpen = true;
 
-		if(this.archived) {
+		if(this.archived || this.settings.replacements) {
 			this.replacements().then(() => {
 				this.opening.resolve(this);
 			});
@@ -490,6 +515,40 @@ class Book {
 	key(identifier) {
 		var ident = identifier || this.package.metadata.identifier || this.url.filename;
 		return `epubjs:${EPUBJS_VERSION}:${ident}`;
+	}
+
+	destroy() {
+		this.opened = undefined;
+		this.loading = undefined;
+		this.loaded = undefined;
+		this.ready = undefined;
+
+		this.isOpen = false;
+		this.isRendered = false;
+
+		this.spine && this.spine.destroy();
+		this.locations && this.locations.destroy();
+		this.pageList && this.pageList.destroy();
+		this.archive && this.archive.destroy();
+		this.resources && this.resources.destroy();
+		this.container && this.container.destroy();
+		this.packaging && this.packaging.destroy();
+		this.rendition && this.rendition.destroy();
+
+		this.spine = undefined;
+		this.locations = undefined;
+		this.pageList = undefined;
+		this.archive = undefined;
+		this.resources = undefined;
+		this.container = undefined;
+		this.packaging = undefined;
+		this.rendition = undefined;
+
+		this.navigation = undefined;
+		this.url = undefined;
+		this.path = undefined;
+		this.archived = false;
+		this.toc = undefined;
 	}
 
 }
