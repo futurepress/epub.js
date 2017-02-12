@@ -225,6 +225,23 @@ class Stage {
 
 		this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 	}
+
+	destroy() {
+		var base;
+
+		if (this.element) {
+
+			if(this.settings.hidden) {
+				base = this.wrapper;
+			} else {
+				base = this.container;
+			}
+
+			if(this.element.contains(this.container)) {
+				this.element.removeChild(this.container);
+			}
+		}
+	}
 }
 
 export default Stage;

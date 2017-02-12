@@ -27,7 +27,7 @@ const EPUBJS_VERSION = "0.3";
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
- * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -46,7 +46,7 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: "base64"
+			replacements: undefined
 		});
 
 		extend(this.settings, options);
@@ -351,7 +351,8 @@ class Book {
 		this.resources = new Resources(this.package.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
-			replacements: this.settings.replacements
+			request: this.request.bind(this),
+			replacements: this.settings.replacements || "base64"
 		});
 
 		this.loadNavigation(this.package).then(() => {
@@ -372,9 +373,12 @@ class Book {
 
 		this.isOpen = true;
 
-		if(this.archived || this.settings.replacements) {
+		if(this.archived || this.settings.replacements && this.settings.replacements != "none") {
 			this.replacements().then(() => {
 				this.opening.resolve(this);
+			})
+			.catch((err) => {
+				console.error(err);
 			});
 		} else {
 			// Resolve book opened promise

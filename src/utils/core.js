@@ -407,12 +407,14 @@ export function walk(node,callback){
 	}
 }
 
-export function blob2base64(blob, cb) {
-	var reader = new FileReader();
-	reader.readAsDataURL(blob);
-	reader.onloadend = function() {
-		cb(reader.result);
-	};
+export function blob2base64(blob) {
+	return new Promise(function(resolve, reject) {
+		var reader = new FileReader();
+		reader.readAsDataURL(blob);
+		reader.onloadend = function() {
+			resolve(reader.result);
+		};
+	});
 }
 
 // From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible

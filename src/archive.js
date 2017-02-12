@@ -247,8 +247,9 @@ class Archive {
 	}
 
 	destroy() {
-		this.urlCache.forEach((fromCache) => _URL.revokeObjectURL(fromCache));
-
+		for (let fromCache in this.urlCache) {
+			_URL.revokeObjectURL(fromCache);
+		}
 		this.zip = undefined;
 		this.urlCache = {};
 	}

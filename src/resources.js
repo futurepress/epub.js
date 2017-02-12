@@ -1,5 +1,7 @@
 import {substitute} from "./utils/replacements";
-import {createBase64Url, createBlobUrl} from "./utils/core";
+import {createBase64Url, createBlobUrl, blob2base64} from "./utils/core";
+import Url from "./utils/url";
+import mime from "../libs/mime/mime";
 import Path from "./utils/path";
 import path from "path-webpack";
 
@@ -17,7 +19,8 @@ class Resources {
 		this.settings = {
 			replacements: (options && options.replacements) || "base64",
 			archive: (options && options.archive),
-			resolver: (options && options.resolver)
+			resolver: (options && options.resolver),
+			request: (options && options.request)
 		};
 		this.manifest = manifest;
 		this.resources = Object.keys(manifest).
@@ -90,16 +93,34 @@ class Resources {
 
 	}
 
+	createUrl (url) {
+		var parsedUrl = new Url(url);
+		var mimeType = mime.lookup(parsedUrl.filename);
+
+		if (this.settings.archive) {
+			return this.settings.archive.createUrl(url, {"base64": (this.settings.replacements === "base64")});
+		} else {
+			if (this.settings.replacements === "base64") {
+				return this.settings.request(url, 'blob')
+					.then((blob) => {
+						return blob2base64(blob);
+					})
+					.then((blob) => {
+						return createBase64Url(blob, mimeType);
+					});
+			} else {
+				return this.settings.request(url, 'blob').then((blob) => {
+					return createBlobUrl(blob, mimeType);
+				})
+			}
+		}
+	}
+
 	/**
 	 * Create blob urls for all the assets
-	 * @param  {Archive} archive
-	 * @param  {resolver} resolver Url resolver
 	 * @return {Promise}         returns replacement urls
 	 */
-	replacements(archive, resolver){
-		archive = archive || this.settings.archive;
-		resolver = resolver || this.settings.resolver;
-
+	replacements(){
 		if (this.settings.replacements === "none") {
 			return new Promise(function(resolve) {
 				resolve(this.urls);
@@ -108,10 +129,11 @@ class Resources {
 
 		var replacements = this.urls.
 			map( (url) => {
-				var absolute = resolver(url);
+				var absolute = this.settings.resolver(url);
 
-				return archive.createUrl(absolute, {"base64": (this.settings.replacements === "base64")}).
+				return this.createUrl(absolute).
 					catch((err) => {
+						console.error(err);
 						return null;
 					});
 			});
@@ -156,14 +178,10 @@ class Resources {
 	 * Create a new CSS file with the replaced URLs
 	 * @private
 	 * @param  {string} href the original css file
-	 * @param  {[Archive]} archive
-	 * @param  {[method]} resolver
 	 * @return {Promise}  returns a BlobUrl to the new CSS file or a data url
 	 */
-	createCssFile(href, archive, resolver){
+	createCssFile(href){
 		var newUrl;
-		archive = archive || this.settings.archive;
-		resolver = resolver || this.settings.resolver;
 
 		if (path.isAbsolute(href)) {
 			return new Promise(function(resolve){
@@ -171,14 +189,20 @@ class Resources {
 			});
 		}
 
-		var absolute = resolver(href);
+		var absolute = this.settings.resolver(href);
 
 		// Get the text of the css file from the archive
-		var textResponse = archive.getText(absolute);
+		var textResponse;
+
+		if (this.settings.archive) {
+			textResponse = this.settings.archive.getText(absolute);
+		} else {
+			textResponse = this.settings.request(absolute, "text");
+		}
 
 		// Get asset links relative to css file
 		var relUrls = this.urls.map( (assetHref) => {
-			var resolved = resolver(assetHref);
+			var resolved = this.settings.resolver(assetHref);
 			var relative = new Path(absolute).relative(resolved);
 
 			return relative;
@@ -245,8 +269,7 @@ class Resources {
 				resolve(this.replacementUrls[indexInUrls]);
 			}.bind(this));
 		} else {
-			return this.archive.createUrl(path,
-				{"base64": (this.settings.replacements === "base64")});
+			return this.createUrl(path);
 		}
 	}
 
