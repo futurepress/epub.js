@@ -8,6 +8,10 @@ import {qs} from "./utils/core";
  */
 class Container {
 	constructor(containerDocument) {
+		this.packagePath = '';
+		this.directory = '';
+		this.encoding = '';
+
 		if (containerDocument) {
 			this.parse(containerDocument);
 		}
@@ -34,6 +38,12 @@ class Container {
 		this.packagePath = rootfile.getAttribute("full-path");
 		this.directory = path.dirname(this.packagePath);
 		this.encoding = containerDocument.xmlEncoding;
+	}
+
+	destroy() {
+		this.packagePath = undefined;
+		this.directory = undefined;
+		this.encoding = undefined;
 	}
 }
 

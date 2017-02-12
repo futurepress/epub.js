@@ -237,17 +237,19 @@ class IframeView {
 		if(this.layout.name === "pre-paginated") return;
 
 		this._expanding = true;
-
 		// Expand Horizontally
 		// if(height && !width) {
 		if(this.settings.axis === "horizontal") {
 			// Get the width of the text
 			textWidth = this.contents.textWidth();
+			width = this.contentWidth(textWidth);
+
 			// Check if the textWidth has changed
-			if(textWidth != this._textWidth){
+			if(width != this._width){
 				// Get the contentWidth by resizing the iframe
 				// Check with a min reset of the textWidth
-				width = this.contentWidth(textWidth);
+
+				// width = this.contentWidth(textWidth);
 
 				columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
@@ -260,6 +262,7 @@ class IframeView {
 
 				// Save the textWdith
 				this._textWidth = textWidth;
+
 				// Save the contentWidth
 				this._contentWidth = width;
 			} else {
@@ -344,6 +347,7 @@ class IframeView {
 		//   this._needsReframe = true;
 		//   return;
 		// }
+
 		if(isNumber(width)){
 			this.element.style.width = width + "px";
 		}

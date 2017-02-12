@@ -27,7 +27,7 @@ const EPUBJS_VERSION = "0.3";
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
- * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -46,7 +46,7 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: "base64"
+			replacements: undefined
 		});
 
 		extend(this.settings, options);
@@ -142,6 +142,28 @@ class Book {
 		 * @private
 		 */
 		this.archived = false;
+
+		/**
+		 * @property {Archive} archive
+		 * @private
+		 */
+		this.archive = undefined;
+
+		/**
+		 * @property {Resources} resources
+		 * @private
+		 */
+		this.resources = undefined;
+
+		/**
+		 * @property {Rendition} rendition
+		 * @private
+		 */
+		this.rendition = undefined;
+
+		this.container = undefined;
+		this.packaging = undefined;
+		this.toc = undefined;
 
 		if(url) {
 			this.open(url).catch((error) => {
@@ -258,6 +280,9 @@ class Book {
 	 * @return {string}          the resolved path string
 	 */
 	resolve(path, absolute) {
+		if (!path) {
+			return;
+		}
 		var resolved = path;
 		var isAbsolute = (path.indexOf("://") > -1);
 
@@ -326,7 +351,8 @@ class Book {
 		this.resources = new Resources(this.package.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
-			replacements: this.settings.replacements
+			request: this.request.bind(this),
+			replacements: this.settings.replacements || "base64"
 		});
 
 		this.loadNavigation(this.package).then(() => {
@@ -347,9 +373,12 @@ class Book {
 
 		this.isOpen = true;
 
-		if(this.archived) {
+		if(this.archived || this.settings.replacements && this.settings.replacements != "none") {
 			this.replacements().then(() => {
 				this.opening.resolve(this);
+			})
+			.catch((err) => {
+				console.error(err);
 			});
 		} else {
 			// Resolve book opened promise
@@ -490,6 +519,40 @@ class Book {
 	key(identifier) {
 		var ident = identifier || this.package.metadata.identifier || this.url.filename;
 		return `epubjs:${EPUBJS_VERSION}:${ident}`;
+	}
+
+	destroy() {
+		this.opened = undefined;
+		this.loading = undefined;
+		this.loaded = undefined;
+		this.ready = undefined;
+
+		this.isOpen = false;
+		this.isRendered = false;
+
+		this.spine && this.spine.destroy();
+		this.locations && this.locations.destroy();
+		this.pageList && this.pageList.destroy();
+		this.archive && this.archive.destroy();
+		this.resources && this.resources.destroy();
+		this.container && this.container.destroy();
+		this.packaging && this.packaging.destroy();
+		this.rendition && this.rendition.destroy();
+
+		this.spine = undefined;
+		this.locations = undefined;
+		this.pageList = undefined;
+		this.archive = undefined;
+		this.resources = undefined;
+		this.container = undefined;
+		this.packaging = undefined;
+		this.rendition = undefined;
+
+		this.navigation = undefined;
+		this.url = undefined;
+		this.path = undefined;
+		this.archived = false;
+		this.toc = undefined;
 	}
 
 }

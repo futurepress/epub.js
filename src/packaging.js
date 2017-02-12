@@ -7,6 +7,14 @@ import {qs, qsa, qsp} from "./utils/core";
  */
 class Packaging {
 	constructor(packageDocument) {
+		this.manifest = {};
+		this.navPath = '';
+		this.ncxPath = '';
+		this.coverPath = '';
+		this.spineNodeIndex = 0;
+		this.spine = [];
+		this.metadata = {};
+
 		if (packageDocument) {
 			this.parse(packageDocument);
 		}
@@ -272,6 +280,16 @@ class Packaging {
 		}
 
 		return "";
+	}
+
+	destroy() {
+		this.manifest = undefined;
+		this.navPath = undefined;
+		this.ncxPath = undefined;
+		this.coverPath = undefined;
+		this.spineNodeIndex = undefined;
+		this.spine = undefined;
+		this.metadata = undefined;
 	}
 }
 

@@ -85,9 +85,11 @@ class DefaultViewManager {
 	}
 
 	destroy(){
-		// this.views.each(function(view){
-		// 	view.destroy();
-		// });
+		this.views.each(function(view){
+			view.destroy();
+		});
+
+		this.stage.destroy();
 
 		/*
 
@@ -108,7 +110,6 @@ class DefaultViewManager {
 	}
 
 	resize(width, height){
-
 		// Clear the queue
 		this.q.clear();
 
@@ -119,12 +120,13 @@ class DefaultViewManager {
 		this.viewSettings.width = this._stageSize.width;
 		this.viewSettings.height = this._stageSize.height;
 
+		this.updateLayout();
+
 		// Update for existing views
 		this.views.each(function(view) {
 			view.size(this._stageSize.width, this._stageSize.height);
 		}.bind(this));
 
-		this.updateLayout();
 
 		this.emit("resized", {
 			width: this.stage.width,

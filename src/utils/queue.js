@@ -72,7 +72,7 @@ class Queue {
 	dequeue(){
 		var inwait, task, result;
 
-		if(this._q.length) {
+		if(this._q.length && !this.paused) {
 			inwait = this._q.shift();
 			task = inwait.task;
 			if(task){
@@ -178,6 +178,7 @@ class Queue {
 	clear(){
 		this._q = [];
 		this.running = false;
+		this.paused = true;
 	}
 
 	/**
