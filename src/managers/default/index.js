@@ -288,12 +288,8 @@ class DefaultViewManager {
 			} else {
 				next = this.views.last().section.next();
 			}
-
-
 		} else {
-
 			next = this.views.last().section.next();
-
 		}
 
 		if(next) {
