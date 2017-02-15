@@ -69,7 +69,7 @@ class IframeView {
 
 		this.iframe = document.createElement("iframe");
 		this.iframe.id = this.id;
-		this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
+		//this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
 		this.iframe.style.overflow = "hidden";
 		this.iframe.seamless = "seamless";
 		// Back up if seamless isn't supported

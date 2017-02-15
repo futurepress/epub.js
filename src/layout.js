@@ -124,7 +124,9 @@ class Layout {
 		var formating;
 
 		if (this.name === "pre-paginated") {
-			formating = contents.fit(this.columnWidth, this.height);
+			//If it's pre-paginated no need to add any properties to content.
+			//Content should be good enough to take care of it's properties
+			return;
 		} else if (this._flow === "paginated") {
 			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
 		} else { // scrolled
