@@ -40,20 +40,20 @@ class Section {
 	 * @param  {method} _request a request method to use for loading
 	 * @return {document} a promise with the xml document
 	 */
-	load(_request){
-		var request = _request || this.request || require("./utils/request");
+	load(){
+		var request = require("./utils/request");
 		var loading = new defer();
 		var loaded = loading.promise;
 
 		if(this.contents) {
 			loading.resolve(this.contents);
 		} else {
-			request(this.url)
-				.then(function(xml){
+			request(this.url, null, null, null, true)
+				.then(function(response){
 					// var directory = new Url(this.url).directory;
 
-					this.document = xml;
-					this.contents = xml.documentElement;
+					this.document = response.responseXML;
+					this.contents = response.responseText;
 
 					return this.hooks.content.trigger(this.document, this);
 				}.bind(this))
@@ -81,23 +81,14 @@ class Section {
 	 * @param  {method} _request a request method to use for loading
 	 * @return {string} output a serialized XML Document
 	 */
-	render(_request){
+	render(){
 		var rendering = new defer();
 		var rendered = rendering.promise;
 		this.output; // TODO: better way to return this from hooks?
 
-		this.load(_request).
+		this.load().
 			then(function(contents){
-				var serializer;
-				var Serializer;
-
-				if (typeof XMLSerializer === "undefined") {
-					Serializer = require("xmldom").XMLSerializer;
-				} else {
-					Serializer = XMLSerializer;
-				}
-				serializer = new Serializer();
-				this.output = serializer.serializeToString(contents);
+				this.output = contents;
 				return this.output;
 			}.bind(this)).
 			then(function(){
