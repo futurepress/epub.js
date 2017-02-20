@@ -173,7 +173,7 @@ EPUBJS.core.uri = function(url){
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
-		href = url;
+		href = uri.href;
 	}
 
 	if(doubleSlash != -1) {
