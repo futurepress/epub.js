@@ -13,7 +13,7 @@ EPUBJS.Render.Iframe = function() {
 //-- Build up any html needed
 EPUBJS.Render.Iframe.prototype.create = function(){
 	this.element = document.createElement('div');
-	this.element.id = "epubjs-view:" + this.id
+	this.element.id = "epubjs-view:" + this.id;
 
 	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
 	this.transform = EPUBJS.core.prefixed('transform');
