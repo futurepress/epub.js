@@ -801,9 +801,22 @@ class EpubCFI {
 			step = steps[i];
 
 			if(step.type === "element") {
-				container = container.children[step.index];
-			} else if(step.type === "text"){
+				//better to get a container using id as some times step.index may not be correct
+				//For ex.https://github.com/futurepress/epub.js/issues/561
+				if(step.id) {
+					container = doc.getElementById(step.id);
+				}
+				else {
+					container = container.children[step.index];
+				}
+			} else if(step.type === "text") {
 				container = this.textNodes(container, ignoreClass)[step.index];
+			}
+			if(!container) {
+				//Break the for loop as due to incorrect index we can get error if
+				//container is undefined so that other functionailties works fine
+				//like navigation
+				break;
 			}
 
 		}
