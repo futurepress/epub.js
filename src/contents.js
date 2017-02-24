@@ -667,7 +667,8 @@ class Contents {
 
 		// this.overflowY("hidden");
 		this.css("overflowY", "hidden");
-		this.css("margin", "0");
+		this.css("margin", "0 !important");
+		this.css("padding", "0 !important");
 		this.css("boxSizing", "border-box");
 		this.css("maxWidth", "inherit");
 
