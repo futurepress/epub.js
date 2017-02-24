@@ -89,18 +89,26 @@
     rendition.on("locationChanged", function(location){
       console.log(location);
     });
+
     /*
-    rendition.themes.register({
-      "dark" : "themes.css",
-      "light" : "themes.css",
-      "tan" : "themes.css"
-    });
+    rendition.themes.register("dark", "theme.css");
+    rendition.themes.register("light", "theme.css");
+    rendition.themes.register("tan", "theme.css");
     */
-    rendition.themes.register("themes.css");
 
-    rendition.themes.apply("tan");
-    rendition.themes.fontSize("140%");
 
+    rendition.themes.default({
+      h2: {
+        'font-size': '32px',
+        color: 'purple'
+      },
+      p: {
+        "margin": '10px'
+      }
+    });
+
+    // rendition.themes.apply("tan");
+    // rendition.themes.fontSize("140%");
 
   </script>
 

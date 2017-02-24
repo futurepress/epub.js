@@ -5,7 +5,7 @@ class Themes {
 		this.rendition = rendition;
 		this._themes = {
 			"default" : {
-				"rules" : [],
+				"rules" : {},
 				"url" : "",
 				"serialized" : ""
 			}
@@ -97,7 +97,7 @@ class Themes {
 		var theme;
 
 		for (var name in themes) {
-			if (themes.hasOwnProperty(name)) {
+			if (themes.hasOwnProperty(name) && name === this._current) {
 				theme = themes[name];
 				if(theme.rules || (theme.url && links.indexOf(theme.url) === -1)) {
 					this.add(name, contents);
@@ -105,7 +105,7 @@ class Themes {
 			}
 		}
 
-		if(this._current) {
+		if(this._current != "default") {
 			contents.addClass(this._current);
 		}
 	}
@@ -121,7 +121,7 @@ class Themes {
 			contents.addStylesheet(theme.url);
 		} else if (theme.serialized) {
 			// TODO: handle serialized
-		} else if (theme.rules && theme.rules.length) {
+		} else if (theme.rules) {
 			contents.addStylesheetRules(theme.rules);
 			theme.injected = true;
 		}
