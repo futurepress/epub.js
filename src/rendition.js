@@ -21,6 +21,7 @@ import Contents from "./contents";
  * @param {string} options.layout
  * @param {string} options.spread
  * @param {int} options.minSpreadWidth overridden by spread: none (never) / both (always)
+ * @param {string} options.stylesheet url of stylesheet to be injected
  */
 class Rendition {
 	constructor(book, options) {
@@ -34,7 +35,8 @@ class Rendition {
 			flow: null,
 			layout: null,
 			spread: null,
-			minSpreadWidth: 800
+			minSpreadWidth: 800,
+			stylesheet: null
 		});
 
 		extend(this.settings, options);
@@ -70,6 +72,10 @@ class Rendition {
 		this.hooks.content.register(this.handleLinks.bind(this));
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
+
+		if (this.settings.stylesheet) {
+			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
+		}
 
 		// this.hooks.display.register(this.afterDisplay.bind(this));
 		this.themes = new Themes(this);
@@ -596,14 +602,14 @@ class Rendition {
 			});
 		}
 
-		contents.addStylesheetRules([
-			["img",
-				["max-width", (this._layout.columnWidth) + "px !important"],
-				["max-height", (this._layout.height) + "px !important"],
-				["object-fit", "contain"],
-				["page-break-inside", "avoid"]
-			]
-		]);
+		contents.addStylesheetRules({
+			"img" : {
+				"max-width": (this._layout.columnWidth) + "px !important",
+				"max-width": (this._layout.columnWidth) + "px !important",
+				"object-fit": "contain",
+				"page-break-inside": "avoid"
+			}
+		});
 		return new Promise(function(resolve, reject){
 			// Wait to apply
 			setTimeout(function() {
@@ -621,6 +627,14 @@ class Rendition {
 			let relative = this.book.path.relative(href);
 			this.display(relative);
 		});
+	}
+
+	injectStylesheet(doc, section) {
+		let style = doc.createElement("link");
+		style.setAttribute("type", "text/css");
+		style.setAttribute("rel", "stylesheet");
+		style.setAttribute("href", this.settings.stylesheet);
+		doc.getElementsByTagName("head")[0].appendChild(style);
 	}
 }
 

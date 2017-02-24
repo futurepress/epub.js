@@ -461,13 +461,14 @@ class Contents {
 		}.bind(this));
 	}
 
-	// https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
+	// Array: https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
+	// Object: https://github.com/desirable-objects/json-to-css
 	addStylesheetRules(rules) {
 		var styleEl;
 		var styleSheet;
 		var key = "epubjs-inserted-css";
 
-		if(!this.document) return;
+		if(!this.document || !rules || rules.length === 0) return;
 
 		// Check if link already exists
 		styleEl = this.document.getElementById("#"+key);
@@ -482,21 +483,33 @@ class Contents {
 		// Grab style sheet
 		styleSheet = styleEl.sheet;
 
-		for (var i = 0, rl = rules.length; i < rl; i++) {
-			var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
-			// If the second argument of a rule is an array of arrays, correct our variables.
-			if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
-				rule = rule[1];
-				j = 0;
-			}
+		if (Object.prototype.toString.call(rules) === "[object Array]") {
+			for (var i = 0, rl = rules.length; i < rl; i++) {
+				var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
+				// If the second argument of a rule is an array of arrays, correct our variables.
+				if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
+					rule = rule[1];
+					j = 0;
+				}
 
-			for (var pl = rule.length; j < pl; j++) {
-				var prop = rule[j];
-				propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
-			}
+				for (var pl = rule.length; j < pl; j++) {
+					var prop = rule[j];
+					propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
+				}
 
-			// Insert CSS Rule
-			styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
+				// Insert CSS Rule
+				styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
+			}
+		} else {
+			const selectors = Object.keys(rules);
+			selectors.forEach((selector) => {
+				const definition = rules[selector];
+				const _rules = Object.keys(definition);
+				const result = _rules.map((rule) => {
+					return `${rule}:${definition[rule]}`;
+				}).join(';');
+				styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+			});
 		}
 	}
 
