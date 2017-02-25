@@ -402,8 +402,8 @@ EPUBJS.Renderer.prototype.remove = function() {
 	}
 	
 	// clean container content 
-	this.container.innerHtml = "";
-//	this.container.removeChild(this.element);
+	//this.container.innerHtml = ""; // not safe
+	this.container.removeChild(this.element);
 };
 
 //-- STYLES
