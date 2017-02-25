@@ -120,7 +120,7 @@ class IframeView {
 		this.size();
 
 		if(!this.sectionRender) {
-			this.sectionRender = this.section.render();
+			this.sectionRender = this.section.render(request);
 		}
 
 		// Render Chain
@@ -384,17 +384,6 @@ class IframeView {
 			this.onLoad(event, loading);
 
 		}.bind(this);
-
-		// add the base tag just after head as it is required to load
-		// required relative links
-		var baseTag = '<base href="' + this.section.url + '" />';
-		var reg = new RegExp('<head\\b[^>]*>','gi');
-		var headTagArry = reg.exec(contents);
-
-		if(headTagArry && headTagArry[0]) {
- 			var headTag = headTagArry[0];
-			contents = contents.replace(headTag, headTag + baseTag);
-        }
 
 		if(this.supportsSrcdoc){
 			this.iframe.srcdoc = contents;
