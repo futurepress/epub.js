@@ -34,8 +34,8 @@ export function isFloat(n) {
 }
 
 export function prefixed(unprefixed) {
-	var vendors = ["Webkit", "Moz", "O", "ms" ];
-	// var prefixes = ["-Webkit-", "-moz-", "-o-", "-ms-"];
+	//var vendors = ["Webkit", "Moz", "O", "ms" ];
+	var vendors = ["-Webkit-", "-moz-", "-o-", "-ms-"];
 	var upper = unprefixed[0].toUpperCase() + unprefixed.slice(1);
 	var length = vendors.length;
 

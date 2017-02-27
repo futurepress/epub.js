@@ -165,11 +165,11 @@ class Contents {
 		return this.window.getComputedStyle(this.documentElement)["overflowY"];
 	}
 
-	css(property, value) {
+	css(property, value, priority) {
 		var content = this.content || this.document.body;
 
 		if (value) {
-			content.style[property] = value;
+			content.style.setProperty(property, value, priority ? "important" : "");
 		}
 
 		return this.window.getComputedStyle(content)[property];
@@ -649,15 +649,15 @@ class Contents {
 		}
 
 		this.css("margin", "0");
-		this.css("boxSizing", "border-box");
+		this.css("box-sizing", "border-box");
 
 	}
 
 	columns(width, height, columnWidth, gap){
-		var COLUMN_AXIS = prefixed("columnAxis");
-		var COLUMN_GAP = prefixed("columnGap");
-		var COLUMN_WIDTH = prefixed("columnWidth");
-		var COLUMN_FILL = prefixed("columnFill");
+		var COLUMN_AXIS = prefixed("column-axis");
+		var COLUMN_GAP = prefixed("column-gap");
+		var COLUMN_WIDTH = prefixed("column-width");
+		var COLUMN_FILL = prefixed("column-fill");
 
 		this.width(width);
 		this.height(height);
@@ -666,11 +666,11 @@ class Contents {
 		this.viewport({ width: width, height: height, scale: 1.0 });
 
 		// this.overflowY("hidden");
-		this.css("overflowY", "hidden");
-		this.css("margin", "0 !important");
-		this.css("padding", "0 !important");
-		this.css("boxSizing", "border-box");
-		this.css("maxWidth", "inherit");
+		this.css("overflow-y", "hidden");
+		this.css("margin", "0", true);
+		this.css("padding", "0", true);
+		this.css("box-sizing", "border-box");
+		this.css("max-width", "inherit");
 
 		this.css(COLUMN_AXIS, "horizontal");
 		this.css(COLUMN_FILL, "auto");
@@ -683,7 +683,7 @@ class Contents {
 		var scaleStr = "scale(" + scale + ")";
 		var translateStr = "";
 		// this.css("position", "absolute"));
-		this.css("transformOrigin", "top left");
+		this.css("transform-origin", "top left");
 
 		if (offsetX >= 0 || offsetY >= 0) {
 			translateStr = " translate(" + (offsetX || 0 )+ "px, " + (offsetY || 0 )+ "px )";
@@ -710,7 +710,7 @@ class Contents {
 		// Scale to the correct size
 		this.scaler(scale, 0, offsetY);
 
-		this.css("backgroundColor", "transparent");
+		this.css("background-color", "transparent");
 	}
 
 	mapPage(cfiBase, start, end) {
