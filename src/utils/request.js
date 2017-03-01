@@ -1,7 +1,7 @@
 import {defer, isXml, parse} from "./core";
 import Path from "./path";
 
-function request(url, type, withCredentials, headers, returnResponseObj) {
+function request(url, type, withCredentials, headers) {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 
@@ -101,10 +101,7 @@ function request(url, type, withCredentials, headers, returnResponseObj) {
 					});
 					return deferred.promise;
 				}
-				if(returnResponseObj) {
-					r = this;
-				}
-				else if(responseXML){
+				if(responseXML){
 					r = this.responseXML;
 				} else
 				if(isXml(type)){
