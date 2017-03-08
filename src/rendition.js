@@ -36,7 +36,8 @@ class Rendition {
 			layout: null,
 			spread: null,
 			minSpreadWidth: 800,
-			stylesheet: null
+			stylesheet: null,
+			script: null
 		});
 
 		extend(this.settings, options);
@@ -75,6 +76,10 @@ class Rendition {
 
 		if (this.settings.stylesheet) {
 			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
+		}
+
+		if (this.settings.script) {
+			this.book.spine.hooks.content.register(this.injectScript.bind(this));
 		}
 
 		// this.hooks.display.register(this.afterDisplay.bind(this));
@@ -636,6 +641,15 @@ class Rendition {
 		style.setAttribute("href", this.settings.stylesheet);
 		doc.getElementsByTagName("head")[0].appendChild(style);
 	}
+
+	injectScript(doc, section) {
+		let script = doc.createElement("script");
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("src", this.settings.script);
+		script.textContent = " "; // Needed to prevent self closing tag
+		doc.getElementsByTagName("head")[0].appendChild(script);
+	}
+
 }
 
 //-- Enable binding events to Renderer

@@ -633,6 +633,14 @@ class Contents {
 		return cfi.toRange(this.document, ignoreClass);
 	}
 
+	cfiFromRange(range, ignoreClass){
+		return new EpubCFI(range, this.cfiBase, ignoreClass).toString();
+	}
+
+	cfiFromNode(node, ignoreClass){
+		return new EpubCFI(node, this.cfiBase, ignoreClass).toString();
+	}
+
 	map(layout){
 		var map = new Mapping(layout);
 		return map.section();
