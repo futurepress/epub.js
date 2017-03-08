@@ -397,6 +397,13 @@ class DefaultViewManager {
 			view = this.views.first();
 			start = this._bounds.left - view.position().left;
 			end = start + this.layout.spreadWidth;
+      if(start >= view.bounds().width && this.views.length > 1) {
+
+        view = this.views.last();
+        start = this._bounds.left - view.position().left;
+        end = start + this.layout.spreadWidth;
+      } 
+
 			return this.mapping.page(view, view.section.cfiBase, start, end);
 		}
 
