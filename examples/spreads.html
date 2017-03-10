@@ -20,7 +20,7 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("http://localhost:8080/books/moby-dick.epub");
+    var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
     var rendition = book.renderTo("viewer", {
       width: "100%",
       height: 600

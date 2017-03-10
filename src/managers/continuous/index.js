@@ -78,7 +78,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		return this.check(offsetX, offsetY)
 			.then(function(){
-				this.scrollBy(distX, distY);
+				this.scrollBy(distX, distY, true);
 			}.bind(this));
 	}
 
@@ -195,7 +195,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.views.prepend(view);
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
-		
+
 		return view;
 	}
 
@@ -479,131 +479,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	}
 
-
-	//  resizeView(view) {
-	//
-	// 	if(this.settings.axis === "horizontal") {
-	// 		view.lock("height", this.stage.width, this.stage.height);
-	// 	} else {
-	// 		view.lock("width", this.stage.width, this.stage.height);
-	// 	}
-	//
-	// };
-
-	currentLocation(){
-
-		if (this.settings.axis === "vertical") {
-			this.location = this.scrolledLocation();
-		} else {
-			this.location = this.paginatedLocation();
-		}
-
-		return this.location;
-	}
-
-	scrolledLocation(){
-
-		var visible = this.visible();
-		var startPage, endPage;
-
-		// var container = this.container.getBoundingClientRect();
-
-		if(visible.length === 1) {
-			return this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
-		}
-
-		if(visible.length > 1) {
-
-			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
-			endPage = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase);
-
-			return {
-				start: startPage.start,
-				end: endPage.end
-			};
-		}
-
-	}
-
-	paginatedLocation(){
-		var visible = this.visible();
-		var startA, startB, endA, endB;
-		var pageLeft, pageRight;
-		var container = this.container.getBoundingClientRect();
-
-		if(visible.length === 1) {
-			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.spreadWidth;
-
-			return this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
-		}
-
-		if(visible.length > 1) {
-
-			// Left Col
-			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.columnWidth;
-
-			// Right Col
-			startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
-			endB = startB + this.layout.columnWidth;
-
-			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
-			pageRight = this.mapping.page(visible[visible.length-1].contents, visible[visible.length-1].section.cfiBase, startB, endB);
-
-			return {
-				start: pageLeft.start,
-				end: pageRight.end
-			};
-		}
-	}
-
-	/*
-	current(what){
-		var view, top;
-		var container = this.container.getBoundingClientRect();
-		var length = this.views.length - 1;
-
-		if(this.settings.axis === "horizontal") {
-
-			for (var i = length; i >= 0; i--) {
-				view = this.views[i];
-				left = view.position().left;
-
-				if(left < container.right) {
-
-					if(this._current == view) {
-						break;
-					}
-
-					this._current = view;
-					break;
-				}
-			}
-
-		} else {
-
-			for (var i = length; i >= 0; i--) {
-				view = this.views[i];
-				top = view.bounds().top;
-				if(top < container.bottom) {
-
-					if(this._current == view) {
-						break;
-					}
-
-					this._current = view;
-
-					break;
-				}
-			}
-
-		}
-
-		return this._current;
-	}
-	*/
-
 	updateLayout() {
 
 		if (!this.stage) {
@@ -643,22 +518,30 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(this.container.scrollLeft +
 				 this.container.offsetWidth +
 				 this.layout.delta < this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0);
+				this.scrollBy(this.layout.delta, 0, true);
 			} else {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 			}
 
 		} else {
-			this.scrollBy(0, this.layout.height);
+			this.scrollBy(0, this.layout.height, true);
 		}
+
+		this.q.enqueue(function() {
+			this.check();
+		}.bind(this));
 	}
 
 	prev(){
 		if(this.settings.axis === "horizontal") {
-			this.scrollBy(-this.layout.delta, 0);
+			this.scrollBy(-this.layout.delta, 0, true);
 		} else {
-			this.scrollBy(0, -this.layout.height);
+			this.scrollBy(0, -this.layout.height, true);
 		}
+
+		this.q.enqueue(function() {
+			this.check();
+		}.bind(this));
 	}
 
 	updateFlow(flow){
