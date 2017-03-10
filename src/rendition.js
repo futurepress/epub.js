@@ -177,9 +177,7 @@ class Rendition {
 
 		// Listen for scroll changes
 		this.manager.on("scroll", this.reportLocation.bind(this));
-
-
-		this.on("displayed", this.reportLocation.bind(this));
+		this.manager.on("scroll", () => console.log("scrolled"));
 
 		// Trigger that rendering has started
 		this.emit("started");
@@ -255,7 +253,8 @@ class Rendition {
 
 		return this.manager.display(section, target)
 			.then(function(){
-				// this.emit("displayed", section);
+				this.emit("displayed", section);
+				this.reportLocation();
 			}.bind(this));
 
 	}
@@ -313,7 +312,7 @@ class Rendition {
 	afterDisplayed(view){
 		this.hooks.content.trigger(view.contents, this);
 		this.emit("rendered", view.section);
-		this.reportLocation();
+		// this.reportLocation();
 	}
 
 	/**
@@ -585,7 +584,7 @@ class Rendition {
 	 */
 	range(cfi, ignoreClass){
 		var _cfi = new EpubCFI(cfi);
-		var found = this.visible().filter(function (view) {
+		var found = this.manager.visible().filter(function (view) {
 			if(_cfi.spinePos === view.index) return true;
 		});
 

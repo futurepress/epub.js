@@ -380,26 +380,79 @@ class DefaultViewManager {
 	}
 
 	scrolledLocation(){
-		var view;
 
-		if(this.views.length) {
-			view = this.views.first();
-			return this.mapping.page(view, view.section.cfiBase);
+		var visible = this.visible();
+		var startPage, endPage;
+		var last;
+
+		// var container = this.container.getBoundingClientRect();
+
+		if(visible.length === 1) {
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+			return {
+				index : visible[0].section.index,
+				href : visible[0].section.href,
+				start: startPage.start,
+				end: startPage.end
+			};
+		}
+
+		if(visible.length > 1) {
+			last = visible.length - 1;
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase);
+
+			return {
+				index : visible[last].section.index,
+				href : visible[last].section.href,
+				start: startPage.start,
+				end: endPage.end
+			};
 		}
 
 	}
 
 	paginatedLocation(){
-		var view;
-		var start, end;
+		var visible = this.visible();
+		var startA, startB, endA, endB;
+		var pageLeft, pageRight;
+		var container = this.container.getBoundingClientRect();
+		var last;
 
-		if(this.views.length) {
-			view = this.views.first();
-			start = this._bounds.left - view.position().left;
-			end = start + this.layout.spreadWidth;
-			return this.mapping.page(view, view.section.cfiBase, start, end);
+		if(visible.length === 1) {
+			startA = container.left - visible[0].position().left;
+			endA = startA + this.layout.spreadWidth;
+
+			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+			return {
+				index : visible[0].section.index,
+				href : visible[0].section.href,
+				start: pageLeft.start,
+				end: pageLeft.end
+			};
 		}
 
+		if(visible.length > 1) {
+			last = visible.length - 1;
+
+			// Left Col
+			startA = container.left - visible[0].position().left;
+			endA = startA + this.layout.columnWidth;
+
+			// Right Col
+			startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
+			endB = startB + this.layout.columnWidth;
+
+			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
+			pageRight = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
+
+			return {
+				index : visible[last].section.index,
+				href : visible[last].section.href,
+				start: pageLeft.start,
+				end: pageRight.end
+			};
+		}
 	}
 
 	isVisible(view, offsetPrev, offsetNext, _container){
@@ -424,7 +477,6 @@ class DefaultViewManager {
 	}
 
 	visible(){
-		// return this.views.displayed();
 		var container = this.bounds();
 		var views = this.views.displayed();
 		var viewsLength = views.length;
@@ -457,9 +509,7 @@ class DefaultViewManager {
 		} else {
 			window.scrollBy(x,y);
 		}
-		// console.log("scrollBy", x, y);
 		this.scrolled = true;
-		this.onScroll();
 	}
 
 	scrollTo(x, y, silent){
@@ -473,9 +523,8 @@ class DefaultViewManager {
 		} else {
 			window.scrollTo(x,y);
 		}
-		// console.log("scrollTo", x, y);
 		this.scrolled = true;
-		this.onScroll();
+
 		// if(this.container.scrollLeft != x){
 		//   setTimeout(function() {
 		//     this.scrollTo(x, y, silent);
