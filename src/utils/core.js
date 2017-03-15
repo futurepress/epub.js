@@ -469,7 +469,7 @@ export function querySelectorByType(html, element, type){
 
 export function findChildren(el) {
 	var result = [];
-	var childNodes = el.parentNode.childNodes;
+	var childNodes = el.childNodes;
 	for (var i = 0; i < childNodes.length; i++) {
 		let node = childNodes[i];
 		if (node.nodeType === 1) {
