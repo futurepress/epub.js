@@ -8,7 +8,7 @@ EPUBJS.Layout.isFixedLayout = function (documentElement) {
 		return false;
 	}
 	var content = viewport.getAttribute("content");
-	return /,/.test(content);
+	return (/width=(\d+)/.test(content) && /height=(\d+)/.test(content));
 };
 
 EPUBJS.Layout.Reflowable = function(){
