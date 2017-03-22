@@ -7,6 +7,7 @@ body {
   position: absolute;
   height: 100%;
   width: 100%;
+  min-height: 800px;
 }
 
 #title {
@@ -16,6 +17,7 @@ body {
   text-align: center;
   font-size: 16px;
   color: #E2E2E2;
+  font-weight: 400;
 }
 
 #title:hover {
@@ -31,6 +33,7 @@ body {
   position: relative;
   margin: 10px auto;
   background: white url('ajax-loader.gif') center center no-repeat;
+  top: calc(50vh - 400px);
 }
 
 #viewer.spreads .epub-view > iframe {
@@ -125,6 +128,7 @@ body {
   margin: 28px auto;
   background: #fff;
   border-radius: 0 5px 5px 0;
+  position: absolute;
 }
 
 #book-viewer {
@@ -152,4 +156,119 @@ body {
 
 #controls > input[type=range] {
     width: 400px;
+}
+
+#navigation {
+  width: 400px;
+  height: 100vh;
+  position: absolute;
+  overflow: auto;
+  top: 0;
+  left: 0;
+  background: #777;
+  -webkit-transition: -webkit-transform .25s ease-out;
+  -moz-transition: -moz-transform .25s ease-out;
+  -ms-transition: -moz-transform .25s ease-out;
+  transition: transform .25s ease-out;
+
+}
+
+#navigation.fixed {
+  position: fixed;
+}
+
+#navigation h1 {
+  width: 200px;
+  font-size: 16px;
+  font-weight: normal;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+#navigation h2 {
+  font-size: 14px;
+  font-weight: normal;
+  color: #B0B0B0;
+  margin-bottom: 20px;
+}
+
+#navigation ul {
+  padding-left: 36px;
+  margin-left: 0;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  width: 340px;
+}
+
+#navigation ul li {
+  list-style: decimal;
+  margin-bottom: 10px;
+  color: #cccddd;
+  font-size: 12px;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+#navigation ul li a {
+  color: #ccc;
+  text-decoration: none;
+}
+
+#navigation ul li a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+#navigation ul li a.active {
+  color: #fff;
+}
+
+#navigation #cover {
+  display: block;
+  margin: 24px auto;
+}
+
+#navigation #closer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 12px;
+  color: #cccddd;
+  width: 24px;
+}
+
+#navigation.closed {
+  -webkit-transform: translate(-400px, 0);
+  -moz-transform: translate(-400px, 0);
+  -ms-transform: translate(-400px, 0);
+}
+
+svg {
+  display: block;
+}
+
+.close-x {
+  stroke: #cccddd;
+  fill: transparent;
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.close-x:hover {
+  stroke: #fff;
+}
+
+#opener {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  stroke: #E2E2E2;
+  fill: #E2E2E2;
+
+}
+
+#opener:hover {
+  stroke: #777;
+  fill: #777;
 }

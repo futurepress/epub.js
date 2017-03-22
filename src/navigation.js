@@ -20,10 +20,15 @@ class Navigation {
 	 * @param {document} xml navigation html / xhtml / ncx
 	 */
 	parse(xml) {
-		var html = qs(xml, "html");
-		var ncx = qs(xml, "ncx");
+		let isXml = xml.nodeValue;
+		if (isXml) {
+			let html = qs(xml, "html");
+			let ncx = qs(xml, "ncx");
+		}
 
-		if(html) {
+		if (!isXml) {
+			this.toc = this.load(xml);
+		} else if(html) {
 			this.toc = this.parseNav(xml);
 		} else if(ncx){
 			this.toc = this.parseNcx(xml);
@@ -201,6 +206,20 @@ class Navigation {
 			"subitems" : subitems,
 			"parent" : parent
 		};
+	}
+
+	/**
+	 * Load Spine Items
+	 * @param  {object} json the items to be loaded
+	 */
+	load(json) {
+		return json.map((item) => {
+			item.label = item.title;
+			if (item.children) {
+				item.subitems = this.load(item.children);
+			}
+			return item;
+		});
 	}
 
 	/**

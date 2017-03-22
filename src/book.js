@@ -201,6 +201,9 @@ class Book {
 		} else if(type == "opf") {
 			this.url = new Url(input);
 			opening = this.openPackaging(this.url.Path.toString());
+		} else if(type == "json") {
+			this.url = new Url(input);
+			opening = this.openManifest(this.url.Path.toString());
 		} else {
 			this.url = new Url(input);
 			opening = this.openContainer(CONTAINER_PATH)
@@ -252,6 +255,22 @@ class Book {
 		return this.load(url)
 			.then((xml) => {
 				this.packaging = new Packaging(xml);
+				return this.unpack(this.packaging);
+			});
+	}
+
+	/**
+	 * Open the manifest JSON
+	 * @private
+	 * @param  {string} url
+	 * @return {Promise}
+	 */
+	openManifest(url) {
+		this.path = new Path(url);
+		return this.load(url)
+			.then((json) => {
+				this.packaging = new Packaging();
+				this.packaging.load(json);
 				return this.unpack(this.packaging);
 			});
 	}
@@ -335,6 +354,10 @@ class Book {
 		if(extension === "opf"){
 			return "opf";
 		}
+
+		if(extension === "json"){
+			return "json";
+		}
 	}
 
 
@@ -359,6 +382,7 @@ class Book {
 			this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
+
 		if (this.package.coverPath) {
 			this.cover = this.resolve(this.package.coverPath);
 		}
@@ -369,7 +393,6 @@ class Book {
 		this.loading.cover.resolve(this.cover);
 		this.loading.resources.resolve(this.resources);
 		this.loading.pageList.resolve(this.pageList);
-
 
 		this.isOpen = true;
 
@@ -393,10 +416,26 @@ class Book {
 	 * @param {document} opf XML Document
 	 */
 	loadNavigation(opf) {
-		var navPath = opf.navPath || opf.ncxPath;
+		let navPath = opf.navPath || opf.ncxPath;
+		let toc = opf.toc;
+
+		if (toc) {
+			return new Promise((resolve, reject) => {
+				this.navigation = new Navigation(toc);
+
+				this.pageList = new PageList(); // TODO: handle page lists
+
+				resolve(this.navigation);
+			});
+		}
 
 		if (!navPath) {
-			return;
+			return new Promise((resolve, reject) => {
+				this.navigation = new Navigation();
+				this.pageList = new PageList();
+
+				resolve(this.navigation);
+			});
 		}
 
 		return this.load(navPath, "xml")
