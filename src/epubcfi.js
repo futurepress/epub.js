@@ -948,7 +948,7 @@ class EpubCFI {
 
 	generateChapterComponent(_spineNodeIndex, _pos, id) {
 		var pos = parseInt(_pos),
-				spineNodeIndex = _spineNodeIndex + 1,
+				spineNodeIndex = (_spineNodeIndex + 1) * 2,
 				cfi = "/"+spineNodeIndex+"/";
 
 		cfi += (pos + 1) * 2;
