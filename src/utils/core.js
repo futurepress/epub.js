@@ -289,6 +289,11 @@ export function parse(markup, mime, forceXMLDom) {
 		Parser = DOMParser;
 	}
 
+	// Remove byte order mark before parsing
+	// https://www.w3.org/International/questions/qa-byte-order-mark
+	if(markup.charCodeAt(0) === 0xFEFF) {
+		markup = markup.slice(1);
+	}
 
 	doc = new Parser().parseFromString(markup, mime);
 
