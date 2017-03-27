@@ -20,7 +20,7 @@ class Navigation {
 	 * @param {document} xml navigation html / xhtml / ncx
 	 */
 	parse(xml) {
-		let isXml = xml.nodeValue;
+		let isXml = xml.nodeType;
 		if (isXml) {
 			let html = qs(xml, "html");
 			let ncx = qs(xml, "ncx");
