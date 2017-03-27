@@ -21,9 +21,12 @@ class Navigation {
 	 */
 	parse(xml) {
 		let isXml = xml.nodeType;
+		let html;
+		let ncx;
+
 		if (isXml) {
-			let html = qs(xml, "html");
-			let ncx = qs(xml, "ncx");
+			html = qs(xml, "html");
+			ncx = qs(xml, "ncx");
 		}
 
 		if (!isXml) {
