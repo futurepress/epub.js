@@ -145,11 +145,6 @@
     rendition.on("rendered", function(section){
       var nextSection = section.next();
       var prevSection = section.prev();
-      var current = book.navigation.get(section.href);
-
-      if (current) {
-        title.textContent = current.label;
-      }
 
       if(nextSection) {
         next.textContent = "›";
@@ -166,6 +161,12 @@
     });
 
     rendition.on("locationChanged", function(location){
+      var current = book.navigation.get(location.href);
+
+      if (current) {
+        title.textContent = current.label;
+      }
+
       console.log(location);
     });
 
