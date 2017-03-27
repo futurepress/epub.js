@@ -282,6 +282,46 @@ class Packaging {
 		return "";
 	}
 
+	/**
+	 * Load JSON Manifest
+	 * @param  {document} packageDocument OPF XML
+	 * @return {object} parsed package parts
+	 */
+	load(json) {
+		this.metadata = json.metadata;
+
+		this.spine = json.spine.map((item, index) =>{
+			item.index = index;
+			return item;
+		});
+
+		json.resources.forEach((item, index) => {
+			this.manifest[index] = item;
+
+			if (item.rel && item.rel[0] === "cover") {
+				this.coverPath = item.href;
+			}
+		});
+
+		this.spineNodeIndex = 0;
+
+		this.toc = json.toc.map((item, index) =>{
+			item.label = item.title;
+			return item;
+		});
+
+		return {
+			"metadata" : this.metadata,
+			"spine"    : this.spine,
+			"manifest" : this.manifest,
+			"navPath"  : this.navPath,
+			"ncxPath"  : this.ncxPath,
+			"coverPath": this.coverPath,
+			"spineNodeIndex" : this.spineNodeIndex,
+			"toc" : this.toc
+		};
+	}
+
 	destroy() {
 		this.manifest = undefined;
 		this.navPath = undefined;

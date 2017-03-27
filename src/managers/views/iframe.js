@@ -102,7 +102,7 @@ class IframeView {
 		// Firefox has trouble with baseURI and srcdoc
 		// TODO: Disable for now in firefox
 
-		if(!("srcdoc" in this.iframe)) {
+		if("srcdoc" in this.iframe) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
@@ -372,7 +372,7 @@ class IframeView {
 		if (this.contents) {
 			this.settings.layout.format(this.contents);
 		}
-		
+
 		this.emit("resized", size);
 
 	}

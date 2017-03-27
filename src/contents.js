@@ -176,7 +176,8 @@ class Contents {
 	}
 
 	viewport(options) {
-		var width, height, scale, scalable;
+		var _width, _height, _scale, _minimum, _maximum, _scalable;
+		var width, height, scale, minimum, maximum, scalable;
 		var $viewport = this.document.querySelector("meta[name='viewport']");
 		var newContent = "";
 
@@ -186,18 +187,29 @@ class Contents {
 		*/
 		if($viewport && $viewport.hasAttribute("content")) {
 			let content = $viewport.getAttribute("content");
-			let contents = content.split(/\s*,\s*/);
-			if(contents[0]){
-				width = contents[0].replace("width=", "").trim();
+			let _width = content.match(/width\s*=\s*([^,]*)/g);
+			let _height = content.match(/height\s*=\s*([^,]*)/g);
+			let _scale = content.match(/initial-scale\s*=\s*([^,]*)/g);
+			let _minimum = content.match(/minimum-scale\s*=\s*([^,]*)/g);
+			let _maximum = content.match(/maximum-scale\s*=\s*([^,]*)/g);
+			let _scalable = content.match(/user-scalable\s*=\s*([^,]*)/g);
+			if(_width[1]){
+				width = _width[1];
 			}
-			if(contents[1]){
-				height = contents[1].replace("height=", "").trim();
+			if(_height[1]){
+				height = _height[1];
 			}
-			if(contents[2]){
-				scale = contents[2].replace("initial-scale=", "").trim();
+			if(_scale[1]){
+				scale = _scale[1];
 			}
-			if(contents[3]){
-				scalable = contents[3].replace("user-scalable=", "").trim();
+			if(_minimum[1]){
+				minimum = _minimum[1];
+			}
+			if(_maximum[1]){
+				maximum = _maximum[1];
+			}
+			if(_scalable[1]){
+				scalable = _scalable[1];
 			}
 		}
 
@@ -209,6 +221,8 @@ class Contents {
 				newContent += ", initial-scale=" + (options.scale || scale);
 			}
 			if (options.scalable || scalable) {
+				newContent += ", minimum-scale=" + (options.scale || minimum);
+				newContent += ", maximum-scale=" + (options.scale || maximum);
 				newContent += ", user-scalable=" + (options.scalable || scalable);
 			}
 
@@ -671,7 +685,7 @@ class Contents {
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport
-		this.viewport({ width: width, height: height, scale: 1.0 });
+		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
 		// this.overflowY("hidden");
 		this.css("overflow-y", "hidden");

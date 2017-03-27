@@ -50,10 +50,13 @@ class Spine {
 
 			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
+			if (item.href) {
+				item.url = resolver(item.href, true);
+			}
+
 			if(manifestItem) {
 				item.href = manifestItem.href;
 				item.url = resolver(item.href, true);
-
 				if(manifestItem.properties.length){
 					item.properties.push.apply(item.properties, manifestItem.properties);
 				}
