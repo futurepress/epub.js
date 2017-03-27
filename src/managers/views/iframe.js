@@ -369,6 +369,10 @@ class IframeView {
 
 		this.onResize(this, size);
 
+		if (this.contents) {
+			this.settings.layout.format(this.contents);
+		}
+		
 		this.emit("resized", size);
 
 	}
