@@ -177,7 +177,6 @@ class Rendition {
 
 		// Listen for scroll changes
 		this.manager.on("scroll", this.reportLocation.bind(this));
-		this.manager.on("scroll", () => console.log("scrolled"));
 
 		// Trigger that rendering has started
 		this.emit("started");
