@@ -52,7 +52,7 @@ class Packaging {
 		this.ncxPath = this.findNcxPath(manifestNode, spineNode);
 		this.coverPath = this.findCoverPath(packageDocument);
 
-		this.spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+		this.spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.children, spineNode);
 
 		this.spine = this.parseSpine(spineNode, this.manifest);
 
