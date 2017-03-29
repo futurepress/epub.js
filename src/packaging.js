@@ -1,4 +1,4 @@
-import {qs, qsa, qsp} from "./utils/core";
+import {qs, qsa, qsp, indexOfElementNode} from "./utils/core";
 
 /**
  * Open Packaging Format Parser
@@ -52,7 +52,7 @@ class Packaging {
 		this.ncxPath = this.findNcxPath(manifestNode, spineNode);
 		this.coverPath = this.findCoverPath(packageDocument);
 
-		this.spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+		this.spineNodeIndex = indexOfElementNode(spineNode);
 
 		this.spine = this.parseSpine(spineNode, this.manifest);
 

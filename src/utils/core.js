@@ -225,20 +225,28 @@ export function cleanStringForXpath(str)	{
 	return `concat(\'\',${ parts.join(",") })`;
 }
 
-export function indexOfTextNode(textNode){
-	var parent = textNode.parentNode;
+export function indexOfNode(node, typeId) {
+	var parent = node.parentNode;
 	var children = parent.childNodes;
 	var sib;
 	var index = -1;
 	for (var i = 0; i < children.length; i++) {
 		sib = children[i];
-		if(sib.nodeType === Node.TEXT_NODE){
+		if (sib.nodeType === typeId) {
 			index++;
 		}
-		if(sib == textNode) break;
+		if (sib == node) break;
 	}
 
 	return index;
+}
+
+export function indexOfTextNode(textNode) {
+	return indexOfNode(textNode, Node.TEXT_NODE);
+}
+
+export function indexOfElementNode(elementNode) {
+	return indexOfNode(elementNode, Node.ELEMENT_NODE);
 }
 
 export function isXml(ext) {
