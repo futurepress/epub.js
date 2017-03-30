@@ -408,6 +408,18 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	}
 
+	removeEventListeners(){
+		var scroller;
+
+		if(this.settings.height) {
+			scroller = this.container;
+		} else {
+			scroller = window;
+		}
+
+		scroller.removeEventListener("scroll", this.onScroll.bind(this));
+	}
+
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;

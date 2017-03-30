@@ -79,12 +79,37 @@ class DefaultViewManager {
 	}
 
 	addEventListeners(){
+		var scroller;
+
 		window.addEventListener("unload", function(e){
 			this.destroy();
 		}.bind(this));
+
+		if(this.settings.height) {
+			scroller = this.container;
+		} else {
+			scroller = window;
+		}
+
+		scroller.addEventListener("scroll", this.onScroll.bind(this));
+	}
+
+	removeEventListeners(){
+		var scroller;
+
+		if(this.settings.height) {
+			scroller = this.container;
+		} else {
+			scroller = window;
+		}
+
+		scroller.removeEventListener("scroll", this.onScroll.bind(this));
 	}
 
 	destroy(){
+
+		this.removeEventListeners();
+
 		this.views.each(function(view){
 			view.destroy();
 		});
@@ -156,9 +181,7 @@ class DefaultViewManager {
 		}
 
 		// Hide all current views
-		this.views.hide();
-
-		this.views.clear();
+		this.clear();
 
 		this.add(section)
 			.then(function(view){
@@ -222,7 +245,7 @@ class DefaultViewManager {
 			}
 		}
 
-		this.scrollTo(distX, distY);
+		this.scrollTo(distX, distY, true);
 	}
 
 	add(section){
@@ -281,9 +304,9 @@ class DefaultViewManager {
 			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
 			if(left < this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0);
+				this.scrollBy(this.layout.delta, 0, true);
 			} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 				next = this.views.last().section.next();
 			} else {
 				next = this.views.last().section.next();
@@ -293,12 +316,12 @@ class DefaultViewManager {
 		}
 
 		if(next) {
-			this.views.clear();
+			this.clear();
 
 			return this.append(next)
 				.then(function(){
 					var right;
-					if (this.layout.name && this.layout.divisor > 1) {
+					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
 						right = next.next();
 						if (right) {
 							return this.append(right);
@@ -326,7 +349,7 @@ class DefaultViewManager {
 			left = this.container.scrollLeft;
 
 			if(left > 0) {
-				this.scrollBy(-this.layout.delta, 0);
+				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -339,12 +362,12 @@ class DefaultViewManager {
 		}
 
 		if(prev) {
-			this.views.clear();
+			this.clear();
 
 			return this.prepend(prev)
 				.then(function(){
 					var left;
-					if (this.layout.name && this.layout.divisor > 1) {
+					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
 						left = prev.prev();
 						if (left) {
 							return this.prepend(left);
@@ -353,7 +376,7 @@ class DefaultViewManager {
 				}.bind(this))
 				.then(function(){
 					if(this.settings.axis === "horizontal") {
-						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 					}
 					this.views.show();
 				}.bind(this));
@@ -367,6 +390,12 @@ class DefaultViewManager {
 			return visible[visible.length-1];
 		}
 		return null;
+	}
+
+	clear () {
+		this.views.hide();
+		this.scrollTo(0,0, true);
+		this.views.clear();
 	}
 
 	currentLocation(){
@@ -383,12 +412,21 @@ class DefaultViewManager {
 
 		var visible = this.visible();
 		var startPage, endPage;
+		var startA, startB, endA, endB;
 		var last;
+		var container = this.container.getBoundingClientRect();
+		var pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
+		var offset = 0;
 
-		// var container = this.container.getBoundingClientRect();
+		if(!this.settings.height) {
+			offset = window.scrollY;
+		}
 
 		if(visible.length === 1) {
-			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
+			startA = (container.top - visible[0].position().top) + offset;
+			endA = startA + pageHeight;
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+
 			return {
 				index : visible[0].section.index,
 				href : visible[0].section.href,
@@ -399,8 +437,15 @@ class DefaultViewManager {
 
 		if(visible.length > 1) {
 			last = visible.length - 1;
-			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase);
-			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase);
+
+			startA = (container.top - visible[0].position().top) + offset;
+			endA = startA + (container.top - visible[0].position().bottom);
+
+			startB = (container.top - visible[last].position().top) + offset;
+			endB = startB + pageHeight;
+
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
 
 			return {
 				index : visible[last].section.index,
@@ -421,7 +466,7 @@ class DefaultViewManager {
 
 		if(visible.length === 1) {
 			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.spreadWidth;
+			endA = startA + this.layout.spreadWidth + this.layout.gap;
 
 			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
 			return {
@@ -437,11 +482,11 @@ class DefaultViewManager {
 
 			// Left Col
 			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.columnWidth;
+			endA = startA + this.layout.columnWidth + this.layout.gap / 2;
 
 			// Right Col
-			startB = container.left + this.layout.spreadWidth - visible[visible.length-1].position().left;
-			endB = startB + this.layout.columnWidth;
+			startB = container.left + this.layout.spreadWidth - visible[last].position().left;
+			endB = startB + this.layout.columnWidth + this.layout.gap / 2;
 
 			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
 			pageRight = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
@@ -534,6 +579,40 @@ class DefaultViewManager {
 	}
 
 	onScroll(){
+		let scrollTop;
+		let scrollLeft;
+
+		if(this.settings.height) {
+			scrollTop = this.container.scrollTop;
+			scrollLeft = this.container.scrollLeft;
+		} else {
+			scrollTop = window.scrollY;
+			scrollLeft = window.scrollX;
+		}
+
+		this.scrollTop = scrollTop;
+		this.scrollLeft = scrollLeft;
+
+		if(!this.ignore) {
+			console.log("scroll", scrollLeft, scrollTop);
+			this.emit("scroll", {
+				top: scrollTop,
+				left: scrollLeft
+			});
+
+			clearTimeout(this.afterScrolled);
+			this.afterScrolled = setTimeout(function () {
+				this.emit("scrolled", {
+					top: this.scrollTop,
+					left: this.scrollLeft
+				});
+			}.bind(this), 20);
+
+
+
+		} else {
+			this.ignore = false;
+		}
 
 	}
 

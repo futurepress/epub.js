@@ -63,11 +63,17 @@ class Themes {
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
+		if (this._injected[name]) {
+			this.update(name);
+		}
 	}
 
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
+		if (this._injected[name]) {
+			this.update(name);
+		}
 	}
 
 	apply (name) {
@@ -102,6 +108,7 @@ class Themes {
 				if(theme.rules || (theme.url && links.indexOf(theme.url) === -1)) {
 					this.add(name, contents);
 				}
+				this._injected.push(name);
 			}
 		}
 
