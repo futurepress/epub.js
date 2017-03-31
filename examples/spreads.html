@@ -18,7 +18,7 @@
   <a id="next" href="#next" class="arrow">›</a>
 
   <script>
-    var currentSectionIndex = 8;
+    var currentSectionIndex = 0;
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
     var rendition = book.renderTo("viewer", {
@@ -26,7 +26,7 @@
       height: 600
     });
 
-    rendition.display();
+    rendition.display(currentSectionIndex);
 
     var title = document.getElementById("title");
 

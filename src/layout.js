@@ -37,7 +37,15 @@ class Layout {
 	 * @param  {string} flow paginated | scrolled
 	 */
 	flow(flow) {
-		this._flow = (flow === "paginated") ? "paginated" : "scrolled";
+		if (typeof(flow) != "undefined") {
+			if (flow === "scrolled-continuous" ||
+					flow === "scrolled-doc") {
+				this._flow = "scrolled";
+			} else {
+				this._flow = "paginated";
+			}
+		}
+		return this._flow;
 	}
 
 	/**

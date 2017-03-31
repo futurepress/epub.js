@@ -20,7 +20,7 @@
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
-      flow: "scrolled-doc",
+      flow: "scrolled-doc"
     });
 
     rendition.display("chapter_008.xhtml");
@@ -38,7 +38,9 @@
       e.preventDefault();
     }, false);
 
-
+    rendition.on("locationChanged", function(location){
+      console.log(location);
+    });
 
     rendition.on("rendered", function(section){
       var nextSection = section.next();
