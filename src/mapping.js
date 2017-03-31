@@ -3,7 +3,7 @@ import EpubCFI from "./epubcfi";
 class Mapping {
 	constructor(layout, dev) {
 		this.layout = layout;
-		this.horizontal = (this.layout.flow() === "paginated") ? true : false;
+		this.horizontal = (this.layout.flow === "paginated") ? true : false;
 		this._dev = dev;
 	}
 
@@ -67,14 +67,15 @@ class Mapping {
 	findRanges(view){
 		var columns = [];
 		var scrollWidth = view.contents.scrollWidth();
-		var count = this.layout.count(scrollWidth);
-		var column = this.layout.column;
+		var spreads = Math.ceil( scrollWidth / this.layout.spreadWidth);
+		var count = spreads * this.layout.divisor;
+		var columnWidth = this.layout.columnWidth;
 		var gap = this.layout.gap;
 		var start, end;
 
 		for (var i = 0; i < count.pages; i++) {
-			start = (column + gap) * i;
-			end = (column * (i+1)) + (gap * i);
+			start = (columnWidth + gap) * i;
+			end = (columnWidth * (i+1)) + (gap * i);
 			columns.push({
 				start: this.findStart(view.document.body, start, end),
 				end: this.findEnd(view.document.body, start, end)

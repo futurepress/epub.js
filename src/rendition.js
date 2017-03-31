@@ -431,7 +431,7 @@ class Rendition {
 			this._layout = new Layout(settings);
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
-			this.mapping = new Mapping(this._layout);
+			this.mapping = new Mapping(this._layout.props);
 		}
 
 		if (this.manager && this._layout) {

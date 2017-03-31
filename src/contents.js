@@ -735,8 +735,8 @@ class Contents {
 		this.css("background-color", "transparent");
 	}
 
-	mapPage(cfiBase, start, end) {
-		var mapping = new Mapping();
+	mapPage(cfiBase, layout, start, end, dev) {
+		var mapping = new Mapping(layout, dev);
 
 		return mapping.page(this, cfiBase, start, end);
 	}
