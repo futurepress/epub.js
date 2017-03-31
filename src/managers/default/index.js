@@ -442,7 +442,7 @@ class DefaultViewManager {
 			endA = startA + (container.top - visible[0].position().bottom);
 
 			startB = (container.top - visible[last].position().top) + offset;
-			endB = startB + pageHeight;
+			endB = pageHeight - startB;
 
 			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
 			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
@@ -629,7 +629,7 @@ class DefaultViewManager {
 		this.layout = layout;
 		this.updateLayout();
 
-		this.mapping = new Mapping(this.layout);
+		this.mapping = new Mapping(this.layout.props);
 		 // this.manager.layout(this.layout.format);
 	}
 

@@ -1,4 +1,8 @@
 export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
+const ELEMENT_NODE = 1;
+const TEXT_NODE = 3;
+const COMMENT_NODE = 8;
+const DOCUMENT_NODE = 9;
 
 export function isElement(obj) {
 	return !!(obj && obj.nodeType == 1);
@@ -242,11 +246,11 @@ export function indexOfNode(node, typeId) {
 }
 
 export function indexOfTextNode(textNode) {
-	return indexOfNode(textNode, Node.TEXT_NODE);
+	return indexOfNode(textNode, TEXT_NODE);
 }
 
 export function indexOfElementNode(elementNode) {
-	return indexOfNode(elementNode, Node.ELEMENT_NODE);
+	return indexOfNode(elementNode, ELEMENT_NODE);
 }
 
 export function isXml(ext) {
