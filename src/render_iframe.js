@@ -201,8 +201,11 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 	if (this.isMobile) {
 		this.docEl.style[this.transform] = 'translate('+ (-leftPos) + 'px, 0)';
 	} else {
-	        if (this.document.hasOwnProperty('defaultView'))
+	        try{
 			this.document.defaultView.scrollTo(leftPos, 0);
+		} catch (e) {
+			console.log("*Render.Iframe.setLeft* document has not scrollTo prop");
+		}
 	}
 
 };
