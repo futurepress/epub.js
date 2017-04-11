@@ -44,6 +44,8 @@ class Mapping {
 	}
 
 	walk(root, func) {
+    // Work around Internet Explorer wanting a function instead of an object.
+    // IE also *requires* this argument where other browsers don't.
 		function acceptNode (node) {
 			if ( node.data.trim().length > 0 ) {
 				return NodeFilter.FILTER_ACCEPT;
