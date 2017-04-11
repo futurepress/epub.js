@@ -44,16 +44,17 @@ class Mapping {
 	}
 
 	walk(root, func) {
-		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-				if ( node.data.trim().length > 0 ) {
-					return NodeFilter.FILTER_ACCEPT;
-				} else {
-					return NodeFilter.FILTER_REJECT;
-				}
+		function acceptNode (node) {
+			if ( node.data.trim().length > 0 ) {
+				return NodeFilter.FILTER_ACCEPT;
+			} else {
+				return NodeFilter.FILTER_REJECT;
 			}
-		}, false);
+		}
+		var safeFilter = acceptNode;
+		safeFilter.acceptNode = acceptNode;
+		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
+		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, safeFilter, false);
 		var node;
 		var result;
 		while ((node = treeWalker.nextNode())) {
