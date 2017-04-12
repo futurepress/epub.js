@@ -32,7 +32,8 @@ class DefaultViewManager {
 			axis: this.settings.axis,
 			layout: this.layout,
 			width: 0,
-			height: 0
+			height: 0,
+			globalOptions: extend({}, options.settings, {disableSrcdoc: options.settings.disableSrcdoc || false})
 		};
 
 	}
