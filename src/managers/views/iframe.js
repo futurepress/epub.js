@@ -102,7 +102,7 @@ class IframeView {
 		// Firefox has trouble with baseURI and srcdoc
 		// TODO: Disable for now in firefox
 
-		if("srcdoc" in this.iframe && !this.settings.globalOptions.disableSrcdoc) {
+		if("srcdoc" in this.iframe) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
