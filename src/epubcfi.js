@@ -1,4 +1,4 @@
-import {extend, type, findChildren} from "./utils/core";
+import {extend, type, findChildren, RangeObject} from "./utils/core";
 
 /**
 	EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
@@ -793,6 +793,7 @@ class EpubCFI {
 	walkToNode(steps, _doc, ignoreClass) {
 		var doc = _doc || document;
 		var container = doc.documentElement;
+		var children = container.children || findChildren(container);
 		var step;
 		var len = steps.length;
 		var i;
@@ -807,7 +808,7 @@ class EpubCFI {
 					container = doc.getElementById(step.id);
 				}
 				else {
-					container = container.children[step.index];
+					container = children[step.index];
 				}
 			} else if(step.type === "text") {
 				container = this.textNodes(container, ignoreClass)[step.index];
@@ -877,12 +878,18 @@ class EpubCFI {
 
 	toRange(_doc, ignoreClass) {
 		var doc = _doc || document;
-		var range = doc.createRange();
+		var range;
 		var start, end, startContainer, endContainer;
 		var cfi = this;
 		var startSteps, endSteps;
 		var needsIgnoring = ignoreClass ? (doc.querySelector("." + ignoreClass) != null) : false;
 		var missed;
+
+		if (typeof(doc.createRange) !== "undefined") {
+			range = doc.createRange();
+		} else {
+			range = new RangeObject();
+		}
 
 		if (cfi.range) {
 			start = cfi.start;
