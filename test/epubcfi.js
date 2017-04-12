@@ -373,6 +373,7 @@ describe('EpubCFI', function() {
 
 			// Check the range
 			newRange = cfi.toRange(doc, 'annotator-hl');
+			console.log(".startContainer", newRange);
 
 			assert.ok(newRange.startContainer);
 

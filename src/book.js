@@ -540,11 +540,12 @@ class Book {
 	 * @param  {EpubCFI} cfiRange a epub cfi range
 	 * @return {Range}
 	 */
-	 range(cfiRange) {
+	getRange(cfiRange) {
 		var cfi = new EpubCFI(cfiRange);
 		var item = this.spine.get(cfi.spinePos);
+		var _request = this.load.bind(this);
 
-		return item.load().then(function (contents) {
+		return item.load(_request).then(function (contents) {
 			var range = cfi.toRange(item.document);
 			return range;
 		});
