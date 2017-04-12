@@ -793,7 +793,7 @@ class EpubCFI {
 	walkToNode(steps, _doc, ignoreClass) {
 		var doc = _doc || document;
 		var container = doc.documentElement;
-		var children = container.children || findChildren(container);
+		var children;
 		var step;
 		var len = steps.length;
 		var i;
@@ -808,6 +808,7 @@ class EpubCFI {
 					container = doc.getElementById(step.id);
 				}
 				else {
+					children = container.children || findChildren(container);
 					container = children[step.index];
 				}
 			} else if(step.type === "text") {
@@ -918,6 +919,7 @@ class EpubCFI {
 				range.setStart(missed.container, missed.offset);
 			}
 		} else {
+			console.log("NO START");
 			// No start found
 			return null;
 		}
