@@ -3,6 +3,7 @@ import {isNumber, prefixed} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
+import { Pane, Highlight } from "marks";
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -23,6 +24,8 @@ class Contents {
 		};
 
 		this.cfiBase = cfiBase || "";
+
+		this.pane = new Pane(content, this.document.body);
 
 		this.listeners();
 	}
@@ -306,6 +309,8 @@ class Contents {
 				width: width,
 				height: height
 			};
+
+			this.pane.render();
 
 			this.emit("resize", this._size);
 		}
@@ -745,6 +750,12 @@ class Contents {
 		replaceLinks(this.content, (href) => {
 			this.emit("link", href);
 		});
+	}
+
+	highlight(cfiRange, cb) {
+		let range = this.range(cfiRange);
+		let h = this.pane.addMark(new Highlight(range, "epubjs-hl", {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
+		h.element.addEventListener("click", cb);
 	}
 
 	destroy() {

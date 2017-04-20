@@ -190,8 +190,13 @@
       applier = rangy.createClassApplier("annotator-hl");
     });
 
+    rendition.on("rendered", (section, view) => {
+      var contents = view.contents;
+    });
+
+    /*
     // Apply a class to selected text
-    rendition.on("selected", function(cfiRange) {
+    rendition.on("selected", function(cfiRange, contents) {
       // Get the dom range of the selected text
       var range = rendition.getRange(cfiRange);
       // Create an empty Rangy range
@@ -202,17 +207,26 @@
       // Add the class to that range
       applier.applyToRange(rr);
       // Clear the selection
-      window.getSelection().removeAllRanges();
+      contents.window.getSelection().removeAllRanges();
+
+    });
+    */
+
+    // Apply a class to selected text
+    rendition.on("selected", function(cfiRange, contents) {
+      contents.highlight(cfiRange, (e) => {
+        console.log("highlight clicked", e.target);
+      });
+
+      contents.window.getSelection().removeAllRanges();
 
     });
 
-    // Add a yellow background to text with our highlight class
-    rendition.hooks.render.register(function (view) {
-      var highlightColor = [
-        ['.annotator-hl', ['background-color', 'yellow']]
-      ];
-      view.addStylesheetRules(highlightColor);
-    })
+    this.rendition.themes.default({
+      '.epubjs-hl' : {
+        'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'
+      }
+    });
 
     // Illustration of how to get text from a saved cfiRange
     var highlights = document.getElementById('highlights');
