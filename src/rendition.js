@@ -581,7 +581,7 @@ class Rendition {
 	 * @param  {string} ignoreClass
 	 * @return {range}
 	 */
-	range(cfi, ignoreClass){
+	getRange(cfi, ignoreClass){
 		var _cfi = new EpubCFI(cfi);
 		var found = this.manager.visible().filter(function (view) {
 			if(_cfi.spinePos === view.index) return true;
@@ -589,7 +589,7 @@ class Rendition {
 
 		// Should only every return 1 item
 		if (found.length) {
-			return found[0].range(_cfi, ignoreClass);
+			return found[0].contents.range(_cfi, ignoreClass);
 		}
 	}
 

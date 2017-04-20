@@ -193,7 +193,7 @@
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange) {
       // Get the dom range of the selected text
-      var range = rendition.range(cfiRange);
+      var range = rendition.getRange(cfiRange);
       // Create an empty Rangy range
       var rr = rangy.createRange();
       // Set that range to equal the dom range
