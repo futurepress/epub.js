@@ -3,7 +3,7 @@ import {isNumber, prefixed} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
-import { Pane, Highlight } from "marks";
+import { Pane, Highlight, Underline } from "marks";
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -469,7 +469,8 @@ class Contents {
 				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					// Let apply
-					setTimeout(function(){
+					setTimeout(() => {
+						this.pane.render();
 						resolve(true);
 					}, 1);
 				}
@@ -530,6 +531,7 @@ class Contents {
 				styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 			});
 		}
+		this.pane.render();
 	}
 
 	addScript(src) {
@@ -630,7 +632,7 @@ class Contents {
 		this.selectionEndTimeout = setTimeout(function() {
 			var selection = this.window.getSelection();
 			this.triggerSelectedEvent(selection);
-		}.bind(this), 500);
+		}.bind(this), 250);
 	}
 
 	triggerSelectedEvent(selection){
@@ -752,10 +754,49 @@ class Contents {
 		});
 	}
 
-	highlight(cfiRange, cb) {
+	highlight(cfiRange, data={}, cb) {
 		let range = this.range(cfiRange);
-		let h = this.pane.addMark(new Highlight(range, "epubjs-hl", {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
-		h.element.addEventListener("click", cb);
+
+		data["epubcfi"] = cfiRange;
+
+		let h = this.pane.addMark(new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
+		if (cb) {
+			h.element.addEventListener("click", cb);
+		}
+	}
+
+	underline(cfiRange, data={}, cb) {
+		let range = this.range(cfiRange);
+
+		data["epubcfi"] = cfiRange;
+
+		let h = this.pane.addMark(new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
+		if (cb) {
+			h.element.addEventListener("click", cb);
+		}
+	}
+
+	mark(cfiRange, data={}, cb) {
+		let range = this.range(cfiRange);
+
+		let container = range.commonAncestorContainer;
+		let parent = (container.nodeType === 1) ? container : container.parentNode;
+
+		parent.setAttribute("ref", "epubjs-mk");
+
+		parent.dataset["epubcfi"] = cfiRange;
+
+		if (data) {
+			Object.entries(data).forEach(([key, val]) => {
+				parent.dataset[key] = val;
+			});
+		}
+
+
+		if (cb) {
+			parent.addEventListener("click", cb);
+		}
+
 	}
 
 	destroy() {
