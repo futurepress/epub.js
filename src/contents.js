@@ -3,6 +3,7 @@ import {isNumber, prefixed} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
+import { Pane, Highlight, Underline } from "marks";
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -23,6 +24,8 @@ class Contents {
 		};
 
 		this.cfiBase = cfiBase || "";
+
+		this.pane = undefined;
 
 		this.listeners();
 	}
@@ -307,6 +310,8 @@ class Contents {
 				height: height
 			};
 
+			this.pane && this.pane.render();
+
 			this.emit("resize", this._size);
 		}
 
@@ -464,7 +469,8 @@ class Contents {
 				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					// Let apply
-					setTimeout(function(){
+					setTimeout(() => {
+						this.pane && this.pane.render();
 						resolve(true);
 					}, 1);
 				}
@@ -525,6 +531,7 @@ class Contents {
 				styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 			});
 		}
+		this.pane && this.pane.render();
 	}
 
 	addScript(src) {
@@ -625,7 +632,7 @@ class Contents {
 		this.selectionEndTimeout = setTimeout(function() {
 			var selection = this.window.getSelection();
 			this.triggerSelectedEvent(selection);
-		}.bind(this), 500);
+		}.bind(this), 250);
 	}
 
 	triggerSelectedEvent(selection){
@@ -745,6 +752,63 @@ class Contents {
 		replaceLinks(this.content, (href) => {
 			this.emit("link", href);
 		});
+	}
+
+	highlight(cfiRange, data={}, cb) {
+		let range = this.range(cfiRange);
+
+		data["epubcfi"] = cfiRange;
+
+		if (!this.pane) {
+			this.pane = new Pane(this.content, this.document.body);
+		}
+
+		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let h = this.pane.addMark(m);
+		if (cb) {
+			h.element.addEventListener("click", cb);
+		}
+		return h;
+	}
+
+	underline(cfiRange, data={}, cb) {
+		let range = this.range(cfiRange);
+
+		data["epubcfi"] = cfiRange;
+
+		if (!this.pane) {
+			this.pane = new Pane(this.content, this.document.body);
+		}
+
+		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let h = this.pane.addMark(m);
+		if (cb) {
+			h.element.addEventListener("click", cb);
+		}
+		return h;
+	}
+
+	mark(cfiRange, data={}, cb) {
+		let range = this.range(cfiRange);
+
+		let container = range.commonAncestorContainer;
+		let parent = (container.nodeType === 1) ? container : container.parentNode;
+
+		parent.setAttribute("ref", "epubjs-mk");
+
+		parent.dataset["epubcfi"] = cfiRange;
+
+		if (data) {
+			Object.entries(data).forEach(([key, val]) => {
+				parent.dataset[key] = val;
+			});
+		}
+
+
+		if (cb) {
+			parent.addEventListener("click", cb);
+		}
+
 	}
 
 	destroy() {

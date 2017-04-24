@@ -9,77 +9,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
 
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-core.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-classapplier.js"></script>
+  <link rel="stylesheet" type="text/css" href="examples.css">
 
   <style type="text/css">
-    body {
-      margin: 0;
-      background: #fafafa;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      color: #333;
-
-      position: absolute;
-      height: 100%;
-      width: 100%;
-    }
-
-    #viewer {
-      width: 900px;
-      /*width: 80%;*/
-      height: 600px;
-      background: white;
-      box-shadow: 0 0 4px #ccc;
-      border-radius: 5px;
-
-      padding: 20px 40px;
-      position: relative;
-      margin: 40px auto;
-    }
-
-    #frame {
-      position: relative;
-    }
-
-    #viewer iframe {
-        background: white;
-    }
-
-    #prev {
-      left: 40px;
-    }
-
-    #next {
-      right: 40px;
-    }
-
-    .arrow {
-      position: absolute;
-      top: 50%;
-      margin-top: -32px;
-      font-size: 64px;
-      color: #E2E2E2;
-      font-family: arial, sans-serif;
-      font-weight: bold;
-      cursor: pointer;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      user-select: none;
-    }
-
-    .arrow:hover {
-      color: #777;
-    }
-
-    .arrow:active {
-      color: #000;
-    }
-
-    #toc {
-      display: block;
-      margin: 10px auto;
-    }
-
     ::selection {
       background: yellow;
     }
@@ -90,50 +22,38 @@
     }
 
     #highlights {
-			list-style: none;
-			margin-left: 0;
-			padding: 0;
-		}
+      list-style: none;
+      margin-left: 0;
+      padding: 0;
+    }
 
     #highlights li {
-			list-style: none;
+      list-style: none;
       margin-bottom: 20px;
-			border-top: 1px solid #E2E2E2;
-			padding: 10px;
+      border-top: 1px solid #E2E2E2;
+      padding: 10px;
     }
 
     #highlights a {
       display: block;
     }
 
-    @media (min-width: 1000px) {
-      #viewer:after {
-        position: absolute;
-        width: 1px;
-        border-right: 1px #000 solid;
-        height: 90%;
-        z-index: 1;
-        left: 50%;
-        margin-left: -1px;
-        top: 5%;
-        opacity: .15;
-        box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
-        content:  "";
-      }
+    #viewer.spreads {
+      top: 0;
+      margin-top: 50px;
     }
 
   </style>
 </head>
 <body>
   <div id="frame">
-    <div id="viewer"></div>
-    <div id="prev" class="arrow">‹</div>
-    <div id="next" class="arrow">›</div>
+    <div id="viewer" class="spreads"></div>
+    <a id="prev" href="#prev" class="arrow">‹</a>
+    <a id="next" href="#next" class="arrow">›</a>
   </div>
   <div id="extras">
     <ul id="highlights"></ul>
   </div>
-
 
   <script>
     // Load the opf
@@ -183,36 +103,24 @@
       // console.log(location);
     });
 
-    var applier;
-
-    displayed.then(function(renderer){
-      // wait till something has been rendered to add applier
-      applier = rangy.createClassApplier("annotator-hl");
-    });
 
     // Apply a class to selected text
-    rendition.on("selected", function(cfiRange) {
-      // Get the dom range of the selected text
-      var range = rendition.getRange(cfiRange);
-      // Create an empty Rangy range
-      var rr = rangy.createRange();
-      // Set that range to equal the dom range
-      rr.setStart(range.startContainer, range.startOffset);
-      rr.setEnd(range.endContainer, range.endOffset);
-      // Add the class to that range
-      applier.applyToRange(rr);
-      // Clear the selection
-      window.getSelection().removeAllRanges();
+    rendition.on("selected", function(cfiRange, contents) {
+      contents.highlight(cfiRange, {}, (e) => {
+        console.log("highlight clicked", e.target);
+      });
+      contents.window.getSelection().removeAllRanges();
 
     });
 
-    // Add a yellow background to text with our highlight class
-    rendition.hooks.render.register(function (view) {
-      var highlightColor = [
-        ['.annotator-hl', ['background-color', 'yellow']]
-      ];
-      view.addStylesheetRules(highlightColor);
-    })
+    this.rendition.themes.default({
+      '::selection': {
+        'background': 'rgba(255,255,0, 0.3)'
+      },
+      '.epubjs-hl' : {
+        'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'
+      }
+    });
 
     // Illustration of how to get text from a saved cfiRange
     var highlights = document.getElementById('highlights');

@@ -310,7 +310,7 @@ class Rendition {
 	 */
 	afterDisplayed(view){
 		this.hooks.content.trigger(view.contents, this);
-		this.emit("rendered", view.section);
+		this.emit("rendered", view.section, view);
 		// this.reportLocation();
 	}
 
@@ -550,11 +550,11 @@ class Rendition {
 	passEvents(contents){
 		var listenedEvents = Contents.listenedEvents;
 
-		listenedEvents.forEach(function(e){
-			contents.on(e, this.triggerViewEvent.bind(this));
-		}.bind(this));
+		listenedEvents.forEach((e) => {
+			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
+		});
 
-		contents.on("selected", this.triggerSelectedEvent.bind(this));
+		contents.on("selected", (e) => this.triggerSelectedEvent(e, contents));
 	}
 
 	/**
@@ -562,8 +562,8 @@ class Rendition {
 	 * @private
 	 * @param  {event} e
 	 */
-	triggerViewEvent(e){
-		this.emit(e.type, e);
+	triggerViewEvent(e, contents){
+		this.emit(e.type, e, contents);
 	}
 
 	/**
@@ -571,8 +571,8 @@ class Rendition {
 	 * @private
 	 * @param  {EpubCFI} cfirange
 	 */
-	triggerSelectedEvent(cfirange){
-		this.emit("selected", cfirange);
+	triggerSelectedEvent(cfirange, contents){
+		this.emit("selected", cfirange, contents);
 	}
 
 	/**
