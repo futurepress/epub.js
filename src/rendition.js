@@ -613,6 +613,7 @@ class Rendition {
 				"page-break-inside": "avoid"
 			}
 		});
+
 		return new Promise(function(resolve, reject){
 			// Wait to apply
 			setTimeout(function() {

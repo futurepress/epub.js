@@ -293,6 +293,8 @@ class Contents {
 		this.removeEventListeners();
 
 		this.removeSelectionListeners();
+
+		clearTimeout(this.expanding);
 	}
 
 	resizeListeners() {

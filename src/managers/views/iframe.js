@@ -438,6 +438,12 @@ class IframeView {
 			}
 		});
 
+		this.contents.on("resize", function () {
+			if(this.displayed && this.iframe) {
+				this.expand();
+			}
+		});
+
 		promise.resolve(this.contents);
 	}
 
