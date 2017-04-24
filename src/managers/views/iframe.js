@@ -146,21 +146,21 @@ class IframeView {
 				// apply the layout function to the contents
 				this.settings.layout.format(this.contents);
 
-				// Expand the iframe to the full size of the content
-				this.expand();
-
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
 
-				if(show !== false) {
-					//this.q.enqueue(function(view){
-						// this.show();
-					//}, view);
-				}
-				// this.map = new Map(view, this.layout);
-				//this.hooks.show.trigger(view, this);
-				this.emit("rendered", this.section);
+				// Wait for formating to apply
+				return new Promise((resolve, reject) => {
+					setTimeout(() => {
+						// Expand the iframe to the full size of the content
+						this.expand();
+						resolve();
+					}, 1);
+				});
 
+			}.bind(this))
+			.then(function() {
+				this.emit("rendered", this.section);
 			}.bind(this))
 			.catch(function(e){
 				this.emit("loaderror", e);
@@ -432,7 +432,13 @@ class IframeView {
 			this.document.querySelector("head").appendChild(link);
 		}
 
-		this.contents.on("expand", function () {
+		this.contents.on("expand", () => {
+			if(this.displayed && this.iframe) {
+				this.expand();
+			}
+		});
+
+		this.contents.on("resize", (e) => {
 			if(this.displayed && this.iframe) {
 				this.expand();
 			}
