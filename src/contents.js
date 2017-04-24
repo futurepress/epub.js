@@ -25,7 +25,7 @@ class Contents {
 
 		this.cfiBase = cfiBase || "";
 
-		this.pane = new Pane(content, this.document.body);
+		this.pane = undefined;
 
 		this.listeners();
 	}
@@ -310,7 +310,7 @@ class Contents {
 				height: height
 			};
 
-			this.pane.render();
+			this.pane && this.pane.render();
 
 			this.emit("resize", this._size);
 		}
@@ -470,7 +470,7 @@ class Contents {
 					ready = true;
 					// Let apply
 					setTimeout(() => {
-						this.pane.render();
+						this.pane && this.pane.render();
 						resolve(true);
 					}, 1);
 				}
@@ -531,7 +531,7 @@ class Contents {
 				styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 			});
 		}
-		this.pane.render();
+		this.pane && this.pane.render();
 	}
 
 	addScript(src) {
@@ -759,10 +759,16 @@ class Contents {
 
 		data["epubcfi"] = cfiRange;
 
-		let h = this.pane.addMark(new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
+		if (!this.pane) {
+			this.pane = new Pane(this.content, this.document.body);
+		}
+
+		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let h = this.pane.addMark(m);
 		if (cb) {
 			h.element.addEventListener("click", cb);
 		}
+		return h;
 	}
 
 	underline(cfiRange, data={}, cb) {
@@ -770,10 +776,16 @@ class Contents {
 
 		data["epubcfi"] = cfiRange;
 
-		let h = this.pane.addMark(new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'}));
+		if (!this.pane) {
+			this.pane = new Pane(this.content, this.document.body);
+		}
+
+		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let h = this.pane.addMark(m);
 		if (cb) {
 			h.element.addEventListener("click", cb);
 		}
+		return h;
 	}
 
 	mark(cfiRange, data={}, cb) {
