@@ -3,7 +3,7 @@ import {isNumber, prefixed} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
-import { Pane, Highlight, Underline } from "marks";
+import { Pane, Highlight, Underline } from "marks-pane";
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
