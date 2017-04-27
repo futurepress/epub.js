@@ -6,7 +6,7 @@ import {replaceLinks} from "./utils/replacements";
 import { Pane, Highlight, Underline } from "marks-pane";
 
 // Dom events to listen for
-const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart", "markClicked"];
 
 class Contents {
 	constructor(doc, content, cfiBase) {
@@ -767,6 +767,11 @@ class Contents {
 
 		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
 		let h = this.pane.addMark(m);
+
+		h.addEventListener("click", () => {
+			this.emit("markClicked", cfiRange, data);
+		});
+
 		if (cb) {
 			h.element.addEventListener("click", cb);
 		}
@@ -784,6 +789,11 @@ class Contents {
 
 		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
 		let h = this.pane.addMark(m);
+
+		h.addEventListener("click", () => {
+			this.emit("markClicked", cfiRange, data);
+		});
+
 		if (cb) {
 			h.element.addEventListener("click", cb);
 		}
@@ -801,16 +811,20 @@ class Contents {
 		parent.dataset["epubcfi"] = cfiRange;
 
 		if (data) {
-			Object.entries(data).forEach(([key, val]) => {
-				parent.dataset[key] = val;
+			Object.keys(data).forEach((key) => {
+				parent.dataset[key] = data[key];
 			});
 		}
 
+		parent.addEventListener("click", () => {
+			this.emit("markClicked", cfiRange, data);
+		});
 
 		if (cb) {
 			parent.addEventListener("click", cb);
 		}
 
+		return parent;
 	}
 
 	destroy() {
