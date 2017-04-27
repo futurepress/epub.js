@@ -264,7 +264,7 @@ export function createBlob(content, mime){
 export function createBlobUrl(content, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
-	var blob = this.createBlob(content, mime);
+	var blob = createBlob(content, mime);
 
 	tempUrl = _URL.createObjectURL(blob);
 
