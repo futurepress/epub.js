@@ -555,6 +555,7 @@ class Rendition {
 		});
 
 		contents.on("selected", (e) => this.triggerSelectedEvent(e, contents));
+		contents.on("markClicked", (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, contents));
 	}
 
 	/**
@@ -573,6 +574,15 @@ class Rendition {
 	 */
 	triggerSelectedEvent(cfirange, contents){
 		this.emit("selected", cfirange, contents);
+	}
+
+	/**
+	 * Emit a markClicked event with the cfiRange and data from a mark
+	 * @private
+	 * @param  {EpubCFI} cfirange
+	 */
+	triggerMarkEvent(cfiRange, data, contents){
+		this.emit("markClicked", cfiRange, data, contents);
 	}
 
 	/**

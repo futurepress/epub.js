@@ -69,8 +69,13 @@
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
 
-      contents.mark(cfiRange, {'something' : true}, (e) => {
-        console.log("mark clicked", e.target);
+      var m = contents.mark(cfiRange, {'something' : true}, (e) => {
+        var bounds = e.target.getBoundingClientRect();
+        var clientX = e.clientX;
+
+        if (clientX > bounds.right) {
+          console.log("mark clicked", e.target);
+        }
       });
 
       contents.window.getSelection().removeAllRanges();

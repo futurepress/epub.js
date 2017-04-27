@@ -6,7 +6,7 @@ import {replaceLinks} from "./utils/replacements";
 import { Pane, Highlight, Underline } from "marks-pane";
 
 // Dom events to listen for
-const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart", "markClicked"];
+const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 class Contents {
 	constructor(doc, content, cfiBase) {
