@@ -768,7 +768,7 @@ class Contents {
 		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
 		let h = this.pane.addMark(m);
 
-		h.addEventListener("click", () => {
+		h.element.addEventListener("click", () => {
 			this.emit("markClicked", cfiRange, data);
 		});
 
@@ -790,7 +790,7 @@ class Contents {
 		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
 		let h = this.pane.addMark(m);
 
-		h.addEventListener("click", () => {
+		h.element.addEventListener("click", () => {
 			this.emit("markClicked", cfiRange, data);
 		});
 
