@@ -2546,7 +2546,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.16";
+EPUBJS.VERSION = "0.2.17";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -3827,7 +3827,7 @@ EPUBJS.Book.prototype.resetClasses = function(classes) {
 	if(!this.isRendered) return this._q.enqueue("setClasses", arguments);
 
   if(classes.constructor === String) classes = [ classes ];
-  
+
   this.settings.classes = classes;
 
 	this.renderer.setClasses(this.settings.classes);
@@ -7465,8 +7465,8 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeEventListeners();
 		this.removeSelectionListeners();
 	}
-	
-	// clean container content 
+
+	// clean container content
 	//this.container.innerHtml = ""; // not safe
 	this.container.removeChild(this.element);
 };
@@ -8243,7 +8243,7 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
 	this.trigger('renderer:beforeResize');
-	
+
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 
@@ -8849,6 +8849,13 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 			then(function(text){
 				var parser = new DOMParser();
 				var mimeType = EPUBJS.core.getMimeType(url);
+
+				// Remove byte order mark before parsing
+				// https://www.w3.org/International/questions/qa-byte-order-mark
+				if(text.charCodeAt(0) === 0xFEFF) {
+					text = text.slice(1);
+				}
+
 				return parser.parseFromString(text, mimeType);
 			});
 

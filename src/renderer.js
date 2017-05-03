@@ -400,8 +400,8 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeEventListeners();
 		this.removeSelectionListeners();
 	}
-	
-	// clean container content 
+
+	// clean container content
 	//this.container.innerHtml = ""; // not safe
 	this.container.removeChild(this.element);
 };
@@ -1178,7 +1178,7 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
 	this.trigger('renderer:beforeResize');
-	
+
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 

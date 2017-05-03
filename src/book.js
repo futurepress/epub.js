@@ -1218,7 +1218,7 @@ EPUBJS.Book.prototype.resetClasses = function(classes) {
 	if(!this.isRendered) return this._q.enqueue("setClasses", arguments);
 
   if(classes.constructor === String) classes = [ classes ];
-  
+
   this.settings.classes = classes;
 
 	this.renderer.setClasses(this.settings.classes);
