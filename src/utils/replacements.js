@@ -1,5 +1,6 @@
 import { qs, qsa } from "./core";
 import Url from "./url";
+import Path from "./path";
 
 export function replaceBase(doc, section){
 	var base;
@@ -47,8 +48,13 @@ export function replaceCanonical(doc, section){
 export function replaceLinks(contents, fn) {
 
 	var links = contents.querySelectorAll("a[href]");
+
+	if (!links.length) {
+		return;
+	}
+
 	var base = qs(contents.ownerDocument, "base");
-	var location = base ? base.href : undefined;
+	var location = base ? base.getAttribute("href") : undefined;
 	var replaceLink = function(link){
 		var href = link.getAttribute("href");
 

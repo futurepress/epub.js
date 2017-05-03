@@ -13,6 +13,7 @@ class Url {
 	constructor(urlString, baseString) {
 		var absolute = (urlString.indexOf("://") > -1);
 		var pathname = urlString;
+		var basePath;
 
 		this.Url = undefined;
 		this.href = urlString;
@@ -49,10 +50,16 @@ class Url {
 			} catch (e) {
 				// Skip URL parsing
 				this.Url = undefined;
+				// resolve the pathname from the base
+				if (this.base) {
+					basePath = new Path(this.base);
+					pathname = basePath.resolve(pathname);
+				}
 			}
 		}
 
 		this.Path = new Path(pathname);
+
 		this.directory = this.Path.directory;
 		this.filename = this.Path.filename;
 		this.extension = this.Path.extension;
