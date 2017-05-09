@@ -475,7 +475,8 @@ export function querySelectorByType(html, element, type){
 	if(!query || query.length === 0) {
 		query = qsa(html, element);
 		for (var i = 0; i < query.length; i++) {
-			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
+				 query[i].getAttribute("epub:type") === type) {
 				return query[i];
 			}
 		}

@@ -187,11 +187,11 @@ class Stage {
 	}
 
 	bounds(){
-
-		if(!this.container) {
+		let box = this.container && this.container.getBoundingClientRect();
+		if(!box || !box.width || !box.height) {
 			return windowBounds();
 		} else {
-			return this.container.getBoundingClientRect();
+			return box;
 		}
 
 	}
