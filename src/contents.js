@@ -621,7 +621,6 @@ class Contents {
 			this.document.removeEventListener(eventName, this.triggerEvent, false);
 		}, this);
 
-		this.removeAllListeners("resize");
 	}
 
 	// Pass browser events
@@ -712,7 +711,7 @@ class Contents {
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
-		// this.overflowY("hidden");
+		this.css("display", "inline-block"); // Fixes Safari column cut offs
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
 		this.css("padding", "0", true);
@@ -724,9 +723,6 @@ class Contents {
 
 		this.css(COLUMN_GAP, gap+"px");
 		this.css(COLUMN_WIDTH, columnWidth+"px");
-
-		// reset to the full width for Safari
-		this.width(this.documentElement.scrollWidth);
 	}
 
 	scaler(scale, offsetX, offsetY){
