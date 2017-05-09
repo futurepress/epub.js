@@ -185,7 +185,15 @@ class Contents {
 		var _width, _height, _scale, _minimum, _maximum, _scalable;
 		var width, height, scale, minimum, maximum, scalable;
 		var $viewport = this.document.querySelector("meta[name='viewport']");
-		var newContent = "";
+		var parsed = {
+			"width": undefined,
+			"height": undefined,
+			"scale": undefined,
+			"minimum": undefined,
+			"maximum": undefined,
+			"scalable": undefined
+		};
+		var newContent = [];
 
 		/*
 		* check for the viewport size
@@ -199,37 +207,42 @@ class Contents {
 			let _minimum = content.match(/minimum-scale\s*=\s*([^,]*)/g);
 			let _maximum = content.match(/maximum-scale\s*=\s*([^,]*)/g);
 			let _scalable = content.match(/user-scalable\s*=\s*([^,]*)/g);
-			if(_width[1]){
-				width = _width[1];
+			if(_width && _width.length && typeof _width[1] !== "undefined"){
+				parsed.width = _width[1];
 			}
-			if(_height[1]){
-				height = _height[1];
+			if(_height && _height.length && typeof _height[1] !== "undefined"){
+				parsed.height = _height[1];
 			}
-			if(_scale[1]){
-				scale = _scale[1];
+			if(_scale && _scale.length && typeof _scale[1] !== "undefined"){
+				parsed.scale = _scale[1];
 			}
-			if(_minimum[1]){
-				minimum = _minimum[1];
+			if(_minimum && _minimum.length && typeof _minimum[1] !== "undefined"){
+				parsed.minimum = _minimum[1];
 			}
-			if(_maximum[1]){
-				maximum = _maximum[1];
+			if(_maximum && _maximum.length && typeof _maximum[1] !== "undefined"){
+				parsed.maximum = _maximum[1];
 			}
-			if(_scalable[1]){
-				scalable = _scalable[1];
+			if(_scalable && _scalable.length && typeof _scalable[1] !== "undefined"){
+				parsed.scalable = _scalable[1];
 			}
 		}
 
 		if (options) {
-
-			newContent += "width=" + (options.width || width);
-			newContent += ", height=" + (options.height || height);
-			if (options.scale || scale) {
-				newContent += ", initial-scale=" + (options.scale || scale);
+			if (options.width || parsed.width) {
+				newContent.push("width=" + (options.width || parsed.width));
 			}
-			if (options.scalable || scalable) {
-				newContent += ", minimum-scale=" + (options.scale || minimum);
-				newContent += ", maximum-scale=" + (options.scale || maximum);
-				newContent += ", user-scalable=" + (options.scalable || scalable);
+
+			if (options.height || parsed.height) {
+				newContent.push("height=" + (options.height || parsed.height));
+			}
+
+			if (options.scale || parsed.scale) {
+				newContent.push("initial-scale=" + (options.scale || parsed.scale));
+			}
+			if (options.scalable || parsed.scalable) {
+				newContent.push("minimum-scale=" + (options.scale || parsed.minimum));
+				newContent.push("maximum-scale=" + (options.scale || parsed.maximum));
+				newContent.push("user-scalable=" + (options.scalable || parsed.scalable));
 			}
 
 			if (!$viewport) {
@@ -238,7 +251,7 @@ class Contents {
 				this.document.querySelector("head").appendChild($viewport);
 			}
 
-			$viewport.setAttribute("content", newContent);
+			$viewport.setAttribute("content", newContent.join(", "));
 		}
 
 
@@ -316,7 +329,6 @@ class Contents {
 			};
 
 			this.pane && this.pane.render();
-
 			this.emit("resize", this._size);
 		}
 
@@ -699,7 +711,7 @@ class Contents {
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
-		// this.overflowY("hidden");
+		this.css("display", "inline-block"); // Fixes Safari column cut offs
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
 		this.css("padding", "0", true);

@@ -113,6 +113,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this._stageSize = this.stage.size(width, height);
 		this._bounds = this.bounds();
+		console.log("set bounds", this._bounds);
 
 		// Update for new views
 		this.viewSettings.width = this._stageSize.width;
@@ -275,7 +276,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var offset = horizontal ? this.scrollLeft : this.scrollTop;
 		var visibleLength = horizontal ? bounds.width : bounds.height;
 		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
-
+		console.log(bounds);
 		if (offset + visibleLength + delta >= contentLength) {
 			last = this.views.last();
 			next = last && last.section.next();
