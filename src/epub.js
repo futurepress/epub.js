@@ -1,3 +1,4 @@
+import 'url-polyfill'
 import Book from "./book";
 import EpubCFI from "./epubcfi";
 import Rendition from "./rendition";
