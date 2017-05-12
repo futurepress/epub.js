@@ -276,7 +276,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var offset = horizontal ? this.scrollLeft : this.scrollTop;
 		var visibleLength = horizontal ? bounds.width : bounds.height;
 		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
-		console.log(bounds);
+
 		if (offset + visibleLength + delta >= contentLength) {
 			last = this.views.last();
 			next = last && last.section.next();

@@ -18,7 +18,7 @@
   <a id="next" href="#next" class="arrow">›</a>
 
   <script>
-    var params = new URLSearchParams(document.location.search.substring(1));
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
     var url = params && params.get("url") && decodeURIComponent(params.get("url"));
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : 0;
 

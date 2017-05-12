@@ -38,8 +38,8 @@ export function isFloat(n) {
 }
 
 export function prefixed(unprefixed) {
-	//var vendors = ["Webkit", "Moz", "O", "ms" ];
-	var vendors = ["-Webkit-", "-moz-", "-o-", "-ms-"];
+	var vendors = ["Webkit", "webkit", "Moz", "O", "ms" ];
+	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
 	var upper = unprefixed[0].toUpperCase() + unprefixed.slice(1);
 	var length = vendors.length;
 
@@ -49,7 +49,7 @@ export function prefixed(unprefixed) {
 
 	for ( var i=0; i < length; i++ ) {
 		if (typeof(document.body.style[vendors[i] + upper]) != "undefined") {
-			return vendors[i] + upper;
+			return prefixes[i] + unprefixed;
 		}
 	}
 
