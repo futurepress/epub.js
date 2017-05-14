@@ -1,3 +1,4 @@
+import URL from "url-api-polyfill";
 import Book from "./book";
 import EpubCFI from "./epubcfi";
 import Rendition from "./rendition";
@@ -50,6 +51,7 @@ ePub.register = {
 ePub.register.view("iframe", require("./managers/views/iframe"));
 
 // Default View Managers
+ePub.register.manager("URL", URL);
 ePub.register.manager("default", require("./managers/default"));
 ePub.register.manager("continuous", require("./managers/continuous"));
 
