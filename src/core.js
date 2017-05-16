@@ -1,6 +1,11 @@
 var EPUBJS = EPUBJS || {};
 EPUBJS.core = {};
 
+var ELEMENT_NODE = 1;
+var TEXT_NODE = 3;
+var COMMENT_NODE = 8;
+var DOCUMENT_NODE = 9;
+
 //-- Get a element for an id
 EPUBJS.core.getEl = function(elem) {
 	return document.getElementById(elem);
@@ -624,3 +629,27 @@ EPUBJS.core.values = function(object) {
   }
   return result;
 };
+
+EPUBJS.core.indexOfNode = function(node, typeId) {
+	var parent = node.parentNode;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if (sib.nodeType === typeId) {
+			index++;
+		}
+		if (sib == node) break;
+	}
+
+	return index;
+}
+
+EPUBJS.core.indexOfTextNode = function(textNode) {
+	return EPUBJS.core.indexOfNode(textNode, TEXT_NODE);
+}
+
+EPUBJS.core.indexOfElementNode = function(elementNode) {
+	return EPUBJS.core.indexOfNode(elementNode, ELEMENT_NODE);
+}
