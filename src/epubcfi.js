@@ -4,7 +4,7 @@ EPUBJS.EpubCFI = function(cfiStr){
 
 EPUBJS.EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id) {
   var pos = parseInt(_pos),
-    spineNodeIndex = _spineNodeIndex + 1,
+    spineNodeIndex = (_spineNodeIndex + 1) * 2
     cfi = '/'+spineNodeIndex+'/';
 
   cfi += (pos + 1) * 2;
@@ -30,7 +30,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
     return "epubcfi(" + chapter + "!/4/)";
   } else {
     // First Text Node
-    return "epubcfi(" + chapter + "!" + path + "/1:0)";
+    return "epubcfi(" + chapter + "!/" + path + "/1:0)";
   }
 };
 
@@ -375,7 +375,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base
   var steps = this.pathTo(parent);
   var path = this.generatePathComponent(steps);
   var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
-  return "epubcfi(" + base + "!" + path + "/"+index+":"+(offset || 0)+")";
+  return "epubcfi(" + base + "!/" + path + "/"+index+":"+(offset || 0)+")";
 };
 
 EPUBJS.EpubCFI.prototype.generateCfiFromRangeAnchor = function(range, base) {
@@ -427,10 +427,10 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
       endPath = endPath + "/";
     }
 
-    return "epubcfi(" + base + "!" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + endIndex + ":" + endOffset + ")";
+    return "epubcfi(" + base + "!/" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + endIndex + ":" + endOffset + ")";
 
   } else {
-    return "epubcfi(" + base + "!" + startPath + "/"+ startIndex +":"+ startOffset +")";
+    return "epubcfi(" + base + "!/" + startPath + "/"+ startIndex +":"+ startOffset +")";
   }
 };
 

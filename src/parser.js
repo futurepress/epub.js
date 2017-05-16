@@ -243,7 +243,8 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 	var selected = spineXml.getElementsByTagName("itemref"),
 			items = Array.prototype.slice.call(selected);
 
-	var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
+	// var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
+	var spineNodeIndex = EPUBJS.core.indexOfElementNode(spineXml);
 
 	var epubcfi = new EPUBJS.EpubCFI();
 
