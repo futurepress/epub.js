@@ -19,13 +19,23 @@
         <script>
             "use strict";
 
+            var defaultDocument = 'moby-dick/';
+
+	    function getURLParameter(name) {
+	        return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [, ""])[1].replace(/\+/g, '%20')) || null
+	    }
+	    var myDocument = getURLParameter('book');
+	    if (myDocument === null) {
+	        myDocument = defaultDocument;
+	    }
+
             document.onreadystatechange = function () {
               if (document.readyState == "complete") {
                 EPUBJS.filePath = "js/libs/";
                 EPUBJS.cssPath = window.location.href.replace(window.location.hash, '').replace('index.html', '') + "css/";
                 // fileStorage.filePath = EPUBJS.filePath;
 
-                window.reader = ePubReader("moby-dick/");
+                window.reader = ePubReader('books/' + myDocument);
               }
             };
 
