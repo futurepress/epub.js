@@ -45,15 +45,16 @@ class Mapping {
 
 	walk(root, func) {
 		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-				if ( node.data.trim().length > 0 ) {
-					return NodeFilter.FILTER_ACCEPT;
-				} else {
-					return NodeFilter.FILTER_REJECT;
-				}
+		var filter = { acceptNode: function(node) {
+			if (node && node.data && node.data.trim().length > 0 ) {
+				return NodeFilter.FILTER_ACCEPT;
+			} else {
+				return NodeFilter.FILTER_REJECT;
 			}
-		}, false);
+		}};
+		var safeFilter = filter.acceptNode;
+		safeFilter.acceptNode = filter.acceptNode;
+		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, safeFilter, false);
 		var node;
 		var result;
 		while ((node = treeWalker.nextNode())) {

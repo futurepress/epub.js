@@ -6,7 +6,7 @@ var LEGACY = (process.env.LEGACY)
 var hostname = "localhost";
 var port = 8080;
 var enter = LEGACY ? {
-		"epub.legacy": ["babel-polyfill", "./libs/url/url.js", "./src/epub.js"]
+		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
 	} : {
 		"epub": "./src/epub.js",
 	};
