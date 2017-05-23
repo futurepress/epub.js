@@ -45,7 +45,7 @@ class Mapping {
 
 	walk(root, func) {
 		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-		var filter = { acceptNode: function() {
+		var filter = { acceptNode: function(node) {
 			if (node && node.data && node.data.trim().length > 0 ) {
 				return NodeFilter.FILTER_ACCEPT;
 			} else {
