@@ -54,9 +54,9 @@ Create the new ePub, and then render it to that element:
 </script>
 ```
 
-See the [Documentation](https://github.com/futurepress/epub.js/blob/master/documentation/README.md) to view events and methods for getting the books contents.
+See the [Documentation](./documentation/README.md) to view events and methods for getting the books contents.
 
-The [Examples](https://github.com/futurepress/epub.js/tree/master/examples) are likely the best place to learn how to use the library.
+The [Examples](./examples) are likely the best place to learn how to use the library.
 
 Internet Explorer
 -------------------------
