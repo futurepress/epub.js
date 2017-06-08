@@ -1,6 +1,6 @@
 {
   "name": "epubjs",
-  "version": "0.3.33",
+  "version": "0.3.34",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -75,6 +75,6 @@
     "marks-pane": "^1.0.0",
     "path-webpack": "^0.0.3",
     "stream-browserify": "^2.0.1",
-    "xmldom": "^0.1.27"
+    "xmldom": "0.1.27"
   }
 }

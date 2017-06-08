@@ -685,18 +685,22 @@ class Contents {
 	}
 
 	size(width, height){
+		var viewport = { scale: 1.0, scalable: "no" };
 
 		if (width >= 0) {
 			this.width(width);
+			viewport.width = width;
 		}
 
 		if (height >= 0) {
 			this.height(height);
+			viewport.height = height;
 		}
 
 		this.css("margin", "0");
 		this.css("box-sizing", "border-box");
 
+		this.viewport(viewport);
 	}
 
 	columns(width, height, columnWidth, gap){
@@ -751,7 +755,7 @@ class Contents {
 		this.overflow("hidden");
 
 		// Deal with Mobile trying to scale to viewport
-		this.viewport({ scale: 1.0 });
+		this.viewport({ width: width, height: height, scale: 1.0 });
 
 		// Scale to the correct size
 		this.scaler(scale, 0, offsetY);
