@@ -405,13 +405,17 @@ class Rendition {
 	 */
 	flow(flow){
 		var _flow = flow;
-		if (flow === "scrolled-doc" || flow === "scrolled-continuous") {
+		if (flow === "scrolled" ||
+				flow === "scrolled-doc" ||
+				flow === "scrolled-continuous") {
 			_flow = "scrolled";
 		}
 
 		if (flow === "auto" || flow === "paginated") {
 			_flow = "paginated";
 		}
+
+		this.settings.flow = flow;
 
 		if (this._layout) {
 			this._layout.flow(_flow);

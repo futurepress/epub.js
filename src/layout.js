@@ -15,7 +15,8 @@ class Layout {
 		this._minSpreadWidth = settings.minSpreadWidth || 800;
 		this._evenSpreads = settings.evenSpreads || false;
 
-		if (settings.flow === "scrolled-continuous" ||
+		if (settings.flow === "scrolled" ||
+				settings.flow === "scrolled-continuous" ||
 				settings.flow === "scrolled-doc") {
 			this._flow = "scrolled";
 		} else {
@@ -53,7 +54,8 @@ class Layout {
 	 */
 	flow(flow) {
 		if (typeof(flow) != "undefined") {
-			if (flow === "scrolled-continuous" ||
+			if (flow === "scrolled" ||
+					flow === "scrolled-continuous" ||
 					flow === "scrolled-doc") {
 				this._flow = "scrolled";
 			} else {
