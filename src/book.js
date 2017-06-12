@@ -836,6 +836,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		chapter.registerHook("beforeChapterRender", [
 			EPUBJS.replace.head,
 			EPUBJS.replace.resources,
+			EPUBJS.replace.posters,
 			EPUBJS.replace.svg
 		], true);
 
@@ -1151,6 +1152,7 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	var hooks = [
 		EPUBJS.replace.head,
 		EPUBJS.replace.resources,
+		EPUBJS.replace.posters,
 		EPUBJS.replace.svg
 	];
 
@@ -1413,7 +1415,7 @@ RSVP.on('error', function(event) {
 	console.error(event);
 });
 
-// RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);

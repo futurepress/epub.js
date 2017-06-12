@@ -68,6 +68,12 @@ EPUBJS.replace.resources = function(callback, renderer){
 
 };
 
+EPUBJS.replace.posters = function(callback, renderer){
+
+	renderer.replaceWithStored("[poster]", "poster", EPUBJS.replace.srcs, callback);
+
+};
+
 EPUBJS.replace.svg = function(callback, renderer) {
 
 	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
@@ -78,7 +84,13 @@ EPUBJS.replace.svg = function(callback, renderer) {
 
 EPUBJS.replace.srcs = function(_store, full, done){
 
-	_store.getUrl(full).then(done);
+	var isRelative = (full.search("://") === -1);
+
+	if (isRelative) {
+		_store.getUrl(full).then(done);
+	} else {
+		done();
+	}
 
 };
 
