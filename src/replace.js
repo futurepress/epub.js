@@ -40,6 +40,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			}
 
 			link.onclick = function(){
+                                book.trigger("book:linkClicked", href);
 				book.goto(relative);
 				return false;
 			};
