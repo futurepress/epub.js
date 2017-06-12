@@ -3445,6 +3445,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		chapter.registerHook("beforeChapterRender", [
 			EPUBJS.replace.head,
 			EPUBJS.replace.resources,
+			EPUBJS.replace.posters,
 			EPUBJS.replace.svg
 		], true);
 
@@ -3760,6 +3761,7 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	var hooks = [
 		EPUBJS.replace.head,
 		EPUBJS.replace.resources,
+		EPUBJS.replace.posters,
 		EPUBJS.replace.svg
 	];
 
@@ -4022,7 +4024,7 @@ RSVP.on('error', function(event) {
 	console.error(event);
 });
 
-// RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
@@ -8445,6 +8447,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			}
 
 			link.onclick = function(){
+                                book.trigger("book:linkClicked", href);
 				book.goto(relative);
 				return false;
 			};
@@ -8472,6 +8475,12 @@ EPUBJS.replace.resources = function(callback, renderer){
 
 };
 
+EPUBJS.replace.posters = function(callback, renderer){
+
+	renderer.replaceWithStored("[poster]", "poster", EPUBJS.replace.srcs, callback);
+
+};
+
 EPUBJS.replace.svg = function(callback, renderer) {
 
 	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
@@ -8482,7 +8491,13 @@ EPUBJS.replace.svg = function(callback, renderer) {
 
 EPUBJS.replace.srcs = function(_store, full, done){
 
-	_store.getUrl(full).then(done);
+	var isRelative = (full.search("://") === -1);
+
+	if (isRelative) {
+		_store.getUrl(full).then(done);
+	} else {
+		done();
+	}
 
 };
 
