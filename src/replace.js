@@ -14,6 +14,11 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 				uri,
 				url;
 
+		if(href.indexOf("mailto:") === 0){
+			done();
+			return;
+		}
+
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
@@ -24,6 +29,10 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			url = base.getAttribute("href");
 			uri = EPUBJS.core.uri(url);
 			directory = uri.directory;
+
+			if (href.indexOf("#") === 0) {
+				href = uri.filename + href;
+			}
 
 			if(directory) {
 				// We must ensure that the file:// protocol is preserved for
