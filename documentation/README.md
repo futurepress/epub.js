@@ -210,6 +210,13 @@ book:online
 
 book:offline
 
+book:linkClicked
+```javascript
+book.on('book:linkClicked', function(href) {
+    console.log(href);
+});
+```
+
 book:pageChanged
 ``` javascript
 {
