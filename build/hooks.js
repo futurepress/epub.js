@@ -210,6 +210,8 @@ EPUBJS.Hooks.register("beforeChapterDisplay").smartimages = function(callback, r
 				iheight = renderer.contents.clientHeight;
 				if(top < 0) top = 0;
 
+				item.style.maxWidth =  "100%";
+
 				if(height + top >= iheight) {
 
 					if(top < iheight/2) {
