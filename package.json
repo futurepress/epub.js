@@ -18,6 +18,7 @@
     "legacy": "NODE_ENV=production LEGACY=true npm run build",
     "compile": "./node_modules/.bin/babel --optional runtime -d lib/ src/",
     "watch": "./node_modules/.bin/babel --watch --optional runtime -d lib/ src/",
+    "serve": "./node_modules/.bin/gulp serve",
     "prepublish": "npm run compile && npm run build && npm run minify && npm run legacy"
   },
   "author": "fchasen@gmail.com",

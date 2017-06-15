@@ -541,11 +541,21 @@ class Contents {
 			const selectors = Object.keys(rules);
 			selectors.forEach((selector) => {
 				const definition = rules[selector];
-				const _rules = Object.keys(definition);
-				const result = _rules.map((rule) => {
-					return `${rule}:${definition[rule]}`;
-				}).join(';');
-				styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+				if (Array.isArray(definition)) {
+					definition.forEach((item) => {
+						const _rules = Object.keys(item);
+						const result = _rules.map((rule) => {
+							return `${rule}:${item[rule]}`;
+						}).join(';');
+						styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+					});
+				} else {
+					const _rules = Object.keys(definition);
+					const result = _rules.map((rule) => {
+						return `${rule}:${definition[rule]}`;
+					}).join(';');
+					styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+				}
 			});
 		}
 		this.pane && this.pane.render();
@@ -771,7 +781,7 @@ class Contents {
 
 	linksHandler() {
 		replaceLinks(this.content, (href) => {
-			this.emit("link", href);
+			this.emit("linkClicked", href);
 		});
 	}
 
