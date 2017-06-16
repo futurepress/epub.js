@@ -7,6 +7,7 @@ import Layout from "./layout";
 import Mapping from "./mapping";
 import Themes from "./themes";
 import Contents from "./contents";
+import Annotations from "./annotations";
 
 /**
  * [Rendition description]
@@ -66,6 +67,7 @@ class Rendition {
 		 * @type {Hook}
 		 */
 		this.hooks.content = new Hook(this);
+		this.hooks.unloaded = new Hook(this);
 		this.hooks.layout = new Hook(this);
 		this.hooks.render = new Hook(this);
 		this.hooks.show = new Hook(this);
@@ -84,6 +86,8 @@ class Rendition {
 
 		// this.hooks.display.register(this.afterDisplay.bind(this));
 		this.themes = new Themes(this);
+
+		this.annotations = new Annotations(this);
 
 		this.epubcfi = new EpubCFI();
 
@@ -171,6 +175,7 @@ class Rendition {
 
 		// Listen for displayed views
 		this.manager.on("added", this.afterDisplayed.bind(this));
+		this.manager.on("removed", this.afterRemoved.bind(this));
 
 		// Listen for resizing
 		this.manager.on("resized", this.onResized.bind(this));
@@ -309,9 +314,21 @@ class Rendition {
 	 * @param  {*} view
 	 */
 	afterDisplayed(view){
-		this.hooks.content.trigger(view.contents, this);
-		this.emit("rendered", view.section, view);
+		this.hooks.content.trigger(view.contents, this).then(() => {
+			this.emit("rendered", view.section, view);
+		});
 		// this.reportLocation();
+	}
+
+	/**
+	 * Report what has been removed
+	 * @private
+	 * @param  {*} view
+	 */
+	afterRemoved(view){
+		this.hooks.unloaded.trigger(view, this).then(() => {
+			this.emit("removed", view.section, view);
+		});
 	}
 
 	/**

@@ -9,7 +9,7 @@ import { Pane, Highlight, Underline } from "marks-pane";
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 class Contents {
-	constructor(doc, content, cfiBase) {
+	constructor(doc, content, cfiBase, sectionIndex) {
 		// Blank Cfi for Parsing
 		this.epubcfi = new EpubCFI();
 
@@ -23,6 +23,7 @@ class Contents {
 			height: 0
 		};
 
+		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
 
 		this.pane = undefined;
