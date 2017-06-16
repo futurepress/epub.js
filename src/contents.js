@@ -253,6 +253,8 @@ class Contents {
 			}
 
 			$viewport.setAttribute("content", newContent.join(", "));
+
+			this.window.scrollTo(0, 0);
 		}
 
 
