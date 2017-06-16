@@ -106,7 +106,7 @@
 
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
-      contents.highlight(cfiRange, {}, (e) => {
+      rendition.annotations.highlight(cfiRange, {}, (e) => {
         console.log("highlight clicked", e.target);
       });
       contents.window.getSelection().removeAllRanges();
