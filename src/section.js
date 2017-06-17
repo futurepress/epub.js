@@ -1,6 +1,7 @@
 import { defer } from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Hook from "./utils/hook";
+import { sprint } from "./utils/core";
 import { replaceBase } from "./utils/replacements";
 
 /**
@@ -163,30 +164,14 @@ class Section {
                         }
                 };
 
-                section.textSprint(section.document, function(node) {
+                sprint(section.document, function(node) {
                         find(node);
                 });
 
                 return matches;
         };
 
-        textSprint(root, func) {
-                var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-                        acceptNode: function(node) {
-                                if (node.data && ! /^\s*$/.test(node.data)) {
-                                        return NodeFilter.FILTER_ACCEPT;
-                                } else {
-                                        return NodeFilter.FILTER_REJECT;
-                                }
-                        }
-                }, false);
-                var node;
-                while ((node = treeWalker.nextNode())) {
-                        func(node);
-                }
-        };
-
-        /**
+       /**
 	* Reconciles the current chapters layout properies with
 	* the global layout properities.
 	* @param {object} global  The globa layout settings object, chapter properties string
