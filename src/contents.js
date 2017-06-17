@@ -321,8 +321,8 @@ class Contents {
 		// Test size again
 		clearTimeout(this.expanding);
 
-		width = this.scrollWidth();
-		height = this.scrollHeight();
+		width = this.textWidth();
+		height = this.textHeight();
 
 		if (width != this._size.width || height != this._size.height) {
 

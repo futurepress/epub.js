@@ -158,6 +158,10 @@ class Themes {
 		this.override("font-size", size);
 	}
 
+	font (f) {
+		this.override("font-family", f);
+	}
+
 	destroy() {
 		this.rendition = undefined;
 		this._themes = undefined;
