@@ -23,6 +23,12 @@ class Spine {
 		this.epubcfi = new EpubCFI();
 
 		this.loaded = false;
+
+		this.items = undefined;
+		this.manifest = undefined;
+		this.spineNodeIndex = undefined;
+		this.baseUrl = undefined;
+		this.length = undefined;
 	}
 
 	/**
@@ -44,10 +50,13 @@ class Spine {
 
 			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
+			if (item.href) {
+				item.url = resolver(item.href, true);
+			}
+
 			if(manifestItem) {
 				item.href = manifestItem.href;
 				item.url = resolver(item.href, true);
-
 				if(manifestItem.properties.length){
 					item.properties.push.apply(item.properties, manifestItem.properties);
 				}
@@ -155,6 +164,28 @@ class Spine {
 	 */
 	each() {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
+	}
+
+	destroy() {
+		this.each((section) => section.destroy());
+
+		this.spineItems = undefined
+		this.spineByHref = undefined
+		this.spineById = undefined
+
+		this.hooks.serialize.clear();
+		this.hooks.content.clear();
+		this.hooks = undefined;
+
+		this.epubcfi = undefined;
+
+		this.loaded = false;
+
+		this.items = undefined;
+		this.manifest = undefined;
+		this.spineNodeIndex = undefined;
+		this.baseUrl = undefined;
+		this.length = undefined;
 	}
 }
 

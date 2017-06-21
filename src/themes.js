@@ -5,7 +5,7 @@ class Themes {
 		this.rendition = rendition;
 		this._themes = {
 			"default" : {
-				"rules" : [],
+				"rules" : {},
 				"url" : "",
 				"serialized" : ""
 			}
@@ -63,11 +63,17 @@ class Themes {
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
+		if (this._injected[name]) {
+			this.update(name);
+		}
 	}
 
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
+		if (this._injected[name]) {
+			this.update(name);
+		}
 	}
 
 	apply (name) {
@@ -97,15 +103,16 @@ class Themes {
 		var theme;
 
 		for (var name in themes) {
-			if (themes.hasOwnProperty(name)) {
+			if (themes.hasOwnProperty(name) && name === this._current) {
 				theme = themes[name];
 				if(theme.rules || (theme.url && links.indexOf(theme.url) === -1)) {
 					this.add(name, contents);
 				}
+				this._injected.push(name);
 			}
 		}
 
-		if(this._current) {
+		if(this._current != "default") {
 			contents.addClass(this._current);
 		}
 	}
@@ -121,7 +128,7 @@ class Themes {
 			contents.addStylesheet(theme.url);
 		} else if (theme.serialized) {
 			// TODO: handle serialized
-		} else if (theme.rules && theme.rules.length) {
+		} else if (theme.rules) {
 			contents.addStylesheetRules(theme.rules);
 			theme.injected = true;
 		}
@@ -149,6 +156,18 @@ class Themes {
 
 	fontSize (size) {
 		this.override("font-size", size);
+	}
+
+	font (f) {
+		this.override("font-family", f);
+	}
+
+	destroy() {
+		this.rendition = undefined;
+		this._themes = undefined;
+		this._overrides = undefined;
+		this._current = undefined;
+		this._injected = undefined;
 	}
 
 }

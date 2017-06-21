@@ -187,11 +187,11 @@ class Stage {
 	}
 
 	bounds(){
-
-		if(!this.container) {
+		let box = this.container && this.container.getBoundingClientRect();
+		if(!box || !box.width || !box.height) {
 			return windowBounds();
 		} else {
-			return this.container.getBoundingClientRect();
+			return box;
 		}
 
 	}
@@ -224,6 +224,23 @@ class Stage {
 		});
 
 		this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
+	}
+
+	destroy() {
+		var base;
+
+		if (this.element) {
+
+			if(this.settings.hidden) {
+				base = this.wrapper;
+			} else {
+				base = this.container;
+			}
+
+			if(this.element.contains(this.container)) {
+				this.element.removeChild(this.container);
+			}
+		}
 	}
 }
 

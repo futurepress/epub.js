@@ -1,4 +1,4 @@
-import {extend, type, findChildren} from "./utils/core";
+import {extend, type, findChildren, RangeObject} from "./utils/core";
 
 /**
 	EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
@@ -793,6 +793,7 @@ class EpubCFI {
 	walkToNode(steps, _doc, ignoreClass) {
 		var doc = _doc || document;
 		var container = doc.documentElement;
+		var children;
 		var step;
 		var len = steps.length;
 		var i;
@@ -801,9 +802,23 @@ class EpubCFI {
 			step = steps[i];
 
 			if(step.type === "element") {
-				container = container.children[step.index];
-			} else if(step.type === "text"){
+				//better to get a container using id as some times step.index may not be correct
+				//For ex.https://github.com/futurepress/epub.js/issues/561
+				if(step.id) {
+					container = doc.getElementById(step.id);
+				}
+				else {
+					children = container.children || findChildren(container);
+					container = children[step.index];
+				}
+			} else if(step.type === "text") {
 				container = this.textNodes(container, ignoreClass)[step.index];
+			}
+			if(!container) {
+				//Break the for loop as due to incorrect index we can get error if
+				//container is undefined so that other functionailties works fine
+				//like navigation
+				break;
 			}
 
 		}
@@ -864,12 +879,18 @@ class EpubCFI {
 
 	toRange(_doc, ignoreClass) {
 		var doc = _doc || document;
-		var range = doc.createRange();
+		var range;
 		var start, end, startContainer, endContainer;
 		var cfi = this;
 		var startSteps, endSteps;
 		var needsIgnoring = ignoreClass ? (doc.querySelector("." + ignoreClass) != null) : false;
 		var missed;
+
+		if (typeof(doc.createRange) !== "undefined") {
+			range = doc.createRange();
+		} else {
+			range = new RangeObject();
+		}
 
 		if (cfi.range) {
 			start = cfi.start;
@@ -898,6 +919,7 @@ class EpubCFI {
 				range.setStart(missed.container, missed.offset);
 			}
 		} else {
+			console.log("NO START");
 			// No start found
 			return null;
 		}
@@ -935,7 +957,7 @@ class EpubCFI {
 
 	generateChapterComponent(_spineNodeIndex, _pos, id) {
 		var pos = parseInt(_pos),
-				spineNodeIndex = _spineNodeIndex + 1,
+				spineNodeIndex = (_spineNodeIndex + 1) * 2,
 				cfi = "/"+spineNodeIndex+"/";
 
 		cfi += (pos + 1) * 2;

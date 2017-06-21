@@ -1,4 +1,4 @@
-import {qs, qsa, qsp} from "./utils/core";
+import {qs, qsa, qsp, indexOfElementNode} from "./utils/core";
 
 /**
  * Open Packaging Format Parser
@@ -7,6 +7,14 @@ import {qs, qsa, qsp} from "./utils/core";
  */
 class Packaging {
 	constructor(packageDocument) {
+		this.manifest = {};
+		this.navPath = '';
+		this.ncxPath = '';
+		this.coverPath = '';
+		this.spineNodeIndex = 0;
+		this.spine = [];
+		this.metadata = {};
+
 		if (packageDocument) {
 			this.parse(packageDocument);
 		}
@@ -44,7 +52,7 @@ class Packaging {
 		this.ncxPath = this.findNcxPath(manifestNode, spineNode);
 		this.coverPath = this.findCoverPath(packageDocument);
 
-		this.spineNodeIndex = Array.prototype.indexOf.call(spineNode.parentNode.childNodes, spineNode);
+		this.spineNodeIndex = indexOfElementNode(spineNode);
 
 		this.spine = this.parseSpine(spineNode, this.manifest);
 
@@ -272,6 +280,56 @@ class Packaging {
 		}
 
 		return "";
+	}
+
+	/**
+	 * Load JSON Manifest
+	 * @param  {document} packageDocument OPF XML
+	 * @return {object} parsed package parts
+	 */
+	load(json) {
+		this.metadata = json.metadata;
+
+		this.spine = json.spine.map((item, index) =>{
+			item.index = index;
+			return item;
+		});
+
+		json.resources.forEach((item, index) => {
+			this.manifest[index] = item;
+
+			if (item.rel && item.rel[0] === "cover") {
+				this.coverPath = item.href;
+			}
+		});
+
+		this.spineNodeIndex = 0;
+
+		this.toc = json.toc.map((item, index) =>{
+			item.label = item.title;
+			return item;
+		});
+
+		return {
+			"metadata" : this.metadata,
+			"spine"    : this.spine,
+			"manifest" : this.manifest,
+			"navPath"  : this.navPath,
+			"ncxPath"  : this.ncxPath,
+			"coverPath": this.coverPath,
+			"spineNodeIndex" : this.spineNodeIndex,
+			"toc" : this.toc
+		};
+	}
+
+	destroy() {
+		this.manifest = undefined;
+		this.navPath = undefined;
+		this.ncxPath = undefined;
+		this.coverPath = undefined;
+		this.spineNodeIndex = undefined;
+		this.spine = undefined;
+		this.metadata = undefined;
 	}
 }
 

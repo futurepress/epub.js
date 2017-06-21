@@ -1,4 +1,8 @@
 export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
+const ELEMENT_NODE = 1;
+const TEXT_NODE = 3;
+const COMMENT_NODE = 8;
+const DOCUMENT_NODE = 9;
 
 export function isElement(obj) {
 	return !!(obj && obj.nodeType == 1);
@@ -34,8 +38,8 @@ export function isFloat(n) {
 }
 
 export function prefixed(unprefixed) {
-	var vendors = ["Webkit", "Moz", "O", "ms" ];
-	// var prefixes = ["-Webkit-", "-moz-", "-o-", "-ms-"];
+	var vendors = ["Webkit", "webkit", "Moz", "O", "ms" ];
+	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
 	var upper = unprefixed[0].toUpperCase() + unprefixed.slice(1);
 	var length = vendors.length;
 
@@ -45,7 +49,7 @@ export function prefixed(unprefixed) {
 
 	for ( var i=0; i < length; i++ ) {
 		if (typeof(document.body.style[vendors[i] + upper]) != "undefined") {
-			return vendors[i] + upper;
+			return prefixes[i] + unprefixed;
 		}
 	}
 
@@ -225,20 +229,28 @@ export function cleanStringForXpath(str)	{
 	return `concat(\'\',${ parts.join(",") })`;
 }
 
-export function indexOfTextNode(textNode){
-	var parent = textNode.parentNode;
+export function indexOfNode(node, typeId) {
+	var parent = node.parentNode;
 	var children = parent.childNodes;
 	var sib;
 	var index = -1;
 	for (var i = 0; i < children.length; i++) {
 		sib = children[i];
-		if(sib.nodeType === Node.TEXT_NODE){
+		if (sib.nodeType === typeId) {
 			index++;
 		}
-		if(sib == textNode) break;
+		if (sib == node) break;
 	}
 
 	return index;
+}
+
+export function indexOfTextNode(textNode) {
+	return indexOfNode(textNode, TEXT_NODE);
+}
+
+export function indexOfElementNode(elementNode) {
+	return indexOfNode(elementNode, ELEMENT_NODE);
 }
 
 export function isXml(ext) {
@@ -252,7 +264,7 @@ export function createBlob(content, mime){
 export function createBlobUrl(content, mime){
 	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
-	var blob = this.createBlob(content, mime);
+	var blob = createBlob(content, mime);
 
 	tempUrl = _URL.createObjectURL(blob);
 
@@ -289,6 +301,11 @@ export function parse(markup, mime, forceXMLDom) {
 		Parser = DOMParser;
 	}
 
+	// Remove byte order mark before parsing
+	// https://www.w3.org/International/questions/qa-byte-order-mark
+	if(markup.charCodeAt(0) === 0xFEFF) {
+		markup = markup.slice(1);
+	}
 
 	doc = new Parser().parseFromString(markup, mime);
 
@@ -407,12 +424,14 @@ export function walk(node,callback){
 	}
 }
 
-export function blob2base64(blob, cb) {
-	var reader = new FileReader();
-	reader.readAsDataURL(blob);
-	reader.onloadend = function() {
-		cb(reader.result);
-	};
+export function blob2base64(blob) {
+	return new Promise(function(resolve, reject) {
+		var reader = new FileReader();
+		reader.readAsDataURL(blob);
+		reader.onloadend = function() {
+			resolve(reader.result);
+		};
+	});
 }
 
 // From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
@@ -456,7 +475,8 @@ export function querySelectorByType(html, element, type){
 	if(!query || query.length === 0) {
 		query = qsa(html, element);
 		for (var i = 0; i < query.length; i++) {
-			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type) {
+			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
+				 query[i].getAttribute("epub:type") === type) {
 				return query[i];
 			}
 		}
@@ -467,7 +487,7 @@ export function querySelectorByType(html, element, type){
 
 export function findChildren(el) {
 	var result = [];
-	var childNodes = el.parentNode.childNodes;
+	var childNodes = el.childNodes;
 	for (var i = 0; i < childNodes.length; i++) {
 		let node = childNodes[i];
 		if (node.nodeType === 1) {
@@ -475,4 +495,104 @@ export function findChildren(el) {
 		}
 	}
 	return result;
+}
+
+export function parents(node) {
+  var nodes = [node];
+  for (; node; node = node.parentNode) {
+    nodes.unshift(node);
+  }
+  return nodes
+}
+
+export class RangeObject {
+	constructor() {
+		this.collapsed = false;
+		this.commonAncestorContainer = undefined;
+		this.endContainer = undefined;
+		this.endOffset = undefined;
+		this.startContainer = undefined;
+		this.startOffset = undefined;
+	}
+
+	setStart(startNode, startOffset) {
+		this.startContainer = startNode;
+		this.startOffset = startOffset;
+
+		if (!this.endContainer) {
+			this.collapse(true);
+		} else {
+			this.commonAncestorContainer = this._commonAncestorContainer();
+		}
+
+		this._checkCollapsed();
+	}
+
+	setEnd(endNode, endOffset) {
+		this.endContainer = endNode;
+		this.endOffset = endOffset;
+
+		if (!this.startContainer) {
+			this.collapse(false);
+		} else {
+			this.collapsed = false;
+			this.commonAncestorContainer = this._commonAncestorContainer();
+		}
+
+		this._checkCollapsed();
+	}
+
+	collapse(toStart) {
+		this.collapsed = true;
+		if (toStart) {
+			this.endContainer = this.startContainer;
+			this.endOffset = this.startOffset;
+			this.commonAncestorContainer = this.startContainer.parentNode;
+		} else {
+			this.startContainer = this.endContainer;
+			this.startOffset = this.endOffset;
+			this.commonAncestorContainer = this.endOffset.parentNode;
+		}
+	}
+
+	selectNode(referenceNode) {
+		let parent = referenceNode.parentNode;
+		let index = Array.prototype.indexOf.call(parent.childNodes, referenceNode);
+		this.setStart(parent, index);
+		this.setEnd(parent, index + 1);
+	}
+
+	selectNodeContents(referenceNode) {
+		let end = referenceNode.childNodes[referenceNode.childNodes - 1];
+		let endIndex = (referenceNode.nodeType === 3) ?
+				referenceNode.textContent.length : parent.childNodes.length;
+		this.setStart(referenceNode, 0);
+		this.setEnd(referenceNode, endIndex);
+	}
+
+	_commonAncestorContainer(startContainer, endContainer) {
+		var startParents = parents(startContainer || this.startContainer);
+		var endParents = parents(endContainer || this.endContainer);
+
+		if (startParents[0] != endParents[0]) return undefined;
+
+		for (var i = 0; i < startParents.length; i++) {
+			if (startParents[i] != endParents[i]) {
+				return startParents[i - 1];
+			}
+		}
+	}
+
+	_checkCollapsed() {
+		if (this.startContainer === this.endContainer &&
+				this.startOffset === this.endOffset) {
+			this.collapsed = true;
+		} else {
+			this.collapsed = false;
+		}
+	}
+
+	toString() {
+		// TODO: implement walking between start and end to find text
+	}
 }

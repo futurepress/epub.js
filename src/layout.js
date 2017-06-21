@@ -9,12 +9,14 @@
  */
 class Layout {
 	constructor(settings) {
+		this.settings = settings;
 		this.name = settings.layout || "reflowable";
 		this._spread = (settings.spread === "none") ? false : true;
 		this._minSpreadWidth = settings.minSpreadWidth || 800;
 		this._evenSpreads = settings.evenSpreads || false;
 
-		if (settings.flow === "scrolled-continuous" ||
+		if (settings.flow === "scrolled" ||
+				settings.flow === "scrolled-continuous" ||
 				settings.flow === "scrolled-doc") {
 			this._flow = "scrolled";
 		} else {
@@ -30,6 +32,20 @@ class Layout {
 		this.columnWidth = 0;
 		this.gap = 0;
 		this.divisor = 1;
+
+		this.props = {
+			name: this.name,
+			spread: this._spread,
+			flow: this._flow,
+			width: 0,
+			height: 0,
+			spreadWidth: 0,
+			delta: 0,
+			columnWidth: 0,
+			gap: 0,
+			divisor: 1
+		};
+
 	}
 
 	/**
@@ -37,7 +53,17 @@ class Layout {
 	 * @param  {string} flow paginated | scrolled
 	 */
 	flow(flow) {
-		this._flow = (flow === "paginated") ? "paginated" : "scrolled";
+		if (typeof(flow) != "undefined") {
+			if (flow === "scrolled" ||
+					flow === "scrolled-continuous" ||
+					flow === "scrolled-doc") {
+				this._flow = "scrolled";
+			} else {
+				this._flow = "paginated";
+			}
+			this.props.flow = this._flow;
+		}
+		return this._flow;
 	}
 
 	/**
@@ -48,11 +74,16 @@ class Layout {
 	 */
 	spread(spread, min) {
 
-		this._spread = (spread === "none") ? false : true;
+		if (spread) {
+			this._spread = (spread === "none") ? false : true;
+			this.props.spread = this._spread;
+		}
 
 		if (min >= 0) {
 			this._minSpreadWidth = min;
 		}
+
+		return this._spread;
 	}
 
 	/**
@@ -113,6 +144,15 @@ class Layout {
 		this.columnWidth = colWidth;
 		this.gap = gap;
 		this.divisor = divisor;
+
+		this.props.width = width;
+		this.props.height = _height;
+		this.props.spreadWidth = spreadWidth;
+		this.props.delta = delta;
+
+		this.props.columnWidth = colWidth;
+		this.props.gap = gap;
+		this.props.divisor = divisor;
 	}
 
 	/**

@@ -7,6 +7,7 @@ import Layout from "./layout";
 import Mapping from "./mapping";
 import Themes from "./themes";
 import Contents from "./contents";
+import Annotations from "./annotations";
 
 /**
  * [Rendition description]
@@ -21,6 +22,7 @@ import Contents from "./contents";
  * @param {string} options.layout
  * @param {string} options.spread
  * @param {int} options.minSpreadWidth overridden by spread: none (never) / both (always)
+ * @param {string} options.stylesheet url of stylesheet to be injected
  */
 class Rendition {
 	constructor(book, options) {
@@ -34,7 +36,9 @@ class Rendition {
 			flow: null,
 			layout: null,
 			spread: null,
-			minSpreadWidth: 800
+			minSpreadWidth: 800,
+			stylesheet: null,
+			script: null
 		});
 
 		extend(this.settings, options);
@@ -63,6 +67,7 @@ class Rendition {
 		 * @type {Hook}
 		 */
 		this.hooks.content = new Hook(this);
+		this.hooks.unloaded = new Hook(this);
 		this.hooks.layout = new Hook(this);
 		this.hooks.render = new Hook(this);
 		this.hooks.show = new Hook(this);
@@ -71,8 +76,18 @@ class Rendition {
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
 
+		if (this.settings.stylesheet) {
+			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
+		}
+
+		if (this.settings.script) {
+			this.book.spine.hooks.content.register(this.injectScript.bind(this));
+		}
+
 		// this.hooks.display.register(this.afterDisplay.bind(this));
 		this.themes = new Themes(this);
+
+		this.annotations = new Annotations(this);
 
 		this.epubcfi = new EpubCFI();
 
@@ -160,15 +175,13 @@ class Rendition {
 
 		// Listen for displayed views
 		this.manager.on("added", this.afterDisplayed.bind(this));
+		this.manager.on("removed", this.afterRemoved.bind(this));
 
 		// Listen for resizing
 		this.manager.on("resized", this.onResized.bind(this));
 
 		// Listen for scroll changes
-		this.manager.on("scroll", this.reportLocation.bind(this));
-
-
-		this.on("displayed", this.reportLocation.bind(this));
+		this.manager.on("scrolled", this.reportLocation.bind(this));
 
 		// Trigger that rendering has started
 		this.emit("started");
@@ -221,6 +234,9 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	_display(target){
+		if (!this.book) {
+			return;
+		}
 		var isCfiString = this.epubcfi.isCfiString(target);
 		var displaying = new defer();
 		var displayed = displaying.promise;
@@ -239,20 +255,10 @@ class Rendition {
 			return displayed;
 		}
 
-		// Trim the target fragment
-		// removing the chapter
-		if(!isCfiString && typeof target === "string" &&
-			target.indexOf("#") > -1) {
-			moveTo = target.substring(target.indexOf("#")+1);
-		}
-
-		if (isCfiString) {
-			moveTo = target;
-		}
-
-		return this.manager.display(section, moveTo)
+		return this.manager.display(section, target)
 			.then(function(){
-				// this.emit("displayed", section);
+				this.emit("displayed", section);
+				this.reportLocation();
 			}.bind(this));
 
 	}
@@ -308,9 +314,21 @@ class Rendition {
 	 * @param  {*} view
 	 */
 	afterDisplayed(view){
-		this.hooks.content.trigger(view.contents, this);
-		this.emit("rendered", view.section);
-		this.reportLocation();
+		this.hooks.content.trigger(view.contents, this).then(() => {
+			this.emit("rendered", view.section, view);
+		});
+		// this.reportLocation();
+	}
+
+	/**
+	 * Report what has been removed
+	 * @private
+	 * @param  {*} view
+	 */
+	afterRemoved(view){
+		this.hooks.unloaded.trigger(view, this).then(() => {
+			this.emit("removed", view.section, view);
+		});
 	}
 
 	/**
@@ -404,13 +422,17 @@ class Rendition {
 	 */
 	flow(flow){
 		var _flow = flow;
-		if (flow === "scrolled-doc" || flow === "scrolled-continuous") {
+		if (flow === "scrolled" ||
+				flow === "scrolled-doc" ||
+				flow === "scrolled-continuous") {
 			_flow = "scrolled";
 		}
 
 		if (flow === "auto" || flow === "paginated") {
 			_flow = "paginated";
 		}
+
+		this.settings.flow = flow;
 
 		if (this._layout) {
 			this._layout.flow(_flow);
@@ -430,7 +452,7 @@ class Rendition {
 			this._layout = new Layout(settings);
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
-			this.mapping = new Mapping(this._layout);
+			this.mapping = new Mapping(this._layout.props);
 		}
 
 		if (this.manager && this._layout) {
@@ -513,9 +535,32 @@ class Rendition {
 	 */
 	destroy(){
 		// Clear the queue
-		this.q.clear();
+		// this.q.clear();
+		// this.q = undefined;
 
-		this.manager.destroy();
+		this.manager && this.manager.destroy();
+
+		this.book = undefined;
+
+		this.views = null;
+
+		// this.hooks.display.clear();
+		// this.hooks.serialize.clear();
+		// this.hooks.content.clear();
+		// this.hooks.layout.clear();
+		// this.hooks.render.clear();
+		// this.hooks.show.clear();
+		// this.hooks = {};
+
+		// this.themes.destroy();
+		// this.themes = undefined;
+
+		// this.epubcfi = undefined;
+
+		// this.starting = undefined;
+		// this.started = undefined;
+
+
 	}
 
 	/**
@@ -526,11 +571,12 @@ class Rendition {
 	passEvents(contents){
 		var listenedEvents = Contents.listenedEvents;
 
-		listenedEvents.forEach(function(e){
-			contents.on(e, this.triggerViewEvent.bind(this));
-		}.bind(this));
+		listenedEvents.forEach((e) => {
+			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
+		});
 
-		contents.on("selected", this.triggerSelectedEvent.bind(this));
+		contents.on("selected", (e) => this.triggerSelectedEvent(e, contents));
+		contents.on("markClicked", (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, contents));
 	}
 
 	/**
@@ -538,8 +584,8 @@ class Rendition {
 	 * @private
 	 * @param  {event} e
 	 */
-	triggerViewEvent(e){
-		this.emit(e.type, e);
+	triggerViewEvent(e, contents){
+		this.emit(e.type, e, contents);
 	}
 
 	/**
@@ -547,8 +593,17 @@ class Rendition {
 	 * @private
 	 * @param  {EpubCFI} cfirange
 	 */
-	triggerSelectedEvent(cfirange){
-		this.emit("selected", cfirange);
+	triggerSelectedEvent(cfirange, contents){
+		this.emit("selected", cfirange, contents);
+	}
+
+	/**
+	 * Emit a markClicked event with the cfiRange and data from a mark
+	 * @private
+	 * @param  {EpubCFI} cfirange
+	 */
+	triggerMarkEvent(cfiRange, data, contents){
+		this.emit("markClicked", cfiRange, data, contents);
 	}
 
 	/**
@@ -557,15 +612,15 @@ class Rendition {
 	 * @param  {string} ignoreClass
 	 * @return {range}
 	 */
-	range(cfi, ignoreClass){
+	getRange(cfi, ignoreClass){
 		var _cfi = new EpubCFI(cfi);
-		var found = this.visible().filter(function (view) {
+		var found = this.manager.visible().filter(function (view) {
 			if(_cfi.spinePos === view.index) return true;
 		});
 
 		// Should only every return 1 item
 		if (found.length) {
-			return found[0].range(_cfi, ignoreClass);
+			return found[0].contents.range(_cfi, ignoreClass);
 		}
 	}
 
@@ -581,14 +636,15 @@ class Rendition {
 			});
 		}
 
-		contents.addStylesheetRules([
-			["img",
-				["max-width", (this._layout.columnWidth) + "px; !important"],
-				["max-height", (this._layout.height) + "px; !important"],
-				["object-fit", "contain"],
-				["page-break-inside", "avoid"]
-			]
-		]);
+		contents.addStylesheetRules({
+			"img" : {
+				"max-width": (this._layout.columnWidth) + "px !important",
+				"max-height": (this._layout.height) + "px !important",
+				"object-fit": "contain",
+				"page-break-inside": "avoid"
+			}
+		});
+
 		return new Promise(function(resolve, reject){
 			// Wait to apply
 			setTimeout(function() {
@@ -607,6 +663,23 @@ class Rendition {
 			this.display(relative);
 		});
 	}
+
+	injectStylesheet(doc, section) {
+		let style = doc.createElement("link");
+		style.setAttribute("type", "text/css");
+		style.setAttribute("rel", "stylesheet");
+		style.setAttribute("href", this.settings.stylesheet);
+		doc.getElementsByTagName("head")[0].appendChild(style);
+	}
+
+	injectScript(doc, section) {
+		let script = doc.createElement("script");
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("src", this.settings.script);
+		script.textContent = " "; // Needed to prevent self closing tag
+		doc.getElementsByTagName("head")[0].appendChild(script);
+	}
+
 }
 
 //-- Enable binding events to Renderer

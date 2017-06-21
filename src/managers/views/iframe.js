@@ -102,6 +102,7 @@ class IframeView {
 		// Firefox has trouble with baseURI and srcdoc
 		// TODO: Disable for now in firefox
 
+
 		if(("srcdoc" in this.iframe)) {
 			this.supportsSrcdoc = true;
 		} else {
@@ -146,21 +147,21 @@ class IframeView {
 				// apply the layout function to the contents
 				this.settings.layout.format(this.contents);
 
-				// Expand the iframe to the full size of the content
-				this.expand();
-
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
 
-				if(show !== false) {
-					//this.q.enqueue(function(view){
-						// this.show();
-					//}, view);
-				}
-				// this.map = new Map(view, this.layout);
-				//this.hooks.show.trigger(view, this);
-				this.emit("rendered", this.section);
+				// Wait for formating to apply
+				return new Promise((resolve, reject) => {
+					setTimeout(() => {
+						// Expand the iframe to the full size of the content
+						this.expand();
+						resolve();
+					}, 1);
+				});
 
+			}.bind(this))
+			.then(function() {
+				this.emit("rendered", this.section);
 			}.bind(this))
 			.catch(function(e){
 				this.emit("loaderror", e);
@@ -237,17 +238,19 @@ class IframeView {
 		if(this.layout.name === "pre-paginated") return;
 
 		this._expanding = true;
-
 		// Expand Horizontally
 		// if(height && !width) {
 		if(this.settings.axis === "horizontal") {
 			// Get the width of the text
 			textWidth = this.contents.textWidth();
+			width = this.contentWidth(textWidth);
+
 			// Check if the textWidth has changed
-			if(textWidth != this._textWidth){
+			if(width != this._width){
 				// Get the contentWidth by resizing the iframe
 				// Check with a min reset of the textWidth
-				width = this.contentWidth(textWidth);
+
+				// width = this.contentWidth(textWidth);
 
 				columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
 
@@ -260,6 +263,7 @@ class IframeView {
 
 				// Save the textWdith
 				this._textWidth = textWidth;
+
 				// Save the contentWidth
 				this._contentWidth = width;
 			} else {
@@ -344,6 +348,7 @@ class IframeView {
 		//   this._needsReframe = true;
 		//   return;
 		// }
+
 		if(isNumber(width)){
 			this.element.style.width = width + "px";
 		}
@@ -364,6 +369,10 @@ class IframeView {
 		};
 
 		this.onResize(this, size);
+
+		if (this.contents) {
+			this.settings.layout.format(this.contents);
+		}
 
 		this.emit("resized", size);
 
@@ -410,7 +419,7 @@ class IframeView {
 		this.window = this.iframe.contentWindow;
 		this.document = this.iframe.contentDocument;
 
-		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase);
+		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase, this.section.index);
 
 		this.rendering = false;
 
@@ -424,7 +433,13 @@ class IframeView {
 			this.document.querySelector("head").appendChild(link);
 		}
 
-		this.contents.on("expand", function () {
+		this.contents.on("expand", () => {
+			if(this.displayed && this.iframe) {
+				this.expand();
+			}
+		});
+
+		this.contents.on("resize", (e) => {
 			if(this.displayed && this.iframe) {
 				this.expand();
 			}

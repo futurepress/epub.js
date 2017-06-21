@@ -1,8 +1,10 @@
 import EpubCFI from "./epubcfi";
 
 class Mapping {
-	constructor(layout) {
+	constructor(layout, dev) {
 		this.layout = layout;
+		this.horizontal = (this.layout.flow === "paginated") ? true : false;
+		this._dev = dev;
 	}
 
 	section(view) {
@@ -14,15 +16,31 @@ class Mapping {
 
 	page(contents, cfiBase, start, end) {
 		var root = contents && contents.document ? contents.document.body : false;
+		var result;
 
 		if (!root) {
 			return;
 		}
 
-		return this.rangePairToCfiPair(cfiBase, {
+		result = this.rangePairToCfiPair(cfiBase, {
 			start: this.findStart(root, start, end),
 			end: this.findEnd(root, start, end)
 		});
+
+		if (this._dev === true) {
+			let doc = contents.document;
+			let startRange = new EpubCFI(result.start).toRange(doc);
+			let endRange = new EpubCFI(result.end).toRange(doc);
+
+			let selection = doc.defaultView.getSelection();
+			let r = doc.createRange();
+			selection.removeAllRanges();
+			r.setStart(startRange.startContainer, startRange.startOffset);
+			r.setEnd(endRange.endContainer, endRange.endOffset);
+			selection.addRange(r);
+		}
+
+		return result;
 	}
 
 	walk(root, func) {
@@ -60,14 +78,15 @@ class Mapping {
 	findRanges(view){
 		var columns = [];
 		var scrollWidth = view.contents.scrollWidth();
-		var count = this.layout.count(scrollWidth);
-		var column = this.layout.column;
+		var spreads = Math.ceil( scrollWidth / this.layout.spreadWidth);
+		var count = spreads * this.layout.divisor;
+		var columnWidth = this.layout.columnWidth;
 		var gap = this.layout.gap;
 		var start, end;
 
 		for (var i = 0; i < count.pages; i++) {
-			start = (column + gap) * i;
-			end = (column * (i+1)) + (gap * i);
+			start = (columnWidth + gap) * i;
+			end = (columnWidth * (i+1)) + (gap * i);
 			columns.push({
 				start: this.findStart(view.document.body, start, end),
 				end: this.findEnd(view.document.body, start, end)
@@ -82,11 +101,12 @@ class Mapping {
 		var $el;
 		var found;
 		var $prev = root;
+
 		while (stack.length) {
 
 			$el = stack.shift();
 
-			found = this.walk($el, function(node){
+			found = this.walk($el, (node) => {
 				var left, right;
 				var elPos;
 				var elRange;
@@ -100,8 +120,8 @@ class Mapping {
 					elPos = node.getBoundingClientRect();
 				}
 
-				left = elPos.left;
-				right = elPos.right;
+				left = this.horizontal ? elPos.left : elPos.top;
+				right = this.horizontal ? elPos.right : elPos.bottom;
 
 				if( left >= start && left <= end ) {
 					return node;
@@ -134,7 +154,7 @@ class Mapping {
 
 			$el = stack.shift();
 
-			found = this.walk($el, function(node){
+			found = this.walk($el, (node) => {
 
 				var left, right;
 				var elPos;
@@ -149,8 +169,8 @@ class Mapping {
 					elPos = node.getBoundingClientRect();
 				}
 
-				left = elPos.left;
-				right = elPos.right;
+				left = this.horizontal ? elPos.left : elPos.top;
+				right = this.horizontal ? elPos.right : elPos.bottom;
 
 				if(left > end && $prev) {
 					return $prev;
@@ -179,13 +199,15 @@ class Mapping {
 		var ranges = this.splitTextNodeIntoRanges(node);
 		var range;
 		var pos;
+		var left;
 
 		for (var i = 0; i < ranges.length; i++) {
 			range = ranges[i];
 
 			pos = range.getBoundingClientRect();
+			left = this.horizontal ? pos.left : pos.top;
 
-			if( pos.left >= start ) {
+			if( left >= start ) {
 				return range;
 			}
 
@@ -201,15 +223,18 @@ class Mapping {
 		var prev;
 		var range;
 		var pos;
+		var left, right;
 
 		for (var i = 0; i < ranges.length; i++) {
 			range = ranges[i];
 
 			pos = range.getBoundingClientRect();
+			left = this.horizontal ? pos.left : pos.top;
+			right = this.horizontal ? pos.right : pos.bottom;
 
-			if(pos.left > end && prev) {
+			if(left > end && prev) {
 				return prev;
-			} else if(pos.right > end) {
+			} else if(right > end) {
 				return range;
 			}
 
@@ -275,10 +300,8 @@ class Mapping {
 		var endRange = rangePair.end;
 
 		startRange.collapse(true);
-		endRange.collapse(true);
+		endRange.collapse(false);
 
-		// startCfi = section.cfiFromRange(startRange);
-		// endCfi = section.cfiFromRange(endRange);
 		let startCfi = new EpubCFI(startRange, cfiBase).toString();
 		let endCfi = new EpubCFI(endRange, cfiBase).toString();
 

@@ -27,7 +27,7 @@ const EPUBJS_VERSION = "0.3";
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
- * @param {string} [options.replacements=base64] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -46,7 +46,7 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: "base64"
+			replacements: undefined
 		});
 
 		extend(this.settings, options);
@@ -143,6 +143,28 @@ class Book {
 		 */
 		this.archived = false;
 
+		/**
+		 * @property {Archive} archive
+		 * @private
+		 */
+		this.archive = undefined;
+
+		/**
+		 * @property {Resources} resources
+		 * @private
+		 */
+		this.resources = undefined;
+
+		/**
+		 * @property {Rendition} rendition
+		 * @private
+		 */
+		this.rendition = undefined;
+
+		this.container = undefined;
+		this.packaging = undefined;
+		this.toc = undefined;
+
 		if(url) {
 			this.open(url).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
@@ -179,6 +201,9 @@ class Book {
 		} else if(type == "opf") {
 			this.url = new Url(input);
 			opening = this.openPackaging(this.url.Path.toString());
+		} else if(type == "json") {
+			this.url = new Url(input);
+			opening = this.openManifest(this.url.Path.toString());
 		} else {
 			this.url = new Url(input);
 			opening = this.openContainer(CONTAINER_PATH)
@@ -235,6 +260,22 @@ class Book {
 	}
 
 	/**
+	 * Open the manifest JSON
+	 * @private
+	 * @param  {string} url
+	 * @return {Promise}
+	 */
+	openManifest(url) {
+		this.path = new Path(url);
+		return this.load(url)
+			.then((json) => {
+				this.packaging = new Packaging();
+				this.packaging.load(json);
+				return this.unpack(this.packaging);
+			});
+	}
+
+	/**
 	 * Load a resource from the Book
 	 * @param  {string} path path to the resource to load
 	 * @return {Promise}     returns a promise with the requested resource
@@ -258,6 +299,9 @@ class Book {
 	 * @return {string}          the resolved path string
 	 */
 	resolve(path, absolute) {
+		if (!path) {
+			return;
+		}
 		var resolved = path;
 		var isAbsolute = (path.indexOf("://") > -1);
 
@@ -310,6 +354,10 @@ class Book {
 		if(extension === "opf"){
 			return "opf";
 		}
+
+		if(extension === "json"){
+			return "json";
+		}
 	}
 
 
@@ -326,13 +374,15 @@ class Book {
 		this.resources = new Resources(this.package.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
-			replacements: this.settings.replacements
+			request: this.request.bind(this),
+			replacements: this.settings.replacements || "base64"
 		});
 
 		this.loadNavigation(this.package).then(() => {
 			this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
+
 		if (this.package.coverPath) {
 			this.cover = this.resolve(this.package.coverPath);
 		}
@@ -344,12 +394,14 @@ class Book {
 		this.loading.resources.resolve(this.resources);
 		this.loading.pageList.resolve(this.pageList);
 
-
 		this.isOpen = true;
 
-		if(this.archived) {
+		if(this.archived || this.settings.replacements && this.settings.replacements != "none") {
 			this.replacements().then(() => {
 				this.opening.resolve(this);
+			})
+			.catch((err) => {
+				console.error(err);
 			});
 		} else {
 			// Resolve book opened promise
@@ -364,10 +416,26 @@ class Book {
 	 * @param {document} opf XML Document
 	 */
 	loadNavigation(opf) {
-		var navPath = opf.navPath || opf.ncxPath;
+		let navPath = opf.navPath || opf.ncxPath;
+		let toc = opf.toc;
+
+		if (toc) {
+			return new Promise((resolve, reject) => {
+				this.navigation = new Navigation(toc);
+
+				this.pageList = new PageList(); // TODO: handle page lists
+
+				resolve(this.navigation);
+			});
+		}
 
 		if (!navPath) {
-			return;
+			return new Promise((resolve, reject) => {
+				this.navigation = new Navigation();
+				this.pageList = new PageList();
+
+				resolve(this.navigation);
+			});
 		}
 
 		return this.load(navPath, "xml")
@@ -472,11 +540,12 @@ class Book {
 	 * @param  {EpubCFI} cfiRange a epub cfi range
 	 * @return {Range}
 	 */
-	 range(cfiRange) {
+	getRange(cfiRange) {
 		var cfi = new EpubCFI(cfiRange);
 		var item = this.spine.get(cfi.spinePos);
+		var _request = this.load.bind(this);
 
-		return item.load().then(function (contents) {
+		return item.load(_request).then(function (contents) {
 			var range = cfi.toRange(item.document);
 			return range;
 		});
@@ -490,6 +559,40 @@ class Book {
 	key(identifier) {
 		var ident = identifier || this.package.metadata.identifier || this.url.filename;
 		return `epubjs:${EPUBJS_VERSION}:${ident}`;
+	}
+
+	destroy() {
+		this.opened = undefined;
+		this.loading = undefined;
+		this.loaded = undefined;
+		this.ready = undefined;
+
+		this.isOpen = false;
+		this.isRendered = false;
+
+		this.spine && this.spine.destroy();
+		this.locations && this.locations.destroy();
+		this.pageList && this.pageList.destroy();
+		this.archive && this.archive.destroy();
+		this.resources && this.resources.destroy();
+		this.container && this.container.destroy();
+		this.packaging && this.packaging.destroy();
+		this.rendition && this.rendition.destroy();
+
+		this.spine = undefined;
+		this.locations = undefined;
+		this.pageList = undefined;
+		this.archive = undefined;
+		this.resources = undefined;
+		this.container = undefined;
+		this.packaging = undefined;
+		this.rendition = undefined;
+
+		this.navigation = undefined;
+		this.url = undefined;
+		this.path = undefined;
+		this.archived = false;
+		this.toc = undefined;
 	}
 
 }

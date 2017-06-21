@@ -79,15 +79,42 @@ class DefaultViewManager {
 	}
 
 	addEventListeners(){
+		var scroller;
+
 		window.addEventListener("unload", function(e){
 			this.destroy();
 		}.bind(this));
+
+		if(this.settings.height) {
+			scroller = this.container;
+		} else {
+			scroller = window;
+		}
+
+		scroller.addEventListener("scroll", this.onScroll.bind(this));
+	}
+
+	removeEventListeners(){
+		var scroller;
+
+		if(this.settings.height) {
+			scroller = this.container;
+		} else {
+			scroller = window;
+		}
+
+		scroller.removeEventListener("scroll", this.onScroll.bind(this));
 	}
 
 	destroy(){
-		// this.views.each(function(view){
-		// 	view.destroy();
-		// });
+
+		this.removeEventListeners();
+
+		this.views.each(function(view){
+			view.destroy();
+		});
+
+		this.stage.destroy();
 
 		/*
 
@@ -108,7 +135,6 @@ class DefaultViewManager {
 	}
 
 	resize(width, height){
-
 		// Clear the queue
 		this.q.clear();
 
@@ -119,12 +145,13 @@ class DefaultViewManager {
 		this.viewSettings.width = this._stageSize.width;
 		this.viewSettings.height = this._stageSize.height;
 
+		this.updateLayout();
+
 		// Update for existing views
 		this.views.each(function(view) {
 			view.size(this._stageSize.width, this._stageSize.height);
 		}.bind(this));
 
-		this.updateLayout();
 
 		this.emit("resized", {
 			width: this.stage.width,
@@ -154,9 +181,7 @@ class DefaultViewManager {
 		}
 
 		// Hide all current views
-		this.views.hide();
-
-		this.views.clear();
+		this.clear();
 
 		this.add(section)
 			.then(function(view){
@@ -220,7 +245,7 @@ class DefaultViewManager {
 			}
 		}
 
-		this.scrollTo(distX, distY);
+		this.scrollTo(distX, distY, true);
 	}
 
 	add(section){
@@ -279,28 +304,24 @@ class DefaultViewManager {
 			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
 			if(left < this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0);
+				this.scrollBy(this.layout.delta, 0, true);
 			} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 				next = this.views.last().section.next();
 			} else {
 				next = this.views.last().section.next();
 			}
-
-
 		} else {
-
 			next = this.views.last().section.next();
-
 		}
 
 		if(next) {
-			this.views.clear();
+			this.clear();
 
 			return this.append(next)
 				.then(function(){
 					var right;
-					if (this.layout.name && this.layout.divisor > 1) {
+					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
 						right = next.next();
 						if (right) {
 							return this.append(right);
@@ -328,7 +349,7 @@ class DefaultViewManager {
 			left = this.container.scrollLeft;
 
 			if(left > 0) {
-				this.scrollBy(-this.layout.delta, 0);
+				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -341,12 +362,12 @@ class DefaultViewManager {
 		}
 
 		if(prev) {
-			this.views.clear();
+			this.clear();
 
 			return this.prepend(prev)
 				.then(function(){
 					var left;
-					if (this.layout.name && this.layout.divisor > 1) {
+					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
 						left = prev.prev();
 						if (left) {
 							return this.prepend(left);
@@ -355,7 +376,7 @@ class DefaultViewManager {
 				}.bind(this))
 				.then(function(){
 					if(this.settings.axis === "horizontal") {
-						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0);
+						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 					}
 					this.views.show();
 				}.bind(this));
@@ -371,6 +392,12 @@ class DefaultViewManager {
 		return null;
 	}
 
+	clear () {
+		this.views.hide();
+		this.scrollTo(0,0, true);
+		this.views.clear();
+	}
+
 	currentLocation(){
 
 		if (this.settings.axis === "vertical") {
@@ -382,26 +409,95 @@ class DefaultViewManager {
 	}
 
 	scrolledLocation(){
-		var view;
 
-		if(this.views.length) {
-			view = this.views.first();
-			return this.mapping.page(view, view.section.cfiBase);
+		var visible = this.visible();
+		var startPage, endPage;
+		var startA, startB, endA, endB;
+		var last;
+		var container = this.container.getBoundingClientRect();
+		var pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
+		var offset = 0;
+
+		if(!this.settings.height) {
+			offset = window.scrollY;
+		}
+
+		if(visible.length === 1) {
+			startA = (container.top - visible[0].position().top) + offset;
+			endA = startA + pageHeight;
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+
+			return {
+				index : visible[0].section.index,
+				href : visible[0].section.href,
+				start: startPage.start,
+				end: startPage.end
+			};
+		}
+
+		if(visible.length > 1) {
+			last = visible.length - 1;
+
+			startA = (container.top - visible[0].position().top) + offset;
+			endA = startA + (container.top - visible[0].position().bottom);
+
+			startB = (container.top - visible[last].position().top) + offset;
+			endB = pageHeight - startB;
+
+			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
+
+			return {
+				index : visible[last].section.index,
+				href : visible[last].section.href,
+				start: startPage.start,
+				end: endPage.end
+			};
 		}
 
 	}
 
 	paginatedLocation(){
-		var view;
-		var start, end;
+		var visible = this.visible();
+		var startA, startB, endA, endB;
+		var pageLeft, pageRight;
+		var container = this.container.getBoundingClientRect();
+		var last;
 
-		if(this.views.length) {
-			view = this.views.first();
-			start = this._bounds.left - view.position().left;
-			end = start + this.layout.spreadWidth;
-			return this.mapping.page(view, view.section.cfiBase, start, end);
+		if(visible.length === 1) {
+			startA = container.left - visible[0].position().left;
+			endA = startA + this.layout.spreadWidth + this.layout.gap;
+
+			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
+			return {
+				index : visible[0].section.index,
+				href : visible[0].section.href,
+				start: pageLeft.start,
+				end: pageLeft.end
+			};
 		}
 
+		if(visible.length > 1) {
+			last = visible.length - 1;
+
+			// Left Col
+			startA = container.left - visible[0].position().left;
+			endA = startA + this.layout.columnWidth + this.layout.gap / 2;
+
+			// Right Col
+			startB = container.left + this.layout.spreadWidth - visible[last].position().left;
+			endB = startB + this.layout.columnWidth + this.layout.gap / 2;
+
+			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
+			pageRight = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
+
+			return {
+				index : visible[last].section.index,
+				href : visible[last].section.href,
+				start: pageLeft.start,
+				end: pageRight.end
+			};
+		}
 	}
 
 	isVisible(view, offsetPrev, offsetNext, _container){
@@ -426,7 +522,6 @@ class DefaultViewManager {
 	}
 
 	visible(){
-		// return this.views.displayed();
 		var container = this.bounds();
 		var views = this.views.displayed();
 		var viewsLength = views.length;
@@ -459,9 +554,7 @@ class DefaultViewManager {
 		} else {
 			window.scrollBy(x,y);
 		}
-		// console.log("scrollBy", x, y);
 		this.scrolled = true;
-		this.onScroll();
 	}
 
 	scrollTo(x, y, silent){
@@ -475,9 +568,8 @@ class DefaultViewManager {
 		} else {
 			window.scrollTo(x,y);
 		}
-		// console.log("scrollTo", x, y);
 		this.scrolled = true;
-		this.onScroll();
+
 		// if(this.container.scrollLeft != x){
 		//   setTimeout(function() {
 		//     this.scrollTo(x, y, silent);
@@ -487,6 +579,40 @@ class DefaultViewManager {
 	}
 
 	onScroll(){
+		let scrollTop;
+		let scrollLeft;
+
+		if(this.settings.height) {
+			scrollTop = this.container.scrollTop;
+			scrollLeft = this.container.scrollLeft;
+		} else {
+			scrollTop = window.scrollY;
+			scrollLeft = window.scrollX;
+		}
+
+		this.scrollTop = scrollTop;
+		this.scrollLeft = scrollLeft;
+
+		if(!this.ignore) {
+			console.log("scroll", scrollLeft, scrollTop);
+			this.emit("scroll", {
+				top: scrollTop,
+				left: scrollLeft
+			});
+
+			clearTimeout(this.afterScrolled);
+			this.afterScrolled = setTimeout(function () {
+				this.emit("scrolled", {
+					top: this.scrollTop,
+					left: this.scrollLeft
+				});
+			}.bind(this), 20);
+
+
+
+		} else {
+			this.ignore = false;
+		}
 
 	}
 
@@ -503,7 +629,7 @@ class DefaultViewManager {
 		this.layout = layout;
 		this.updateLayout();
 
-		this.mapping = new Mapping(this.layout);
+		this.mapping = new Mapping(this.layout.props);
 		 // this.manager.layout(this.layout.format);
 	}
 

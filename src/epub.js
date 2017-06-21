@@ -2,6 +2,7 @@ import Book from "./book";
 import EpubCFI from "./epubcfi";
 import Rendition from "./rendition";
 import Contents from "./contents";
+import * as core from "./utils/core";
 
 /**
  * Creates a new Book
@@ -23,6 +24,7 @@ if (typeof(global) !== "undefined") {
 ePub.CFI = EpubCFI;
 ePub.Rendition = Rendition;
 ePub.Contents = Contents;
+ePub.utils = core;
 
 ePub.ViewManagers = {};
 ePub.Views = {};
