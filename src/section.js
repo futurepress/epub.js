@@ -89,7 +89,14 @@ class Section {
 
 		this.load(_request).
 			then(function(contents){
-				var Serializer = require("xmldom").XMLSerializer;
+				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+				var isIE = userAgent.indexOf('Trident') >= 0;
+				var Serializer;
+				if (typeof XMLSerializer === "undefined" || isIE) {
+					Serializer = require("xmldom").XMLSerializer;
+				} else {
+					Serializer = XMLSerializer;
+				}				
  				var serializer = new Serializer();
  				this.output = serializer.serializeToString(contents);
 				return this.output;
