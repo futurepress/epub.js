@@ -44,16 +44,27 @@ class Mapping {
 	}
 
 	walk(root, func) {
+		//IE11 has strange issue, if root is text node IE throws exception on
+        //calling treeWalker.nextNode(), saying
+        //Unexpected call to method or property access instead of returing null value
+        if(root && root.nodeType === Node.TEXT_NODE) {
+        	return;
+        }
+        //safeFilter is required so that it can work in IE as filter is a function for IE
+        // and for other browser filter is an object.
+        var filter = {
+            acceptNode: function(node) {
+                if (node.data.trim().length > 0) {
+                    return NodeFilter.FILTER_ACCEPT;
+                } else {
+                    return NodeFilter.FILTER_REJECT;
+                }
+            }
+        };
+        var safeFilter = filter.acceptNode;
+        safeFilter.acceptNode = filter.acceptNode;
 		//var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT + NodeFilter.SHOW_TEXT, null, false);
-		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-				if ( node.data.trim().length > 0 ) {
-					return NodeFilter.FILTER_ACCEPT;
-				} else {
-					return NodeFilter.FILTER_REJECT;
-				}
-			}
-		}, false);
+		var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, safeFilter, false);
 		var node;
 		var result;
 		while ((node = treeWalker.nextNode())) {
