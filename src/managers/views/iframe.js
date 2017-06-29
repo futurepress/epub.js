@@ -102,7 +102,8 @@ class IframeView {
 		// Firefox has trouble with baseURI and srcdoc
 		// TODO: Disable for now in firefox
 
-		if("srcdoc" in this.iframe) {
+
+		if(("srcdoc" in this.iframe)) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
@@ -544,8 +545,8 @@ class IframeView {
 		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
 		return {
-			"left": window.scrollX + parentPos.left + targetPos.left,
-			"top": window.scrollY + parentPos.top + targetPos.top
+			"left": window.scrollX + targetPos.left,
+			"top": window.scrollY + targetPos.top
 		};
 	}
 

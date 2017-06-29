@@ -48,6 +48,7 @@ class Spine {
 			var manifestItem = this.manifest[item.idref];
 			var spineItem;
 
+			item.index = index;
 			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
 			if (item.href) {
@@ -62,8 +63,39 @@ class Spine {
 				}
 			}
 
-			item.prev = function(){ return this.get(index-1); }.bind(this);
-			item.next = function(){ return this.get(index+1); }.bind(this);
+			if (item.linear === "yes") {
+				item.prev = function() {
+					let prevIndex = item.index;
+					while (prevIndex > 0) {
+						let prev = this.get(prevIndex-1);
+						if (prev && prev.linear) {
+							return prev;
+						}
+						prevIndex -= 1;
+					}
+					return;
+				}.bind(this);
+
+				item.next = function() {
+					let nextIndex = item.index;
+					while (nextIndex < this.spineItems.length-1) {
+						let next = this.get(nextIndex+1);
+						if (next && next.linear) {
+							return next;
+						}
+						nextIndex += 1;
+					}
+					return;
+				}.bind(this);
+			} else {
+				item.prev = function() {
+					return;
+				}
+				item.next = function() {
+					return;
+				}
+			}
+
 
 			spineItem = new Section(item, this.hooks);
 
@@ -87,10 +119,18 @@ class Spine {
 	get(target) {
 		var index = 0;
 
-		if(this.epubcfi.isCfiString(target)) {
+		if (typeof target === "undefined") {
+			while (index < this.spineItems.length) {
+				let next = this.spineItems[index];
+				if (next && next.linear) {
+					break;
+				}
+				index += 1;
+			}
+		} else if(this.epubcfi.isCfiString(target)) {
 			let cfi = new EpubCFI(target);
 			index = cfi.spinePos;
-		} else if(target && (typeof target === "number" || isNaN(target) === false)){
+		} else if(typeof target === "number" || isNaN(target) === false){
 			index = target;
 		} else if(target && target.indexOf("#") === 0) {
 			index = this.spineById[target.substring(1)];

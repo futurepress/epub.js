@@ -244,8 +244,11 @@ class Rendition {
 		var moveTo;
 
 		// Check if this is a book percentage
-		if (this.book.locations.length && isFloat(target)) {
-			target = this.book.locations.cfiFromPercentage(target);
+		if (this.book.locations.length &&
+				(isFloat(target) ||
+				(typeof target === "string" && target == parseFloat(target))) // Handle 1.0
+			) {
+			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
 
 		section = this.book.spine.get(target);
@@ -487,7 +490,7 @@ class Rendition {
 				location.then(function(result) {
 					this.location = result;
 
-					this.percentage = this.book.locations.percentageFromCfi(result);
+					this.percentage = this.book.locations.percentageFromCfi(result.start);
 					if (this.percentage != null) {
 						this.location.percentage = this.percentage;
 					}
@@ -496,7 +499,7 @@ class Rendition {
 				}.bind(this));
 			} else if (location) {
 				this.location = location;
-				this.percentage = this.book.locations.percentageFromCfi(location);
+				this.percentage = this.book.locations.percentageFromCfi(location.start);
 				if (this.percentage != null) {
 					this.location.percentage = this.percentage;
 				}
@@ -515,14 +518,14 @@ class Rendition {
 		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === "function") {
 			location.then(function(result) {
-				var percentage = this.book.locations.percentageFromCfi(result);
+				var percentage = this.book.locations.percentageFromCfi(result.start);
 				if (percentage != null) {
 					result.percentage = percentage;
 				}
 				return result;
 			}.bind(this));
 		} else if (location) {
-			var percentage = this.book.locations.percentageFromCfi(location);
+			var percentage = this.book.locations.percentageFromCfi(location.start);
 			if (percentage != null) {
 				location.percentage = percentage;
 			}

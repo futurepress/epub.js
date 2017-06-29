@@ -1,4 +1,4 @@
-import {extend, type, findChildren, RangeObject} from "./utils/core";
+import {extend, type, findChildren, RangeObject, isNumber} from "./utils/core";
 
 /**
 	EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
@@ -193,10 +193,14 @@ class EpubCFI {
 		var assertion = termialStr.match(/\[(.*)\]/);
 
 		if(assertion && assertion[1]){
-			characterOffset = parseInt(termialStr.split("[")[0]) || null;
+			characterOffset = parseInt(termialStr.split("[")[0]);
 			textLocationAssertion = assertion[1];
 		} else {
-			characterOffset = parseInt(termialStr) || null;
+			characterOffset = parseInt(termialStr);
+		}
+
+		if (!isNumber(characterOffset)) {
+			characterOffset = null;
 		}
 
 		return {
@@ -294,12 +298,12 @@ class EpubCFI {
 		cfiString += this.segmentString(this.path);
 
 		// Add Range, if present
-		if(this.start) {
+		if(this.range && this.start) {
 			cfiString += ",";
 			cfiString += this.segmentString(this.start);
 		}
 
-		if(this.end) {
+		if(this.range && this.end) {
 			cfiString += ",";
 			cfiString += this.segmentString(this.end);
 		}
@@ -312,6 +316,11 @@ class EpubCFI {
 	compare(cfiOne, cfiTwo) {
 		var stepsA, stepsB;
 		var terminalA, terminalB;
+
+		var rangeAStartSteps, rangeAEndSteps;
+		var rangeBEndSteps, rangeBEndSteps;
+		var rangeAStartTerminal, rangeAEndTerminal;
+		var rangeBStartTerminal, rangeBEndTerminal;
 
 		if(typeof cfiOne === "string") {
 			cfiOne = new EpubCFI(cfiOne);
@@ -967,6 +976,23 @@ class EpubCFI {
 		}
 
 		return cfi;
+	}
+
+	collapse(toStart) {
+		if (!this.range) {
+			return;
+		}
+
+		this.range = false;
+
+		if (toStart) {
+			this.path.steps = this.path.steps.concat(this.start.steps);
+			this.path.terminal = this.start.terminal;
+		} else {
+			this.path.steps = this.path.steps.concat(this.end.steps);
+			this.path.terminal = this.end.terminal;
+		}
+
 	}
 }
 

@@ -105,9 +105,8 @@ export function locationOf(item, array, compareFunction, _start, _end) {
 
 	compared = compareFunction(array[pivot], item);
 	if(end-start === 1) {
-		return compared > 0 ? pivot : pivot + 1;
+		return compared >= 0 ? pivot : pivot + 1;
 	}
-
 	if(compared === 0) {
 		return pivot;
 	}

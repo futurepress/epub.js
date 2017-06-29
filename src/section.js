@@ -13,7 +13,7 @@ import { replaceBase } from "./utils/replacements";
 class Section {
 	constructor(item, hooks){
 		this.idref = item.idref;
-		this.linear = item.linear;
+		this.linear = item.linear === "yes";
 		this.properties = item.properties;
 		this.index = item.index;
 		this.href = item.href;
@@ -54,7 +54,7 @@ class Section {
 					// var directory = new Url(this.url).directory;
 
 					this.document = xml;
-					this.contents = xml.documentElement;
+ 					this.contents = xml.documentElement;
 
 					return this.hooks.content.trigger(this.document, this);
 				}.bind(this))
@@ -89,16 +89,16 @@ class Section {
 
 		this.load(_request).
 			then(function(contents){
-				var serializer;
+				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+				var isIE = userAgent.indexOf('Trident') >= 0;
 				var Serializer;
-
-				if (typeof XMLSerializer === "undefined") {
+				if (typeof XMLSerializer === "undefined" || isIE) {
 					Serializer = require("xmldom").XMLSerializer;
 				} else {
 					Serializer = XMLSerializer;
-				}
-				serializer = new Serializer();
-				this.output = serializer.serializeToString(contents);
+				}				
+ 				var serializer = new Serializer();
+ 				this.output = serializer.serializeToString(contents);
 				return this.output;
 			}.bind(this)).
 			then(function(){
