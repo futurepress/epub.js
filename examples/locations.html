@@ -25,16 +25,16 @@
 		var currentPage = document.getElementById("current-percent");
 		var slider = document.createElement("input");
 		var slide = function(){
-				var cfi = book.locations.cfiFromPercentage(slider.value);
+				var cfi = book.locations.cfiFromPercentage(slider.value / 100);
 				rendition.display(cfi);
 		};
 		var mouseDown = false;
 
 		// Load the opf
-		var book = ePub("../test/fixtures/alice/OPS/package.opf");
+		var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 		var rendition = book.renderTo("viewer", {
 			width: "100%",
-			height: 500
+			height: 600
 		});
 
 		var displayed = rendition.display();
@@ -109,7 +109,7 @@
 						// Get the current CFI
 						var currentLocation = rendition.currentLocation();
 						// Get the Percentage (or location) from that CFI
-						var currentPage = book.locations.percentageFromCfi(currentLocation);
+						var currentPage = book.locations.percentageFromCfi(currentLocation.start);
 						slider.value = currentPage;
 						currentPage.value = currentPage;
 				});
@@ -123,7 +123,7 @@
 
 				// Listen for location changed event, get percentage from CFI
 				rendition.on('locationChanged', function(location){
-						var percent = book.locations.percentageFromCfi(location);
+						var percent = book.locations.percentageFromCfi(location.start);
 						var percentage = Math.floor(percent * 100);
 						if(!mouseDown) {
 								slider.value = percentage;
