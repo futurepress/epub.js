@@ -13,7 +13,7 @@ import { replaceBase } from "./utils/replacements";
 class Section {
 	constructor(item, hooks){
 		this.idref = item.idref;
-		this.linear = item.linear;
+		this.linear = item.linear === "yes";
 		this.properties = item.properties;
 		this.index = item.index;
 		this.href = item.href;
