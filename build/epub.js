@@ -1,1605 +1,2552 @@
 /*!
  * @overview RSVP - a tiny implementation of Promises/A+.
- * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors
+ * @copyright Copyright (c) 2016 Yehuda Katz, Tom Dale, Stefan Penner and contributors
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/tildeio/rsvp.js/master/LICENSE
- * @version   3.1.0
+ * @version   3.5.0
  */
 
-(function() {
-    "use strict";
-    function lib$rsvp$utils$$objectOrFunction(x) {
-      return typeof x === 'function' || (typeof x === 'object' && x !== null);
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.RSVP = global.RSVP || {})));
+}(this, (function (exports) { 'use strict';
+
+function indexOf(callbacks, callback) {
+  for (var i = 0, l = callbacks.length; i < l; i++) {
+    if (callbacks[i] === callback) {
+      return i;
     }
+  }
 
-    function lib$rsvp$utils$$isFunction(x) {
-      return typeof x === 'function';
-    }
+  return -1;
+}
 
-    function lib$rsvp$utils$$isMaybeThenable(x) {
-      return typeof x === 'object' && x !== null;
-    }
+function callbacksFor(object) {
+  var callbacks = object._promiseCallbacks;
 
-    var lib$rsvp$utils$$_isArray;
-    if (!Array.isArray) {
-      lib$rsvp$utils$$_isArray = function (x) {
-        return Object.prototype.toString.call(x) === '[object Array]';
-      };
-    } else {
-      lib$rsvp$utils$$_isArray = Array.isArray;
-    }
+  if (!callbacks) {
+    callbacks = object._promiseCallbacks = {};
+  }
 
-    var lib$rsvp$utils$$isArray = lib$rsvp$utils$$_isArray;
+  return callbacks;
+}
 
-    var lib$rsvp$utils$$now = Date.now || function() { return new Date().getTime(); };
+/**
+  @class RSVP.EventTarget
+*/
+var EventTarget = {
 
-    function lib$rsvp$utils$$F() { }
-
-    var lib$rsvp$utils$$o_create = (Object.create || function (o) {
-      if (arguments.length > 1) {
-        throw new Error('Second argument not supported');
-      }
-      if (typeof o !== 'object') {
-        throw new TypeError('Argument must be an object');
-      }
-      lib$rsvp$utils$$F.prototype = o;
-      return new lib$rsvp$utils$$F();
+  /**
+    `RSVP.EventTarget.mixin` extends an object with EventTarget methods. For
+    Example:
+     ```javascript
+    let object = {};
+     RSVP.EventTarget.mixin(object);
+     object.on('finished', function(event) {
+      // handle event
     });
-    function lib$rsvp$events$$indexOf(callbacks, callback) {
-      for (var i=0, l=callbacks.length; i<l; i++) {
-        if (callbacks[i] === callback) { return i; }
-      }
+     object.trigger('finished', { detail: value });
+    ```
+     `EventTarget.mixin` also works with prototypes:
+     ```javascript
+    let Person = function() {};
+    RSVP.EventTarget.mixin(Person.prototype);
+     let yehuda = new Person();
+    let tom = new Person();
+     yehuda.on('poke', function(event) {
+      console.log('Yehuda says OW');
+    });
+     tom.on('poke', function(event) {
+      console.log('Tom says OW');
+    });
+     yehuda.trigger('poke');
+    tom.trigger('poke');
+    ```
+     @method mixin
+    @for RSVP.EventTarget
+    @private
+    @param {Object} object object to extend with EventTarget methods
+  */
+  mixin: function mixin(object) {
+    object['on'] = this['on'];
+    object['off'] = this['off'];
+    object['trigger'] = this['trigger'];
+    object._promiseCallbacks = undefined;
+    return object;
+  },
 
-      return -1;
+  /**
+    Registers a callback to be executed when `eventName` is triggered
+     ```javascript
+    object.on('event', function(eventInfo){
+      // handle the event
+    });
+     object.trigger('event');
+    ```
+     @method on
+    @for RSVP.EventTarget
+    @private
+    @param {String} eventName name of the event to listen for
+    @param {Function} callback function to be called when the event is triggered.
+  */
+  on: function on(eventName, callback) {
+    if (typeof callback !== 'function') {
+      throw new TypeError('Callback must be a function');
     }
 
-    function lib$rsvp$events$$callbacksFor(object) {
-      var callbacks = object._promiseCallbacks;
+    var allCallbacks = callbacksFor(this),
+        callbacks = undefined;
 
-      if (!callbacks) {
-        callbacks = object._promiseCallbacks = {};
-      }
+    callbacks = allCallbacks[eventName];
 
-      return callbacks;
+    if (!callbacks) {
+      callbacks = allCallbacks[eventName] = [];
     }
 
-    var lib$rsvp$events$$default = {
+    if (indexOf(callbacks, callback) === -1) {
+      callbacks.push(callback);
+    }
+  },
 
-      /**
-        `RSVP.EventTarget.mixin` extends an object with EventTarget methods. For
-        Example:
+  /**
+    You can use `off` to stop firing a particular callback for an event:
+     ```javascript
+    function doStuff() { // do stuff! }
+    object.on('stuff', doStuff);
+     object.trigger('stuff'); // doStuff will be called
+     // Unregister ONLY the doStuff callback
+    object.off('stuff', doStuff);
+    object.trigger('stuff'); // doStuff will NOT be called
+    ```
+     If you don't pass a `callback` argument to `off`, ALL callbacks for the
+    event will not be executed when the event fires. For example:
+     ```javascript
+    let callback1 = function(){};
+    let callback2 = function(){};
+     object.on('stuff', callback1);
+    object.on('stuff', callback2);
+     object.trigger('stuff'); // callback1 and callback2 will be executed.
+     object.off('stuff');
+    object.trigger('stuff'); // callback1 and callback2 will not be executed!
+    ```
+     @method off
+    @for RSVP.EventTarget
+    @private
+    @param {String} eventName event to stop listening to
+    @param {Function} callback optional argument. If given, only the function
+    given will be removed from the event's callback queue. If no `callback`
+    argument is given, all callbacks will be removed from the event's callback
+    queue.
+  */
+  off: function off(eventName, callback) {
+    var allCallbacks = callbacksFor(this),
+        callbacks = undefined,
+        index = undefined;
 
-        ```javascript
-        var object = {};
+    if (!callback) {
+      allCallbacks[eventName] = [];
+      return;
+    }
 
-        RSVP.EventTarget.mixin(object);
+    callbacks = allCallbacks[eventName];
 
-        object.on('finished', function(event) {
-          // handle event
-        });
+    index = indexOf(callbacks, callback);
 
-        object.trigger('finished', { detail: value });
-        ```
+    if (index !== -1) {
+      callbacks.splice(index, 1);
+    }
+  },
 
-        `EventTarget.mixin` also works with prototypes:
+  /**
+    Use `trigger` to fire custom events. For example:
+     ```javascript
+    object.on('foo', function(){
+      console.log('foo event happened!');
+    });
+    object.trigger('foo');
+    // 'foo event happened!' logged to the console
+    ```
+     You can also pass a value as a second argument to `trigger` that will be
+    passed as an argument to all event listeners for the event:
+     ```javascript
+    object.on('foo', function(value){
+      console.log(value.name);
+    });
+     object.trigger('foo', { name: 'bar' });
+    // 'bar' logged to the console
+    ```
+     @method trigger
+    @for RSVP.EventTarget
+    @private
+    @param {String} eventName name of the event to be triggered
+    @param {*} options optional value to be passed to any event handlers for
+    the given `eventName`
+  */
+  trigger: function trigger(eventName, options, label) {
+    var allCallbacks = callbacksFor(this),
+        callbacks = undefined,
+        callback = undefined;
 
-        ```javascript
-        var Person = function() {};
-        RSVP.EventTarget.mixin(Person.prototype);
+    if (callbacks = allCallbacks[eventName]) {
+      // Don't cache the callbacks.length since it may grow
+      for (var i = 0; i < callbacks.length; i++) {
+        callback = callbacks[i];
 
-        var yehuda = new Person();
-        var tom = new Person();
-
-        yehuda.on('poke', function(event) {
-          console.log('Yehuda says OW');
-        });
-
-        tom.on('poke', function(event) {
-          console.log('Tom says OW');
-        });
-
-        yehuda.trigger('poke');
-        tom.trigger('poke');
-        ```
-
-        @method mixin
-        @for RSVP.EventTarget
-        @private
-        @param {Object} object object to extend with EventTarget methods
-      */
-      'mixin': function(object) {
-        object['on']      = this['on'];
-        object['off']     = this['off'];
-        object['trigger'] = this['trigger'];
-        object._promiseCallbacks = undefined;
-        return object;
-      },
-
-      /**
-        Registers a callback to be executed when `eventName` is triggered
-
-        ```javascript
-        object.on('event', function(eventInfo){
-          // handle the event
-        });
-
-        object.trigger('event');
-        ```
-
-        @method on
-        @for RSVP.EventTarget
-        @private
-        @param {String} eventName name of the event to listen for
-        @param {Function} callback function to be called when the event is triggered.
-      */
-      'on': function(eventName, callback) {
-        if (typeof callback !== 'function') {
-          throw new TypeError('Callback must be a function');
-        }
-
-        var allCallbacks = lib$rsvp$events$$callbacksFor(this), callbacks;
-
-        callbacks = allCallbacks[eventName];
-
-        if (!callbacks) {
-          callbacks = allCallbacks[eventName] = [];
-        }
-
-        if (lib$rsvp$events$$indexOf(callbacks, callback) === -1) {
-          callbacks.push(callback);
-        }
-      },
-
-      /**
-        You can use `off` to stop firing a particular callback for an event:
-
-        ```javascript
-        function doStuff() { // do stuff! }
-        object.on('stuff', doStuff);
-
-        object.trigger('stuff'); // doStuff will be called
-
-        // Unregister ONLY the doStuff callback
-        object.off('stuff', doStuff);
-        object.trigger('stuff'); // doStuff will NOT be called
-        ```
-
-        If you don't pass a `callback` argument to `off`, ALL callbacks for the
-        event will not be executed when the event fires. For example:
-
-        ```javascript
-        var callback1 = function(){};
-        var callback2 = function(){};
-
-        object.on('stuff', callback1);
-        object.on('stuff', callback2);
-
-        object.trigger('stuff'); // callback1 and callback2 will be executed.
-
-        object.off('stuff');
-        object.trigger('stuff'); // callback1 and callback2 will not be executed!
-        ```
-
-        @method off
-        @for RSVP.EventTarget
-        @private
-        @param {String} eventName event to stop listening to
-        @param {Function} callback optional argument. If given, only the function
-        given will be removed from the event's callback queue. If no `callback`
-        argument is given, all callbacks will be removed from the event's callback
-        queue.
-      */
-      'off': function(eventName, callback) {
-        var allCallbacks = lib$rsvp$events$$callbacksFor(this), callbacks, index;
-
-        if (!callback) {
-          allCallbacks[eventName] = [];
-          return;
-        }
-
-        callbacks = allCallbacks[eventName];
-
-        index = lib$rsvp$events$$indexOf(callbacks, callback);
-
-        if (index !== -1) { callbacks.splice(index, 1); }
-      },
-
-      /**
-        Use `trigger` to fire custom events. For example:
-
-        ```javascript
-        object.on('foo', function(){
-          console.log('foo event happened!');
-        });
-        object.trigger('foo');
-        // 'foo event happened!' logged to the console
-        ```
-
-        You can also pass a value as a second argument to `trigger` that will be
-        passed as an argument to all event listeners for the event:
-
-        ```javascript
-        object.on('foo', function(value){
-          console.log(value.name);
-        });
-
-        object.trigger('foo', { name: 'bar' });
-        // 'bar' logged to the console
-        ```
-
-        @method trigger
-        @for RSVP.EventTarget
-        @private
-        @param {String} eventName name of the event to be triggered
-        @param {*} options optional value to be passed to any event handlers for
-        the given `eventName`
-      */
-      'trigger': function(eventName, options, label) {
-        var allCallbacks = lib$rsvp$events$$callbacksFor(this), callbacks, callback;
-
-        if (callbacks = allCallbacks[eventName]) {
-          // Don't cache the callbacks.length since it may grow
-          for (var i=0; i<callbacks.length; i++) {
-            callback = callbacks[i];
-
-            callback(options, label);
-          }
-        }
+        callback(options, label);
       }
-    };
+    }
+  }
+};
 
-    var lib$rsvp$config$$config = {
-      instrument: false
-    };
+var config = {
+  instrument: false
+};
 
-    lib$rsvp$events$$default['mixin'](lib$rsvp$config$$config);
+EventTarget['mixin'](config);
 
-    function lib$rsvp$config$$configure(name, value) {
-      if (name === 'onerror') {
-        // handle for legacy users that expect the actual
-        // error to be passed to their function added via
-        // `RSVP.configure('onerror', someFunctionHere);`
-        lib$rsvp$config$$config['on']('error', value);
+function configure(name, value) {
+  if (name === 'onerror') {
+    // handle for legacy users that expect the actual
+    // error to be passed to their function added via
+    // `RSVP.configure('onerror', someFunctionHere);`
+    config['on']('error', value);
+    return;
+  }
+
+  if (arguments.length === 2) {
+    config[name] = value;
+  } else {
+    return config[name];
+  }
+}
+
+function objectOrFunction(x) {
+  return typeof x === 'function' || typeof x === 'object' && x !== null;
+}
+
+function isFunction(x) {
+  return typeof x === 'function';
+}
+
+function isMaybeThenable(x) {
+  return typeof x === 'object' && x !== null;
+}
+
+var _isArray = undefined;
+if (!Array.isArray) {
+  _isArray = function (x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  };
+} else {
+  _isArray = Array.isArray;
+}
+
+var isArray = _isArray;
+
+// Date.now is not available in browsers < IE9
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now#Compatibility
+var now = Date.now || function () {
+  return new Date().getTime();
+};
+
+function F() {}
+
+var o_create = Object.create || function (o) {
+  if (arguments.length > 1) {
+    throw new Error('Second argument not supported');
+  }
+  if (typeof o !== 'object') {
+    throw new TypeError('Argument must be an object');
+  }
+  F.prototype = o;
+  return new F();
+};
+
+var queue = [];
+
+function scheduleFlush() {
+  setTimeout(function () {
+    for (var i = 0; i < queue.length; i++) {
+      var entry = queue[i];
+
+      var payload = entry.payload;
+
+      payload.guid = payload.key + payload.id;
+      payload.childGuid = payload.key + payload.childId;
+      if (payload.error) {
+        payload.stack = payload.error.stack;
+      }
+
+      config['trigger'](entry.name, entry.payload);
+    }
+    queue.length = 0;
+  }, 50);
+}
+function instrument$1(eventName, promise, child) {
+  if (1 === queue.push({
+    name: eventName,
+    payload: {
+      key: promise._guidKey,
+      id: promise._id,
+      eventName: eventName,
+      detail: promise._result,
+      childId: child && child._id,
+      label: promise._label,
+      timeStamp: now(),
+      error: config["instrument-with-stack"] ? new Error(promise._label) : null
+    } })) {
+    scheduleFlush();
+  }
+}
+
+/**
+  `RSVP.Promise.resolve` returns a promise that will become resolved with the
+  passed `value`. It is shorthand for the following:
+
+  ```javascript
+  let promise = new RSVP.Promise(function(resolve, reject){
+    resolve(1);
+  });
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = RSVP.Promise.resolve(1);
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  @method resolve
+  @static
+  @param {*} object value that the returned promise will be resolved with
+  @param {String} label optional string for identifying the returned promise.
+  Useful for tooling.
+  @return {Promise} a promise that will become fulfilled with the given
+  `value`
+*/
+function resolve$1(object, label) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (object && typeof object === 'object' && object.constructor === Constructor) {
+    return object;
+  }
+
+  var promise = new Constructor(noop, label);
+  resolve(promise, object);
+  return promise;
+}
+
+function withOwnPromise() {
+  return new TypeError('A promises callback cannot return that same promise.');
+}
+
+function noop() {}
+
+var PENDING = void 0;
+var FULFILLED = 1;
+var REJECTED = 2;
+
+var GET_THEN_ERROR = new ErrorObject();
+
+function getThen(promise) {
+  try {
+    return promise.then;
+  } catch (error) {
+    GET_THEN_ERROR.error = error;
+    return GET_THEN_ERROR;
+  }
+}
+
+function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
+  try {
+    then$$1.call(value, fulfillmentHandler, rejectionHandler);
+  } catch (e) {
+    return e;
+  }
+}
+
+function handleForeignThenable(promise, thenable, then$$1) {
+  config.async(function (promise) {
+    var sealed = false;
+    var error = tryThen(then$$1, thenable, function (value) {
+      if (sealed) {
         return;
       }
-
-      if (arguments.length === 2) {
-        lib$rsvp$config$$config[name] = value;
+      sealed = true;
+      if (thenable !== value) {
+        resolve(promise, value, undefined);
       } else {
-        return lib$rsvp$config$$config[name];
+        fulfill(promise, value);
       }
-    }
-
-    var lib$rsvp$instrument$$queue = [];
-
-    function lib$rsvp$instrument$$scheduleFlush() {
-      setTimeout(function() {
-        var entry;
-        for (var i = 0; i < lib$rsvp$instrument$$queue.length; i++) {
-          entry = lib$rsvp$instrument$$queue[i];
-
-          var payload = entry.payload;
-
-          payload.guid = payload.key + payload.id;
-          payload.childGuid = payload.key + payload.childId;
-          if (payload.error) {
-            payload.stack = payload.error.stack;
-          }
-
-          lib$rsvp$config$$config['trigger'](entry.name, entry.payload);
-        }
-        lib$rsvp$instrument$$queue.length = 0;
-      }, 50);
-    }
-
-    function lib$rsvp$instrument$$instrument(eventName, promise, child) {
-      if (1 === lib$rsvp$instrument$$queue.push({
-        name: eventName,
-        payload: {
-          key: promise._guidKey,
-          id:  promise._id,
-          eventName: eventName,
-          detail: promise._result,
-          childId: child && child._id,
-          label: promise._label,
-          timeStamp: lib$rsvp$utils$$now(),
-          error: lib$rsvp$config$$config["instrument-with-stack"] ? new Error(promise._label) : null
-        }})) {
-          lib$rsvp$instrument$$scheduleFlush();
-        }
+    }, function (reason) {
+      if (sealed) {
+        return;
       }
-    var lib$rsvp$instrument$$default = lib$rsvp$instrument$$instrument;
+      sealed = true;
 
-    function  lib$rsvp$$internal$$withOwnPromise() {
-      return new TypeError('A promises callback cannot return that same promise.');
+      reject(promise, reason);
+    }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+    if (!sealed && error) {
+      sealed = true;
+      reject(promise, error);
     }
+  }, promise);
+}
 
-    function lib$rsvp$$internal$$noop() {}
-
-    var lib$rsvp$$internal$$PENDING   = void 0;
-    var lib$rsvp$$internal$$FULFILLED = 1;
-    var lib$rsvp$$internal$$REJECTED  = 2;
-
-    var lib$rsvp$$internal$$GET_THEN_ERROR = new lib$rsvp$$internal$$ErrorObject();
-
-    function lib$rsvp$$internal$$getThen(promise) {
-      try {
-        return promise.then;
-      } catch(error) {
-        lib$rsvp$$internal$$GET_THEN_ERROR.error = error;
-        return lib$rsvp$$internal$$GET_THEN_ERROR;
-      }
-    }
-
-    function lib$rsvp$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
-      try {
-        then.call(value, fulfillmentHandler, rejectionHandler);
-      } catch(e) {
-        return e;
-      }
-    }
-
-    function lib$rsvp$$internal$$handleForeignThenable(promise, thenable, then) {
-      lib$rsvp$config$$config.async(function(promise) {
-        var sealed = false;
-        var error = lib$rsvp$$internal$$tryThen(then, thenable, function(value) {
-          if (sealed) { return; }
-          sealed = true;
-          if (thenable !== value) {
-            lib$rsvp$$internal$$resolve(promise, value);
-          } else {
-            lib$rsvp$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          if (sealed) { return; }
-          sealed = true;
-
-          lib$rsvp$$internal$$reject(promise, reason);
-        }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-        if (!sealed && error) {
-          sealed = true;
-          lib$rsvp$$internal$$reject(promise, error);
-        }
-      }, promise);
-    }
-
-    function lib$rsvp$$internal$$handleOwnThenable(promise, thenable) {
-      if (thenable._state === lib$rsvp$$internal$$FULFILLED) {
-        lib$rsvp$$internal$$fulfill(promise, thenable._result);
-      } else if (thenable._state === lib$rsvp$$internal$$REJECTED) {
-        thenable._onError = null;
-        lib$rsvp$$internal$$reject(promise, thenable._result);
+function handleOwnThenable(promise, thenable) {
+  if (thenable._state === FULFILLED) {
+    fulfill(promise, thenable._result);
+  } else if (thenable._state === REJECTED) {
+    thenable._onError = null;
+    reject(promise, thenable._result);
+  } else {
+    subscribe(thenable, undefined, function (value) {
+      if (thenable !== value) {
+        resolve(promise, value, undefined);
       } else {
-        lib$rsvp$$internal$$subscribe(thenable, undefined, function(value) {
-          if (thenable !== value) {
-            lib$rsvp$$internal$$resolve(promise, value);
-          } else {
-            lib$rsvp$$internal$$fulfill(promise, value);
-          }
-        }, function(reason) {
-          lib$rsvp$$internal$$reject(promise, reason);
-        });
+        fulfill(promise, value);
       }
+    }, function (reason) {
+      return reject(promise, reason);
+    });
+  }
+}
+
+function handleMaybeThenable(promise, maybeThenable, then$$1) {
+  if (maybeThenable.constructor === promise.constructor && then$$1 === then && promise.constructor.resolve === resolve$1) {
+    handleOwnThenable(promise, maybeThenable);
+  } else {
+    if (then$$1 === GET_THEN_ERROR) {
+      reject(promise, GET_THEN_ERROR.error);
+      GET_THEN_ERROR.error = null;
+    } else if (then$$1 === undefined) {
+      fulfill(promise, maybeThenable);
+    } else if (isFunction(then$$1)) {
+      handleForeignThenable(promise, maybeThenable, then$$1);
+    } else {
+      fulfill(promise, maybeThenable);
     }
+  }
+}
 
-    function lib$rsvp$$internal$$handleMaybeThenable(promise, maybeThenable) {
-      if (maybeThenable.constructor === promise.constructor) {
-        lib$rsvp$$internal$$handleOwnThenable(promise, maybeThenable);
-      } else {
-        var then = lib$rsvp$$internal$$getThen(maybeThenable);
+function resolve(promise, value) {
+  if (promise === value) {
+    fulfill(promise, value);
+  } else if (objectOrFunction(value)) {
+    handleMaybeThenable(promise, value, getThen(value));
+  } else {
+    fulfill(promise, value);
+  }
+}
 
-        if (then === lib$rsvp$$internal$$GET_THEN_ERROR) {
-          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$GET_THEN_ERROR.error);
-        } else if (then === undefined) {
-          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
-        } else if (lib$rsvp$utils$$isFunction(then)) {
-          lib$rsvp$$internal$$handleForeignThenable(promise, maybeThenable, then);
-        } else {
-          lib$rsvp$$internal$$fulfill(promise, maybeThenable);
-        }
-      }
+function publishRejection(promise) {
+  if (promise._onError) {
+    promise._onError(promise._result);
+  }
+
+  publish(promise);
+}
+
+function fulfill(promise, value) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+
+  promise._result = value;
+  promise._state = FULFILLED;
+
+  if (promise._subscribers.length === 0) {
+    if (config.instrument) {
+      instrument$1('fulfilled', promise);
     }
+  } else {
+    config.async(publish, promise);
+  }
+}
 
-    function lib$rsvp$$internal$$resolve(promise, value) {
-      if (promise === value) {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      } else if (lib$rsvp$utils$$objectOrFunction(value)) {
-        lib$rsvp$$internal$$handleMaybeThenable(promise, value);
-      } else {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      }
+function reject(promise, reason) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+  promise._state = REJECTED;
+  promise._result = reason;
+  config.async(publishRejection, promise);
+}
+
+function subscribe(parent, child, onFulfillment, onRejection) {
+  var subscribers = parent._subscribers;
+  var length = subscribers.length;
+
+  parent._onError = null;
+
+  subscribers[length] = child;
+  subscribers[length + FULFILLED] = onFulfillment;
+  subscribers[length + REJECTED] = onRejection;
+
+  if (length === 0 && parent._state) {
+    config.async(publish, parent);
+  }
+}
+
+function publish(promise) {
+  var subscribers = promise._subscribers;
+  var settled = promise._state;
+
+  if (config.instrument) {
+    instrument$1(settled === FULFILLED ? 'fulfilled' : 'rejected', promise);
+  }
+
+  if (subscribers.length === 0) {
+    return;
+  }
+
+  var child = undefined,
+      callback = undefined,
+      detail = promise._result;
+
+  for (var i = 0; i < subscribers.length; i += 3) {
+    child = subscribers[i];
+    callback = subscribers[i + settled];
+
+    if (child) {
+      invokeCallback(settled, child, callback, detail);
+    } else {
+      callback(detail);
     }
+  }
 
-    function lib$rsvp$$internal$$publishRejection(promise) {
-      if (promise._onError) {
-        promise._onError(promise._result);
-      }
+  promise._subscribers.length = 0;
+}
 
-      lib$rsvp$$internal$$publish(promise);
-    }
+function ErrorObject() {
+  this.error = null;
+}
 
-    function lib$rsvp$$internal$$fulfill(promise, value) {
-      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
+var TRY_CATCH_ERROR = new ErrorObject();
 
-      promise._result = value;
-      promise._state = lib$rsvp$$internal$$FULFILLED;
+function tryCatch(callback, detail) {
+  try {
+    return callback(detail);
+  } catch (e) {
+    TRY_CATCH_ERROR.error = e;
+    return TRY_CATCH_ERROR;
+  }
+}
 
-      if (promise._subscribers.length === 0) {
-        if (lib$rsvp$config$$config.instrument) {
-          lib$rsvp$instrument$$default('fulfilled', promise);
-        }
-      } else {
-        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, promise);
-      }
-    }
+function invokeCallback(settled, promise, callback, detail) {
+  var hasCallback = isFunction(callback),
+      value = undefined,
+      error = undefined,
+      succeeded = undefined,
+      failed = undefined;
 
-    function lib$rsvp$$internal$$reject(promise, reason) {
-      if (promise._state !== lib$rsvp$$internal$$PENDING) { return; }
-      promise._state = lib$rsvp$$internal$$REJECTED;
-      promise._result = reason;
-      lib$rsvp$config$$config.async(lib$rsvp$$internal$$publishRejection, promise);
-    }
+  if (hasCallback) {
+    value = tryCatch(callback, detail);
 
-    function lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
-      var subscribers = parent._subscribers;
-      var length = subscribers.length;
-
-      parent._onError = null;
-
-      subscribers[length] = child;
-      subscribers[length + lib$rsvp$$internal$$FULFILLED] = onFulfillment;
-      subscribers[length + lib$rsvp$$internal$$REJECTED]  = onRejection;
-
-      if (length === 0 && parent._state) {
-        lib$rsvp$config$$config.async(lib$rsvp$$internal$$publish, parent);
-      }
-    }
-
-    function lib$rsvp$$internal$$publish(promise) {
-      var subscribers = promise._subscribers;
-      var settled = promise._state;
-
-      if (lib$rsvp$config$$config.instrument) {
-        lib$rsvp$instrument$$default(settled === lib$rsvp$$internal$$FULFILLED ? 'fulfilled' : 'rejected', promise);
-      }
-
-      if (subscribers.length === 0) { return; }
-
-      var child, callback, detail = promise._result;
-
-      for (var i = 0; i < subscribers.length; i += 3) {
-        child = subscribers[i];
-        callback = subscribers[i + settled];
-
-        if (child) {
-          lib$rsvp$$internal$$invokeCallback(settled, child, callback, detail);
-        } else {
-          callback(detail);
-        }
-      }
-
-      promise._subscribers.length = 0;
-    }
-
-    function lib$rsvp$$internal$$ErrorObject() {
-      this.error = null;
-    }
-
-    var lib$rsvp$$internal$$TRY_CATCH_ERROR = new lib$rsvp$$internal$$ErrorObject();
-
-    function lib$rsvp$$internal$$tryCatch(callback, detail) {
-      try {
-        return callback(detail);
-      } catch(e) {
-        lib$rsvp$$internal$$TRY_CATCH_ERROR.error = e;
-        return lib$rsvp$$internal$$TRY_CATCH_ERROR;
-      }
-    }
-
-    function lib$rsvp$$internal$$invokeCallback(settled, promise, callback, detail) {
-      var hasCallback = lib$rsvp$utils$$isFunction(callback),
-          value, error, succeeded, failed;
-
-      if (hasCallback) {
-        value = lib$rsvp$$internal$$tryCatch(callback, detail);
-
-        if (value === lib$rsvp$$internal$$TRY_CATCH_ERROR) {
-          failed = true;
-          error = value.error;
-          value = null;
-        } else {
-          succeeded = true;
-        }
-
-        if (promise === value) {
-          lib$rsvp$$internal$$reject(promise, lib$rsvp$$internal$$withOwnPromise());
-          return;
-        }
-
-      } else {
-        value = detail;
+    if (value === TRY_CATCH_ERROR) {
+      failed = true;
+      error = value.error;
+      value.error = null; // release
+    } else {
         succeeded = true;
       }
 
-      if (promise._state !== lib$rsvp$$internal$$PENDING) {
-        // noop
-      } else if (hasCallback && succeeded) {
-        lib$rsvp$$internal$$resolve(promise, value);
-      } else if (failed) {
-        lib$rsvp$$internal$$reject(promise, error);
-      } else if (settled === lib$rsvp$$internal$$FULFILLED) {
-        lib$rsvp$$internal$$fulfill(promise, value);
-      } else if (settled === lib$rsvp$$internal$$REJECTED) {
-        lib$rsvp$$internal$$reject(promise, value);
+    if (promise === value) {
+      reject(promise, withOwnPromise());
+      return;
+    }
+  } else {
+    value = detail;
+    succeeded = true;
+  }
+
+  if (promise._state !== PENDING) {
+    // noop
+  } else if (hasCallback && succeeded) {
+      resolve(promise, value);
+    } else if (failed) {
+      reject(promise, error);
+    } else if (settled === FULFILLED) {
+      fulfill(promise, value);
+    } else if (settled === REJECTED) {
+      reject(promise, value);
+    }
+}
+
+function initializePromise(promise, resolver) {
+  var resolved = false;
+  try {
+    resolver(function (value) {
+      if (resolved) {
+        return;
+      }
+      resolved = true;
+      resolve(promise, value);
+    }, function (reason) {
+      if (resolved) {
+        return;
+      }
+      resolved = true;
+      reject(promise, reason);
+    });
+  } catch (e) {
+    reject(promise, e);
+  }
+}
+
+function then(onFulfillment, onRejection, label) {
+  var _arguments = arguments;
+
+  var parent = this;
+  var state = parent._state;
+
+  if (state === FULFILLED && !onFulfillment || state === REJECTED && !onRejection) {
+    config.instrument && instrument$1('chained', parent, parent);
+    return parent;
+  }
+
+  parent._onError = null;
+
+  var child = new parent.constructor(noop, label);
+  var result = parent._result;
+
+  config.instrument && instrument$1('chained', parent, child);
+
+  if (state) {
+    (function () {
+      var callback = _arguments[state - 1];
+      config.async(function () {
+        return invokeCallback(state, child, callback, result);
+      });
+    })();
+  } else {
+    subscribe(parent, child, onFulfillment, onRejection);
+  }
+
+  return child;
+}
+
+function makeSettledResult(state, position, value) {
+  if (state === FULFILLED) {
+    return {
+      state: 'fulfilled',
+      value: value
+    };
+  } else {
+    return {
+      state: 'rejected',
+      reason: value
+    };
+  }
+}
+
+function Enumerator(Constructor, input, abortOnReject, label) {
+  this._instanceConstructor = Constructor;
+  this.promise = new Constructor(noop, label);
+  this._abortOnReject = abortOnReject;
+
+  if (this._validateInput(input)) {
+    this._input = input;
+    this.length = input.length;
+    this._remaining = input.length;
+
+    this._init();
+
+    if (this.length === 0) {
+      fulfill(this.promise, this._result);
+    } else {
+      this.length = this.length || 0;
+      this._enumerate();
+      if (this._remaining === 0) {
+        fulfill(this.promise, this._result);
       }
     }
+  } else {
+    reject(this.promise, this._validationError());
+  }
+}
 
-    function lib$rsvp$$internal$$initializePromise(promise, resolver) {
-      var resolved = false;
-      try {
-        resolver(function resolvePromise(value){
-          if (resolved) { return; }
-          resolved = true;
-          lib$rsvp$$internal$$resolve(promise, value);
-        }, function rejectPromise(reason) {
-          if (resolved) { return; }
-          resolved = true;
-          lib$rsvp$$internal$$reject(promise, reason);
-        });
-      } catch(e) {
-        lib$rsvp$$internal$$reject(promise, e);
-      }
+Enumerator.prototype._validateInput = function (input) {
+  return isArray(input);
+};
+
+Enumerator.prototype._validationError = function () {
+  return new Error('Array Methods must be provided an Array');
+};
+
+Enumerator.prototype._init = function () {
+  this._result = new Array(this.length);
+};
+
+Enumerator.prototype._enumerate = function () {
+  var length = this.length;
+  var promise = this.promise;
+  var input = this._input;
+
+  for (var i = 0; promise._state === PENDING && i < length; i++) {
+    this._eachEntry(input[i], i);
+  }
+};
+
+Enumerator.prototype._settleMaybeThenable = function (entry, i) {
+  var c = this._instanceConstructor;
+  var resolve$$1 = c.resolve;
+
+  if (resolve$$1 === resolve$1) {
+    var then$$1 = getThen(entry);
+
+    if (then$$1 === then && entry._state !== PENDING) {
+      entry._onError = null;
+      this._settledAt(entry._state, i, entry._result);
+    } else if (typeof then$$1 !== 'function') {
+      this._remaining--;
+      this._result[i] = this._makeResult(FULFILLED, i, entry);
+    } else if (c === Promise$1) {
+      var promise = new c(noop);
+      handleMaybeThenable(promise, entry, then$$1);
+      this._willSettleAt(promise, i);
+    } else {
+      this._willSettleAt(new c(function (resolve$$1) {
+        return resolve$$1(entry);
+      }), i);
     }
+  } else {
+    this._willSettleAt(resolve$$1(entry), i);
+  }
+};
 
-    function lib$rsvp$enumerator$$makeSettledResult(state, position, value) {
-      if (state === lib$rsvp$$internal$$FULFILLED) {
-        return {
-          state: 'fulfilled',
-          value: value
-        };
-      } else {
-         return {
-          state: 'rejected',
-          reason: value
-        };
-      }
+Enumerator.prototype._eachEntry = function (entry, i) {
+  if (isMaybeThenable(entry)) {
+    this._settleMaybeThenable(entry, i);
+  } else {
+    this._remaining--;
+    this._result[i] = this._makeResult(FULFILLED, i, entry);
+  }
+};
+
+Enumerator.prototype._settledAt = function (state, i, value) {
+  var promise = this.promise;
+
+  if (promise._state === PENDING) {
+    this._remaining--;
+
+    if (this._abortOnReject && state === REJECTED) {
+      reject(promise, value);
+    } else {
+      this._result[i] = this._makeResult(state, i, value);
     }
+  }
 
-    function lib$rsvp$enumerator$$Enumerator(Constructor, input, abortOnReject, label) {
-      var enumerator = this;
+  if (this._remaining === 0) {
+    fulfill(promise, this._result);
+  }
+};
 
-      enumerator._instanceConstructor = Constructor;
-      enumerator.promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      enumerator._abortOnReject = abortOnReject;
+Enumerator.prototype._makeResult = function (state, i, value) {
+  return value;
+};
 
-      if (enumerator._validateInput(input)) {
-        enumerator._input     = input;
-        enumerator.length     = input.length;
-        enumerator._remaining = input.length;
+Enumerator.prototype._willSettleAt = function (promise, i) {
+  var enumerator = this;
 
-        enumerator._init();
+  subscribe(promise, undefined, function (value) {
+    return enumerator._settledAt(FULFILLED, i, value);
+  }, function (reason) {
+    return enumerator._settledAt(REJECTED, i, reason);
+  });
+};
 
-        if (enumerator.length === 0) {
-          lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
-        } else {
-          enumerator.length = enumerator.length || 0;
-          enumerator._enumerate();
-          if (enumerator._remaining === 0) {
-            lib$rsvp$$internal$$fulfill(enumerator.promise, enumerator._result);
+/**
+  `RSVP.Promise.all` accepts an array of promises, and returns a new promise which
+  is fulfilled with an array of fulfillment values for the passed promises, or
+  rejected with the reason of the first passed promise to be rejected. It casts all
+  elements of the passed iterable to promises as it runs this algorithm.
+
+  Example:
+
+  ```javascript
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.resolve(2);
+  let promise3 = RSVP.resolve(3);
+  let promises = [ promise1, promise2, promise3 ];
+
+  RSVP.Promise.all(promises).then(function(array){
+    // The array here would be [ 1, 2, 3 ];
+  });
+  ```
+
+  If any of the `promises` given to `RSVP.all` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promises's
+  rejection handler. For example:
+
+  Example:
+
+  ```javascript
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.reject(new Error("2"));
+  let promise3 = RSVP.reject(new Error("3"));
+  let promises = [ promise1, promise2, promise3 ];
+
+  RSVP.Promise.all(promises).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(error) {
+    // error.message === "2"
+  });
+  ```
+
+  @method all
+  @static
+  @param {Array} entries array of promises
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when all `promises` have been
+  fulfilled, or rejected if any of them become rejected.
+  @static
+*/
+function all$1(entries, label) {
+  return new Enumerator(this, entries, true, /* abort on reject */label).promise;
+}
+
+/**
+  `RSVP.Promise.race` returns a new promise which is settled in the same way as the
+  first passed promise to settle.
+
+  Example:
+
+  ```javascript
+  let promise1 = new RSVP.Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new RSVP.Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 2');
+    }, 100);
+  });
+
+  RSVP.Promise.race([promise1, promise2]).then(function(result){
+    // result === 'promise 2' because it was resolved before promise1
+    // was resolved.
+  });
+  ```
+
+  `RSVP.Promise.race` is deterministic in that only the state of the first
+  settled promise matters. For example, even if other promises given to the
+  `promises` array argument are resolved, but the first settled promise has
+  become rejected before the other promises became fulfilled, the returned
+  promise will become rejected:
+
+  ```javascript
+  let promise1 = new RSVP.Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new RSVP.Promise(function(resolve, reject){
+    setTimeout(function(){
+      reject(new Error('promise 2'));
+    }, 100);
+  });
+
+  RSVP.Promise.race([promise1, promise2]).then(function(result){
+    // Code here never runs
+  }, function(reason){
+    // reason.message === 'promise 2' because promise 2 became rejected before
+    // promise 1 became fulfilled
+  });
+  ```
+
+  An example real-world use case is implementing timeouts:
+
+  ```javascript
+  RSVP.Promise.race([ajax('foo.json'), timeout(5000)])
+  ```
+
+  @method race
+  @static
+  @param {Array} entries array of promises to observe
+  @param {String} label optional string for describing the promise returned.
+  Useful for tooling.
+  @return {Promise} a promise which settles in the same way as the first passed
+  promise to settle.
+*/
+function race$1(entries, label) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  var promise = new Constructor(noop, label);
+
+  if (!isArray(entries)) {
+    reject(promise, new TypeError('You must pass an array to race.'));
+    return promise;
+  }
+
+  for (var i = 0; promise._state === PENDING && i < entries.length; i++) {
+    subscribe(Constructor.resolve(entries[i]), undefined, function (value) {
+      return resolve(promise, value);
+    }, function (reason) {
+      return reject(promise, reason);
+    });
+  }
+
+  return promise;
+}
+
+/**
+  `RSVP.Promise.reject` returns a promise rejected with the passed `reason`.
+  It is shorthand for the following:
+
+  ```javascript
+  let promise = new RSVP.Promise(function(resolve, reject){
+    reject(new Error('WHOOPS'));
+  });
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = RSVP.Promise.reject(new Error('WHOOPS'));
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  @method reject
+  @static
+  @param {*} reason value that the returned promise will be rejected with.
+  @param {String} label optional string for identifying the returned promise.
+  Useful for tooling.
+  @return {Promise} a promise rejected with the given `reason`.
+*/
+function reject$1(reason, label) {
+  /*jshint validthis:true */
+  var Constructor = this;
+  var promise = new Constructor(noop, label);
+  reject(promise, reason);
+  return promise;
+}
+
+var guidKey = 'rsvp_' + now() + '-';
+var counter = 0;
+
+function needsResolver() {
+  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+}
+
+function needsNew() {
+  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+}
+
+/**
+  Promise objects represent the eventual result of an asynchronous operation. The
+  primary way of interacting with a promise is through its `then` method, which
+  registers callbacks to receive either a promise’s eventual value or the reason
+  why the promise cannot be fulfilled.
+
+  Terminology
+  -----------
+
+  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+  - `thenable` is an object or function that defines a `then` method.
+  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+  - `exception` is a value that is thrown using the throw statement.
+  - `reason` is a value that indicates why a promise was rejected.
+  - `settled` the final resting state of a promise, fulfilled or rejected.
+
+  A promise can be in one of three states: pending, fulfilled, or rejected.
+
+  Promises that are fulfilled have a fulfillment value and are in the fulfilled
+  state.  Promises that are rejected have a rejection reason and are in the
+  rejected state.  A fulfillment value is never a thenable.
+
+  Promises can also be said to *resolve* a value.  If this value is also a
+  promise, then the original promise's settled state will match the value's
+  settled state.  So a promise that *resolves* a promise that rejects will
+  itself reject, and a promise that *resolves* a promise that fulfills will
+  itself fulfill.
+
+
+  Basic Usage:
+  ------------
+
+  ```js
+  let promise = new Promise(function(resolve, reject) {
+    // on success
+    resolve(value);
+
+    // on failure
+    reject(reason);
+  });
+
+  promise.then(function(value) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Advanced Usage:
+  ---------------
+
+  Promises shine when abstracting away asynchronous interactions such as
+  `XMLHttpRequest`s.
+
+  ```js
+  function getJSON(url) {
+    return new Promise(function(resolve, reject){
+      let xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onreadystatechange = handler;
+      xhr.responseType = 'json';
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          if (this.status === 200) {
+            resolve(this.response);
+          } else {
+            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
           }
         }
+      };
+    });
+  }
+
+  getJSON('/posts.json').then(function(json) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Unlike callbacks, promises are great composable primitives.
+
+  ```js
+  Promise.all([
+    getJSON('/posts'),
+    getJSON('/comments')
+  ]).then(function(values){
+    values[0] // => postsJSON
+    values[1] // => commentsJSON
+
+    return values;
+  });
+  ```
+
+  @class RSVP.Promise
+  @param {function} resolver
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @constructor
+*/
+function Promise$1(resolver, label) {
+  this._id = counter++;
+  this._label = label;
+  this._state = undefined;
+  this._result = undefined;
+  this._subscribers = [];
+
+  config.instrument && instrument$1('created', this);
+
+  if (noop !== resolver) {
+    typeof resolver !== 'function' && needsResolver();
+    this instanceof Promise$1 ? initializePromise(this, resolver) : needsNew();
+  }
+}
+
+Promise$1.cast = resolve$1; // deprecated
+Promise$1.all = all$1;
+Promise$1.race = race$1;
+Promise$1.resolve = resolve$1;
+Promise$1.reject = reject$1;
+
+Promise$1.prototype = {
+  constructor: Promise$1,
+
+  _guidKey: guidKey,
+
+  _onError: function _onError(reason) {
+    var promise = this;
+    config.after(function () {
+      if (promise._onError) {
+        config['trigger']('error', reason, promise._label);
+      }
+    });
+  },
+
+  /**
+    The primary way of interacting with a promise is through its `then` method,
+    which registers callbacks to receive either a promise's eventual value or the
+    reason why the promise cannot be fulfilled.
+  
+    ```js
+    findUser().then(function(user){
+      // user is available
+    }, function(reason){
+      // user is unavailable, and you are given the reason why
+    });
+    ```
+  
+    Chaining
+    --------
+  
+    The return value of `then` is itself a promise.  This second, 'downstream'
+    promise is resolved with the return value of the first promise's fulfillment
+    or rejection handler, or rejected if the handler throws an exception.
+  
+    ```js
+    findUser().then(function (user) {
+      return user.name;
+    }, function (reason) {
+      return 'default name';
+    }).then(function (userName) {
+      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+      // will be `'default name'`
+    });
+  
+    findUser().then(function (user) {
+      throw new Error('Found user, but still unhappy');
+    }, function (reason) {
+      throw new Error('`findUser` rejected and we\'re unhappy');
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+      // If `findUser` rejected, `reason` will be '`findUser` rejected and we\'re unhappy'.
+    });
+    ```
+    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+  
+    ```js
+    findUser().then(function (user) {
+      throw new PedagogicalException('Upstream error');
+    }).then(function (value) {
+      // never reached
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // The `PedgagocialException` is propagated all the way down to here
+    });
+    ```
+  
+    Assimilation
+    ------------
+  
+    Sometimes the value you want to propagate to a downstream promise can only be
+    retrieved asynchronously. This can be achieved by returning a promise in the
+    fulfillment or rejection handler. The downstream promise will then be pending
+    until the returned promise is settled. This is called *assimilation*.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // The user's comments are now available
+    });
+    ```
+  
+    If the assimliated promise rejects, then the downstream promise will also reject.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // If `findCommentsByAuthor` fulfills, we'll have the value here
+    }, function (reason) {
+      // If `findCommentsByAuthor` rejects, we'll have the reason here
+    });
+    ```
+  
+    Simple Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let result;
+  
+    try {
+      result = findResult();
+      // success
+    } catch(reason) {
+      // failure
+    }
+    ```
+  
+    Errback Example
+  
+    ```js
+    findResult(function(result, err){
+      if (err) {
+        // failure
       } else {
-        lib$rsvp$$internal$$reject(enumerator.promise, enumerator._validationError());
+        // success
       }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findResult().then(function(result){
+      // success
+    }, function(reason){
+      // failure
+    });
+    ```
+  
+    Advanced Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let author, books;
+  
+    try {
+      author = findAuthor();
+      books  = findBooksByAuthor(author);
+      // success
+    } catch(reason) {
+      // failure
     }
-
-    var lib$rsvp$enumerator$$default = lib$rsvp$enumerator$$Enumerator;
-
-    lib$rsvp$enumerator$$Enumerator.prototype._validateInput = function(input) {
-      return lib$rsvp$utils$$isArray(input);
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._validationError = function() {
-      return new Error('Array Methods must be provided an Array');
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._init = function() {
-      this._result = new Array(this.length);
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._enumerate = function() {
-      var enumerator = this;
-      var length     = enumerator.length;
-      var promise    = enumerator.promise;
-      var input      = enumerator._input;
-
-      for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
-        enumerator._eachEntry(input[i], i);
-      }
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var enumerator = this;
-      var c = enumerator._instanceConstructor;
-      if (lib$rsvp$utils$$isMaybeThenable(entry)) {
-        if (entry.constructor === c && entry._state !== lib$rsvp$$internal$$PENDING) {
-          entry._onError = null;
-          enumerator._settledAt(entry._state, i, entry._result);
-        } else {
-          enumerator._willSettleAt(c.resolve(entry), i);
-        }
+    ```
+  
+    Errback Example
+  
+    ```js
+  
+    function foundBooks(books) {
+  
+    }
+  
+    function failure(reason) {
+  
+    }
+  
+    findAuthor(function(author, err){
+      if (err) {
+        failure(err);
+        // failure
       } else {
-        enumerator._remaining--;
-        enumerator._result[i] = enumerator._makeResult(lib$rsvp$$internal$$FULFILLED, i, entry);
-      }
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var enumerator = this;
-      var promise = enumerator.promise;
-
-      if (promise._state === lib$rsvp$$internal$$PENDING) {
-        enumerator._remaining--;
-
-        if (enumerator._abortOnReject && state === lib$rsvp$$internal$$REJECTED) {
-          lib$rsvp$$internal$$reject(promise, value);
-        } else {
-          enumerator._result[i] = enumerator._makeResult(state, i, value);
-        }
-      }
-
-      if (enumerator._remaining === 0) {
-        lib$rsvp$$internal$$fulfill(promise, enumerator._result);
-      }
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._makeResult = function(state, i, value) {
-      return value;
-    };
-
-    lib$rsvp$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
-      var enumerator = this;
-
-      lib$rsvp$$internal$$subscribe(promise, undefined, function(value) {
-        enumerator._settledAt(lib$rsvp$$internal$$FULFILLED, i, value);
-      }, function(reason) {
-        enumerator._settledAt(lib$rsvp$$internal$$REJECTED, i, reason);
-      });
-    };
-    function lib$rsvp$promise$all$$all(entries, label) {
-      return new lib$rsvp$enumerator$$default(this, entries, true /* abort on reject */, label).promise;
-    }
-    var lib$rsvp$promise$all$$default = lib$rsvp$promise$all$$all;
-    function lib$rsvp$promise$race$$race(entries, label) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      var promise = new Constructor(lib$rsvp$$internal$$noop, label);
-
-      if (!lib$rsvp$utils$$isArray(entries)) {
-        lib$rsvp$$internal$$reject(promise, new TypeError('You must pass an array to race.'));
-        return promise;
-      }
-
-      var length = entries.length;
-
-      function onFulfillment(value) {
-        lib$rsvp$$internal$$resolve(promise, value);
-      }
-
-      function onRejection(reason) {
-        lib$rsvp$$internal$$reject(promise, reason);
-      }
-
-      for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
-        lib$rsvp$$internal$$subscribe(Constructor.resolve(entries[i]), undefined, onFulfillment, onRejection);
-      }
-
-      return promise;
-    }
-    var lib$rsvp$promise$race$$default = lib$rsvp$promise$race$$race;
-    function lib$rsvp$promise$resolve$$resolve(object, label) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (object && typeof object === 'object' && object.constructor === Constructor) {
-        return object;
-      }
-
-      var promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      lib$rsvp$$internal$$resolve(promise, object);
-      return promise;
-    }
-    var lib$rsvp$promise$resolve$$default = lib$rsvp$promise$resolve$$resolve;
-    function lib$rsvp$promise$reject$$reject(reason, label) {
-      /*jshint validthis:true */
-      var Constructor = this;
-      var promise = new Constructor(lib$rsvp$$internal$$noop, label);
-      lib$rsvp$$internal$$reject(promise, reason);
-      return promise;
-    }
-    var lib$rsvp$promise$reject$$default = lib$rsvp$promise$reject$$reject;
-
-    var lib$rsvp$promise$$guidKey = 'rsvp_' + lib$rsvp$utils$$now() + '-';
-    var lib$rsvp$promise$$counter = 0;
-
-    function lib$rsvp$promise$$needsResolver() {
-      throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-    }
-
-    function lib$rsvp$promise$$needsNew() {
-      throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-    }
-
-    function lib$rsvp$promise$$Promise(resolver, label) {
-      var promise = this;
-
-      promise._id = lib$rsvp$promise$$counter++;
-      promise._label = label;
-      promise._state = undefined;
-      promise._result = undefined;
-      promise._subscribers = [];
-
-      if (lib$rsvp$config$$config.instrument) {
-        lib$rsvp$instrument$$default('created', promise);
-      }
-
-      if (lib$rsvp$$internal$$noop !== resolver) {
-        if (!lib$rsvp$utils$$isFunction(resolver)) {
-          lib$rsvp$promise$$needsResolver();
-        }
-
-        if (!(promise instanceof lib$rsvp$promise$$Promise)) {
-          lib$rsvp$promise$$needsNew();
-        }
-
-        lib$rsvp$$internal$$initializePromise(promise, resolver);
-      }
-    }
-
-    var lib$rsvp$promise$$default = lib$rsvp$promise$$Promise;
-
-    // deprecated
-    lib$rsvp$promise$$Promise.cast = lib$rsvp$promise$resolve$$default;
-    lib$rsvp$promise$$Promise.all = lib$rsvp$promise$all$$default;
-    lib$rsvp$promise$$Promise.race = lib$rsvp$promise$race$$default;
-    lib$rsvp$promise$$Promise.resolve = lib$rsvp$promise$resolve$$default;
-    lib$rsvp$promise$$Promise.reject = lib$rsvp$promise$reject$$default;
-
-    lib$rsvp$promise$$Promise.prototype = {
-      constructor: lib$rsvp$promise$$Promise,
-
-      _guidKey: lib$rsvp$promise$$guidKey,
-
-      _onError: function (reason) {
-        var promise = this;
-        lib$rsvp$config$$config.after(function() {
-          if (promise._onError) {
-            lib$rsvp$config$$config['trigger']('error', reason, promise._label);
-          }
-        });
-      },
-
-    /**
-      The primary way of interacting with a promise is through its `then` method,
-      which registers callbacks to receive either a promise's eventual value or the
-      reason why the promise cannot be fulfilled.
-
-      ```js
-      findUser().then(function(user){
-        // user is available
-      }, function(reason){
-        // user is unavailable, and you are given the reason why
-      });
-      ```
-
-      Chaining
-      --------
-
-      The return value of `then` is itself a promise.  This second, 'downstream'
-      promise is resolved with the return value of the first promise's fulfillment
-      or rejection handler, or rejected if the handler throws an exception.
-
-      ```js
-      findUser().then(function (user) {
-        return user.name;
-      }, function (reason) {
-        return 'default name';
-      }).then(function (userName) {
-        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-        // will be `'default name'`
-      });
-
-      findUser().then(function (user) {
-        throw new Error('Found user, but still unhappy');
-      }, function (reason) {
-        throw new Error('`findUser` rejected and we're unhappy');
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-        // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-      });
-      ```
-      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-
-      ```js
-      findUser().then(function (user) {
-        throw new PedagogicalException('Upstream error');
-      }).then(function (value) {
-        // never reached
-      }).then(function (value) {
-        // never reached
-      }, function (reason) {
-        // The `PedgagocialException` is propagated all the way down to here
-      });
-      ```
-
-      Assimilation
-      ------------
-
-      Sometimes the value you want to propagate to a downstream promise can only be
-      retrieved asynchronously. This can be achieved by returning a promise in the
-      fulfillment or rejection handler. The downstream promise will then be pending
-      until the returned promise is settled. This is called *assimilation*.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // The user's comments are now available
-      });
-      ```
-
-      If the assimliated promise rejects, then the downstream promise will also reject.
-
-      ```js
-      findUser().then(function (user) {
-        return findCommentsByAuthor(user);
-      }).then(function (comments) {
-        // If `findCommentsByAuthor` fulfills, we'll have the value here
-      }, function (reason) {
-        // If `findCommentsByAuthor` rejects, we'll have the reason here
-      });
-      ```
-
-      Simple Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var result;
-
-      try {
-        result = findResult();
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-      findResult(function(result, err){
-        if (err) {
-          // failure
-        } else {
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findResult().then(function(result){
-        // success
-      }, function(reason){
-        // failure
-      });
-      ```
-
-      Advanced Example
-      --------------
-
-      Synchronous Example
-
-      ```javascript
-      var author, books;
-
-      try {
-        author = findAuthor();
-        books  = findBooksByAuthor(author);
-        // success
-      } catch(reason) {
-        // failure
-      }
-      ```
-
-      Errback Example
-
-      ```js
-
-      function foundBooks(books) {
-
-      }
-
-      function failure(reason) {
-
-      }
-
-      findAuthor(function(author, err){
-        if (err) {
-          failure(err);
-          // failure
-        } else {
-          try {
-            findBoooksByAuthor(author, function(books, err) {
-              if (err) {
-                failure(err);
-              } else {
-                try {
-                  foundBooks(books);
-                } catch(reason) {
-                  failure(reason);
-                }
+        try {
+          findBoooksByAuthor(author, function(books, err) {
+            if (err) {
+              failure(err);
+            } else {
+              try {
+                foundBooks(books);
+              } catch(reason) {
+                failure(reason);
               }
-            });
-          } catch(error) {
-            failure(err);
-          }
-          // success
-        }
-      });
-      ```
-
-      Promise Example;
-
-      ```javascript
-      findAuthor().
-        then(findBooksByAuthor).
-        then(function(books){
-          // found books
-      }).catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method then
-      @param {Function} onFulfillment
-      @param {Function} onRejection
-      @param {String} label optional string for labeling the promise.
-      Useful for tooling.
-      @return {Promise}
-    */
-      then: function(onFulfillment, onRejection, label) {
-        var parent = this;
-        var state = parent._state;
-
-        if (state === lib$rsvp$$internal$$FULFILLED && !onFulfillment || state === lib$rsvp$$internal$$REJECTED && !onRejection) {
-          if (lib$rsvp$config$$config.instrument) {
-            lib$rsvp$instrument$$default('chained', parent, parent);
-          }
-          return parent;
-        }
-
-        parent._onError = null;
-
-        var child = new parent.constructor(lib$rsvp$$internal$$noop, label);
-        var result = parent._result;
-
-        if (lib$rsvp$config$$config.instrument) {
-          lib$rsvp$instrument$$default('chained', parent, child);
-        }
-
-        if (state) {
-          var callback = arguments[state - 1];
-          lib$rsvp$config$$config.async(function(){
-            lib$rsvp$$internal$$invokeCallback(state, child, callback, result);
-          });
-        } else {
-          lib$rsvp$$internal$$subscribe(parent, child, onFulfillment, onRejection);
-        }
-
-        return child;
-      },
-
-    /**
-      `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-      as the catch block of a try/catch statement.
-
-      ```js
-      function findAuthor(){
-        throw new Error('couldn't find that author');
-      }
-
-      // synchronous
-      try {
-        findAuthor();
-      } catch(reason) {
-        // something went wrong
-      }
-
-      // async with promises
-      findAuthor().catch(function(reason){
-        // something went wrong
-      });
-      ```
-
-      @method catch
-      @param {Function} onRejection
-      @param {String} label optional string for labeling the promise.
-      Useful for tooling.
-      @return {Promise}
-    */
-      'catch': function(onRejection, label) {
-        return this.then(undefined, onRejection, label);
-      },
-
-    /**
-      `finally` will be invoked regardless of the promise's fate just as native
-      try/catch/finally behaves
-
-      Synchronous example:
-
-      ```js
-      findAuthor() {
-        if (Math.random() > 0.5) {
-          throw new Error();
-        }
-        return new Author();
-      }
-
-      try {
-        return findAuthor(); // succeed or fail
-      } catch(error) {
-        return findOtherAuther();
-      } finally {
-        // always runs
-        // doesn't affect the return value
-      }
-      ```
-
-      Asynchronous example:
-
-      ```js
-      findAuthor().catch(function(reason){
-        return findOtherAuther();
-      }).finally(function(){
-        // author was either found, or not
-      });
-      ```
-
-      @method finally
-      @param {Function} callback
-      @param {String} label optional string for labeling the promise.
-      Useful for tooling.
-      @return {Promise}
-    */
-      'finally': function(callback, label) {
-        var promise = this;
-        var constructor = promise.constructor;
-
-        return promise.then(function(value) {
-          return constructor.resolve(callback()).then(function(){
-            return value;
-          });
-        }, function(reason) {
-          return constructor.resolve(callback()).then(function(){
-            throw reason;
-          });
-        }, label);
-      }
-    };
-
-    function lib$rsvp$all$settled$$AllSettled(Constructor, entries, label) {
-      this._superConstructor(Constructor, entries, false /* don't abort on reject */, label);
-    }
-
-    lib$rsvp$all$settled$$AllSettled.prototype = lib$rsvp$utils$$o_create(lib$rsvp$enumerator$$default.prototype);
-    lib$rsvp$all$settled$$AllSettled.prototype._superConstructor = lib$rsvp$enumerator$$default;
-    lib$rsvp$all$settled$$AllSettled.prototype._makeResult = lib$rsvp$enumerator$$makeSettledResult;
-    lib$rsvp$all$settled$$AllSettled.prototype._validationError = function() {
-      return new Error('allSettled must be called with an array');
-    };
-
-    function lib$rsvp$all$settled$$allSettled(entries, label) {
-      return new lib$rsvp$all$settled$$AllSettled(lib$rsvp$promise$$default, entries, label).promise;
-    }
-    var lib$rsvp$all$settled$$default = lib$rsvp$all$settled$$allSettled;
-    function lib$rsvp$all$$all(array, label) {
-      return lib$rsvp$promise$$default.all(array, label);
-    }
-    var lib$rsvp$all$$default = lib$rsvp$all$$all;
-    var lib$rsvp$asap$$len = 0;
-    var lib$rsvp$asap$$toString = {}.toString;
-    var lib$rsvp$asap$$vertxNext;
-    function lib$rsvp$asap$$asap(callback, arg) {
-      lib$rsvp$asap$$queue[lib$rsvp$asap$$len] = callback;
-      lib$rsvp$asap$$queue[lib$rsvp$asap$$len + 1] = arg;
-      lib$rsvp$asap$$len += 2;
-      if (lib$rsvp$asap$$len === 2) {
-        // If len is 1, that means that we need to schedule an async flush.
-        // If additional callbacks are queued before the queue is flushed, they
-        // will be processed by this flush that we are scheduling.
-        lib$rsvp$asap$$scheduleFlush();
-      }
-    }
-
-    var lib$rsvp$asap$$default = lib$rsvp$asap$$asap;
-
-    var lib$rsvp$asap$$browserWindow = (typeof window !== 'undefined') ? window : undefined;
-    var lib$rsvp$asap$$browserGlobal = lib$rsvp$asap$$browserWindow || {};
-    var lib$rsvp$asap$$BrowserMutationObserver = lib$rsvp$asap$$browserGlobal.MutationObserver || lib$rsvp$asap$$browserGlobal.WebKitMutationObserver;
-    var lib$rsvp$asap$$isNode = typeof self === 'undefined' &&
-      typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
-
-    // test for web worker but not in IE10
-    var lib$rsvp$asap$$isWorker = typeof Uint8ClampedArray !== 'undefined' &&
-      typeof importScripts !== 'undefined' &&
-      typeof MessageChannel !== 'undefined';
-
-    // node
-    function lib$rsvp$asap$$useNextTick() {
-      var nextTick = process.nextTick;
-      // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-      // setImmediate should be used instead instead
-      var version = process.versions.node.match(/^(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/);
-      if (Array.isArray(version) && version[1] === '0' && version[2] === '10') {
-        nextTick = setImmediate;
-      }
-      return function() {
-        nextTick(lib$rsvp$asap$$flush);
-      };
-    }
-
-    // vertx
-    function lib$rsvp$asap$$useVertxTimer() {
-      return function() {
-        lib$rsvp$asap$$vertxNext(lib$rsvp$asap$$flush);
-      };
-    }
-
-    function lib$rsvp$asap$$useMutationObserver() {
-      var iterations = 0;
-      var observer = new lib$rsvp$asap$$BrowserMutationObserver(lib$rsvp$asap$$flush);
-      var node = document.createTextNode('');
-      observer.observe(node, { characterData: true });
-
-      return function() {
-        node.data = (iterations = ++iterations % 2);
-      };
-    }
-
-    // web worker
-    function lib$rsvp$asap$$useMessageChannel() {
-      var channel = new MessageChannel();
-      channel.port1.onmessage = lib$rsvp$asap$$flush;
-      return function () {
-        channel.port2.postMessage(0);
-      };
-    }
-
-    function lib$rsvp$asap$$useSetTimeout() {
-      return function() {
-        setTimeout(lib$rsvp$asap$$flush, 1);
-      };
-    }
-
-    var lib$rsvp$asap$$queue = new Array(1000);
-    function lib$rsvp$asap$$flush() {
-      for (var i = 0; i < lib$rsvp$asap$$len; i+=2) {
-        var callback = lib$rsvp$asap$$queue[i];
-        var arg = lib$rsvp$asap$$queue[i+1];
-
-        callback(arg);
-
-        lib$rsvp$asap$$queue[i] = undefined;
-        lib$rsvp$asap$$queue[i+1] = undefined;
-      }
-
-      lib$rsvp$asap$$len = 0;
-    }
-
-    function lib$rsvp$asap$$attemptVertex() {
-      try {
-        var r = require;
-        var vertx = r('vertx');
-        lib$rsvp$asap$$vertxNext = vertx.runOnLoop || vertx.runOnContext;
-        return lib$rsvp$asap$$useVertxTimer();
-      } catch(e) {
-        return lib$rsvp$asap$$useSetTimeout();
-      }
-    }
-
-    var lib$rsvp$asap$$scheduleFlush;
-    // Decide what async method to use to triggering processing of queued callbacks:
-    if (lib$rsvp$asap$$isNode) {
-      lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$useNextTick();
-    } else if (lib$rsvp$asap$$BrowserMutationObserver) {
-      lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$useMutationObserver();
-    } else if (lib$rsvp$asap$$isWorker) {
-      lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$useMessageChannel();
-    } else if (lib$rsvp$asap$$browserWindow === undefined && typeof require === 'function') {
-      lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$attemptVertex();
-    } else {
-      lib$rsvp$asap$$scheduleFlush = lib$rsvp$asap$$useSetTimeout();
-    }
-    function lib$rsvp$defer$$defer(label) {
-      var deferred = {};
-
-      deferred['promise'] = new lib$rsvp$promise$$default(function(resolve, reject) {
-        deferred['resolve'] = resolve;
-        deferred['reject'] = reject;
-      }, label);
-
-      return deferred;
-    }
-    var lib$rsvp$defer$$default = lib$rsvp$defer$$defer;
-    function lib$rsvp$filter$$filter(promises, filterFn, label) {
-      return lib$rsvp$promise$$default.all(promises, label).then(function(values) {
-        if (!lib$rsvp$utils$$isFunction(filterFn)) {
-          throw new TypeError("You must pass a function as filter's second argument.");
-        }
-
-        var length = values.length;
-        var filtered = new Array(length);
-
-        for (var i = 0; i < length; i++) {
-          filtered[i] = filterFn(values[i]);
-        }
-
-        return lib$rsvp$promise$$default.all(filtered, label).then(function(filtered) {
-          var results = new Array(length);
-          var newLength = 0;
-
-          for (var i = 0; i < length; i++) {
-            if (filtered[i]) {
-              results[newLength] = values[i];
-              newLength++;
             }
-          }
-
-          results.length = newLength;
-
-          return results;
-        });
-      });
-    }
-    var lib$rsvp$filter$$default = lib$rsvp$filter$$filter;
-
-    function lib$rsvp$promise$hash$$PromiseHash(Constructor, object, label) {
-      this._superConstructor(Constructor, object, true, label);
-    }
-
-    var lib$rsvp$promise$hash$$default = lib$rsvp$promise$hash$$PromiseHash;
-
-    lib$rsvp$promise$hash$$PromiseHash.prototype = lib$rsvp$utils$$o_create(lib$rsvp$enumerator$$default.prototype);
-    lib$rsvp$promise$hash$$PromiseHash.prototype._superConstructor = lib$rsvp$enumerator$$default;
-    lib$rsvp$promise$hash$$PromiseHash.prototype._init = function() {
-      this._result = {};
-    };
-
-    lib$rsvp$promise$hash$$PromiseHash.prototype._validateInput = function(input) {
-      return input && typeof input === 'object';
-    };
-
-    lib$rsvp$promise$hash$$PromiseHash.prototype._validationError = function() {
-      return new Error('Promise.hash must be called with an object');
-    };
-
-    lib$rsvp$promise$hash$$PromiseHash.prototype._enumerate = function() {
-      var enumerator = this;
-      var promise    = enumerator.promise;
-      var input      = enumerator._input;
-      var results    = [];
-
-      for (var key in input) {
-        if (promise._state === lib$rsvp$$internal$$PENDING && Object.prototype.hasOwnProperty.call(input, key)) {
-          results.push({
-            position: key,
-            entry: input[key]
           });
+        } catch(error) {
+          failure(err);
         }
+        // success
       }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findAuthor().
+      then(findBooksByAuthor).
+      then(function(books){
+        // found books
+    }).catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method then
+    @param {Function} onFulfillment
+    @param {Function} onRejection
+    @param {String} label optional string for labeling the promise.
+    Useful for tooling.
+    @return {Promise}
+  */
+  then: then,
 
-      var length = results.length;
-      enumerator._remaining = length;
-      var result;
+  /**
+    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+    as the catch block of a try/catch statement.
+  
+    ```js
+    function findAuthor(){
+      throw new Error('couldn\'t find that author');
+    }
+  
+    // synchronous
+    try {
+      findAuthor();
+    } catch(reason) {
+      // something went wrong
+    }
+  
+    // async with promises
+    findAuthor().catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method catch
+    @param {Function} onRejection
+    @param {String} label optional string for labeling the promise.
+    Useful for tooling.
+    @return {Promise}
+  */
+  'catch': function _catch(onRejection, label) {
+    return this.then(undefined, onRejection, label);
+  },
 
-      for (var i = 0; promise._state === lib$rsvp$$internal$$PENDING && i < length; i++) {
-        result = results[i];
-        enumerator._eachEntry(result.entry, result.position);
+  /**
+    `finally` will be invoked regardless of the promise's fate just as native
+    try/catch/finally behaves
+  
+    Synchronous example:
+  
+    ```js
+    findAuthor() {
+      if (Math.random() > 0.5) {
+        throw new Error();
       }
-    };
-
-    function lib$rsvp$hash$settled$$HashSettled(Constructor, object, label) {
-      this._superConstructor(Constructor, object, false, label);
+      return new Author();
     }
-
-    lib$rsvp$hash$settled$$HashSettled.prototype = lib$rsvp$utils$$o_create(lib$rsvp$promise$hash$$default.prototype);
-    lib$rsvp$hash$settled$$HashSettled.prototype._superConstructor = lib$rsvp$enumerator$$default;
-    lib$rsvp$hash$settled$$HashSettled.prototype._makeResult = lib$rsvp$enumerator$$makeSettledResult;
-
-    lib$rsvp$hash$settled$$HashSettled.prototype._validationError = function() {
-      return new Error('hashSettled must be called with an object');
-    };
-
-    function lib$rsvp$hash$settled$$hashSettled(object, label) {
-      return new lib$rsvp$hash$settled$$HashSettled(lib$rsvp$promise$$default, object, label).promise;
+  
+    try {
+      return findAuthor(); // succeed or fail
+    } catch(error) {
+      return findOtherAuthor();
+    } finally {
+      // always runs
+      // doesn't affect the return value
     }
-    var lib$rsvp$hash$settled$$default = lib$rsvp$hash$settled$$hashSettled;
-    function lib$rsvp$hash$$hash(object, label) {
-      return new lib$rsvp$promise$hash$$default(lib$rsvp$promise$$default, object, label).promise;
-    }
-    var lib$rsvp$hash$$default = lib$rsvp$hash$$hash;
-    function lib$rsvp$map$$map(promises, mapFn, label) {
-      return lib$rsvp$promise$$default.all(promises, label).then(function(values) {
-        if (!lib$rsvp$utils$$isFunction(mapFn)) {
-          throw new TypeError("You must pass a function as map's second argument.");
-        }
+    ```
+  
+    Asynchronous example:
+  
+    ```js
+    findAuthor().catch(function(reason){
+      return findOtherAuthor();
+    }).finally(function(){
+      // author was either found, or not
+    });
+    ```
+  
+    @method finally
+    @param {Function} callback
+    @param {String} label optional string for labeling the promise.
+    Useful for tooling.
+    @return {Promise}
+  */
+  'finally': function _finally(callback, label) {
+    var promise = this;
+    var constructor = promise.constructor;
 
-        var length = values.length;
-        var results = new Array(length);
-
-        for (var i = 0; i < length; i++) {
-          results[i] = mapFn(values[i]);
-        }
-
-        return lib$rsvp$promise$$default.all(results, label);
+    return promise.then(function (value) {
+      return constructor.resolve(callback()).then(function () {
+        return value;
       });
-    }
-    var lib$rsvp$map$$default = lib$rsvp$map$$map;
-
-    function lib$rsvp$node$$Result() {
-      this.value = undefined;
-    }
-
-    var lib$rsvp$node$$ERROR = new lib$rsvp$node$$Result();
-    var lib$rsvp$node$$GET_THEN_ERROR = new lib$rsvp$node$$Result();
-
-    function lib$rsvp$node$$getThen(obj) {
-      try {
-       return obj.then;
-      } catch(error) {
-        lib$rsvp$node$$ERROR.value= error;
-        return lib$rsvp$node$$ERROR;
-      }
-    }
-
-
-    function lib$rsvp$node$$tryApply(f, s, a) {
-      try {
-        f.apply(s, a);
-      } catch(error) {
-        lib$rsvp$node$$ERROR.value = error;
-        return lib$rsvp$node$$ERROR;
-      }
-    }
-
-    function lib$rsvp$node$$makeObject(_, argumentNames) {
-      var obj = {};
-      var name;
-      var i;
-      var length = _.length;
-      var args = new Array(length);
-
-      for (var x = 0; x < length; x++) {
-        args[x] = _[x];
-      }
-
-      for (i = 0; i < argumentNames.length; i++) {
-        name = argumentNames[i];
-        obj[name] = args[i + 1];
-      }
-
-      return obj;
-    }
-
-    function lib$rsvp$node$$arrayResult(_) {
-      var length = _.length;
-      var args = new Array(length - 1);
-
-      for (var i = 1; i < length; i++) {
-        args[i - 1] = _[i];
-      }
-
-      return args;
-    }
-
-    function lib$rsvp$node$$wrapThenable(then, promise) {
-      return {
-        then: function(onFulFillment, onRejection) {
-          return then.call(promise, onFulFillment, onRejection);
-        }
-      };
-    }
-
-    function lib$rsvp$node$$denodeify(nodeFunc, options) {
-      var fn = function() {
-        var self = this;
-        var l = arguments.length;
-        var args = new Array(l + 1);
-        var arg;
-        var promiseInput = false;
-
-        for (var i = 0; i < l; ++i) {
-          arg = arguments[i];
-
-          if (!promiseInput) {
-            // TODO: clean this up
-            promiseInput = lib$rsvp$node$$needsPromiseInput(arg);
-            if (promiseInput === lib$rsvp$node$$GET_THEN_ERROR) {
-              var p = new lib$rsvp$promise$$default(lib$rsvp$$internal$$noop);
-              lib$rsvp$$internal$$reject(p, lib$rsvp$node$$GET_THEN_ERROR.value);
-              return p;
-            } else if (promiseInput && promiseInput !== true) {
-              arg = lib$rsvp$node$$wrapThenable(promiseInput, arg);
-            }
-          }
-          args[i] = arg;
-        }
-
-        var promise = new lib$rsvp$promise$$default(lib$rsvp$$internal$$noop);
-
-        args[l] = function(err, val) {
-          if (err)
-            lib$rsvp$$internal$$reject(promise, err);
-          else if (options === undefined)
-            lib$rsvp$$internal$$resolve(promise, val);
-          else if (options === true)
-            lib$rsvp$$internal$$resolve(promise, lib$rsvp$node$$arrayResult(arguments));
-          else if (lib$rsvp$utils$$isArray(options))
-            lib$rsvp$$internal$$resolve(promise, lib$rsvp$node$$makeObject(arguments, options));
-          else
-            lib$rsvp$$internal$$resolve(promise, val);
-        };
-
-        if (promiseInput) {
-          return lib$rsvp$node$$handlePromiseInput(promise, args, nodeFunc, self);
-        } else {
-          return lib$rsvp$node$$handleValueInput(promise, args, nodeFunc, self);
-        }
-      };
-
-      fn.__proto__ = nodeFunc;
-
-      return fn;
-    }
-
-    var lib$rsvp$node$$default = lib$rsvp$node$$denodeify;
-
-    function lib$rsvp$node$$handleValueInput(promise, args, nodeFunc, self) {
-      var result = lib$rsvp$node$$tryApply(nodeFunc, self, args);
-      if (result === lib$rsvp$node$$ERROR) {
-        lib$rsvp$$internal$$reject(promise, result.value);
-      }
-      return promise;
-    }
-
-    function lib$rsvp$node$$handlePromiseInput(promise, args, nodeFunc, self){
-      return lib$rsvp$promise$$default.all(args).then(function(args){
-        var result = lib$rsvp$node$$tryApply(nodeFunc, self, args);
-        if (result === lib$rsvp$node$$ERROR) {
-          lib$rsvp$$internal$$reject(promise, result.value);
-        }
-        return promise;
-      });
-    }
-
-    function lib$rsvp$node$$needsPromiseInput(arg) {
-      if (arg && typeof arg === 'object') {
-        if (arg.constructor === lib$rsvp$promise$$default) {
-          return true;
-        } else {
-          return lib$rsvp$node$$getThen(arg);
-        }
-      } else {
-        return false;
-      }
-    }
-    var lib$rsvp$platform$$platform;
-
-    /* global self */
-    if (typeof self === 'object') {
-      lib$rsvp$platform$$platform = self;
-
-    /* global global */
-    } else if (typeof global === 'object') {
-      lib$rsvp$platform$$platform = global;
-    } else {
-      throw new Error('no global: `self` or `global` found');
-    }
-
-    var lib$rsvp$platform$$default = lib$rsvp$platform$$platform;
-    function lib$rsvp$race$$race(array, label) {
-      return lib$rsvp$promise$$default.race(array, label);
-    }
-    var lib$rsvp$race$$default = lib$rsvp$race$$race;
-    function lib$rsvp$reject$$reject(reason, label) {
-      return lib$rsvp$promise$$default.reject(reason, label);
-    }
-    var lib$rsvp$reject$$default = lib$rsvp$reject$$reject;
-    function lib$rsvp$resolve$$resolve(value, label) {
-      return lib$rsvp$promise$$default.resolve(value, label);
-    }
-    var lib$rsvp$resolve$$default = lib$rsvp$resolve$$resolve;
-    function lib$rsvp$rethrow$$rethrow(reason) {
-      setTimeout(function() {
+    }, function (reason) {
+      return constructor.resolve(callback()).then(function () {
         throw reason;
       });
-      throw reason;
-    }
-    var lib$rsvp$rethrow$$default = lib$rsvp$rethrow$$rethrow;
+    }, label);
+  }
+};
 
-    // defaults
-    lib$rsvp$config$$config.async = lib$rsvp$asap$$default;
-    lib$rsvp$config$$config.after = function(cb) {
-      setTimeout(cb, 0);
-    };
-    var lib$rsvp$$cast = lib$rsvp$resolve$$default;
-    function lib$rsvp$$async(callback, arg) {
-      lib$rsvp$config$$config.async(callback, arg);
-    }
+function Result() {
+  this.value = undefined;
+}
 
-    function lib$rsvp$$on() {
-      lib$rsvp$config$$config['on'].apply(lib$rsvp$config$$config, arguments);
-    }
+var ERROR = new Result();
+var GET_THEN_ERROR$1 = new Result();
 
-    function lib$rsvp$$off() {
-      lib$rsvp$config$$config['off'].apply(lib$rsvp$config$$config, arguments);
-    }
+function getThen$1(obj) {
+  try {
+    return obj.then;
+  } catch (error) {
+    ERROR.value = error;
+    return ERROR;
+  }
+}
 
-    // Set up instrumentation through `window.__PROMISE_INTRUMENTATION__`
-    if (typeof window !== 'undefined' && typeof window['__PROMISE_INSTRUMENTATION__'] === 'object') {
-      var lib$rsvp$$callbacks = window['__PROMISE_INSTRUMENTATION__'];
-      lib$rsvp$config$$configure('instrument', true);
-      for (var lib$rsvp$$eventName in lib$rsvp$$callbacks) {
-        if (lib$rsvp$$callbacks.hasOwnProperty(lib$rsvp$$eventName)) {
-          lib$rsvp$$on(lib$rsvp$$eventName, lib$rsvp$$callbacks[lib$rsvp$$eventName]);
+function tryApply(f, s, a) {
+  try {
+    f.apply(s, a);
+  } catch (error) {
+    ERROR.value = error;
+    return ERROR;
+  }
+}
+
+function makeObject(_, argumentNames) {
+  var obj = {};
+  var length = _.length;
+  var args = new Array(length);
+
+  for (var x = 0; x < length; x++) {
+    args[x] = _[x];
+  }
+
+  for (var i = 0; i < argumentNames.length; i++) {
+    var _name = argumentNames[i];
+    obj[_name] = args[i + 1];
+  }
+
+  return obj;
+}
+
+function arrayResult(_) {
+  var length = _.length;
+  var args = new Array(length - 1);
+
+  for (var i = 1; i < length; i++) {
+    args[i - 1] = _[i];
+  }
+
+  return args;
+}
+
+function wrapThenable(_then, promise) {
+  return {
+    then: function then(onFulFillment, onRejection) {
+      return _then.call(promise, onFulFillment, onRejection);
+    }
+  };
+}
+
+/**
+  `RSVP.denodeify` takes a 'node-style' function and returns a function that
+  will return an `RSVP.Promise`. You can use `denodeify` in Node.js or the
+  browser when you'd prefer to use promises over using callbacks. For example,
+  `denodeify` transforms the following:
+
+  ```javascript
+  let fs = require('fs');
+
+  fs.readFile('myfile.txt', function(err, data){
+    if (err) return handleError(err);
+    handleData(data);
+  });
+  ```
+
+  into:
+
+  ```javascript
+  let fs = require('fs');
+  let readFile = RSVP.denodeify(fs.readFile);
+
+  readFile('myfile.txt').then(handleData, handleError);
+  ```
+
+  If the node function has multiple success parameters, then `denodeify`
+  just returns the first one:
+
+  ```javascript
+  let request = RSVP.denodeify(require('request'));
+
+  request('http://example.com').then(function(res) {
+    // ...
+  });
+  ```
+
+  However, if you need all success parameters, setting `denodeify`'s
+  second parameter to `true` causes it to return all success parameters
+  as an array:
+
+  ```javascript
+  let request = RSVP.denodeify(require('request'), true);
+
+  request('http://example.com').then(function(result) {
+    // result[0] -> res
+    // result[1] -> body
+  });
+  ```
+
+  Or if you pass it an array with names it returns the parameters as a hash:
+
+  ```javascript
+  let request = RSVP.denodeify(require('request'), ['res', 'body']);
+
+  request('http://example.com').then(function(result) {
+    // result.res
+    // result.body
+  });
+  ```
+
+  Sometimes you need to retain the `this`:
+
+  ```javascript
+  let app = require('express')();
+  let render = RSVP.denodeify(app.render.bind(app));
+  ```
+
+  The denodified function inherits from the original function. It works in all
+  environments, except IE 10 and below. Consequently all properties of the original
+  function are available to you. However, any properties you change on the
+  denodeified function won't be changed on the original function. Example:
+
+  ```javascript
+  let request = RSVP.denodeify(require('request')),
+      cookieJar = request.jar(); // <- Inheritance is used here
+
+  request('http://example.com', {jar: cookieJar}).then(function(res) {
+    // cookieJar.cookies holds now the cookies returned by example.com
+  });
+  ```
+
+  Using `denodeify` makes it easier to compose asynchronous operations instead
+  of using callbacks. For example, instead of:
+
+  ```javascript
+  let fs = require('fs');
+
+  fs.readFile('myfile.txt', function(err, data){
+    if (err) { ... } // Handle error
+    fs.writeFile('myfile2.txt', data, function(err){
+      if (err) { ... } // Handle error
+      console.log('done')
+    });
+  });
+  ```
+
+  you can chain the operations together using `then` from the returned promise:
+
+  ```javascript
+  let fs = require('fs');
+  let readFile = RSVP.denodeify(fs.readFile);
+  let writeFile = RSVP.denodeify(fs.writeFile);
+
+  readFile('myfile.txt').then(function(data){
+    return writeFile('myfile2.txt', data);
+  }).then(function(){
+    console.log('done')
+  }).catch(function(error){
+    // Handle error
+  });
+  ```
+
+  @method denodeify
+  @static
+  @for RSVP
+  @param {Function} nodeFunc a 'node-style' function that takes a callback as
+  its last argument. The callback expects an error to be passed as its first
+  argument (if an error occurred, otherwise null), and the value from the
+  operation as its second argument ('function(err, value){ }').
+  @param {Boolean|Array} [options] An optional paramter that if set
+  to `true` causes the promise to fulfill with the callback's success arguments
+  as an array. This is useful if the node function has multiple success
+  paramters. If you set this paramter to an array with names, the promise will
+  fulfill with a hash with these names as keys and the success parameters as
+  values.
+  @return {Function} a function that wraps `nodeFunc` to return an
+  `RSVP.Promise`
+  @static
+*/
+function denodeify$1(nodeFunc, options) {
+  var fn = function fn() {
+    var self = this;
+    var l = arguments.length;
+    var args = new Array(l + 1);
+    var promiseInput = false;
+
+    for (var i = 0; i < l; ++i) {
+      var arg = arguments[i];
+
+      if (!promiseInput) {
+        // TODO: clean this up
+        promiseInput = needsPromiseInput(arg);
+        if (promiseInput === GET_THEN_ERROR$1) {
+          var p = new Promise$1(noop);
+          reject(p, GET_THEN_ERROR$1.value);
+          return p;
+        } else if (promiseInput && promiseInput !== true) {
+          arg = wrapThenable(promiseInput, arg);
         }
       }
+      args[i] = arg;
     }
 
-    var lib$rsvp$umd$$RSVP = {
-      'race': lib$rsvp$race$$default,
-      'Promise': lib$rsvp$promise$$default,
-      'allSettled': lib$rsvp$all$settled$$default,
-      'hash': lib$rsvp$hash$$default,
-      'hashSettled': lib$rsvp$hash$settled$$default,
-      'denodeify': lib$rsvp$node$$default,
-      'on': lib$rsvp$$on,
-      'off': lib$rsvp$$off,
-      'map': lib$rsvp$map$$default,
-      'filter': lib$rsvp$filter$$default,
-      'resolve': lib$rsvp$resolve$$default,
-      'reject': lib$rsvp$reject$$default,
-      'all': lib$rsvp$all$$default,
-      'rethrow': lib$rsvp$rethrow$$default,
-      'defer': lib$rsvp$defer$$default,
-      'EventTarget': lib$rsvp$events$$default,
-      'configure': lib$rsvp$config$$configure,
-      'async': lib$rsvp$$async
+    var promise = new Promise$1(noop);
+
+    args[l] = function (err, val) {
+      if (err) reject(promise, err);else if (options === undefined) resolve(promise, val);else if (options === true) resolve(promise, arrayResult(arguments));else if (isArray(options)) resolve(promise, makeObject(arguments, options));else resolve(promise, val);
     };
 
-    /* global define:true module:true window: true */
-    if (typeof define === 'function' && define['amd']) {
-      define(function() { return lib$rsvp$umd$$RSVP; });
-    } else if (typeof module !== 'undefined' && module['exports']) {
-      module['exports'] = lib$rsvp$umd$$RSVP;
-    } else if (typeof lib$rsvp$platform$$default !== 'undefined') {
-      lib$rsvp$platform$$default['RSVP'] = lib$rsvp$umd$$RSVP;
+    if (promiseInput) {
+      return handlePromiseInput(promise, args, nodeFunc, self);
+    } else {
+      return handleValueInput(promise, args, nodeFunc, self);
     }
-}).call(this);
+  };
 
+  fn.__proto__ = nodeFunc;
+
+  return fn;
+}
+
+function handleValueInput(promise, args, nodeFunc, self) {
+  var result = tryApply(nodeFunc, self, args);
+  if (result === ERROR) {
+    reject(promise, result.value);
+  }
+  return promise;
+}
+
+function handlePromiseInput(promise, args, nodeFunc, self) {
+  return Promise$1.all(args).then(function (args) {
+    var result = tryApply(nodeFunc, self, args);
+    if (result === ERROR) {
+      reject(promise, result.value);
+    }
+    return promise;
+  });
+}
+
+function needsPromiseInput(arg) {
+  if (arg && typeof arg === 'object') {
+    if (arg.constructor === Promise$1) {
+      return true;
+    } else {
+      return getThen$1(arg);
+    }
+  } else {
+    return false;
+  }
+}
+
+/**
+  This is a convenient alias for `RSVP.Promise.all`.
+
+  @method all
+  @static
+  @for RSVP
+  @param {Array} array Array of promises.
+  @param {String} label An optional label. This is useful
+  for tooling.
+*/
+function all$3(array, label) {
+  return Promise$1.all(array, label);
+}
+
+function AllSettled(Constructor, entries, label) {
+  this._superConstructor(Constructor, entries, false, /* don't abort on reject */label);
+}
+
+AllSettled.prototype = o_create(Enumerator.prototype);
+AllSettled.prototype._superConstructor = Enumerator;
+AllSettled.prototype._makeResult = makeSettledResult;
+AllSettled.prototype._validationError = function () {
+  return new Error('allSettled must be called with an array');
+};
+
+/**
+  `RSVP.allSettled` is similar to `RSVP.all`, but instead of implementing
+  a fail-fast method, it waits until all the promises have returned and
+  shows you all the results. This is useful if you want to handle multiple
+  promises' failure states together as a set.
+
+  Returns a promise that is fulfilled when all the given promises have been
+  settled. The return promise is fulfilled with an array of the states of
+  the promises passed into the `promises` array argument.
+
+  Each state object will either indicate fulfillment or rejection, and
+  provide the corresponding value or reason. The states will take one of
+  the following formats:
+
+  ```javascript
+  { state: 'fulfilled', value: value }
+    or
+  { state: 'rejected', reason: reason }
+  ```
+
+  Example:
+
+  ```javascript
+  let promise1 = RSVP.Promise.resolve(1);
+  let promise2 = RSVP.Promise.reject(new Error('2'));
+  let promise3 = RSVP.Promise.reject(new Error('3'));
+  let promises = [ promise1, promise2, promise3 ];
+
+  RSVP.allSettled(promises).then(function(array){
+    // array == [
+    //   { state: 'fulfilled', value: 1 },
+    //   { state: 'rejected', reason: Error },
+    //   { state: 'rejected', reason: Error }
+    // ]
+    // Note that for the second item, reason.message will be '2', and for the
+    // third item, reason.message will be '3'.
+  }, function(error) {
+    // Not run. (This block would only be called if allSettled had failed,
+    // for instance if passed an incorrect argument type.)
+  });
+  ```
+
+  @method allSettled
+  @static
+  @for RSVP
+  @param {Array} entries
+  @param {String} label - optional string that describes the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled with an array of the settled
+  states of the constituent promises.
+*/
+function allSettled$1(entries, label) {
+  return new AllSettled(Promise$1, entries, label).promise;
+}
+
+/**
+  This is a convenient alias for `RSVP.Promise.race`.
+
+  @method race
+  @static
+  @for RSVP
+  @param {Array} array Array of promises.
+  @param {String} label An optional label. This is useful
+  for tooling.
+ */
+function race$3(array, label) {
+  return Promise$1.race(array, label);
+}
+
+function PromiseHash(Constructor, object, label) {
+  this._superConstructor(Constructor, object, true, label);
+}
+
+PromiseHash.prototype = o_create(Enumerator.prototype);
+PromiseHash.prototype._superConstructor = Enumerator;
+PromiseHash.prototype._init = function () {
+  this._result = {};
+};
+
+PromiseHash.prototype._validateInput = function (input) {
+  return input && typeof input === 'object';
+};
+
+PromiseHash.prototype._validationError = function () {
+  return new Error('Promise.hash must be called with an object');
+};
+
+PromiseHash.prototype._enumerate = function () {
+  var enumerator = this;
+  var promise = enumerator.promise;
+  var input = enumerator._input;
+  var results = [];
+
+  for (var key in input) {
+    if (promise._state === PENDING && Object.prototype.hasOwnProperty.call(input, key)) {
+      results.push({
+        position: key,
+        entry: input[key]
+      });
+    }
+  }
+
+  var length = results.length;
+  enumerator._remaining = length;
+  var result = undefined;
+
+  for (var i = 0; promise._state === PENDING && i < length; i++) {
+    result = results[i];
+    enumerator._eachEntry(result.entry, result.position);
+  }
+};
+
+/**
+  `RSVP.hash` is similar to `RSVP.all`, but takes an object instead of an array
+  for its `promises` argument.
+
+  Returns a promise that is fulfilled when all the given promises have been
+  fulfilled, or rejected if any of them become rejected. The returned promise
+  is fulfilled with a hash that has the same key names as the `promises` object
+  argument. If any of the values in the object are not promises, they will
+  simply be copied over to the fulfilled object.
+
+  Example:
+
+  ```javascript
+  let promises = {
+    myPromise: RSVP.resolve(1),
+    yourPromise: RSVP.resolve(2),
+    theirPromise: RSVP.resolve(3),
+    notAPromise: 4
+  };
+
+  RSVP.hash(promises).then(function(hash){
+    // hash here is an object that looks like:
+    // {
+    //   myPromise: 1,
+    //   yourPromise: 2,
+    //   theirPromise: 3,
+    //   notAPromise: 4
+    // }
+  });
+  ````
+
+  If any of the `promises` given to `RSVP.hash` are rejected, the first promise
+  that is rejected will be given as the reason to the rejection handler.
+
+  Example:
+
+  ```javascript
+  let promises = {
+    myPromise: RSVP.resolve(1),
+    rejectedPromise: RSVP.reject(new Error('rejectedPromise')),
+    anotherRejectedPromise: RSVP.reject(new Error('anotherRejectedPromise')),
+  };
+
+  RSVP.hash(promises).then(function(hash){
+    // Code here never runs because there are rejected promises!
+  }, function(reason) {
+    // reason.message === 'rejectedPromise'
+  });
+  ```
+
+  An important note: `RSVP.hash` is intended for plain JavaScript objects that
+  are just a set of keys and values. `RSVP.hash` will NOT preserve prototype
+  chains.
+
+  Example:
+
+  ```javascript
+  function MyConstructor(){
+    this.example = RSVP.resolve('Example');
+  }
+
+  MyConstructor.prototype = {
+    protoProperty: RSVP.resolve('Proto Property')
+  };
+
+  let myObject = new MyConstructor();
+
+  RSVP.hash(myObject).then(function(hash){
+    // protoProperty will not be present, instead you will just have an
+    // object that looks like:
+    // {
+    //   example: 'Example'
+    // }
+    //
+    // hash.hasOwnProperty('protoProperty'); // false
+    // 'undefined' === typeof hash.protoProperty
+  });
+  ```
+
+  @method hash
+  @static
+  @for RSVP
+  @param {Object} object
+  @param {String} label optional string that describes the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when all properties of `promises`
+  have been fulfilled, or rejected if any of them become rejected.
+*/
+function hash$1(object, label) {
+  return new PromiseHash(Promise$1, object, label).promise;
+}
+
+function HashSettled(Constructor, object, label) {
+  this._superConstructor(Constructor, object, false, label);
+}
+
+HashSettled.prototype = o_create(PromiseHash.prototype);
+HashSettled.prototype._superConstructor = Enumerator;
+HashSettled.prototype._makeResult = makeSettledResult;
+
+HashSettled.prototype._validationError = function () {
+  return new Error('hashSettled must be called with an object');
+};
+
+/**
+  `RSVP.hashSettled` is similar to `RSVP.allSettled`, but takes an object
+  instead of an array for its `promises` argument.
+
+  Unlike `RSVP.all` or `RSVP.hash`, which implement a fail-fast method,
+  but like `RSVP.allSettled`, `hashSettled` waits until all the
+  constituent promises have returned and then shows you all the results
+  with their states and values/reasons. This is useful if you want to
+  handle multiple promises' failure states together as a set.
+
+  Returns a promise that is fulfilled when all the given promises have been
+  settled, or rejected if the passed parameters are invalid.
+
+  The returned promise is fulfilled with a hash that has the same key names as
+  the `promises` object argument. If any of the values in the object are not
+  promises, they will be copied over to the fulfilled object and marked with state
+  'fulfilled'.
+
+  Example:
+
+  ```javascript
+  let promises = {
+    myPromise: RSVP.Promise.resolve(1),
+    yourPromise: RSVP.Promise.resolve(2),
+    theirPromise: RSVP.Promise.resolve(3),
+    notAPromise: 4
+  };
+
+  RSVP.hashSettled(promises).then(function(hash){
+    // hash here is an object that looks like:
+    // {
+    //   myPromise: { state: 'fulfilled', value: 1 },
+    //   yourPromise: { state: 'fulfilled', value: 2 },
+    //   theirPromise: { state: 'fulfilled', value: 3 },
+    //   notAPromise: { state: 'fulfilled', value: 4 }
+    // }
+  });
+  ```
+
+  If any of the `promises` given to `RSVP.hash` are rejected, the state will
+  be set to 'rejected' and the reason for rejection provided.
+
+  Example:
+
+  ```javascript
+  let promises = {
+    myPromise: RSVP.Promise.resolve(1),
+    rejectedPromise: RSVP.Promise.reject(new Error('rejection')),
+    anotherRejectedPromise: RSVP.Promise.reject(new Error('more rejection')),
+  };
+
+  RSVP.hashSettled(promises).then(function(hash){
+    // hash here is an object that looks like:
+    // {
+    //   myPromise:              { state: 'fulfilled', value: 1 },
+    //   rejectedPromise:        { state: 'rejected', reason: Error },
+    //   anotherRejectedPromise: { state: 'rejected', reason: Error },
+    // }
+    // Note that for rejectedPromise, reason.message == 'rejection',
+    // and for anotherRejectedPromise, reason.message == 'more rejection'.
+  });
+  ```
+
+  An important note: `RSVP.hashSettled` is intended for plain JavaScript objects that
+  are just a set of keys and values. `RSVP.hashSettled` will NOT preserve prototype
+  chains.
+
+  Example:
+
+  ```javascript
+  function MyConstructor(){
+    this.example = RSVP.Promise.resolve('Example');
+  }
+
+  MyConstructor.prototype = {
+    protoProperty: RSVP.Promise.resolve('Proto Property')
+  };
+
+  let myObject = new MyConstructor();
+
+  RSVP.hashSettled(myObject).then(function(hash){
+    // protoProperty will not be present, instead you will just have an
+    // object that looks like:
+    // {
+    //   example: { state: 'fulfilled', value: 'Example' }
+    // }
+    //
+    // hash.hasOwnProperty('protoProperty'); // false
+    // 'undefined' === typeof hash.protoProperty
+  });
+  ```
+
+  @method hashSettled
+  @for RSVP
+  @param {Object} object
+  @param {String} label optional string that describes the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when when all properties of `promises`
+  have been settled.
+  @static
+*/
+function hashSettled$1(object, label) {
+  return new HashSettled(Promise$1, object, label).promise;
+}
+
+/**
+  `RSVP.rethrow` will rethrow an error on the next turn of the JavaScript event
+  loop in order to aid debugging.
+
+  Promises A+ specifies that any exceptions that occur with a promise must be
+  caught by the promises implementation and bubbled to the last handler. For
+  this reason, it is recommended that you always specify a second rejection
+  handler function to `then`. However, `RSVP.rethrow` will throw the exception
+  outside of the promise, so it bubbles up to your console if in the browser,
+  or domain/cause uncaught exception in Node. `rethrow` will also throw the
+  error again so the error can be handled by the promise per the spec.
+
+  ```javascript
+  function throws(){
+    throw new Error('Whoops!');
+  }
+
+  let promise = new RSVP.Promise(function(resolve, reject){
+    throws();
+  });
+
+  promise.catch(RSVP.rethrow).then(function(){
+    // Code here doesn't run because the promise became rejected due to an
+    // error!
+  }, function (err){
+    // handle the error here
+  });
+  ```
+
+  The 'Whoops' error will be thrown on the next turn of the event loop
+  and you can watch for it in your console. You can also handle it using a
+  rejection handler given to `.then` or `.catch` on the returned promise.
+
+  @method rethrow
+  @static
+  @for RSVP
+  @param {Error} reason reason the promise became rejected.
+  @throws Error
+  @static
+*/
+function rethrow$1(reason) {
+  setTimeout(function () {
+    throw reason;
+  });
+  throw reason;
+}
+
+/**
+  `RSVP.defer` returns an object similar to jQuery's `$.Deferred`.
+  `RSVP.defer` should be used when porting over code reliant on `$.Deferred`'s
+  interface. New code should use the `RSVP.Promise` constructor instead.
+
+  The object returned from `RSVP.defer` is a plain object with three properties:
+
+  * promise - an `RSVP.Promise`.
+  * reject - a function that causes the `promise` property on this object to
+    become rejected
+  * resolve - a function that causes the `promise` property on this object to
+    become fulfilled.
+
+  Example:
+
+   ```javascript
+   let deferred = RSVP.defer();
+
+   deferred.resolve("Success!");
+
+   deferred.promise.then(function(value){
+     // value here is "Success!"
+   });
+   ```
+
+  @method defer
+  @static
+  @for RSVP
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Object}
+ */
+function defer$1(label) {
+  var deferred = { resolve: undefined, reject: undefined };
+
+  deferred.promise = new Promise$1(function (resolve, reject) {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
+  }, label);
+
+  return deferred;
+}
+
+/**
+ `RSVP.map` is similar to JavaScript's native `map` method, except that it
+  waits for all promises to become fulfilled before running the `mapFn` on
+  each item in given to `promises`. `RSVP.map` returns a promise that will
+  become fulfilled with the result of running `mapFn` on the values the promises
+  become fulfilled with.
+
+  For example:
+
+  ```javascript
+
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.resolve(2);
+  let promise3 = RSVP.resolve(3);
+  let promises = [ promise1, promise2, promise3 ];
+
+  let mapFn = function(item){
+    return item + 1;
+  };
+
+  RSVP.map(promises, mapFn).then(function(result){
+    // result is [ 2, 3, 4 ]
+  });
+  ```
+
+  If any of the `promises` given to `RSVP.map` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promise's
+  rejection handler. For example:
+
+  ```javascript
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.reject(new Error('2'));
+  let promise3 = RSVP.reject(new Error('3'));
+  let promises = [ promise1, promise2, promise3 ];
+
+  let mapFn = function(item){
+    return item + 1;
+  };
+
+  RSVP.map(promises, mapFn).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(reason) {
+    // reason.message === '2'
+  });
+  ```
+
+  `RSVP.map` will also wait if a promise is returned from `mapFn`. For example,
+  say you want to get all comments from a set of blog posts, but you need
+  the blog posts first because they contain a url to those comments.
+
+  ```javscript
+
+  let mapFn = function(blogPost){
+    // getComments does some ajax and returns an RSVP.Promise that is fulfilled
+    // with some comments data
+    return getComments(blogPost.comments_url);
+  };
+
+  // getBlogPosts does some ajax and returns an RSVP.Promise that is fulfilled
+  // with some blog post data
+  RSVP.map(getBlogPosts(), mapFn).then(function(comments){
+    // comments is the result of asking the server for the comments
+    // of all blog posts returned from getBlogPosts()
+  });
+  ```
+
+  @method map
+  @static
+  @for RSVP
+  @param {Array} promises
+  @param {Function} mapFn function to be called on each fulfilled promise.
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled with the result of calling
+  `mapFn` on each fulfilled promise or value when they become fulfilled.
+   The promise will be rejected if any of the given `promises` become rejected.
+  @static
+*/
+function map$1(promises, mapFn, label) {
+  return Promise$1.all(promises, label).then(function (values) {
+    if (!isFunction(mapFn)) {
+      throw new TypeError("You must pass a function as map's second argument.");
+    }
+
+    var length = values.length;
+    var results = new Array(length);
+
+    for (var i = 0; i < length; i++) {
+      results[i] = mapFn(values[i]);
+    }
+
+    return Promise$1.all(results, label);
+  });
+}
+
+/**
+  This is a convenient alias for `RSVP.Promise.resolve`.
+
+  @method resolve
+  @static
+  @for RSVP
+  @param {*} value value that the returned promise will be resolved with
+  @param {String} label optional string for identifying the returned promise.
+  Useful for tooling.
+  @return {Promise} a promise that will become fulfilled with the given
+  `value`
+*/
+function resolve$3(value, label) {
+  return Promise$1.resolve(value, label);
+}
+
+/**
+  This is a convenient alias for `RSVP.Promise.reject`.
+
+  @method reject
+  @static
+  @for RSVP
+  @param {*} reason value that the returned promise will be rejected with.
+  @param {String} label optional string for identifying the returned promise.
+  Useful for tooling.
+  @return {Promise} a promise rejected with the given `reason`.
+*/
+function reject$3(reason, label) {
+  return Promise$1.reject(reason, label);
+}
+
+/**
+ `RSVP.filter` is similar to JavaScript's native `filter` method, except that it
+  waits for all promises to become fulfilled before running the `filterFn` on
+  each item in given to `promises`. `RSVP.filter` returns a promise that will
+  become fulfilled with the result of running `filterFn` on the values the
+  promises become fulfilled with.
+
+  For example:
+
+  ```javascript
+
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.resolve(2);
+  let promise3 = RSVP.resolve(3);
+
+  let promises = [promise1, promise2, promise3];
+
+  let filterFn = function(item){
+    return item > 1;
+  };
+
+  RSVP.filter(promises, filterFn).then(function(result){
+    // result is [ 2, 3 ]
+  });
+  ```
+
+  If any of the `promises` given to `RSVP.filter` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promise's
+  rejection handler. For example:
+
+  ```javascript
+  let promise1 = RSVP.resolve(1);
+  let promise2 = RSVP.reject(new Error('2'));
+  let promise3 = RSVP.reject(new Error('3'));
+  let promises = [ promise1, promise2, promise3 ];
+
+  let filterFn = function(item){
+    return item > 1;
+  };
+
+  RSVP.filter(promises, filterFn).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(reason) {
+    // reason.message === '2'
+  });
+  ```
+
+  `RSVP.filter` will also wait for any promises returned from `filterFn`.
+  For instance, you may want to fetch a list of users then return a subset
+  of those users based on some asynchronous operation:
+
+  ```javascript
+
+  let alice = { name: 'alice' };
+  let bob   = { name: 'bob' };
+  let users = [ alice, bob ];
+
+  let promises = users.map(function(user){
+    return RSVP.resolve(user);
+  });
+
+  let filterFn = function(user){
+    // Here, Alice has permissions to create a blog post, but Bob does not.
+    return getPrivilegesForUser(user).then(function(privs){
+      return privs.can_create_blog_post === true;
+    });
+  };
+  RSVP.filter(promises, filterFn).then(function(users){
+    // true, because the server told us only Alice can create a blog post.
+    users.length === 1;
+    // false, because Alice is the only user present in `users`
+    users[0] === bob;
+  });
+  ```
+
+  @method filter
+  @static
+  @for RSVP
+  @param {Array} promises
+  @param {Function} filterFn - function to be called on each resolved value to
+  filter the final results.
+  @param {String} label optional string describing the promise. Useful for
+  tooling.
+  @return {Promise}
+*/
+
+function resolveAll(promises, label) {
+  return Promise$1.all(promises, label);
+}
+
+function resolveSingle(promise, label) {
+  return Promise$1.resolve(promise, label).then(function (promises) {
+    return resolveAll(promises, label);
+  });
+}
+function filter$1(promises, filterFn, label) {
+  var promise = isArray(promises) ? resolveAll(promises, label) : resolveSingle(promises, label);
+  return promise.then(function (values) {
+    if (!isFunction(filterFn)) {
+      throw new TypeError("You must pass a function as filter's second argument.");
+    }
+
+    var length = values.length;
+    var filtered = new Array(length);
+
+    for (var i = 0; i < length; i++) {
+      filtered[i] = filterFn(values[i]);
+    }
+
+    return resolveAll(filtered, label).then(function (filtered) {
+      var results = new Array(length);
+      var newLength = 0;
+
+      for (var i = 0; i < length; i++) {
+        if (filtered[i]) {
+          results[newLength] = values[i];
+          newLength++;
+        }
+      }
+
+      results.length = newLength;
+
+      return results;
+    });
+  });
+}
+
+var len = 0;
+var vertxNext = undefined;
+function asap$1(callback, arg) {
+  queue$1[len] = callback;
+  queue$1[len + 1] = arg;
+  len += 2;
+  if (len === 2) {
+    // If len is 1, that means that we need to schedule an async flush.
+    // If additional callbacks are queued before the queue is flushed, they
+    // will be processed by this flush that we are scheduling.
+    scheduleFlush$1();
+  }
+}
+
+var browserWindow = typeof window !== 'undefined' ? window : undefined;
+var browserGlobal = browserWindow || {};
+var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
+
+// test for web worker but not in IE10
+var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+
+// node
+function useNextTick() {
+  var nextTick = process.nextTick;
+  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+  // setImmediate should be used instead instead
+  var version = process.versions.node.match(/^(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/);
+  if (Array.isArray(version) && version[1] === '0' && version[2] === '10') {
+    nextTick = setImmediate;
+  }
+  return function () {
+    return nextTick(flush);
+  };
+}
+
+// vertx
+function useVertxTimer() {
+  if (typeof vertxNext !== 'undefined') {
+    return function () {
+      vertxNext(flush);
+    };
+  }
+  return useSetTimeout();
+}
+
+function useMutationObserver() {
+  var iterations = 0;
+  var observer = new BrowserMutationObserver(flush);
+  var node = document.createTextNode('');
+  observer.observe(node, { characterData: true });
+
+  return function () {
+    return node.data = iterations = ++iterations % 2;
+  };
+}
+
+// web worker
+function useMessageChannel() {
+  var channel = new MessageChannel();
+  channel.port1.onmessage = flush;
+  return function () {
+    return channel.port2.postMessage(0);
+  };
+}
+
+function useSetTimeout() {
+  return function () {
+    return setTimeout(flush, 1);
+  };
+}
+
+var queue$1 = new Array(1000);
+
+function flush() {
+  for (var i = 0; i < len; i += 2) {
+    var callback = queue$1[i];
+    var arg = queue$1[i + 1];
+
+    callback(arg);
+
+    queue$1[i] = undefined;
+    queue$1[i + 1] = undefined;
+  }
+
+  len = 0;
+}
+
+function attemptVertex() {
+  try {
+    var r = require;
+    var vertx = r('vertx');
+    vertxNext = vertx.runOnLoop || vertx.runOnContext;
+    return useVertxTimer();
+  } catch (e) {
+    return useSetTimeout();
+  }
+}
+
+var scheduleFlush$1 = undefined;
+// Decide what async method to use to triggering processing of queued callbacks:
+if (isNode) {
+  scheduleFlush$1 = useNextTick();
+} else if (BrowserMutationObserver) {
+  scheduleFlush$1 = useMutationObserver();
+} else if (isWorker) {
+  scheduleFlush$1 = useMessageChannel();
+} else if (browserWindow === undefined && typeof require === 'function') {
+  scheduleFlush$1 = attemptVertex();
+} else {
+  scheduleFlush$1 = useSetTimeout();
+}
+
+var platform = undefined;
+
+/* global self */
+if (typeof self === 'object') {
+  platform = self;
+
+  /* global global */
+} else if (typeof global === 'object') {
+    platform = global;
+  } else {
+    throw new Error('no global: `self` or `global` found');
+  }
+
+var _async$filter;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// defaults
+
+// the default export here is for backwards compat:
+//   https://github.com/tildeio/rsvp.js/issues/434
+config.async = asap$1;
+config.after = function (cb) {
+  return setTimeout(cb, 0);
+};
+var cast = resolve$3;
+
+var async = function async(callback, arg) {
+  return config.async(callback, arg);
+};
+
+function on() {
+  config['on'].apply(config, arguments);
+}
+
+function off() {
+  config['off'].apply(config, arguments);
+}
+
+// Set up instrumentation through `window.__PROMISE_INTRUMENTATION__`
+if (typeof window !== 'undefined' && typeof window['__PROMISE_INSTRUMENTATION__'] === 'object') {
+  var callbacks = window['__PROMISE_INSTRUMENTATION__'];
+  configure('instrument', true);
+  for (var eventName in callbacks) {
+    if (callbacks.hasOwnProperty(eventName)) {
+      on(eventName, callbacks[eventName]);
+    }
+  }
+}var rsvp = (_async$filter = {
+  asap: asap$1,
+  cast: cast,
+  Promise: Promise$1,
+  EventTarget: EventTarget,
+  all: all$3,
+  allSettled: allSettled$1,
+  race: race$3,
+  hash: hash$1,
+  hashSettled: hashSettled$1,
+  rethrow: rethrow$1,
+  defer: defer$1,
+  denodeify: denodeify$1,
+  configure: configure,
+  on: on,
+  off: off,
+  resolve: resolve$3,
+  reject: reject$3,
+  map: map$1
+}, _defineProperty(_async$filter, 'async', async), _defineProperty(_async$filter, 'filter', // babel seems to error if async isn't a computed prop here...
+filter$1), _async$filter);
+
+exports['default'] = rsvp;
+exports.asap = asap$1;
+exports.cast = cast;
+exports.Promise = Promise$1;
+exports.EventTarget = EventTarget;
+exports.all = all$3;
+exports.allSettled = allSettled$1;
+exports.race = race$3;
+exports.hash = hash$1;
+exports.hashSettled = hashSettled$1;
+exports.rethrow = rethrow$1;
+exports.defer = defer$1;
+exports.denodeify = denodeify$1;
+exports.configure = configure;
+exports.on = on;
+exports.off = off;
+exports.resolve = resolve$3;
+exports.reject = reject$3;
+exports.map = map$1;
+exports.async = async;
+exports.filter = filter$1;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+
+//
 
 'use strict';
 
 var EPUBJS = EPUBJS || {};
-EPUBJS.VERSION = "0.2.12";
+EPUBJS.VERSION = "0.2.19";
 
 EPUBJS.plugins = EPUBJS.plugins || {};
 
@@ -1649,9 +2596,12 @@ EPUBJS.Render = {};
 	//exports to multiple environments
 	if (typeof define === 'function' && define.amd) {
 		//AMD
-		define(['rsvp'], function(){ return ePub; });
+		define(['rsvp', 'jszip', 'localforage'], function(RSVP, JSZip, localForage){ return ePub; });
 	} else if (typeof module != "undefined" && module.exports) {
 		//Node
+		global.RSVP = require('rsvp');
+		global.JSZip = require('jszip');
+		global.localForage = require('localforage');
 		module.exports = ePub;
 	}
 
@@ -1681,9 +2631,11 @@ EPUBJS.Book = function(options){
 		reload : false,
 		goto : false,
 		styles : {},
+		classes : [],
 		headTags : {},
 		withCredentials: false,
-		render_method: "Iframe"
+		render_method: "Iframe",
+		displayLastPage: false
 	});
 
 	this.settings.EPUBJSVERSION = EPUBJS.VERSION;
@@ -1963,6 +2915,8 @@ EPUBJS.Book.prototype.unpack = function(packageXml){
 		book.loadXml(book.settings.tocUrl).
 			then(function(tocXml){
 					return parse.toc(tocXml, book.spineIndexByURL, book.spine); // Grab Table of Contents
+			}, function(err) {
+				console.error(err);
 			}).then(function(toc){
 				book.toc = book.contents.toc = toc;
 				book.ready.toc.resolve(book.contents.toc);
@@ -2004,12 +2958,12 @@ EPUBJS.Book.prototype.createHiddenRender = function(renderer, _width, _height) {
 	hiddenEl.style.height = height +"px"; //"0";
 	hiddenContainer.appendChild(hiddenEl);
 
-	renderer.initialize(hiddenEl);
+	renderer.initialize(hiddenEl, this.settings.width, this.settings.height);
 	return hiddenContainer;
 };
 
 // Generates the pageList array by loading every chapter and paging through them
-EPUBJS.Book.prototype.generatePageList = function(width, height){
+EPUBJS.Book.prototype.generatePageList = function(width, height, flag){
 	var pageList = [];
 	var pager = new EPUBJS.Renderer(this.settings.render_method, false); //hidden
 	var hiddenContainer = this.createHiddenRender(pager, width, height);
@@ -2026,6 +2980,13 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		if(next >= spineLength) {
 			done.resolve();
 		} else {
+            if (flag && flag.cancelled) {
+                pager.remove();
+                this.element.removeChild(hiddenContainer);
+                done.reject(new Error("User cancelled"));
+                return;
+            }
+
 			spinePos = next;
 			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store);
 			pager.displayChapter(chapter, this.globalLayoutProperties).then(function(chap){
@@ -2060,23 +3021,27 @@ EPUBJS.Book.prototype.generatePageList = function(width, height){
 		pager.remove();
 		this.element.removeChild(hiddenContainer);
 		deferred.resolve(pageList);
-	}.bind(this));
+	}.bind(this), function(reason) {
+        deferred.reject(reason);
+    });
 
 	return deferred.promise;
 };
 
 // Render out entire book and generate the pagination
 // Width and Height are optional and will default to the current dimensions
-EPUBJS.Book.prototype.generatePagination = function(width, height) {
+EPUBJS.Book.prototype.generatePagination = function(width, height, flag) {
 	var book = this;
 	var defered = new RSVP.defer();
 
 	this.ready.spine.promise.then(function(){
-		book.generatePageList(width, height).then(function(pageList){
+		book.generatePageList(width, height, flag).then(function(pageList){
 			book.pageList = book.contents.pageList = pageList;
 			book.pagination.process(pageList);
 			book.ready.pageList.resolve(book.pageList);
 			defered.resolve(book.pageList);
+		}, function(reason) {
+            defered.reject(reason);
 		});
 	});
 
@@ -2085,7 +3050,13 @@ EPUBJS.Book.prototype.generatePagination = function(width, height) {
 
 // Process the pagination from a JSON array containing the pagelist
 EPUBJS.Book.prototype.loadPagination = function(pagelistJSON) {
-	var pageList = JSON.parse(pagelistJSON);
+	var pageList;
+
+	if (typeof(pagelistJSON) === "string") {
+		pageList = JSON.parse(pagelistJSON);
+	} else {
+		pageList = pagelistJSON;
+	}
 
 	if(pageList && pageList.length) {
 		this.pageList = pageList;
@@ -2200,6 +3171,26 @@ EPUBJS.Book.prototype.unlistenToRenderer = function(renderer){
 	renderer.Events.forEach(function(eventName){
 		renderer.off(eventName);
 	});
+};
+
+//-- Returns the cover
+EPUBJS.Book.prototype.coverUrl = function(){
+	var retrieved = this.ready.cover.promise
+		.then(function(url) {
+			if(this.settings.fromStorage) {
+				return this.store.getUrl(this.contents.cover);
+			} else if(this.settings.contained) {
+				return this.zip.getUrl(this.contents.cover);
+			}else{
+				return this.contents.cover;
+			}
+		}.bind(this));
+
+	retrieved.then(function(url) {
+			this.cover = url;
+		}.bind(this));
+
+	return retrieved;
 };
 
 //-- Choose between a request from store or a request from network
@@ -2357,7 +3348,7 @@ EPUBJS.Book.prototype.startDisplay = function(){
 	}else if(this.settings.previousLocationCfi) {
 		display = this.gotoCfi(this.settings.previousLocationCfi);
 	}else{
-		display = this.displayChapter(this.spinePos);
+		display = this.displayChapter(this.spinePos, this.settings.displayLastPage);
 	}
 
 	return display;
@@ -2424,7 +3415,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 	}
 
 
-	if(this._rendering || this._rendering) {
+	if(this._rendering || this.renderer._moving) {
 		// Pass along the current defer
 		this._displayQ.enqueue("displayChapter", [chap, end, defer]);
 		return defer.promise;
@@ -2454,6 +3445,7 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 		chapter.registerHook("beforeChapterRender", [
 			EPUBJS.replace.head,
 			EPUBJS.replace.resources,
+			EPUBJS.replace.posters,
 			EPUBJS.replace.svg
 		], true);
 
@@ -2497,65 +3489,75 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 	return defer.promise;
 };
 
-EPUBJS.Book.prototype.nextPage = function(){
-	var next;
+EPUBJS.Book.prototype.nextPage = function(defer){
+    var defer = defer || new RSVP.defer();
 
-	if(!this.isRendered) return this._q.enqueue("nextPage", arguments);
+	if (!this.isRendered) {
+        this._q.enqueue("nextPage", [defer]);
+        return defer.promise;
+    }
 
-	next = this.renderer.nextPage();
-
-	if(!next){
-		return this.nextChapter();
+	var next = this.renderer.nextPage();
+	if (!next){
+		return this.nextChapter(defer);
 	}
+
+    defer.resolve(true);
+    return defer.promise;
 };
 
-EPUBJS.Book.prototype.prevPage = function() {
-	var prev;
+EPUBJS.Book.prototype.prevPage = function(defer) {
+    var defer = defer || new RSVP.defer();
 
-	if(!this.isRendered) return this._q.enqueue("prevPage", arguments);
+	if (!this.isRendered) {
+        this._q.enqueue("prevPage", [defer]);
+        return defer.promise;
+    }
 
-	prev = this.renderer.prevPage();
-
-	if(!prev){
-		return this.prevChapter();
+	var prev = this.renderer.prevPage();
+	if (!prev){
+		return this.prevChapter(defer);
 	}
+
+    defer.resolve(true);
+    return defer.promise;
 };
 
-EPUBJS.Book.prototype.nextChapter = function() {
-	var next;
-	if (this.spinePos < this.spine.length - 1) {
-		next = this.spinePos + 1;
+EPUBJS.Book.prototype.nextChapter = function(defer) {
+    var defer = defer || new RSVP.defer();
+
+    if (this.spinePos < this.spine.length - 1) {
+		var next = this.spinePos + 1;
 		// Skip non linear chapters
 		while (this.spine[next] && this.spine[next].linear && this.spine[next].linear == 'no') {
 			next++;
 		}
 		if (next < this.spine.length) {
-			return this.displayChapter(next);
-		} else {
-			this.trigger("book:atEnd");
+			return this.displayChapter(next, false, defer);
 		}
-
-	} else {
-		this.trigger("book:atEnd");
 	}
+
+    this.trigger("book:atEnd");
+    defer.resolve(true);
+    return defer.promise;
 };
 
-EPUBJS.Book.prototype.prevChapter = function() {
-	var prev;
-	if (this.spinePos > 0) {
-		prev = this.spinePos - 1;
+EPUBJS.Book.prototype.prevChapter = function(defer) {
+    var defer = defer || new RSVP.defer();
+
+    if (this.spinePos > 0) {
+		var prev = this.spinePos - 1;
 		while (this.spine[prev] && this.spine[prev].linear && this.spine[prev].linear == 'no') {
 			prev--;
 		}
 		if (prev >= 0) {
-			return this.displayChapter(prev, true);
-		} else {
-			this.trigger("book:atStart");
+			return this.displayChapter(prev, true, defer);
 		}
+    }
 
-	} else {
-		this.trigger("book:atStart");
-	}
+    this.trigger("book:atStart");
+    defer.resolve(true);
+    return defer.promise;
 };
 
 EPUBJS.Book.prototype.getCurrentLocationCfi = function() {
@@ -2582,6 +3584,8 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			spinePos,
 			spineItem,
 			rendered,
+			promise,
+			render,
 			deferred = defer || new RSVP.defer();
 
 	if(!this.isRendered) {
@@ -2619,18 +3623,15 @@ EPUBJS.Book.prototype.gotoCfi = function(cfiString, defer){
 			spineItem = this.spine[spinePos];
 		}
 
-		this.currentChapter = new EPUBJS.Chapter(spineItem, this.store);
+		render = this.displayChapter(cfiString);
 
-		if(this.currentChapter) {
-			this.spinePos = spinePos;
-			render = this.renderer.displayChapter(this.currentChapter, this.globalLayoutProperties);
+		render.then(function(rendered){
+			this._moving = false;
+			deferred.resolve(rendered.currentLocationCfi);
+		}.bind(this), function() {
+			this._moving = false;
+        }.bind(this));
 
-			this.renderer.gotoCfi(cfi);
-			render.then(function(rendered){
-					this._moving = false;
-					deferred.resolve(rendered.currentLocationCfi);
-			}.bind(this));
-		}
 	}
 
 	promise.then(function(){
@@ -2658,8 +3659,11 @@ EPUBJS.Book.prototype.gotoHref = function(url, defer){
 	split = url.split("#");
 	chapter = split[0];
 	section = split[1] || false;
-	// absoluteURL = (chapter.search("://") === -1) ? (this.settings.contentsPath + chapter) : chapter;
-	relativeURL = chapter.replace(this.settings.contentsPath, '');
+	if (chapter.search("://") == -1) {
+		relativeURL = chapter.replace(EPUBJS.core.uri(this.settings.contentsPath).path, '');
+	} else {
+		relativeURL = chapter.replace(this.settings.contentsPath, '');
+	}
 	spinePos = this.spineIndexByURL[relativeURL];
 
 	//-- If link fragment only stay on current chapter
@@ -2757,6 +3761,7 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 	var hooks = [
 		EPUBJS.replace.head,
 		EPUBJS.replace.resources,
+		EPUBJS.replace.posters,
 		EPUBJS.replace.svg
 	];
 
@@ -2817,6 +3822,47 @@ EPUBJS.Book.prototype.removeStyle = function(style) {
 	this.renderer.removeStyle(style);
 	this.renderer.reformat();
 	delete this.settings.styles[style];
+};
+
+EPUBJS.Book.prototype.resetClasses = function(classes) {
+
+	if(!this.isRendered) return this._q.enqueue("setClasses", arguments);
+
+  if(classes.constructor === String) classes = [ classes ];
+
+  this.settings.classes = classes;
+
+	this.renderer.setClasses(this.settings.classes);
+  this.renderer.reformat();
+};
+
+EPUBJS.Book.prototype.addClass = function(aClass) {
+
+	if(!this.isRendered) return this._q.enqueue("addClass", arguments);
+
+  if(this.settings.classes.indexOf(aClass) == -1) {
+    this.settings.classes.push(aClass);
+  }
+
+	this.renderer.setClasses(this.settings.classes);
+  this.renderer.reformat();
+};
+
+EPUBJS.Book.prototype.removeClass = function(aClass) {
+
+	if(!this.isRendered) return this._q.enqueue("removeClass", arguments);
+
+  var idx = this.settings.classes.indexOf(aClass);
+
+  if(idx != -1) {
+
+    delete this.settings.classes[idx];
+
+    this.renderer.setClasses(this.settings.classes);
+    this.renderer.reformat();
+
+  }
+
 };
 
 EPUBJS.Book.prototype.addHeadTag = function(tag, attrs) {
@@ -2917,6 +3963,12 @@ EPUBJS.Book.prototype.applyStyles = function(renderer, callback){
 	callback();
 };
 
+EPUBJS.Book.prototype.applyClasses = function(renderer, callback){
+	// if(!this.isRendered) return this._q.enqueue("applyClasses", arguments);
+	renderer.setClasses(this.settings.classes);
+	callback();
+};
+
 EPUBJS.Book.prototype.applyHeadTags = function(renderer, callback){
 	// if(!this.isRendered) return this._q.enqueue("applyHeadTags", arguments);
 	renderer.applyHeadTags(this.settings.headTags);
@@ -2926,6 +3978,7 @@ EPUBJS.Book.prototype.applyHeadTags = function(renderer, callback){
 EPUBJS.Book.prototype._registerReplacements = function(renderer){
 	renderer.registerHook("beforeChapterDisplay", this.applyStyles.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", this.applyHeadTags.bind(this, renderer), true);
+	renderer.registerHook("beforeChapterDisplay", this.applyClasses.bind(this, renderer), true);
 	renderer.registerHook("beforeChapterDisplay", EPUBJS.replace.hrefs.bind(this), true);
 };
 
@@ -2968,10 +4021,10 @@ RSVP.EventTarget.mixin(EPUBJS.Book.prototype);
 
 //-- Handle RSVP Errors
 RSVP.on('error', function(event) {
-	//console.error(event, event.detail);
+	console.error(event);
 });
 
-RSVP.configure('instrument', false); //-- true | will logging out all RSVP rejections
+RSVP.configure('instrument', true); //-- true | will logging out all RSVP rejections
 // RSVP.on('created', listener);
 // RSVP.on('chained', listener);
 // RSVP.on('fulfilled', listener);
@@ -3016,8 +4069,15 @@ EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	}
 
 	promise.then(function(xml){
-		this.setDocument(xml);
-		this.deferred.resolve(this);
+        try {
+            this.setDocument(xml);
+            this.deferred.resolve(this);
+        } catch (error) {
+            this.deferred.reject({
+                message : this.absolute + " -> " + error.message,
+                stack : new Error().stack
+            });
+        }
 	}.bind(this));
 
 	return promise;
@@ -3095,21 +4155,23 @@ EPUBJS.Chapter.prototype.unload = function(store){
 };
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
-	var uri = _document.namespaceURI;
-	var doctype = _document.doctype;
-
-	// Creates an empty document
-	this.document = _document.implementation.createDocument(
-			uri,
-			null,
-			null
-	);
-	this.contents = this.document.importNode(
-			_document.documentElement, //node to import
-			true                         //clone its descendants
-	);
-
-	this.document.appendChild(this.contents);
+	// var uri = _document.namespaceURI;
+	// var doctype = _document.doctype;
+	//
+	// // Creates an empty document
+	// this.document = _document.implementation.createDocument(
+	// 		uri,
+	// 		null,
+	// 		null
+	// );
+	// this.contents = this.document.importNode(
+	// 		_document.documentElement, //node to import
+	// 		true                         //clone its descendants
+	// );
+	//
+	// this.document.appendChild(this.contents);
+	this.document = _document;
+	this.contents = _document.documentElement;
 
 	// Fix to apply wgxpath to new document in IE
 	if(!this.document.evaluate && document.evaluate) {
@@ -3123,7 +4185,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-	var cleanTextContent, cleanEndTextContent;
+	var cleanTextContent, cleanStartTextContent, cleanEndTextContent;
 
 	// Check for Contents
 	if(!this.document) return;
@@ -3332,11 +4394,13 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					done(url, full);
 				};
 
+				/*
 				link.onerror = function(e){
 					clearTimeout(timeout);
 					done(url, full);
 					console.error(e);
 				};
+				*/
 
 				if(query == "svg image") {
 					//-- SVG needs this to trigger a load event
@@ -3372,6 +4436,11 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 var EPUBJS = EPUBJS || {};
 EPUBJS.core = {};
 
+var ELEMENT_NODE = 1;
+var TEXT_NODE = 3;
+var COMMENT_NODE = 8;
+var DOCUMENT_NODE = 9;
+
 //-- Get a element for an id
 EPUBJS.core.getEl = function(elem) {
 	return document.getElementById(elem);
@@ -3398,42 +4467,36 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 
 		if (this.readyState != this.DONE) return;
 
-		if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
-			if(type == 'xml'){
-        // If this.responseXML wasn't set, try to parse using a DOMParser from text
-        if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "application/xml");
-        } else {
-          r = this.responseXML;
-        }
-			}else
-			if(type == 'xhtml'){
-        if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
-        } else {
-          r = this.responseXML;
-        }
-			}else
-			if(type == 'html'){
-				if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "text/html");
-        } else {
-          r = this.responseXML;
-        }
-			} else
-			if(type == 'json'){
+		if ((this.status === 200 || this.status === 0) && this.response) { // Android & Firefox reporting 0 for local & blob urls
+			if (type == 'xml'){
+                // If this.responseXML wasn't set, try to parse using a DOMParser from text
+                if(!this.responseXML) {
+                    r = new DOMParser().parseFromString(this.response, "application/xml");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'xhtml') {
+                if (!this.responseXML){
+                    r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'html') {
+				if (!this.responseXML){
+                    r = new DOMParser().parseFromString(this.response, "text/html");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'json') {
 				r = JSON.parse(this.response);
-			}else
-			if(type == 'blob'){
-
-				if(supportsURL) {
+			} else if (type == 'blob') {
+				if (supportsURL) {
 					r = this.response;
 				} else {
 					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
 					r = new Blob([this.response]);
 				}
-
-			}else{
+			} else {
 				r = this.response;
 			}
 
@@ -3453,8 +4516,8 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 		});
 	}
 
-	xhr.open("GET", url, true);
 	xhr.onreadystatechange = handler;
+	xhr.open("GET", url, true);
 
 	if(withCredentials) {
 		xhr.withCredentials = true;
@@ -3464,6 +4527,9 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	if(!type) {
 		uri = EPUBJS.core.uri(url);
 		type = uri.extension;
+		type = {
+			'htm': 'html'
+		}[type] || type;
 	}
 
 	if(type == 'blob'){
@@ -3547,7 +4613,7 @@ EPUBJS.core.uri = function(url){
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
-		href = url;
+		href = uri.href;
 	}
 
 	if(doubleSlash != -1) {
@@ -3999,13 +5065,37 @@ EPUBJS.core.values = function(object) {
   return result;
 };
 
+EPUBJS.core.indexOfNode = function(node, typeId) {
+	var parent = node.parentNode;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if (sib.nodeType === typeId) {
+			index++;
+		}
+		if (sib == node) break;
+	}
+
+	return index;
+}
+
+EPUBJS.core.indexOfTextNode = function(textNode) {
+	return EPUBJS.core.indexOfNode(textNode, TEXT_NODE);
+}
+
+EPUBJS.core.indexOfElementNode = function(elementNode) {
+	return EPUBJS.core.indexOfNode(elementNode, ELEMENT_NODE);
+}
+
 EPUBJS.EpubCFI = function(cfiStr){
   if(cfiStr) return this.parse(cfiStr);
 };
 
 EPUBJS.EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _pos, id) {
   var pos = parseInt(_pos),
-    spineNodeIndex = _spineNodeIndex + 1,
+    spineNodeIndex = (_spineNodeIndex + 1) * 2,
     cfi = '/'+spineNodeIndex+'/';
 
   cfi += (pos + 1) * 2;
@@ -4018,20 +5108,9 @@ EPUBJS.EpubCFI.prototype.generateChapterComponent = function(_spineNodeIndex, _p
 };
 
 EPUBJS.EpubCFI.prototype.generatePathComponent = function(steps) {
-  var parts = [];
-
-  steps.forEach(function(part){
-    var segment = '';
-    segment += (part.index + 1) * 2;
-
-    if(part.id) {
-      segment += "[" + part.id + "]";
-    }
-
-    parts.push(segment);
-  });
-
-  return parts.join('/');
+  return steps.map(function(part) {
+    return (part.index + 1) * 2 + (part.id ? '[' + part.id + ']' : '');
+  }).join('/');
 };
 
 EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
@@ -4042,7 +5121,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromElement = function(element, chapter) {
     return "epubcfi(" + chapter + "!/4/)";
   } else {
     // First Text Node
-    return "epubcfi(" + chapter + "!" + path + "/1:0)";
+    return "epubcfi(" + chapter + "!/" + path + "/1:0)";
   }
 };
 
@@ -4081,7 +5160,8 @@ EPUBJS.EpubCFI.prototype.getPathComponent = function(cfiStr) {
   return pathComponent[0];
 };
 
-EPUBJS.EpubCFI.prototype.getCharecterOffsetComponent = function(cfiStr) {
+EPUBJS.EpubCFI.prototype.getCharecterOffsetComponent = // backwards-compat
+EPUBJS.EpubCFI.prototype.getCharacterOffsetComponent = function(cfiStr) {
   var splitStr = cfiStr.split(":");
   return splitStr[1] || '';
 };
@@ -4092,7 +5172,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
     chapSegment,
     chapterComponent,
     pathComponent,
-    charecterOffsetComponent,
+    characterOffsetComponent,
     assertion,
     chapId,
     path,
@@ -4129,7 +5209,7 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 
   chapterComponent = this.getChapterComponent(cfiStr);
   pathComponent = this.getPathComponent(cfiStr) || '';
-  charecterOffsetComponent = this.getCharecterOffsetComponent(cfiStr);
+  characterOffsetComponent = this.getCharacterOffsetComponent(cfiStr);
   // Make sure this is a valid cfi or return
   if(!chapterComponent) {
     return {spinePos: -1};
@@ -4179,13 +5259,13 @@ EPUBJS.EpubCFI.prototype.parse = function(cfiStr) {
 
   }
 
-  assertion = charecterOffsetComponent.match(/\[(.*)\]/);
+  assertion = characterOffsetComponent.match(/\[(.*)\]/);
   if(assertion && assertion[1]){
-    cfi.characterOffset = parseInt(charecterOffsetComponent.split('[')[0]);
+    cfi.characterOffset = parseInt(characterOffsetComponent.split('[')[0]);
     // We arent handling these assertions yet
     cfi.textLocationAssertion = assertion[1];
   } else {
-    cfi.characterOffset = parseInt(charecterOffsetComponent);
+    cfi.characterOffset = parseInt(characterOffsetComponent);
   }
 
   return cfi;
@@ -4299,7 +5379,7 @@ EPUBJS.EpubCFI.prototype.findParent = function(cfi, _doc) {
       element = children[part.index];
     }
     // Element can't be found
-    if(typeof element === "undefined") {
+    if(!element || typeof element === "undefined") {
       console.error("No Element For", part, cfi.str);
       return false;
     }
@@ -4345,7 +5425,7 @@ EPUBJS.EpubCFI.prototype.compare = function(cfiOne, cfiTwo) {
     return -1;
   }
 
-  // Compare the charecter offset of the text node
+  // Compare the character offset of the text node
   if(cfiOne.characterOffset > cfiTwo.characterOffset) {
     return 1;
   }
@@ -4386,7 +5466,7 @@ EPUBJS.EpubCFI.prototype.generateCfiFromTextNode = function(anchor, offset, base
   var steps = this.pathTo(parent);
   var path = this.generatePathComponent(steps);
   var index = 1 + (2 * Array.prototype.indexOf.call(parent.childNodes, anchor));
-  return "epubcfi(" + base + "!" + path + "/"+index+":"+(offset || 0)+")";
+  return "epubcfi(" + base + "!/" + path + "/"+index+":"+(offset || 0)+")";
 };
 
 EPUBJS.EpubCFI.prototype.generateCfiFromRangeAnchor = function(range, base) {
@@ -4438,10 +5518,10 @@ EPUBJS.EpubCFI.prototype.generateCfiFromRange = function(range, base) {
       endPath = endPath + "/";
     }
 
-    return "epubcfi(" + base + "!" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + endIndex + ":" + endOffset + ")";
+    return "epubcfi(" + base + "!/" + startPath + "/" + startIndex + ":" + startOffset + "," + endPath + endIndex + ":" + endOffset + ")";
 
   } else {
-    return "epubcfi(" + base + "!" + startPath + "/"+ startIndex +":"+ startOffset +")";
+    return "epubcfi(" + base + "!/" + startPath + "/"+ startIndex +":"+ startOffset +")";
   }
 };
 
@@ -4543,12 +5623,7 @@ EPUBJS.EpubCFI.prototype.generateRangeFromCfi = function(cfi, _doc) {
 };
 
 EPUBJS.EpubCFI.prototype.isCfiString = function(target) {
-  if(typeof target === "string" &&
-    target.indexOf("epubcfi(") === 0) {
-      return true;
-  }
-
-  return false;
+  return typeof target === 'string' && target.indexOf('epubcfi(') === 0;
 };
 
 EPUBJS.Events = function(obj, el){
@@ -4737,6 +5812,17 @@ EPUBJS.Hooks = (function(){
 
 EPUBJS.Layout = EPUBJS.Layout || {};
 
+// EPUB2 documents won't provide us with "rendition:layout", so this is used to
+// duck type the documents instead.
+EPUBJS.Layout.isFixedLayout = function (documentElement) {
+	var viewport = documentElement.querySelector("[name=viewport]");
+	if (!viewport || !viewport.hasAttribute("content")) {
+		return false;
+	}
+	var content = viewport.getAttribute("content");
+	return (/width=(\d+)/.test(content) && /height=(\d+)/.test(content));
+};
+
 EPUBJS.Layout.Reflowable = function(){
 	this.documentElement = null;
 	this.spreadWidth = null;
@@ -4862,6 +5948,8 @@ EPUBJS.Layout.Fixed = function(){
 
 EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height, _gap){
 	var columnWidth = EPUBJS.core.prefixed('columnWidth');
+	var transform = EPUBJS.core.prefixed('transform');
+	var transformOrigin = EPUBJS.core.prefixed('transformOrigin');
 	var viewport = documentElement.querySelector("[name=viewport]");
 	var content;
 	var contents;
@@ -4881,6 +5969,17 @@ EPUBJS.Layout.Fixed.prototype.format = function(documentElement, _width, _height
 			height = contents[1].replace("height=", '');
 		}
 	}
+
+	//-- Scale fixed documents so their contents don't overflow, and
+	// vertically and horizontally center the contents
+	var widthScale = _width / width;
+	var heightScale = _height / height;
+	var scale = widthScale < heightScale ? widthScale : heightScale;
+	documentElement.style.position = "absolute";
+	documentElement.style.top = "50%";
+	documentElement.style.left = "50%";
+	documentElement.style[transform] = "scale(" + scale + ") translate(-50%, -50%)";
+	documentElement.style[transformOrigin] = "0px 0px 0px";
 
 	//-- Adjust width and height
 	documentElement.style.width =  width + "px" || "auto";
@@ -4977,6 +6076,7 @@ EPUBJS.Locations.prototype.process = function(chapter) {
       var contents = doc.documentElement.querySelector("body");
       var counter = 0;
       var prev;
+      var cfi;
 
       this.sprint(contents, function(node) {
         var len = node.length;
@@ -5039,6 +6139,7 @@ EPUBJS.Locations.prototype.process = function(chapter) {
 };
 
 EPUBJS.Locations.prototype.sprint = function(root, func) {
+  var node;
 	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
 
 	while ((node = treeWalker.nextNode())) {
@@ -5177,7 +6278,7 @@ EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 	// check if the cfi is in the location list
 	// var index = this.locations.indexOf(cfi);
 	var index = EPUBJS.core.indexOfSorted(cfi, this.locations, this.epubcfi.compare);
-	if(index != -1 && index < (this.pages.length-1) ) {
+	if(index != -1) {
 		pg = this.pages[index];
 	} else {
 		// Otherwise add it to the list of locations
@@ -5371,20 +6472,6 @@ EPUBJS.Parser.prototype.findTocPath = function(manifestNode, spineNode){
 	return node ? node.getAttribute('href') : false;
 };
 
-//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-//-- Fallback for Epub 2.0
-EPUBJS.Parser.prototype.findCoverPath = function(packageXml){
-	var epubVersion = packageXml.querySelector('package').getAttribute('version');
-	if (epubVersion === '2.0') {
-		var coverId = packageXml.querySelector('meta[name="cover"]').getAttribute('content');
-		return packageXml.querySelector("item[id='" + coverId + "']").getAttribute('href');
-	}
-	else {
-		var node = packageXml.querySelector("item[properties='cover-image']");
-		return node ? node.getAttribute('href') : false;
-	}
-};
-
 //-- Expanded to match Readium web components
 EPUBJS.Parser.prototype.metadata = function(xml){
 	var metadata = {},
@@ -5408,6 +6495,28 @@ EPUBJS.Parser.prototype.metadata = function(xml){
 	metadata.spread = p.querySelectorText(xml, "meta[property='rendition:spread']");
 
 	return metadata;
+};
+
+//-- Find Cover: <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
+//-- Fallback for Epub 2.0
+EPUBJS.Parser.prototype.findCoverPath = function(packageXml){
+
+	var epubVersion = packageXml.querySelector('package').getAttribute('version');
+	if (epubVersion === '2.0') {
+		var metaCover = packageXml.querySelector('meta[name="cover"]');
+		if (metaCover) {
+			var coverId = metaCover.getAttribute('content');
+			var cover = packageXml.querySelector("item[id='" + coverId + "']");
+			return cover ? cover.getAttribute('href') : false;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		var node = packageXml.querySelector("item[properties='cover-image']");
+		return node ? node.getAttribute('href') : false;
+	}
 };
 
 EPUBJS.Parser.prototype.getElementText = function(xml, tag){
@@ -5465,24 +6574,23 @@ EPUBJS.Parser.prototype.manifest = function(manifestXml){
 };
 
 EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
-	var spine = [];
-
 	var selected = spineXml.getElementsByTagName("itemref"),
 			items = Array.prototype.slice.call(selected);
 
-	var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
+	// var spineNodeIndex = Array.prototype.indexOf.call(spineXml.parentNode.childNodes, spineXml);
+	var spineNodeIndex = EPUBJS.core.indexOfElementNode(spineXml);
 
 	var epubcfi = new EPUBJS.EpubCFI();
 
 	//-- Add to array to mantain ordering and cross reference with manifest
-	items.forEach(function(item, index){
+	return items.map(function(item, index) {
 		var Id = item.getAttribute('idref');
 		var cfiBase = epubcfi.generateChapterComponent(spineNodeIndex, index, Id);
 		var props = item.getAttribute('properties') || '';
 		var propArray = props.length ? props.split(' ') : [];
 		var manifestProps = manifest[Id].properties;
 		var manifestPropArray = manifestProps.length ? manifestProps.split(' ') : [];
-		var vert = {
+		return {
 			'id' : Id,
 			'linear' : item.getAttribute('linear') || '',
 			'properties' : propArray,
@@ -5493,10 +6601,7 @@ EPUBJS.Parser.prototype.spine = function(spineXml, manifest){
 			'cfiBase' : cfiBase,
 			'cfi' : "epubcfi(" + cfiBase + ")"
 		};
-		spine.push(vert);
 	});
-
-	return spine;
 };
 
 EPUBJS.Parser.prototype.querySelectorByType = function(html, element, type){
@@ -5514,69 +6619,43 @@ EPUBJS.Parser.prototype.querySelectorByType = function(html, element, type){
 	}
 };
 
-EPUBJS.Parser.prototype.nav = function(navHtml, spineIndexByURL, bookSpine){
-	var navElement = this.querySelectorByType(navHtml, "nav", "toc");
-	var navItems = navElement ? navElement.querySelectorAll("ol li") : [];
-	var length = navItems.length;
-	var i;
-	var toc = {};
-	var list = [];
-	var item, parent;
-
-	if(!navItems || length === 0) return list;
-
-	for (i = 0; i < length; ++i) {
-		item = this.navItem(navItems[i], spineIndexByURL, bookSpine);
-		toc[item.id] = item;
-		if(!item.parent) {
-			list.push(item);
-		} else {
-			parent = toc[item.parent];
-			parent.subitems.push(item);
-		}
-	}
-
-	return list;
+EPUBJS.Parser.prototype.nav = function (navHtml, spineIndexByURL, bookSpine) {
+	var toc = this.querySelectorByType(navHtml, 'nav', 'toc');
+	return this.navItems(toc, spineIndexByURL, bookSpine);
 };
 
-EPUBJS.Parser.prototype.navItem = function(item, spineIndexByURL, bookSpine){
-	var id = item.getAttribute('id') || false,
-			content = item.querySelector("a, span"),
-			src = content.getAttribute('href') || '',
-			text = content.textContent || "",
-			split = src.split("#"),
-			baseUrl = split[0],
-			spinePos = spineIndexByURL[baseUrl],
-			spineItem = bookSpine[spinePos],
-			subitems = [],
-			parentNode = item.parentNode,
-			parent,
-			cfi = spineItem ? spineItem.cfi : '';
+EPUBJS.Parser.prototype.navItems = function (navNode, spineIndexByURL, bookSpine) {
+	if (!navNode) return [];
 
-	if(parentNode && parentNode.nodeName === "navPoint") {
-		parent = parentNode.getAttribute('id');
-	}
+	var list = navNode.querySelector('ol');
+	if (!list) return [];
 
-	if(!id) {
-		if(spinePos) {
-			spineItem = bookSpine[spinePos];
-			id = spineItem.id;
-			cfi = spineItem.cfi;
-		} else {
-			id = 'epubjs-autogen-toc-id-' + EPUBJS.core.uuid();
-			item.setAttribute('id', id);
-		}
-	}
+	var items = list.childNodes,
+			result = [];
 
-	return {
-		"id": id,
-		"href": src,
-		"label": text,
-		"spinePos": spinePos,
-		"subitems" : subitems,
-		"parent" : parent,
-		"cfi" : cfi
-	};
+	Array.prototype.forEach.call(items, function (item) {
+		if (item.tagName !== 'li') return;
+
+		var content = item.querySelector('a, span'),
+				href = content.getAttribute('href') || '',
+				label = content.textContent || '',
+				split = href.split('#'),
+				baseUrl = split[0],
+				spinePos = spineIndexByURL[baseUrl],
+				spineItem = bookSpine[spinePos],
+				cfi = spineItem ? spineItem.cfi : '',
+				subitems = this.navItems(item, spineIndexByURL, bookSpine);
+
+		result.push({
+			href: href,
+			label: label,
+			spinePos: spinePos,
+			subitems: subitems,
+			cfi: cfi
+		});
+	}.bind(this));
+
+	return result;
 };
 
 EPUBJS.Parser.prototype.toc = function(tocXml, spineIndexByURL, bookSpine){
@@ -5702,22 +6781,34 @@ EPUBJS.Render.Iframe = function() {
 
 	this.leftPos = 0;
 	this.pageWidth = 0;
+	this.id = EPUBJS.core.uuid();
 };
 
 //-- Build up any html needed
 EPUBJS.Render.Iframe.prototype.create = function(){
+	this.element = document.createElement('div');
+	this.element.id = "epubjs-view:" + this.id;
+
+	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
+	this.transform = EPUBJS.core.prefixed('transform');
+
+	return this.element;
+};
+
+EPUBJS.Render.Iframe.prototype.addIframe = function(){
 	this.iframe = document.createElement('iframe');
-	this.iframe.id = "epubjs-iframe:" + EPUBJS.core.uuid();
-	this.iframe.scrolling = "no";
+	this.iframe.id = "epubjs-iframe:" + this.id;
+	this.iframe.scrolling = this.scrolling || "no";
 	this.iframe.seamless = "seamless";
 	// Back up if seamless isn't supported
 	this.iframe.style.border = "none";
 
 	this.iframe.addEventListener("load", this.loaded.bind(this), false);
 
-	this.isMobile = navigator.userAgent.match(/(iPad|iPhone|iPod|Mobile|Android)/g);
-	this.transform = EPUBJS.core.prefixed('transform');
-
+	if (this._width || this._height) {
+		this.iframe.height = this._height;
+		this.iframe.width = this._width;
+	}
 	return this.iframe;
 };
 
@@ -5733,6 +6824,14 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 	if(this.window) {
 		this.unload();
 	}
+
+	if (this.iframe) {
+		this.element.removeChild(this.iframe);
+	}
+
+	this.iframe = this.addIframe();
+	this.element.appendChild(this.iframe);
+
 
 	this.iframe.onload = function(e) {
 		var title;
@@ -5754,15 +6853,6 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 			render.bodyEl.style.margin = "0";
 		}
 
-		// HTML element must have direction set if RTL or columnns will
-		// not be in the correct direction in Firefox
-		// Firefox also need the html element to be position right
-		if(render.direction == "rtl" && render.docEl.dir != "rtl"){
-			render.docEl.dir = "rtl";
-			render.docEl.style.position = "absolute";
-			render.docEl.style.right = "0";
-		}
-
 		deferred.resolve(render.docEl);
 	};
 
@@ -5779,14 +6869,14 @@ EPUBJS.Render.Iframe.prototype.load = function(contents, url){
 
   if(!this.document) {
     deferred.reject(new Error("No Document Available"));
-    return deferred;
+    return deferred.promise;
   }
 
-  this.document.open();
-  this.document.write(contents);
-  this.document.close();
+  this.iframe.contentDocument.open();
+  this.iframe.contentDocument.write(contents);
+  this.iframe.contentDocument.close();
 
-	return deferred.promise;
+  return deferred.promise;
 };
 
 
@@ -5799,31 +6889,45 @@ EPUBJS.Render.Iframe.prototype.loaded = function(v){
 	this.headEl = this.document.head;
 	this.bodyEl = this.document.body || this.document.querySelector("body");
 	this.window = this.iframe.contentWindow;
+	this.window.focus();
 
 	if(url != "about:blank"){
 		baseEl = this.iframe.contentDocument.querySelector("base");
 		base = baseEl.getAttribute('href');
 		this.trigger("render:loaded", base);
 	}
+
 };
 
 // Resize the iframe to the given width and height
 EPUBJS.Render.Iframe.prototype.resize = function(width, height){
 	var iframeBox;
 
-	if(!this.iframe) return;
+	if(!this.element) return;
 
-	this.iframe.height = height;
+	this.element.style.height = height;
+
 
 	if(!isNaN(width) && width % 2 !== 0){
 		width += 1; //-- Prevent cutting off edges of text in columns
 	}
 
-	this.iframe.width = width;
+	this.element.style.width = width;
+
+	if (this.iframe) {
+		this.iframe.height = height;
+		this.iframe.width = width;
+	}
+
+	// Set the width for the iframe
+	this._height = height;
+	this._width = width;
+
 	// Get the fractional height and width of the iframe
 	// Default to orginal if bounding rect is 0
-	this.width = this.iframe.getBoundingClientRect().width || width;
-	this.height = this.iframe.getBoundingClientRect().height || height;
+	this.width = this.element.getBoundingClientRect().width || width;
+	this.height = this.element.getBoundingClientRect().height || height;
+
 };
 
 
@@ -5855,8 +6959,10 @@ EPUBJS.Render.Iframe.prototype.setDirection = function(direction){
 	// Undo previous changes if needed
 	if(this.docEl && this.docEl.dir == "rtl"){
 		this.docEl.dir = "rtl";
-		this.docEl.style.position = "static";
-		this.docEl.style.right = "auto";
+		if (this.layout !== "pre-paginated") {
+			this.docEl.style.position = "static";
+			this.docEl.style.right = "auto";
+		}
 	}
 
 };
@@ -5874,6 +6980,10 @@ EPUBJS.Render.Iframe.prototype.setLeft = function(leftPos){
 
 };
 
+EPUBJS.Render.Iframe.prototype.setLayout = function (layout) {
+	this.layout = layout;
+};
+
 EPUBJS.Render.Iframe.prototype.setStyle = function(style, val, prefixed){
 	if(prefixed) {
 		style = EPUBJS.core.prefixed(style);
@@ -5886,6 +6996,10 @@ EPUBJS.Render.Iframe.prototype.removeStyle = function(style){
 
 	if(this.bodyEl) this.bodyEl.style[style] = '';
 
+};
+
+EPUBJS.Render.Iframe.prototype.setClasses = function(classes){
+	if(this.bodyEl) this.bodyEl.className = classes.join(" ");
 };
 
 EPUBJS.Render.Iframe.prototype.addHeadTag = function(tag, attrs, _doc) {
@@ -5965,16 +7079,18 @@ EPUBJS.Render.Iframe.prototype.isElementVisible = function(el){
 
 EPUBJS.Render.Iframe.prototype.scroll = function(bool){
 	if(bool) {
-		this.iframe.scrolling = "yes";
+		// this.iframe.scrolling = "yes";
+		this.scrolling = "yes";
 	} else {
-		this.iframe.scrolling = "no";
+		this.scrolling = "no";
+		// this.iframe.scrolling = "no";
 	}
 };
 
 // Cleanup event listeners
 EPUBJS.Render.Iframe.prototype.unload = function(){
 	this.window.removeEventListener("resize", this.resized);
-	this.window.location.reload();
+	this.iframe.removeEventListener("load", this.loaded);
 };
 
 //-- Enable binding events to Render
@@ -6040,12 +7156,15 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:touchstart",
 	"renderer:touchend",
 	"renderer:selected",
+	"renderer:chapterUnload",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
 	"renderer:visibleLocationChanged",
+	"renderer:visibleRangeChanged",
 	"renderer:resized",
-	"renderer:spreads"
+	"renderer:spreads",
+	"renderer:beforeResize"
 ];
 
 /**
@@ -6070,7 +7189,7 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 		this.render.resize('100%', '100%');
 	}
 
-	document.addEventListener("orientationchange", this.onResized);
+	document.addEventListener("orientationchange", this.onResized.bind(this));
 };
 
 /**
@@ -6081,8 +7200,13 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 	var store = false;
 	if(this._moving) {
-		console.error("Rendering In Progress");
-		return;
+		console.warning("Rendering In Progress");
+        var deferred = new RSVP.defer();
+        deferred.reject({
+            message : "Rendering In Progress",
+            stack : new Error().stack
+        });
+		return deferred.promise;
 	}
 	this._moving = true;
 	// Get the url string from the chapter (may be from storage)
@@ -6091,6 +7215,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			// Unload the previous chapter listener
 			if(this.currentChapter) {
+				this.trigger("renderer:chapterUnload");
 				this.currentChapter.unload(); // Remove stored blobs
 
 				if(this.render.window){
@@ -6115,7 +7240,9 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			return this.load(contents, chapter.href);
 
-		}.bind(this));
+		}.bind(this), function() {
+            this._moving = false;
+        }.bind(this));
 
 };
 
@@ -6135,9 +7262,26 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 	this.visible(false);
 
-	render = this.render.load(contents, url);
+	this.render.load(contents, url).then(function(contents) {
 
-	render.then(function(contents) {
+		// Duck-type fixed layout books.
+		if (EPUBJS.Layout.isFixedLayout(contents)) {
+			this.layoutSettings.layout = "pre-paginated";
+			this.layoutMethod = this.determineLayout(this.layoutSettings);
+			this.layout = new EPUBJS.Layout[this.layoutMethod]();
+		}
+		this.render.setLayout(this.layoutSettings.layout);
+
+		// HTML element must have direction set if RTL or columnns will
+		// not be in the correct direction in Firefox
+		// Firefox also need the html element to be position right
+		if(this.render.direction == "rtl" && this.render.docEl.dir != "rtl"){
+			this.render.docEl.dir = "rtl";
+			if (this.render.layout !== "pre-paginated") {
+				this.render.docEl.style.position = "absolute";
+				this.render.docEl.style.right = "0";
+			}
+		}
 
 		this.afterLoad(contents);
 
@@ -6160,7 +7304,7 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 EPUBJS.Renderer.prototype.afterLoad = function(contents) {
 	var formated;
-	this.currentChapter.setDocument(this.render.document);
+	// this.currentChapter.setDocument(this.render.document);
 	this.contents = contents;
 	this.doc = this.render.document;
 
@@ -6290,7 +7434,6 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 		this.displayedPages = this.pageMap.length;
 	}
 
-	// this.currentChapter.pages = layout.pageCount;
 	this.currentChapter.pages = this.pageMap.length;
 
 	this._q.flush();
@@ -6300,6 +7443,8 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 EPUBJS.Renderer.prototype.reformat = function(){
 	var renderer = this;
 	var formated, pages;
+	var spreads;
+
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
@@ -6354,6 +7499,8 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeSelectionListeners();
 	}
 
+	// clean container content
+	//this.container.innerHtml = ""; // not safe
 	this.container.removeChild(this.element);
 };
 
@@ -6371,6 +7518,10 @@ EPUBJS.Renderer.prototype.setStyle = function(style, val, prefixed){
 
 EPUBJS.Renderer.prototype.removeStyle = function(style){
 	this.render.removeStyle(style);
+};
+
+EPUBJS.Renderer.prototype.setClasses = function(classes){
+  this.render.setClasses(classes);
 };
 
 //-- HEAD TAGS
@@ -6459,8 +7610,7 @@ EPUBJS.Renderer.prototype.firstPage = function(){
 
 //-- Find a section by fragement id
 EPUBJS.Renderer.prototype.section = function(fragment){
-	var el = this.doc.getElementById(fragment),
-		left, pg;
+	var el = this.doc.getElementById(fragment);
 
 	if(el){
 		this.pageByElement(el);
@@ -6475,7 +7625,7 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 	if(leng &&
 		children[0] && // First Child
 		children[0].nodeType === 3 && // This is a textNodes
-		children[0].textContent.trim().length) { // With non whitespace or return charecters
+		children[0].textContent.trim().length) { // With non whitespace or return characters
 		return true;
 	}
 	return false;
@@ -6555,19 +7705,33 @@ EPUBJS.Renderer.prototype.containsPoint = function(el, x, y){
 };
 
 EPUBJS.Renderer.prototype.textSprint = function(root, func) {
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-					if ( ! /^\s*$/.test(node.data) ) {
-						return NodeFilter.FILTER_ACCEPT;
-					} else {
-						return NodeFilter.FILTER_REJECT;
-					}
-			}
-	}, false);
+	var filterEmpty = function(node){
+		if ( ! /^\s*$/.test(node.data) ) {
+			return NodeFilter.FILTER_ACCEPT;
+		} else {
+			return NodeFilter.FILTER_REJECT;
+		}
+	};
+	var treeWalker;
 	var node;
-	while ((node = treeWalker.nextNode())) {
-		func(node);
+
+	try {
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: filterEmpty
+		}, false);
+		while ((node = treeWalker.nextNode())) {
+			func(node);
+		}
+	} catch (e) {
+		// IE doesn't accept the object, just wants a function
+		// https://msdn.microsoft.com/en-us/library/ff974820(v=vs.85).aspx
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, filterEmpty, false);
+		while ((node = treeWalker.nextNode())) {
+			func(node);
+		}
 	}
+
+
 
 };
 
@@ -6590,13 +7754,18 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var limit = (width * page) - offset;// (width * page) - offset;
 	var elLimit = 0;
 	var prevRange;
+	var prevRanges;
 	var cfi;
+	var lastChildren = null;
+	var prevElement;
+	var startRange, endRange;
+	var startCfi, endCfi;
 	var check = function(node) {
 		var elPos;
 		var elRange;
-		var children = Array.prototype.slice.call(node.childNodes);
-		if (node.nodeType == Node.ELEMENT_NODE) {
-			// elPos = node.getBoundingClientRect();
+		var found;
+		if (node.nodeType == Node.TEXT_NODE) {
+
 			elRange = document.createRange();
 			elRange.selectNodeContents(node);
 			elPos = elRange.getBoundingClientRect();
@@ -6607,28 +7776,26 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 			//-- Element starts new Col
 			if(elPos.left > elLimit) {
-				children.forEach(function(node){
-					if(node.nodeType == Node.TEXT_NODE &&
-						node.textContent.trim().length) {
-						checkText(node);
-					}
-				});
+				found = checkText(node);
 			}
 
 			//-- Element Spans new Col
 			if(elPos.right > elLimit) {
-				children.forEach(function(node){
-					if(node.nodeType == Node.TEXT_NODE &&
-						node.textContent.trim().length) {
-						checkText(node);
-					}
-				});
+				found = checkText(node);
+			}
+
+			prevElement = node;
+
+			if (found) {
+				prevRange = null;
 			}
 		}
 
 	};
 	var checkText = function(node){
+		var result;
 		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
+
 		ranges.forEach(function(range){
 			var pos = range.getBoundingClientRect();
 
@@ -6640,18 +7807,27 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
 					// map[page-1].start = cfi;
-					map.push({ start: cfi, end: null });
+					result = map.push({ start: cfi, end: null });
 				}
 			} else {
-				if(prevRange){
-					prevRange.collapse(true);
+				// Previous Range is null since we already found our last map pair
+				// Use that last walked textNode
+				if(!prevRange && prevElement) {
+					prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
+					prevRange = prevRanges[prevRanges.length-1];
+				}
+
+				if(prevRange && map.length){
+					prevRange.collapse(false);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[map.length-1].end = cfi;
+					if (map[map.length-1]) {
+						map[map.length-1].end = cfi;
+					}
 				}
 
 				range.collapse(true);
 				cfi = renderer.currentChapter.cfiFromRange(range);
-				map.push({
+				result = map.push({
 						start: cfi,
 						end: null
 				});
@@ -6664,7 +7840,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			prevRange = range;
 		});
 
-
+		return result;
 	};
 	var docEl = this.render.getDocumentElement();
 	var dir = docEl.dir;
@@ -6672,43 +7848,57 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Set back to ltr before sprinting to get correct order
 	if(dir == "rtl") {
 		docEl.dir = "ltr";
-		docEl.style.position = "static";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.position = "static";
+		}
 	}
 
-	this.sprint(root, check);
+	this.textSprint(root, check);
 
 	// Reset back to previous RTL settings
 	if(dir == "rtl") {
 		docEl.dir = dir;
-		docEl.style.left = "auto";
-		docEl.style.right = "0";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.left = "auto";
+			docEl.style.right = "0";
+		}
 	}
 
-	// this.textSprint(root, checkText);
+	// Check the remaining children that fit on this page
+	// to ensure the end is correctly calculated
+	if(!prevRange && prevElement) {
+		prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
+		prevRange = prevRanges[prevRanges.length-1];
+	}
 
 	if(prevRange){
-		prevRange.collapse(true);
-
+		prevRange.collapse(false);
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
 		map[map.length-1].end = cfi;
 	}
 
 	// Handle empty map
 	if(!map.length) {
-		range = this.doc.createRange();
-		range.selectNodeContents(root);
-		range.collapse(true);
+		startRange = this.doc.createRange();
+		startRange.selectNodeContents(root);
+		startRange.collapse(true);
+		startCfi = renderer.currentChapter.cfiFromRange(startRange);
 
-		cfi = renderer.currentChapter.cfiFromRange(range);
+		endRange = this.doc.createRange();
+		endRange.selectNodeContents(root);
+		endRange.collapse(false);
+		endCfi = renderer.currentChapter.cfiFromRange(endRange);
 
-		map.push({ start: cfi, end: cfi });
+
+		map.push({ start: startCfi, end: endCfi });
 
 	}
 
 	// clean up
 	prevRange = null;
-	ranges = null;
-	range = null;
+	prevRanges = undefined;
+	startRange = null;
+	endRange = null;
 	root = null;
 
 	return map;
@@ -6740,10 +7930,10 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	var range;
 	var rect;
 	var list;
-	// jaroslaw.bielski@7bulls.com
+
 	// Usage of indexOf() function for space character as word delimiter
 	// is not sufficient in case of other breakable characters like \r\n- etc
-	pos = this.indexOfBreakableChar(text);
+	var pos = this.indexOfBreakableChar(text);
 
 	if(pos === -1) {
 		range = this.doc.createRange();
@@ -6756,7 +7946,6 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	range.setEnd(node, pos);
 	ranges.push(range);
 
-	// jaroslaw.bielski@7bulls.com
 	// there was a word miss in case of one letter words
 	range = this.doc.createRange();
 	range.setStart(node, pos+1);
@@ -6881,13 +8070,13 @@ EPUBJS.Renderer.prototype.pagesInCurrentChapter = function() {
 
 	length = this.pageMap.length;
 
-	if(this.spreads){
-		pgs = Math.ceil(length / 2);
-	} else {
-		pgs = length;
-	}
+	// if(this.spreads){
+	// 	pgs = Math.ceil(length / 2);
+	// } else {
+	// 	pgs = length;
+	// }
 
-	return pgs;
+	return length;
 };
 
 EPUBJS.Renderer.prototype.currentRenderedPage = function(){
@@ -6898,8 +8087,8 @@ EPUBJS.Renderer.prototype.currentRenderedPage = function(){
 		return false;
 	}
 
-	if (this.spreads && this.layout.pageCount > 1) {
-		pg = this.chapterPos*2;
+	if (this.spreads && this.pageMap.length > 1) {
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -6920,7 +8109,7 @@ EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
 	lastPage = this.pageMap.length;
 
 	if (this.spreads) {
-		pg = this.chapterPos*2;
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -6944,7 +8133,7 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 		startRange = this.pageMap[pg-2];
 		endRange = startRange;
 
-		if(this.layout.pageCount > 1) {
+		if(this.pageMap.length > 1 && this.pageMap.length > pg-1) {
 			endRange = this.pageMap[pg-1];
 		}
 	} else {
@@ -7086,6 +8275,8 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 //-- Listeners for events in the frame
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
+	this.trigger('renderer:beforeResize');
+
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 
@@ -7221,6 +8412,11 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 				uri,
 				url;
 
+		if(href.indexOf("mailto:") === 0){
+			done();
+			return;
+		}
+
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
@@ -7231,6 +8427,10 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			url = base.getAttribute("href");
 			uri = EPUBJS.core.uri(url);
 			directory = uri.directory;
+
+			if (href.indexOf("#") === 0) {
+				href = uri.filename + href;
+			}
 
 			if(directory) {
 				// We must ensure that the file:// protocol is preserved for
@@ -7247,6 +8447,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			}
 
 			link.onclick = function(){
+                                book.trigger("book:linkClicked", href);
 				book.goto(relative);
 				return false;
 			};
@@ -7274,6 +8475,12 @@ EPUBJS.replace.resources = function(callback, renderer){
 
 };
 
+EPUBJS.replace.posters = function(callback, renderer){
+
+	renderer.replaceWithStored("[poster]", "poster", EPUBJS.replace.srcs, callback);
+
+};
+
 EPUBJS.replace.svg = function(callback, renderer) {
 
 	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
@@ -7284,7 +8491,13 @@ EPUBJS.replace.svg = function(callback, renderer) {
 
 EPUBJS.replace.srcs = function(_store, full, done){
 
-	_store.getUrl(full).then(done);
+	var isRelative = (full.search("://") === -1);
+
+	if (isRelative) {
+		_store.getUrl(full).then(done);
+	} else {
+		done();
+	}
 
 };
 
@@ -7315,15 +8528,23 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	_store.getText(full).then(function(text){
 		var url;
 
-		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
-			var _URL = window.URL || window.webkitURL || window.mozURL;
+		 EPUBJS.replace.cssImports(_store, full, text).then(function (importText) {
 
-			var blob = new Blob([newText], { "type" : "text\/css" }),
-					url = _URL.createObjectURL(blob);
+          text = importText + text;
 
-			deferred.resolve(url);
+			EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
+				var _URL = window.URL || window.webkitURL || window.mozURL;
 
-		}, function(reason) {
+				var blob = new Blob([newText], { "type" : "text\/css" }),
+						url = _URL.createObjectURL(blob);
+
+				deferred.resolve(url);
+
+			}, function(reason) {
+				deferred.reject(reason);
+			});
+
+		},function(reason) {
 			deferred.reject(reason);
 		});
 
@@ -7334,9 +8555,42 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	return deferred.promise;
 };
 
+EPUBJS.replace.cssImports = function (_store, base, text) {
+  var deferred = new RSVP.defer();
+  if(!_store) return;
+
+  // check for css @import
+  var importRegex = /@import\s+(?:url\()?\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)?/gi;
+  var importMatches, importFiles = [], allImportText =  '';
+
+  while (importMatches = importRegex.exec(text)) {
+      importFiles.push(importMatches[1]);
+  }
+
+  if (importFiles.length === 0) {
+    deferred.resolve(allImportText);
+  }
+
+  importFiles.forEach(function (fileUrl) {
+      var full = EPUBJS.core.resolveUrl(base, fileUrl);
+      full = EPUBJS.core.uri(full).path;
+      _store.getText(full).then(function(importText){
+        allImportText += importText;
+        if (importFiles.indexOf(fileUrl) === importFiles.length - 1) {
+          deferred.resolve(allImportText);
+        }
+      }, function(reason) {
+        deferred.reject(reason);
+      });
+  });
+
+  return deferred.promise;
+
+};
+
+
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
-		promises = [],
 		matches = text.match(/url\(\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)/g);
 
 	if(!_store) return;
@@ -7346,15 +8600,13 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		return deferred.promise;
 	}
 
-	matches.forEach(function(str){
+	var promises = matches.map(function(str) {
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]|\?.*$/g, ''));
-		var replaced = _store.getUrl(full).then(function(url){
+		return _store.getUrl(full).then(function(url) {
 			text = text.replace(str, 'url("'+url+'")');
 		}, function(reason) {
 			deferred.reject(reason);
 		});
-
-		promises.push(replaced);
 	});
 
 	RSVP.all(promises).then(function(){
@@ -7652,6 +8904,13 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 			then(function(text){
 				var parser = new DOMParser();
 				var mimeType = EPUBJS.core.getMimeType(url);
+
+				// Remove byte order mark before parsing
+				// https://www.w3.org/International/questions/qa-byte-order-mark
+				if(text.charCodeAt(0) === 0xFEFF) {
+					text = text.slice(1);
+				}
+
 				return parser.parseFromString(text, mimeType);
 			});
 
@@ -7771,7 +9030,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"rdf+xml" : "rdf",
 			"smil" : [ "smi", "smil" ],
 			"xhtml+xml" : [ "xhtml", "xht" ],
-			"xml" : [ "xml", "xsl", "xsd", "opf" ],
+			"xml" : [ "xml", "xsl", "xsd", "opf", "ncx" ],
 			"zip" : "zip",
 			"x-httpd-eruby" : "rhtml",
 			"x-latex" : "latex",
@@ -7792,7 +9051,7 @@ EPUBJS.Unarchiver.prototype.toStorage = function(entries){
 			"oxps" : "oxps",
 			"vnd.amazon.ebook" : "azw",
 			"widget" : "wgt",
-			"x-dtbncx+xml" : "ncx",
+			// "x-dtbncx+xml" : "ncx",
 			"x-dtbook+xml" : "dtb",
 			"x-dtbresource+xml" : "res",
 			"x-font-bdf" : "bdf",

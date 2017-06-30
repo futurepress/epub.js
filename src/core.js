@@ -1,6 +1,11 @@
 var EPUBJS = EPUBJS || {};
 EPUBJS.core = {};
 
+var ELEMENT_NODE = 1;
+var TEXT_NODE = 3;
+var COMMENT_NODE = 8;
+var DOCUMENT_NODE = 9;
+
 //-- Get a element for an id
 EPUBJS.core.getEl = function(elem) {
 	return document.getElementById(elem);
@@ -27,42 +32,36 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 
 		if (this.readyState != this.DONE) return;
 
-		if (this.status === 200 || (this.status === 0 && this.response) ) { // Android & Firefox reporting 0 for local & blob urls
-			if(type == 'xml'){
-        // If this.responseXML wasn't set, try to parse using a DOMParser from text
-        if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "application/xml");
-        } else {
-          r = this.responseXML;
-        }
-			}else
-			if(type == 'xhtml'){
-        if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
-        } else {
-          r = this.responseXML;
-        }
-			}else
-			if(type == 'html'){
-				if(!this.responseXML){
-          r = new DOMParser().parseFromString(this.response, "text/html");
-        } else {
-          r = this.responseXML;
-        }
-			} else
-			if(type == 'json'){
+		if ((this.status === 200 || this.status === 0) && this.response) { // Android & Firefox reporting 0 for local & blob urls
+			if (type == 'xml'){
+                // If this.responseXML wasn't set, try to parse using a DOMParser from text
+                if(!this.responseXML) {
+                    r = new DOMParser().parseFromString(this.response, "application/xml");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'xhtml') {
+                if (!this.responseXML){
+                    r = new DOMParser().parseFromString(this.response, "application/xhtml+xml");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'html') {
+				if (!this.responseXML){
+                    r = new DOMParser().parseFromString(this.response, "text/html");
+                } else {
+                    r = this.responseXML;
+                }
+			} else if (type == 'json') {
 				r = JSON.parse(this.response);
-			}else
-			if(type == 'blob'){
-
-				if(supportsURL) {
+			} else if (type == 'blob') {
+				if (supportsURL) {
 					r = this.response;
 				} else {
 					//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
 					r = new Blob([this.response]);
 				}
-
-			}else{
+			} else {
 				r = this.response;
 			}
 
@@ -82,8 +81,8 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 		});
 	}
 
-	xhr.open("GET", url, true);
 	xhr.onreadystatechange = handler;
+	xhr.open("GET", url, true);
 
 	if(withCredentials) {
 		xhr.withCredentials = true;
@@ -93,6 +92,9 @@ EPUBJS.core.request = function(url, type, withCredentials) {
 	if(!type) {
 		uri = EPUBJS.core.uri(url);
 		type = uri.extension;
+		type = {
+			'htm': 'html'
+		}[type] || type;
 	}
 
 	if(type == 'blob'){
@@ -176,7 +178,7 @@ EPUBJS.core.uri = function(url){
 	if(search != -1) {
 		uri.search = url.slice(search + 1);
 		url = url.slice(0, search);
-		href = url;
+		href = uri.href;
 	}
 
 	if(doubleSlash != -1) {
@@ -627,3 +629,27 @@ EPUBJS.core.values = function(object) {
   }
   return result;
 };
+
+EPUBJS.core.indexOfNode = function(node, typeId) {
+	var parent = node.parentNode;
+	var children = parent.childNodes;
+	var sib;
+	var index = -1;
+	for (var i = 0; i < children.length; i++) {
+		sib = children[i];
+		if (sib.nodeType === typeId) {
+			index++;
+		}
+		if (sib == node) break;
+	}
+
+	return index;
+}
+
+EPUBJS.core.indexOfTextNode = function(textNode) {
+	return EPUBJS.core.indexOfNode(textNode, TEXT_NODE);
+}
+
+EPUBJS.core.indexOfElementNode = function(elementNode) {
+	return EPUBJS.core.indexOfNode(elementNode, ELEMENT_NODE);
+}

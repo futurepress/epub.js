@@ -23,7 +23,7 @@ EPUBJS.reader.TocController = function(toc) {
 
 			link.textContent = chapter.label;
 			link.href = chapter.href;
-			
+
 			link.classList.add('toc_link');
 
 			listitem.appendChild(link);
@@ -69,7 +69,7 @@ EPUBJS.reader.TocController = function(toc) {
 
 			// $open.removeClass("openChapter");
 			$item.parents('li').addClass("openChapter");
-		}	  
+		}
 	};
 
 	book.on('renderer:chapterDisplayed', chapterChange);

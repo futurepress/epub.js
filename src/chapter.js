@@ -35,8 +35,15 @@ EPUBJS.Chapter.prototype.load = function(_store, _credentials){
 	}
 
 	promise.then(function(xml){
-		this.setDocument(xml);
-		this.deferred.resolve(this);
+        try {
+            this.setDocument(xml);
+            this.deferred.resolve(this);
+        } catch (error) {
+            this.deferred.reject({
+                message : this.absolute + " -> " + error.message,
+                stack : new Error().stack
+            });
+        }
 	}.bind(this));
 
 	return promise;
@@ -114,21 +121,23 @@ EPUBJS.Chapter.prototype.unload = function(store){
 };
 
 EPUBJS.Chapter.prototype.setDocument = function(_document){
-	var uri = _document.namespaceURI;
-	var doctype = _document.doctype;
-
-	// Creates an empty document
-	this.document = _document.implementation.createDocument(
-			uri,
-			null,
-			null
-	);
-	this.contents = this.document.importNode(
-			_document.documentElement, //node to import
-			true                         //clone its descendants
-	);
-
-	this.document.appendChild(this.contents);
+	// var uri = _document.namespaceURI;
+	// var doctype = _document.doctype;
+	//
+	// // Creates an empty document
+	// this.document = _document.implementation.createDocument(
+	// 		uri,
+	// 		null,
+	// 		null
+	// );
+	// this.contents = this.document.importNode(
+	// 		_document.documentElement, //node to import
+	// 		true                         //clone its descendants
+	// );
+	//
+	// this.document.appendChild(this.contents);
+	this.document = _document;
+	this.contents = _document.documentElement;
 
 	// Fix to apply wgxpath to new document in IE
 	if(!this.document.evaluate && document.evaluate) {
@@ -142,7 +151,7 @@ EPUBJS.Chapter.prototype.cfiFromRange = function(_range) {
 	var range;
 	var startXpath, endXpath;
 	var startContainer, endContainer;
-	var cleanTextContent, cleanEndTextContent;
+	var cleanTextContent, cleanStartTextContent, cleanEndTextContent;
 
 	// Check for Contents
 	if(!this.document) return;
@@ -351,11 +360,13 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					done(url, full);
 				};
 
+				/*
 				link.onerror = function(e){
 					clearTimeout(timeout);
 					done(url, full);
 					console.error(e);
 				};
+				*/
 
 				if(query == "svg image") {
 					//-- SVG needs this to trigger a load event

@@ -32,7 +32,7 @@ EPUBJS.Pagination.prototype.pageFromCfi = function(cfi){
 	// check if the cfi is in the location list
 	// var index = this.locations.indexOf(cfi);
 	var index = EPUBJS.core.indexOfSorted(cfi, this.locations, this.epubcfi.compare);
-	if(index != -1 && index < (this.pages.length-1) ) {
+	if(index != -1) {
 		pg = this.pages[index];
 	} else {
 		// Otherwise add it to the list of locations

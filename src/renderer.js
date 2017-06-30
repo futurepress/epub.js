@@ -58,12 +58,15 @@ EPUBJS.Renderer.prototype.Events = [
 	"renderer:touchstart",
 	"renderer:touchend",
 	"renderer:selected",
+	"renderer:chapterUnload",
 	"renderer:chapterUnloaded",
 	"renderer:chapterDisplayed",
 	"renderer:locationChanged",
 	"renderer:visibleLocationChanged",
+	"renderer:visibleRangeChanged",
 	"renderer:resized",
-	"renderer:spreads"
+	"renderer:spreads",
+	"renderer:beforeResize"
 ];
 
 /**
@@ -88,7 +91,7 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 		this.render.resize('100%', '100%');
 	}
 
-	document.addEventListener("orientationchange", this.onResized);
+	document.addEventListener("orientationchange", this.onResized.bind(this));
 };
 
 /**
@@ -99,8 +102,13 @@ EPUBJS.Renderer.prototype.initialize = function(element, width, height){
 EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 	var store = false;
 	if(this._moving) {
-		console.error("Rendering In Progress");
-		return;
+		console.warning("Rendering In Progress");
+        var deferred = new RSVP.defer();
+        deferred.reject({
+            message : "Rendering In Progress",
+            stack : new Error().stack
+        });
+		return deferred.promise;
 	}
 	this._moving = true;
 	// Get the url string from the chapter (may be from storage)
@@ -109,6 +117,7 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			// Unload the previous chapter listener
 			if(this.currentChapter) {
+				this.trigger("renderer:chapterUnload");
 				this.currentChapter.unload(); // Remove stored blobs
 
 				if(this.render.window){
@@ -133,7 +142,9 @@ EPUBJS.Renderer.prototype.displayChapter = function(chapter, globalLayout){
 
 			return this.load(contents, chapter.href);
 
-		}.bind(this));
+		}.bind(this), function() {
+            this._moving = false;
+        }.bind(this));
 
 };
 
@@ -153,9 +164,26 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 	this.visible(false);
 
-	render = this.render.load(contents, url);
+	this.render.load(contents, url).then(function(contents) {
 
-	render.then(function(contents) {
+		// Duck-type fixed layout books.
+		if (EPUBJS.Layout.isFixedLayout(contents)) {
+			this.layoutSettings.layout = "pre-paginated";
+			this.layoutMethod = this.determineLayout(this.layoutSettings);
+			this.layout = new EPUBJS.Layout[this.layoutMethod]();
+		}
+		this.render.setLayout(this.layoutSettings.layout);
+
+		// HTML element must have direction set if RTL or columnns will
+		// not be in the correct direction in Firefox
+		// Firefox also need the html element to be position right
+		if(this.render.direction == "rtl" && this.render.docEl.dir != "rtl"){
+			this.render.docEl.dir = "rtl";
+			if (this.render.layout !== "pre-paginated") {
+				this.render.docEl.style.position = "absolute";
+				this.render.docEl.style.right = "0";
+			}
+		}
 
 		this.afterLoad(contents);
 
@@ -178,7 +206,7 @@ EPUBJS.Renderer.prototype.load = function(contents, url){
 
 EPUBJS.Renderer.prototype.afterLoad = function(contents) {
 	var formated;
-	this.currentChapter.setDocument(this.render.document);
+	// this.currentChapter.setDocument(this.render.document);
 	this.contents = contents;
 	this.doc = this.render.document;
 
@@ -308,7 +336,6 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 		this.displayedPages = this.pageMap.length;
 	}
 
-	// this.currentChapter.pages = layout.pageCount;
 	this.currentChapter.pages = this.pageMap.length;
 
 	this._q.flush();
@@ -318,6 +345,8 @@ EPUBJS.Renderer.prototype.updatePages = function(layout){
 EPUBJS.Renderer.prototype.reformat = function(){
 	var renderer = this;
 	var formated, pages;
+	var spreads;
+
 	if(!this.contents) return;
 
 	spreads = this.determineSpreads(this.minSpreadWidth);
@@ -372,6 +401,8 @@ EPUBJS.Renderer.prototype.remove = function() {
 		this.removeSelectionListeners();
 	}
 
+	// clean container content
+	//this.container.innerHtml = ""; // not safe
 	this.container.removeChild(this.element);
 };
 
@@ -389,6 +420,10 @@ EPUBJS.Renderer.prototype.setStyle = function(style, val, prefixed){
 
 EPUBJS.Renderer.prototype.removeStyle = function(style){
 	this.render.removeStyle(style);
+};
+
+EPUBJS.Renderer.prototype.setClasses = function(classes){
+  this.render.setClasses(classes);
 };
 
 //-- HEAD TAGS
@@ -477,8 +512,7 @@ EPUBJS.Renderer.prototype.firstPage = function(){
 
 //-- Find a section by fragement id
 EPUBJS.Renderer.prototype.section = function(fragment){
-	var el = this.doc.getElementById(fragment),
-		left, pg;
+	var el = this.doc.getElementById(fragment);
 
 	if(el){
 		this.pageByElement(el);
@@ -493,7 +527,7 @@ EPUBJS.Renderer.prototype.firstElementisTextNode = function(node) {
 	if(leng &&
 		children[0] && // First Child
 		children[0].nodeType === 3 && // This is a textNodes
-		children[0].textContent.trim().length) { // With non whitespace or return charecters
+		children[0].textContent.trim().length) { // With non whitespace or return characters
 		return true;
 	}
 	return false;
@@ -573,19 +607,33 @@ EPUBJS.Renderer.prototype.containsPoint = function(el, x, y){
 };
 
 EPUBJS.Renderer.prototype.textSprint = function(root, func) {
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-			acceptNode: function (node) {
-					if ( ! /^\s*$/.test(node.data) ) {
-						return NodeFilter.FILTER_ACCEPT;
-					} else {
-						return NodeFilter.FILTER_REJECT;
-					}
-			}
-	}, false);
+	var filterEmpty = function(node){
+		if ( ! /^\s*$/.test(node.data) ) {
+			return NodeFilter.FILTER_ACCEPT;
+		} else {
+			return NodeFilter.FILTER_REJECT;
+		}
+	};
+	var treeWalker;
 	var node;
-	while ((node = treeWalker.nextNode())) {
-		func(node);
+
+	try {
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: filterEmpty
+		}, false);
+		while ((node = treeWalker.nextNode())) {
+			func(node);
+		}
+	} catch (e) {
+		// IE doesn't accept the object, just wants a function
+		// https://msdn.microsoft.com/en-us/library/ff974820(v=vs.85).aspx
+		treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, filterEmpty, false);
+		while ((node = treeWalker.nextNode())) {
+			func(node);
+		}
 	}
+
+
 
 };
 
@@ -608,13 +656,18 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	var limit = (width * page) - offset;// (width * page) - offset;
 	var elLimit = 0;
 	var prevRange;
+	var prevRanges;
 	var cfi;
+	var lastChildren = null;
+	var prevElement;
+	var startRange, endRange;
+	var startCfi, endCfi;
 	var check = function(node) {
 		var elPos;
 		var elRange;
-		var children = Array.prototype.slice.call(node.childNodes);
-		if (node.nodeType == Node.ELEMENT_NODE) {
-			// elPos = node.getBoundingClientRect();
+		var found;
+		if (node.nodeType == Node.TEXT_NODE) {
+
 			elRange = document.createRange();
 			elRange.selectNodeContents(node);
 			elPos = elRange.getBoundingClientRect();
@@ -625,28 +678,26 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 
 			//-- Element starts new Col
 			if(elPos.left > elLimit) {
-				children.forEach(function(node){
-					if(node.nodeType == Node.TEXT_NODE &&
-						node.textContent.trim().length) {
-						checkText(node);
-					}
-				});
+				found = checkText(node);
 			}
 
 			//-- Element Spans new Col
 			if(elPos.right > elLimit) {
-				children.forEach(function(node){
-					if(node.nodeType == Node.TEXT_NODE &&
-						node.textContent.trim().length) {
-						checkText(node);
-					}
-				});
+				found = checkText(node);
+			}
+
+			prevElement = node;
+
+			if (found) {
+				prevRange = null;
 			}
 		}
 
 	};
 	var checkText = function(node){
+		var result;
 		var ranges = renderer.splitTextNodeIntoWordsRanges(node);
+
 		ranges.forEach(function(range){
 			var pos = range.getBoundingClientRect();
 
@@ -658,18 +709,27 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 					range.collapse(true);
 					cfi = renderer.currentChapter.cfiFromRange(range);
 					// map[page-1].start = cfi;
-					map.push({ start: cfi, end: null });
+					result = map.push({ start: cfi, end: null });
 				}
 			} else {
-				if(prevRange){
-					prevRange.collapse(true);
+				// Previous Range is null since we already found our last map pair
+				// Use that last walked textNode
+				if(!prevRange && prevElement) {
+					prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
+					prevRange = prevRanges[prevRanges.length-1];
+				}
+
+				if(prevRange && map.length){
+					prevRange.collapse(false);
 					cfi = renderer.currentChapter.cfiFromRange(prevRange);
-					map[map.length-1].end = cfi;
+					if (map[map.length-1]) {
+						map[map.length-1].end = cfi;
+					}
 				}
 
 				range.collapse(true);
 				cfi = renderer.currentChapter.cfiFromRange(range);
-				map.push({
+				result = map.push({
 						start: cfi,
 						end: null
 				});
@@ -682,7 +742,7 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 			prevRange = range;
 		});
 
-
+		return result;
 	};
 	var docEl = this.render.getDocumentElement();
 	var dir = docEl.dir;
@@ -690,43 +750,57 @@ EPUBJS.Renderer.prototype.mapPage = function(){
 	// Set back to ltr before sprinting to get correct order
 	if(dir == "rtl") {
 		docEl.dir = "ltr";
-		docEl.style.position = "static";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.position = "static";
+		}
 	}
 
-	this.sprint(root, check);
+	this.textSprint(root, check);
 
 	// Reset back to previous RTL settings
 	if(dir == "rtl") {
 		docEl.dir = dir;
-		docEl.style.left = "auto";
-		docEl.style.right = "0";
+		if (this.layoutSettings.layout !== "pre-paginated") {
+			docEl.style.left = "auto";
+			docEl.style.right = "0";
+		}
 	}
 
-	// this.textSprint(root, checkText);
+	// Check the remaining children that fit on this page
+	// to ensure the end is correctly calculated
+	if(!prevRange && prevElement) {
+		prevRanges = renderer.splitTextNodeIntoWordsRanges(prevElement);
+		prevRange = prevRanges[prevRanges.length-1];
+	}
 
 	if(prevRange){
-		prevRange.collapse(true);
-
+		prevRange.collapse(false);
 		cfi = renderer.currentChapter.cfiFromRange(prevRange);
 		map[map.length-1].end = cfi;
 	}
 
 	// Handle empty map
 	if(!map.length) {
-		range = this.doc.createRange();
-		range.selectNodeContents(root);
-		range.collapse(true);
+		startRange = this.doc.createRange();
+		startRange.selectNodeContents(root);
+		startRange.collapse(true);
+		startCfi = renderer.currentChapter.cfiFromRange(startRange);
 
-		cfi = renderer.currentChapter.cfiFromRange(range);
+		endRange = this.doc.createRange();
+		endRange.selectNodeContents(root);
+		endRange.collapse(false);
+		endCfi = renderer.currentChapter.cfiFromRange(endRange);
 
-		map.push({ start: cfi, end: cfi });
+
+		map.push({ start: startCfi, end: endCfi });
 
 	}
 
 	// clean up
 	prevRange = null;
-	ranges = null;
-	range = null;
+	prevRanges = undefined;
+	startRange = null;
+	endRange = null;
 	root = null;
 
 	return map;
@@ -758,10 +832,10 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	var range;
 	var rect;
 	var list;
-	// jaroslaw.bielski@7bulls.com
+
 	// Usage of indexOf() function for space character as word delimiter
 	// is not sufficient in case of other breakable characters like \r\n- etc
-	pos = this.indexOfBreakableChar(text);
+	var pos = this.indexOfBreakableChar(text);
 
 	if(pos === -1) {
 		range = this.doc.createRange();
@@ -774,7 +848,6 @@ EPUBJS.Renderer.prototype.splitTextNodeIntoWordsRanges = function(node){
 	range.setEnd(node, pos);
 	ranges.push(range);
 
-	// jaroslaw.bielski@7bulls.com
 	// there was a word miss in case of one letter words
 	range = this.doc.createRange();
 	range.setStart(node, pos+1);
@@ -899,13 +972,13 @@ EPUBJS.Renderer.prototype.pagesInCurrentChapter = function() {
 
 	length = this.pageMap.length;
 
-	if(this.spreads){
-		pgs = Math.ceil(length / 2);
-	} else {
-		pgs = length;
-	}
+	// if(this.spreads){
+	// 	pgs = Math.ceil(length / 2);
+	// } else {
+	// 	pgs = length;
+	// }
 
-	return pgs;
+	return length;
 };
 
 EPUBJS.Renderer.prototype.currentRenderedPage = function(){
@@ -916,8 +989,8 @@ EPUBJS.Renderer.prototype.currentRenderedPage = function(){
 		return false;
 	}
 
-	if (this.spreads && this.layout.pageCount > 1) {
-		pg = this.chapterPos*2;
+	if (this.spreads && this.pageMap.length > 1) {
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -938,7 +1011,7 @@ EPUBJS.Renderer.prototype.getRenderedPagesLeft = function(){
 	lastPage = this.pageMap.length;
 
 	if (this.spreads) {
-		pg = this.chapterPos*2;
+		pg = (this.chapterPos*2) - 1;
 	} else {
 		pg = this.chapterPos;
 	}
@@ -962,7 +1035,7 @@ EPUBJS.Renderer.prototype.getVisibleRangeCfi = function(){
 		startRange = this.pageMap[pg-2];
 		endRange = startRange;
 
-		if(this.layout.pageCount > 1) {
+		if(this.pageMap.length > 1 && this.pageMap.length > pg-1) {
 			endRange = this.pageMap[pg-1];
 		}
 	} else {
@@ -1104,6 +1177,8 @@ EPUBJS.Renderer.prototype.resize = function(width, height, setSize){
 //-- Listeners for events in the frame
 
 EPUBJS.Renderer.prototype.onResized = function(e) {
+	this.trigger('renderer:beforeResize');
+
 	var width = this.container.clientWidth;
 	var height = this.container.clientHeight;
 

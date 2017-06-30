@@ -14,6 +14,11 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 				uri,
 				url;
 
+		if(href.indexOf("mailto:") === 0){
+			done();
+			return;
+		}
+
 		if(isRelative != -1){
 
 			link.setAttribute("target", "_blank");
@@ -24,6 +29,10 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			url = base.getAttribute("href");
 			uri = EPUBJS.core.uri(url);
 			directory = uri.directory;
+
+			if (href.indexOf("#") === 0) {
+				href = uri.filename + href;
+			}
 
 			if(directory) {
 				// We must ensure that the file:// protocol is preserved for
@@ -40,6 +49,7 @@ EPUBJS.replace.hrefs = function(callback, renderer){
 			}
 
 			link.onclick = function(){
+                                book.trigger("book:linkClicked", href);
 				book.goto(relative);
 				return false;
 			};
@@ -67,6 +77,12 @@ EPUBJS.replace.resources = function(callback, renderer){
 
 };
 
+EPUBJS.replace.posters = function(callback, renderer){
+
+	renderer.replaceWithStored("[poster]", "poster", EPUBJS.replace.srcs, callback);
+
+};
+
 EPUBJS.replace.svg = function(callback, renderer) {
 
 	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
@@ -77,7 +93,13 @@ EPUBJS.replace.svg = function(callback, renderer) {
 
 EPUBJS.replace.srcs = function(_store, full, done){
 
-	_store.getUrl(full).then(done);
+	var isRelative = (full.search("://") === -1);
+
+	if (isRelative) {
+		_store.getUrl(full).then(done);
+	} else {
+		done();
+	}
 
 };
 
@@ -108,15 +130,23 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	_store.getText(full).then(function(text){
 		var url;
 
-		EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
-			var _URL = window.URL || window.webkitURL || window.mozURL;
+		 EPUBJS.replace.cssImports(_store, full, text).then(function (importText) {
 
-			var blob = new Blob([newText], { "type" : "text\/css" }),
-					url = _URL.createObjectURL(blob);
+          text = importText + text;
 
-			deferred.resolve(url);
+			EPUBJS.replace.cssUrls(_store, full, text).then(function(newText){
+				var _URL = window.URL || window.webkitURL || window.mozURL;
 
-		}, function(reason) {
+				var blob = new Blob([newText], { "type" : "text\/css" }),
+						url = _URL.createObjectURL(blob);
+
+				deferred.resolve(url);
+
+			}, function(reason) {
+				deferred.reject(reason);
+			});
+
+		},function(reason) {
 			deferred.reject(reason);
 		});
 
@@ -127,9 +157,42 @@ EPUBJS.replace.stylesheets = function(_store, full) {
 	return deferred.promise;
 };
 
+EPUBJS.replace.cssImports = function (_store, base, text) {
+  var deferred = new RSVP.defer();
+  if(!_store) return;
+
+  // check for css @import
+  var importRegex = /@import\s+(?:url\()?\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)?/gi;
+  var importMatches, importFiles = [], allImportText =  '';
+
+  while (importMatches = importRegex.exec(text)) {
+      importFiles.push(importMatches[1]);
+  }
+
+  if (importFiles.length === 0) {
+    deferred.resolve(allImportText);
+  }
+
+  importFiles.forEach(function (fileUrl) {
+      var full = EPUBJS.core.resolveUrl(base, fileUrl);
+      full = EPUBJS.core.uri(full).path;
+      _store.getText(full).then(function(importText){
+        allImportText += importText;
+        if (importFiles.indexOf(fileUrl) === importFiles.length - 1) {
+          deferred.resolve(allImportText);
+        }
+      }, function(reason) {
+        deferred.reject(reason);
+      });
+  });
+
+  return deferred.promise;
+
+};
+
+
 EPUBJS.replace.cssUrls = function(_store, base, text){
 	var deferred = new RSVP.defer(),
-		promises = [],
 		matches = text.match(/url\(\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)/g);
 
 	if(!_store) return;
@@ -139,15 +202,13 @@ EPUBJS.replace.cssUrls = function(_store, base, text){
 		return deferred.promise;
 	}
 
-	matches.forEach(function(str){
+	var promises = matches.map(function(str) {
 		var full = EPUBJS.core.resolveUrl(base, str.replace(/url\(|[|\)|\'|\"]|\?.*$/g, ''));
-		var replaced = _store.getUrl(full).then(function(url){
+		return _store.getUrl(full).then(function(url) {
 			text = text.replace(str, 'url("'+url+'")');
 		}, function(reason) {
 			deferred.reject(reason);
 		});
-
-		promises.push(replaced);
 	});
 
 	RSVP.all(promises).then(function(){

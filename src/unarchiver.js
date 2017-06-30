@@ -29,6 +29,13 @@ EPUBJS.Unarchiver.prototype.getXml = function(url, encoding){
 			then(function(text){
 				var parser = new DOMParser();
 				var mimeType = EPUBJS.core.getMimeType(url);
+
+				// Remove byte order mark before parsing
+				// https://www.w3.org/International/questions/qa-byte-order-mark
+				if(text.charCodeAt(0) === 0xFEFF) {
+					text = text.slice(1);
+				}
+
 				return parser.parseFromString(text, mimeType);
 			});
 
