@@ -163,7 +163,7 @@ class Packaging {
 
 			var itemref = {
 				"idref" : idref,
-				"linear" : item.getAttribute("linear") || "",
+				"linear" : item.getAttribute("linear") || "yes",
 				"properties" : propArray,
 				// "href" : manifest[Id].href,
 				// "url" :  manifest[Id].url,

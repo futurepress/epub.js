@@ -1,19 +1,26 @@
+/* From https://github.com/webcomponents/URL/blob/master/url.js
+ * Added UMD, file link handling */
+
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 'use strict';
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
+    // Fix for this being undefined in modules
+    if (!root) {
+      root = window || global;
+    }
+    if (typeof module === 'object' && module.exports) {
+        // Node
+        console.log("root", root);
+        module.exports = factory(root);
+    } else if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define([], factory);
-    } else if (typeof module === 'object' && module.exports) {
-        // Node
-        module.exports = factory(global);
     } else {
         // Browser globals (root is window)
         root.URL = factory(root);
   }
 }(this, function (scope) {
-
   // feature detect for URL constructor
   var hasWorkingUrl = false;
   if (!scope.forceJURL) {
@@ -595,7 +602,7 @@
       // WebKit/Blink returns String("SCHEME://") for file: mailto:
       switch (this._scheme) {
         case 'file':
-          return 'file://'
+          return 'file://' // EPUBJS Added
         case 'data':
         case 'javascript':
         case 'mailto':

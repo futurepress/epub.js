@@ -3,6 +3,7 @@ import EpubCFI from "./epubcfi";
 import Rendition from "./rendition";
 import Contents from "./contents";
 import * as core from "./utils/core";
+import '../libs/url/url-polyfill'
 
 /**
  * Creates a new Book
