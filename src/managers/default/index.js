@@ -594,7 +594,6 @@ class DefaultViewManager {
 		this.scrollLeft = scrollLeft;
 
 		if(!this.ignore) {
-			console.log("scroll", scrollLeft, scrollTop);
 			this.emit("scroll", {
 				top: scrollTop,
 				left: scrollLeft

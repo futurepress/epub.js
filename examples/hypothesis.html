@@ -8,15 +8,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
-  <script>
+  <!-- <script>
   window.hypothesisConfig = function () {
     return {
-      constructor: this.Annotator.Sidebar,
-      app: 'http://45.55.144.135:5000/app.html',
+      // constructor: this.Annotator.Sidebar,
+      app: 'https://hypothes.is/app.html',
     };
   };
+  </script> -->
+
+  <script type="text/javascript">
+    window.hypothesisConfig = function () {
+      return {
+        // Open the sidebar when the page loads
+        openSidebar: true,
+
+        // Needed for multi frame support
+        enableMultiFrameSupport: true,
+        embedScriptUrl: "https://cdn.hypothes.is/hypothesis"
+      };
+    };
   </script>
-  <script src="http://45.55.144.135:5000/embed.js"></script>
+  <script src="https://cdn.hypothes.is/hypothesis"></script>
 
   <style type="text/css">
     body {
@@ -82,19 +95,14 @@
     }
 
     #viewer {
-
       overflow: hidden;
-      width: 800px;
+      width: 620px;
       margin: 0 50px;
-      background: url('ajax-loader.gif') center center no-repeat;
-
-    }
-
-    #viewer .epub-view {
-        background: white;
-        box-shadow: 0 0 4px #ccc;
-        margin: 10px;
-        padding: 40px 80px;
+      /*background: url('ajax-loader.gif') center center no-repeat;*/
+      background-color: white;
+      box-shadow: 0 0 4px #ccc;
+      margin: 20px;
+      padding: 40px 80px;
     }
 
     #main {
@@ -112,7 +120,7 @@
 
     #pagination {
       text-align: center;
-      margin-left: 80px;
+      margin: 20px;
       /*padding: 0 50px;*/
     }
 
@@ -179,10 +187,12 @@
   </div>
 
   <script>
-    var currentSectionIndex = 8;
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
-    var rendition = book.renderTo("viewer");
+    var rendition = book.renderTo("viewer", {
+      flow: "scrolled-doc",
+      ignoreClass: "annotator-hl"
+    });
 
     // var hash = window.location.hash.slice(2);
     var loc = window.location.href.indexOf("?loc=");
@@ -190,7 +200,7 @@
       var href =  window.location.href.slice(loc + 5);
       var hash = decodeURIComponent(href);
     }
-    rendition.display(hash || 1);
+    rendition.display(hash || undefined);
 
 
     var next = document.getElementById("next");
@@ -316,29 +326,21 @@
       }, 100);
     }
 
-    book.rendition.hooks.content.register(function(view) {
-
-      view.window.hypothesisConfig = function () {
-
-    		return {
-    			constructor: this.Annotator.Guest,
-          app: 'http://45.55.144.135:5000/app.html'
-    		};
-    	};
-
-      view.contents.addScript("http://45.55.144.135:5000/embed.js").then(function() {
+    book.rendition.hooks.content.register(function(contents, view) {
 
         checkForAnnotator(function () {
 
-          var annotator = view.window.annotator;
+          var annotator = contents.window.annotator;
 
-          annotator.on("scrollToAnnotation", function (node) {
-            var cfi = view.section.cfiFromElement(node);
-            // var selectors = ev.target[0].selector;
-            // var range = selectors[0];
-            console.log("scrollToAnnotation", cfi);
-            book.rendition.display(cfi);
+          contents.window.addEventListener('scrolltorange', function (e) {
+            var range = e.detail;
+            var cfi = new ePub.CFI(range, contents.cfiBase).toString();
+            if (cfi) {
+              book.rendition.display(cfi);
+            }
+            e.preventDefault();
           });
+
 
           annotator.on("highlightClick", function (annotation) {
             console.log(annotation);
@@ -350,16 +352,17 @@
             window.annotator.show();
           })
 
-        }, view.window);
-
-      });
+        }, contents.window);
 
     });
 
     checkForAnnotator(function () {
       var main = document.querySelector('#main');
+      var target = document.querySelector('.annotator-frame');
+
 
       if(window.innerWidth < 1400) {
+        /*
         window.annotator.on("show", function () {
           main.classList.add("open");
         });
@@ -367,7 +370,25 @@
         window.annotator.on("hide", function () {
           main.classList.remove("open");
         });
+        */
+
+        // create an observer instance
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.attributeName === "class") {
+              if (target.classList.contains("annotator-collapsed")) {
+                main.classList.remove("open");
+              } else {
+                main.classList.add("open");
+              }
+            }
+          });
+        });
+
+        observer.observe(target, { attributes: true });
+
       }
+
     });
 
   </script>

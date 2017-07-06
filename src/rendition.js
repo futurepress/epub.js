@@ -76,6 +76,8 @@ class Rendition {
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
 
+		this.book.spine.hooks.content.register(this.injectSource.bind(this));
+
 		if (this.settings.stylesheet) {
 			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
 		}
@@ -661,10 +663,12 @@ class Rendition {
 	}
 
 	handleLinks(contents) {
-		contents.on("link", (href) => {
-			let relative = this.book.path.relative(href);
-			this.display(relative);
-		});
+		if (contents) {
+			contents.on("link", (href) => {
+				let relative = this.book.path.relative(href);
+				this.display(relative);
+			});
+		}
 	}
 
 	injectStylesheet(doc, section) {
@@ -681,6 +685,16 @@ class Rendition {
 		script.setAttribute("src", this.settings.script);
 		script.textContent = " "; // Needed to prevent self closing tag
 		doc.getElementsByTagName("head")[0].appendChild(script);
+	}
+
+	injectSource(doc, section) {
+		let ident = this.book.package.metadata.identifier;
+		let meta = doc.createElement("meta");
+		meta.setAttribute("property", "dc:source");
+		if (ident) {
+			meta.setAttribute("contents", ident);
+		}
+		doc.getElementsByTagName("head")[0].appendChild(meta);
 	}
 
 }

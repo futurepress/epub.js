@@ -182,7 +182,7 @@ class Layout {
 	 */
 	count(totalWidth) {
 		// var totalWidth = contents.scrollWidth();
-		var spreads = Math.ceil( totalWidth / this.spreadWidth);
+		var spreads = Math.ceil( totalWidth / this.delta);
 
 		return {
 			spreads : spreads,

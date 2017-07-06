@@ -1,7 +1,7 @@
 import EpubCFI from "./epubcfi";
 import Hook from "./utils/hook";
 import Section from "./section";
-import {replaceBase, replaceCanonical} from "./utils/replacements";
+import {replaceBase, replaceCanonical, replaceMeta} from "./utils/replacements";
 
 /**
  * A collection of Spine Items
@@ -19,6 +19,7 @@ class Spine {
 		// Register replacements
 		this.hooks.content.register(replaceBase);
 		this.hooks.content.register(replaceCanonical);
+		this.hooks.content.register(replaceMeta);
 
 		this.epubcfi = new EpubCFI();
 

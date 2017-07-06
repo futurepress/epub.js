@@ -44,6 +44,28 @@ export function replaceCanonical(doc, section){
 		head.appendChild(link);
 	}
 }
+
+export function replaceMeta(doc, section){
+	var head;
+	var meta;
+	var id = section.idref;
+	if(!doc){
+		return;
+	}
+
+	head = qs(doc, "head");
+	meta = qs(head, "link[property='dc:identifier']");
+
+	if (meta) {
+		meta.setAttribute("content", id);
+	} else {
+		meta = doc.createElement("meta");
+		meta.setAttribute("property", "dc:identifier");
+		meta.setAttribute("content", id);
+		head.appendChild(meta);
+	}
+}
+
 // TODO: move me to Contents
 export function replaceLinks(contents, fn) {
 
