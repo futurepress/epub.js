@@ -643,8 +643,8 @@ class Rendition {
 
 		contents.addStylesheetRules({
 			"img" : {
-				"max-width": (this._layout.columnWidth) + "px !important",
-				"max-height": (this._layout.height) + "px !important",
+				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
+				"max-height": (this._layout.height ? this._layout.height + "px" : "50%") + "!important",
 				"object-fit": "contain",
 				"page-break-inside": "avoid"
 			}

@@ -545,8 +545,8 @@ class IframeView {
 		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
 		return {
-			"left": window.scrollX + targetPos.left,
-			"top": window.scrollY + targetPos.top
+			"left": targetPos.left,
+			"top": targetPos.top
 		};
 	}
 
