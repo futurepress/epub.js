@@ -490,23 +490,31 @@ class Rendition {
 			var location = this.manager.currentLocation();
 			if (location && location.then && typeof location.then === "function") {
 				location.then(function(result) {
-					this.location = result;
+					let located = this.located(result);
+					this.location = located;
+					this.emit("locationChanged", {
+						index: this.location.start.index,
+						href: this.location.start.href,
+						start: this.location.start.cfi,
+						end: this.location.end.cfi,
+						percentage: this.location.start.percentage
+					});
 
-					this.percentage = this.book.locations.percentageFromCfi(result.start);
-					if (this.percentage != null) {
-						this.location.percentage = this.percentage;
-					}
-
-					this.emit("locationChanged", this.location);
+					this.emit("relocated", this.location);
 				}.bind(this));
 			} else if (location) {
-				this.location = location;
-				this.percentage = this.book.locations.percentageFromCfi(location.start);
-				if (this.percentage != null) {
-					this.location.percentage = this.percentage;
-				}
+				let located = this.located(location);
+				this.location = located;
 
-				this.emit("locationChanged", this.location);
+				this.emit("locationChanged", {
+					index: this.location.start.index,
+					href: this.location.start.href,
+					start: this.location.start.cfi,
+					end: this.location.end.cfi,
+					percentage: this.location.start.percentage
+				});
+
+				this.emit("relocated", this.location);
 			}
 
 		}.bind(this));
@@ -520,19 +528,73 @@ class Rendition {
 		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === "function") {
 			location.then(function(result) {
-				var percentage = this.book.locations.percentageFromCfi(result.start);
-				if (percentage != null) {
-					result.percentage = percentage;
-				}
-				return result;
+				let located = this.located(result);
+				return located;
 			}.bind(this));
 		} else if (location) {
-			var percentage = this.book.locations.percentageFromCfi(location.start);
-			if (percentage != null) {
-				location.percentage = percentage;
-			}
-			return location;
+			let located = this.located(location);
+			return located;
 		}
+	}
+
+	located(location){
+		let start = location[0];
+		let end = location[location.length-1]
+
+		let located = {
+			start: {
+				index: start.index,
+				href: start.href,
+				cfi: start.mapping.start,
+				displayed: {
+					page: start.pages[0],
+					total: start.totalPages
+				}
+			},
+			end: {
+				index: end.index,
+				href: end.href,
+				cfi: end.mapping.end,
+				displayed: {
+					page: end.pages[end.pages.length-1],
+					totalPages: end.totalPages
+				}
+			}
+		};
+
+		let locationStart = this.book.locations.locationFromCfi(start.mapping.start);
+		let locationEnd = this.book.locations.locationFromCfi(end.mapping.end);
+
+		if (locationStart != null) {
+			located.start.location = locationStart;
+			located.start.percentage = this.book.locations.percentageFromLocation(locationStart);
+		}
+		if (locationEnd != null) {
+			located.end.location = locationEnd;
+			located.end.percentage = this.book.locations.percentageFromLocation(locationEnd);
+		}
+
+		let pageStart = this.book.pageList.pageFromCfi(start.mapping.start);
+		let pageEnd = this.book.pageList.pageFromCfi(end.mapping.end);
+
+		if (pageStart != -1) {
+			located.start.page = pageStart;
+		}
+		if (pageEnd != -1) {
+			located.end.page = pageEnd;
+		}
+
+		if (end.index === this.book.spine.last().index &&
+				located.end.displayed.page === located.end.displayed.totalPages) {
+			located.atEnd = true;
+		}
+
+		if (start.index === this.book.spine.first().index &&
+				located.start.displayed.page === 1) {
+			located.atStart = true;
+		}
+
+		return located;
 	}
 
 	/**
@@ -644,7 +706,7 @@ class Rendition {
 		contents.addStylesheetRules({
 			"img" : {
 				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
-				"max-height": (this._layout.height ? this._layout.height + "px" : "50%") + "!important",
+				"max-height": (this._layout.height ? (this._layout.height * 0.6) + "px" : "60%") + "!important",
 				"object-fit": "contain",
 				"page-break-inside": "avoid"
 			}

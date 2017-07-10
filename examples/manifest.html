@@ -160,7 +160,7 @@
 
     });
 
-    rendition.on("locationChanged", function(location){
+    rendition.on("relocated", function(location){
       var current = book.navigation.get(location.href);
 
       if (current) {

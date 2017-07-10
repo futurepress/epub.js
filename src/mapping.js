@@ -169,8 +169,8 @@ class Mapping {
 					elPos = node.getBoundingClientRect();
 				}
 
-				left = this.horizontal ? elPos.left : elPos.top;
-				right = this.horizontal ? elPos.right : elPos.bottom;
+				left = Math.round(this.horizontal ? elPos.left : elPos.top);
+				right = Math.round(this.horizontal ? elPos.right : elPos.bottom);
 
 				if(left > end && $prev) {
 					return $prev;

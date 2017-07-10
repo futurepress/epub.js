@@ -76,7 +76,6 @@ class Spine {
 					}
 					return;
 				}.bind(this);
-
 				item.next = function() {
 					let nextIndex = item.index;
 					while (nextIndex < this.spineItems.length-1) {
@@ -133,9 +132,9 @@ class Spine {
 			index = cfi.spinePos;
 		} else if(typeof target === "number" || isNaN(target) === false){
 			index = target;
-		} else if(target && target.indexOf("#") === 0) {
+		} else if(typeof target === "string" && target.indexOf("#") === 0) {
 			index = this.spineById[target.substring(1)];
-		} else if(target) {
+		} else if(typeof target === "string") {
 			// Remove fragments
 			target = target.split("#")[0];
 			index = this.spineByHref[target];
@@ -205,6 +204,30 @@ class Spine {
 	 */
 	each() {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
+	}
+
+	first() {
+		let index = 0;
+
+		while (index < this.spineItems.length-1) {
+			let next = this.get(index);
+			if (next && next.linear) {
+				return next;
+			}
+			index += 1;
+		}
+	}
+
+	last() {
+		let index = this.spineItems.length-1;
+
+		while (index > 0) {
+			let prev = this.get(index);
+			if (prev && prev.linear) {
+				return prev;
+			}
+			index -= 1;
+		}
 	}
 
 	destroy() {

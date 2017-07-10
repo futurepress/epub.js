@@ -24,8 +24,8 @@ class IframeView {
 		this.displayed = false;
 		this.rendered = false;
 
-		this.width  = this.settings.width;
-		this.height = this.settings.height;
+		// this.width  = this.settings.width;
+		// this.height = this.settings.height;
 
 		this.fixedWidth  = 0;
 		this.fixedHeight = 0;
@@ -534,6 +534,21 @@ class IframeView {
 
 		this.stopExpanding = true;
 		this.emit("hidden", this);
+	}
+
+	offset() {
+		return {
+			top: this.element.offsetTop,
+			left: this.element.offsetLeft
+		}
+	}
+
+	width() {
+		return this._width;
+	}
+
+	height() {
+		return this._height;
 	}
 
 	position() {

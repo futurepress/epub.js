@@ -69,10 +69,7 @@
 
 		rendition.on("keyup", keyListener);
 		document.addEventListener("keyup", keyListener, false);
-
-		rendition.on("locationChanged", function(location){
-      console.log(location);
-    });
+		
 
 		book.ready.then(function(){
 			// Load in stored locations from json or local storage
@@ -109,7 +106,7 @@
 						// Get the current CFI
 						var currentLocation = rendition.currentLocation();
 						// Get the Percentage (or location) from that CFI
-						var currentPage = book.locations.percentageFromCfi(currentLocation.start);
+						var currentPage = book.locations.percentageFromCfi(currentLocation.start.cfi);
 						slider.value = currentPage;
 						currentPage.value = currentPage;
 				});
@@ -122,13 +119,14 @@
 				}, false);
 
 				// Listen for location changed event, get percentage from CFI
-				rendition.on('locationChanged', function(location){
-						var percent = book.locations.percentageFromCfi(location.start);
+				rendition.on('relocated', function(location){
+						var percent = book.locations.percentageFromCfi(location.start.cfi);
 						var percentage = Math.floor(percent * 100);
 						if(!mouseDown) {
 								slider.value = percentage;
 						}
 						currentPage.value = percentage;
+						console.log(location);
 				});
 
 				// Save out the generated locations to JSON
