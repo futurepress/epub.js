@@ -188,7 +188,7 @@
 
   <script>
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var book = ePub(window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       flow: "scrolled-doc",
       ignoreClass: "annotator-hl"

@@ -407,7 +407,7 @@ class DefaultViewManager {
 		}
 		return this.location;
 	}
-
+	/*
 	scrolledLocation(){
 
 		var visible = this.visible();
@@ -456,14 +456,91 @@ class DefaultViewManager {
 		}
 
 	}
+	*/
+	scrolledLocation() {
+		let visible = this.visible();
+		var container = this.container.getBoundingClientRect();
+		var pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
+
+		var offset = 0;
+
+		if(!this.settings.height) {
+			offset = window.scrollY;
+		}
+
+		let sections = visible.map((view) => {
+			let {index, href} = view.section;
+			let position = view.position();
+			let startPos = position.top - container.top + offset;
+			let endPos = startPos + pageHeight;
+			if (endPos > position.bottom - container.top + offset) {
+				endPos = position.bottom - container.top + offset;
+			}
+
+			let totalPages = this.layout.count(view._height, pageHeight).pages;
+			let currPage = Math.round(startPos / pageHeight);
+			let pages = [];
+			let numPages = (endPos - startPos) / pageHeight;
+			for (var i = 1; i <= numPages; i++) {
+				let pg = currPage + i;
+				pages.push(pg);
+			}
+
+			let mapping = this.mapping.page(view.contents, view.section.cfiBase, startPos, endPos);
+
+			return {
+				index,
+				href,
+				pages,
+				totalPages,
+				mapping
+			}
+		});
+
+		return sections;
+	}
 
 	paginatedLocation(){
-		var visible = this.visible();
-		var startA, startB, endA, endB;
-		var pageLeft, pageRight;
+		let visible = this.visible();
 		var container = this.container.getBoundingClientRect();
-		var last;
 
+		let sections = visible.map((view) => {
+			let {index, href} = view.section;
+			let offset = view.offset().left;
+			let position = view.position().left;
+			let width = view.width();
+
+			let startPos = this.container.scrollLeft + offset;
+			let endPos = startPos + this.layout.spreadWidth + this.layout.gap;
+			if (endPos > this.container.scrollLeft + offset + width) {
+				endPos = this.container.scrollLeft + offset + width;
+			}
+
+			let totalPages = this.layout.count(width).pages;
+			let currPage = Math.ceil((startPos - offset) / this.layout.spreadWidth);
+			let pages = [];
+			let numPages = (endPos - startPos) / (this.layout.columnWidth + (this.layout.gap / 2));
+			for (var i = 1; i <= numPages; i++) {
+				let pg = currPage + i;
+				pages.push(pg);
+			}
+
+			let start = container.left - position;
+			let end = start + this.layout.spreadWidth + this.layout.gap;
+			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
+
+			return {
+				index,
+				href,
+				pages,
+				totalPages,
+				mapping
+			}
+		});
+
+		return sections;
+
+		/*
 		if(visible.length === 1) {
 			startA = container.left - visible[0].position().left;
 			endA = startA + this.layout.spreadWidth + this.layout.gap;
@@ -498,6 +575,7 @@ class DefaultViewManager {
 				end: pageRight.end
 			};
 		}
+		*/
 	}
 
 	isVisible(view, offsetPrev, offsetNext, _container){

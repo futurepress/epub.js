@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EPUB.js Scrolled Full Example</title>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
 
@@ -161,7 +162,7 @@
     });
     var hash = window.location.hash.slice(2);
     console.log(hash);
-    rendition.display(hash || 1);
+    rendition.display(hash || undefined);
 
 
     var next = document.getElementById("next");
@@ -215,7 +216,7 @@
       window.location.hash = "#/"+section.href
     });
 
-    rendition.on("locationChanged", function(location){
+    rendition.on("relocated", function(location){
       console.log(location);
     });
 

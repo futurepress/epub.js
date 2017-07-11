@@ -180,14 +180,28 @@ class Layout {
 	 * @return {number} spreads
 	 * @return {number} pages
 	 */
-	count(totalWidth) {
+	count(totalLength, pageLength) {
 		// var totalWidth = contents.scrollWidth();
-		var spreads = Math.ceil( totalWidth / this.delta);
+		let spreads, pages;
+
+		if (this.name === "pre-paginated") {
+			spreads = 1;
+			pages = 1;
+		} else if (this._flow === "paginated") {
+			pageLength = pageLength || this.delta;
+			spreads = Math.ceil( totalLength / pageLength);
+			pages = spreads * this.divisor;
+		} else { // scrolled
+			pageLength = pageLength || this.height;
+			spreads = Math.ceil( totalLength / pageLength);
+			pages = spreads;
+		}
 
 		return {
-			spreads : spreads,
-			pages : spreads * this.divisor
+			spreads,
+			pages
 		};
+
 	}
 }
 
