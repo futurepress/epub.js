@@ -69,7 +69,6 @@
 
 		rendition.on("keyup", keyListener);
 		document.addEventListener("keyup", keyListener, false);
-		
 
 		book.ready.then(function(){
 			// Load in stored locations from json or local storage
@@ -81,7 +80,7 @@
 				// Or generate the locations on the fly
 				// Can pass an option number of chars to break sections by
 				// default is 150 chars
-				return book.locations.generate(600);
+				return book.locations.generate(1600);
 			}
 		})
 		.then(function(locations){

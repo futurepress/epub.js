@@ -119,15 +119,31 @@ class Locations {
 				pos = len;
 			}
 
+
 			while (pos < len) {
-				// counter = this.break;
-				pos += dist;
+				dist = _break - counter;
+
+				if (counter === 0) {
+					// Start new range
+					pos += 1;
+					range = this.createRange();
+					range.startContainer = node;
+					range.startOffset = pos;
+				}
+
+				// pos += dist;
+
 				// Gone over
-				if(pos >= len){
+				if(pos + dist >= len){
 					// Continue counter for next node
-					counter = len - (pos - _break);
+					counter += len - pos;
+					// break
+					pos = len;
 				// At End
 				} else {
+					// Advance pos
+					pos += dist;
+
 					// End the previous range
 					range.endContainer = node;
 					range.endOffset = pos;
@@ -135,14 +151,6 @@ class Locations {
 					let cfi = new EpubCFI(range, cfiBase).toString();
 					locations.push(cfi);
 					counter = 0;
-
-					// Start new range
-					pos += 1;
-					range = this.createRange();
-					range.startContainer = node;
-					range.startOffset = pos;
-
-					dist = _break;
 				}
 			}
 			prev = node;
@@ -154,7 +162,6 @@ class Locations {
 		if (range && range.startContainer && prev) {
 			range.endContainer = prev;
 			range.endOffset = prev.length;
-			// cfi = section.cfiFromRange(range);
 			let cfi = new EpubCFI(range, cfiBase).toString();
 			locations.push(cfi);
 			counter = 0;

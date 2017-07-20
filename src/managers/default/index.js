@@ -539,43 +539,6 @@ class DefaultViewManager {
 		});
 
 		return sections;
-
-		/*
-		if(visible.length === 1) {
-			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.spreadWidth + this.layout.gap;
-
-			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
-			return {
-				index : visible[0].section.index,
-				href : visible[0].section.href,
-				start: pageLeft.start,
-				end: pageLeft.end
-			};
-		}
-
-		if(visible.length > 1) {
-			last = visible.length - 1;
-
-			// Left Col
-			startA = container.left - visible[0].position().left;
-			endA = startA + this.layout.columnWidth + this.layout.gap / 2;
-
-			// Right Col
-			startB = container.left + this.layout.spreadWidth - visible[last].position().left;
-			endB = startB + this.layout.columnWidth + this.layout.gap / 2;
-
-			pageLeft = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA);
-			pageRight = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
-
-			return {
-				index : visible[last].section.index,
-				href : visible[last].section.href,
-				start: pageLeft.start,
-				end: pageRight.end
-			};
-		}
-		*/
 	}
 
 	isVisible(view, offsetPrev, offsetNext, _container){
