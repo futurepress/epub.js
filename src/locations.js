@@ -67,11 +67,16 @@ EPUBJS.Locations.prototype.process = function(chapter) {
       var counter = 0;
       var prev;
       var cfi;
+      var _break = this.break;
 
       this.sprint(contents, function(node) {
         var len = node.length;
         var dist;
         var pos = 0;
+
+        if (node.textContent.trim().length === 0) {
+          return false; // continue
+        }
 
         // Start range
         if (counter === 0) {
@@ -79,7 +84,7 @@ EPUBJS.Locations.prototype.process = function(chapter) {
           range.setStart(node, 0);
         }
 
-        dist = this.break - counter;
+        dist = _break - counter;
 
         // Node is smaller than a break
         if(dist > len){
@@ -88,28 +93,31 @@ EPUBJS.Locations.prototype.process = function(chapter) {
         }
 
         while (pos < len) {
-          counter = this.break;
-          pos += this.break;
+          dist = _break - counter;
 
-          // Gone over
-          if(pos >= len){
-            // Continue counter for next node
-            counter = len - (pos - this.break);
-
-          // At End
-          } else {
-            // End the previous range
-            range.setEnd(node, pos);
-            cfi = chapter.cfiFromRange(range);
-            this._locations.push(cfi);
-            counter = 0;
-
-            // Start new range
+          if (counter === 0) {
             pos += 1;
             range = doc.createRange();
             range.setStart(node, pos);
           }
 
+          // Gone over
+          if(pos + dist >= len){
+            // Continue counter for next node
+            counter += len - pos;
+            // break
+            pos = len;
+          // At End
+          } else {
+            // Advance pos
+            pos += dist;
+
+            // End the previous range
+            range.setEnd(node, pos);
+            cfi = chapter.cfiFromRange(range);
+            this._locations.push(cfi);
+            counter = 0;
+          }
         }
 
         prev = node;
