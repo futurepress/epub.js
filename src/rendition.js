@@ -343,7 +343,7 @@ class Rendition {
 	onResized(size){
 
 		if(this.location) {
-			this.display(this.location.start);
+			this.display(this.location.start.cfi);
 		}
 
 		this.emit("resized", {

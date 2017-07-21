@@ -4,6 +4,7 @@ import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
 import { Pane, Highlight, Underline } from "marks-pane";
+import ResizeObserver from 'resize-observer-polyfill';
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -302,7 +303,11 @@ class Contents {
 
 		this.addSelectionListeners();
 
-		this.resizeListeners();
+		if (this.document === document) {
+			this.resizeObservers();
+		} else {
+			this.resizeListeners();
+		}
 
 		this.linksHandler();
 	}
@@ -336,6 +341,27 @@ class Contents {
 		}
 
 		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
+	}
+
+	resizeObservers() {
+		let el = this.document.body;
+		const ro = new ResizeObserver((entries, observer) => {
+			let width = this.textWidth();
+			let height = this.textHeight();
+
+			if (width != this._size.width || height != this._size.height) {
+
+				this._size = {
+					width: width,
+					height: height
+				};
+
+				this.pane && this.pane.render();
+				this.emit("resize", this._size);
+			}
+		});
+
+		ro.observe(el);
 	}
 
 	//https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
