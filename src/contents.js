@@ -4,7 +4,6 @@ import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
 import { Pane, Highlight, Underline } from "marks-pane";
-import ResizeObserver from 'resize-observer-polyfill';
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -303,11 +302,11 @@ class Contents {
 
 		this.addSelectionListeners();
 
-		if (this.document === document) {
-			this.resizeObservers();
-		} else {
-			this.resizeListeners();
-		}
+		this.transitionListeners();
+
+		this.resizeListeners();
+
+		this.resizeObservers();
 
 		this.linksHandler();
 	}
@@ -321,13 +320,9 @@ class Contents {
 		clearTimeout(this.expanding);
 	}
 
-	resizeListeners() {
-		var width, height;
-		// Test size again
-		clearTimeout(this.expanding);
-
-		width = this.textWidth();
-		height = this.textHeight();
+	resizeCheck() {
+		let width = this.textWidth();
+		let height = this.textHeight();
 
 		if (width != this._size.width || height != this._size.height) {
 
@@ -337,31 +332,33 @@ class Contents {
 			};
 
 			this.pane && this.pane.render();
+			this.onResize && this.onResize(this._size);
 			this.emit("resize", this._size);
 		}
+	}
+
+	resizeListeners() {
+		var width, height;
+		// Test size again
+		clearTimeout(this.expanding);
+
+		width = this.textWidth();
+		height = this.textHeight();
+
+		this.resizeCheck();
 
 		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
 	}
 
-	resizeObservers() {
-		let el = this.document.body;
-		const ro = new ResizeObserver((entries, observer) => {
-			let width = this.textWidth();
-			let height = this.textHeight();
+	transitionListeners() {
+		let body = this.content;
 
-			if (width != this._size.width || height != this._size.height) {
+		body.style['transitionProperty'] = "font, font-size, font-size-adjust, font-stretch, font-variation-settings, font-weight, width, height";
+		body.style['transitionDuration'] = "0.001ms";
+		body.style['transitionTimingFunction'] = "linear";
+		body.style['transitionDelay'] = "0";
 
-				this._size = {
-					width: width,
-					height: height
-				};
-
-				this.pane && this.pane.render();
-				this.emit("resize", this._size);
-			}
-		});
-
-		ro.observe(el);
+		this.document.addEventListener('transitionend', this.resizeCheck.bind(this));
 	}
 
 	//https://github.com/tylergaw/media-query-events/blob/master/js/mq-events.js
@@ -394,26 +391,17 @@ class Contents {
 		}
 	}
 
-	observe(target) {
-		var renderer = this;
-
+	resizeObservers() {
 		// create an observer instance
-		var observer = new MutationObserver(function(mutations) {
-			if(renderer._expanding) {
-				renderer.expand();
-			}
-			// mutations.forEach(function(mutation) {
-			//   console.log(mutation);
-			// });
+		this.observer = new MutationObserver((mutations) => {
+			this.resizeCheck();
 		});
 
 		// configuration of the observer:
-		var config = { attributes: true, childList: true, characterData: true, subtree: true };
+		let config = { attributes: true, childList: true, characterData: true, subtree: true };
 
 		// pass in the target node, as well as the observer options
-		observer.observe(target, config);
-
-		return observer;
+		this.observer.observe(this.document, config);
 	}
 
 	imageLoadListeners(target) {
@@ -935,6 +923,8 @@ class Contents {
 		if(this.observer) {
 			this.observer.disconnect();
 		}
+
+		this.document.removeEventListener('transitionend', this.resizeCheck);
 
 		this.removeListeners();
 
