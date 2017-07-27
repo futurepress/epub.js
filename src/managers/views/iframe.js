@@ -49,7 +49,8 @@ class IframeView {
 		element.style.overflow = "hidden";
 
 		if(axis && axis == "horizontal"){
-			element.style.display = "inline-block";
+			element.style.display = "block";
+			element.style.flex = "none";
 		} else {
 			element.style.display = "block";
 		}
@@ -85,6 +86,8 @@ class IframeView {
 		this.iframe.style.height = "0";
 		this._width = 0;
 		this._height = 0;
+
+		this.element.setAttribute("ref", this.index);
 
 		this.element.appendChild(this.iframe);
 		this.added = true;
@@ -197,12 +200,12 @@ class IframeView {
 
 		if(what == "width" && isNumber(width)){
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
-			this.resize(this.lockedWidth, width); //  width keeps ratio correct
+			// this.resize(this.lockedWidth, width); //  width keeps ratio correct
 		}
 
 		if(what == "height" && isNumber(height)){
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
-			this.resize(width, this.lockedHeight);
+			// this.resize(width, this.lockedHeight);
 		}
 
 		if(what === "both" &&
@@ -211,7 +214,7 @@ class IframeView {
 
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
-			this.resize(this.lockedWidth, this.lockedHeight);
+			// this.resize(this.lockedWidth, this.lockedHeight);
 		}
 
 		if(this.displayed && this.iframe) {
@@ -252,13 +255,20 @@ class IframeView {
 
 				// width = this.contentWidth(textWidth);
 
-				columns = Math.ceil(width / (this.settings.layout.columnWidth + this.settings.layout.gap));
+				/*
+				columns = Math.ceil(width / (this.settings.layout.columnWidth));
 
 				if ( this.settings.layout.divisor > 1 &&
 						 this.settings.layout.name === "reflowable" &&
 						(columns % 2 > 0)) {
 					// add a blank page
 					width += this.settings.layout.gap + this.settings.layout.columnWidth;
+				}
+				*/
+
+				// Add padding back
+				if (width % this.layout.width > 0) {
+					width += this.layout.gap / 2;
 				}
 
 				// Save the textWdith
@@ -357,15 +367,16 @@ class IframeView {
 			this.element.style.height = height + "px";
 		}
 
-		this.prevBounds = this.elementBounds;
-
 		this.elementBounds = bounds(this.element);
+
+		let widthDelta = this.prevBounds ? this.elementBounds.width - this.prevBounds.width : this.elementBounds.width;
+		let heightDelta = this.prevBounds ? this.elementBounds.height - this.prevBounds.height : this.elementBounds.height;
 
 		size = {
 			width: this.elementBounds.width,
 			height: this.elementBounds.height,
-			widthDelta: this.elementBounds.width - this.prevBounds.width,
-			heightDelta: this.elementBounds.height - this.prevBounds.height,
+			widthDelta: widthDelta,
+			heightDelta: heightDelta,
 		};
 
 		this.onResize(this, size);
@@ -375,6 +386,8 @@ class IframeView {
 		}
 
 		this.emit("resized", size);
+
+		this.prevBounds = this.elementBounds;
 
 	}
 

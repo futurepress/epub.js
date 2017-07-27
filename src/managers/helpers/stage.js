@@ -45,7 +45,10 @@ class Stage {
 		container.style.position = "relative";
 
 		if(axis === "horizontal") {
-			container.style.whiteSpace = "nowrap";
+			// container.style.whiteSpace = "nowrap";
+			container.style.display = "flex";
+			container.style.flexDirection = "row";
+			container.style.flexWrap = "nowrap";
 		}
 
 		if(width){
@@ -176,6 +179,15 @@ class Stage {
 			bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
 		};
 
+		// Bounds not set, get them from window
+		let _windowBounds = windowBounds();
+		if (!width) {
+			width = _windowBounds.width;
+		}
+		if (!height) {
+			height = _windowBounds.height;
+		}
+
 		return {
 			width: width -
 							this.containerPadding.left -
@@ -188,7 +200,11 @@ class Stage {
 	}
 
 	bounds(){
-		let box = this.container && this.container.getBoundingClientRect();
+		let box;
+		if (this.container.style.overflow !== "visible") {
+			box = this.container && this.container.getBoundingClientRect();
+		}
+
 		if(!box || !box.width || !box.height) {
 			return windowBounds();
 		} else {

@@ -43,7 +43,7 @@ class DefaultViewManager {
 		this.stage = new Stage({
 			width: size.width,
 			height: size.height,
-			overflow: this.settings.overflow,
+			overflow: this.overflow,
 			hidden: this.settings.hidden,
 			axis: this.settings.axis
 		});
@@ -589,6 +589,7 @@ class DefaultViewManager {
 
 		if(this.settings.height) {
 
+			let p = this.container.scrollLeft;
 			if(x) this.container.scrollLeft += x;
 			if(y) this.container.scrollTop += y;
 
@@ -610,7 +611,6 @@ class DefaultViewManager {
 			window.scrollTo(x,y);
 		}
 		this.scrolled = true;
-
 		// if(this.container.scrollLeft != x){
 		//   setTimeout(function() {
 		//     this.scrollTo(x, y, silent);
@@ -692,7 +692,7 @@ class DefaultViewManager {
 			// Set the look ahead offset for what is visible
 			this.settings.offset = this.layout.delta;
 
-			this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+			// this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
 		}
 
@@ -725,7 +725,11 @@ class DefaultViewManager {
 
 		this.viewSettings.axis = axis;
 
-		this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
+		if (!this.settings.overflow) {
+			this.overflow = (flow === "paginated") ? "hidden" : "auto";
+		} else {
+			this.overflow = this.settings.overflow;
+		}
 		// this.views.each(function(view){
 		// 	view.setAxis(axis);
 		// });

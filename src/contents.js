@@ -745,7 +745,8 @@ class Contents {
 		this.css("display", "inline-block"); // Fixes Safari column cut offs
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
-		this.css("padding", "0", true);
+		this.css("padding", "20px " + (gap / 2) + "px", true);
+
 		this.css("box-sizing", "border-box");
 		this.css("max-width", "inherit");
 

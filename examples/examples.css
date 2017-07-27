@@ -29,7 +29,7 @@ body {
   height: 600px;
   box-shadow: 0 0 4px #ccc;
   border-radius: 5px;
-  padding: 20px 40px;
+  padding: 0;
   position: relative;
   margin: 10px auto;
   background: white url('ajax-loader.gif') center center no-repeat;

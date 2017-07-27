@@ -123,7 +123,10 @@ class Layout {
 
 		//-- Double Page
 		if(divisor > 1) {
-			colWidth = (width - gap) / divisor;
+			// width = width - gap;
+			// colWidth = (width - gap) / divisor;
+			// gap = gap / divisor;
+			colWidth = (width / divisor) - gap;
 		} else {
 			colWidth = width;
 		}
@@ -134,7 +137,8 @@ class Layout {
 
 		spreadWidth = colWidth * divisor;
 
-		delta = (colWidth + gap) * divisor;
+		delta = width;
+		// console.log(delta, width);
 
 		this.width = width;
 		this.height = _height;
