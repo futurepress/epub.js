@@ -45,7 +45,10 @@ class Stage {
 		container.style.position = "relative";
 
 		if(axis === "horizontal") {
-			container.style.whiteSpace = "nowrap";
+			// container.style.whiteSpace = "nowrap";
+			container.style.display = "flex";
+			container.style.flexDirection = "row";
+			container.style.flexWrap = "nowrap";
 		}
 
 		if(width){
@@ -124,9 +127,15 @@ class Stage {
 		// This applies if it is set to a percent or auto.
 		if(!isNumber(this.settings.width) ||
 			 !isNumber(this.settings.height) ) {
-			window.addEventListener("resize", func, false);
+			this.resizeFunc = func;
+			window.addEventListener("resize", this.resizeFunc, false);
 		}
 
+	}
+
+	onOrientationChange(func){
+		this.orientationChangeFunc = func;
+		window.addEventListener("orientationChange", this.orientationChangeFunc, false);
 	}
 
 	size(width, height){
@@ -176,6 +185,15 @@ class Stage {
 			bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
 		};
 
+		// Bounds not set, get them from window
+		let _windowBounds = windowBounds();
+		if (!width) {
+			width = _windowBounds.width;
+		}
+		if (this.settings.fullsize || !height) {
+			height = _windowBounds.height;
+		}
+
 		return {
 			width: width -
 							this.containerPadding.left -
@@ -188,7 +206,11 @@ class Stage {
 	}
 
 	bounds(){
-		let box = this.container && this.container.getBoundingClientRect();
+		let box;
+		if (this.container.style.overflow !== "visible") {
+			box = this.container && this.container.getBoundingClientRect();
+		}
+
 		if(!box || !box.width || !box.height) {
 			return windowBounds();
 		} else {
@@ -227,6 +249,26 @@ class Stage {
 		this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 	}
 
+	axis(axis) {
+		if(axis === "horizontal") {
+			this.container.style.display = "flex";
+			this.container.style.flexDirection = "row";
+			this.container.style.flexWrap = "nowrap";
+		} else {
+			this.container.style.display = "block";
+		}
+	}
+
+	// orientation(orientation) {
+	// 	if (orientation === "landscape") {
+	//
+	// 	} else {
+	//
+	// 	}
+	//
+	// 	this.orientation = orientation;
+	// }
+
 	destroy() {
 		var base;
 
@@ -241,6 +283,10 @@ class Stage {
 			if(this.element.contains(this.container)) {
 				this.element.removeChild(this.container);
 			}
+
+			window.removeEventListener("resize", this.resizeFunc);
+			window.removeEventListener("orientationChange", this.orientationChangeFunc);
+
 		}
 	}
 }

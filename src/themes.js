@@ -76,7 +76,7 @@ class Themes {
 		}
 	}
 
-	apply (name) {
+	select (name) {
 		var prev = this._current;
 		var contents;
 

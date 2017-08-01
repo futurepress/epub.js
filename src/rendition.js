@@ -182,6 +182,9 @@ class Rendition {
 		// Listen for resizing
 		this.manager.on("resized", this.onResized.bind(this));
 
+		// Listen for rotation
+		this.manager.on("orientationChange", this.onOrientationChange.bind(this));
+
 		// Listen for scroll changes
 		this.manager.on("scrolled", this.reportLocation.bind(this));
 
@@ -342,7 +345,8 @@ class Rendition {
 	 */
 	onResized(size){
 
-		if(this.location) {
+		if (this.location) {
+			// this.manager.clear();
 			this.display(this.location.start.cfi);
 		}
 
@@ -351,6 +355,19 @@ class Rendition {
 			height: size.height
 		});
 
+	}
+
+	/**
+	 * Report orientation events and display the last seen location
+	 * @private
+	 */
+	onOrientationChange(orientation){
+		if (this.location) {
+			this.manager.clear();
+			this.display(this.location.start.cfi);
+		}
+
+		this.emit("orientationChange", orientation);
 	}
 
 	/**
@@ -443,8 +460,17 @@ class Rendition {
 			this._layout.flow(_flow);
 		}
 
+		if (this.manager && this._layout) {
+			this.manager.applyLayout(this._layout);
+		}
+
 		if (this.manager) {
 			this.manager.updateFlow(_flow);
+		}
+
+		if (this.location) {
+			this.manager.clear();
+			this.display(this.location.start.cfi);
 		}
 	}
 
@@ -538,8 +564,11 @@ class Rendition {
 	}
 
 	located(location){
+		if (!location.length) {
+			return {};
+		}
 		let start = location[0];
-		let end = location[location.length-1]
+		let end = location[location.length-1];
 
 		let located = {
 			start: {

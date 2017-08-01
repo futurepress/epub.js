@@ -302,11 +302,11 @@ class Contents {
 
 		this.addSelectionListeners();
 
-		this.transitionListeners();
+		// this.transitionListeners();
 
 		this.resizeListeners();
 
-		this.resizeObservers();
+		// this.resizeObservers();
 
 		this.linksHandler();
 	}
@@ -717,6 +717,7 @@ class Contents {
 		if (width >= 0) {
 			this.width(width);
 			viewport.width = width;
+			this.css("padding", "0 "+(width/12)+"px", true);
 		}
 
 		if (height >= 0) {
@@ -726,6 +727,7 @@ class Contents {
 
 		this.css("margin", "0");
 		this.css("box-sizing", "border-box");
+
 
 		this.viewport(viewport);
 	}
@@ -745,7 +747,9 @@ class Contents {
 		this.css("display", "inline-block"); // Fixes Safari column cut offs
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
-		this.css("padding", "0", true);
+
+		this.css("padding", "20px " + (gap / 2) + "px", true);
+
 		this.css("box-sizing", "border-box");
 		this.css("max-width", "inherit");
 
@@ -852,6 +856,7 @@ class Contents {
 		return h;
 	}
 
+	/*
 	mark(cfiRange, data={}, cb) {
 		let range = this.range(cfiRange);
 
@@ -878,6 +883,50 @@ class Contents {
 		}
 
 		this.marks[cfiRange] = { "element": parent, "listeners": [emitter, cb] };
+
+		return parent;
+	}
+	*/
+
+	mark(cfiRange, data={}, cb) {
+
+		if (cfiRange in this.marks) {
+			item = this.marks[cfiRange];
+			return item;
+		}
+
+		let range = this.range(cfiRange);
+
+		let container = range.commonAncestorContainer;
+		let parent = (container.nodeType === 1) ? container : container.parentNode;
+		let emitter = (e) => {
+			this.emit("markClicked", cfiRange, data);
+		};
+
+		let pos = parent.getBoundingClientRect();
+		let mark = this.document.createElement('a');
+		mark.setAttribute("ref", "epubjs-mk");
+		mark.style.position = "absolute";
+		mark.style.top = `${pos.top}px`;
+		mark.style.left = `${pos.right}px`;
+
+		mark.dataset["epubcfi"] = cfiRange;
+
+		if (data) {
+			Object.keys(data).forEach((key) => {
+				mark.dataset[key] = data[key];
+			});
+		}
+
+		if (cb) {
+			mark.addEventListener("click", cb);
+		}
+
+		mark.addEventListener("click", emitter);
+
+		this.content.appendChild(mark);
+
+		this.marks[cfiRange] = { "element": mark, "listeners": [emitter, cb] };
 
 		return parent;
 	}
@@ -910,7 +959,7 @@ class Contents {
 		let item;
 		if (cfiRange in this.marks) {
 			item = this.marks[cfiRange];
-			item.element.removeAttribute("ref");
+			this.content.removeChild(item.element);
 			item.listeners.forEach((l) => {
 				if (l) { item.element.removeEventListener("click", l) };
 			});

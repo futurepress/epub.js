@@ -84,7 +84,7 @@ class Navigation {
 
 		var index = id ? id : 0;
 		tocLinkArray.forEach((linkElm) => {
-			if (linkElm.nodeName === 'li') {
+			if (linkElm.nodeName.toLowerCase() === 'li') {
 				var tocLink = qs(linkElm, 'a'),
 						tocLinkData = {
 							id: -1,

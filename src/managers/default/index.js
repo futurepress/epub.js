@@ -38,14 +38,28 @@ class DefaultViewManager {
 	}
 
 	render(element, size){
+		let tag = element.tagName;
+
+		if (tag && (tag.toLowerCase() == "body" ||
+				tag.toLowerCase() == "html")) {
+  			this.fullsize = true;
+		}
+
+		if (this.fullsize) {
+			this.settings.overflow = "visible";
+			this.overflow = this.settings.overflow;
+		}
+
+		this.settings.size = size;
 
 		// Save the stage
 		this.stage = new Stage({
 			width: size.width,
 			height: size.height,
-			overflow: this.settings.overflow,
+			overflow: this.overflow,
 			hidden: this.settings.hidden,
-			axis: this.settings.axis
+			axis: this.settings.axis,
+			fullsize: this.fullsize
 		});
 
 		this.stage.attachTo(element);
@@ -85,7 +99,7 @@ class DefaultViewManager {
 			this.destroy();
 		}.bind(this));
 
-		if(this.settings.height) {
+		if(!this.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -97,7 +111,7 @@ class DefaultViewManager {
 	removeEventListeners(){
 		var scroller;
 
-		if(this.settings.height) {
+		if(!this.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -127,6 +141,25 @@ class DefaultViewManager {
 		*/
 	}
 
+	onOrientationChange(e) {
+		let {orientation} = window;
+
+		this._stageSize = this.stage.size();
+		this._bounds = this.bounds();
+		// Update for new views
+		this.viewSettings.width = this._stageSize.width;
+		this.viewSettings.height = this._stageSize.height;
+
+		this.updateLayout();
+
+		// Update for existing views
+		// this.views.each(function(view) {
+		// 	view.size(this._stageSize.width, this._stageSize.height);
+		// }.bind(this));
+
+		this.emit("orientationChange", orientation);
+	}
+
 	onResized(e) {
 		clearTimeout(this.resizeTimeout);
 		this.resizeTimeout = setTimeout(function(){
@@ -139,6 +172,7 @@ class DefaultViewManager {
 		this.q.clear();
 
 		this._stageSize = this.stage.size(width, height);
+
 		this._bounds = this.bounds();
 
 		// Update for new views
@@ -148,14 +182,18 @@ class DefaultViewManager {
 		this.updateLayout();
 
 		// Update for existing views
+		// TODO: this is not updating correctly, just clear and rerender for now
+		/*
 		this.views.each(function(view) {
+			view.reset();
 			view.size(this._stageSize.width, this._stageSize.height);
 		}.bind(this));
-
+		*/
+		this.clear();
 
 		this.emit("resized", {
-			width: this.stage.width,
-			height: this.stage.height
+			width: this._stageSize.width,
+			height: this._stageSize.height
 		});
 
 	}
@@ -393,9 +431,11 @@ class DefaultViewManager {
 	}
 
 	clear () {
-		this.views.hide();
-		this.scrollTo(0,0, true);
-		this.views.clear();
+		if (this.views) {
+			this.views.hide();
+			this.scrollTo(0,0, true);
+			this.views.clear();
+		}
 	}
 
 	currentLocation(){
@@ -464,7 +504,7 @@ class DefaultViewManager {
 
 		var offset = 0;
 
-		if(!this.settings.height) {
+		if(this.fullsize) {
 			offset = window.scrollY;
 		}
 
@@ -504,16 +544,22 @@ class DefaultViewManager {
 		let visible = this.visible();
 		var container = this.container.getBoundingClientRect();
 
+		var left = 0;
+
+		if(this.fullsize) {
+			left = window.scrollX;
+		}
+
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
 			let offset = view.offset().left;
 			let position = view.position().left;
 			let width = view.width();
 
-			let startPos = this.container.scrollLeft + offset;
+			let startPos = left + offset;
 			let endPos = startPos + this.layout.spreadWidth + this.layout.gap;
-			if (endPos > this.container.scrollLeft + offset + width) {
-				endPos = this.container.scrollLeft + offset + width;
+			if (endPos > left + offset + width) {
+				endPos = left + offset + width;
 			}
 
 			let totalPages = this.layout.count(width).pages;
@@ -525,8 +571,9 @@ class DefaultViewManager {
 				pages.push(pg);
 			}
 
-			let start = container.left - position;
+			let start = left + container.left - position;
 			let end = start + this.layout.spreadWidth + this.layout.gap;
+
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
 			return {
@@ -587,11 +634,9 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(this.settings.height) {
-
+		if(!this.fullsize) {
 			if(x) this.container.scrollLeft += x;
 			if(y) this.container.scrollTop += y;
-
 		} else {
 			window.scrollBy(x,y);
 		}
@@ -603,27 +648,20 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(this.settings.height) {
+		if(!this.fullsize) {
 			this.container.scrollLeft = x;
 			this.container.scrollTop = y;
 		} else {
 			window.scrollTo(x,y);
 		}
 		this.scrolled = true;
-
-		// if(this.container.scrollLeft != x){
-		//   setTimeout(function() {
-		//     this.scrollTo(x, y, silent);
-		//   }.bind(this), 10);
-		//   return;
-		// };
 	}
 
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;
 
-		if(this.settings.height) {
+		if(!this.fullsize) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
 		} else {
@@ -670,6 +708,7 @@ class DefaultViewManager {
 		this.updateLayout();
 
 		this.mapping = new Mapping(this.layout.props);
+
 		 // this.manager.layout(this.layout.format);
 	}
 
@@ -692,7 +731,7 @@ class DefaultViewManager {
 			// Set the look ahead offset for what is visible
 			this.settings.offset = this.layout.delta;
 
-			this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
+			// this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
 		}
 
@@ -701,7 +740,6 @@ class DefaultViewManager {
 		this.viewSettings.height = this.layout.height;
 
 		this.setLayout(this.layout);
-
 	}
 
 	setLayout(layout){
@@ -723,12 +761,20 @@ class DefaultViewManager {
 
 		this.settings.axis = axis;
 
+		this.stage && this.stage.axis(axis);
+
 		this.viewSettings.axis = axis;
 
-		this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
+		if (!this.settings.overflow) {
+			this.overflow = (flow === "paginated") ? "hidden" : "auto";
+		} else {
+			this.overflow = this.settings.overflow;
+		}
 		// this.views.each(function(view){
 		// 	view.setAxis(axis);
 		// });
+
+		this.updateLayout();
 
 	}
 

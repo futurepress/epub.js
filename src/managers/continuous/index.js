@@ -1,5 +1,6 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
+import debounce from 'lodash/debounce'
 
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
@@ -10,7 +11,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.settings = extend(this.settings || {}, {
 			infinite: true,
-			overflow: "auto",
+			overflow: undefined,
 			axis: "vertical",
 			offset: 500,
 			offsetDelta: 250,
@@ -48,13 +49,15 @@ class ContinuousViewManager extends DefaultViewManager {
 	fill(_full){
 		var full = _full || new defer();
 
-		this.check().then(function(result) {
+		this.q.enqueue(() => {
+			return this.check();
+		}).then((result) => {
 			if (result) {
 				this.fill(full);
 			} else {
 				full.resolve();
 			}
-		}.bind(this));
+		});
 
 		return full.promise;
 	}
@@ -76,10 +79,13 @@ class ContinuousViewManager extends DefaultViewManager {
 			offsetX = distX+this.settings.offset;
 		}
 
-		return this.check(offsetX, offsetY)
-			.then(function(){
-				this.scrollBy(distX, distY, true);
-			}.bind(this));
+		this.check(offsetX, offsetY);
+		this.scrollBy(distX, distY, true);
+
+		// return this.check(offsetX, offsetY)
+		// 	.then(function(){
+		// 		this.scrollBy(distX, distY, true);
+		// 	}.bind(this));
 	}
 
 	/*
@@ -106,36 +112,36 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 	*/
 
-	resize(width, height){
-
-		// Clear the queue
-		this.q.clear();
-
-		this._stageSize = this.stage.size(width, height);
-		this._bounds = this.bounds();
-		console.log("set bounds", this._bounds);
-
-		// Update for new views
-		this.viewSettings.width = this._stageSize.width;
-		this.viewSettings.height = this._stageSize.height;
-
-		// Update for existing views
-		this.views.each(function(view) {
-			view.size(this._stageSize.width, this._stageSize.height);
-		}.bind(this));
-
-		this.updateLayout();
-
-		// if(this.location) {
-		//   this.rendition.display(this.location.start);
-		// }
-
-		this.emit("resized", {
-			width: this.stage.width,
-			height: this.stage.height
-		});
-
-	}
+	// resize(width, height){
+	//
+	// 	// Clear the queue
+	// 	this.q.clear();
+	//
+	// 	this._stageSize = this.stage.size(width, height);
+	// 	console.log("resize says", this._stageSize, width, height);
+	// 	this._bounds = this.bounds();
+	//
+	// 	// Update for new views
+	// 	this.viewSettings.width = this._stageSize.width;
+	// 	this.viewSettings.height = this._stageSize.height;
+	//
+	// 	// Update for existing views
+	// 	this.views.each(function(view) {
+	// 		view.size(this._stageSize.width, this._stageSize.height);
+	// 	}.bind(this));
+	//
+	// 	this.updateLayout();
+	//
+	// 	// if(this.location) {
+	// 	//   this.rendition.display(this.location.start);
+	// 	// }
+	//
+	// 	this.emit("resized", {
+	// 		width: this._stageSize.width,
+	// 		height: this._stageSize.height
+	// 	});
+	//
+	// }
 
 	onResized(e) {
 
@@ -179,8 +185,29 @@ class ContinuousViewManager extends DefaultViewManager {
 	//
 	// };
 
+	add(section){
+		var view = this.createView(section);
+
+		this.views.append(view);
+
+		view.on("resized", (bounds) => {
+			view.expanded = true;
+		});
+
+		// view.on("shown", this.afterDisplayed.bind(this));
+		view.onDisplayed = this.afterDisplayed.bind(this);
+		view.onResize = this.afterResized.bind(this);
+
+		return view.display(this.request);
+	}
+
 	append(section){
 		var view = this.createView(section);
+
+		view.on("resized", (bounds) => {
+			view.expanded = true;
+		});
+
 		this.views.append(view);
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
@@ -191,7 +218,10 @@ class ContinuousViewManager extends DefaultViewManager {
 	prepend(section){
 		var view = this.createView(section);
 
-		view.on("resized", this.counter.bind(this));
+		view.on("resized", (bounds) => {
+			this.counter(bounds);
+			view.expanded = true;
+		});
 
 		this.views.prepend(view);
 
@@ -201,7 +231,6 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	counter(bounds){
-
 		if(this.settings.axis === "vertical") {
 			this.scrollBy(0, bounds.heightDelta, true);
 		} else {
@@ -228,14 +257,19 @@ class ContinuousViewManager extends DefaultViewManager {
 			isVisible = this.isVisible(view, offset, offset, container);
 
 			if(isVisible === true) {
+				// console.log("visible " + view.index);
+
 				if (!view.displayed) {
 					promises.push(view.display(this.request).then(function (view) {
 						view.show();
 					}));
+				} else {
+					view.show();
 				}
 				visible.push(view);
 			} else {
-				this.q.enqueue(view.destroy.bind(view));
+				// this.q.enqueue(view.destroy.bind(view));
+				// console.log("hidden " + view.index);
 
 				clearTimeout(this.trimTimeout);
 				this.trimTimeout = setTimeout(function(){
@@ -280,6 +314,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		if (offset + visibleLength + delta >= contentLength) {
 			last = this.views.last();
 			next = last && last.section.next();
+
 			if(next) {
 				newViews.push(this.append(next));
 			}
@@ -287,19 +322,26 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		if (offset - delta < 0 ) {
 			first = this.views.first();
+
 			prev = first && first.section.prev();
 			if(prev) {
 				newViews.push(this.prepend(prev));
 			}
 		}
 
+		let promises = newViews.map((view) => {
+			return view.displayed;
+		});
+
 		if(newViews.length){
-			// Promise.all(promises)
-				// .then(function() {
+			return Promise.all(promises)
+				.then(() => {
+					return this.update(delta);
+				});
 					// Check to see if anything new is on screen after rendering
-			return this.q.enqueue(function(){
-				return this.update(delta);
-			}.bind(this));
+			// return this.q.enqueue(function(){
+			// 	this.update(delta);
+			// }.bind(this));
 
 
 				// }.bind(this));
@@ -351,6 +393,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = view.bounds();
 
+		view.destroy.bind(view)
 		this.views.remove(view);
 
 		if(above) {
@@ -402,7 +445,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		scroller.addEventListener("scroll", this.onScroll.bind(this));
-
+		this._scrolled = debounce(this.scrolled.bind(this), 300);
 		// this.tick.call(window, this.onScroll.bind(this));
 
 		this.scrolled = false;
@@ -440,31 +483,35 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		if(!this.ignore) {
 
-			if((this.scrollDeltaVert === 0 &&
-				 this.scrollDeltaHorz === 0) ||
-				 this.scrollDeltaVert > this.settings.offsetDelta ||
-				 this.scrollDeltaHorz > this.settings.offsetDelta) {
-
-				this.q.enqueue(function() {
-					this.check();
-				}.bind(this));
-				// this.check();
-
-				this.scrollDeltaVert = 0;
-				this.scrollDeltaHorz = 0;
-
-				this.emit("scroll", {
-					top: scrollTop,
-					left: scrollLeft
-				});
-
-				clearTimeout(this.afterScrolled);
-				this.afterScrolled = setTimeout(function () {
-					this.emit("scrolled", {
-						top: this.scrollTop,
-						left: this.scrollLeft
-					});
-				}.bind(this));
+			this._scrolled();
+			// if((this.scrollDeltaVert === 0 &&
+			// 	 this.scrollDeltaHorz === 0) ||
+			// 	 this.scrollDeltaVert > this.settings.offsetDelta ||
+			// 	 this.scrollDeltaHorz > this.settings.offsetDelta) {
+		if(this.scrollDeltaVert > this.settings.offsetDelta ||
+			 this.scrollDeltaHorz > this.settings.offsetDelta) {
+				// console.log("scroll", this.scrollDeltaHorz);
+				//
+				// this.q.enqueue(function() {
+				// 	this.check();
+				// }.bind(this));
+				// // this.check();
+				//
+				// this.scrollDeltaVert = 0;
+				// this.scrollDeltaHorz = 0;
+				//
+				// this.emit("scroll", {
+				// 	top: scrollTop,
+				// 	left: scrollLeft
+				// });
+				//
+				// clearTimeout(this.afterScrolled);
+				// this.afterScrolled = setTimeout(function () {
+				// 	this.emit("scrolled", {
+				// 		top: this.scrollTop,
+				// 		left: this.scrollLeft
+				// 	});
+				// }.bind(this));
 
 			}
 
@@ -492,35 +539,54 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	}
 
-	updateLayout() {
+	scrolled() {
+		this.q.enqueue(function() {
+			this.check();
+		}.bind(this));
 
-		if (!this.stage) {
-			return;
-		}
+		this.emit("scroll", {
+			top: this.scrollTop,
+			left: this.scrollLeft
+		});
 
-		if(this.settings.axis === "vertical") {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height);
-		} else {
-			this.layout.calculate(
-				this._stageSize.width,
-				this._stageSize.height,
-				this.settings.gap
-			);
-
-			// Set the look ahead offset for what is visible
-			this.settings.offset = this.layout.delta;
-
-			this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
-
-		}
-
-		// Set the dimensions for views
-		this.viewSettings.width = this.layout.width;
-		this.viewSettings.height = this.layout.height;
-
-		this.setLayout(this.layout);
-
+		clearTimeout(this.afterScrolled);
+		this.afterScrolled = setTimeout(function () {
+			this.emit("scrolled", {
+				top: this.scrollTop,
+				left: this.scrollLeft
+			});
+		}.bind(this));
 	}
+
+	// updateLayout() {
+	//
+	// 	if (!this.stage) {
+	// 		return;
+	// 	}
+	//
+	// 	if(this.settings.axis === "vertical") {
+	// 		this.layout.calculate(this._stageSize.width, this._stageSize.height);
+	// 	} else {
+	// 		this.layout.calculate(
+	// 			this._stageSize.width,
+	// 			this._stageSize.height,
+	// 			this.settings.gap
+	// 		);
+	//
+	// 		// Set the look ahead offset for what is visible
+	// 		this.settings.offset = this.layout.delta;
+	//
+	// 		// this.stage.addStyleRules("iframe", [{"padding" : "0 " + (this.layout.gap / 2) + "px"}]);
+	//
+	// 	}
+	//
+	// 	// Set the dimensions for views
+	// 	this.viewSettings.width = this.layout.width;
+	// 	this.viewSettings.height = this.layout.height;
+	//
+	// 	this.setLayout(this.layout);
+	//
+	// }
 
 	next(){
 
@@ -562,9 +628,15 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.settings.axis = axis;
 
+		this.stage && this.stage.axis(axis);
+
 		this.viewSettings.axis = axis;
 
-		this.settings.overflow = (flow === "paginated") ? "hidden" : "auto";
+		if (!this.settings.overflow) {
+			this.overflow = (flow === "paginated") ? "hidden" : "auto";
+		} else {
+			this.overflow = this.settings.overflow;
+		}
 
 		// this.views.each(function(view){
 		// 	view.setAxis(axis);
@@ -575,6 +647,8 @@ class ContinuousViewManager extends DefaultViewManager {
 		} else {
 			this.settings.infinite = false;
 		}
+
+		this.updateLayout();
 
 	}
 }
