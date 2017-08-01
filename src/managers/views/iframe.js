@@ -132,19 +132,6 @@ class IframeView {
 			.then(function(contents){
 				return this.load(contents);
 			}.bind(this))
-			// .then(function(doc){
-			// 	return this.hooks.content.trigger(view, this);
-			// }.bind(this))
-			.then(function(){
-				// this.settings.layout.format(view.contents);
-				// return this.hooks.layout.trigger(view, this);
-			}.bind(this))
-			// .then(function(){
-			// 	return this.display();
-			// }.bind(this))
-			// .then(function(){
-			// 	return this.hooks.render.trigger(view, this);
-			// }.bind(this))
 			.then(function(){
 
 				// apply the layout function to the contents
@@ -172,6 +159,20 @@ class IframeView {
 
 	}
 
+	reset () {
+		if (this.iframe) {
+			this.iframe.style.width = "0";
+			this.iframe.style.height = "0";
+			this._width = 0;
+			this._height = 0;
+			this._textWidth = undefined;
+			this._contentWidth = undefined;
+			this._textHeight = undefined;
+			this._contentHeight = undefined;
+		}
+		this._needsReframe = true;
+	}
+
 	// Determine locks base on settings
 	size(_width, _height) {
 		var width = _width || this.settings.width;
@@ -184,7 +185,6 @@ class IframeView {
 		} else {
 			this.lock("width", width, height);
 		}
-
 	}
 
 	// Lock an axis to element dimensions, taking borders into account
@@ -460,29 +460,6 @@ class IframeView {
 
 		promise.resolve(this.contents);
 	}
-
-
-
-	// layout(layoutFunc) {
-	//
-	//   this.iframe.style.display = "inline-block";
-	//
-	//   // Reset Body Styles
-	//   // this.document.body.style.margin = "0";
-	//   //this.document.body.style.display = "inline-block";
-	//   //this.document.documentElement.style.width = "auto";
-	//
-	//   if(layoutFunc){
-	//     this.layoutFunc = layoutFunc;
-	//   }
-	//
-	//   this.contents.layout(this.layoutFunc);
-	//
-	// };
-	//
-	// onLayout(view) {
-	//   // stub
-	// };
 
 	setLayout(layout) {
 		this.layout = layout;

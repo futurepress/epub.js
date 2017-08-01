@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js + Hypothes.is Example</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
+  <script src="../dist/epub.js"></script>
+
+  <!-- <script>
+  window.hypothesisConfig = function () {
+    return {
+      // constructor: this.Annotator.Sidebar,
+      app: 'https://hypothes.is/app.html',
+    };
+  };
+  </script> -->
+
+  <script type="text/javascript">
+    window.hypothesisConfig = function () {
+      return {
+        // Open the sidebar when the page loads
+        openSidebar: true,
+
+        // Needed for multi frame support
+        enableMultiFrameSupport: true,
+        embedScriptUrl: "https://cdn.hypothes.is/hypothesis"
+      };
+    };
+  </script>
+  <script src="https://cdn.hypothes.is/hypothesis"></script>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="examples.css">
+  <style type="text/css">
+    body {
+      margin: 0;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
+    }
+
+    #navigation {
+      width: 400px;
+      position: fixed;
+      overflow: auto;
+      top: 0;
+      left: -425px;
+
+      background: #ECECEC;
+      min-height: 100%;
+      height: 100%;
+      height: 100vh;
+
+      overflow: scroll;
+      -webkit-overflow-scrolling: touch;
+      padding: 9px;
+      padding-top: 10px;
+
+      transition: left .2s ease-out;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    }
+
+    #navigation.open {
+      left: 0;
+    }
+
+    #navigation.fixed {
+      position: fixed;
+    }
+
+    #navigation h1 {
+      width: 200px;
+      font-size: 16px;
+      font-weight: normal;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    #navigation h2 {
+      font-size: 14px;
+      font-weight: normal;
+      color: #B0B0B0;
+      margin-bottom: 20px;
+    }
+
+    #navigation ul {
+      padding-left: 28px;
+      margin-left: 0;
+    }
+
+    #navigation ul li {
+      list-style: decimal;
+      margin-bottom: 10px;
+      color: #585858;
+      font-size: 12px;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    #navigation ul li a {
+      color: #585858;
+      text-decoration: none;
+    }
+
+    #navigation ul li a:hover {
+      color: #585858;
+      text-decoration: underline;
+    }
+
+    #navigation ul li a.active {
+      color: #000;
+      font-weight: 400;
+    }
+
+    #navigation #author {
+      text-align: center;
+    }
+
+    #cover {
+      display: inline;
+    }
+
+    #main {
+      margin-top: 60px;
+    }
+
+    #pagination {
+      text-align: center;
+      margin: 20px;
+      /*padding: 0 50px;*/
+    }
+
+    .arrow:hover {
+      color: #777;
+    }
+
+    .arrow:active {
+      color: #000;
+    }
+
+    .arrow .material-icons {
+      font-size: 64px;
+    }
+
+    #prev {
+      float: left;
+    }
+
+    #next {
+      float: right;
+    }
+
+    #toc {
+      display: block;
+      margin: 10px auto;
+    }
+
+    #hypothesis-custom {
+      overflow: hidden;
+      /*position: absolute;*/
+      right: 0;
+      /*top: 0;*/
+      height: 100%;
+      width: 200px;
+      /*z-index: -2;*/
+    }
+
+    #hypothesis-custom iframe {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    #closer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #333;
+      cursor: pointer;
+    }
+
+    #closer .material-icons {
+      color: #333;
+    }
+
+    #opener {
+      position: absolute;
+      left: 0;
+      top: 0;
+      cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="main">
+    <a id="opener">
+      <i class="material-icons">menu</i>
+    </a>
+    <div id="viewer" class="spreads"></div>
+    <a id="prev" href="#prev" class="arrow">
+      <i class="material-icons">chevron_left</i>
+    </a>
+    <a id="next" href="#next" class="arrow">
+      <i class="material-icons">chevron_right</i>
+    </a>
+  </div>
+  <div id="navigation">
+    <a id="closer">
+      <i class="material-icons">close</i>
+    </a>
+    <h1 id="title">...</h1>
+    <image id="cover" width="150px"/>
+    <h2 id="author">...</h2>
+    <ul id="toc"></ul>
+  </div>
+
+  <script>
+    // Load the opf
+    var book = ePub(window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = book.renderTo("viewer", {
+      ignoreClass: "annotator-hl",
+      width: "100%",
+      height: 600
+    });
+
+    // var hash = window.location.hash.slice(2);
+    var loc = window.location.href.indexOf("?loc=");
+    if (loc > -1) {
+      var href =  window.location.href.slice(loc + 5);
+      var hash = decodeURIComponent(href);
+    }
+    rendition.display(hash || undefined);
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+    var nav = document.getElementById("navigation");
+    var opener = document.getElementById("opener");
+    opener.addEventListener("click", function(e){
+      nav.classList.add("open");
+    }, false);
+
+    var closer = document.getElementById("closer");
+    closer.addEventListener("click", function(e){
+      nav.classList.remove("open");
+    }, false);
+
+
+    rendition.on("rendered", function(section){
+      var old = document.querySelectorAll('.active');
+      Array.prototype.slice.call(old, 0).forEach(function (link) {
+        link.classList.remove("active");
+      })
+
+      var active = document.querySelector('a[href="'+section.href+'"]');
+      if (active) {
+        active.classList.add("active");
+      }
+      // Add CFI fragment to the history
+      history.pushState({}, '', "?loc=" + encodeURIComponent(section.href));
+      // window.location.hash = "#/"+section.href
+    });
+
+    book.loaded.navigation.then(function(toc){
+      var $nav = document.getElementById("toc"),
+          docfrag = document.createDocumentFragment();
+
+      toc.forEach(function(chapter, index) {
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        link.id = "chap-" + chapter.id;
+        link.textContent = chapter.label;
+        link.href = chapter.href;
+        item.appendChild(link);
+        docfrag.appendChild(item);
+
+        link.onclick = function(){
+          var url = link.getAttribute("href");
+          console.log(url)
+          rendition.display(url);
+          return false;
+        };
+
+      });
+
+      $nav.appendChild(docfrag);
+
+
+    });
+
+    book.loaded.metadata.then(function(meta){
+      var $title = document.getElementById("title");
+      var $author = document.getElementById("author");
+      var $cover = document.getElementById("cover");
+      var $nav = document.getElementById('navigation');
+
+      $title.textContent = meta.title;
+      $author.textContent = meta.creator;
+      if (book.archive) {
+        book.archive.createUrl(book.cover)
+          .then(function (url) {
+            $cover.src = url;
+          })
+      } else {
+        $cover.src = book.cover;
+      }
+
+      // if ($nav.offsetHeight + 60 < window.innerHeight) {
+      //   $nav.classList.add("fixed");
+      // }
+
+    });
+
+    function checkForAnnotator(cb, w) {
+     if (!w) {
+       w = window;
+     }
+     setTimeout(function () {
+        if (w && w.annotator) {
+          cb();
+        } else {
+          checkForAnnotator(cb, w);
+        }
+      }, 100);
+    }
+
+    book.rendition.hooks.content.register(function(contents, view) {
+
+        checkForAnnotator(function () {
+
+          var annotator = contents.window.annotator;
+
+          contents.window.addEventListener('scrolltorange', function (e) {
+            var range = e.detail;
+            var cfi = new ePub.CFI(range, contents.cfiBase).toString();
+            if (cfi) {
+              book.rendition.display(cfi);
+            }
+            e.preventDefault();
+          });
+
+
+          annotator.on("highlightClick", function (annotation) {
+            console.log(annotation);
+            window.annotator.show();
+          })
+
+          annotator.on("beforeAnnotationCreated", function (annotation) {
+            console.log(annotation);
+            window.annotator.show();
+          })
+
+        }, contents.window);
+
+    });
+
+    checkForAnnotator(function () {
+      var main = document.querySelector('#main');
+      var target = document.querySelector('.annotator-frame');
+
+
+      if(window.innerWidth < 1400) {
+        /*
+        window.annotator.on("show", function () {
+          main.classList.add("open");
+        });
+
+        window.annotator.on("hide", function () {
+          main.classList.remove("open");
+        });
+        */
+
+        // create an observer instance
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.attributeName === "class") {
+              if (target.classList.contains("annotator-collapsed")) {
+                main.classList.remove("open");
+              } else {
+                main.classList.add("open");
+              }
+            }
+          });
+        });
+
+        observer.observe(target, { attributes: true });
+
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>

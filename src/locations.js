@@ -239,7 +239,11 @@ class Locations {
 	}
 
 	load(locations){
-		this._locations = JSON.parse(locations);
+		if (typeof locations === "string") {
+			this._locations = JSON.parse(locations);
+		} else {
+			this._locations = locations;
+		}
 		this.total = this._locations.length - 1;
 		return this._locations;
 	}
@@ -296,7 +300,7 @@ class Locations {
 		this.request = undefined;
 		this.pause = undefined;
 
-		this.q.clear();
+		this.q.stop();
 		this.q = undefined;
 		this.epubcfi = undefined;
 

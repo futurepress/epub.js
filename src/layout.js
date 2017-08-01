@@ -101,7 +101,7 @@ class Layout {
 		// var fullWidth = Math.floor(_width);
 		var width = _width;
 
-		var section = Math.floor(width / 8);
+		var section = Math.floor(width / 12);
 
 		var colWidth;
 		var spreadWidth;

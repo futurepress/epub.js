@@ -177,8 +177,6 @@ class Queue {
 	 */
 	clear(){
 		this._q = [];
-		this.running = false;
-		this.paused = true;
 	}
 
 	/**
@@ -193,6 +191,15 @@ class Queue {
 	 * Pause a running queue
 	 */
 	pause(){
+		this.paused = true;
+	}
+
+	/**
+	 * End the queue
+	 */
+	stop(){
+		this._q = [];
+		this.running = false;
 		this.paused = true;
 	}
 }

@@ -1,6 +1,6 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
@@ -79,10 +79,13 @@ class ContinuousViewManager extends DefaultViewManager {
 			offsetX = distX+this.settings.offset;
 		}
 
-		return this.check(offsetX, offsetY)
-			.then(function(){
-				this.scrollBy(distX, distY, true);
-			}.bind(this));
+		this.check(offsetX, offsetY);
+		this.scrollBy(distX, distY, true);
+
+		// return this.check(offsetX, offsetY)
+		// 	.then(function(){
+		// 		this.scrollBy(distX, distY, true);
+		// 	}.bind(this));
 	}
 
 	/*
@@ -109,35 +112,36 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 	*/
 
-	resize(width, height){
-
-		// Clear the queue
-		this.q.clear();
-
-		this._stageSize = this.stage.size(width, height);
-		this._bounds = this.bounds();
-
-		// Update for new views
-		this.viewSettings.width = this._stageSize.width;
-		this.viewSettings.height = this._stageSize.height;
-
-		// Update for existing views
-		this.views.each(function(view) {
-			view.size(this._stageSize.width, this._stageSize.height);
-		}.bind(this));
-
-		this.updateLayout();
-
-		// if(this.location) {
-		//   this.rendition.display(this.location.start);
-		// }
-
-		this.emit("resized", {
-			width: this.stage.width,
-			height: this.stage.height
-		});
-
-	}
+	// resize(width, height){
+	//
+	// 	// Clear the queue
+	// 	this.q.clear();
+	//
+	// 	this._stageSize = this.stage.size(width, height);
+	// 	console.log("resize says", this._stageSize, width, height);
+	// 	this._bounds = this.bounds();
+	//
+	// 	// Update for new views
+	// 	this.viewSettings.width = this._stageSize.width;
+	// 	this.viewSettings.height = this._stageSize.height;
+	//
+	// 	// Update for existing views
+	// 	this.views.each(function(view) {
+	// 		view.size(this._stageSize.width, this._stageSize.height);
+	// 	}.bind(this));
+	//
+	// 	this.updateLayout();
+	//
+	// 	// if(this.location) {
+	// 	//   this.rendition.display(this.location.start);
+	// 	// }
+	//
+	// 	this.emit("resized", {
+	// 		width: this._stageSize.width,
+	// 		height: this._stageSize.height
+	// 	});
+	//
+	// }
 
 	onResized(e) {
 
@@ -227,7 +231,6 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	counter(bounds){
-
 		if(this.settings.axis === "vertical") {
 			this.scrollBy(0, bounds.heightDelta, true);
 		} else {
@@ -254,7 +257,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			isVisible = this.isVisible(view, offset, offset, container);
 
 			if(isVisible === true) {
-				console.log("visible " + view.index);
+				// console.log("visible " + view.index);
 
 				if (!view.displayed) {
 					promises.push(view.display(this.request).then(function (view) {
@@ -266,7 +269,7 @@ class ContinuousViewManager extends DefaultViewManager {
 				visible.push(view);
 			} else {
 				// this.q.enqueue(view.destroy.bind(view));
-				console.log("hidden " + view.index);
+				// console.log("hidden " + view.index);
 
 				clearTimeout(this.trimTimeout);
 				this.trimTimeout = setTimeout(function(){
@@ -555,35 +558,35 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 	}
 
-	updateLayout() {
-
-		if (!this.stage) {
-			return;
-		}
-
-		if(this.settings.axis === "vertical") {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height);
-		} else {
-			this.layout.calculate(
-				this._stageSize.width,
-				this._stageSize.height,
-				this.settings.gap
-			);
-
-			// Set the look ahead offset for what is visible
-			this.settings.offset = this.layout.delta;
-
-			// this.stage.addStyleRules("iframe", [{"padding" : "0 " + (this.layout.gap / 2) + "px"}]);
-
-		}
-
-		// Set the dimensions for views
-		this.viewSettings.width = this.layout.width;
-		this.viewSettings.height = this.layout.height;
-
-		this.setLayout(this.layout);
-
-	}
+	// updateLayout() {
+	//
+	// 	if (!this.stage) {
+	// 		return;
+	// 	}
+	//
+	// 	if(this.settings.axis === "vertical") {
+	// 		this.layout.calculate(this._stageSize.width, this._stageSize.height);
+	// 	} else {
+	// 		this.layout.calculate(
+	// 			this._stageSize.width,
+	// 			this._stageSize.height,
+	// 			this.settings.gap
+	// 		);
+	//
+	// 		// Set the look ahead offset for what is visible
+	// 		this.settings.offset = this.layout.delta;
+	//
+	// 		// this.stage.addStyleRules("iframe", [{"padding" : "0 " + (this.layout.gap / 2) + "px"}]);
+	//
+	// 	}
+	//
+	// 	// Set the dimensions for views
+	// 	this.viewSettings.width = this.layout.width;
+	// 	this.viewSettings.height = this.layout.height;
+	//
+	// 	this.setLayout(this.layout);
+	//
+	// }
 
 	next(){
 
@@ -625,6 +628,8 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.settings.axis = axis;
 
+		this.stage && this.stage.axis(axis);
+
 		this.viewSettings.axis = axis;
 
 		if (!this.settings.overflow) {
@@ -642,6 +647,8 @@ class ContinuousViewManager extends DefaultViewManager {
 		} else {
 			this.settings.infinite = false;
 		}
+
+		this.updateLayout();
 
 	}
 }
