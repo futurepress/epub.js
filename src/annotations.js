@@ -69,9 +69,9 @@ class Annotations {
 		return annotation;
 	}
 
-	remove (cfiRange) {
-		let hash = decodeURI(cfiRange);
-		let result;
+	remove (cfiRange, type) {
+		let hash = encodeURI(cfiRange);
+
 		if (hash in this._annotations) {
 			let annotation = this._annotations[hash];
 
@@ -84,7 +84,6 @@ class Annotations {
 
 			delete this._annotations[hash];
 		}
-		return result;
 	}
 
 	highlight (cfiRange, data, cb) {
@@ -177,6 +176,7 @@ class Annotation {
 
 	detach (contents) {
 		let {cfiRange, type} = this;
+		let result;
 
 		if (contents) {
 			if (type === "highlight") {

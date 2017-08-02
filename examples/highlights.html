@@ -131,6 +131,7 @@
         var text;
         var li = document.createElement('li');
         var a = document.createElement('a');
+        var remove = document.createElement('a');
         var textNode;
 
         if (range) {
@@ -143,8 +144,16 @@
             rendition.display(cfiRange);
           };
 
+          remove.textContent = "remove";
+          remove.href = "#" + cfiRange;
+          remove.onclick = function () {
+            rendition.annotations.remove(cfiRange);
+            return false;
+          };
+
           li.appendChild(a);
           li.appendChild(textNode);
+          li.appendChild(remove);
           highlights.appendChild(li);
         }
 

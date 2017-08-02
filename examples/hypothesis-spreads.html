@@ -218,8 +218,11 @@
   </div>
 
   <script>
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+
     // Load the opf
-    var book = ePub(window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       ignoreClass: "annotator-hl",
       width: "100%",
@@ -273,6 +276,23 @@
       history.pushState({}, '', "?loc=" + encodeURIComponent(section.href));
       // window.location.hash = "#/"+section.href
     });
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
 
     book.loaded.navigation.then(function(toc){
       var $nav = document.getElementById("toc"),

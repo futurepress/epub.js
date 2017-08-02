@@ -103,7 +103,7 @@ class Themes {
 		var theme;
 
 		for (var name in themes) {
-			if (themes.hasOwnProperty(name) && name === this._current) {
+			if (themes.hasOwnProperty(name) && (name === this._current || name === "default")) {
 				theme = themes[name];
 				if(theme.rules || (theme.url && links.indexOf(theme.url) === -1)) {
 					this.add(name, contents);
