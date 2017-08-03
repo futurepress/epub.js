@@ -614,7 +614,9 @@ class Contents {
 
 		content = this.content || this.document.body;
 
-		content.classList.add(className);
+		if (content) {
+			content.classList.add(className);
+		}
 
 	}
 
@@ -625,7 +627,9 @@ class Contents {
 
 		content = this.content || this.document.body;
 
-		content.classList.remove(className);
+		if (content) {
+			content.classList.remove(className);
+		}
 
 	}
 
@@ -891,7 +895,7 @@ class Contents {
 	mark(cfiRange, data={}, cb) {
 
 		if (cfiRange in this.marks) {
-			item = this.marks[cfiRange];
+			let item = this.marks[cfiRange];
 			return item;
 		}
 

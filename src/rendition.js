@@ -322,9 +322,15 @@ class Rendition {
 	 * @param  {*} view
 	 */
 	afterDisplayed(view){
-		this.hooks.content.trigger(view.contents, this).then(() => {
+		if (view.contents) {
+			this.hooks.content.trigger(view.contents, this).then(() => {
+				this.emit("rendered", view.section, view);
+			});
+		} else {
+			console.log("no contents", view.index);
 			this.emit("rendered", view.section, view);
-		});
+		}
+
 		// this.reportLocation();
 	}
 

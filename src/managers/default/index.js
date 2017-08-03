@@ -207,6 +207,7 @@ class DefaultViewManager {
 		var displaying = new defer();
 		var displayed = displaying.promise;
 
+		/* TODO: this needs more testing, always re-render for now
 		// Check to make sure the section we want isn't already shown
 		var visible = this.views.find(section);
 
@@ -217,6 +218,7 @@ class DefaultViewManager {
 			displaying.resolve();
 			return displayed;
 		}
+		*/
 
 		// Hide all current views
 		this.clear();
