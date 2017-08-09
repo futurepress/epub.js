@@ -547,6 +547,7 @@ class DefaultViewManager {
 		var container = this.container.getBoundingClientRect();
 
 		var left = 0;
+		let used = 0;
 
 		if(this.fullsize) {
 			left = window.scrollX;
@@ -558,25 +559,29 @@ class DefaultViewManager {
 			let position = view.position().left;
 			let width = view.width();
 
-			let startPos = left + offset;
-			let endPos = startPos + this.layout.spreadWidth + this.layout.gap;
-			if (endPos > left + offset + width) {
-				endPos = left + offset + width;
+			// Find mapping
+			let start = left + container.left - position + used;
+			let end = start + this.layout.spreadWidth - used;
+
+			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
+
+			// Find displayed pages
+			let startPos = left + used;
+			let endPos = startPos + this.layout.spreadWidth - used;
+			if (endPos > offset + width) {
+				endPos = offset + width;
+				used = this.layout.pageWidth;
 			}
 
 			let totalPages = this.layout.count(width).pages;
-			let currPage = Math.ceil((startPos - offset) / this.layout.spreadWidth);
+			let currPage = Math.floor((startPos - offset) / this.layout.pageWidth);
 			let pages = [];
-			let numPages = (endPos - startPos) / (this.layout.columnWidth + (this.layout.gap / 2));
+			let numPages = Math.floor((endPos - startPos) / this.layout.pageWidth);
+
 			for (var i = 1; i <= numPages; i++) {
 				let pg = currPage + i;
 				pages.push(pg);
 			}
-
-			let start = left + container.left - position;
-			let end = start + this.layout.spreadWidth + this.layout.gap;
-
-			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
 			return {
 				index,

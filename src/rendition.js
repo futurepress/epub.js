@@ -620,7 +620,7 @@ class Rendition {
 		}
 
 		if (end.index === this.book.spine.last().index &&
-				located.end.displayed.page === located.end.displayed.totalPages) {
+				located.end.displayed.page >= located.end.displayed.totalPages) {
 			located.atEnd = true;
 		}
 

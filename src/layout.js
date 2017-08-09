@@ -105,6 +105,7 @@ class Layout {
 
 		var colWidth;
 		var spreadWidth;
+		var pageWidth;
 		var delta;
 
 		if (this._spread && width >= this._minSpreadWidth) {
@@ -135,14 +136,15 @@ class Layout {
 			width = colWidth;
 		}
 
-		spreadWidth = colWidth * divisor;
+		spreadWidth = (colWidth * divisor) + gap;
+		pageWidth = colWidth + (gap / 2);
 
 		delta = width;
-		// console.log(delta, width);
 
 		this.width = width;
 		this.height = _height;
 		this.spreadWidth = spreadWidth;
+		this.pageWidth = pageWidth;
 		this.delta = delta;
 
 		this.columnWidth = colWidth;
@@ -152,6 +154,7 @@ class Layout {
 		this.props.width = width;
 		this.props.height = _height;
 		this.props.spreadWidth = spreadWidth;
+		this.props.pageWidth = pageWidth;
 		this.props.delta = delta;
 
 		this.props.columnWidth = colWidth;

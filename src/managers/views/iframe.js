@@ -253,11 +253,12 @@ class IframeView {
 				// Get the contentWidth by resizing the iframe
 				// Check with a min reset of the textWidth
 
-				// width = this.contentWidth(textWidth);
-
+				// Add padding back
+				if (width % this.layout.width > 0) {
+					width += this.layout.gap / 2;
+				}
 				/*
-				columns = Math.ceil(width / (this.settings.layout.columnWidth));
-
+				columns = Math.ceil(width / this.settings.layout.delta);
 				if ( this.settings.layout.divisor > 1 &&
 						 this.settings.layout.name === "reflowable" &&
 						(columns % 2 > 0)) {
@@ -265,11 +266,6 @@ class IframeView {
 					width += this.settings.layout.gap + this.settings.layout.columnWidth;
 				}
 				*/
-
-				// Add padding back
-				if (width % this.layout.width > 0) {
-					width += this.layout.gap / 2;
-				}
 
 				// Save the textWdith
 				this._textWidth = textWidth;
