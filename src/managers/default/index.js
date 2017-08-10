@@ -207,18 +207,27 @@ class DefaultViewManager {
 		var displaying = new defer();
 		var displayed = displaying.promise;
 
-		/* TODO: this needs more testing, always re-render for now
+		// Check if moving to target is needed
+		if (target === section.href || parseInt(target)) {
+			target = undefined;
+		}
+
 		// Check to make sure the section we want isn't already shown
 		var visible = this.views.find(section);
 
-		// View is already shown, just move to correct location
-		if(visible && target) {
-			let offset = visible.locationOf(target);
-			this.moveTo(offset);
+		// View is already shown, just move to correct location in view
+		if(visible && section) {
+			let offset = visible.offset();
+			this.scrollTo(offset.left, offset.top, true);
+
+			if(target) {
+				let offset = visible.locationOf(target);
+				this.moveTo(offset);
+			}
+
 			displaying.resolve();
 			return displayed;
 		}
-		*/
 
 		// Hide all current views
 		this.clear();
@@ -433,6 +442,8 @@ class DefaultViewManager {
 	}
 
 	clear () {
+		this.q.clear();
+
 		if (this.views) {
 			this.views.hide();
 			this.scrollTo(0,0, true);
@@ -449,62 +460,14 @@ class DefaultViewManager {
 		}
 		return this.location;
 	}
-	/*
-	scrolledLocation(){
 
-		var visible = this.visible();
-		var startPage, endPage;
-		var startA, startB, endA, endB;
-		var last;
-		var container = this.container.getBoundingClientRect();
-		var pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
-		var offset = 0;
-
-		if(!this.settings.height) {
-			offset = window.scrollY;
-		}
-
-		if(visible.length === 1) {
-			startA = (container.top - visible[0].position().top) + offset;
-			endA = startA + pageHeight;
-			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
-
-			return {
-				index : visible[0].section.index,
-				href : visible[0].section.href,
-				start: startPage.start,
-				end: startPage.end
-			};
-		}
-
-		if(visible.length > 1) {
-			last = visible.length - 1;
-
-			startA = (container.top - visible[0].position().top) + offset;
-			endA = startA + (container.top - visible[0].position().bottom);
-
-			startB = (container.top - visible[last].position().top) + offset;
-			endB = pageHeight - startB;
-
-			startPage = this.mapping.page(visible[0].contents, visible[0].section.cfiBase, startA, endA)
-			endPage = this.mapping.page(visible[last].contents, visible[last].section.cfiBase, startB, endB);
-
-			return {
-				index : visible[last].section.index,
-				href : visible[last].section.href,
-				start: startPage.start,
-				end: endPage.end
-			};
-		}
-
-	}
-	*/
 	scrolledLocation() {
 		let visible = this.visible();
-		var container = this.container.getBoundingClientRect();
-		var pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
+		let container = this.container.getBoundingClientRect();
+		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
 
-		var offset = 0;
+		let offset = 0;
+		let used = 0;
 
 		if(this.fullsize) {
 			offset = window.scrollY;
@@ -513,18 +476,21 @@ class DefaultViewManager {
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
 			let position = view.position();
-			let startPos = position.top - container.top + offset;
-			let endPos = startPos + pageHeight;
+			let startPos = position.top - container.top + offset + used;
+			let endPos = startPos + pageHeight - used;
 			if (endPos > position.bottom - container.top + offset) {
 				endPos = position.bottom - container.top + offset;
+				used = (endPos - startPos);
 			}
 
 			let totalPages = this.layout.count(view._height, pageHeight).pages;
-			let currPage = Math.round(startPos / pageHeight);
+			let currPage = Math.ceil(startPos / pageHeight);
 			let pages = [];
-			let numPages = (endPos - startPos) / pageHeight;
-			for (var i = 1; i <= numPages; i++) {
-				let pg = currPage + i;
+			let endPage = Math.ceil(endPos / pageHeight);
+
+			pages = [currPage];
+			for (var i = currPage; i <= endPage; i++) {
+				let pg = i;
 				pages.push(pg);
 			}
 
@@ -544,9 +510,9 @@ class DefaultViewManager {
 
 	paginatedLocation(){
 		let visible = this.visible();
-		var container = this.container.getBoundingClientRect();
+		let container = this.container.getBoundingClientRect();
 
-		var left = 0;
+		let left = 0;
 		let used = 0;
 
 		if(this.fullsize) {
@@ -574,12 +540,13 @@ class DefaultViewManager {
 			}
 
 			let totalPages = this.layout.count(width).pages;
-			let currPage = Math.floor((startPos - offset) / this.layout.pageWidth);
+			let currPage = Math.ceil((startPos + (this.layout.gap) - offset) / this.layout.pageWidth);
 			let pages = [];
-			let numPages = Math.floor((endPos - startPos) / this.layout.pageWidth);
+			let endPage = Math.ceil((endPos - (this.layout.gap) - offset) / this.layout.pageWidth);
 
-			for (var i = 1; i <= numPages; i++) {
-				let pg = currPage + i;
+			pages = [currPage];
+			for (var i = currPage; i <= endPage; i++) {
+				let pg = i;
 				pages.push(pg);
 			}
 

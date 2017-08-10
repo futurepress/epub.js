@@ -227,9 +227,10 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	display(target){
-
+		if (this.displaying) {
+			this.displaying.resolve();
+		}
 		return this.q.enqueue(this._display, target);
-
 	}
 
 	/**
@@ -248,6 +249,8 @@ class Rendition {
 		var section;
 		var moveTo;
 
+		this.displaying = displaying;
+
 		// Check if this is a book percentage
 		if (this.book.locations.length &&
 				(isFloat(target) ||
@@ -263,12 +266,16 @@ class Rendition {
 			return displayed;
 		}
 
-		return this.manager.display(section, target)
-			.then(function(){
+		this.manager.display(section, target)
+			.then(() => {
+				displaying.resolve(section);
+				this.displaying = undefined;
+
 				this.emit("displayed", section);
 				this.reportLocation();
-			}.bind(this));
+			});
 
+		return displayed;
 	}
 
 	/*
@@ -327,7 +334,6 @@ class Rendition {
 				this.emit("rendered", view.section, view);
 			});
 		} else {
-			console.log("no contents", view.index);
 			this.emit("rendered", view.section, view);
 		}
 
@@ -351,7 +357,7 @@ class Rendition {
 	 */
 	onResized(size){
 
-		if (this.location) {
+		if (this.location && this.location.start) {
 			// this.manager.clear();
 			this.display(this.location.start.cfi);
 		}
@@ -518,12 +524,18 @@ class Rendition {
 	 * @private
 	 */
 	reportLocation(){
-		return this.q.enqueue(function(){
+		return this.q.enqueue(function reportedLocation(){
 			var location = this.manager.currentLocation();
 			if (location && location.then && typeof location.then === "function") {
 				location.then(function(result) {
 					let located = this.located(result);
+
+					if (!located || !located.start || !located.end) {
+						return;
+					}
+
 					this.location = located;
+
 					this.emit("locationChanged", {
 						index: this.location.start.index,
 						href: this.location.start.href,
@@ -536,6 +548,11 @@ class Rendition {
 				}.bind(this));
 			} else if (location) {
 				let located = this.located(location);
+
+				if (!located || !located.start || !located.end) {
+					return;
+				}
+
 				this.location = located;
 
 				this.emit("locationChanged", {
@@ -582,7 +599,7 @@ class Rendition {
 				href: start.href,
 				cfi: start.mapping.start,
 				displayed: {
-					page: start.pages[0],
+					page: start.pages[0] || 1,
 					total: start.totalPages
 				}
 			},
@@ -591,8 +608,8 @@ class Rendition {
 				href: end.href,
 				cfi: end.mapping.end,
 				displayed: {
-					page: end.pages[end.pages.length-1],
-					totalPages: end.totalPages
+					page: end.pages[end.pages.length-1] || 1,
+					total: end.totalPages
 				}
 			}
 		};
@@ -620,7 +637,7 @@ class Rendition {
 		}
 
 		if (end.index === this.book.spine.last().index &&
-				located.end.displayed.page >= located.end.displayed.totalPages) {
+				located.end.displayed.page >= located.end.displayed.total) {
 			located.atEnd = true;
 		}
 

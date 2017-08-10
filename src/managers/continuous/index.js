@@ -5,7 +5,6 @@ import debounce from 'lodash/debounce'
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
 		super(options);
-		// DefaultViewManager.apply(this, arguments); // call super constructor.
 
 		this.name = "continuous";
 
@@ -21,12 +20,11 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		extend(this.settings, options.settings || {});
 
-		// Gap can be 0, byt defaults doesn't handle that
+		// Gap can be 0, but defaults doesn't handle that
 		if (options.settings.gap != "undefined" && options.settings.gap === 0) {
 			this.settings.gap = options.settings.gap;
 		}
 
-		// this.viewSettings.axis = this.settings.axis;
 		this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
 			axis: this.settings.axis,
@@ -111,37 +109,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	}
 	*/
-
-	// resize(width, height){
-	//
-	// 	// Clear the queue
-	// 	this.q.clear();
-	//
-	// 	this._stageSize = this.stage.size(width, height);
-	// 	console.log("resize says", this._stageSize, width, height);
-	// 	this._bounds = this.bounds();
-	//
-	// 	// Update for new views
-	// 	this.viewSettings.width = this._stageSize.width;
-	// 	this.viewSettings.height = this._stageSize.height;
-	//
-	// 	// Update for existing views
-	// 	this.views.each(function(view) {
-	// 		view.size(this._stageSize.width, this._stageSize.height);
-	// 	}.bind(this));
-	//
-	// 	this.updateLayout();
-	//
-	// 	// if(this.location) {
-	// 	//   this.rendition.display(this.location.start);
-	// 	// }
-	//
-	// 	this.emit("resized", {
-	// 		width: this._stageSize.width,
-	// 		height: this._stageSize.height
-	// 	});
-	//
-	// }
 
 	onResized(e) {
 
@@ -250,7 +217,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var updating = new defer();
 		var promises = [];
-
 		for (var i = 0; i < viewsLength; i++) {
 			view = views[i];
 
@@ -336,17 +302,14 @@ class ContinuousViewManager extends DefaultViewManager {
 		if(newViews.length){
 			return Promise.all(promises)
 				.then(() => {
+					// Check to see if anything new is on screen after rendering
 					return this.update(delta);
 				});
-					// Check to see if anything new is on screen after rendering
-			// return this.q.enqueue(function(){
-			// 	this.update(delta);
-			// }.bind(this));
-
-
-				// }.bind(this));
 
 		} else {
+			this.q.enqueue(function(){
+				this.update();
+			}.bind(this));
 			checking.resolve(false);
 			return checking.promise;
 		}
@@ -468,8 +431,6 @@ class ContinuousViewManager extends DefaultViewManager {
 		let scrollTop;
 		let scrollLeft;
 
-		// if(!this.ignore) {
-
 		if(this.settings.height) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
@@ -484,36 +445,6 @@ class ContinuousViewManager extends DefaultViewManager {
 		if(!this.ignore) {
 
 			this._scrolled();
-			// if((this.scrollDeltaVert === 0 &&
-			// 	 this.scrollDeltaHorz === 0) ||
-			// 	 this.scrollDeltaVert > this.settings.offsetDelta ||
-			// 	 this.scrollDeltaHorz > this.settings.offsetDelta) {
-		if(this.scrollDeltaVert > this.settings.offsetDelta ||
-			 this.scrollDeltaHorz > this.settings.offsetDelta) {
-				// console.log("scroll", this.scrollDeltaHorz);
-				//
-				// this.q.enqueue(function() {
-				// 	this.check();
-				// }.bind(this));
-				// // this.check();
-				//
-				// this.scrollDeltaVert = 0;
-				// this.scrollDeltaHorz = 0;
-				//
-				// this.emit("scroll", {
-				// 	top: scrollTop,
-				// 	left: scrollLeft
-				// });
-				//
-				// clearTimeout(this.afterScrolled);
-				// this.afterScrolled = setTimeout(function () {
-				// 	this.emit("scrolled", {
-				// 		top: this.scrollTop,
-				// 		left: this.scrollLeft
-				// 	});
-				// }.bind(this));
-
-			}
 
 		} else {
 			this.ignore = false;
@@ -533,9 +464,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 
 		this.scrolled = false;
-		// }
-
-		// this.tick.call(window, this.onScroll.bind(this));
 
 	}
 
@@ -557,36 +485,6 @@ class ContinuousViewManager extends DefaultViewManager {
 			});
 		}.bind(this));
 	}
-
-	// updateLayout() {
-	//
-	// 	if (!this.stage) {
-	// 		return;
-	// 	}
-	//
-	// 	if(this.settings.axis === "vertical") {
-	// 		this.layout.calculate(this._stageSize.width, this._stageSize.height);
-	// 	} else {
-	// 		this.layout.calculate(
-	// 			this._stageSize.width,
-	// 			this._stageSize.height,
-	// 			this.settings.gap
-	// 		);
-	//
-	// 		// Set the look ahead offset for what is visible
-	// 		this.settings.offset = this.layout.delta;
-	//
-	// 		// this.stage.addStyleRules("iframe", [{"padding" : "0 " + (this.layout.gap / 2) + "px"}]);
-	//
-	// 	}
-	//
-	// 	// Set the dimensions for views
-	// 	this.viewSettings.width = this.layout.width;
-	// 	this.viewSettings.height = this.layout.height;
-	//
-	// 	this.setLayout(this.layout);
-	//
-	// }
 
 	next(){
 
