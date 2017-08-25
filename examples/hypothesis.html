@@ -20,12 +20,16 @@
   <script type="text/javascript">
     window.hypothesisConfig = function () {
       return {
-        // Open the sidebar when the page loads
-        openSidebar: true,
-
-        // Needed for multi frame support
+        openSidebar: false,
         enableMultiFrameSupport: true,
-        embedScriptUrl: "https://cdn.hypothes.is/hypothesis"
+        onLayoutChange: function(state) {
+          var main = document.querySelector('#main');
+          if (state.expanded === true) {
+            main.classList.add("open");
+          } else {
+            main.classList.remove("open");
+          }
+        }
       };
     };
   </script>
@@ -359,42 +363,6 @@
         }, contents.window);
 
     });
-
-    checkForAnnotator(function () {
-      var main = document.querySelector('#main');
-      var target = document.querySelector('.annotator-frame');
-
-
-      if(window.innerWidth < 1400) {
-        /*
-        window.annotator.on("show", function () {
-          main.classList.add("open");
-        });
-
-        window.annotator.on("hide", function () {
-          main.classList.remove("open");
-        });
-        */
-
-        // create an observer instance
-        var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            if (mutation.attributeName === "class") {
-              if (target.classList.contains("annotator-collapsed")) {
-                main.classList.remove("open");
-              } else {
-                main.classList.add("open");
-              }
-            }
-          });
-        });
-
-        observer.observe(target, { attributes: true });
-
-      }
-
-    });
-
   </script>
 
 </body>

@@ -544,7 +544,11 @@ class Book {
 		var cfi = new EpubCFI(cfiRange);
 		var item = this.spine.get(cfi.spinePos);
 		var _request = this.load.bind(this);
-
+		if (!item) {
+			return new Promise((resolve, reject) => {
+				reject("CFI could not be found");
+			});
+		}
 		return item.load(_request).then(function (contents) {
 			var range = cfi.toRange(item.document);
 			return range;

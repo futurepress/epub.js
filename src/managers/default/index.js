@@ -476,10 +476,12 @@ class DefaultViewManager {
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
 			let position = view.position();
-			let startPos = position.top - container.top + offset + used;
+			let height = view.height();
+
+			let startPos = offset + container.top - position.top + used;
 			let endPos = startPos + pageHeight - used;
-			if (endPos > position.bottom - container.top + offset) {
-				endPos = position.bottom - container.top + offset;
+			if (endPos > height) {
+				endPos = height;
 				used = (endPos - startPos);
 			}
 

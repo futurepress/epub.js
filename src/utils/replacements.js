@@ -54,13 +54,13 @@ export function replaceMeta(doc, section){
 	}
 
 	head = qs(doc, "head");
-	meta = qs(head, "link[property='dc:identifier']");
+	meta = qs(head, "link[property='dc.identifier']");
 
 	if (meta) {
 		meta.setAttribute("content", id);
 	} else {
 		meta = doc.createElement("meta");
-		meta.setAttribute("property", "dc:identifier");
+		meta.setAttribute("name", "dc.identifier");
 		meta.setAttribute("content", id);
 		head.appendChild(meta);
 	}

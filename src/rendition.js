@@ -76,7 +76,7 @@ class Rendition {
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
 
-		this.book.spine.hooks.content.register(this.injectSource.bind(this));
+		this.book.spine.hooks.content.register(this.injectIdentifier.bind(this));
 
 		if (this.settings.stylesheet) {
 			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
@@ -801,10 +801,10 @@ class Rendition {
 		doc.getElementsByTagName("head")[0].appendChild(script);
 	}
 
-	injectSource(doc, section) {
+	injectIdentifier(doc, section) {
 		let ident = this.book.package.metadata.identifier;
 		let meta = doc.createElement("meta");
-		meta.setAttribute("property", "dc:source");
+		meta.setAttribute("name", "dc.relation.ispartof");
 		if (ident) {
 			meta.setAttribute("contents", ident);
 		}

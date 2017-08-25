@@ -20,16 +20,17 @@
   <script type="text/javascript">
     window.hypothesisConfig = function () {
       return {
-        // Open the sidebar when the page loads
-        openSidebar: true,
-
-        // Needed for multi frame support
+        openSidebar: false,
         enableMultiFrameSupport: true,
-        embedScriptUrl: "https://cdn.hypothes.is/hypothesis"
+        onLayoutChange: function(state) {
+          var nav = document.getElementById("navigation");
+          if (state.expanded === true) {
+            nav.classList.remove("open");
+          }
+        }
       };
     };
   </script>
-  <script src="https://cdn.hypothes.is/hypothesis"></script>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="examples.css">
@@ -235,7 +236,14 @@
       var href =  window.location.href.slice(loc + 5);
       var hash = decodeURIComponent(href);
     }
-    rendition.display(hash || undefined);
+
+    rendition.display(hash || undefined)
+      .then(function() {
+        var H_EMBED_URL = 'https://hypothes.is/embed.js';
+        var script = document.createElement('script');
+        script.setAttribute('src', H_EMBED_URL);
+        document.head.appendChild(script);
+      });
 
 
     var next = document.getElementById("next");
@@ -344,12 +352,14 @@
 
     });
 
+    var tm;
     function checkForAnnotator(cb, w) {
      if (!w) {
        w = window;
      }
-     setTimeout(function () {
+     tm = setTimeout(function () {
         if (w && w.annotator) {
+          clearTimeout(tm);
           cb();
         } else {
           checkForAnnotator(cb, w);
@@ -358,7 +368,6 @@
     }
 
     book.rendition.hooks.content.register(function(contents, view) {
-
         checkForAnnotator(function () {
 
           var annotator = contents.window.annotator;
@@ -384,41 +393,6 @@
           })
 
         }, contents.window);
-
-    });
-
-    checkForAnnotator(function () {
-      var main = document.querySelector('#main');
-      var target = document.querySelector('.annotator-frame');
-
-
-      if(window.innerWidth < 1400) {
-        /*
-        window.annotator.on("show", function () {
-          main.classList.add("open");
-        });
-
-        window.annotator.on("hide", function () {
-          main.classList.remove("open");
-        });
-        */
-
-        // create an observer instance
-        var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            if (mutation.attributeName === "class") {
-              if (target.classList.contains("annotator-collapsed")) {
-                main.classList.remove("open");
-              } else {
-                main.classList.add("open");
-              }
-            }
-          });
-        });
-
-        observer.observe(target, { attributes: true });
-
-      }
 
     });
 
