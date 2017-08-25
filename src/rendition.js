@@ -806,7 +806,7 @@ class Rendition {
 		let meta = doc.createElement("meta");
 		meta.setAttribute("name", "dc.relation.ispartof");
 		if (ident) {
-			meta.setAttribute("contents", ident);
+			meta.setAttribute("content", ident);
 		}
 		doc.getElementsByTagName("head")[0].appendChild(meta);
 	}
