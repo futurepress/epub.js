@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import {isNumber, prefixed} from "./utils/core";
+import {isNumber, prefixed, borders} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
@@ -107,9 +107,10 @@ class Contents {
 	}
 
 	textWidth() {
-		var width;
-		var range = this.document.createRange();
-		var content = this.content || this.document.body;
+		let width;
+		let range = this.document.createRange();
+		let content = this.content || this.document.body;
+		let border = borders(content);
 
 		// Select the contents of frame
 		range.selectNodeContents(content);
@@ -117,20 +118,28 @@ class Contents {
 		// get the width of the text content
 		width = range.getBoundingClientRect().width;
 
-		return width;
+		if (border && border.width) {
+			width += border.width;
+		}
 
+		return Math.round(width);
 	}
 
 	textHeight() {
-		var height;
-		var range = this.document.createRange();
-		var content = this.content || this.document.body;
+		let height;
+		let range = this.document.createRange();
+		let content = this.content || this.document.body;
+		let border = borders(content);
 
 		range.selectNodeContents(content);
 
 		height = range.getBoundingClientRect().height;
 
-		return height;
+		if (height && border.height) {
+			height += border.height;
+		}
+
+		return Math.round(height);
 	}
 
 	scrollWidth() {
@@ -323,7 +332,6 @@ class Contents {
 	resizeCheck() {
 		let width = this.textWidth();
 		let height = this.textHeight();
-
 		if (width != this._size.width || height != this._size.height) {
 
 			this._size = {
@@ -342,10 +350,7 @@ class Contents {
 		// Test size again
 		clearTimeout(this.expanding);
 
-		width = this.textWidth();
-		height = this.textHeight();
-
-		this.resizeCheck();
+		requestAnimationFrame(this.resizeCheck.bind(this));
 
 		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
 	}

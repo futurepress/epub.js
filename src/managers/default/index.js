@@ -529,7 +529,7 @@ class DefaultViewManager {
 
 			// Find mapping
 			let start = left + container.left - position + used;
-			let end = start + this.layout.spreadWidth - used;
+			let end = start + this.layout.width - used;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
