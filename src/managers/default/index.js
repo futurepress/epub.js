@@ -125,7 +125,9 @@ class DefaultViewManager {
 		this.removeEventListeners();
 
 		this.views.each(function(view){
-			view.destroy();
+			if (view) {
+				view.destroy();
+			}
 		});
 
 		this.stage.destroy();
@@ -725,7 +727,9 @@ class DefaultViewManager {
 		if(this.views) {
 
 			this.views.each(function(view){
-				view.setLayout(layout);
+				if (view) {
+					view.setLayout(layout);
+				}
 			});
 
 		}
@@ -757,7 +761,7 @@ class DefaultViewManager {
 	getContents(){
 		var contents = [];
 		this.views.each(function(view){
-			const viewContents = view.contents;
+			const viewContents = view && view.contents;
 			if (viewContents) {
 				contents.push(viewContents);
 			}
