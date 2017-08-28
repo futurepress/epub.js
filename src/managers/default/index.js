@@ -757,7 +757,10 @@ class DefaultViewManager {
 	getContents(){
 		var contents = [];
 		this.views.each(function(view){
-			contents.push(view.contents);
+			const viewContents = view.contents;
+			if (viewContents) {
+				contents.push(viewContents);
+			}
 		});
 		return contents;
 	}

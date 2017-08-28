@@ -23,7 +23,8 @@
     var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       width: "100%",
-      height: 600
+      height: 600,
+      manager: "continuous"
     });
 
     rendition.display("chapter_007.xhtml");
@@ -90,11 +91,11 @@
       console.log(location);
     });
 
-    /*
-    rendition.themes.register("dark", "theme.css");
-    rendition.themes.register("light", "theme.css");
-    rendition.themes.register("tan", "theme.css");
-    */
+
+    rendition.themes.register("dark", "themes.css");
+    rendition.themes.register("light", "themes.css");
+    rendition.themes.register("tan", "themes.css");
+
 
 
     rendition.themes.default({
@@ -107,8 +108,8 @@
       }
     });
 
-    // rendition.themes.select("tan");
-    // rendition.themes.fontSize("140%");
+    rendition.themes.select("tan");
+    rendition.themes.fontSize("140%");
 
   </script>
 
