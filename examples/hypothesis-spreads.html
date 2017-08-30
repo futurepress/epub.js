@@ -31,6 +31,7 @@
       };
     };
   </script>
+  <script src="https://cdn.hypothes.is/hypothesis"></script>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="examples.css">
@@ -193,6 +194,22 @@
       cursor: pointer;
     }
 
+    #viewer.spreads {
+      width: 84vw;
+      height: 80vh;
+      box-shadow: 0 0 4px #ccc;
+      border-radius: 5px;
+      padding: 0;
+      position: relative;
+      margin: 10vh auto;
+      background: white;
+      top: 0;
+    }
+
+    #hiddenTitle {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -201,6 +218,7 @@
       <i class="material-icons">menu</i>
     </a>
     <div id="viewer" class="spreads"></div>
+    <span id="hiddenTitle"></span>
     <a id="prev" href="#prev" class="arrow">
       <i class="material-icons">chevron_left</i>
     </a>
@@ -223,11 +241,11 @@
     var url = params && params.get("url") && decodeURIComponent(params.get("url"));
 
     // Load the opf
-    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs.org/books/moby-dick-hypothesis-demo.epub");
     var rendition = book.renderTo("viewer", {
       ignoreClass: "annotator-hl",
       width: "100%",
-      height: 600
+      height: "100%"
     });
 
     // var hash = window.location.hash.slice(2);
@@ -237,13 +255,7 @@
       var hash = decodeURIComponent(href);
     }
 
-    rendition.display(hash || undefined)
-      .then(function() {
-        var H_EMBED_URL = 'https://hypothes.is/embed.js';
-        var script = document.createElement('script');
-        script.setAttribute('src', H_EMBED_URL);
-        document.head.appendChild(script);
-      });
+    rendition.display(hash || undefined);
 
 
     var next = document.getElementById("next");
@@ -269,8 +281,20 @@
       nav.classList.remove("open");
     }, false);
 
+    // Hidden
+    var hiddenTitle = document.getElementById("hiddenTitle");
 
     rendition.on("rendered", function(section){
+      var current = book.navigation && book.navigation.get(section.href);
+
+      if (current) {
+        document.title = current.label;
+
+        // TODO: this is needed to trigger the hypothesis client
+        // to inject into the iframe
+        hiddenTitle.textContent = current.label;
+      }
+
       var old = document.querySelectorAll('.active');
       Array.prototype.slice.call(old, 0).forEach(function (link) {
         link.classList.remove("active");

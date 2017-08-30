@@ -196,7 +196,7 @@
     var url = params && params.get("url") && decodeURIComponent(params.get("url"));
 
     // Load the opf
-    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs.org/books/moby-dick-hypothesis-demo.epub");
     var rendition = book.renderTo("viewer", {
       flow: "scrolled-doc",
       ignoreClass: "annotator-hl"
