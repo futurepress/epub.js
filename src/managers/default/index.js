@@ -125,7 +125,9 @@ class DefaultViewManager {
 		this.removeEventListeners();
 
 		this.views.each(function(view){
-			view.destroy();
+			if (view) {
+				view.destroy();
+			}
 		});
 
 		this.stage.destroy();
@@ -529,7 +531,7 @@ class DefaultViewManager {
 
 			// Find mapping
 			let start = left + container.left - position + used;
-			let end = start + this.layout.spreadWidth - used;
+			let end = start + this.layout.width - used;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
@@ -725,7 +727,9 @@ class DefaultViewManager {
 		if(this.views) {
 
 			this.views.each(function(view){
-				view.setLayout(layout);
+				if (view) {
+					view.setLayout(layout);
+				}
 			});
 
 		}
@@ -757,7 +761,10 @@ class DefaultViewManager {
 	getContents(){
 		var contents = [];
 		this.views.each(function(view){
-			contents.push(view.contents);
+			const viewContents = view && view.contents;
+			if (viewContents) {
+				contents.push(viewContents);
+			}
 		});
 		return contents;
 	}

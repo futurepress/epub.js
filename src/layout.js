@@ -128,8 +128,10 @@ class Layout {
 			// colWidth = (width - gap) / divisor;
 			// gap = gap / divisor;
 			colWidth = (width / divisor) - gap;
+			pageWidth = colWidth + gap;
 		} else {
 			colWidth = width;
+			pageWidth = width;
 		}
 
 		if (this.name === "pre-paginated" && divisor > 1) {
@@ -137,7 +139,6 @@ class Layout {
 		}
 
 		spreadWidth = (colWidth * divisor) + gap;
-		pageWidth = colWidth + (gap / 2);
 
 		delta = width;
 

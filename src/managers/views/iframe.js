@@ -140,13 +140,10 @@ class IframeView {
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
 
-				// Wait for formating to apply
 				return new Promise((resolve, reject) => {
-					setTimeout(() => {
-						// Expand the iframe to the full size of the content
-						this.expand();
-						resolve();
-					}, 1);
+					// Expand the iframe to the full size of the content
+					this.expand();
+					resolve();
 				});
 
 			}.bind(this))
@@ -221,7 +218,6 @@ class IframeView {
 
 			// this.contents.layout();
 			this.expand();
-
 		}
 
 
@@ -241,149 +237,69 @@ class IframeView {
 		if(this.layout.name === "pre-paginated") return;
 
 		this._expanding = true;
+
 		// Expand Horizontally
-		// if(height && !width) {
 		if(this.settings.axis === "horizontal") {
 			// Get the width of the text
-			textWidth = this.contents.textWidth();
-			width = this.contentWidth(textWidth);
+			width = this.contents.textWidth();
 
-			// Check if the textWidth has changed
-			if(width != this._width){
-				// Get the contentWidth by resizing the iframe
-				// Check with a min reset of the textWidth
-
-				// Add padding back
-				if (width % this.layout.width > 0) {
-					width += this.layout.gap / 2;
-				}
-				/*
-				columns = Math.ceil(width / this.settings.layout.delta);
-				if ( this.settings.layout.divisor > 1 &&
-						 this.settings.layout.name === "reflowable" &&
-						(columns % 2 > 0)) {
-					// add a blank page
-					width += this.settings.layout.gap + this.settings.layout.columnWidth;
-				}
-				*/
-
-				// Save the textWdith
-				this._textWidth = textWidth;
-
-				// Save the contentWidth
-				this._contentWidth = width;
-			} else {
-				// Otherwise assume content height hasn't changed
-				width = this._contentWidth;
+			if (width % this.layout.pageWidth > 0) {
+				width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 			}
+
+			/*
+			columns = Math.ceil(width / this.settings.layout.delta);
+			if ( this.settings.layout.divisor > 1 &&
+					 this.settings.layout.name === "reflowable" &&
+					(columns % 2 > 0)) {
+				// add a blank page
+				width += this.settings.layout.gap + this.settings.layout.columnWidth;
+			}
+			*/
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
-			textHeight = this.contents.textHeight();
-			if(textHeight != this._textHeight){
-				height = this.contentHeight(textHeight);
-				this._textHeight = textHeight;
-				this._contentHeight = height;
-			} else {
-				height = this._contentHeight;
-			}
-
+			height = this.contents.textHeight();
 		}
 
 		// Only Resize if dimensions have changed or
 		// if Frame is still hidden, so needs reframing
 		if(this._needsReframe || width != this._width || height != this._height){
-			this.resize(width, height);
+			this.reframe(width, height);
 		}
 
 		this._expanding = false;
 	}
 
-	contentWidth(min) {
-		var prev;
-		var width;
-
-		// Save previous width
-		prev = this.iframe.style.width;
-		// Set the iframe size to min, width will only ever be greater
-		// Will preserve the aspect ratio
-		this.iframe.style.width = (min || 0) + "px";
-		// Get the scroll overflow width
-		width = this.contents.scrollWidth();
-		// Reset iframe size back
-		this.iframe.style.width = prev;
-		return width;
-	}
-
-	contentHeight(min) {
-		var prev;
-		var height;
-
-		prev = this.iframe.style.height;
-		this.iframe.style.height = (min || 0) + "px";
-		height = this.contents.scrollHeight();
-
-		this.iframe.style.height = prev;
-		return height;
-	}
-
-
-	resize(width, height) {
-
-		if(!this.iframe) return;
+	reframe(width, height) {
+		var size;
 
 		if(isNumber(width)){
+			this.element.style.width = width + "px";
 			this.iframe.style.width = width + "px";
 			this._width = width;
 		}
 
 		if(isNumber(height)){
+			this.element.style.height = height + "px";
 			this.iframe.style.height = height + "px";
 			this._height = height;
 		}
 
-		this.iframeBounds = bounds(this.iframe);
-
-		this.reframe(this.iframeBounds.width, this.iframeBounds.height);
-
-	}
-
-	reframe(width, height) {
-		var size;
-
-		// if(!this.displayed) {
-		//   this._needsReframe = true;
-		//   return;
-		// }
-
-		if(isNumber(width)){
-			this.element.style.width = width + "px";
-		}
-
-		if(isNumber(height)){
-			this.element.style.height = height + "px";
-		}
-
-		this.elementBounds = bounds(this.element);
-
-		let widthDelta = this.prevBounds ? this.elementBounds.width - this.prevBounds.width : this.elementBounds.width;
-		let heightDelta = this.prevBounds ? this.elementBounds.height - this.prevBounds.height : this.elementBounds.height;
+		let widthDelta = this.prevBounds ? width - this.prevBounds.width : width;
+		let heightDelta = this.prevBounds ? height - this.prevBounds.height : height;
 
 		size = {
-			width: this.elementBounds.width,
-			height: this.elementBounds.height,
+			width: width,
+			height: height,
 			widthDelta: widthDelta,
 			heightDelta: heightDelta,
 		};
 
 		this.onResize(this, size);
 
-		if (this.contents) {
-			this.settings.layout.format(this.contents);
-		}
-
 		this.emit("resized", size);
 
-		this.prevBounds = this.elementBounds;
+		this.prevBounds = size;
 
 	}
 
@@ -445,12 +361,18 @@ class IframeView {
 		this.contents.on("expand", () => {
 			if(this.displayed && this.iframe) {
 				this.expand();
+				if (this.contents) {
+					this.settings.layout.format(this.contents);
+				}
 			}
 		});
 
 		this.contents.on("resize", (e) => {
 			if(this.displayed && this.iframe) {
 				this.expand();
+				if (this.contents) {
+					this.settings.layout.format(this.contents);
+				}
 			}
 		});
 
@@ -463,12 +385,6 @@ class IframeView {
 
 	setAxis(axis) {
 		this.settings.axis = axis;
-	}
-
-	resizeListenters() {
-		// Test size again
-		clearTimeout(this.expanding);
-		this.expanding = setTimeout(this.expand.bind(this), 350);
 	}
 
 	addListeners() {
