@@ -8,6 +8,11 @@ import { Pane, Highlight, Underline } from "marks-pane";
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
+const isWebkit = /AppleWebKit/.test(navigator.userAgent);
+
+const ELEMENT_NODE = 1;
+const TEXT_NODE = 3;
+
 class Contents {
 	constructor(doc, content, cfiBase, sectionIndex) {
 		// Blank Cfi for Parsing
@@ -455,12 +460,26 @@ class Contents {
 				} else {
 					// Webkit does not handle collapsed range bounds correctly
 					// https://bugs.webkit.org/show_bug.cgi?id=138949
-					if (range.collapsed) {
-						position = range.getClientRects()[0];
+
+					// Construct a new non-collapsed range
+					if (isWebkit) {
+						let container = range.startContainer;
+						let newRange = new Range();
+
+						if (container.nodeType === ELEMENT_NODE) {
+							position = container.getBoundingClientRect();
+						} else if (container.length + 2 < range.startOffset) {
+							newRange.setStart(container, range.startOffset);
+							newRange.setEnd(container, range.startOffset + 2);
+							position = newRange.getBoundingClientRect();
+						} else {
+							newRange.setStart(container, range.startOffset - 2);
+							newRange.setEnd(container, range.startOffset);
+							position = newRange.getBoundingClientRect();
+						}
 					} else {
 						position = range.getBoundingClientRect();
 					}
-
 				}
 			}
 

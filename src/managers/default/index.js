@@ -124,11 +124,14 @@ class DefaultViewManager {
 
 		this.removeEventListeners();
 
-		this.views.each(function(view){
-			if (view) {
-				view.destroy();
-			}
-		});
+		if (this.views) {
+			this.views.each(function(view){
+				if (view) {
+					view.destroy();
+				}
+			});
+		}
+
 
 		this.stage.destroy();
 
@@ -295,7 +298,6 @@ class DefaultViewManager {
 				distX = this.container.scrollWidth - this.layout.delta;
 			}
 		}
-
 		this.scrollTo(distX, distY, true);
 	}
 
@@ -760,6 +762,9 @@ class DefaultViewManager {
 
 	getContents(){
 		var contents = [];
+		if (!this.views) {
+			return contents;
+		}
 		this.views.each(function(view){
 			const viewContents = view && view.contents;
 			if (viewContents) {
