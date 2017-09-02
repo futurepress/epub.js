@@ -8,7 +8,8 @@ import { Pane, Highlight, Underline } from "marks-pane";
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
-const isWebkit = /AppleWebKit/.test(navigator.userAgent);
+const isChrome = /Chrome/.test(navigator.userAgent);
+const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
