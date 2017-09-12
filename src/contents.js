@@ -448,7 +448,7 @@ class Contents {
 		var position;
 		var targetPos = {"left": 0, "top": 0};
 
-		if(!this.document) return;
+		if(!this.document) return targetPos;
 
 		if(this.epubcfi.isCfiString(target)) {
 			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
@@ -466,17 +466,22 @@ class Contents {
 					if (isWebkit) {
 						let container = range.startContainer;
 						let newRange = new Range();
-
-						if (container.nodeType === ELEMENT_NODE) {
-							position = container.getBoundingClientRect();
-						} else if (container.length + 2 < range.startOffset) {
-							newRange.setStart(container, range.startOffset);
-							newRange.setEnd(container, range.startOffset + 2);
-							position = newRange.getBoundingClientRect();
-						} else {
-							newRange.setStart(container, range.startOffset - 2);
-							newRange.setEnd(container, range.startOffset);
-							position = newRange.getBoundingClientRect();
+						try {
+							if (container.nodeType === ELEMENT_NODE) {
+								position = container.getBoundingClientRect();
+							} else if (range.startOffset + 2 < container.length) {
+								newRange.setStart(container, range.startOffset);
+								newRange.setEnd(container, range.startOffset + 2);
+								position = newRange.getBoundingClientRect();
+							} else if (range.startOffset - 2 > 0) {
+								newRange.setStart(container, range.startOffset - 2);
+								newRange.setEnd(container, range.startOffset);
+								position = newRange.getBoundingClientRect();
+							} else { // empty, return the parent element
+								position = container.parentNode.getBoundingClientRect();
+							}
+						} catch (e) {
+							console.error(e, e.stack);
 						}
 					} else {
 						position = range.getBoundingClientRect();

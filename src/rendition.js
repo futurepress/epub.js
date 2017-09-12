@@ -357,15 +357,15 @@ class Rendition {
 	 */
 	onResized(size){
 
-		if (this.location && this.location.start) {
-			// this.manager.clear();
-			this.display(this.location.start.cfi);
-		}
-
 		this.emit("resized", {
 			width: size.width,
 			height: size.height
 		});
+
+		if (this.location && this.location.start) {
+			// this.manager.clear();
+			this.display(this.location.start.cfi);
+		}
 
 	}
 
