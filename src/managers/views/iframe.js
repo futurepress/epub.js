@@ -76,6 +76,8 @@ class IframeView {
 		// Back up if seamless isn't supported
 		this.iframe.style.border = "none";
 
+		this.iframe.setAttribute("enable-annotation", "true");
+
 		this.resizing = true;
 
 		// this.iframe.style.display = "none";
