@@ -61,11 +61,11 @@ body {
 }
 
 #prev {
-  left: 40px;
+  left: 0;
 }
 
 #next {
-  right: 40px;
+  right: 0;
 }
 
 #toc {
@@ -86,6 +86,14 @@ body {
     opacity: .15;
     box-shadow: -2px 0 15px rgba(0, 0, 0, 1);
     content:  "";
+  }
+
+  #prev {
+    left: 40px;
+  }
+
+  #next {
+    right: 40px;
   }
 }
 
