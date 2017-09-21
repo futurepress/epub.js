@@ -356,7 +356,7 @@ class DefaultViewManager {
 
 			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
-			if(left < this.container.scrollWidth) {
+			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
 			} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
 				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
