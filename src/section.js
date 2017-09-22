@@ -18,6 +18,7 @@ class Section {
 		this.index = item.index;
 		this.href = item.href;
 		this.url = item.url;
+		this.canonical = item.canonical;
 		this.next = item.next;
 		this.prev = item.prev;
 

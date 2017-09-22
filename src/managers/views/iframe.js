@@ -352,11 +352,11 @@ class IframeView {
 
 		var link = this.document.querySelector("link[rel='canonical']");
 		if (link) {
-			link.setAttribute("href", this.section.url);
+			link.setAttribute("href", this.section.canonical);
 		} else {
 			link = this.document.createElement("link");
 			link.setAttribute("rel", "canonical");
-			link.setAttribute("href", this.section.url);
+			link.setAttribute("href", this.section.canonical);
 			this.document.querySelector("head").appendChild(link);
 		}
 

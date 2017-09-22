@@ -46,7 +46,8 @@ class Book {
 			requestCredentials: undefined,
 			requestHeaders: undefined,
 			encoding: undefined,
-			replacements: undefined
+			replacements: undefined,
+			canonical: undefined
 		});
 
 		extend(this.settings, options);
@@ -321,6 +322,27 @@ class Book {
 	}
 
 	/**
+	 * Get a canonical link to a path
+	 * @param  {string} path
+	 * @return {string} the canonical path string
+	 */
+	canonical(path) {
+		var url = path;
+
+		if (!path) {
+			return "";
+		}
+
+		if (this.settings.canonical) {
+			url = this.settings.canonical(path);
+		} else {
+			url = this.resolve(path, true);
+		}
+
+		return url;
+	}
+
+	/**
 	 * Determine the type of they input passed to open
 	 * @private
 	 * @param  {string} input
@@ -369,13 +391,13 @@ class Book {
 	unpack(opf) {
 		this.package = opf;
 
-		this.spine.unpack(this.package, this.resolve.bind(this));
+		this.spine.unpack(this.package, this.resolve.bind(this), this.canonical.bind(this));
 
 		this.resources = new Resources(this.package.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
 			request: this.request.bind(this),
-			replacements: this.settings.replacements || "base64"
+			replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 		});
 
 		this.loadNavigation(this.package).then(() => {

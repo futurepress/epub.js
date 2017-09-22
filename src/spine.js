@@ -37,7 +37,7 @@ class Spine {
 	 * @param  {Package} _package
 	 * @param  {method} resolver URL resolver
 	 */
-	unpack(_package, resolver) {
+	unpack(_package, resolver, canonical) {
 
 		this.items = _package.spine;
 		this.manifest = _package.manifest;
@@ -54,11 +54,14 @@ class Spine {
 
 			if (item.href) {
 				item.url = resolver(item.href, true);
+				item.canonical = canonical(item.href);
 			}
 
 			if(manifestItem) {
 				item.href = manifestItem.href;
 				item.url = resolver(item.href, true);
+				item.canonical = canonical(item.href);
+
 				if(manifestItem.properties.length){
 					item.properties.push.apply(item.properties, manifestItem.properties);
 				}
