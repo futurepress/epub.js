@@ -74,7 +74,9 @@ class Annotations {
 
 		if (hash in this._annotations) {
 			let annotation = this._annotations[hash];
-
+			if (annotation.type !== type) {
+				return;
+			}
 			let contents = this.rendition.getContents();
 			contents.forEach( (content) => {
 				if (annotation.sectionIndex === content.sectionIndex) {
