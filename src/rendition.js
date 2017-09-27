@@ -47,10 +47,6 @@ class Rendition {
 			this.manager = this.settings.manager;
 		}
 
-		this.viewSettings = {
-			ignoreClass: this.settings.ignoreClass
-		};
-
 		this.book = book;
 
 		// this.views = null;

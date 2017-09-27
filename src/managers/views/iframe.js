@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import {extend, borders, uuid, isNumber, bounds, defer} from "../../utils/core";
+import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
 import { Pane, Highlight, Underline } from "marks-pane";
@@ -13,6 +13,7 @@ class IframeView {
 			height: 0,
 			layout: undefined,
 			globalLayoutProperties: {},
+			method: undefined
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -112,14 +113,15 @@ class IframeView {
 		//   this.iframeBounds = bounds(this.iframe);
 		// }
 
-		// Firefox has trouble with baseURI and srcdoc
-		// TODO: Disable for now in firefox
-
 
 		if(("srcdoc" in this.iframe)) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
+		}
+
+		if (!this.settings.method) {
+			this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
 		}
 
 		return this.iframe;
@@ -331,7 +333,10 @@ class IframeView {
 
 		}.bind(this);
 
-		if(this.supportsSrcdoc){
+		if (this.settings.method === "blobUrl") {
+			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
+			this.iframe.src = this.blobUrl;
+		} else if(this.settings.method === "srcdoc"){
 			this.iframe.srcdoc = contents;
 		} else {
 
@@ -652,6 +657,10 @@ class IframeView {
 
 		for (let cfiRange in this.marks) {
 			this.unmark(cfiRange);
+		}
+
+		if (this.blobUrl) {
+			revokeBlobUrl(this.blobUrl);
 		}
 
 		if(this.displayed){

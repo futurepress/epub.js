@@ -31,6 +31,7 @@ class DefaultViewManager {
 			ignoreClass: this.settings.ignoreClass,
 			axis: this.settings.axis,
 			layout: this.layout,
+			method: this.settings.method, // srcdoc, blobUrl, write
 			width: 0,
 			height: 0
 		};

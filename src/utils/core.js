@@ -3,6 +3,7 @@ const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
+const _URL = URL || (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
 
 export function isElement(obj) {
 	return !!(obj && obj.nodeType == 1);
@@ -261,13 +262,17 @@ export function createBlob(content, mime){
 }
 
 export function createBlobUrl(content, mime){
-	var _URL = window.URL || window.webkitURL || window.mozURL;
 	var tempUrl;
 	var blob = createBlob(content, mime);
 
 	tempUrl = _URL.createObjectURL(blob);
 
 	return tempUrl;
+}
+
+
+export function revokeBlobUrl(url){
+	return _URL.revokeObjectURL(url);
 }
 
 export function createBase64Url(content, mime){
