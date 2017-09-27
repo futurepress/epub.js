@@ -35,7 +35,7 @@ class Annotations {
 		this._annotations = {};
 		this._annotationsBySectionIndex = {};
 
-		this.rendition.hooks.content.register(this.inject.bind(this));
+		this.rendition.hooks.render.register(this.inject.bind(this));
 		this.rendition.hooks.unloaded.register(this.clear.bind(this));
 	}
 
@@ -59,10 +59,11 @@ class Annotations {
 			this._annotationsBySectionIndex[sectionIndex] = [hash];
 		}
 
-		let contents = this.rendition.getContents();
-		contents.forEach( (content) => {
-			if (annotation.sectionIndex === content.sectionIndex) {
-				annotation.attach(content);
+		let views = this.rendition.views();
+
+		views.each( (view) => {
+			if (annotation.sectionIndex === view.index) {
+				annotation.attach(view);
 			}
 		});
 
@@ -75,10 +76,10 @@ class Annotations {
 		if (hash in this._annotations) {
 			let annotation = this._annotations[hash];
 
-			let contents = this.rendition.getContents();
-			contents.forEach( (content) => {
-				if (annotation.sectionIndex === content.sectionIndex) {
-					annotation.detach(content);
+			let views = this.rendition.views();
+			views.each( (view) => {
+				if (annotation.sectionIndex === view.index) {
+					annotation.detach(view);
 				}
 			});
 
@@ -102,24 +103,24 @@ class Annotations {
 		return this._annotations.forEach.apply(this._annotations, arguments);
 	}
 
-	inject (contents) {
-		let sectionIndex = contents.index;
+	inject (view) {
+		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
 			annotations.forEach((hash) => {
 				let annotation = this._annotations[hash];
-				annotation.attach(contents);
+				annotation.attach(view);
 			});
 		}
 	}
 
-	clear (contents) {
-		let sectionIndex = contents.index;
+	clear (view) {
+		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
 			annotations.forEach((hash) => {
 				let annotation = this._annotations[hash];
-				annotation.detach(contents);
+				annotation.detach(view);
 			});
 		}
 	}
@@ -140,20 +141,22 @@ class Annotation {
 		type,
 		cfiRange,
 		data,
-		sectionIndex
+		sectionIndex,
+		cb
 	}) {
 		this.type = type;
 		this.cfiRange = cfiRange;
 		this.data = data;
 		this.sectionIndex = sectionIndex;
 		this.mark = undefined;
+		this.cb = cb;
 	}
 
 	update (data) {
 		this.data = data;
 	}
 
-	attach (contents) {
+	attach (view) {
 		let {cfiRange, data, type, mark, cb} = this;
 		let result;
 		/*
@@ -161,12 +164,13 @@ class Annotation {
 			return; // already added
 		}
 		*/
+
 		if (type === "highlight") {
-			result = contents.highlight(cfiRange, data, cb);
+			result = view.highlight(cfiRange, data, cb);
 		} else if (type === "underline") {
-			result = contents.underline(cfiRange, data, cb);
+			result = view.underline(cfiRange, data, cb);
 		} else if (type === "mark") {
-			result = contents.mark(cfiRange, data, cb);
+			result = view.mark(cfiRange, data, cb);
 		}
 
 		this.mark = result;
@@ -174,17 +178,17 @@ class Annotation {
 		return result;
 	}
 
-	detach (contents) {
+	detach (view) {
 		let {cfiRange, type} = this;
 		let result;
 
-		if (contents) {
+		if (view) {
 			if (type === "highlight") {
-				result = contents.unhighlight(cfiRange);
+				result = view.unhighlight(cfiRange);
 			} else if (type === "underline") {
-				result = contents.ununderline(cfiRange);
+				result = view.ununderline(cfiRange);
 			} else if (type === "mark") {
-				result = contents.unmark(cfiRange);
+				result = view.unmark(cfiRange);
 			}
 		}
 

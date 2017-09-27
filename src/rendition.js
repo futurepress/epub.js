@@ -53,7 +53,7 @@ class Rendition {
 
 		this.book = book;
 
-		this.views = null;
+		// this.views = null;
 
 		/**
 		 * Adds Hook methods to the Rendition prototype
@@ -329,13 +329,19 @@ class Rendition {
 	 * @param  {*} view
 	 */
 	afterDisplayed(view){
-		if (view.contents) {
-			this.hooks.content.trigger(view.contents, this).then(() => {
-				this.emit("rendered", view.section, view);
+
+		view.on("markClicked", (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view));
+
+		this.hooks.render.trigger(view, this)
+			.then(() => {
+				if (view.contents) {
+					this.hooks.content.trigger(view.contents, this).then(() => {
+						this.emit("rendered", view.section, view);
+					});
+				} else {
+					this.emit("rendered", view.section, view);
+				}
 			});
-		} else {
-			this.emit("rendered", view.section, view);
-		}
 
 		// this.reportLocation();
 	}
@@ -661,7 +667,7 @@ class Rendition {
 
 		this.book = undefined;
 
-		this.views = null;
+		// this.views = null;
 
 		// this.hooks.display.clear();
 		// this.hooks.serialize.clear();
@@ -683,7 +689,7 @@ class Rendition {
 	}
 
 	/**
-	 * Pass the events from a view
+	 * Pass the events from a view's Contents
 	 * @private
 	 * @param  {View} view
 	 */
@@ -695,7 +701,6 @@ class Rendition {
 		});
 
 		contents.on("selected", (e) => this.triggerSelectedEvent(e, contents));
-		contents.on("markClicked", (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, contents));
 	}
 
 	/**
@@ -774,6 +779,10 @@ class Rendition {
 
 	getContents () {
 		return this.manager ? this.manager.getContents() : [];
+	}
+
+	views () {
+		return this.manager ? this.manager.views : [];
 	}
 
 	handleLinks(contents) {

@@ -3,7 +3,6 @@ import {isNumber, prefixed, borders} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
-import { Pane, Highlight, Underline } from "marks-pane";
 
 // Dom events to listen for
 const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
@@ -31,11 +30,6 @@ class Contents {
 
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
-
-		this.pane = undefined;
-		this.highlights = {};
-		this.underlines = {};
-		this.marks = {};
 
 		this.listeners();
 	}
@@ -345,7 +339,6 @@ class Contents {
 				height: height
 			};
 
-			this.pane && this.pane.render();
 			this.onResize && this.onResize(this._size);
 			this.emit("resize", this._size);
 		}
@@ -534,7 +527,6 @@ class Contents {
 					ready = true;
 					// Let apply
 					setTimeout(() => {
-						this.pane && this.pane.render();
 						resolve(true);
 					}, 1);
 				}
@@ -605,7 +597,6 @@ class Contents {
 				}
 			});
 		}
-		this.pane && this.pane.render();
 	}
 
 	addScript(src) {
@@ -838,167 +829,6 @@ class Contents {
 		replaceLinks(this.content, (href) => {
 			this.emit("linkClicked", href);
 		});
-	}
-
-	highlight(cfiRange, data={}, cb) {
-		let range = this.range(cfiRange);
-		let emitter = () => {
-			this.emit("markClicked", cfiRange, data);
-		};
-
-		data["epubcfi"] = cfiRange;
-
-		if (!this.pane) {
-			this.pane = new Pane(this.content, this.document.body);
-		}
-
-		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
-		let h = this.pane.addMark(m);
-
-		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
-
-		h.element.addEventListener("click", emitter);
-
-		if (cb) {
-			h.element.addEventListener("click", cb);
-		}
-		return h;
-	}
-
-	underline(cfiRange, data={}, cb) {
-		let range = this.range(cfiRange);
-		let emitter = () => {
-			this.emit("markClicked", cfiRange, data);
-		};
-
-		data["epubcfi"] = cfiRange;
-
-		if (!this.pane) {
-			this.pane = new Pane(this.content, this.document.body);
-		}
-
-		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
-		let h = this.pane.addMark(m);
-
-		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
-
-		h.element.addEventListener("click", emitter);
-
-		if (cb) {
-			h.element.addEventListener("click", cb);
-		}
-		return h;
-	}
-
-	/*
-	mark(cfiRange, data={}, cb) {
-		let range = this.range(cfiRange);
-
-		let container = range.commonAncestorContainer;
-		let parent = (container.nodeType === 1) ? container : container.parentNode;
-		let emitter = () => {
-			this.emit("markClicked", cfiRange, data);
-		};
-
-		parent.setAttribute("ref", "epubjs-mk");
-
-		parent.dataset["epubcfi"] = cfiRange;
-
-		if (data) {
-			Object.keys(data).forEach((key) => {
-				parent.dataset[key] = data[key];
-			});
-		}
-
-		parent.addEventListener("click", emitter);
-
-		if (cb) {
-			parent.addEventListener("click", cb);
-		}
-
-		this.marks[cfiRange] = { "element": parent, "listeners": [emitter, cb] };
-
-		return parent;
-	}
-	*/
-
-	mark(cfiRange, data={}, cb) {
-
-		if (cfiRange in this.marks) {
-			let item = this.marks[cfiRange];
-			return item;
-		}
-
-		let range = this.range(cfiRange);
-
-		let container = range.commonAncestorContainer;
-		let parent = (container.nodeType === 1) ? container : container.parentNode;
-		let emitter = (e) => {
-			this.emit("markClicked", cfiRange, data);
-		};
-
-		let pos = parent.getBoundingClientRect();
-		let mark = this.document.createElement('a');
-		mark.setAttribute("ref", "epubjs-mk");
-		mark.style.position = "absolute";
-		mark.style.top = `${pos.top}px`;
-		mark.style.left = `${pos.right}px`;
-
-		mark.dataset["epubcfi"] = cfiRange;
-
-		if (data) {
-			Object.keys(data).forEach((key) => {
-				mark.dataset[key] = data[key];
-			});
-		}
-
-		if (cb) {
-			mark.addEventListener("click", cb);
-		}
-
-		mark.addEventListener("click", emitter);
-
-		this.content.appendChild(mark);
-
-		this.marks[cfiRange] = { "element": mark, "listeners": [emitter, cb] };
-
-		return parent;
-	}
-
-	unhighlight(cfiRange) {
-		let item;
-		if (cfiRange in this.highlights) {
-			item = this.highlights[cfiRange];
-			this.pane.removeMark(item.mark);
-			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
-			});
-			delete this.highlights[cfiRange];
-		}
-	}
-
-	ununderline(cfiRange) {
-		let item;
-		if (cfiRange in this.underlines) {
-			item = this.underlines[cfiRange];
-			this.pane.removeMark(item.mark);
-			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
-			});
-			delete this.underlines[cfiRange];
-		}
-	}
-
-	unmark(cfiRange) {
-		let item;
-		if (cfiRange in this.marks) {
-			item = this.marks[cfiRange];
-			this.content.removeChild(item.element);
-			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
-			});
-			delete this.marks[cfiRange];
-		}
 	}
 
 	destroy() {
