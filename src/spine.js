@@ -212,25 +212,25 @@ class Spine {
 	first() {
 		let index = 0;
 
-		while (index < this.spineItems.length-1) {
+		do {
 			let next = this.get(index);
 			if (next && next.linear) {
 				return next;
 			}
 			index += 1;
-		}
+		} while (index < this.spineItems.length-1) ;
 	}
 
 	last() {
 		let index = this.spineItems.length-1;
 
-		while (index > 0) {
+		do {
 			let prev = this.get(index);
 			if (prev && prev.linear) {
 				return prev;
 			}
 			index -= 1;
-		}
+		} while (index > 0);
 	}
 
 	destroy() {

@@ -75,6 +75,9 @@ class Annotations {
 
 		if (hash in this._annotations) {
 			let annotation = this._annotations[hash];
+			if (annotation.type !== type) {
+				return;
+			}
 
 			let views = this.rendition.views();
 			views.each( (view) => {
