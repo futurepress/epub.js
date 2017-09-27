@@ -81,6 +81,7 @@ class Annotations {
 
 			let views = this.rendition.views();
 			views.each( (view) => {
+				this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
 				if (annotation.sectionIndex === view.index) {
 					annotation.detach(view);
 				}
@@ -88,6 +89,14 @@ class Annotations {
 
 			delete this._annotations[hash];
 		}
+	}
+
+	_removeFromAnnotationBySectionIndex (sectionIndex, hash) {
+		this._annotationsBySectionIndex[sectionIndex] = this._annotationsAt(sectionIndex).filter(h => h !== hash);
+	}
+
+	_annotationsAt (index) {
+		return this._annotationsBySectionIndex[index];
 	}
 
 	highlight (cfiRange, data, cb) {
