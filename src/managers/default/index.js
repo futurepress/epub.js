@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import {extend, defer} from "../../utils/core";
+import {extend, defer, windowBounds} from "../../utils/core";
 import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
 import Stage from "../helpers/stage";
@@ -83,6 +83,8 @@ class DefaultViewManager {
 		// Will only attach if width and height are both fixed.
 		this.stage.onResize(this.onResized.bind(this));
 
+		this.stage.onOrientationChange(this.onOrientationChange.bind(this));
+
 		// Add Event Listeners
 		this.addEventListeners();
 
@@ -122,17 +124,13 @@ class DefaultViewManager {
 	}
 
 	destroy(){
+		clearTimeout(this.orientationTimeout);
+		clearTimeout(this.resizeTimeout);
+		clearTimeout(this.afterScrolled);
+
+		this.clear();
 
 		this.removeEventListeners();
-
-		if (this.views) {
-			this.views.each(function(view){
-				if (view) {
-					view.destroy();
-				}
-			});
-		}
-
 
 		this.stage.destroy();
 
@@ -150,58 +148,63 @@ class DefaultViewManager {
 	onOrientationChange(e) {
 		let {orientation} = window;
 
-		this._stageSize = this.stage.size();
-		this._bounds = this.bounds();
-		// Update for new views
-		this.viewSettings.width = this._stageSize.width;
-		this.viewSettings.height = this._stageSize.height;
+		this.resize();
 
-		this.updateLayout();
+		// Per ampproject:
+		// In IOS 10.3, the measured size of an element is incorrect if the
+		// element size depends on window size directly and the measurement
+		// happens in window.resize event. Adding a timeout for correct
+		// measurement. See https://github.com/ampproject/amphtml/issues/8479
+		clearTimeout(this.orientationTimeout);
+		this.orientationTimeout = setTimeout(function(){
+			this.orientationTimeout = undefined;
+			this.resize();
+			this.emit("orientationchange", orientation);
+		}.bind(this), 500);
 
-		// Update for existing views
-		// this.views.each(function(view) {
-		// 	view.size(this._stageSize.width, this._stageSize.height);
-		// }.bind(this));
-
-		this.emit("orientationChange", orientation);
 	}
 
 	onResized(e) {
-		clearTimeout(this.resizeTimeout);
-		this.resizeTimeout = setTimeout(function(){
-			this.resize();
-		}.bind(this), 150);
+		this.resize();
 	}
 
 	resize(width, height){
-		// Clear the queue
-		this.q.clear();
+		let stageSize = this.stage.size(width, height);
 
-		this._stageSize = this.stage.size(width, height);
+		// For Safari, wait for orientation to catch up
+		// if the window is a square
+		this.winBounds = windowBounds();
+		if (this.orientationTimeout &&
+				this.winBounds.width === this.winBounds.height) {
+			// reset the stage size for next resize
+			this._stageSize = undefined;
+			return;
+		}
+
+		if (this._stageSize &&
+				this._stageSize.width === stageSize.width &&
+				this._stageSize.height === stageSize.height ) {
+			// Size is the same, no need to resize
+			return;
+		}
+
+		this._stageSize = stageSize;
 
 		this._bounds = this.bounds();
+
+		// Clear current views
+		this.clear();
 
 		// Update for new views
 		this.viewSettings.width = this._stageSize.width;
 		this.viewSettings.height = this._stageSize.height;
 
 		this.updateLayout();
-
-		// Update for existing views
-		// TODO: this is not updating correctly, just clear and rerender for now
-		/*
-		this.views.each(function(view) {
-			view.reset();
-			view.size(this._stageSize.width, this._stageSize.height);
-		}.bind(this));
-		*/
-		this.clear();
 
 		this.emit("resized", {
 			width: this._stageSize.width,
 			height: this._stageSize.height
 		});
-
 	}
 
 	createView(section) {
@@ -447,7 +450,8 @@ class DefaultViewManager {
 	}
 
 	clear () {
-		this.q.clear();
+
+		// this.q.clear();
 
 		if (this.views) {
 			this.views.hide();

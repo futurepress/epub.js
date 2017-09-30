@@ -77,13 +77,9 @@ class ContinuousViewManager extends DefaultViewManager {
 			offsetX = distX+this.settings.offset;
 		}
 
-		this.check(offsetX, offsetY);
-		this.scrollBy(distX, distY, true);
-
-		// return this.check(offsetX, offsetY)
-		// 	.then(function(){
-		// 		this.scrollBy(distX, distY, true);
-		// 	}.bind(this));
+		if (distX > 0 || distY > 0) {
+			this.scrollBy(distX, distY, true);
+		}
 	}
 
 	/*
@@ -110,15 +106,15 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 	*/
 
-	onResized(e) {
-
-		// this.views.clear();
-
-		clearTimeout(this.resizeTimeout);
-		this.resizeTimeout = setTimeout(function(){
-			this.resize();
-		}.bind(this), 150);
-	}
+	// onResized(e) {
+	//
+	// 	// this.views.clear();
+	//
+	// 	clearTimeout(this.resizeTimeout);
+	// 	this.resizeTimeout = setTimeout(function(){
+	// 		this.resize();
+	// 	}.bind(this), 150);
+	// }
 
 	afterResized(view){
 		this.emit("resize", view.section);
@@ -408,10 +404,10 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		scroller.addEventListener("scroll", this.onScroll.bind(this));
-		this._scrolled = debounce(this.scrolled.bind(this), 300);
+		this._scrolled = debounce(this.scrolled.bind(this), 60);
 		// this.tick.call(window, this.onScroll.bind(this));
 
-		this.scrolled = false;
+		this.didScroll = false;
 
 	}
 
@@ -463,7 +459,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this), 150);
 
 
-		this.scrolled = false;
+		this.didScroll = false;
 
 	}
 

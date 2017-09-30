@@ -1,4 +1,5 @@
 import {uuid, isNumber, isElement, windowBounds} from "../../utils/core";
+import throttle from 'lodash/throttle'
 
 class Stage {
 	constructor(_options) {
@@ -127,7 +128,7 @@ class Stage {
 		// This applies if it is set to a percent or auto.
 		if(!isNumber(this.settings.width) ||
 			 !isNumber(this.settings.height) ) {
-			this.resizeFunc = func;
+			this.resizeFunc = throttle(func, 50);
 			window.addEventListener("resize", this.resizeFunc, false);
 		}
 
@@ -135,7 +136,7 @@ class Stage {
 
 	onOrientationChange(func){
 		this.orientationChangeFunc = func;
-		window.addEventListener("orientationChange", this.orientationChangeFunc, false);
+		window.addEventListener("orientationchange", this.orientationChangeFunc, false);
 	}
 
 	size(width, height){

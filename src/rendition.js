@@ -179,7 +179,7 @@ class Rendition {
 		this.manager.on("resized", this.onResized.bind(this));
 
 		// Listen for rotation
-		this.manager.on("orientationChange", this.onOrientationChange.bind(this));
+		this.manager.on("orientationchange", this.onOrientationChange.bind(this));
 
 		// Listen for scroll changes
 		this.manager.on("scrolled", this.reportLocation.bind(this));
@@ -365,7 +365,6 @@ class Rendition {
 		});
 
 		if (this.location && this.location.start) {
-			// this.manager.clear();
 			this.display(this.location.start.cfi);
 		}
 
@@ -376,12 +375,12 @@ class Rendition {
 	 * @private
 	 */
 	onOrientationChange(orientation){
-		if (this.location) {
-			this.manager.clear();
-			this.display(this.location.start.cfi);
-		}
+		// Handled in resize event
+		// if (this.location) {
+		// 	this.display(this.location.start.cfi);
+		// }
 
-		this.emit("orientationChange", orientation);
+		this.emit("orientationchange", orientation);
 	}
 
 	/**
@@ -527,10 +526,30 @@ class Rendition {
 	 */
 	reportLocation(){
 		return this.q.enqueue(function reportedLocation(){
-			var location = this.manager.currentLocation();
-			if (location && location.then && typeof location.then === "function") {
-				location.then(function(result) {
-					let located = this.located(result);
+			requestAnimationFrame(function reportedLocationAfterRAF() {
+				var location = this.manager.currentLocation();
+				if (location && location.then && typeof location.then === "function") {
+					location.then(function(result) {
+						let located = this.located(result);
+
+						if (!located || !located.start || !located.end) {
+							return;
+						}
+
+						this.location = located;
+
+						this.emit("locationChanged", {
+							index: this.location.start.index,
+							href: this.location.start.href,
+							start: this.location.start.cfi,
+							end: this.location.end.cfi,
+							percentage: this.location.start.percentage
+						});
+
+						this.emit("relocated", this.location);
+					}.bind(this));
+				} else if (location) {
+					let located = this.located(location);
 
 					if (!located || !located.start || !located.end) {
 						return;
@@ -547,27 +566,8 @@ class Rendition {
 					});
 
 					this.emit("relocated", this.location);
-				}.bind(this));
-			} else if (location) {
-				let located = this.located(location);
-
-				if (!located || !located.start || !located.end) {
-					return;
 				}
-
-				this.location = located;
-
-				this.emit("locationChanged", {
-					index: this.location.start.index,
-					href: this.location.start.href,
-					start: this.location.start.cfi,
-					end: this.location.end.cfi,
-					percentage: this.location.start.percentage
-				});
-
-				this.emit("relocated", this.location);
-			}
-
+			}.bind(this));
 		}.bind(this));
 	}
 
