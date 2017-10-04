@@ -3,7 +3,7 @@ const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
-const _URL = URL || (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
+const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
 
 export function isElement(obj) {
 	return !!(obj && obj.nodeType == 1);
