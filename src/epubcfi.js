@@ -928,7 +928,7 @@ class EpubCFI {
 				range.setStart(missed.container, missed.offset);
 			}
 		} else {
-			console.log("NO START");
+			console.log("No startContainer found for", this.toString());
 			// No start found
 			return null;
 		}

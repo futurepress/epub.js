@@ -532,7 +532,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.overflow = this.settings.overflow;
 		}
 
-		// this.views.each(function(view){
+		// this.views.forEach(function(view){
 		// 	view.setAxis(axis);
 		// });
 

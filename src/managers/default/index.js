@@ -733,7 +733,7 @@ class DefaultViewManager {
 
 		if(this.views) {
 
-			this.views.each(function(view){
+			this.views.forEach(function(view){
 				if (view) {
 					view.setLayout(layout);
 				}
@@ -757,7 +757,7 @@ class DefaultViewManager {
 		} else {
 			this.overflow = this.settings.overflow;
 		}
-		// this.views.each(function(view){
+		// this.views.forEach(function(view){
 		// 	view.setAxis(axis);
 		// });
 
@@ -770,7 +770,7 @@ class DefaultViewManager {
 		if (!this.views) {
 			return contents;
 		}
-		this.views.each(function(view){
+		this.views.forEach(function(view){
 			const viewContents = view && view.contents;
 			if (viewContents) {
 				contents.push(viewContents);

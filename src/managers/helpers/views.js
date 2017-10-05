@@ -89,7 +89,7 @@ class Views {
 
 	// Iterators
 
-	each() {
+	forEach() {
 		return this._views.forEach.apply(this._views, arguments);
 	}
 

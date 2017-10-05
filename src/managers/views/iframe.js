@@ -570,7 +570,9 @@ class IframeView {
 		}
 
 		let range = this.contents.range(cfiRange);
-
+		if (!range) {
+			return;
+		}
 		let container = range.commonAncestorContainer;
 		let parent = (container.nodeType === 1) ? container : container.parentNode;
 
