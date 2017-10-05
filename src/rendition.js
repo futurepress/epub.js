@@ -778,7 +778,8 @@ class Rendition {
 	}
 
 	views () {
-		return this.manager ? this.manager.views : [];
+		let views = this.manager ? this.manager.views : undefined;
+		return views || [];
 	}
 
 	handleLinks(contents) {

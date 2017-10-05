@@ -564,6 +564,10 @@ class IframeView {
 
 	mark(cfiRange, data={}, cb) {
 
+		if (!this.contents) {
+			return;
+		}
+
 		if (cfiRange in this.marks) {
 			let item = this.marks[cfiRange];
 			return item;
@@ -580,12 +584,41 @@ class IframeView {
 			this.emit("markClicked", cfiRange, data);
 		};
 
-		let pos = parent.getBoundingClientRect();
+		if (range.collapsed && container.nodeType === 1) {
+			range = new Range();
+			range.selectNodeContents(container);
+		} else if (range.collapsed) { // Webkit doesn't like collapsed ranges
+			range = new Range();
+			range.selectNodeContents(parent);
+		}
+
+		let top, right, left;
+
+		if(this.layout.name === "pre-paginated" ||
+			this.settings.axis !== "horizontal") {
+			let pos = range.getBoundingClientRect();
+			top = pos.top;
+			right = pos.right;
+		} else {
+			// Element might break columns, so find the left most element
+			let rects = range.getClientRects();
+			let rect;
+			for (var i = 0; i != rects.length; i++) {
+				rect = rects[i];
+				if (!left || rect.left < left) {
+					left = rect.left;
+					right = left + this.layout.columnWidth - this.layout.gap;
+					top = rect.top;
+				}
+			}
+		}
+
+
 		let mark = this.document.createElement('a');
 		mark.setAttribute("ref", "epubjs-mk");
 		mark.style.position = "absolute";
-		mark.style.top = `${pos.top}px`;
-		mark.style.left = `${pos.right}px`;
+		mark.style.top = `${top}px`;
+		mark.style.left = `${right}px`;
 
 		mark.dataset["epubcfi"] = cfiRange;
 
