@@ -214,11 +214,12 @@ class Spine {
 
 		do {
 			let next = this.get(index);
+
 			if (next && next.linear) {
 				return next;
 			}
 			index += 1;
-		} while (index < this.spineItems.length-1) ;
+		} while (index < this.spineItems.length) ;
 	}
 
 	last() {
@@ -230,7 +231,7 @@ class Spine {
 				return prev;
 			}
 			index -= 1;
-		} while (index > 0);
+		} while (index >= 0);
 	}
 
 	destroy() {
