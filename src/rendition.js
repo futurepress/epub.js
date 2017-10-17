@@ -427,6 +427,7 @@ class Rendition {
 		var flow = this.settings.flow || metadata.flow || "auto";
 		var viewport = metadata.viewport || "";
 		var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
+		var direction = this.settings.direction || metadata.direction || "ltr";
 
 		if ((this.settings.width === 0 || this.settings.width > 0) &&
 				(this.settings.height === 0 || this.settings.height > 0)) {
@@ -439,7 +440,8 @@ class Rendition {
 			orientation : orientation,
 			flow : flow,
 			viewport : viewport,
-			minSpreadWidth : minSpreadWidth
+			minSpreadWidth : minSpreadWidth,
+			direction: direction
 		};
 
 		return properties;

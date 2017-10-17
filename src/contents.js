@@ -764,7 +764,7 @@ class Contents {
 		var COLUMN_WIDTH = prefixed("column-width");
 		var COLUMN_FILL = prefixed("column-fill");
 
-		this.width("100%");
+		this.width(width);
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport

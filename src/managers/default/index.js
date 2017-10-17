@@ -258,16 +258,6 @@ class DefaultViewManager {
 		this.add(section)
 			.then(function(view){
 
-				// if (this.settings.direction === "rtl") {
-				// 	let offset = view.offset();
-				// 	let width = view.width();
-				//
-				// 	this.moveTo({
-				// 		left: offset.left + width,
-				// 		top: offset.top
-				// 	});
-				// }
-
 				// Move to correct place within the section, if needed
 				if(target) {
 					let offset = view.locationOf(target);
@@ -308,10 +298,6 @@ class DefaultViewManager {
 	afterResized(view){
 		this.emit("resize", view.section);
 	}
-
-	// moveTo(offset){
-	// 	this.scrollTo(offset.left, offset.top);
-	// };
 
 	moveTo(offset){
 		var distX = 0,
@@ -501,7 +487,6 @@ class DefaultViewManager {
 						if (this.settings.direction === "rtl") {
 							this.scrollTo(0, 0, true);
 						} else {
-							console.log(this.container.scrollWidth);
 							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 						}
 					}
