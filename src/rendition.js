@@ -808,7 +808,7 @@ class Rendition {
 
 	handleLinks(contents) {
 		if (contents) {
-			contents.on("link", (href) => {
+			contents.on("linkClicked", (href) => {
 				let relative = this.book.path.relative(href);
 				this.display(relative);
 			});
