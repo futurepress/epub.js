@@ -171,10 +171,6 @@ class Layout {
 	format(contents){
 		var formating;
 
-		if (this.settings.direction) {
-			contents.direction(this.settings.direction);
-		}
-		
 		if (this.name === "pre-paginated") {
 			formating = contents.fit(this.columnWidth, this.height);
 		} else if (this._flow === "paginated") {

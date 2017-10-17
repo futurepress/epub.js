@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import {isNumber, prefixed, borders} from "./utils/core";
+import {isNumber, prefixed, borders, defaults} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
@@ -193,7 +193,7 @@ class Contents {
 
 	viewport(options) {
 		var _width, _height, _scale, _minimum, _maximum, _scalable;
-		var width, height, scale, minimum, maximum, scalable;
+		// var width, height, scale, minimum, maximum, scalable;
 		var $viewport = this.document.querySelector("meta[name='viewport']");
 		var parsed = {
 			"width": undefined,
@@ -204,6 +204,7 @@ class Contents {
 			"scalable": undefined
 		};
 		var newContent = [];
+		var settings = {};
 
 		/*
 		* check for the viewport size
@@ -211,12 +212,13 @@ class Contents {
 		*/
 		if($viewport && $viewport.hasAttribute("content")) {
 			let content = $viewport.getAttribute("content");
-			let _width = content.match(/width\s*=\s*([^,]*)/g);
-			let _height = content.match(/height\s*=\s*([^,]*)/g);
-			let _scale = content.match(/initial-scale\s*=\s*([^,]*)/g);
-			let _minimum = content.match(/minimum-scale\s*=\s*([^,]*)/g);
-			let _maximum = content.match(/maximum-scale\s*=\s*([^,]*)/g);
-			let _scalable = content.match(/user-scalable\s*=\s*([^,]*)/g);
+			let _width = content.match(/width\s*=\s*([^,]*)/);
+			let _height = content.match(/height\s*=\s*([^,]*)/);
+			let _scale = content.match(/initial-scale\s*=\s*([^,]*)/);
+			let _minimum = content.match(/minimum-scale\s*=\s*([^,]*)/);
+			let _maximum = content.match(/maximum-scale\s*=\s*([^,]*)/);
+			let _scalable = content.match(/user-scalable\s*=\s*([^,]*)/);
+
 			if(_width && _width.length && typeof _width[1] !== "undefined"){
 				parsed.width = _width[1];
 			}
@@ -237,22 +239,24 @@ class Contents {
 			}
 		}
 
+		settings = defaults(options || {}, parsed);
+
 		if (options) {
-			if (options.width || parsed.width) {
-				newContent.push("width=" + (options.width || parsed.width));
+			if (settings.width) {
+				newContent.push("width=" + settings.width);
 			}
 
-			if (options.height || parsed.height) {
-				newContent.push("height=" + (options.height || parsed.height));
+			if (settings.height) {
+				newContent.push("height=" + settings.height);
 			}
 
-			if (options.scale || parsed.scale) {
-				newContent.push("initial-scale=" + (options.scale || parsed.scale));
+			if (settings.scale) {
+				newContent.push("initial-scale=" + settings.scale);
 			}
-			if (options.scalable || parsed.scalable) {
-				newContent.push("minimum-scale=" + (options.scale || parsed.minimum));
-				newContent.push("maximum-scale=" + (options.scale || parsed.maximum));
-				newContent.push("user-scalable=" + (options.scalable || parsed.scalable));
+			if (settings.scalable) {
+				newContent.push("minimum-scale=" + settings.minimum);
+				newContent.push("maximum-scale=" + settings.maximum);
+				newContent.push("user-scalable=" + settings.scalable);
 			}
 
 			if (!$viewport) {
@@ -267,10 +271,7 @@ class Contents {
 		}
 
 
-		return {
-			width: parseInt(width),
-			height: parseInt(height)
-		};
+		return settings;
 	}
 
 
@@ -764,7 +765,7 @@ class Contents {
 		var COLUMN_WIDTH = prefixed("column-width");
 		var COLUMN_FILL = prefixed("column-fill");
 
-		this.width(width);
+		this.width("100%");
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport
@@ -801,8 +802,8 @@ class Contents {
 
 	fit(width, height){
 		var viewport = this.viewport();
-		var widthScale = width / viewport.width;
-		var heightScale = height / viewport.height;
+		var widthScale = width / parseInt(viewport.width);
+		var heightScale = height / parseInt(viewport.height);
 		var scale = widthScale < heightScale ? widthScale : heightScale;
 
 		var offsetY = (height - (viewport.height * scale)) / 2;
@@ -810,9 +811,6 @@ class Contents {
 		this.width(width);
 		this.height(height);
 		this.overflow("hidden");
-
-		// Deal with Mobile trying to scale to viewport
-		this.viewport({ width: width, height: height, scale: 1.0 });
 
 		// Scale to the correct size
 		this.scaler(scale, 0, offsetY);

@@ -247,12 +247,14 @@ class IframeView {
 
 		if(!this.iframe || this._expanding) return;
 
-		if(this.layout.name === "pre-paginated") return;
-
 		this._expanding = true;
 
+		if(this.layout.name === "pre-paginated") {
+			width = this.layout.columnWidth;
+			height = this.layout.height;
+		}
 		// Expand Horizontally
-		if(this.settings.axis === "horizontal") {
+		else if(this.settings.axis === "horizontal") {
 			// Get the width of the text
 			width = this.contents.textWidth();
 
