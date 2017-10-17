@@ -35,7 +35,8 @@ export function isNumber(n) {
 }
 
 export function isFloat(n) {
-	return isNumber(n) && (Math.floor(n) !== n);
+	let f = parseFloat(n);
+	return f === n && isNumber(n) && (Math.floor(f) !== n);
 }
 
 export function prefixed(unprefixed) {

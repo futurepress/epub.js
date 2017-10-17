@@ -332,6 +332,7 @@ class Contents {
 	resizeCheck() {
 		let width = this.textWidth();
 		let height = this.textHeight();
+
 		if (width != this._size.width || height != this._size.height) {
 
 			this._size = {
@@ -817,6 +818,12 @@ class Contents {
 		this.scaler(scale, 0, offsetY);
 
 		this.css("background-color", "transparent");
+	}
+
+	direction(dir) {
+		if (this.documentElement) {
+			this.documentElement.style["direction"] = dir;
+		}
 	}
 
 	mapPage(cfiBase, layout, start, end, dev) {

@@ -1,9 +1,10 @@
 import EpubCFI from "./epubcfi";
 
 class Mapping {
-	constructor(layout, dev) {
+	constructor(layout, direction, dev) {
 		this.layout = layout;
 		this.horizontal = (this.layout.flow === "paginated") ? true : false;
+		this.direction = direction || "ltr";
 		this._dev = dev;
 	}
 
@@ -107,7 +108,7 @@ class Mapping {
 			$el = stack.shift();
 
 			found = this.walk($el, (node) => {
-				var left, right;
+				var left, right, top, bottom;
 				var elPos;
 				var elRange;
 
@@ -120,17 +121,50 @@ class Mapping {
 					elPos = node.getBoundingClientRect();
 				}
 
-				left = this.horizontal ? elPos.left : elPos.top;
-				right = this.horizontal ? elPos.right : elPos.bottom;
+				if (this.horizontal && this.direction === "ltr") {
 
-				if( left >= start && left <= end ) {
-					return node;
-				} else if (right > start) {
-					return node;
+					left = this.horizontal ? elPos.left : elPos.top;
+					right = this.horizontal ? elPos.right : elPos.bottom;
+
+					if( left >= start && left <= end ) {
+						return node;
+					} else if (right > start) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
+				} else if (this.horizontal && this.direction === "rtl") {
+
+					left = elPos.left;
+					right = elPos.right;
+
+					if( right <= end && right >= start ) {
+						return node;
+					} else if (left < end) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
 				} else {
-					$prev = node;
-					stack.push(node);
+
+					top = elPos.top;
+					bottom = elPos.bottom;
+
+					if( top >= start && top <= end ) {
+						return node;
+					} else if (bottom > start) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
 				}
+
 
 			});
 
@@ -156,7 +190,7 @@ class Mapping {
 
 			found = this.walk($el, (node) => {
 
-				var left, right;
+				var left, right, top, bottom;
 				var elPos;
 				var elRange;
 
@@ -169,16 +203,48 @@ class Mapping {
 					elPos = node.getBoundingClientRect();
 				}
 
-				left = Math.round(this.horizontal ? elPos.left : elPos.top);
-				right = Math.round(this.horizontal ? elPos.right : elPos.bottom);
+				if (this.horizontal && this.direction === "ltr") {
 
-				if(left > end && $prev) {
-					return $prev;
-				} else if(right > end) {
-					return node;
+					left = Math.round(elPos.left);
+					right = Math.round(elPos.right);
+
+					if(left > end && $prev) {
+						return $prev;
+					} else if(right > end) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
+				} else if (this.horizontal && this.direction === "rtl") {
+
+					left = Math.round(this.horizontal ? elPos.left : elPos.top);
+					right = Math.round(this.horizontal ? elPos.right : elPos.bottom);
+
+					if(right < start && $prev) {
+						return $prev;
+					} else if(left < start) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
 				} else {
-					$prev = node;
-					stack.push(node);
+
+					top = Math.round(elPos.top);
+					bottom = Math.round(elPos.bottom);
+
+					if(top > end && $prev) {
+						return $prev;
+					} else if(bottom > end) {
+						return node;
+					} else {
+						$prev = node;
+						stack.push(node);
+					}
+
 				}
 
 			});
@@ -199,16 +265,34 @@ class Mapping {
 		var ranges = this.splitTextNodeIntoRanges(node);
 		var range;
 		var pos;
-		var left;
+		var left, top, right;
 
 		for (var i = 0; i < ranges.length; i++) {
 			range = ranges[i];
 
 			pos = range.getBoundingClientRect();
-			left = this.horizontal ? pos.left : pos.top;
 
-			if( left >= start ) {
-				return range;
+			if (this.horizontal && this.direction === "ltr") {
+
+				left = pos.left;
+				if( left >= start ) {
+					return range;
+				}
+
+			} else if (this.horizontal && this.direction === "rtl") {
+
+				right = pos.right;
+				if( right <= end ) {
+					return range;
+				}
+
+			} else {
+
+				top = pos.top;
+				if( top >= start ) {
+					return range;
+				}
+
 			}
 
 			// prev = range;
@@ -223,20 +307,48 @@ class Mapping {
 		var prev;
 		var range;
 		var pos;
-		var left, right;
+		var left, right, top, bottom;
 
 		for (var i = 0; i < ranges.length; i++) {
 			range = ranges[i];
 
 			pos = range.getBoundingClientRect();
-			left = this.horizontal ? pos.left : pos.top;
-			right = this.horizontal ? pos.right : pos.bottom;
 
-			if(left > end && prev) {
-				return prev;
-			} else if(right > end) {
-				return range;
+			if (this.horizontal && this.direction === "ltr") {
+
+				left = pos.left;
+				right = pos.right;
+
+				if(left > end && prev) {
+					return prev;
+				} else if(right > end) {
+					return range;
+				}
+
+			} else if (this.horizontal && this.direction === "rtl") {
+
+				left = pos.left
+				right = pos.right;
+
+				if(right < start && prev) {
+					return prev;
+				} else if(left < start) {
+					return range;
+				}
+
+			} else {
+
+				top = pos.top;
+				bottom = pos.bottom;
+
+				if(top > end && prev) {
+					return prev;
+				} else if(bottom > end) {
+					return range;
+				}
+
 			}
+
 
 			prev = range;
 
