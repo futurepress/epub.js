@@ -253,10 +253,24 @@ class Contents {
 			if (settings.scale) {
 				newContent.push("initial-scale=" + settings.scale);
 			}
-			if (settings.scalable) {
-				newContent.push("minimum-scale=" + settings.minimum);
-				newContent.push("maximum-scale=" + settings.maximum);
+
+			if (settings.scalable === "no") {
+				newContent.push("minimum-scale=" + settings.scale);
+				newContent.push("maximum-scale=" + settings.scale);
 				newContent.push("user-scalable=" + settings.scalable);
+			} else {
+
+				if (settings.scalable) {
+					newContent.push("user-scalable=" + settings.scalable);
+				}
+
+				if (settings.minimum) {
+					newContent.push("minimum-scale=" + settings.minimum);
+				}
+
+				if (settings.maximum) {
+					newContent.push("minimum-scale=" + settings.maximum);
+				}
 			}
 
 			if (!$viewport) {

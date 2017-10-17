@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import {extend, defer, windowBounds} from "../../utils/core";
+import {extend, defer, windowBounds, isNumber} from "../../utils/core";
 import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
 import Stage from "../helpers/stage";
@@ -225,7 +225,7 @@ class DefaultViewManager {
 		var displayed = displaying.promise;
 
 		// Check if moving to target is needed
-		if (target === section.href || parseInt(target)) {
+		if (target === section.href || isNumber(target)) {
 			target = undefined;
 		}
 
