@@ -426,13 +426,14 @@ class ContinuousViewManager extends DefaultViewManager {
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;
+		let dir = this.settings.direction === "rtl" ? -1 : 1;
 
 		if(this.settings.height) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
 		} else {
-			scrollTop = window.scrollY;
-			scrollLeft = window.scrollX;
+			scrollTop = window.scrollY * dir;
+			scrollLeft = window.scrollX * dir;
 		}
 
 		this.scrollTop = scrollTop;

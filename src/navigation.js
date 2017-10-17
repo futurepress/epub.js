@@ -9,7 +9,7 @@ class Navigation {
 		this.toc = [];
 		this.tocByHref = {};
 		this.tocById = {};
-
+		this.length = 0;
 		if (xml) {
 			this.parse(xml);
 		}
@@ -54,6 +54,7 @@ class Navigation {
 			this.tocById[item.id] = i;
 		}
 
+		this.length = toc.length;
 	}
 
 	/**

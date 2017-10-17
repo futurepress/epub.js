@@ -9,6 +9,7 @@ class IframeView {
 		this.settings = extend({
 			ignoreClass : "",
 			axis: "vertical",
+			direction: "ltr",
 			width: 0,
 			height: 0,
 			layout: undefined,

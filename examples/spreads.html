@@ -33,43 +33,43 @@
 
     rendition.display(currentSectionIndex);
 
+    book.ready.then(() => {
+
+      var next = document.getElementById("next");
+
+      next.addEventListener("click", function(e){
+        book.package.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+        e.preventDefault();
+      }, false);
+
+      var prev = document.getElementById("prev");
+      prev.addEventListener("click", function(e){
+        book.package.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+        e.preventDefault();
+      }, false);
+
+      var keyListener = function(e){
+
+        // Left Key
+        if ((e.keyCode || e.which) == 37) {
+          book.package.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+        }
+
+        // Right Key
+        if ((e.keyCode || e.which) == 39) {
+          book.package.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+        }
+
+      };
+
+      rendition.on("keyup", keyListener);
+      document.addEventListener("keyup", keyListener, false);
+
+    })
+
     var title = document.getElementById("title");
 
-    var next = document.getElementById("next");
-    next.addEventListener("click", function(e){
-      rendition.next();
-      e.preventDefault();
-    }, false);
-
-    var prev = document.getElementById("prev");
-    prev.addEventListener("click", function(e){
-      rendition.prev();
-      e.preventDefault();
-    }, false);
-
-    var keyListener = function(e){
-
-      // Left Key
-      if ((e.keyCode || e.which) == 37) {
-        rendition.prev();
-      }
-
-      // Right Key
-      if ((e.keyCode || e.which) == 39) {
-        rendition.next();
-      }
-
-    };
-
-    rendition.on("keyup", keyListener);
-    document.addEventListener("keyup", keyListener, false);
-
-
-
     rendition.on("rendered", function(section){
-      var nextSection = section.next();
-      var prevSection = section.prev();
-
       var current = book.navigation && book.navigation.get(section.href);
 
       if (current) {
@@ -88,22 +88,26 @@
         }
       }
 
-      if(nextSection) {
-        next.textContent = "›";
-      } else {
-        next.textContent = "";
-      }
-
-      if(prevSection) {
-        prev.textContent = "‹";
-      } else {
-        prev.textContent = "";
-      }
-
     });
 
     rendition.on("relocated", function(location){
       console.log(location);
+
+      var next = book.package.metadata.direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
+      var prev = book.package.metadata.direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
+
+      if (location.atEnd) {
+        next.style.visibility = "hidden";
+      } else {
+        next.style.visibility = "visible";
+      }
+
+      if (location.atStart) {
+        prev.style.visibility = "hidden";
+      } else {
+        prev.style.visibility = "visible";
+      }
+
     });
 
     window.addEventListener("unload", function () {

@@ -4,7 +4,7 @@ import Hook from "./utils/hook";
 import EpubCFI from "./epubcfi";
 import Queue from "./utils/queue";
 import Layout from "./layout";
-import Mapping from "./mapping";
+// import Mapping from "./mapping";
 import Themes from "./themes";
 import Contents from "./contents";
 import Annotations from "./annotations";
@@ -164,6 +164,8 @@ class Rendition {
 			});
 		}
 
+		this.direction(this.book.package.metadata.direction);
+
 		// Parse metadata to get layout props
 		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
 
@@ -248,9 +250,9 @@ class Rendition {
 		this.displaying = displaying;
 
 		// Check if this is a book percentage
-		if (this.book.locations.length &&
+		if (this.book.locations.length() &&
 				(isFloat(target) ||
-				(typeof target === "string" && target == parseFloat(target))) // Handle 1.0
+				(target === "1.0")) // Handle 1.0
 			) {
 			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
@@ -426,7 +428,8 @@ class Rendition {
 		var viewport = metadata.viewport || "";
 		var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
 
-		if (this.settings.width >= 0 && this.settings.height >= 0) {
+		if ((this.settings.width === 0 || this.settings.width > 0) &&
+				(this.settings.height === 0 || this.settings.height > 0)) {
 			viewport = "width="+this.settings.width+", height="+this.settings.height+"";
 		}
 
@@ -481,7 +484,7 @@ class Rendition {
 			this.manager.updateFlow(_flow);
 		}
 
-		if (this.location) {
+		if (this.manager && this.manager.isRendered() && this.location) {
 			this.manager.clear();
 			this.display(this.location.start.cfi);
 		}
@@ -496,7 +499,7 @@ class Rendition {
 			this._layout = new Layout(settings);
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
-			this.mapping = new Mapping(this._layout.props);
+			// this.mapping = new Mapping(this._layout.props);
 		}
 
 		if (this.manager && this._layout) {
@@ -517,6 +520,25 @@ class Rendition {
 
 		if (this.manager.isRendered()) {
 			this.manager.updateLayout();
+		}
+	}
+
+	/**
+	 * Adjust the flow of the rendition to paginated or scrolled
+	 * (scrolled-continuous vs scrolled-doc are handled by different view managers)
+	 * @param  {string} flow
+	 */
+	direction(dir){
+
+		this.settings.direction = dir || "ltr";
+
+		if (this.manager) {
+			this.manager.direction(this.settings.direction);
+		}
+
+		if (this.manager && this.manager.isRendered() && this.location) {
+			this.manager.clear();
+			this.display(this.location.start.cfi);
 		}
 	}
 

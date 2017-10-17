@@ -36,6 +36,8 @@ class DefaultViewManager {
 			height: 0
 		};
 
+		this.rendered = false;
+
 	}
 
 	render(element, size){
@@ -60,7 +62,8 @@ class DefaultViewManager {
 			overflow: this.overflow,
 			hidden: this.settings.hidden,
 			axis: this.settings.axis,
-			fullsize: this.fullsize
+			fullsize: this.fullsize,
+			direction: this.settings.direction
 		});
 
 		this.stage.attachTo(element);
@@ -93,6 +96,9 @@ class DefaultViewManager {
 		if (this.layout) {
 			this.updateLayout();
 		}
+
+		this.rendered = true;
+
 	}
 
 	addEventListeners(){
@@ -133,6 +139,8 @@ class DefaultViewManager {
 		this.removeEventListeners();
 
 		this.stage.destroy();
+
+		this.rendered = false;
 
 		/*
 
@@ -227,7 +235,13 @@ class DefaultViewManager {
 		// View is already shown, just move to correct location in view
 		if(visible && section) {
 			let offset = visible.offset();
-			this.scrollTo(offset.left, offset.top, true);
+
+			if (this.settings.direction === "ltr") {
+				this.scrollTo(offset.left, offset.top, true);
+			} else {
+				let width = view.width();
+				this.scrollTo(offset.left + width, offset.top, true);
+			}
 
 			if(target) {
 				let offset = visible.locationOf(target);
@@ -243,6 +257,16 @@ class DefaultViewManager {
 
 		this.add(section)
 			.then(function(view){
+
+				// if (this.settings.direction === "rtl") {
+				// 	let offset = view.offset();
+				// 	let width = view.width();
+				//
+				// 	this.moveTo({
+				// 		left: offset.left + width,
+				// 		top: offset.top
+				// 	});
+				// }
 
 				// Move to correct place within the section, if needed
 				if(target) {
@@ -331,6 +355,10 @@ class DefaultViewManager {
 	prepend(section){
 		var view = this.createView(section);
 
+		view.on("resized", (bounds) => {
+			this.counter(bounds);
+		});
+
 		this.views.prepend(view);
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
@@ -338,6 +366,16 @@ class DefaultViewManager {
 
 		return view.display(this.request);
 	}
+
+	counter(bounds){
+		if(this.settings.axis === "vertical") {
+			this.scrollBy(0, bounds.heightDelta, true);
+		} else {
+			this.scrollBy(bounds.widthDelta, 0, true);
+		}
+
+	}
+
 	// resizeView(view) {
 	//
 	// 	if(this.settings.globalLayoutProperties.layout === "pre-paginated") {
@@ -352,22 +390,35 @@ class DefaultViewManager {
 		var next;
 		var left;
 
+		let dir = this.settings.direction;
+
 		if(!this.views.length) return;
 
-		if(this.settings.axis === "horizontal") {
+		if(this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta; // 450 off
 
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
-			} else if (left - this.layout.columnWidth === this.container.scrollWidth) {
+			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
 				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
-				next = this.views.last().section.next();
 			} else {
 				next = this.views.last().section.next();
 			}
+		} else if (this.settings.axis === "horizontal" && dir === "rtl") {
+
+			this.scrollLeft = this.container.scrollLeft;
+
+			left = this.container.scrollLeft;
+
+			if(left > 0) {
+				this.scrollBy(-this.layout.delta, 0, true);
+			} else {
+				next = this.views.last().section.next();
+			}
+
 		} else {
 			next = this.views.last().section.next();
 		}
@@ -396,10 +447,11 @@ class DefaultViewManager {
 	prev(){
 		var prev;
 		var left;
+		let dir = this.settings.direction;
 
 		if(!this.views.length) return;
 
-		if(this.settings.axis === "horizontal") {
+		if(this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -411,6 +463,19 @@ class DefaultViewManager {
 				prev = this.views.first().section.prev();
 			}
 
+		} else if (this.settings.axis === "horizontal" && dir === "rtl") {
+
+			this.scrollLeft = this.container.scrollLeft;
+
+			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+
+			if(left <= this.container.scrollWidth) {
+				this.scrollBy(this.layout.delta, 0, true);
+			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+			} else {
+				prev = this.views.first().section.prev();
+			}
 
 		} else {
 
@@ -433,7 +498,12 @@ class DefaultViewManager {
 				}.bind(this))
 				.then(function(){
 					if(this.settings.axis === "horizontal") {
-						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+						if (this.settings.direction === "rtl") {
+							this.scrollTo(0, 0, true);
+						} else {
+							console.log(this.container.scrollWidth);
+							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+						}
 					}
 					this.views.show();
 				}.bind(this));
@@ -543,20 +613,33 @@ class DefaultViewManager {
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
 			// Find displayed pages
-			let startPos = left + used;
-			let endPos = startPos + this.layout.spreadWidth - used;
-			if (endPos > offset + width) {
-				endPos = offset + width;
-				used = this.layout.pageWidth;
-			}
+			//console.log("pre", end, offset + width);
+			// if (end > offset + width) {
+			// 	end = offset + width;
+			// 	used = this.layout.pageWidth;
+			// }
+			// console.log("post", end);
 
 			let totalPages = this.layout.count(width).pages;
-			let currPage = Math.ceil((startPos + (this.layout.gap) - offset) / this.layout.pageWidth);
+			let startPage = Math.floor(start / this.layout.pageWidth);
 			let pages = [];
-			let endPage = Math.ceil((endPos - (this.layout.gap) - offset) / this.layout.pageWidth);
+			let endPage = Math.floor(end / this.layout.pageWidth);
 
-			pages = [currPage];
-			for (var i = currPage; i <= endPage; i++) {
+			// start page should not be negative
+			if (startPage < 0) {
+				startPage = 0;
+				endPage = endPage + 1;
+			}
+
+			// Reverse page counts for rtl
+			if (this.settings.direction === "rtl") {
+				let tempStartPage = startPage;
+				startPage = totalPages - endPage;
+				endPage = totalPages - tempStartPage;
+			}
+
+
+			for (var i = startPage + 1; i <= endPage; i++) {
 				let pg = i;
 				pages.push(pg);
 			}
@@ -615,6 +698,8 @@ class DefaultViewManager {
 	}
 
 	scrollBy(x, y, silent){
+		let dir = this.settings.direction === "rtl" ? -1 : 1;
+
 		if(silent) {
 			this.ignore = true;
 		}
@@ -623,7 +708,7 @@ class DefaultViewManager {
 			if(x) this.container.scrollLeft += x;
 			if(y) this.container.scrollTop += y;
 		} else {
-			window.scrollBy(x,y);
+			window.scrollBy(x * dir, y * dir);
 		}
 		this.scrolled = true;
 	}
@@ -692,7 +777,7 @@ class DefaultViewManager {
 		this.layout = layout;
 		this.updateLayout();
 
-		this.mapping = new Mapping(this.layout.props);
+		this.mapping = new Mapping(this.layout.props, this.settings.direction);
 
 		 // this.manager.layout(this.layout.format);
 	}
@@ -777,6 +862,20 @@ class DefaultViewManager {
 			}
 		});
 		return contents;
+	}
+
+	direction(dir="ltr") {
+		this.settings.direction = dir;
+
+		this.stage && this.stage.direction(dir);
+
+		this.viewSettings.direction = dir;
+
+		this.updateLayout();
+	}
+
+	isRendered() {
+		return this.rendered;
 	}
 }
 

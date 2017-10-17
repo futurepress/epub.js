@@ -19,10 +19,11 @@ class Stage {
 	* Resizes to passed width and height or to the elements size
 	*/
 	create(options){
-		var height  = options.height;// !== false ? options.height : "100%";
-		var width   = options.width;// !== false ? options.width : "100%";
-		var overflow  = options.overflow || false;
-		var axis = options.axis || "vertical";
+		let height  = options.height;// !== false ? options.height : "100%";
+		let width   = options.width;// !== false ? options.width : "100%";
+		let overflow  = options.overflow || false;
+		let axis = options.axis || "vertical";
+		let direction = options.direction;
 
 		if(options.height && isNumber(options.height)) {
 			height = options.height + "px";
@@ -62,6 +63,15 @@ class Stage {
 
 		if (overflow) {
 			container.style.overflow = overflow;
+		}
+
+		if (direction) {
+			container.dir = direction;
+			container.style["direction"] = direction;
+		}
+
+		if (direction && this.settings.fullsize) {
+			document.body.style["direction"] = direction;
 		}
 
 		return container;
@@ -269,6 +279,17 @@ class Stage {
 	//
 	// 	this.orientation = orientation;
 	// }
+
+	direction(dir) {
+		if (this.container) {
+			this.container.dir = dir;
+			this.container.style["direction"] = dir;
+		}
+
+		if (this.settings.fullsize) {
+			document.body.style["direction"] = dir;
+		}
+	}
 
 	destroy() {
 		var base;
