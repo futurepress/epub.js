@@ -779,7 +779,15 @@ class Contents {
 		var COLUMN_WIDTH = prefixed("column-width");
 		var COLUMN_FILL = prefixed("column-fill");
 
-		this.width("100%");
+		var isVertical = this.writingMode().indexOf("vertical") === 0;
+
+		if (isVertical) {
+			this.width(width);
+		} else {
+			this.width("100%");
+		}
+
+		// this.width("100%");
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport
@@ -848,6 +856,16 @@ class Contents {
 		replaceLinks(this.content, (href) => {
 			this.emit("linkClicked", href);
 		});
+	}
+
+	writingMode(mode) {
+		let WRITING_MODE = prefixed("writing-mode");
+
+		if (mode && this.documentElement) {
+			this.documentElement.style[WRITING_MODE] = mode;
+		}
+
+		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
 	}
 
 	destroy() {

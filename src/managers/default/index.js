@@ -19,9 +19,8 @@ class DefaultViewManager {
 			hidden: false,
 			width: undefined,
 			height: undefined,
-			// globalLayoutProperties : { layout: "reflowable", spread: "auto", orientation: "auto"},
-			// layout: null,
 			axis: "vertical",
+			flow: "scrolled",
 			ignoreClass: ""
 		});
 
@@ -30,6 +29,7 @@ class DefaultViewManager {
 		this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
 			axis: this.settings.axis,
+			flow: this.settings.flow,
 			layout: this.layout,
 			method: this.settings.method, // srcdoc, blobUrl, write
 			width: 0,
@@ -303,7 +303,7 @@ class DefaultViewManager {
 		var distX = 0,
 			  distY = 0;
 
-		if(this.settings.axis === "vertical") {
+		if(!this.isPaginated) {
 			distY = offset.top;
 		} else {
 			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
@@ -324,6 +324,10 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
+		});
+
 		return view.display(this.request);
 
 	}
@@ -334,6 +338,10 @@ class DefaultViewManager {
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
+
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
+		});
 
 		return view.display(this.request);
 	}
@@ -349,6 +357,10 @@ class DefaultViewManager {
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
+
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
+		});
 
 		return view.display(this.request);
 	}
@@ -380,11 +392,11 @@ class DefaultViewManager {
 
 		if(!this.views.length) return;
 
-		if(this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+		if(this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta; // 450 off
+			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
@@ -393,7 +405,7 @@ class DefaultViewManager {
 			} else {
 				next = this.views.last().section.next();
 			}
-		} else if (this.settings.axis === "horizontal" && dir === "rtl") {
+		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -401,6 +413,20 @@ class DefaultViewManager {
 
 			if(left > 0) {
 				this.scrollBy(-this.layout.delta, 0, true);
+			} else {
+				next = this.views.last().section.next();
+			}
+
+		} else if (this.isPaginated && this.settings.axis === "vertical") {
+
+			this.scrollTop = this.container.scrollTop;
+
+			let top  = this.container.scrollTop + this.container.offsetHeight + this.layout.delta;
+
+			if(top <= this.container.scrollHeight) {
+				this.scrollBy(0, this.layout.height + this.layout.gap / 2, true);
+			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
+				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -437,7 +463,7 @@ class DefaultViewManager {
 
 		if(!this.views.length) return;
 
-		if(this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+		if(this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -449,7 +475,7 @@ class DefaultViewManager {
 				prev = this.views.first().section.prev();
 			}
 
-		} else if (this.settings.axis === "horizontal" && dir === "rtl") {
+		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -459,6 +485,18 @@ class DefaultViewManager {
 				this.scrollBy(this.layout.delta, 0, true);
 			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
 				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+			} else {
+				prev = this.views.first().section.prev();
+			}
+
+		} else if (this.isPaginated && this.settings.axis === "vertical") {
+
+			this.scrollTop = this.container.scrollTop;
+
+			let top = this.container.scrollTop;
+
+			if(top > 0) {
+				this.scrollBy(0, -(this.layout.height + this.layout.gap / 2), true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -483,7 +521,7 @@ class DefaultViewManager {
 					}
 				}.bind(this))
 				.then(function(){
-					if(this.settings.axis === "horizontal") {
+					if(this.isPaginated) {
 						if (this.settings.direction === "rtl") {
 							this.scrollTo(0, 0, true);
 						} else {
@@ -517,7 +555,7 @@ class DefaultViewManager {
 
 	currentLocation(){
 
-		if (this.settings.axis === "vertical") {
+		if (!this.isPaginated) {
 			this.location = this.scrolledLocation();
 		} else {
 			this.location = this.paginatedLocation();
@@ -774,7 +812,7 @@ class DefaultViewManager {
 
 		this._stageSize = this.stage.size();
 
-		if(this.settings.axis === "vertical") {
+		if(!this.isPaginated) {
 			this.layout.calculate(this._stageSize.width, this._stageSize.height);
 		} else {
 			this.layout.calculate(
@@ -813,17 +851,32 @@ class DefaultViewManager {
 
 	}
 
-	updateFlow(flow){
-		var axis = (flow === "paginated") ? "horizontal" : "vertical";
-
+	updateAxis(axis){
 		this.settings.axis = axis;
 
 		this.stage && this.stage.axis(axis);
 
 		this.viewSettings.axis = axis;
+	}
+
+	updateFlow(flow){
+		// var axis = (flow === "paginated") ? "horizontal" : "vertical";
+		let isPaginated = (flow === "paginated" || flow === "auto");
+
+		this.isPaginated = isPaginated;
+
+		if (isPaginated) {
+			// this.updateAxis("horizontal");
+		} else {
+			// this.updateAxis("vertical");
+		}
+
+		// this.stage && this.stage.axis(flow);
+
+		this.viewSettings.flow = flow;
 
 		if (!this.settings.overflow) {
-			this.overflow = (flow === "paginated") ? "hidden" : "auto";
+			this.overflow = isPaginated ? "hidden" : "auto";
 		} else {
 			this.overflow = this.settings.overflow;
 		}

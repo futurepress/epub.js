@@ -431,7 +431,7 @@ class Rendition {
 
 		if ((this.settings.width === 0 || this.settings.width > 0) &&
 				(this.settings.height === 0 || this.settings.height > 0)) {
-			viewport = "width="+this.settings.width+", height="+this.settings.height+"";
+			// viewport = "width="+this.settings.width+", height="+this.settings.height+"";
 		}
 
 		properties = {

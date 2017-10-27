@@ -150,6 +150,13 @@ class IframeView {
 				// apply the layout function to the contents
 				this.settings.layout.format(this.contents);
 
+				// find and report the writingMode axis
+				let writingMode = this.contents.writingMode();
+				let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
+				this.setAxis(axis);
+				this.emit("axis", axis);
+
+
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
 
@@ -195,6 +202,9 @@ class IframeView {
 		} else {
 			this.lock("width", width, height);
 		}
+
+		this.settings.width = width;
+		this.settings.height = height;
 	}
 
 	// Lock an axis to element dimensions, taking borders into account
@@ -405,6 +415,7 @@ class IframeView {
 
 	setAxis(axis) {
 		this.settings.axis = axis;
+		this.size();
 	}
 
 	addListeners() {
