@@ -347,7 +347,7 @@ export function qsp(el, sel, props) {
 	if (typeof el.querySelector != "undefined") {
 		sel += "[";
 		for (var prop in props) {
-			sel += prop + "='" + props[prop] + "'";
+			sel += prop + "~='" + props[prop] + "'";
 		}
 		sel += "]";
 		return el.querySelector(sel);
