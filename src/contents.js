@@ -779,15 +779,12 @@ class Contents {
 		var COLUMN_WIDTH = prefixed("column-width");
 		var COLUMN_FILL = prefixed("column-fill");
 
-		var isVertical = this.writingMode().indexOf("vertical") === 0;
-
-		if (isVertical) {
-			this.width(width);
-		} else {
-			this.width("100%");
+		// Fix body width issues if rtl is only set on body element
+		if (this.content.dir === "rtl") {
+			this.direction("rtl");
 		}
 
-		// this.width("100%");
+		this.width(width);
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport

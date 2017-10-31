@@ -70,8 +70,14 @@
       if (active) {
         active.classList.add("active");
       }
+
+      let urlParam = params && params.get("url");
+      let url = '';
+      if (urlParam) {
+        url = "url=" + urlParam + "&";
+      }
       // Add CFI fragment to the history
-      history.pushState({}, '', "?loc=" + encodeURIComponent(section.href));
+      history.pushState({}, '', "?" + url + "loc=" + encodeURIComponent(section.href));
       // window.location.hash = "#/"+section.href
     });
 
