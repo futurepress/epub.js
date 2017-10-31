@@ -1,9 +1,9 @@
 import EpubCFI from "./epubcfi";
 
 class Mapping {
-	constructor(layout, direction, dev) {
+	constructor(layout, direction, axis, dev) {
 		this.layout = layout;
-		this.horizontal = (this.layout.flow === "paginated") ? true : false;
+		this.horizontal = (axis === "horizontal") ? true : false;
 		this.direction = direction || "ltr";
 		this._dev = dev;
 	}

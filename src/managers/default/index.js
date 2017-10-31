@@ -421,12 +421,10 @@ class DefaultViewManager {
 
 			this.scrollTop = this.container.scrollTop;
 
-			let top  = this.container.scrollTop + this.container.offsetHeight + this.layout.delta;
+			let top  = this.container.scrollTop + this.container.offsetHeight;
 
-			if(top <= this.container.scrollHeight) {
+			if(top < this.container.scrollHeight) {
 				this.scrollBy(0, this.layout.height + this.layout.gap / 2, true);
-			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -521,7 +519,7 @@ class DefaultViewManager {
 					}
 				}.bind(this))
 				.then(function(){
-					if(this.isPaginated) {
+					if(this.isPaginated && this.settings.axis === "horizontal") {
 						if (this.settings.direction === "rtl") {
 							this.scrollTo(0, 0, true);
 						} else {
@@ -555,7 +553,7 @@ class DefaultViewManager {
 
 	currentLocation(){
 
-		if (!this.isPaginated) {
+		if (this.settings.axis === "vertical") {
 			this.location = this.scrolledLocation();
 		} else {
 			this.location = this.paginatedLocation();
@@ -587,14 +585,15 @@ class DefaultViewManager {
 				used = (endPos - startPos);
 			}
 
-			let totalPages = this.layout.count(view._height, pageHeight).pages;
+			let totalPages = this.layout.count(height, pageHeight).pages;
+
 			let currPage = Math.ceil(startPos / pageHeight);
 			let pages = [];
 			let endPage = Math.ceil(endPos / pageHeight);
 
-			pages = [currPage];
+			pages = [];
 			for (var i = currPage; i <= endPage; i++) {
-				let pg = i;
+				let pg = i + 1;
 				pages.push(pg);
 			}
 
@@ -799,13 +798,11 @@ class DefaultViewManager {
 
 		this.layout = layout;
 		this.updateLayout();
-
-		this.mapping = new Mapping(this.layout.props, this.settings.direction);
-
 		 // this.manager.layout(this.layout.format);
 	}
 
 	updateLayout() {
+
 		if (!this.stage) {
 			return;
 		}
@@ -839,6 +836,8 @@ class DefaultViewManager {
 
 		this.viewSettings.layout = layout;
 
+		this.mapping = new Mapping(layout.props, this.settings.direction, this.settings.axis);
+
 		if(this.views) {
 
 			this.views.forEach(function(view){
@@ -851,27 +850,32 @@ class DefaultViewManager {
 
 	}
 
-	updateAxis(axis){
+	updateAxis(axis, preventUpdate){
 		this.settings.axis = axis;
 
 		this.stage && this.stage.axis(axis);
 
 		this.viewSettings.axis = axis;
+
+		if (axis === "vertical") {
+			this.layout.spread("none");
+		}
+
+		if (!preventUpdate) {
+			this.updateLayout();
+		}
 	}
 
 	updateFlow(flow){
-		// var axis = (flow === "paginated") ? "horizontal" : "vertical";
 		let isPaginated = (flow === "paginated" || flow === "auto");
 
 		this.isPaginated = isPaginated;
 
-		if (isPaginated) {
-			// this.updateAxis("horizontal");
-		} else {
-			// this.updateAxis("vertical");
+		if (flow === "scrolled-doc" ||
+				flow === "scrolled-continuous" ||
+				flow === "scrolled") {
+			this.updateAxis("vertical", true);
 		}
-
-		// this.stage && this.stage.axis(flow);
 
 		this.viewSettings.flow = flow;
 

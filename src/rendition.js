@@ -526,9 +526,8 @@ class Rendition {
 	}
 
 	/**
-	 * Adjust the flow of the rendition to paginated or scrolled
-	 * (scrolled-continuous vs scrolled-doc are handled by different view managers)
-	 * @param  {string} flow
+	 * Adjust the direction of the rendition
+	 * @param  {string} dir
 	 */
 	direction(dir){
 
