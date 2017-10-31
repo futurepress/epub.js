@@ -140,7 +140,7 @@ class Spine {
 		} else if(typeof target === "string") {
 			// Remove fragments
 			target = target.split("#")[0];
-			index = this.spineByHref[target];
+			index = this.spineByHref[target] || this.spineByHref[encodeURI(target)];
 		}
 
 		return this.spineItems[index] || null;
@@ -157,7 +157,12 @@ class Spine {
 
 		this.spineItems.push(section);
 
+		// Encode and Decode href lookups
+		// see pr for details: https://github.com/futurepress/epub.js/pull/358
+		this.spineByHref[decodeURI(section.href)] = index;
+		this.spineByHref[encodeURI(section.href)] = index;
 		this.spineByHref[section.href] = index;
+
 		this.spineById[section.idref] = index;
 
 		return index;
