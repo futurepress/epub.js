@@ -57,12 +57,12 @@ class IframeView {
 		element.style.width = "0px";
 		element.style.overflow = "hidden";
 		element.style.position = "relative";
+		element.style.display = "block";
 
 		if(axis && axis == "horizontal"){
-			element.style.display = "block";
 			element.style.flex = "none";
 		} else {
-			element.style.display = "block";
+			element.style.flex = "initial";
 		}
 
 		return element;
@@ -150,6 +150,13 @@ class IframeView {
 				// apply the layout function to the contents
 				this.settings.layout.format(this.contents);
 
+				// find and report the writingMode axis
+				let writingMode = this.contents.writingMode();
+				let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
+				this.setAxis(axis);
+				this.emit("axis", axis);
+
+
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
 
@@ -195,6 +202,9 @@ class IframeView {
 		} else {
 			this.lock("width", width, height);
 		}
+
+		this.settings.width = width;
+		this.settings.height = height;
 	}
 
 	// Lock an axis to element dimensions, taking borders into account
@@ -247,12 +257,14 @@ class IframeView {
 
 		if(!this.iframe || this._expanding) return;
 
-		if(this.layout.name === "pre-paginated") return;
-
 		this._expanding = true;
 
+		if(this.layout.name === "pre-paginated") {
+			width = this.layout.columnWidth;
+			height = this.layout.height;
+		}
 		// Expand Horizontally
-		if(this.settings.axis === "horizontal") {
+		else if(this.settings.axis === "horizontal") {
 			// Get the width of the text
 			width = this.contents.textWidth();
 
@@ -402,7 +414,22 @@ class IframeView {
 	}
 
 	setAxis(axis) {
+
+		// Force vertical for scrolled
+		if (this.layout.props.flow === "scrolled") {
+			axis = "vertical";
+		}
+
 		this.settings.axis = axis;
+
+		if(axis == "horizontal"){
+			this.element.style.flex = "none";
+		} else {
+			this.element.style.flex = "initial";
+		}
+
+		this.size();
+
 	}
 
 	addListeners() {

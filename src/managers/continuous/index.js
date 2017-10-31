@@ -12,6 +12,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			infinite: true,
 			overflow: undefined,
 			axis: "vertical",
+			flow: "scrolled",
 			offset: 500,
 			offsetDelta: 250,
 			width: undefined,
@@ -28,6 +29,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
 			axis: this.settings.axis,
+			flow: this.settings.flow,
 			layout: this.layout,
 			width: 0,
 			height: 0
@@ -69,7 +71,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var offsetX = 0,
 				offsetY = 0;
 
-		if(this.settings.axis === "vertical") {
+		if(!this.isPaginated) {
 			distY = offset.top;
 			offsetY = offset.top+this.settings.offset;
 		} else {
@@ -157,6 +159,10 @@ class ContinuousViewManager extends DefaultViewManager {
 			view.expanded = true;
 		});
 
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
+		});
+
 		// view.on("shown", this.afterDisplayed.bind(this));
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
@@ -169,6 +175,10 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		view.on("resized", (bounds) => {
 			view.expanded = true;
+		});
+
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
 		});
 
 		this.views.append(view);
@@ -184,6 +194,10 @@ class ContinuousViewManager extends DefaultViewManager {
 		view.on("resized", (bounds) => {
 			this.counter(bounds);
 			view.expanded = true;
+		});
+
+		view.on("axis", (axis) => {
+			this.updateAxis(axis);
 		});
 
 		this.views.prepend(view);
@@ -269,7 +283,9 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = this._bounds; // bounds saved this until resize
 
-		var offset = horizontal ? this.scrollLeft : this.scrollTop;
+		let dir = this.settings.direction === "rtl" ? -1 : 1; //RTL reverses scrollTop
+
+		var offset = horizontal ? this.scrollLeft : this.scrollTop * dir;
 		var visibleLength = horizontal ? bounds.width : bounds.height;
 		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 
@@ -404,7 +420,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		scroller.addEventListener("scroll", this.onScroll.bind(this));
-		this._scrolled = debounce(this.scrolled.bind(this), 60);
+		this._scrolled = debounce(this.scrolled.bind(this), 30);
 		// this.tick.call(window, this.onScroll.bind(this));
 
 		this.didScroll = false;
@@ -518,8 +534,12 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 	}
 
-	updateFlow(flow){
-		var axis = (flow === "paginated") ? "horizontal" : "vertical";
+
+	updateAxis(axis){
+
+		if (!this.isPaginated) {
+			axis = "vertical";
+		}
 
 		this.settings.axis = axis;
 
@@ -527,25 +547,13 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.viewSettings.axis = axis;
 
-		if (!this.settings.overflow) {
-			this.overflow = (flow === "paginated") ? "hidden" : "auto";
-		} else {
-			this.overflow = this.settings.overflow;
-		}
-
-		// this.views.forEach(function(view){
-		// 	view.setAxis(axis);
-		// });
-
-		if (this.settings.axis === "vertical") {
+		if (axis === "vertical") {
 			this.settings.infinite = true;
 		} else {
 			this.settings.infinite = false;
 		}
-
-		this.updateLayout();
-
 	}
+
 }
 
 export default ContinuousViewManager;
