@@ -57,12 +57,12 @@ class IframeView {
 		element.style.width = "0px";
 		element.style.overflow = "hidden";
 		element.style.position = "relative";
+		element.style.display = "block";
 
 		if(axis && axis == "horizontal"){
-			element.style.display = "block";
 			element.style.flex = "none";
 		} else {
-			element.style.display = "block";
+			element.style.flex = "initial";
 		}
 
 		return element;
@@ -414,8 +414,22 @@ class IframeView {
 	}
 
 	setAxis(axis) {
+
+		// Force vertical for scrolled
+		if (this.layout.props.flow === "scrolled") {
+			axis = "vertical";
+		}
+
 		this.settings.axis = axis;
+
+		if(axis == "horizontal"){
+			this.element.style.flex = "none";
+		} else {
+			this.element.style.flex = "initial";
+		}
+
 		this.size();
+
 	}
 
 	addListeners() {
