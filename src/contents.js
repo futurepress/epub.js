@@ -31,6 +31,8 @@ class Contents {
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
 
+		this.epubReadingSystem("epub.js", ePub.VERSION);
+
 		this.listeners();
 	}
 
@@ -755,6 +757,8 @@ class Contents {
 	size(width, height){
 		var viewport = { scale: 1.0, scalable: "no" };
 
+		this.layoutStyle("scrolling");
+
 		if (width >= 0) {
 			this.width(width);
 			viewport.width = width;
@@ -778,6 +782,8 @@ class Contents {
 		var COLUMN_GAP = prefixed("column-gap");
 		var COLUMN_WIDTH = prefixed("column-width");
 		var COLUMN_FILL = prefixed("column-fill");
+
+		this.layoutStyle("paginated");
 
 		// Fix body width issues if rtl is only set on body element
 		if (this.content.dir === "rtl") {
@@ -827,6 +833,8 @@ class Contents {
 
 		var offsetY = (height - (viewport.height * scale)) / 2;
 
+		this.layoutStyle("paginated");
+
 		this.width(width);
 		this.height(height);
 		this.overflow("hidden");
@@ -863,6 +871,43 @@ class Contents {
 		}
 
 		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
+	}
+
+	layoutStyle(style) {
+
+		if (style) {
+			this._layoutStyle = style;
+			navigator.epubReadingSystem.layoutStyle = this._layoutStyle;
+		}
+
+		return this._layoutStyle || "paginated";
+	}
+
+	epubReadingSystem(name, version) {
+		navigator.epubReadingSystem = {
+			name: name,
+			version: version,
+			layoutStyle: this.layoutStyle(),
+			hasFeature: function (feature) {
+				switch (feature) {
+					case "dom-manipulation":
+						return true;
+					case "layout-changes":
+						return true;
+					case "touch-events":
+						return true;
+					case "mouse-events":
+						return true;
+					case "keyboard-events":
+						return true;
+					case "spine-scripting":
+						return false;
+					default:
+						return false;
+				}
+			}
+		};
+		return navigator.epubReadingSystem;
 	}
 
 	destroy() {
