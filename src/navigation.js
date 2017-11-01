@@ -1,4 +1,4 @@
-import {qs, qsa, querySelectorByType} from "./utils/core";
+import {qs, qsa, querySelectorByType, filterChildren, getParentByTagName} from "./utils/core";
 
 /**
  * Navigation Parser
@@ -37,6 +37,8 @@ class Navigation {
 			this.toc = this.parseNcx(xml);
 		}
 
+		this.length = 0;
+
 		this.unpack(this.toc);
 	}
 
@@ -50,11 +52,22 @@ class Navigation {
 
 		for (var i = 0; i < toc.length; i++) {
 			item = toc[i];
-			this.tocByHref[item.href] = i;
-			this.tocById[item.id] = i;
+
+			if (item.href) {
+				this.tocByHref[item.href] = i;
+			}
+
+			if (item.id) {
+				this.tocById[item.id] = i;
+			}
+
+			this.length++;
+
+			if (item.subitems.length) {
+				this.unpack(item.subitems);
+			}
 		}
 
-		this.length = toc.length;
 	}
 
 	/**
@@ -78,40 +91,6 @@ class Navigation {
 		return this.toc[index];
 	}
 
-	createTocItem(linkElement, id) {
-		var list = [],
-				tocLinkElms = linkElement.childNodes,
-				tocLinkArray = Array.prototype.slice.call(tocLinkElms);
-
-		var index = id ? id : 0;
-		tocLinkArray.forEach((linkElm) => {
-			if (linkElm.nodeName.toLowerCase() === 'li') {
-				var tocLink = qs(linkElm, 'a'),
-						tocLinkData = {
-							id: -1,
-							href: tocLink.getAttribute('href'),
-							label: tocLink.textContent,
-							parent: null
-						},
-						subItemElm = qs(linkElm, 'ol');
-				index++;
-				tocLinkData.id = index;
-				if (id) {
-					tocLinkData.parent = id;
-				}
-				list.push(tocLinkData);
-				if (subItemElm) {
-					var subitems = this.createTocItem(subItemElm, index);
-					if (subitems && subitems.length > 0) {
-						index = index + subitems.length;
-						list = list.concat(subitems);
-					}
-				}
-			}
-		});
-		return list;
-	}
-
 	/**
 	 * Parse from a Epub > 3.0 Nav
 	 * @private
@@ -120,8 +99,29 @@ class Navigation {
 	 */
 	parseNav(navHtml){
 		var navElement = querySelectorByType(navHtml, "nav", "toc");
-		var tocItems = qs(navElement, "ol");
-		return this.createTocItem(tocItems);
+		var navItems = navElement ? qsa(navElement, "li") : [];
+		var length = navItems.length;
+		var i;
+		var toc = {};
+		var list = [];
+		var item, parent;
+
+		if(!navItems || length === 0) return list;
+
+		for (i = 0; i < length; ++i) {
+			item = this.navItem(navItems[i]);
+			if (item) {
+				toc[item.id] = item;
+				if(!item.parent) {
+					list.push(item);
+				} else {
+					parent = toc[item.parent];
+					parent.subitems.push(item);
+				}
+			}
+		}
+
+		return list;
 	}
 
 	/**
@@ -131,16 +131,28 @@ class Navigation {
 	 * @return {object} navItem
 	 */
 	navItem(item){
-		var id = item.getAttribute("id") || false,
-				content = qs(item, "a"),
-				src = content.getAttribute("href") || "",
-				text = content.textContent || "",
-				subitems = [],
-				parentNode = item.parentNode,
-				parent;
+		let id = item.getAttribute("id") || undefined;
+		let content = filterChildren(item, "a", true);
 
-		if(parentNode && parentNode.nodeName === "navPoint") {
-			parent = parentNode.getAttribute("id");
+		if (!content) {
+			return;
+		}
+
+		let src = content.getAttribute("href") || "";
+		let text = content.textContent || "";
+		let subitems = [];
+		let parentItem = getParentByTagName(item, "li");
+		let parent;
+
+		if (parentItem) {
+			parent = parentItem.getAttribute("id");
+		}
+
+		while (!parent && parentItem) {
+			parentItem = getParentByTagName(parentItem, "li");
+			if (parentItem) {
+				parent = parentItem.getAttribute("id");
+			}
 		}
 
 		return {

@@ -503,11 +503,41 @@ export function findChildren(el) {
 }
 
 export function parents(node) {
-  var nodes = [node];
-  for (; node; node = node.parentNode) {
-    nodes.unshift(node);
-  }
-  return nodes
+	var nodes = [node];
+	for (; node; node = node.parentNode) {
+		nodes.unshift(node);
+	}
+	return nodes
+}
+
+export function filterChildren(el, nodeName, single) {
+	var result = [];
+	var childNodes = el.childNodes;
+	for (var i = 0; i < childNodes.length; i++) {
+		let node = childNodes[i];
+		if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) {
+			if (single) {
+				return node;
+			} else {
+				result.push(node);
+			}
+		}
+	}
+	if (!single) {
+		return result;
+	}
+}
+
+export function getParentByTagName(node, tagname) {
+	let parent;
+	if (node === null || tagname === '') return;
+	parent = node.parentNode;
+	while (parent.nodeType === 1) {
+		if (parent.tagName.toLowerCase() === tagname) {
+			return parent;
+		}
+		parent = parent.parentNode;
+	}
 }
 
 export class RangeObject {

@@ -102,14 +102,22 @@
       var $nav = document.getElementById("toc"),
           docfrag = document.createDocumentFragment();
 
-      toc.forEach(function(chapter, index) {
+      var processTocItem = function(chapter, parent) {
         var item = document.createElement("li");
         var link = document.createElement("a");
         link.id = "chap-" + chapter.id;
         link.textContent = chapter.label;
         link.href = chapter.href;
         item.appendChild(link);
-        docfrag.appendChild(item);
+        parent.appendChild(item);
+
+        if (chapter.subitems.length) {
+          var ul = document.createElement("ul");
+          item.appendChild(ul);
+          chapter.subitems.forEach(function(subchapter) {
+            processTocItem(subchapter, ul);
+          });
+        }
 
         link.onclick = function(){
           var url = link.getAttribute("href");
@@ -118,6 +126,10 @@
           return false;
         };
 
+      }
+
+      toc.forEach(function(chapter) {
+        processTocItem(chapter, docfrag);
       });
 
       $nav.appendChild(docfrag);
