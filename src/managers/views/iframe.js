@@ -327,7 +327,7 @@ class IframeView {
 
 		this.onResize(this, size);
 
-		this.emit(EVENT.VIEWS.RESIZED, size);
+		this.emit(EVENTS.VIEWS.RESIZED, size);
 
 		this.prevBounds = size;
 
@@ -739,7 +739,7 @@ class IframeView {
 
 			this.stopExpanding = true;
 			this.element.removeChild(this.iframe);
-			this.displayed = false;
+
 			this.iframe = null;
 
 			this._textWidth = null;
