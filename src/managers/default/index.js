@@ -4,6 +4,7 @@ import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
 import Stage from "../helpers/stage";
 import Views from "../helpers/views";
+import { EVENTS } from "../../utils/constants";
 
 class DefaultViewManager {
 	constructor(options) {
@@ -167,7 +168,7 @@ class DefaultViewManager {
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
 			this.resize();
-			this.emit("orientationchange", orientation);
+			this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 		}.bind(this), 500);
 
 	}
@@ -209,7 +210,7 @@ class DefaultViewManager {
 
 		this.updateLayout();
 
-		this.emit("resized", {
+		this.emit(EVENTS.MANAGERS.RESIZED, {
 			width: this._stageSize.width,
 			height: this._stageSize.height
 		});
@@ -294,11 +295,11 @@ class DefaultViewManager {
 	}
 
 	afterDisplayed(view){
-		this.emit("added", view);
+		this.emit(EVENTS.MANAGERS.ADDED, view);
 	}
 
 	afterResized(view){
-		this.emit("resize", view.section);
+		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
 	moveTo(offset){
@@ -322,11 +323,11 @@ class DefaultViewManager {
 
 		this.views.append(view);
 
-		// view.on("shown", this.afterDisplayed.bind(this));
+		// view.on(EVENTS.VIEWS.SHOWN, this.afterDisplayed.bind(this));
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
@@ -341,7 +342,7 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
@@ -351,7 +352,7 @@ class DefaultViewManager {
 	prepend(section){
 		var view = this.createView(section);
 
-		view.on("resized", (bounds) => {
+		view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 			this.counter(bounds);
 		});
 
@@ -360,7 +361,7 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
@@ -771,14 +772,14 @@ class DefaultViewManager {
 		this.scrollLeft = scrollLeft;
 
 		if(!this.ignore) {
-			this.emit("scroll", {
+			this.emit(EVENTS.MANAGERS.SCROLL, {
 				top: scrollTop,
 				left: scrollLeft
 			});
 
 			clearTimeout(this.afterScrolled);
 			this.afterScrolled = setTimeout(function () {
-				this.emit("scrolled", {
+				this.emit(EVENTS.MANAGERS.SCROLLED, {
 					top: this.scrollTop,
 					left: this.scrollLeft
 				});

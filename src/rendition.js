@@ -8,6 +8,7 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Contents from "./contents";
 import Annotations from "./annotations";
+import { EVENTS } from "./utils/constants";
 
 /**
  * [Rendition description]
@@ -174,20 +175,20 @@ class Rendition {
 		this.layout(this.settings.globalLayoutProperties);
 
 		// Listen for displayed views
-		this.manager.on("added", this.afterDisplayed.bind(this));
-		this.manager.on("removed", this.afterRemoved.bind(this));
+		this.manager.on(EVENTS.MANAGERS.ADDED, this.afterDisplayed.bind(this));
+		this.manager.on(EVENTS.MANAGERS.REMOVED, this.afterRemoved.bind(this));
 
 		// Listen for resizing
-		this.manager.on("resized", this.onResized.bind(this));
+		this.manager.on(EVENTS.MANAGERS.RESIZED, this.onResized.bind(this));
 
 		// Listen for rotation
-		this.manager.on("orientationchange", this.onOrientationChange.bind(this));
+		this.manager.on(EVENTS.MANAGERS.ORIENTATION_CHANGE, this.onOrientationChange.bind(this));
 
 		// Listen for scroll changes
-		this.manager.on("scrolled", this.reportLocation.bind(this));
+		this.manager.on(EVENTS.MANAGERS.SCROLLED, this.reportLocation.bind(this));
 
 		// Trigger that rendering has started
-		this.emit("started");
+		this.emit(EVENTS.RENDITION.STARTED);
 
 		// Start processing queue
 		this.starting.resolve();
@@ -210,7 +211,7 @@ class Rendition {
 			});
 
 			// Trigger Attached
-			this.emit("attached");
+			this.emit(EVENTS.RENDITION.ATTACHED);
 
 		}.bind(this));
 
@@ -269,10 +270,10 @@ class Rendition {
 				displaying.resolve(section);
 				this.displaying = undefined;
 
-				this.emit("displayed", section);
+				this.emit(EVENTS.RENDITION.DISPLAYED, section);
 				this.reportLocation();
 			}, (err) => {
-				this.emit("displayerror", err);
+				this.emit(EVENTS.RENDITION.DISPLAY_ERROR, err);
 			});
 
 		return displayed;
@@ -330,16 +331,16 @@ class Rendition {
 	 */
 	afterDisplayed(view){
 
-		view.on("markClicked", (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view));
+		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view));
 
 		this.hooks.render.trigger(view, this)
 			.then(() => {
 				if (view.contents) {
 					this.hooks.content.trigger(view.contents, this).then(() => {
-						this.emit("rendered", view.section, view);
+						this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
 					});
 				} else {
-					this.emit("rendered", view.section, view);
+					this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
 				}
 			});
 
@@ -353,7 +354,7 @@ class Rendition {
 	 */
 	afterRemoved(view){
 		this.hooks.unloaded.trigger(view, this).then(() => {
-			this.emit("removed", view.section, view);
+			this.emit(EVENTS.RENDITION.REMOVED, view.section, view);
 		});
 	}
 
@@ -363,7 +364,7 @@ class Rendition {
 	 */
 	onResized(size){
 
-		this.emit("resized", {
+		this.emit(EVENTS.RENDITION.RESIZED, {
 			width: size.width,
 			height: size.height
 		});
@@ -384,7 +385,7 @@ class Rendition {
 		// 	this.display(this.location.start.cfi);
 		// }
 
-		this.emit("orientationchange", orientation);
+		this.emit(EVENTS.RENDITION.ORIENTATION_CHANGE, orientation);
 	}
 
 	/**
@@ -563,7 +564,7 @@ class Rendition {
 
 						this.location = located;
 
-						this.emit("locationChanged", {
+						this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
 							index: this.location.start.index,
 							href: this.location.start.href,
 							start: this.location.start.cfi,
@@ -571,7 +572,7 @@ class Rendition {
 							percentage: this.location.start.percentage
 						});
 
-						this.emit("relocated", this.location);
+						this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 					}.bind(this));
 				} else if (location) {
 					let located = this.located(location);
@@ -582,7 +583,7 @@ class Rendition {
 
 					this.location = located;
 
-					this.emit("locationChanged", {
+					this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
 						index: this.location.start.index,
 						href: this.location.start.href,
 						start: this.location.start.cfi,
@@ -590,7 +591,7 @@ class Rendition {
 						percentage: this.location.start.percentage
 					});
 
-					this.emit("relocated", this.location);
+					this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 				}
 			}.bind(this));
 		}.bind(this));
@@ -721,7 +722,7 @@ class Rendition {
 			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
 		});
 
-		contents.on("selected", (e) => this.triggerSelectedEvent(e, contents));
+		contents.on(EVENTS.CONTENTS.SELECTED, (e) => this.triggerSelectedEvent(e, contents));
 	}
 
 	/**
@@ -739,7 +740,7 @@ class Rendition {
 	 * @param  {EpubCFI} cfirange
 	 */
 	triggerSelectedEvent(cfirange, contents){
-		this.emit("selected", cfirange, contents);
+		this.emit(EVENTS.RENDITION.SELECTED, cfirange, contents);
 	}
 
 	/**
@@ -748,7 +749,7 @@ class Rendition {
 	 * @param  {EpubCFI} cfirange
 	 */
 	triggerMarkEvent(cfiRange, data, contents){
-		this.emit("markClicked", cfiRange, data, contents);
+		this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
 	}
 
 	/**
@@ -809,7 +810,7 @@ class Rendition {
 
 	handleLinks(contents) {
 		if (contents) {
-			contents.on("linkClicked", (href) => {
+			contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href) => {
 				let relative = this.book.path.relative(href);
 				this.display(relative);
 			});

@@ -1,6 +1,7 @@
 import {qs, sprint, locationOf, defer} from "./utils/core";
 import Queue from "./utils/queue";
 import EpubCFI from "./epubcfi";
+import { EVENTS } from "./utils/constants";
 import EventEmitter from "event-emitter";
 
 /**
@@ -278,7 +279,7 @@ class Locations {
 			loc = curr;
 		}
 
-		this.emit("changed", {
+		this.emit(EVENTS.LOCATIONS.CHANGED, {
 			percentage: this.percentageFromLocation(loc)
 		});
 	}
