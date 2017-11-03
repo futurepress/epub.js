@@ -1,5 +1,6 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
+import { EVENTS } from "../../utils/constants";
 import debounce from 'lodash/debounce'
 
 class ContinuousViewManager extends DefaultViewManager {
@@ -119,7 +120,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	// }
 
 	afterResized(view){
-		this.emit("resize", view.section);
+		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
 	// Remove Previous Listeners if present
@@ -155,15 +156,15 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.views.append(view);
 
-		view.on("resized", (bounds) => {
+		view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 			view.expanded = true;
 		});
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
-		// view.on("shown", this.afterDisplayed.bind(this));
+		// view.on(EVENTS.VIEWS.SHOWN, this.afterDisplayed.bind(this));
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
@@ -173,11 +174,11 @@ class ContinuousViewManager extends DefaultViewManager {
 	append(section){
 		var view = this.createView(section);
 
-		view.on("resized", (bounds) => {
+		view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 			view.expanded = true;
 		});
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
@@ -191,12 +192,12 @@ class ContinuousViewManager extends DefaultViewManager {
 	prepend(section){
 		var view = this.createView(section);
 
-		view.on("resized", (bounds) => {
+		view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 			this.counter(bounds);
 			view.expanded = true;
 		});
 
-		view.on("axis", (axis) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
 
@@ -493,14 +494,14 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.check();
 		}.bind(this));
 
-		this.emit("scroll", {
+		this.emit(EVENTS.MANAGERS.SCROLL, {
 			top: this.scrollTop,
 			left: this.scrollLeft
 		});
 
 		clearTimeout(this.afterScrolled);
 		this.afterScrolled = setTimeout(function () {
-			this.emit("scrolled", {
+			this.emit(EVENTS.MANAGERS.SCROLLED, {
 				top: this.scrollTop,
 				left: this.scrollLeft
 			});

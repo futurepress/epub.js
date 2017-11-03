@@ -2,6 +2,7 @@ import EventEmitter from "event-emitter";
 import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
+import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
 class IframeView {
@@ -154,7 +155,7 @@ class IframeView {
 				let writingMode = this.contents.writingMode();
 				let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				this.setAxis(axis);
-				this.emit("axis", axis);
+				this.emit(EVENTS.VIEWS.AXIS, axis);
 
 
 				// Listen for events that require an expansion of the iframe
@@ -167,13 +168,13 @@ class IframeView {
 				});
 
 			}.bind(this), function(e){
-				this.emit("loaderror", e);
+				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 				return new Promise((resolve, reject) => {
 					reject(e);
 				});
 			}.bind(this))
 			.then(function() {
-				this.emit("rendered", this.section);
+				this.emit(EVENTS.VIEWS.RENDERED, this.section);
 			}.bind(this));
 
 	}
@@ -326,7 +327,7 @@ class IframeView {
 
 		this.onResize(this, size);
 
-		this.emit("resized", size);
+		this.emit(EVENTS.VIEWS.RESIZED, size);
 
 		this.prevBounds = size;
 
@@ -390,7 +391,7 @@ class IframeView {
 			this.document.querySelector("head").appendChild(link);
 		}
 
-		this.contents.on("expand", () => {
+		this.contents.on(EVENTS.CONTENTS.EXPAND, () => {
 			if(this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
@@ -399,7 +400,7 @@ class IframeView {
 			}
 		});
 
-		this.contents.on("resize", (e) => {
+		this.contents.on(EVENTS.CONTENTS.RESIZE, (e) => {
 			if(this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
@@ -450,7 +451,7 @@ class IframeView {
 			this.render(request)
 				.then(function () {
 
-					this.emit("displayed", this);
+					this.emit(EVENTS.VIEWS.DISPLAYED, this);
 					this.onDisplayed(this);
 
 					this.displayed = true;
@@ -476,7 +477,7 @@ class IframeView {
 			this.iframe.style.visibility = "visible";
 		}
 
-		this.emit("shown", this);
+		this.emit(EVENTS.VIEWS.SHOWN, this);
 	}
 
 	hide() {
@@ -485,7 +486,7 @@ class IframeView {
 		this.iframe.style.visibility = "hidden";
 
 		this.stopExpanding = true;
-		this.emit("hidden", this);
+		this.emit(EVENTS.VIEWS.HIDDEN, this);
 	}
 
 	offset() {
@@ -539,7 +540,7 @@ class IframeView {
 		let range = this.contents.range(cfiRange);
 
 		let emitter = () => {
-			this.emit("markClicked", cfiRange, data);
+			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
 
 		data["epubcfi"] = cfiRange;
@@ -570,7 +571,7 @@ class IframeView {
 		}
 		let range = this.contents.range(cfiRange);
 		let emitter = () => {
-			this.emit("markClicked", cfiRange, data);
+			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
 
 		data["epubcfi"] = cfiRange;
@@ -614,7 +615,7 @@ class IframeView {
 		let parent = (container.nodeType === 1) ? container : container.parentNode;
 
 		let emitter = (e) => {
-			this.emit("markClicked", cfiRange, data);
+			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
 
 		if (range.collapsed && container.nodeType === 1) {
@@ -738,7 +739,7 @@ class IframeView {
 
 			this.stopExpanding = true;
 			this.element.removeChild(this.iframe);
-			this.displayed = false;
+
 			this.iframe = null;
 
 			this._textWidth = null;

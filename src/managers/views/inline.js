@@ -2,6 +2,7 @@ import EventEmitter from "event-emitter";
 import {extend, borders, uuid, isNumber, bounds, defer, qs, parse} from "../../utils/core";
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
+import { EVENTS } from "../../utils/constants";
 
 class InlineView {
 	constructor(section, options) {
@@ -148,11 +149,11 @@ class InlineView {
 				}
 				// this.map = new Map(view, this.layout);
 				//this.hooks.show.trigger(view, this);
-				this.emit("rendered", this.section);
+				this.emit(EVENTS.VIEWS.RENDERED, this.section);
 
 			}.bind(this))
 			.catch(function(e){
-				this.emit("loaderror", e);
+				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 			}.bind(this));
 
 	}
@@ -270,7 +271,7 @@ class InlineView {
 
 		this.onResize(this, size);
 
-		this.emit("resized", size);
+		this.emit(EVENTS.VIEWS.RESIZED, size);
 
 	}
 
@@ -338,7 +339,7 @@ class InlineView {
 
 			this.render(request).then(function () {
 
-				this.emit("displayed", this);
+				this.emit(EVENTS.VIEWS.DISPLAYED, this);
 				this.onDisplayed(this);
 
 				this.displayed = true;
@@ -363,7 +364,7 @@ class InlineView {
 			this.frame.style.visibility = "visible";
 		}
 
-		this.emit("shown", this);
+		this.emit(EVENTS.VIEWS.SHOWN, this);
 	}
 
 	hide() {
@@ -372,7 +373,7 @@ class InlineView {
 		this.frame.style.visibility = "hidden";
 
 		this.stopExpanding = true;
-		this.emit("hidden", this);
+		this.emit(EVENTS.VIEWS.HIDDEN, this);
 	}
 
 	position() {

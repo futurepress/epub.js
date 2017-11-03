@@ -14,6 +14,7 @@ import Rendition from "./rendition";
 import Archive from "./archive";
 import request from "./utils/request";
 import EpubCFI from "./epubcfi";
+import { EVENTS } from "./utils/constants";
 
 const CONTAINER_PATH = "META-INF/container.xml";
 const EPUBJS_VERSION = "0.3";
@@ -169,8 +170,7 @@ class Book {
 		if(url) {
 			this.open(url).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
-				// console.error(err);
-				this.emit("openFailed", err);
+				this.emit(EVENTS.BOOK.OPEN_FAILED, err);
 			});
 		}
 	}

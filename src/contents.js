@@ -3,9 +3,7 @@ import {isNumber, prefixed, borders, defaults} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
-
-// Dom events to listen for
-const EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+import { EVENTS, DOM_EVENTS } from "./utils/constants";
 
 const isChrome = /Chrome/.test(navigator.userAgent);
 const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
@@ -37,7 +35,7 @@ class Contents {
 	}
 
 	static get listenedEvents() {
-		return EVENTS;
+		return DOM_EVENTS;
 	}
 
 	width(w) {
@@ -313,7 +311,7 @@ class Contents {
 	// };
 
 	expand() {
-		this.emit("expand");
+		this.emit(EVENTS.CONTENTS.EXPAND);
 	}
 
 	listeners() {
@@ -358,7 +356,7 @@ class Contents {
 			};
 
 			this.onResize && this.onResize(this._size);
-			this.emit("resize", this._size);
+			this.emit(EVENTS.CONTENTS.RESIZE, this._size);
 		}
 	}
 
@@ -677,7 +675,7 @@ class Contents {
 			return;
 		}
 
-		EVENTS.forEach(function(eventName){
+		DOM_EVENTS.forEach(function(eventName){
 			this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
 		}, this);
 
@@ -687,7 +685,7 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		EVENTS.forEach(function(eventName){
+		DOM_EVENTS.forEach(function(eventName){
 			this.document.removeEventListener(eventName, this.triggerEvent, false);
 		}, this);
 
@@ -730,8 +728,8 @@ class Contents {
 			if(!range.collapsed) {
 				// cfirange = this.section.cfiFromRange(range);
 				cfirange = new EpubCFI(range, this.cfiBase).toString();
-				this.emit("selected", cfirange);
-				this.emit("selectedRange", range);
+				this.emit(EVENTS.CONTENTS.SELECTED, cfirange);
+				this.emit(EVENTS.CONTENTS.SELECTED_RANGE, range);
 			}
 		}
 	}
@@ -859,7 +857,7 @@ class Contents {
 
 	linksHandler() {
 		replaceLinks(this.content, (href) => {
-			this.emit("linkClicked", href);
+			this.emit(EVENTS.CONTENTS.LINK_CLICKED, href);
 		});
 	}
 
