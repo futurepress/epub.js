@@ -236,9 +236,13 @@ class ContinuousViewManager extends DefaultViewManager {
 				// console.log("visible " + view.index);
 
 				if (!view.displayed) {
-					promises.push(view.display(this.request).then(function (view) {
-						view.show();
-					}));
+					let displayed = view.display(this.request)
+						.then(function (view) {
+							view.show();
+						}, (err) => {
+							view.hide();
+						});
+					promises.push(displayed);
 				} else {
 					view.show();
 				}
@@ -256,7 +260,10 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		if(promises.length){
-			return Promise.all(promises);
+			return Promise.all(promises)
+				.catch((err) => {
+					updating.reject(err);
+				})
 		} else {
 			updating.resolve();
 			return updating.promise;
@@ -316,8 +323,9 @@ class ContinuousViewManager extends DefaultViewManager {
 				.then(() => {
 					// Check to see if anything new is on screen after rendering
 					return this.update(delta);
+				}, (err) => {
+					return err;
 				});
-
 		} else {
 			this.q.enqueue(function(){
 				this.update();

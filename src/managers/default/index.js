@@ -264,7 +264,9 @@ class DefaultViewManager {
 					this.moveTo(offset);
 				}
 
-			}.bind(this))
+			}.bind(this), (err) => {
+				displaying.reject(err);
+			})
 			.then(function(){
 				var next;
 				if (this.layout.name === "pre-paginated" &&
@@ -445,7 +447,9 @@ class DefaultViewManager {
 							return this.append(right);
 						}
 					}
-				}.bind(this))
+				}.bind(this), (err) => {
+					displaying.reject(err);
+				})
 				.then(function(){
 					this.views.show();
 				}.bind(this));
@@ -517,7 +521,9 @@ class DefaultViewManager {
 							return this.prepend(left);
 						}
 					}
-				}.bind(this))
+				}.bind(this), (err) => {
+					displaying.reject(err);
+				})
 				.then(function(){
 					if(this.isPaginated && this.settings.axis === "horizontal") {
 						if (this.settings.direction === "rtl") {

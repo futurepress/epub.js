@@ -166,12 +166,14 @@ class IframeView {
 					resolve();
 				});
 
+			}.bind(this), function(e){
+				this.emit("loaderror", e);
+				return new Promise((resolve, reject) => {
+					reject(e);
+				});
 			}.bind(this))
 			.then(function() {
 				this.emit("rendered", this.section);
-			}.bind(this))
-			.catch(function(e){
-				this.emit("loaderror", e);
 			}.bind(this));
 
 	}
@@ -445,15 +447,18 @@ class IframeView {
 
 		if (!this.displayed) {
 
-			this.render(request).then(function () {
+			this.render(request)
+				.then(function () {
 
-				this.emit("displayed", this);
-				this.onDisplayed(this);
+					this.emit("displayed", this);
+					this.onDisplayed(this);
 
-				this.displayed = true;
-				displayed.resolve(this);
+					this.displayed = true;
+					displayed.resolve(this);
 
-			}.bind(this));
+				}.bind(this), function (err) {
+					displayed.reject(err, this);
+				});
 
 		} else {
 			displayed.resolve(this);

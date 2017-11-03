@@ -271,6 +271,8 @@ class Rendition {
 
 				this.emit("displayed", section);
 				this.reportLocation();
+			}, (err) => {
+				this.emit("displayerror", err);
 			});
 
 		return displayed;
