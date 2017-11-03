@@ -120,7 +120,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	// }
 
 	afterResized(view){
-		this.emit(EVENTS.MANAGERS.RESIZED, view.section);
+		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
 	// Remove Previous Listeners if present
