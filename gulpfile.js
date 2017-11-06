@@ -127,13 +127,13 @@ gulp.task("serve", function(callback) {
 
 gulp.task('docs:md', function () {
 	return gulp.src('./src/epub.js')
-		.pipe(buildDocs({ format: 'md' }))
+		.pipe(buildDocs('md'))
 		.pipe(gulp.dest('documentation/md'));
 });
 
 gulp.task('docs:html', function () {
 	return gulp.src('./src/epub.js')
-		.pipe(buildDocs({ format: 'html' }))
+		.pipe(buildDocs('html'))
 		.pipe(gulp.dest('documentation/html'));
 });
 
