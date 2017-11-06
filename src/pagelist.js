@@ -24,7 +24,6 @@ class PageList {
 		this.toc = undefined;
 		this.ncx = undefined;
 
-		this.lastPage
 		if (xml) {
 			this.pageList = this.parse(xml);
 		}
@@ -43,9 +42,9 @@ class PageList {
 		var ncx = qs(xml, "ncx");
 
 		if(html) {
-			this.toc = this.parseNav(xml);
+			return this.parseNav(xml);
 		} else if(ncx){ // Not supported
-			// this.toc = this.parseNcx(xml);
+			// return this.parseNcx(xml);
 			return;
 		}
 
@@ -125,48 +124,6 @@ class PageList {
 		this.lastPage = parseInt(this.pages[this.pages.length-1]);
 		this.totalPages = this.lastPage - this.firstPage;
 	}
-
-
-	/**
-	 * Replace HREFs with CFI
-	 * TODO: implement getting CFI from Href
-	 */
-	addCFIs() {
-		this.pageList.forEach(function(pg){
-			if(!pg.cfi) {
-				// epubcfi.generateCfiFromHref(pg.href, book).then(function(cfi){
-				// 	pg.cfi = cfi;
-				// 	pg.packageUrl = book.settings.packageUrl;
-				// });
-			}
-		});
-	}
-
-	/*
-	EPUBJS.generateCfiFromHref(href, book) {
-	  var uri = EPUBJS.core.uri(href);
-	  var path = uri.path;
-	  var fragment = uri.fragment;
-	  var spinePos = book.spineIndexByURL[path];
-	  var loaded;
-	  var deferred = new RSVP.defer();
-	  var epubcfi = new EPUBJS.EpubCFI();
-	  var spineItem;
-
-	  if(typeof spinePos !== "undefined"){
-	    spineItem = book.spine[spinePos];
-	    loaded = book.loadXml(spineItem.url);
-	    loaded.then(function(doc){
-	      var element = doc.getElementById(fragment);
-	      var cfi;
-	      cfi = epubcfi.generateCfiFromElement(element, spineItem.cfiBase);
-	      deferred.resolve(cfi);
-	    });
-	  }
-
-	  return deferred.promise;
-	}
-	*/
 
 	/**
 	 * Get a PageList result from a EpubCFI

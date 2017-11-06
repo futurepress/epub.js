@@ -3,3 +3,11 @@ node_js:
   - "node"
 notifications:
   email: false
+sudo: false
+addons:
+  chrome: stable
+cache:
+  directories:
+    - node_modules
+script:
+  - npm test

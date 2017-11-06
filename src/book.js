@@ -125,7 +125,7 @@ class Book {
 		/**
 		 * @property {PageList} pagelist
 		 */
-		this.pageList = new PageList();
+		this.pageList = undefined;
 
 		/**
 		 * @property {Url} url
@@ -441,11 +441,14 @@ class Book {
 		let navPath = opf.navPath || opf.ncxPath;
 		let toc = opf.toc;
 
+		// From json manifest
 		if (toc) {
 			return new Promise((resolve, reject) => {
 				this.navigation = new Navigation(toc);
 
-				this.pageList = new PageList(); // TODO: handle page lists
+				if (opf.pageList) {
+					this.pageList = new PageList(opf.pageList); // TODO: handle page lists from Manifest
+				}
 
 				resolve(this.navigation);
 			});
