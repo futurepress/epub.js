@@ -7,9 +7,12 @@ import {qs, qsa, querySelectorByType, filterChildren, getParentByTagName} from "
 class Navigation {
 	constructor(xml) {
 		this.toc = [];
-		this.landmarks = [];
 		this.tocByHref = {};
 		this.tocById = {};
+
+		this.landmarks = [];
+		this.landmarksByType = {};
+
 		this.length = 0;
 		if (xml) {
 			this.parse(xml);
@@ -91,6 +94,24 @@ class Navigation {
 		}
 
 		return this.toc[index];
+	}
+
+	/**
+	 * Get a landmark by type
+	 * List of types: https://idpf.github.io/epub-vocabs/structure/
+	 * @param  {string} type
+	 * @return {object} landmarkItems
+	 */
+	landmark(type) {
+		var index;
+
+		if(!type) {
+			return this.landmarks;
+		}
+
+		index = this.landmarksByType[type];
+
+		return this.landmarks[index];
 	}
 
 	/**
@@ -186,6 +207,7 @@ class Navigation {
 			item = this.landmarkItem(navItems[i]);
 			if (item) {
 				list.push(item);
+				this.landmarksByType[item.type] = i;
 			}
 		}
 
