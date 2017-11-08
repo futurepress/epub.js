@@ -6,6 +6,7 @@ import { replaceBase } from "./utils/replacements";
 
 /**
  * Represents a Section of the Book
+ *
  * In most books this is equivelent to a Chapter
  * @param {object} item  The spine item representing the section
  * @param {object} hooks hooks for serialize and content

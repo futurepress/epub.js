@@ -9,7 +9,7 @@ import {
 
 /**
  * Page List Parser
- * @param {[document]} xml
+ * @param {document} [xml]
  */
 class PageList {
 	constructor(xml) {

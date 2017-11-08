@@ -112,7 +112,7 @@ class Spine {
 
 	/**
 	 * Get an item from the spine
-	 * @param  {[string|int]} target
+	 * @param  {string|int} [target]
 	 * @return {Section} section
 	 * @example spine.get();
 	 * @example spine.get(1);

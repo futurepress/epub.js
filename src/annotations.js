@@ -1,28 +1,9 @@
-// Manage annotations for a book?
-
-/*
-let a = rendition.annotations.highlight(cfiRange, data)
-
-a.on("added", () => console.log("added"))
-a.on("removed", () => console.log("removed"))
-a.on("clicked", () => console.log("clicked"))
-
-a.update(data)
-a.remove();
-a.text();
-
-rendition.annotations.show()
-rendition.annotations.hide()
-
-rendition.annotations.highlights.show()
-rendition.annotations.highlights.hide()
-*/
-
 import EventEmitter from "event-emitter";
 import EpubCFI from "./epubcfi";
 
 /**
 	* Handles managing adding & removing Annotations
+	* @param {Rendition} rendition
 	* @class
 	*/
 class Annotations {
@@ -39,6 +20,14 @@ class Annotations {
 		this.rendition.hooks.unloaded.register(this.clear.bind(this));
 	}
 
+	/**
+	 * Add an annotation to store
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+	 * @param {object} data Data to assign to annotation
+	 * @param {function} [cb] Callback after annotation is added
+	 * @returns {Annotation} annotation
+	 */
 	add (type, cfiRange, data, cb) {
 		let hash = encodeURI(cfiRange);
 		let cfi = new EpubCFI(cfiRange);
@@ -70,6 +59,11 @@ class Annotations {
 		return annotation;
 	}
 
+	/**
+	 * Remove an annotation from store
+	 * @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
+	 * @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+	 */
 	remove (cfiRange, type) {
 		let hash = encodeURI(cfiRange);
 
@@ -92,30 +86,65 @@ class Annotations {
 		}
 	}
 
+	/**
+	 * Remove an annotations by Section Index
+	 * @private
+	 */
 	_removeFromAnnotationBySectionIndex (sectionIndex, hash) {
 		this._annotationsBySectionIndex[sectionIndex] = this._annotationsAt(sectionIndex).filter(h => h !== hash);
 	}
 
+	/**
+	 * Get annotations by Section Index
+	 * @private
+	 */
 	_annotationsAt (index) {
 		return this._annotationsBySectionIndex[index];
 	}
 
+
+	/**
+	 * Add a highlight to the store
+	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+	 * @param {object} data Data to assign to annotation
+	 * @param {function} cb Callback after annotation is added
+	 */
 	highlight (cfiRange, data, cb) {
 		this.add("highlight", cfiRange, data, cb);
 	}
 
+	/**
+	 * Add a underline to the store
+	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+	 * @param {object} data Data to assign to annotation
+	 * @param {function} cb Callback after annotation is added
+	 */
 	underline (cfiRange, data, cb) {
 		this.add("underline", cfiRange, data, cb);
 	}
 
+	/**
+	 * Add a mark to the store
+	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+	 * @param {object} data Data to assign to annotation
+	 * @param {function} cb Callback after annotation is added
+	 */
 	mark (cfiRange, data, cb) {
 		this.add("mark", cfiRange, data, cb);
 	}
 
+	/**
+	 * iterate over annotations in the store
+	 */
 	each () {
 		return this._annotations.forEach.apply(this._annotations, arguments);
 	}
 
+	/**
+	 * Hook for injecting annotation into a view
+	 * @param {View} view
+	 * @private
+	 */
 	inject (view) {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
@@ -127,6 +156,11 @@ class Annotations {
 		}
 	}
 
+	/**
+	 * Hook for removing annotation from a view
+	 * @param {View} view
+	 * @private
+	 */
 	clear (view) {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
@@ -138,16 +172,35 @@ class Annotations {
 		}
 	}
 
+	/**
+	 * [Not Implemented] Show annotations
+	 * @TODO: needs implementation in View
+	 */
 	show () {
 
 	}
 
+	/**
+	 * [Not Implemented] Hide annotations
+	 * @TODO: needs implementation in View
+	 */
 	hide () {
 
 	}
 
 }
 
+/**
+ * Annotation object
+ * @class
+ * @param {object} options
+ * @param {string} options.type Type of annotation to add: "highlight", "underline", "mark"
+ * @param {EpubCFI} options.cfiRange EpubCFI range to attach annotation to
+ * @param {object} options.data Data to assign to annotation
+ * @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
+ * @param {function} [options.cb] Callback after annotation is added
+ * @returns {Annotation} annotation
+ */
 class Annotation {
 
 	constructor ({
@@ -165,18 +218,21 @@ class Annotation {
 		this.cb = cb;
 	}
 
+	/**
+	 * Update stored data
+	 * @param {object} data
+	 */
 	update (data) {
 		this.data = data;
 	}
 
+	/**
+	 * Add to a view
+	 * @param {View} view
+	 */
 	attach (view) {
 		let {cfiRange, data, type, mark, cb} = this;
 		let result;
-		/*
-		if (mark) {
-			return; // already added
-		}
-		*/
 
 		if (type === "highlight") {
 			result = view.highlight(cfiRange, data, cb);
@@ -191,6 +247,10 @@ class Annotation {
 		return result;
 	}
 
+	/**
+	 * Remove from a view
+	 * @param {View} view
+	 */
 	detach (view) {
 		let {cfiRange, type} = this;
 		let result;
@@ -210,8 +270,12 @@ class Annotation {
 		return result;
 	}
 
+	/**
+	 * [Not Implemented] Get text of an annotation
+	 * @TODO: needs implementation in contents
+	 */
 	text () {
-		// TODO: needs implementation in contents
+
 	}
 
 }

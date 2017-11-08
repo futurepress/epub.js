@@ -4,7 +4,7 @@ import {qs} from "./utils/core";
 /**
  * Handles Parsing and Accessing an Epub Container
  * @class
- * @param {[document]} containerDocument xml document
+ * @param {document} [containerDocument] xml document
  */
 class Container {
 	constructor(containerDocument) {

@@ -1,5 +1,4 @@
 import EventEmitter from "event-emitter";
-// import path from "path";
 import {extend, defer} from "./utils/core";
 import Url from "./utils/url";
 import Path from "./utils/path";
@@ -19,16 +18,27 @@ import { EVENTS } from "./utils/constants";
 const CONTAINER_PATH = "META-INF/container.xml";
 const EPUBJS_VERSION = "0.3";
 
+const INPUT_TYPE = {
+	BINARY: "binary",
+	BASE64: "base64",
+	EPUB: "epub",
+	OPF: "opf",
+	MANIFEST: "json",
+	DIRECTORY: "directory"
+};
+
 /**
- * Creates a new Book
+ * An Epub representation with methods for the loading, parsing and manipulation
+ * of its contents.
  * @class
- * @param {string} url
- * @param {object} options
- * @param {method} options.requestMethod a request function to use instead of the default
+ * @param {string} [url]
+ * @param {object} [options]
+ * @param {method} [options.requestMethod] a request function to use instead of the default
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
  * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {method} [options.canonical] optional function to determine canonical urls for a path
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -57,7 +67,8 @@ class Book {
 		// Promises
 		this.opening = new defer();
 		/**
-		 * @property {promise} opened returns after the book is loaded
+		 * @member {promise} opened returns after the book is loaded
+		 * @memberof Book
 		 */
 		this.opened = this.opening.promise;
 		this.isOpen = false;
@@ -82,9 +93,9 @@ class Book {
 			resources: this.loading.resources.promise
 		};
 
-		// this.ready = RSVP.hash(this.loaded);
 		/**
-		 * @property {promise} ready returns after the book is loaded and parsed
+		 * @member {promise} ready returns after the book is loaded and parsed
+		 * @memberof Book
 		 * @private
 		 */
 		this.ready = Promise.all([
@@ -102,70 +113,93 @@ class Book {
 		// this._q = queue(this);
 
 		/**
-		 * @property {method} request
+		 * @member {method} request
+		 * @memberof Book
 		 * @private
 		 */
 		this.request = this.settings.requestMethod || request;
 
 		/**
-		 * @property {Spine} spine
+		 * @member {Spine} spine
+		 * @memberof Book
 		 */
 		this.spine = new Spine();
 
 		/**
-		 * @property {Locations} locations
+		 * @member {Locations} locations
+		 * @memberof Book
 		 */
 		this.locations = new Locations(this.spine, this.load.bind(this));
 
 		/**
-		 * @property {Navigation} navigation
+		 * @member {Navigation} navigation
+		 * @memberof Book
 		 */
 		this.navigation = undefined;
 
 		/**
-		 * @property {PageList} pagelist
+		 * @member {PageList} pagelist
+		 * @memberof Book
 		 */
 		this.pageList = undefined;
 
 		/**
-		 * @property {Url} url
+		 * @member {Url} url
+		 * @memberof Book
 		 * @private
 		 */
 		this.url = undefined;
 
 		/**
-		 * @property {Path} path
+		 * @member {Path} path
+		 * @memberof Book
 		 * @private
 		 */
 		this.path = undefined;
 
 		/**
-		 * @property {boolean} archived
+		 * @member {boolean} archived
+		 * @memberof Book
 		 * @private
 		 */
 		this.archived = false;
 
 		/**
-		 * @property {Archive} archive
+		 * @member {Archive} archive
+		 * @memberof Book
 		 * @private
 		 */
 		this.archive = undefined;
 
 		/**
-		 * @property {Resources} resources
+		 * @member {Resources} resources
+		 * @memberof Book
 		 * @private
 		 */
 		this.resources = undefined;
 
 		/**
-		 * @property {Rendition} rendition
+		 * @member {Rendition} rendition
+		 * @memberof Book
 		 * @private
 		 */
 		this.rendition = undefined;
 
+		/**
+		 * @member {Container} container
+		 * @memberof Book
+		 * @private
+		 */
 		this.container = undefined;
+
+		/**
+		 * @member {Packaging} packaging
+		 * @memberof Book
+		 * @private
+		 */
 		this.packaging = undefined;
-		this.toc = undefined;
+
+		// this.toc = undefined;
 
 		if(url) {
 			this.open(url).catch((error) => {
@@ -177,8 +211,8 @@ class Book {
 
 	/**
 	 * Open a epub or url
-	 * @param {string} input URL, Path or ArrayBuffer
-	 * @param {string} [what] to force opening
+	 * @param {string | ArrayBuffer} input Url, Path or ArrayBuffer
+	 * @param {string} [what="binary", "base64", "epub", "opf", "json", "directory"] force opening as a certain type
 	 * @returns {Promise} of when the book has been loaded
 	 * @example book.open("/path/to/book.epub")
 	 */
@@ -186,23 +220,23 @@ class Book {
 		var opening;
 		var type = what || this.determineType(input);
 
-		if (type === "binary") {
+		if (type === INPUT_TYPE.BINARY) {
 			this.archived = true;
 			this.url = new Url("/", "");
 			opening = this.openEpub(input);
-		} else if (type === "base64") {
+		} else if (type === INPUT_TYPE.BASE64) {
 			this.archived = true;
 			this.url = new Url("/", "");
 			opening = this.openEpub(input, type);
-		} else if (type === "epub") {
+		} else if (type === INPUT_TYPE.EPUB) {
 			this.archived = true;
 			this.url = new Url("/", "");
 			opening = this.request(input, "binary")
 				.then(this.openEpub.bind(this));
-		} else if(type == "opf") {
+		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);
 			opening = this.openPackaging(this.url.Path.toString());
-		} else if(type == "json") {
+		} else if(type == INPUT_TYPE.MANIFEST) {
 			this.url = new Url(input);
 			opening = this.openManifest(this.url.Path.toString());
 		} else {
@@ -218,7 +252,7 @@ class Book {
 	 * Open an archived epub
 	 * @private
 	 * @param  {binary} data
-	 * @param  {[string]} encoding
+	 * @param  {string} [encoding]
 	 * @return {Promise}
 	 */
 	openEpub(data, encoding) {
@@ -296,7 +330,7 @@ class Book {
 	/**
 	 * Resolve a path to it's absolute position in the Book
 	 * @param  {string} path
-	 * @param  {[boolean]} absolute force resolving the full URL
+	 * @param  {boolean} [absolute] force resolving the full URL
 	 * @return {string}          the resolved path string
 	 */
 	resolve(path, absolute) {
@@ -354,11 +388,11 @@ class Book {
 		var extension;
 
 		if (this.settings.encoding === "base64") {
-			return "base64";
+			return INPUT_TYPE.BASE64;
 		}
 
 		if(typeof(input) != "string") {
-			return "binary";
+			return INPUT_TYPE.BINARY;
 		}
 
 		url = new Url(input);
@@ -366,19 +400,19 @@ class Book {
 		extension = path.extension;
 
 		if (!extension) {
-			return "directory";
+			return INPUT_TYPE.DIRECTORY;
 		}
 
 		if(extension === "epub"){
-			return "epub";
+			return INPUT_TYPE.EPUB;
 		}
 
 		if(extension === "opf"){
-			return "opf";
+			return INPUT_TYPE.OPF;
 		}
 
 		if(extension === "json"){
-			return "json";
+			return INPUT_TYPE.MANIFEST;
 		}
 	}
 
@@ -401,7 +435,7 @@ class Book {
 		});
 
 		this.loadNavigation(this.package).then(() => {
-			this.toc = this.navigation.toc;
+			// this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
 
@@ -472,24 +506,22 @@ class Book {
 	}
 
 	/**
-	 * Alias for book.spine.get
+	 * Gets a Section of the Book from the Spine
+	 * Alias for `book.spine.get`
 	 * @param {string} target
+	 * @return {Section}
 	 */
 	section(target) {
 		return this.spine.get(target);
 	}
 
 	/**
-	 * Sugar to render a book
-	 * @param  {element} element element to add the views to
-	 * @param  {[object]} options
+	 * Sugar to render a book to an element
+	 * @param  {element | string} element element or string to add a rendition to
+	 * @param  {object} [options]
 	 * @return {Rendition}
 	 */
 	renderTo(element, options) {
-		// var renderMethod = (options && options.method) ?
-		//     options.method :
-		//     "single";
-
 		this.rendition = new Rendition(this, options);
 		this.rendition.attachTo(element);
 
@@ -516,7 +548,7 @@ class Book {
 	 * Unarchive a zipped epub
 	 * @private
 	 * @param  {binary} input epub data
-	 * @param  {[string]} encoding
+	 * @param  {string} [encoding]
 	 * @return {Archive}
 	 */
 	unarchive(input, encoding) {
@@ -539,13 +571,11 @@ class Book {
 				}
 			});
 
-
-
 		return retrieved;
 	}
 
 	/**
-	 * load replacement urls
+	 * Load replacement urls
 	 * @private
 	 * @return {Promise} completed loading urls
 	 */
@@ -582,7 +612,7 @@ class Book {
 
 	/**
 	 * Generates the Book Key using the identifer in the manifest or other string provided
-	 * @param  {[string]} identifier to use instead of metadata identifier
+	 * @param  {string} [identifier] to use instead of metadata identifier
 	 * @return {string} key
 	 */
 	key(identifier) {
@@ -590,6 +620,9 @@ class Book {
 		return `epubjs:${EPUBJS_VERSION}:${ident}`;
 	}
 
+	/**
+	 * Destroy the Book and all associated objects
+	 */
 	destroy() {
 		this.opened = undefined;
 		this.loading = undefined;
@@ -621,7 +654,6 @@ class Book {
 		this.url = undefined;
 		this.path = undefined;
 		this.archived = false;
-		this.toc = undefined;
 	}
 
 }

@@ -150,8 +150,8 @@ class Resources {
 	/**
 	 * Replace URLs in CSS resources
 	 * @private
-	 * @param  {[Archive]} archive
-	 * @param  {[method]} resolver
+	 * @param  {Archive} [archive]
+	 * @param  {method} [resolver]
 	 * @return {Promise}
 	 */
 	replaceCss(archive, resolver){
@@ -277,7 +277,7 @@ class Resources {
 	 * Substitute urls in content, with replacements,
 	 * relative to a url if provided
 	 * @param  {string} content
-	 * @param  {[string]} url   url to resolve to
+	 * @param  {string} [url]   url to resolve to
 	 * @return {string}         content with urls substituted
 	 */
 	substitute(content, url) {
