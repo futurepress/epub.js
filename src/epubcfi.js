@@ -1,24 +1,27 @@
 import {extend, type, findChildren, RangeObject, isNumber} from "./utils/core";
 
-/**
-	EPUB CFI spec: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
-
-	Implements:
-	- Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
-	- Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
-
-	Does Not Implement:
-	- Temporal Offset (~)
-	- Spatial Offset (@)
-	- Temporal-Spatial Offset (~ + @)
-	- Text Location Assertion ([)
-*/
-
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
-// const COMMENT_NODE = 8;
+const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
 
+/**
+	* Parsing and creation of EpubCFIs: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
+
+	* Implements:
+	* - Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
+	* - Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
+
+	* Does Not Implement:
+	* - Temporal Offset (~)
+	* - Spatial Offset (@)
+	* - Temporal-Spatial Offset (~ + @)
+	* - Text Location Assertion ([)
+	* @class
+	@param {string | Range | Node } [cfiFrom]
+	@param {string | object} [base]
+	@param {string} [ignoreClass] class to ignore when parsing DOM
+*/
 class EpubCFI {
 	constructor(cfiFrom, base, ignoreClass){
 		var type;
@@ -65,6 +68,10 @@ class EpubCFI {
 
 	}
 
+	/**
+	 * Check the type of constructor input
+	 * @private
+	 */
 	checkType(cfi) {
 
 		if (this.isCfiString(cfi)) {
@@ -81,6 +88,11 @@ class EpubCFI {
 		}
 	}
 
+	/**
+	 * Parse a cfi string to a CFI object representation
+	 * @param {string} cfiStr
+	 * @returns {object} cfi
+	 */
 	parse(cfiStr) {
 		var cfi = {
 			spinePos: -1,
@@ -289,6 +301,10 @@ class EpubCFI {
 		return segmentString;
 	}
 
+	/**
+	 * Convert CFI to a epubcfi(...) string
+	 * @returns {string} epubcfi
+	 */
 	toString() {
 		var cfiString = "epubcfi(";
 
@@ -313,6 +329,11 @@ class EpubCFI {
 		return cfiString;
 	}
 
+
+	/**
+	 * Compare which of two CFIs is earlier in the text
+	 * @returns {number} First is earlier = 1, Second is earlier = -1, They are equal = 0
+	 */
 	compare(cfiOne, cfiTwo) {
 		var stepsA, stepsB;
 		var terminalA, terminalB;
@@ -477,6 +498,13 @@ class EpubCFI {
 		return false;
 	}
 
+	/**
+	 * Create a CFI object from a Range
+	 * @param {Range} range
+	 * @param {string | object} base
+	 * @param {string} [ignoreClass]
+	 * @returns {object} cfi
+	 */
 	fromRange(range, base, ignoreClass) {
 		var cfi = {
 			range: false,
@@ -564,6 +592,13 @@ class EpubCFI {
 		return cfi;
 	}
 
+	/**
+	 * Create a CFI object from a Node
+	 * @param {Node} anchor
+	 * @param {string | object} base
+	 * @param {string} [ignoreClass]
+	 * @returns {object} cfi
+	 */
 	fromNode(anchor, base, ignoreClass) {
 		var cfi = {
 			range: false,
@@ -886,6 +921,12 @@ class EpubCFI {
 
 	}
 
+	/**
+	 * Creates a DOM range representing a CFI
+	 * @param {document} _doc document referenced in the base
+	 * @param {string} [ignoreClass]
+	 * @return {Range}
+	 */
 	toRange(_doc, ignoreClass) {
 		var doc = _doc || document;
 		var range;
@@ -953,7 +994,11 @@ class EpubCFI {
 		return range;
 	}
 
-	// is a cfi string, should be wrapped with "epubcfi()"
+	/**
+	 * Check if a string is wrapped with "epubcfi()"
+	 * @param {string} str
+	 * @returns {boolean}
+	 */
 	isCfiString(str) {
 		if(typeof str === "string" &&
 			str.indexOf("epubcfi(") === 0 &&
@@ -978,6 +1023,10 @@ class EpubCFI {
 		return cfi;
 	}
 
+	/**
+	 * Collapse a CFI Range to a single CFI Position
+	 * @param {boolean} [toStart=false]
+	 */
 	collapse(toStart) {
 		if (!this.range) {
 			return;

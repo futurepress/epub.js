@@ -1,3 +1,13 @@
+/**
+ * Core Utilities and Helpers
+ * @module Core
+*/
+
+/**
+ * Vendor prefixed requestAnimationFrame
+ * @returns {function} requestAnimationFrame
+ * @memberof Core
+ */
 export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -5,11 +15,12 @@ const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
 const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
 
-export function isElement(obj) {
-	return !!(obj && obj.nodeType == 1);
-}
-
-// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+/**
+ * Generates a UUID
+ * based on: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+ * @returns {string} uuid
+ * @memberof Core
+ */
 export function uuid() {
 	var d = new Date().getTime();
 	var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
@@ -20,6 +31,11 @@ export function uuid() {
 	return uuid;
 }
 
+/**
+ * Gets the height of a document
+ * @returns {number} height
+ * @memberof Core
+ */
 export function documentHeight() {
 	return Math.max(
 			document.documentElement.clientHeight,
@@ -30,15 +46,37 @@ export function documentHeight() {
 	);
 }
 
+/**
+ * Checks if a node is an element
+ * @returns {boolean}
+ * @memberof Core
+ */
+export function isElement(obj) {
+	return !!(obj && obj.nodeType == 1);
+}
+
+/**
+ * @returns {boolean}
+ * @memberof Core
+ */
 export function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
+/**
+ * @returns {boolean}
+ * @memberof Core
+ */
 export function isFloat(n) {
 	let f = parseFloat(n);
 	return f === n && isNumber(n) && (Math.floor(f) !== n);
 }
 
+/**
+ * Get a prefixed css property
+ * @returns {string}
+ * @memberof Core
+ */
 export function prefixed(unprefixed) {
 	var vendors = ["Webkit", "webkit", "Moz", "O", "ms" ];
 	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
@@ -58,6 +96,12 @@ export function prefixed(unprefixed) {
 	return unprefixed;
 }
 
+/**
+ * Apply defaults to an object
+ * @param {object} obj
+ * @returns {object}
+ * @memberof Core
+ */
 export function defaults(obj) {
 	for (var i = 1, length = arguments.length; i < length; i++) {
 		var source = arguments[i];
@@ -68,6 +112,12 @@ export function defaults(obj) {
 	return obj;
 }
 
+/**
+ * Extend undefined properties of an object
+ * @param {object} target
+ * @returns {object}
+ * @memberof Core
+ */
 export function extend(target) {
 	var sources = [].slice.call(arguments, 1);
 	sources.forEach(function (source) {
@@ -79,8 +129,15 @@ export function extend(target) {
 	return target;
 }
 
-// Fast quicksort insert for sorted array -- based on:
-// http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+/**
+ * Fast quicksort insert for sorted array -- based on:
+ *  http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+ * @param {any} item
+ * @param {array} array
+ * @param {function} [compareFunction]
+ * @returns {number} location (in array)
+ * @memberof Core
+ */
 export function insert(item, array, compareFunction) {
 	var location = locationOf(item, array, compareFunction);
 	array.splice(location, 0, item);
@@ -88,7 +145,16 @@ export function insert(item, array, compareFunction) {
 	return location;
 }
 
-// Returns where something would fit in
+/**
+ * Finds where something would fit into a sorted array
+ * @param {any} item
+ * @param {array} array
+ * @param {function} [compareFunction]
+ * @param {function} [_start]
+ * @param {function} [_end]
+ * @returns {number} location (in array)
+ * @memberof Core
+ */
 export function locationOf(item, array, compareFunction, _start, _end) {
 	var start = _start || 0;
 	var end = _end || array.length;
@@ -119,7 +185,17 @@ export function locationOf(item, array, compareFunction, _start, _end) {
 	}
 }
 
-// Returns -1 of mpt found
+/**
+ * Finds index of something in a sorted array
+ * Returns -1 if not found
+ * @param {any} item
+ * @param {array} array
+ * @param {function} [compareFunction]
+ * @param {function} [_start]
+ * @param {function} [_end]
+ * @returns {number} index (in array) or -1
+ * @memberof Core
+ */
 export function indexOfSorted(item, array, compareFunction, _start, _end) {
 	var start = _start || 0;
 	var end = _end || array.length;
@@ -149,7 +225,13 @@ export function indexOfSorted(item, array, compareFunction, _start, _end) {
 		return indexOfSorted(item, array, compareFunction, start, pivot);
 	}
 }
-
+/**
+ * Find the bounds of an element
+ * taking padding and margin into account
+ * @param {element} el
+ * @returns {{ width: Number, height: Number}}
+ * @memberof Core
+ */
 export function bounds(el) {
 
 	var style = window.getComputedStyle(el);
@@ -174,6 +256,13 @@ export function bounds(el) {
 
 }
 
+/**
+ * Find the bounds of an element
+ * taking padding, margin and borders into account
+ * @param {element} el
+ * @returns {{ width: Number, height: Number}}
+ * @memberof Core
+ */
 export function borders(el) {
 
 	var style = window.getComputedStyle(el);
@@ -198,6 +287,11 @@ export function borders(el) {
 
 }
 
+/**
+ * Find the equivelent of getBoundingClientRect of a browser window
+ * @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
+ * @memberof Core
+ */
 export function windowBounds() {
 
 	var width = window.innerWidth;
@@ -214,22 +308,11 @@ export function windowBounds() {
 
 }
 
-//-- https://stackoverflow.com/questions/13482352/xquery-looking-for-text-with-single-quote/13483496#13483496
-export function cleanStringForXpath(str)	{
-	var parts = str.match(/[^'"]+|['"]/g);
-	parts = parts.map(function(part){
-		if (part === "'")	{
-			return "\"\'\""; // output "'"
-		}
-
-		if (part === "\"") {
-			return "\'\"\'"; // output '"'
-		}
-		return `\'${part}\'`;
-	});
-	return `concat(\'\',${ parts.join(",") })`;
-}
-
+/**
+ * Gets the index of a node in its parent
+ * @private
+ * @memberof Core
+ */
 export function indexOfNode(node, typeId) {
 	var parent = node.parentNode;
 	var children = parent.childNodes;
@@ -246,22 +329,54 @@ export function indexOfNode(node, typeId) {
 	return index;
 }
 
+/**
+ * Gets the index of a text node in its parent
+ * @param {node} textNode
+ * @returns {number} index
+ * @memberof Core
+ */
 export function indexOfTextNode(textNode) {
 	return indexOfNode(textNode, TEXT_NODE);
 }
 
+/**
+ * Gets the index of an element node in its parent
+ * @param {element} elementNode
+ * @returns {number} index
+ * @memberof Core
+ */
 export function indexOfElementNode(elementNode) {
 	return indexOfNode(elementNode, ELEMENT_NODE);
 }
 
+/**
+ * Check if extension is xml
+ * @param {string} ext
+ * @returns {boolean}
+ * @memberof Core
+ */
 export function isXml(ext) {
 	return ["xml", "opf", "ncx"].indexOf(ext) > -1;
 }
 
+/**
+ * Create a new blob
+ * @param {any} content
+ * @param {string} mime
+ * @returns {Blob}
+ * @memberof Core
+ */
 export function createBlob(content, mime){
 	return new Blob([content], {type : mime });
 }
 
+/**
+ * Create a new blob url
+ * @param {any} content
+ * @param {string} mime
+ * @returns {string} url
+ * @memberof Core
+ */
 export function createBlobUrl(content, mime){
 	var tempUrl;
 	var blob = createBlob(content, mime);
@@ -271,11 +386,22 @@ export function createBlobUrl(content, mime){
 	return tempUrl;
 }
 
-
+/**
+ * Remove a blob url
+ * @param {string} url
+ * @memberof Core
+ */
 export function revokeBlobUrl(url){
 	return _URL.revokeObjectURL(url);
 }
 
+/**
+ * Create a new base64 encoded url
+ * @param {any} content
+ * @param {string} mime
+ * @returns {string} url
+ * @memberof Core
+ */
 export function createBase64Url(content, mime){
 	var data;
 	var datauri;
@@ -292,10 +418,24 @@ export function createBase64Url(content, mime){
 	return datauri;
 }
 
+/**
+ * Get type of an object
+ * @param {object} obj
+ * @returns {string} type
+ * @memberof Core
+ */
 export function type(obj){
 	return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
+/**
+ * Parse xml (or html) markup
+ * @param {string} markup
+ * @param {string} mime
+ * @param {boolean} forceXMLDom force using xmlDom to parse instead of native parser
+ * @returns {document} document
+ * @memberof Core
+ */
 export function parse(markup, mime, forceXMLDom) {
 	var doc;
 	var Parser;
@@ -317,6 +457,13 @@ export function parse(markup, mime, forceXMLDom) {
 	return doc;
 }
 
+/**
+ * querySelector polyfill
+ * @param {element} el
+ * @param {string} sel selector string
+ * @returns {element} element
+ * @memberof Core
+ */
 export function qs(el, sel) {
 	var elements;
 	if (!el) {
@@ -333,6 +480,13 @@ export function qs(el, sel) {
 	}
 }
 
+/**
+ * querySelectorAll polyfill
+ * @param {element} el
+ * @param {string} sel selector string
+ * @returns {element[]} elements
+ * @memberof Core
+ */
 export function qsa(el, sel) {
 
 	if (typeof el.querySelector != "undefined") {
@@ -342,6 +496,14 @@ export function qsa(el, sel) {
 	}
 }
 
+/**
+ * querySelector by property
+ * @param {element} el
+ * @param {string} sel selector string
+ * @param {props[]} props
+ * @returns {element[]} elements
+ * @memberof Core
+ */
 export function qsp(el, sel, props) {
 	var q, filtered;
 	if (typeof el.querySelector != "undefined") {
@@ -370,6 +532,7 @@ export function qsp(el, sel, props) {
 
 /**
  * Sprint through all text nodes in a document
+ * @memberof Core
  * @param  {element} root element to start with
  * @param  {function} func function to run on each element
  */
@@ -394,24 +557,10 @@ export function treeWalker(root, func, filter) {
 	}
 }
 
-// export function walk(root, func, onlyText) {
-// 	var node = root;
-//
-// 	if (node && !onlyText || node.nodeType === 3) { // Node.TEXT_NODE
-// 		func(node);
-// 	}
-// 	console.log(root);
-//
-// 	node = node.firstChild;
-// 	while(node) {
-// 		walk(node, func, onlyText);
-// 		node = node.nextSibling;
-// 	}
-// }
-
 /**
- * @param callback return false for continue,true for break
- * @return boolean true: break visit;
+ * @memberof Core
+ * @param {node} node
+ * @param {callback} return false for continue,true for break inside callback
  */
 export function walk(node,callback){
 	if(callback(node)){
@@ -429,6 +578,12 @@ export function walk(node,callback){
 	}
 }
 
+/**
+ * Convert a blob to a base64 encoded string
+ * @param {Blog} blob
+ * @returns {string}
+ * @memberof Core
+ */
 export function blob2base64(blob) {
 	return new Promise(function(resolve, reject) {
 		var reader = new FileReader();
@@ -439,7 +594,12 @@ export function blob2base64(blob) {
 	});
 }
 
-// From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
+
+/**
+ * Creates a new pending promise and provides methods to resolve or reject it.
+ * From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
+ * @memberof Core
+ */
 export function defer() {
 	/* A method to resolve the associated Promise with the value passed.
 	 * If the promise is already settled it does nothing.
@@ -471,6 +631,14 @@ export function defer() {
 	Object.freeze(this);
 }
 
+/**
+ * querySelector with filter by epub type
+ * @param {element} html
+ * @param {string} element element type to find
+ * @param {string} type epub type to find
+ * @returns {element[]} elements
+ * @memberof Core
+ */
 export function querySelectorByType(html, element, type){
 	var query;
 	if (typeof html.querySelector != "undefined") {
@@ -490,6 +658,12 @@ export function querySelectorByType(html, element, type){
 	}
 }
 
+/**
+ * Find direct decendents of an element
+ * @param {element} el
+ * @returns {element[]} children
+ * @memberof Core
+ */
 export function findChildren(el) {
 	var result = [];
 	var childNodes = el.childNodes;
@@ -502,6 +676,12 @@ export function findChildren(el) {
 	return result;
 }
 
+/**
+ * Find all parents (ancestors) of an element
+ * @param {element} node
+ * @returns {element[]} parents
+ * @memberof Core
+ */
 export function parents(node) {
 	var nodes = [node];
 	for (; node; node = node.parentNode) {
@@ -510,6 +690,14 @@ export function parents(node) {
 	return nodes
 }
 
+/**
+ * Find all direct decendents of a specific type
+ * @param {element} el
+ * @param {string} nodeName
+ * @param {boolean} [single]
+ * @returns {element[]} children
+ * @memberof Core
+ */
 export function filterChildren(el, nodeName, single) {
 	var result = [];
 	var childNodes = el.childNodes;
@@ -528,6 +716,13 @@ export function filterChildren(el, nodeName, single) {
 	}
 }
 
+/**
+ * Filter all parents (ancestors) with tag name
+ * @param {element} node
+ * @param {string} tagname
+ * @returns {element[]} parents
+ * @memberof Core
+ */
 export function getParentByTagName(node, tagname) {
 	let parent;
 	if (node === null || tagname === '') return;
@@ -540,6 +735,11 @@ export function getParentByTagName(node, tagname) {
 	}
 }
 
+/**
+ * Lightweight Polyfill for DOM Range
+ * @class
+ * @memberof Core
+ */
 export class RangeObject {
 	constructor() {
 		this.collapsed = false;

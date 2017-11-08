@@ -2,13 +2,11 @@ import Path from "./path";
 import path from "path-webpack";
 
 /**
- * creates a uri object
+ * creates a Url object for parsing and manipulation of a url string
  * @param	{string} urlString	a url string (relative or absolute)
- * @param	{[string]} baseString optional base for the url,
+ * @param	{string} [baseString] optional base for the url,
  * default to window.location.href
- * @return {object} url
  */
-
 class Url {
 	constructor(urlString, baseString) {
 		var absolute = (urlString.indexOf("://") > -1);
@@ -66,10 +64,17 @@ class Url {
 
 	}
 
+	/**
+	 * @returns {Path}
+	 */
 	path () {
 		return this.Path;
 	}
 
+	/**
+	 * Resolves a relative path to a absolute url
+	 * @returns {string} url
+	 */
 	resolve (what) {
 		var isAbsolute = (what.indexOf("://") > -1);
 		var fullpath;
@@ -82,10 +87,17 @@ class Url {
 		return this.origin + fullpath;
 	}
 
+	/**
+	 * Resolve a path relative to the url
+	 * @returns {string} path
+	 */
 	relative (what) {
 		return path.relative(what, this.directory);
 	}
 
+	/**
+	 * @returns {string}
+	 */
 	toString () {
 		return this.href;
 	}

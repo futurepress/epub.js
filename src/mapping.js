@@ -1,5 +1,9 @@
 import EpubCFI from "./epubcfi";
 
+/**
+ * Map text locations to CFI ranges
+ * @class
+ */
 class Mapping {
 	constructor(layout, direction, axis, dev) {
 		this.layout = layout;
@@ -8,6 +12,9 @@ class Mapping {
 		this._dev = dev;
 	}
 
+	/**
+	 * Find CFI pairs for entire section at once
+	 */
 	section(view) {
 		var ranges = this.findRanges(view);
 		var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
@@ -15,6 +22,9 @@ class Mapping {
 		return map;
 	}
 
+	/**
+	 * Find CFI pairs for a page
+	 */
 	page(contents, cfiBase, start, end) {
 		var root = contents && contents.document ? contents.document.body : false;
 		var result;

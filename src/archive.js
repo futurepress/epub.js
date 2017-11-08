@@ -59,9 +59,9 @@ class Archive {
 	}
 
 	/**
-	 * Request
+	 * Request a url from the archive
 	 * @param  {string} url  a url to request from the archive
-	 * @param  {[string]} type specify the type of the returned result
+	 * @param  {string} [type] specify the type of the returned result
 	 * @return {Promise}
 	 */
 	request(url, type){
@@ -98,7 +98,7 @@ class Archive {
 	 * Handle the response from request
 	 * @private
 	 * @param  {any} response
-	 * @param  {[string]} type
+	 * @param  {string} [type]
 	 * @return {any} the parsed result
 	 */
 	handleResponse(response, type){
@@ -128,7 +128,7 @@ class Archive {
 	/**
 	 * Get a Blob from Archive by Url
 	 * @param  {string} url
-	 * @param  {[string]} mimeType
+	 * @param  {string} [mimeType]
 	 * @return {Blob}
 	 */
 	getBlob(url, mimeType){
@@ -146,7 +146,7 @@ class Archive {
 	/**
 	 * Get Text from Archive by Url
 	 * @param  {string} url
-	 * @param  {[string]} encoding
+	 * @param  {string} [encoding]
 	 * @return {string}
 	 */
 	getText(url, encoding){
@@ -163,7 +163,7 @@ class Archive {
 	/**
 	 * Get a base64 encoded result from Archive by Url
 	 * @param  {string} url
-	 * @param  {[string]} mimeType
+	 * @param  {string} [mimeType]
 	 * @return {string} base64 encoded
 	 */
 	getBase64(url, mimeType){
@@ -181,7 +181,7 @@ class Archive {
 	/**
 	 * Create a Url from an unarchived item
 	 * @param  {string} url
-	 * @param  {[object]} options.base64 use base64 encoding or blob url
+	 * @param  {object} [options.base64] use base64 encoding or blob url
 	 * @return {Promise} url promise with Url string
 	 */
 	createUrl(url, options){

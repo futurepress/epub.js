@@ -1,11 +1,11 @@
 /**
- * Figures out the CSS to apply for a layout
+ * Figures out the CSS values to apply for a layout
  * @class
  * @param {object} settings
- * @param {[string=reflowable]} settings.layout
- * @param {[string]} settings.spread
- * @param {[int=800]} settings.minSpreadWidth
- * @param {[boolean=false]} settings.evenSpreads
+ * @param {string} [settings.layout='reflowable']
+ * @param {string} [settings.spread]
+ * @param {int} [settings.minSpreadWidth=800]
+ * @param {boolean} [settings.evenSpreads=false]
  */
 class Layout {
 	constructor(settings) {
@@ -166,7 +166,7 @@ class Layout {
 	/**
 	 * Apply Css to a Document
 	 * @param  {Contents} contents
-	 * @return {[Promise]}
+	 * @return {Promise}
 	 */
 	format(contents){
 		var formating;
@@ -184,12 +184,12 @@ class Layout {
 
 	/**
 	 * Count number of pages
-	 * @param  {number} totalWidth
-	 * @return {number} spreads
-	 * @return {number} pages
+	 * @param  {number} totalLength
+	 * @param  {number} pageLength
+	 * @return {{spreads: Number, pages: Number}}
 	 */
 	count(totalLength, pageLength) {
-		// var totalWidth = contents.scrollWidth();
+
 		let spreads, pages;
 
 		if (this.name === "pre-paginated") {

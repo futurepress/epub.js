@@ -171,6 +171,11 @@ class Locations {
 		return locations;
 	}
 
+	/**
+	 * Get a location from an EpubCFI
+	 * @param {EpubCFI} cfi
+	 * @return {number}
+	 */
 	locationFromCfi(cfi){
 		let loc;
 		if (EpubCFI.prototype.isCfiString(cfi)) {
@@ -190,6 +195,11 @@ class Locations {
 		return loc;
 	}
 
+	/**
+	 * Get a percentage position in locations from an EpubCFI
+	 * @param {EpubCFI} cfi
+	 * @return {number}
+	 */
 	percentageFromCfi(cfi) {
 		if(this._locations.length === 0) {
 			return null;
@@ -200,6 +210,11 @@ class Locations {
 		return this.percentageFromLocation(loc);
 	}
 
+	/**
+	 * Get a percentage position from a location index
+	 * @param {number} location
+	 * @return {number}
+	 */
 	percentageFromLocation(loc) {
 		if (!loc || !this.total) {
 			return 0;
@@ -208,6 +223,11 @@ class Locations {
 		return (loc / this.total);
 	}
 
+	/**
+	 * Get an EpubCFI from location index
+	 * @param {number} loc
+	 * @return {EpubCFI} cfi
+	 */
 	cfiFromLocation(loc){
 		var cfi = -1;
 		// check that pg is an int
@@ -222,6 +242,11 @@ class Locations {
 		return cfi;
 	}
 
+	/**
+	 * Get an EpubCFI from location percentage
+	 * @param {number} percentage
+	 * @return {EpubCFI} cfi
+	 */
 	cfiFromPercentage(percentage){
 		let loc;
 		if (percentage > 1) {
@@ -239,6 +264,10 @@ class Locations {
 		return this.cfiFromLocation(loc);
 	}
 
+	/**
+	 * Load locations from JSON
+	 * @param {json} locations
+	 */
 	load(locations){
 		if (typeof locations === "string") {
 			this._locations = JSON.parse(locations);
@@ -249,11 +278,15 @@ class Locations {
 		return this._locations;
 	}
 
-	save(json){
+	/**
+	 * Save locations to JSON
+	 * @return {json}
+	 */
+	save(){
 		return JSON.stringify(this._locations);
 	}
 
-	getCurrent(json){
+	getCurrent(){
 		return this._current;
 	}
 
@@ -284,14 +317,23 @@ class Locations {
 		});
 	}
 
+	/**
+	 * Get the current location
+	 */
 	get currentLocation() {
 		return this._current;
 	}
 
+	/**
+	 * Set the current location
+	 */
 	set currentLocation(curr) {
 		this.setCurrent(curr);
 	}
 
+	/**
+	 * Locations length
+	 */
 	length () {
 		return this._locations.length;
 	}
