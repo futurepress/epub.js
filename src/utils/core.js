@@ -113,7 +113,7 @@ export function defaults(obj) {
 }
 
 /**
- * Extend undefined properties of an object
+ * Extend properties of an object
  * @param {object} target
  * @returns {object}
  * @memberof Core

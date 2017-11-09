@@ -479,6 +479,28 @@ class Rendition {
 	}
 
 	/**
+	 * Trigger a resize of the views
+	 * @param {number} [width]
+	 * @param {number} [height]
+	 */
+	resize(width, height){
+		if (width) {
+			this.settings.width = width;
+		}
+		if (height) {
+			this.settings.height = width;
+		}
+		this.manager.resize(width, height);
+	}
+
+	/**
+	 * Clear all rendered views
+	 */
+	clear(){
+		this.manager.clear();
+	}
+
+	/**
 	 * Go to the next "page" in the rendition
 	 * @return {Promise}
 	 */
@@ -578,6 +600,11 @@ class Rendition {
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
 
 			// this.mapping = new Mapping(this._layout.props);
+
+			this._layout.on(EVENTS.LAYOUT.UPDATED, (props, changed) => {
+				console.log("layout", props);
+				this.emit(EVENTS.RENDITION.LAYOUT, props);
+			})
 		}
 
 		if (this.manager && this._layout) {

@@ -149,7 +149,7 @@ class IframeView {
 			.then(function(){
 
 				// apply the layout function to the contents
-				this.settings.layout.format(this.contents);
+				this.layout.format(this.contents);
 
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
@@ -275,15 +275,16 @@ class IframeView {
 				width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 			}
 
-			/*
-			columns = Math.ceil(width / this.settings.layout.delta);
-			if ( this.settings.layout.divisor > 1 &&
-					 this.settings.layout.name === "reflowable" &&
-					(columns % 2 > 0)) {
-				// add a blank page
-				width += this.settings.layout.gap + this.settings.layout.columnWidth;
+			if (this.settings.forceEvenPages) {
+				columns = (width / this.layout.delta);
+				if ( this.layout.divisor > 1 &&
+						 this.layout.name === "reflowable" &&
+						(columns % 2 > 0)) {
+					// add a blank page
+					width += this.layout.gap + this.layout.columnWidth;
+				}
 			}
-			*/
+
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
 			height = this.contents.textHeight();
@@ -395,7 +396,7 @@ class IframeView {
 			if(this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
-					this.settings.layout.format(this.contents);
+					this.layout.format(this.contents);
 				}
 			}
 		});
@@ -404,7 +405,7 @@ class IframeView {
 			if(this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
-					this.settings.layout.format(this.contents);
+					this.layout.format(this.contents);
 				}
 			}
 		});
@@ -414,6 +415,11 @@ class IframeView {
 
 	setLayout(layout) {
 		this.layout = layout;
+
+		if (this.contents) {
+			this.layout.format(this.contents);
+			this.expand();
+		}
 	}
 
 	setAxis(axis) {

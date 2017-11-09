@@ -1,3 +1,7 @@
+import { extend } from "./utils/core";
+import { EVENTS } from "./utils/constants";
+import EventEmitter from "event-emitter";
+
 /**
  * Figures out the CSS values to apply for a layout
  * @class
@@ -61,7 +65,8 @@ class Layout {
 			} else {
 				this._flow = "paginated";
 			}
-			this.props.flow = this._flow;
+			// this.props.flow = this._flow;
+			this.update({flow: this._flow});
 		}
 		return this._flow;
 	}
@@ -76,7 +81,8 @@ class Layout {
 
 		if (spread) {
 			this._spread = (spread === "none") ? false : true;
-			this.props.spread = this._spread;
+			// this.props.spread = this._spread;
+			this.update({spread: this._spread});
 		}
 
 		if (min >= 0) {
@@ -100,10 +106,11 @@ class Layout {
 		//-- Check the width and create even width columns
 		// var fullWidth = Math.floor(_width);
 		var width = _width;
+		var height = _height;
 
 		var section = Math.floor(width / 12);
 
-		var colWidth;
+		var columnWidth;
 		var spreadWidth;
 		var pageWidth;
 		var delta;
@@ -125,42 +132,54 @@ class Layout {
 		//-- Double Page
 		if(divisor > 1) {
 			// width = width - gap;
-			// colWidth = (width - gap) / divisor;
+			// columnWidth = (width - gap) / divisor;
 			// gap = gap / divisor;
-			colWidth = (width / divisor) - gap;
-			pageWidth = colWidth + gap;
+			columnWidth = (width / divisor) - gap;
+			pageWidth = columnWidth + gap;
 		} else {
-			colWidth = width;
+			columnWidth = width;
 			pageWidth = width;
 		}
 
 		if (this.name === "pre-paginated" && divisor > 1) {
-			width = colWidth;
+			width = columnWidth;
 		}
 
-		spreadWidth = (colWidth * divisor) + gap;
+		spreadWidth = (columnWidth * divisor) + gap;
 
 		delta = width;
 
 		this.width = width;
-		this.height = _height;
+		this.height = height;
 		this.spreadWidth = spreadWidth;
 		this.pageWidth = pageWidth;
 		this.delta = delta;
 
-		this.columnWidth = colWidth;
+		this.columnWidth = columnWidth;
 		this.gap = gap;
 		this.divisor = divisor;
 
-		this.props.width = width;
-		this.props.height = _height;
-		this.props.spreadWidth = spreadWidth;
-		this.props.pageWidth = pageWidth;
-		this.props.delta = delta;
+		// this.props.width = width;
+		// this.props.height = _height;
+		// this.props.spreadWidth = spreadWidth;
+		// this.props.pageWidth = pageWidth;
+		// this.props.delta = delta;
+		//
+		// this.props.columnWidth = colWidth;
+		// this.props.gap = gap;
+		// this.props.divisor = divisor;
 
-		this.props.columnWidth = colWidth;
-		this.props.gap = gap;
-		this.props.divisor = divisor;
+		this.update({
+			width,
+			height,
+			spreadWidth,
+			pageWidth,
+			delta,
+			columnWidth,
+			gap,
+			divisor
+		});
+
 	}
 
 	/**
@@ -211,6 +230,22 @@ class Layout {
 		};
 
 	}
+
+	update(props) {
+		// Remove props that haven't changed
+		Object.keys(props).forEach((propName) => {
+			if (this.props[propName] === props[propName]) {
+				delete props[propName];
+			}
+		});
+
+		if(Object.keys(props).length > 0) {
+			let newProps = extend(this.props, props);
+			this.emit(EVENTS.LAYOUT.UPDATED, newProps, props);
+		}
+	}
 }
+
+EventEmitter(Layout.prototype);
 
 export default Layout;

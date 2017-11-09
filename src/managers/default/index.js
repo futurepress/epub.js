@@ -34,7 +34,8 @@ class DefaultViewManager {
 			layout: this.layout,
 			method: this.settings.method, // srcdoc, blobUrl, write
 			width: 0,
-			height: 0
+			height: 0,
+			forceEvenPages: true
 		};
 
 		this.rendered = false;
@@ -403,8 +404,6 @@ class DefaultViewManager {
 
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
-			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -486,8 +485,6 @@ class DefaultViewManager {
 
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
-			} else if ((left - this.layout.pageWidth) === this.container.scrollWidth) {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}

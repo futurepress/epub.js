@@ -45,6 +45,10 @@ export const EVENTS = {
     LOCATION_CHANGED : "locationChanged",
     RELOCATED : "relocated",
     MARK_CLICKED : "markClicked",
-    SELECTED : "selected"
+    SELECTED : "selected",
+    LAYOUT: "layout"
+  },
+  LAYOUT : {
+    UPDATED : "updated"
   }
 }
