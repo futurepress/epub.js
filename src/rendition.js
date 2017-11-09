@@ -602,8 +602,7 @@ class Rendition {
 			// this.mapping = new Mapping(this._layout.props);
 
 			this._layout.on(EVENTS.LAYOUT.UPDATED, (props, changed) => {
-				console.log("layout", props);
-				this.emit(EVENTS.RENDITION.LAYOUT, props);
+				this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
 			})
 		}
 
