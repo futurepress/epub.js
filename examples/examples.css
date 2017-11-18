@@ -88,6 +88,10 @@ body {
     content:  "";
   }
 
+  #viewer.spreads.single:after {
+    display: none;
+  }
+
   #prev {
     left: 40px;
   }

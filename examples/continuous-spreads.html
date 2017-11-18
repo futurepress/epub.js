@@ -18,8 +18,12 @@
   <div id="prev" class="arrow">‹</div>
   <div id="next" class="arrow">›</div>
   <script>
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+    var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
+
     // Load the opf
-    window.book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
+    window.book = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub");
     var rendition = book.renderTo("viewer", {
       manager: "continuous",
       flow: "paginated",
@@ -27,7 +31,7 @@
       height: 600
     });
 
-    var displayed = rendition.display();
+    var displayed = rendition.display(currentSectionIndex);
 
 
     displayed.then(function(renderer){
@@ -39,39 +43,72 @@
       // console.log(toc);
     });
 
-    var next = document.getElementById("next");
-    next.addEventListener("click", function(){
-      rendition.next();
-    }, false);
+    book.ready.then(() => {
 
-    var prev = document.getElementById("prev");
-    prev.addEventListener("click", function(){
-      rendition.prev();
-    }, false);
+      var next = document.getElementById("next");
 
-    var keyListener = function(e){
+      next.addEventListener("click", function(e){
+        book.package.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+        e.preventDefault();
+      }, false);
 
-      // Left Key
-      if ((e.keyCode || e.which) == 37) {
-        rendition.prev();
-      }
+      var prev = document.getElementById("prev");
+      prev.addEventListener("click", function(e){
+        book.package.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+        e.preventDefault();
+      }, false);
 
-      // Right Key
-      if ((e.keyCode || e.which) == 39) {
-        rendition.next();
-      }
+      var keyListener = function(e){
 
-    };
+        // Left Key
+        if ((e.keyCode || e.which) == 37) {
+          book.package.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+        }
 
-    rendition.on("keyup", keyListener);
-    document.addEventListener("keyup", keyListener, false);
+        // Right Key
+        if ((e.keyCode || e.which) == 39) {
+          book.package.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+        }
+
+      };
+
+      rendition.on("keyup", keyListener);
+      document.addEventListener("keyup", keyListener, false);
+
+    });
 
     rendition.on("selected", function(range) {
       console.log("selected", range);
     });
 
+    rendition.on("layout", function(layout) {
+      let viewer = document.getElementById("viewer");
+
+      if (layout.spread) {
+        viewer.classList.remove('single');
+      } else {
+        viewer.classList.add('single');
+      }
+    });
+
     rendition.on("relocated", function(location){
       console.log(location);
+
+      var next = book.package.metadata.direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
+      var prev = book.package.metadata.direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
+
+      if (location.atEnd) {
+        next.style.visibility = "hidden";
+      } else {
+        next.style.visibility = "visible";
+      }
+
+      if (location.atStart) {
+        prev.style.visibility = "hidden";
+      } else {
+        prev.style.visibility = "visible";
+      }
+
     });
 
     book.loaded.navigation.then(function(toc){

@@ -274,8 +274,6 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	check(_offsetLeft, _offsetTop){
-		var last, first, next, prev;
-
 		var checking = new defer();
 		var newViews = [];
 
@@ -292,27 +290,45 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = this._bounds; // bounds saved this until resize
 
-		let dir = this.settings.direction === "rtl" ? -1 : 1; //RTL reverses scrollTop
+		let rtl = this.settings.direction === "rtl";
+		let dir = horizontal && rtl ? -1 : 1; //RTL reverses scrollTop
 
 		var offset = horizontal ? this.scrollLeft : this.scrollTop * dir;
 		var visibleLength = horizontal ? bounds.width : bounds.height;
 		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 
-		if (offset + visibleLength + delta >= contentLength) {
-			last = this.views.last();
-			next = last && last.section.next();
+		let prepend = () => {
+			let first = this.views.first();
+			let prev = first && first.section.prev();
+
+			if(prev) {
+				newViews.push(this.prepend(prev));
+			}
+		}
+
+		let append = () => {
+			let last = this.views.last();
+			let next = last && last.section.next();
 
 			if(next) {
 				newViews.push(this.append(next));
 			}
+
+		}
+
+		if (offset + visibleLength + delta >= contentLength) {
+			if (horizontal && rtl) {
+				prepend();
+			} else {
+				append();
+			}
 		}
 
 		if (offset - delta < 0 ) {
-			first = this.views.first();
-
-			prev = first && first.section.prev();
-			if(prev) {
-				newViews.push(this.prepend(prev));
+			if (horizontal && rtl) {
+				append();
+			} else {
+				prepend();
 			}
 		}
 
@@ -322,6 +338,11 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		if(newViews.length){
 			return Promise.all(promises)
+				.then(() => {
+					if (this.layout.name === "pre-paginated" && this.layout.props.spread) {
+						return this.check();
+					}
+				})
 				.then(() => {
 					// Check to see if anything new is on screen after rendering
 					return this.update(delta);
@@ -511,21 +532,42 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	next(){
 
-		if(this.settings.axis === "horizontal") {
+		let dir = this.settings.direction;
+		let delta = this.layout.props.name === "pre-paginated" &&
+								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
 
-			this.scrollLeft = this.container.scrollLeft;
+		if(!this.views.length) return;
 
-			if(this.container.scrollLeft +
-				 this.container.offsetWidth +
-				 this.layout.delta < this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0, true);
-			} else {
-				this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
-			}
+		if(this.isPaginated && this.settings.axis === "horizontal") {
+
+			this.scrollBy(delta, 0, true);
 
 		} else {
+
 			this.scrollBy(0, this.layout.height, true);
+
 		}
+
+		// if(this.settings.axis === "horizontal") {
+		//
+		// 	this.scrollLeft = this.container.scrollLeft;
+		//
+		// 	if(this.container.scrollLeft +
+		// 		 this.container.offsetWidth +
+		// 		 this.layout.delta < this.container.scrollWidth) {
+		// 		console.log("a", this.layout.delta);
+		// 		this.scrollBy(this.layout.delta, 0, true);
+		// 	} else {
+		// 		console.log("b", this.container.scrollWidth - this.layout.delta);
+		//
+		// 		this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+		// 	}
+		//
+		// } else {
+		// 	console.log("c", this.layout.height);
+		//
+		// 	this.scrollBy(0, this.layout.height, true);
+		// }
 
 		this.q.enqueue(function() {
 			this.check();
@@ -533,10 +575,21 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	prev(){
-		if(this.settings.axis === "horizontal") {
-			this.scrollBy(-this.layout.delta, 0, true);
+
+		let dir = this.settings.direction;
+		let delta = this.layout.props.name === "pre-paginated" &&
+								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
+
+		if(!this.views.length) return;
+
+		if(this.isPaginated && this.settings.axis === "horizontal") {
+
+			this.scrollBy(-delta, 0, true);
+
 		} else {
+
 			this.scrollBy(0, -this.layout.height, true);
+
 		}
 
 		this.q.enqueue(function() {
@@ -544,23 +597,29 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 	}
 
-
-	updateAxis(axis){
-
-		if (!this.isPaginated) {
-			axis = "vertical";
-		}
-
+	updateAxis(axis, preventUpdate){
 		this.settings.axis = axis;
 
 		this.stage && this.stage.axis(axis);
 
 		this.viewSettings.axis = axis;
 
+		if (!this.isPaginated) {
+			axis = "vertical";
+		}
+
+		if (axis === "vertical") {
+			this.layout.spread("none");
+		}
+
 		if (axis === "vertical") {
 			this.settings.infinite = true;
 		} else {
 			this.settings.infinite = false;
+		}
+
+		if (!preventUpdate) {
+			this.updateLayout();
 		}
 	}
 

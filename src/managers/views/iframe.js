@@ -9,7 +9,7 @@ class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
 			ignoreClass : "",
-			axis: "vertical",
+			axis: options.layout && options.layout.props.flow === "scrolled" ? "vertical" : "horizontal",
 			direction: undefined,
 			width: 0,
 			height: 0,
@@ -154,6 +154,7 @@ class IframeView {
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
 				let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
+
 				this.setAxis(axis);
 				this.emit(EVENTS.VIEWS.AXIS, axis);
 

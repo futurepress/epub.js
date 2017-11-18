@@ -954,10 +954,13 @@ class Contents {
 	 * @param {number} gap
 	 */
 	columns(width, height, columnWidth, gap){
-		var COLUMN_AXIS = prefixed("column-axis");
-		var COLUMN_GAP = prefixed("column-gap");
-		var COLUMN_WIDTH = prefixed("column-width");
-		var COLUMN_FILL = prefixed("column-fill");
+		let COLUMN_AXIS = prefixed("column-axis");
+		let COLUMN_GAP = prefixed("column-gap");
+		let COLUMN_WIDTH = prefixed("column-width");
+		let COLUMN_FILL = prefixed("column-fill");
+
+		let writingMode = this.writingMode();
+		let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 
 		this.layoutStyle("paginated");
 
@@ -976,7 +979,11 @@ class Contents {
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
 
-		this.css("padding", "20px " + (gap / 2) + "px", true);
+		if (axis === "vertical") {
+			this.css("padding", (gap / 2) + "px 20px", true);
+		} else {
+			this.css("padding", "20px " + (gap / 2) + "px", true);
+		}
 
 		this.css("box-sizing", "border-box");
 		this.css("max-width", "inherit");

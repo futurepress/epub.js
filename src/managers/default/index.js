@@ -241,7 +241,7 @@ class DefaultViewManager {
 			if (this.settings.direction === "ltr") {
 				this.scrollTo(offset.left, offset.top, true);
 			} else {
-				let width = view.width();
+				let width = visible.width();
 				this.scrollTo(offset.left + width, offset.top, true);
 			}
 
@@ -414,7 +414,7 @@ class DefaultViewManager {
 			left = this.container.scrollLeft;
 
 			if(left > 0) {
-				this.scrollBy(-this.layout.delta, 0, true);
+				this.scrollBy(this.layout.delta, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -426,7 +426,7 @@ class DefaultViewManager {
 			let top  = this.container.scrollTop + this.container.offsetHeight;
 
 			if(top < this.container.scrollHeight) {
-				this.scrollBy(0, this.layout.height + this.layout.gap / 2, true);
+				this.scrollBy(0, this.layout.height, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -484,7 +484,7 @@ class DefaultViewManager {
 			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
 			if(left <= this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0, true);
+				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -496,7 +496,7 @@ class DefaultViewManager {
 			let top = this.container.scrollTop;
 
 			if(top > 0) {
-				this.scrollBy(0, -(this.layout.height + this.layout.gap / 2), true);
+				this.scrollBy(0, -(this.layout.height), true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -731,7 +731,7 @@ class DefaultViewManager {
 		}
 
 		if(!this.fullsize) {
-			if(x) this.container.scrollLeft += x;
+			if(x) this.container.scrollLeft += x * dir;
 			if(y) this.container.scrollTop += y;
 		} else {
 			window.scrollBy(x * dir, y * dir);
