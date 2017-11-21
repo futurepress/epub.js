@@ -333,6 +333,8 @@ class IframeView {
 
 		this.prevBounds = size;
 
+		this.elementBounds = bounds(this.element);
+
 	}
 
 
@@ -533,10 +535,11 @@ class IframeView {
 		// Stub, override with a custom functions
 	}
 
-	bounds() {
-		if(!this.elementBounds) {
+	bounds(force) {
+		if(force || !this.elementBounds) {
 			this.elementBounds = bounds(this.element);
 		}
+
 		return this.elementBounds;
 	}
 

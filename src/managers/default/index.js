@@ -855,6 +855,11 @@ class DefaultViewManager {
 	}
 
 	updateAxis(axis, preventUpdate){
+
+		if (!this.isPaginated) {
+			axis = "vertical";
+		}
+
 		this.settings.axis = axis;
 
 		this.stage && this.stage.axis(axis);

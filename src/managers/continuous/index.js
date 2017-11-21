@@ -250,7 +250,7 @@ class ContinuousViewManager extends DefaultViewManager {
 				}
 				visible.push(view);
 			} else {
-				// this.q.enqueue(view.destroy.bind(view));
+				this.q.enqueue(view.destroy.bind(view));
 				// console.log("hidden " + view.index);
 
 				clearTimeout(this.trimTimeout);
@@ -399,11 +399,9 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = view.bounds();
 
-		view.destroy.bind(view)
 		this.views.remove(view);
 
 		if(above) {
-
 			if(this.settings.axis === "vertical") {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
@@ -598,17 +596,18 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	updateAxis(axis, preventUpdate){
+
+		if (!this.isPaginated) {
+			axis = "vertical";
+		}
+
 		this.settings.axis = axis;
 
 		this.stage && this.stage.axis(axis);
 
 		this.viewSettings.axis = axis;
 
-		if (!this.isPaginated) {
-			axis = "vertical";
-		}
-
-		if (axis === "vertical") {
+		if (axis === "vertical" && this.layout) {
 			this.layout.spread("none");
 		}
 
