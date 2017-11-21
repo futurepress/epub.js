@@ -975,7 +975,10 @@ class Contents {
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
-		this.css("display", "inline-block"); // Fixes Safari column cut offs
+		// TODO: inline-block needs more testing
+		// Fixes Safari column cut offs, but causes RTL issues
+		// this.css("display", "inline-block");
+
 		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
 

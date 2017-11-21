@@ -926,6 +926,11 @@ class Rendition {
 				"max-height": (this._layout.height ? (this._layout.height * 0.6) + "px" : "60%") + "!important",
 				"object-fit": "contain",
 				"page-break-inside": "avoid"
+			},
+			"svg" : {
+				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
+				"max-height": (this._layout.height ? (this._layout.height * 0.6) + "px" : "60%") + "!important",
+				"page-break-inside": "avoid"
 			}
 		});
 

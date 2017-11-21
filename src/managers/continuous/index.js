@@ -126,9 +126,11 @@ class ContinuousViewManager extends DefaultViewManager {
 			view.expanded = true;
 		});
 
+		/*
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
+		*/
 
 		this.views.append(view);
 
@@ -145,9 +147,11 @@ class ContinuousViewManager extends DefaultViewManager {
 			view.expanded = true;
 		});
 
+		/*
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
+		*/
 
 		this.views.prepend(view);
 
@@ -541,8 +545,10 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.mapping.axis(axis);
 		}
 
-		if (axis === "vertical" && this.layout) {
+		if (this.layout && axis === "vertical") {
 			this.layout.spread("none");
+		} else {
+			this.layout.spread(this.layout.settings.spread);
 		}
 
 		if (axis === "vertical") {

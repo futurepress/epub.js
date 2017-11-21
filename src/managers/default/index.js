@@ -876,6 +876,8 @@ class DefaultViewManager {
 
 		if (this.layout && axis === "vertical") {
 			this.layout.spread("none");
+		} else {
+			this.layout.spread(this.layout.settings.spread);
 		}
 	}
 
