@@ -110,6 +110,16 @@
 
     });
 
+    rendition.on("layout", function(layout) {
+      let viewer = document.getElementById("viewer");
+
+      if (layout.spread) {
+        viewer.classList.remove('single');
+      } else {
+        viewer.classList.add('single');
+      }
+    });
+
     window.addEventListener("unload", function () {
       console.log("unloading");
       this.book.destroy();

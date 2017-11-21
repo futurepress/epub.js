@@ -12,7 +12,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.settings = extend(this.settings || {}, {
 			infinite: true,
 			overflow: undefined,
-			axis: "vertical",
+			axis: undefined,
 			flow: "scrolled",
 			offset: 500,
 			offsetDelta: 250,
@@ -86,40 +86,6 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 	}
 
-	/*
-	afterDisplayed(currView){
-		var next = currView.section.next();
-		var prev = currView.section.prev();
-		var index = this.views.indexOf(currView);
-		var prevView, nextView;
-
-		if(index + 1 === this.views.length && next) {
-			nextView = this.createView(next);
-			this.q.enqueue(this.append.bind(this), nextView);
-		}
-
-		if(index === 0 && prev) {
-			prevView = this.createView(prev, this.viewSettings);
-			this.q.enqueue(this.prepend.bind(this), prevView);
-		}
-
-		// this.removeShownListeners(currView);
-		// currView.onShown = this.afterDisplayed.bind(this);
-		this.emit("added", currView.section);
-
-	}
-	*/
-
-	// onResized(e) {
-	//
-	// 	// this.views.clear();
-	//
-	// 	clearTimeout(this.resizeTimeout);
-	// 	this.resizeTimeout = setTimeout(function(){
-	// 		this.resize();
-	// 	}.bind(this), 150);
-	// }
-
 	afterResized(view){
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
@@ -132,25 +98,6 @@ class ContinuousViewManager extends DefaultViewManager {
 		view.onDisplayed = function(){};
 
 	}
-
-
-	// append(section){
-	// 	return this.q.enqueue(function() {
-	//
-	// 		this._append(section);
-	//
-	//
-	// 	}.bind(this));
-	// };
-	//
-	// prepend(section){
-	// 	return this.q.enqueue(function() {
-	//
-	// 		this._prepend(section);
-	//
-	// 	}.bind(this));
-	//
-	// };
 
 	add(section){
 		var view = this.createView(section);
@@ -546,27 +493,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		}
 
-		// if(this.settings.axis === "horizontal") {
-		//
-		// 	this.scrollLeft = this.container.scrollLeft;
-		//
-		// 	if(this.container.scrollLeft +
-		// 		 this.container.offsetWidth +
-		// 		 this.layout.delta < this.container.scrollWidth) {
-		// 		console.log("a", this.layout.delta);
-		// 		this.scrollBy(this.layout.delta, 0, true);
-		// 	} else {
-		// 		console.log("b", this.container.scrollWidth - this.layout.delta);
-		//
-		// 		this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
-		// 	}
-		//
-		// } else {
-		// 	console.log("c", this.layout.height);
-		//
-		// 	this.scrollBy(0, this.layout.height, true);
-		// }
-
 		this.q.enqueue(function() {
 			this.check();
 		}.bind(this));
@@ -595,10 +521,14 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 	}
 
-	updateAxis(axis, preventUpdate){
+	updateAxis(axis, forceUpdate){
 
 		if (!this.isPaginated) {
 			axis = "vertical";
+		}
+
+		if (!forceUpdate && axis === this.settings.axis) {
+			return;
 		}
 
 		this.settings.axis = axis;
@@ -606,6 +536,10 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.stage && this.stage.axis(axis);
 
 		this.viewSettings.axis = axis;
+
+		if (this.mapping) {
+			this.mapping.axis(axis);
+		}
 
 		if (axis === "vertical" && this.layout) {
 			this.layout.spread("none");
@@ -615,10 +549,6 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.settings.infinite = true;
 		} else {
 			this.settings.infinite = false;
-		}
-
-		if (!preventUpdate) {
-			this.updateLayout();
 		}
 	}
 

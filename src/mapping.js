@@ -446,6 +446,13 @@ class Mapping {
 		}
 		return elPos;
 	}
+
+	axis(axis) {
+		if (axis) {
+			this.horizontal = (axis === "horizontal") ? true : false;
+		}
+		return this.horizontal;
+	}
 }
 
 export default Mapping;

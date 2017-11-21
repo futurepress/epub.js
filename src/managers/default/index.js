@@ -20,7 +20,7 @@ class DefaultViewManager {
 			hidden: false,
 			width: undefined,
 			height: undefined,
-			axis: "vertical",
+			axis: undefined,
 			flow: "scrolled",
 			ignoreClass: ""
 		});
@@ -854,10 +854,14 @@ class DefaultViewManager {
 
 	}
 
-	updateAxis(axis, preventUpdate){
+	updateAxis(axis, forceUpdate){
 
 		if (!this.isPaginated) {
 			axis = "vertical";
+		}
+
+		if (!forceUpdate && axis === this.settings.axis) {
+			return;
 		}
 
 		this.settings.axis = axis;
@@ -866,12 +870,12 @@ class DefaultViewManager {
 
 		this.viewSettings.axis = axis;
 
-		if (axis === "vertical") {
-			this.layout.spread("none");
+		if (this.mapping) {
+			this.mapping = new Mapping(this.layout.props, this.settings.direction, this.settings.axis);
 		}
 
-		if (!preventUpdate) {
-			this.updateLayout();
+		if (this.layout && axis === "vertical") {
+			this.layout.spread("none");
 		}
 	}
 
@@ -883,7 +887,7 @@ class DefaultViewManager {
 		if (flow === "scrolled-doc" ||
 				flow === "scrolled-continuous" ||
 				flow === "scrolled") {
-			this.updateAxis("vertical", true);
+			this.updateAxis("vertical");
 		}
 
 		this.viewSettings.flow = flow;
