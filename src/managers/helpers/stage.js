@@ -1,5 +1,5 @@
 import {uuid, isNumber, isElement, windowBounds} from "../../utils/core";
-import throttle from 'lodash/throttle'
+import throttle from "lodash/throttle";
 
 class Stage {
 	constructor(_options) {
@@ -302,8 +302,8 @@ class Stage {
 				base = this.container;
 			}
 
-			if(this.element.contains(this.container)) {
-				this.element.removeChild(this.container);
+			if(this.element.contains(base)) {
+				this.element.removeChild(base);
 			}
 
 			window.removeEventListener("resize", this.resizeFunc);

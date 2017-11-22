@@ -47,7 +47,7 @@ class DefaultViewManager {
 
 		if (tag && (tag.toLowerCase() == "body" ||
 				tag.toLowerCase() == "html")) {
-  			this.fullsize = true;
+			this.fullsize = true;
 		}
 
 		if (this.fullsize) {
@@ -286,12 +286,7 @@ class DefaultViewManager {
 				displaying.resolve();
 
 			}.bind(this));
-			// .then(function(){
-			// 	return this.hooks.display.trigger(view);
-			// }.bind(this))
-			// .then(function(){
-			// 	this.views.show();
-			// }.bind(this));
+
 		return displayed;
 	}
 
@@ -448,14 +443,12 @@ class DefaultViewManager {
 						}
 					}
 				}.bind(this), (err) => {
-					displaying.reject(err);
+					return err;
 				})
 				.then(function(){
 					this.views.show();
 				}.bind(this));
 		}
-
-
 	}
 
 	prev(){
@@ -520,7 +513,7 @@ class DefaultViewManager {
 						}
 					}
 				}.bind(this), (err) => {
-					displaying.reject(err);
+					return err;
 				})
 				.then(function(){
 					if(this.isPaginated && this.settings.axis === "horizontal") {
@@ -609,7 +602,7 @@ class DefaultViewManager {
 				pages,
 				totalPages,
 				mapping
-			}
+			};
 		});
 
 		return sections;
@@ -628,7 +621,7 @@ class DefaultViewManager {
 
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
-			let offset = view.offset().left;
+			// let offset = view.offset().left;
 			let position = view.position().left;
 			let width = view.width();
 
@@ -676,7 +669,7 @@ class DefaultViewManager {
 				pages,
 				totalPages,
 				mapping
-			}
+			};
 		});
 
 		return sections;

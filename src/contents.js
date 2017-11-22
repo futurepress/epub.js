@@ -9,7 +9,7 @@ const isChrome = /Chrome/.test(navigator.userAgent);
 const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
 
 const ELEMENT_NODE = 1;
-const TEXT_NODE = 3;
+// const TEXT_NODE = 3;
 
 /**
 	* Handles DOM manipulation, queries and events for View contents
@@ -267,10 +267,8 @@ class Contents {
 		* @param {string} [options.scalable]
 		*/
 	viewport(options) {
-		var _width, _height, _scale, _minimum, _maximum, _scalable;
-		// var width, height, scale, minimum, maximum, scalable;
-		var $viewport = this.document.querySelector("meta[name='viewport']");
-		var parsed = {
+		let $viewport = this.document.querySelector("meta[name='viewport']");
+		let parsed = {
 			"width": undefined,
 			"height": undefined,
 			"scale": undefined,
@@ -278,8 +276,8 @@ class Contents {
 			"maximum": undefined,
 			"scalable": undefined
 		};
-		var newContent = [];
-		var settings = {};
+		let newContent = [];
+		let settings = {};
 
 		/*
 		* check for the viewport size
@@ -435,7 +433,6 @@ class Contents {
 	 * @private
 	 */
 	resizeListeners() {
-		var width, height;
 		// Test size again
 		clearTimeout(this.expanding);
 
@@ -451,12 +448,12 @@ class Contents {
 	transitionListeners() {
 		let body = this.content;
 
-		body.style['transitionProperty'] = "font, font-size, font-size-adjust, font-stretch, font-variation-settings, font-weight, width, height";
-		body.style['transitionDuration'] = "0.001ms";
-		body.style['transitionTimingFunction'] = "linear";
-		body.style['transitionDelay'] = "0";
+		body.style["transitionProperty"] = "font, font-size, font-size-adjust, font-stretch, font-variation-settings, font-weight, width, height";
+		body.style["transitionDuration"] = "0.001ms";
+		body.style["transitionTimingFunction"] = "linear";
+		body.style["transitionDelay"] = "0";
 
-		this.document.addEventListener('transitionend', this.resizeCheck.bind(this));
+		this.document.addEventListener("transitionend", this.resizeCheck.bind(this));
 	}
 
 	/**
@@ -708,14 +705,14 @@ class Contents {
 						const _rules = Object.keys(item);
 						const result = _rules.map((rule) => {
 							return `${rule}:${item[rule]}`;
-						}).join(';');
+						}).join(";");
 						styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 					});
 				} else {
 					const _rules = Object.keys(definition);
 					const result = _rules.map((rule) => {
 						return `${rule}:${definition[rule]}`;
-					}).join(';');
+					}).join(";");
 					styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 				}
 			});
@@ -1079,7 +1076,7 @@ class Contents {
 			this.documentElement.style[WRITING_MODE] = mode;
 		}
 
-		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
+		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || "";
 	}
 
 	/**
@@ -1110,20 +1107,20 @@ class Contents {
 			layoutStyle: this.layoutStyle(),
 			hasFeature: function (feature) {
 				switch (feature) {
-					case "dom-manipulation":
-						return true;
-					case "layout-changes":
-						return true;
-					case "touch-events":
-						return true;
-					case "mouse-events":
-						return true;
-					case "keyboard-events":
-						return true;
-					case "spine-scripting":
-						return false;
-					default:
-						return false;
+				case "dom-manipulation":
+					return true;
+				case "layout-changes":
+					return true;
+				case "touch-events":
+					return true;
+				case "mouse-events":
+					return true;
+				case "keyboard-events":
+					return true;
+				case "spine-scripting":
+					return false;
+				default:
+					return false;
 				}
 			}
 		};
@@ -1136,7 +1133,7 @@ class Contents {
 			this.observer.disconnect();
 		}
 
-		this.document.removeEventListener('transitionend', this.resizeCheck);
+		this.document.removeEventListener("transitionend", this.resizeCheck);
 
 		this.removeListeners();
 

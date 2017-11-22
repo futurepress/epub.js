@@ -8,9 +8,9 @@ import {qs} from "./utils/core";
  */
 class Container {
 	constructor(containerDocument) {
-		this.packagePath = '';
-		this.directory = '';
-		this.encoding = '';
+		this.packagePath = "";
+		this.directory = "";
+		this.encoding = "";
 
 		if (containerDocument) {
 			this.parse(containerDocument);

@@ -257,8 +257,6 @@ class IframeView {
 		var height = this.lockedHeight;
 		var columns;
 
-		var textWidth, textHeight;
-
 		if(!this.iframe || this._expanding) return;
 
 		this._expanding = true;
@@ -502,7 +500,7 @@ class IframeView {
 		return {
 			top: this.element.offsetTop,
 			left: this.element.offsetLeft
-		}
+		};
 	}
 
 	width() {
@@ -518,7 +516,7 @@ class IframeView {
 	}
 
 	locationOf(target) {
-		var parentPos = this.iframe.getBoundingClientRect();
+		// var parentPos = this.iframe.getBoundingClientRect();
 		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
 		return {
@@ -559,7 +557,7 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Highlight(range, "epubjs-hl", data, {'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let m = new Highlight(range, "epubjs-hl", data, {"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"});
 		let h = this.pane.addMark(m);
 
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
@@ -590,7 +588,7 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Underline(range, "epubjs-ul", data, {'stroke': 'black', 'stroke-opacity': '0.3', 'mix-blend-mode': 'multiply'});
+		let m = new Underline(range, "epubjs-ul", data, {"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"});
 		let h = this.pane.addMark(m);
 
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
@@ -658,7 +656,7 @@ class IframeView {
 		}
 
 
-		let mark = this.document.createElement('a');
+		let mark = this.document.createElement("a");
 		mark.setAttribute("ref", "epubjs-mk");
 		mark.style.position = "absolute";
 		mark.style.top = `${top}px`;
@@ -694,7 +692,7 @@ class IframeView {
 
 			this.pane.removeMark(item.mark);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) { item.element.removeEventListener("click", l); }
 			});
 			delete this.highlights[cfiRange];
 		}
@@ -706,7 +704,7 @@ class IframeView {
 			item = this.underlines[cfiRange];
 			this.pane.removeMark(item.mark);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) { item.element.removeEventListener("click", l); }
 			});
 			delete this.underlines[cfiRange];
 		}
@@ -718,7 +716,7 @@ class IframeView {
 			item = this.marks[cfiRange];
 			this.element.removeChild(item.element);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) { item.element.removeEventListener("click", l); }
 			});
 			delete this.marks[cfiRange];
 		}

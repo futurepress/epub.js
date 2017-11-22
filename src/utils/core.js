@@ -9,11 +9,11 @@
  * @memberof Core
  */
 export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
-const ELEMENT_NODE = 1;
-const TEXT_NODE = 3;
-const COMMENT_NODE = 8;
-const DOCUMENT_NODE = 9;
-const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
+export const ELEMENT_NODE = 1;
+export const TEXT_NODE = 3;
+export const COMMENT_NODE = 8;
+export const DOCUMENT_NODE = 9;
+export const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
 
 /**
  * Generates a UUID
@@ -38,11 +38,11 @@ export function uuid() {
  */
 export function documentHeight() {
 	return Math.max(
-			document.documentElement.clientHeight,
-			document.body.scrollHeight,
-			document.documentElement.scrollHeight,
-			document.body.offsetHeight,
-			document.documentElement.offsetHeight
+		document.documentElement.clientHeight,
+		document.body.scrollHeight,
+		document.documentElement.scrollHeight,
+		document.body.offsetHeight,
+		document.documentElement.offsetHeight
 	);
 }
 
@@ -687,7 +687,7 @@ export function parents(node) {
 	for (; node; node = node.parentNode) {
 		nodes.unshift(node);
 	}
-	return nodes
+	return nodes;
 }
 
 /**
@@ -725,7 +725,7 @@ export function filterChildren(el, nodeName, single) {
  */
 export function getParentByTagName(node, tagname) {
 	let parent;
-	if (node === null || tagname === '') return;
+	if (node === null || tagname === "") return;
 	parent = node.parentNode;
 	while (parent.nodeType === 1) {
 		if (parent.tagName.toLowerCase() === tagname) {
@@ -798,9 +798,9 @@ export class RangeObject {
 	}
 
 	selectNodeContents(referenceNode) {
-		let end = referenceNode.childNodes[referenceNode.childNodes - 1];
+		// let end = referenceNode.childNodes[referenceNode.childNodes - 1];
 		let endIndex = (referenceNode.nodeType === 3) ?
-				referenceNode.textContent.length : parent.childNodes.length;
+			referenceNode.textContent.length : parent.childNodes.length;
 		this.setStart(referenceNode, 0);
 		this.setEnd(referenceNode, endIndex);
 	}

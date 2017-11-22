@@ -120,8 +120,6 @@ class Mapping {
 			found = this.walk($el, (node) => {
 				var left, right, top, bottom;
 				var elPos;
-				var elRange;
-
 
 				elPos = this.getBounds(node);
 
@@ -196,7 +194,6 @@ class Mapping {
 
 				var left, right, top, bottom;
 				var elPos;
-				var elRange;
 
 				elPos = this.getBounds(node);
 
@@ -324,7 +321,7 @@ class Mapping {
 
 			} else if (this.horizontal && this.direction === "rtl") {
 
-				left = pos.left
+				left = pos.left;
 				right = pos.right;
 
 				if(right < start && prev) {

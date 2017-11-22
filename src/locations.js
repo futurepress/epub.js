@@ -25,8 +25,8 @@ class Locations {
 
 		this._current = 0;
 
-		this.currentLocation = '';
-		this._currentCfi ='';
+		this.currentLocation = "";
+		this._currentCfi = "";
 		this.processingTimeout = undefined;
 	}
 
@@ -347,7 +347,7 @@ class Locations {
 		this.q = undefined;
 		this.epubcfi = undefined;
 
-		this._locations = undefined
+		this._locations = undefined;
 		this.total = undefined;
 
 		this.break = undefined;

@@ -1,6 +1,5 @@
-import { qs, qsa } from "./core";
+import { qs } from "./core";
 import Url from "./url";
-import Path from "./path";
 
 export function replaceBase(doc, section){
 	var base;

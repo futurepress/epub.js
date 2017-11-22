@@ -93,10 +93,10 @@ class Spine {
 			} else {
 				item.prev = function() {
 					return;
-				}
+				};
 				item.next = function() {
 					return;
-				}
+				};
 			}
 
 
@@ -242,9 +242,9 @@ class Spine {
 	destroy() {
 		this.each((section) => section.destroy());
 
-		this.spineItems = undefined
-		this.spineByHref = undefined
-		this.spineById = undefined
+		this.spineItems = undefined;
+		this.spineByHref = undefined;
+		this.spineById = undefined;
 
 		this.hooks.serialize.clear();
 		this.hooks.content.clear();

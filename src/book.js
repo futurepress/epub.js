@@ -455,8 +455,7 @@ class Book {
 		if(this.archived || this.settings.replacements && this.settings.replacements != "none") {
 			this.replacements().then(() => {
 				this.opening.resolve(this);
-			})
-			.catch((err) => {
+			}).catch((err) => {
 				console.error(err);
 			});
 		} else {

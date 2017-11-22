@@ -2,7 +2,7 @@ import {extend, type, findChildren, RangeObject, isNumber} from "./utils/core";
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
-const COMMENT_NODE = 8;
+// const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
 
 /**
@@ -337,11 +337,6 @@ class EpubCFI {
 	compare(cfiOne, cfiTwo) {
 		var stepsA, stepsB;
 		var terminalA, terminalB;
-
-		var rangeAStartSteps, rangeAEndSteps;
-		var rangeBEndSteps, rangeBEndSteps;
-		var rangeAStartTerminal, rangeAEndTerminal;
-		var rangeBStartTerminal, rangeBEndTerminal;
 
 		if(typeof cfiOne === "string") {
 			cfiOne = new EpubCFI(cfiOne);

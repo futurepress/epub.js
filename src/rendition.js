@@ -290,19 +290,15 @@ class Rendition {
 		if (!this.book) {
 			return;
 		}
-		var isCfiString = this.epubcfi.isCfiString(target);
 		var displaying = new defer();
 		var displayed = displaying.promise;
 		var section;
-		var moveTo;
 
 		this.displaying = displaying;
 
 		// Check if this is a book percentage
 		if (this.book.locations.length() &&
-				(isFloat(target) ||
-				(target === "1.0")) // Handle 1.0
-			) {
+			 (isFloat(target) || (target === "1.0")) ) { // Handle 1.0
 			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
 
@@ -603,7 +599,7 @@ class Rendition {
 
 			this._layout.on(EVENTS.LAYOUT.UPDATED, (props, changed) => {
 				this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
-			})
+			});
 		}
 
 		if (this.manager && this._layout) {

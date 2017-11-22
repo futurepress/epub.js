@@ -8,9 +8,9 @@ import {qs, qsa, qsp, indexOfElementNode} from "./utils/core";
 class Packaging {
 	constructor(packageDocument) {
 		this.manifest = {};
-		this.navPath = '';
-		this.ncxPath = '';
-		this.coverPath = '';
+		this.navPath = "";
+		this.ncxPath = "";
+		this.coverPath = "";
 		this.spineNodeIndex = 0;
 		this.spine = [];
 		this.metadata = {};

@@ -1,7 +1,7 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
 import { EVENTS } from "../../utils/constants";
-import debounce from 'lodash/debounce'
+import debounce from "lodash/debounce";
 
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
@@ -67,18 +67,18 @@ class ContinuousViewManager extends DefaultViewManager {
 	moveTo(offset){
 		// var bounds = this.stage.bounds();
 		// var dist = Math.floor(offset.top / bounds.height) * bounds.height;
-		var distX = 0,
-				distY = 0;
+		let distX = 0;
+		let distY = 0;
 
-		var offsetX = 0,
-				offsetY = 0;
+		// let offsetX = 0;
+		// let offsetY = 0;
 
 		if(!this.isPaginated) {
 			distY = offset.top;
-			offsetY = offset.top+this.settings.offset;
+			// offsetY = offset.top+this.settings.offset;
 		} else {
 			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
-			offsetX = distX+this.settings.offset;
+			// offsetX = distX+this.settings.offset;
 		}
 
 		if (distX > 0 || distY > 0) {
@@ -216,7 +216,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			return Promise.all(promises)
 				.catch((err) => {
 					updating.reject(err);
-				})
+				});
 		} else {
 			updating.resolve();
 			return updating.promise;
@@ -255,7 +255,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(prev) {
 				newViews.push(this.prepend(prev));
 			}
-		}
+		};
 
 		let append = () => {
 			let last = this.views.last();
@@ -264,8 +264,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(next) {
 				newViews.push(this.append(next));
 			}
-
-		}
+		};
 
 		if (offset + visibleLength + delta >= contentLength) {
 			if (horizontal && rtl) {
@@ -480,8 +479,6 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	next(){
-
-		let dir = this.settings.direction;
 		let delta = this.layout.props.name === "pre-paginated" &&
 								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
 
@@ -503,8 +500,6 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	prev(){
-
-		let dir = this.settings.direction;
 		let delta = this.layout.props.name === "pre-paginated" &&
 								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
 
