@@ -1,3 +1,11 @@
+import {
+	uuid,
+	documentHeight,
+	isElement,
+	isNumber,
+	isFloat
+} from "../src/utils/core";
+
 var assert = require('assert');
 describe('Core', function() {
 
@@ -194,6 +202,102 @@ describe('Core', function() {
 
 		});
 
+
+	});
+
+	describe("Uuid", function () {
+
+		it("should return a valid uuid", function() {
+			let id = uuid();
+			let pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+			assert.equal( pattern.test(id), true );
+		});
+
+		it("should return a differnt uuid each time it is called", function() {
+			let idA = uuid();
+			let idB = uuid();
+
+			assert.notEqual( idA, idB );
+		});
+
+	});
+
+	describe("documentHeight", function functionName() {
+
+		it("should get the document height", function () {
+			let height = documentHeight();
+
+			assert.equal( height, document.documentElement.clientHeight );
+
+		})
+	});
+
+	describe("isElement", function functionName() {
+
+		it("should return true for an element", function () {
+			let el = document.createElement("a");
+			assert.equal( isElement(el), true );
+		});
+
+		it("should return false for a textNode", function () {
+			let el = document.createElement("a");
+			el.textContent = "text";
+
+			assert.equal( isElement(el.childNodes[0]), false);
+		});
+
+	});
+
+	describe("isNumber", function () {
+
+		it("should return true for number", function () {
+			assert.equal( isNumber(1), true );
+			assert.equal( isNumber(1.0), true );
+			assert.equal( isNumber(1/2), true );
+		});
+
+		it("should return false for string", function () {
+			assert.equal( isNumber('Hello'), false);
+		});
+
+		it("should return true for string representing numbers", function () {
+			assert.equal( isNumber('1'), true);
+			assert.equal( isNumber('1.0'), true);
+		});
+
+		it("should return false for NaN", function () {
+			assert.equal( isNumber(NaN), false);
+			assert.equal( isNumber(1/0), false);
+			assert.equal( isNumber(undefined), false);
+		});
+
+	});
+
+	describe("isFloat", function () {
+
+		it("should return true for floats", function () {
+			assert.equal( isFloat(1.5), true );
+			assert.equal( isFloat(1/2), true );
+		});
+
+		// Have not yet found a way to handle this
+		xit("should return true for floats that are integers", function () {
+			assert.equal( isFloat(1.0), true );
+			assert.equal( isFloat('1.0'), true);
+		});
+
+		it("should return false for string", function () {
+			assert.equal( isFloat('Hello'), false);
+		});
+
+		it("should return true for string representing numbers", function () {
+			assert.equal( isFloat('1.2'), true);
+		});
+
+		it("should return false for integers", function () {
+			assert.equal( isFloat(1), false);
+			assert.equal( isFloat('1'), false);
+		});
 
 	});
 
