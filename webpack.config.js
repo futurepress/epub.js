@@ -24,7 +24,7 @@ module.exports = {
 		publicPath: "/dist/"
 	},
 	externals: {
-		"jszip": "JSZip",
+		"jszip": "jszip",
 		"xmldom": "xmldom"
 	},
 	plugins: PROD ? [
