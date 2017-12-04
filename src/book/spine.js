@@ -1,7 +1,7 @@
-import EpubCFI from "./epubcfi";
-import Hook from "./utils/hook";
+import EpubCFI from "../utils/epubcfi";
+import Hook from "../utils/hook";
 import Section from "./section";
-import {replaceBase, replaceCanonical, replaceMeta} from "./utils/replacements";
+import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
 
 /**
  * A collection of Spine Items
@@ -52,19 +52,20 @@ class Spine {
 			item.index = index;
 			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 
-			if (item.href) {
-				item.url = resolver(item.href, true);
-				item.canonical = canonical(item.href);
-			}
-
 			if(manifestItem) {
-				item.href = manifestItem.href;
-				item.url = resolver(item.href, true);
+				item.source = manifestItem.href;
+				item.href = resolver(manifestItem.href, true);
 				item.canonical = canonical(item.href);
+				item.type = manifestItem.type;
 
 				if(manifestItem.properties.length){
 					item.properties.push.apply(item.properties, manifestItem.properties);
 				}
+			}
+
+			if (item.href) {
+				item.url = resolver(item.href, true);
+				item.canonical = canonical(item.href);
 			}
 
 			if (item.linear === "yes") {
@@ -237,6 +238,16 @@ class Spine {
 			}
 			index -= 1;
 		} while (index >= 0);
+	}
+
+	/**
+	 * Export an Array of all Spine Items
+	 * @return {array}
+	 */
+	toArray() {
+		return this.spineItems.map(function(item, index){
+			return item.toObject();
+		});
 	}
 
 	destroy() {

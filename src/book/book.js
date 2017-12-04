@@ -1,7 +1,7 @@
 import EventEmitter from "event-emitter";
-import {extend, defer} from "./utils/core";
-import Url from "./utils/url";
-import Path from "./utils/path";
+import {extend, defer} from "../utils/core";
+import Url from "../utils/url";
+import Path from "../utils/path";
 import Spine from "./spine";
 import Locations from "./locations";
 import Container from "./container";
@@ -9,14 +9,13 @@ import Packaging from "./packaging";
 import Navigation from "./navigation";
 import Resources from "./resources";
 import PageList from "./pagelist";
-import Rendition from "./rendition";
 import Archive from "./archive";
-import request from "./utils/request";
-import EpubCFI from "./epubcfi";
-import { EVENTS } from "./utils/constants";
+import request from "../utils/request";
+import EpubCFI from "../utils/epubcfi";
+import { EVENTS } from "../utils/constants";
 
 const CONTAINER_PATH = "META-INF/container.xml";
-const EPUBJS_VERSION = "0.3";
+const EPUBJS_VERSION = "0.4";
 
 const INPUT_TYPE = {
 	BINARY: "binary",
@@ -104,8 +103,11 @@ class Book {
 			this.loaded.metadata,
 			this.loaded.cover,
 			this.loaded.navigation,
-			this.loaded.resources
-		]);
+			this.loaded.resources,
+			this.opened
+		]).then(() => {
+			return this.toObject();
+		});
 
 
 		// Queue for methods used before opening
@@ -178,12 +180,6 @@ class Book {
 		 */
 		this.resources = undefined;
 
-		/**
-		 * @member {Rendition} rendition
-		 * @memberof Book
-		 * @private
-		 */
-		this.rendition = undefined;
 
 		/**
 		 * @member {Container} container
@@ -200,6 +196,16 @@ class Book {
 		this.packaging = undefined;
 
 		// this.toc = undefined;
+
+		if (this.settings.stylesheet) {
+			this.spine.hooks.content.register(this.injectStylesheet.bind(this));
+		}
+
+		if (this.settings.script) {
+			this.spine.hooks.content.register(this.injectScript.bind(this));
+		}
+
+		this.spine.hooks.content.register(this.injectIdentifier.bind(this));
 
 		if(url) {
 			this.open(url).catch((error) => {
@@ -337,8 +343,8 @@ class Book {
 		if (!path) {
 			return;
 		}
-		var resolved = path;
-		var isAbsolute = (path.indexOf("://") > -1);
+		let resolved = path;
+		let isAbsolute = (path.indexOf("://") > -1);
 
 		if (isAbsolute) {
 			return path;
@@ -434,21 +440,21 @@ class Book {
 			replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 		});
 
-		this.loadNavigation(this.package).then(() => {
-			// this.toc = this.navigation.toc;
-			this.loading.navigation.resolve(this.navigation);
-		});
-
 		if (this.package.coverPath) {
 			this.cover = this.resolve(this.package.coverPath);
 		}
 		// Resolve promises
-		this.loading.manifest.resolve(this.package.manifest);
 		this.loading.metadata.resolve(this.package.metadata);
+		this.loading.manifest.resolve(this.package.manifest);
 		this.loading.spine.resolve(this.spine);
 		this.loading.cover.resolve(this.cover);
 		this.loading.resources.resolve(this.resources);
 		this.loading.pageList.resolve(this.pageList);
+
+		this.loadNavigation(this.package).then(() => {
+			// this.toc = this.navigation.toc;
+			this.loading.navigation.resolve(this.navigation);
+		});
 
 		this.isOpen = true;
 
@@ -489,7 +495,7 @@ class Book {
 
 		if (!navPath) {
 			return new Promise((resolve, reject) => {
-				this.navigation = new Navigation();
+				this.navigation = new Navigation(null);
 				this.pageList = new PageList();
 
 				resolve(this.navigation);
@@ -498,7 +504,7 @@ class Book {
 
 		return this.load(navPath, "xml")
 			.then((xml) => {
-				this.navigation = new Navigation(xml);
+				this.navigation = new Navigation(xml, this.resolve(navPath), this.resolve.bind(this));
 				this.pageList = new PageList(xml);
 				return this.navigation;
 			});
@@ -512,19 +518,6 @@ class Book {
 	 */
 	section(target) {
 		return this.spine.get(target);
-	}
-
-	/**
-	 * Sugar to render a book to an element
-	 * @param  {element | string} element element or string to add a rendition to
-	 * @param  {object} [options]
-	 * @return {Rendition}
-	 */
-	renderTo(element, options) {
-		this.rendition = new Rendition(this, options);
-		this.rendition.attachTo(element);
-
-		return this.rendition;
 	}
 
 	/**
@@ -580,13 +573,27 @@ class Book {
 	 */
 	replacements() {
 		this.spine.hooks.serialize.register((output, section) => {
-			section.output = this.resources.substitute(output, section.url);
+			let url = this.resolve(section.source, true);
+			section.output = this.resources.substitute(output, url);
 		});
 
 		return this.resources.replacements().
 			then(() => {
 				return this.resources.replaceCss();
-			});
+			}).
+			then(() => {
+				let urls = [];
+				this.spine.each((section) => {
+					let urlPromise = section.createUrl(this.load.bind(this));
+					urls.push(urlPromise);
+
+					urlPromise.then((url) => {
+						this.resources.replace(section.originalHref, url);
+					});
+
+				});
+				return Promise.all(urls);
+			})
 	}
 
 	/**
@@ -620,6 +627,94 @@ class Book {
 	}
 
 	/**
+	 * Hook to handle injecting stylesheet before
+	 * a Section is serialized
+	 * @param  {document} doc
+	 * @param  {Section} section
+	 * @private
+	 */
+	injectStylesheet(doc, section) {
+		let style = doc.createElement("link");
+		style.setAttribute("type", "text/css");
+		style.setAttribute("rel", "stylesheet");
+		style.setAttribute("href", this.settings.stylesheet);
+		doc.getElementsByTagName("head")[0].appendChild(style);
+	}
+
+	/**
+	 * Hook to handle injecting scripts before
+	 * a Section is serialized
+	 * @param  {document} doc
+	 * @param  {Section} section
+	 * @private
+	 */
+	injectScript(doc, section) {
+		let script = doc.createElement("script");
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("src", this.settings.script);
+		script.textContent = " "; // Needed to prevent self closing tag
+		doc.getElementsByTagName("head")[0].appendChild(script);
+	}
+
+	/**
+	 * Hook to handle the document identifier before
+	 * a Section is serialized
+	 * @param  {document} doc
+	 * @param  {Section} section
+	 * @private
+	 */
+	injectIdentifier(doc, section) {
+		const ident = this.package.metadata.identifier;
+
+		let meta = doc.createElement("meta");
+		meta.setAttribute("name", "dc.relation.ispartof");
+		if (ident) {
+			meta.setAttribute("content", ident);
+		}
+		doc.getElementsByTagName("head")[0].appendChild(meta);
+	}
+
+	/**
+	 * Generates a object representation of the book structure
+	 * @return {object}
+	 */
+	toObject() {
+		let metadata = this.package.metadata;
+		let spine = this.spine.toArray();
+		let resources = this.resources.toArray();
+		let toc = this.navigation.getTocArray(this.resources.resolve.bind(this.resources));
+		let landmarks = this.navigation.getLandmarksArray(this.resources.resolve.bind(this.resources));
+		let pageList = this.pageList.toArray();
+
+		return {
+			metadata,
+			spine,
+			resources,
+			toc,
+			landmarks,
+			pageList
+		 }
+	 }
+
+	/**
+	 * Generates a JSON output of the book structure
+	 */
+	toJSON(key) {
+		let obj = this.toObject();
+		// Set the context
+		obj["@context"] = "http://readium.org/webpub/default.jsonld";
+		// Set metadata type
+		obj.metadata["@type"] = "http://schema.org/Book";
+		// Set url of this manifest
+		let href = this.url ? this.url.directory + "manifest.json" : "manifest.json";
+		obj.links = [
+			{"rel": "self", "href": href, "type": "application/webpub+json"},
+		]
+
+		return JSON.stringify(obj);
+	 }
+
+	/**
 	 * Destroy the Book and all associated objects
 	 */
 	destroy() {
@@ -638,7 +733,6 @@ class Book {
 		this.resources && this.resources.destroy();
 		this.container && this.container.destroy();
 		this.packaging && this.packaging.destroy();
-		this.rendition && this.rendition.destroy();
 
 		this.spine = undefined;
 		this.locations = undefined;
@@ -647,12 +741,12 @@ class Book {
 		this.resources = undefined;
 		this.container = undefined;
 		this.packaging = undefined;
-		this.rendition = undefined;
 
 		this.navigation = undefined;
 		this.url = undefined;
 		this.path = undefined;
 		this.archived = false;
+
 	}
 
 }

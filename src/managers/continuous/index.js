@@ -1,4 +1,4 @@
-import {extend, defer, requestAnimationFrame} from "../../utils/core";
+import {extend, defer, requestAnimationFrame, nextSection, prevSection} from "../../utils/core";
 import DefaultViewManager from "../default";
 import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
@@ -29,9 +29,11 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
+			hooks: this.hooks,
 			axis: this.settings.axis,
 			flow: this.settings.flow,
 			layout: this.layout,
+			method: this.settings.method || "url", // srcdoc, blobUrl, write
 			width: 0,
 			height: 0,
 			forceEvenPages: false
@@ -250,7 +252,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		let prepend = () => {
 			let first = this.views.first();
-			let prev = first && first.section.prev();
+			let prev = first && prevSection(first.section, this.spine);
 
 			if(prev) {
 				newViews.push(this.prepend(prev));
@@ -259,7 +261,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		let append = () => {
 			let last = this.views.last();
-			let next = last && last.section.next();
+			let next = last && nextSection(last.section, this.spine);
 
 			if(next) {
 				newViews.push(this.append(next));

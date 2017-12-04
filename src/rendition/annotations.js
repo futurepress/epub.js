@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import EpubCFI from "./epubcfi";
+import EpubCFI from "../utils/epubcfi";
 
 /**
 	* Handles managing adding & removing Annotations

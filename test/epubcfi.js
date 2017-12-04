@@ -5,7 +5,7 @@ if (typeof DOMParser === "undefined") {
 }
 
 describe('EpubCFI', function() {
-	var EpubCFI = require('../src/epubcfi.js');
+	var EpubCFI = require('../src/utils/epubcfi.js');
 
 	it('parse a cfi on init', function() {
 		var cfi = new EpubCFI("epubcfi(/6/2[cover]!/6)");

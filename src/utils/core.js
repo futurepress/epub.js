@@ -738,6 +738,36 @@ export function getParentByTagName(node, tagname) {
 }
 
 /**
+ * Get the next section in the spine
+ */
+export function nextSection(section, spine) {
+	let nextIndex = section.index;
+	while (nextIndex < spine.length-1) {
+		let next = spine[nextIndex+1];
+		if (next && next.linear) {
+			return next;
+		}
+		nextIndex += 1;
+	}
+	return;
+}
+
+/**
+ * Get the previous section in the spine
+ */
+export function prevSection(section, spine) {
+	let prevIndex = section.index;
+	while (prevIndex > 0) {
+		let prev = spine[prevIndex-1];
+		if (prev && prev.linear) {
+			return prev;
+		}
+		prevIndex -= 1;
+	}
+	return;
+}
+
+/**
  * Lightweight Polyfill for DOM Range
  * @class
  * @memberof Core

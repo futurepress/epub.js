@@ -1,6 +1,6 @@
 import EventEmitter from "event-emitter";
-import {extend, defer, windowBounds, isNumber} from "../../utils/core";
-import Mapping from "../../mapping";
+import {extend, defer, windowBounds, isNumber, nextSection, prevSection} from "../../utils/core";
+import Mapping from "../../rendition/mapping";
 import Queue from "../../utils/queue";
 import Stage from "../helpers/stage";
 import Views from "../helpers/views";
@@ -12,7 +12,8 @@ class DefaultViewManager {
 		this.name = "default";
 		this.View = options.view;
 		this.request = options.request;
-		this.renditionQueue = options.queue;
+		this.spine = options.spine;
+		this.hooks = options.hooks;
 		this.q = new Queue(this);
 
 		this.settings = extend(this.settings || {}, {
@@ -29,10 +30,11 @@ class DefaultViewManager {
 
 		this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
+			hooks: this.hooks,
 			axis: this.settings.axis,
 			flow: this.settings.flow,
 			layout: this.layout,
-			method: this.settings.method, // srcdoc, blobUrl, write
+			method: this.settings.method || "url", // srcdoc, blobUrl, write
 			width: 0,
 			height: 0,
 			forceEvenPages: true
@@ -273,7 +275,7 @@ class DefaultViewManager {
 				var next;
 				if (this.layout.name === "pre-paginated" &&
 						this.layout.divisor > 1) {
-					next = section.next();
+					next = nextSection(section, this.spine);
 					if (next) {
 						return this.add(next);
 					}
@@ -400,7 +402,7 @@ class DefaultViewManager {
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(this.layout.delta, 0, true);
 			} else {
-				next = this.views.last().section.next();
+				next = nextSection(this.views.last().section, this.spine);
 			}
 		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 
@@ -411,7 +413,7 @@ class DefaultViewManager {
 			if(left > 0) {
 				this.scrollBy(this.layout.delta, 0, true);
 			} else {
-				next = this.views.last().section.next();
+				next = nextSection(this.views.last().section, this.spine);
 			}
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
@@ -423,11 +425,11 @@ class DefaultViewManager {
 			if(top < this.container.scrollHeight) {
 				this.scrollBy(0, this.layout.height, true);
 			} else {
-				next = this.views.last().section.next();
+				next = nextSection(this.views.last().section, this.spine);
 			}
 
 		} else {
-			next = this.views.last().section.next();
+			next = nextSection(this.views.last().section, this.spine);
 		}
 
 		if(next) {
@@ -467,7 +469,7 @@ class DefaultViewManager {
 			if(left > 0) {
 				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
-				prev = this.views.first().section.prev();
+				prev = prevSection(this.views.first().section, this.spine);
 			}
 
 		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
@@ -479,7 +481,7 @@ class DefaultViewManager {
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
-				prev = this.views.first().section.prev();
+				prev = prevSection(this.views.first().section, this.spine);
 			}
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
@@ -491,12 +493,12 @@ class DefaultViewManager {
 			if(top > 0) {
 				this.scrollBy(0, -(this.layout.height), true);
 			} else {
-				prev = this.views.first().section.prev();
+				prev = prevSection(this.views.first().section, this.spine);
 			}
 
 		} else {
 
-			prev = this.views.first().section.prev();
+			prev = prevSection(this.views.first().section, this.spine);
 
 		}
 

@@ -1,5 +1,5 @@
 import path from "path-webpack";
-import {qs} from "./utils/core";
+import {qs} from "../utils/core";
 
 /**
  * Handles Parsing and Accessing an Epub Container

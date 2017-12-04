@@ -1,13 +1,44 @@
-import Book from "./book";
-import Rendition from "./rendition";
-import EpubCFI from "./epubcfi";
-import Contents from "./contents";
+import Book from "./book/book";
+import Rendition from "./rendition/rendition";
+import EpubCFI from "./utils/epubcfi";
+import Contents from "./rendition/contents";
 import * as core from "./utils/core";
 import "../libs/url/url-polyfill";
 
 import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
+
+class Epub extends Book {
+  constructor(url, options) {
+    super(url, options);
+
+		this.rendition = undefined;
+  }
+
+	/**
+	 * Sugar to render a book to an element
+	 * @param  {element | string} element element or string to add a rendition to
+	 * @param  {object} [options]
+	 * @return {Rendition}
+	 */
+	renderTo(element, options) {
+
+		this.rendition = new Rendition(null, options);
+		this.rendition.attachTo(element);
+
+		this.ready.then((object) => {
+			this.rendition.load(object);
+		});
+
+		return this.rendition;
+	}
+
+  destroy() {
+    super.destroy();
+    this.rendition.destroy();
+  }
+}
 
 /**
  * Creates a new Book
@@ -17,10 +48,10 @@ import ContinuousViewManager from "./managers/continuous";
  * @example ePub("/path/to/book.epub", {})
  */
 function ePub(url, options) {
-	return new Book(url, options);
+	return new Epub(url, options);
 }
 
-ePub.VERSION = "0.3";
+ePub.VERSION = "0.4";
 
 if (typeof(global) !== "undefined") {
 	global.EPUBJS_VERSION = ePub.VERSION;

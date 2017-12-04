@@ -1,8 +1,9 @@
-import { defer } from "./utils/core";
-import EpubCFI from "./epubcfi";
-import Hook from "./utils/hook";
-import { sprint } from "./utils/core";
-import { replaceBase } from "./utils/replacements";
+import { defer } from "../utils/core";
+import EpubCFI from "../utils/epubcfi";
+import Hook from "../utils/hook";
+import { sprint, createBase64Url, createBlobUrl, blob2base64, revokeBlobUrl} from "../utils/core";
+import { replaceBase } from "../utils/replacements";
+import Request from "../utils/request";
 
 /**
  * Represents a Section of the Book
@@ -10,16 +11,20 @@ import { replaceBase } from "./utils/replacements";
  * In most books this is equivelent to a Chapter
  * @param {object} item  The spine item representing the section
  * @param {object} hooks hooks for serialize and content
+ * @param {object} settings
+ * @param {object} settings.replacements
  */
 class Section {
-	constructor(item, hooks){
+	constructor(item, hooks, settings){
+		this.item = item;
 		this.idref = item.idref;
 		this.linear = item.linear === "yes";
 		this.properties = item.properties;
 		this.index = item.index;
 		this.href = item.href;
-		this.url = item.url;
+		this.source = item.source;
 		this.canonical = item.canonical;
+		this.type = item.type;
 		this.next = item.next;
 		this.prev = item.prev;
 
@@ -36,6 +41,10 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+
+		this.originalHref = undefined;
+
+		this.settings = settings || {};
 	}
 
 	/**
@@ -44,16 +53,16 @@ class Section {
 	 * @return {document} a promise with the xml document
 	 */
 	load(_request){
-		var request = _request || this.request || require("./utils/request");
+		var request = _request || this.request || Request;
 		var loading = new defer();
 		var loaded = loading.promise;
 
 		if(this.contents) {
 			loading.resolve(this.contents);
 		} else {
-			request(this.url)
+			request(this.originalHref || this.href)
 				.then(function(xml){
-					// var directory = new Url(this.url).directory;
+					// var directory = new Url(this.href).directory;
 
 					this.document = xml;
 					this.contents = xml.documentElement;
@@ -174,8 +183,8 @@ class Section {
 	}
 
 	/**
-	* Reconciles the current chapters layout properies with
-	* the global layout properities.
+	* Reconciles the current chapters layout properties with
+	* the global layout properties.
 	* @param {object} global  The globa layout settings object, chapter properties string
 	* @return {object} layoutProperties Object with layout properties
 	*/
@@ -230,10 +239,61 @@ class Section {
 		this.output = undefined;
 	}
 
+	/**
+	 * Return an object representation of the item
+	 * @return {object}
+	 */
+	toObject() {
+		return {
+			idref : this.idref,
+			linear : this.linear,
+			href : this.href,
+			source : this.source,
+			type : this.type,
+			canonical : this.canonical
+		}
+	}
+
+	/**
+	 * Create a url from the content
+	 */
+	createUrl(request) {
+		//var parsedUrl = new Url(url);
+		//var mimeType = mime.lookup(parsedUrl.filename);
+		let mimeType = this.type;
+
+		return this.render(request)
+			.then((text) => {
+				return new Blob([text], {type : mimeType});
+			})
+			.then((blob) => {
+				if (this.settings.replacements && this.settings.replacements === "base64") {
+					return blob2base64(blob)
+						.then((blob) => {
+							return createBase64Url(blob, mimeType);
+						});
+				} else {
+					return createBlobUrl(blob, mimeType);
+				}
+			})
+			.then((url) => {
+				this.originalHref = this.href;
+				this.href = url;
+
+				this.unload();
+
+				return url;
+			})
+	}
+
 	destroy() {
 		this.unload();
 		this.hooks.serialize.clear();
 		this.hooks.content.clear();
+
+		if (this.originalHref) {
+			revokeBlobUrl(this.href);
+		}
 
 		this.hooks = undefined;
 		this.idref = undefined;
@@ -241,7 +301,7 @@ class Section {
 		this.properties = undefined;
 		this.index = undefined;
 		this.href = undefined;
-		this.url = undefined;
+		this.source = undefined;
 		this.next = undefined;
 		this.prev = undefined;
 

@@ -1,4 +1,4 @@
-import {qs, qsa, qsp, indexOfElementNode} from "./utils/core";
+import {qs, qsa, qsp, indexOfElementNode} from "../utils/core";
 
 /**
  * Open Packaging Format Parser
@@ -127,9 +127,8 @@ class Packaging {
 
 			manifest[id] = {
 				"href" : href,
-				// "url" : href,
 				"type" : type,
-				"properties" : properties.length ? properties.split(" ") : []
+				"properties" : properties.length ? properties.split(" ") : [],
 			};
 
 		});
@@ -227,7 +226,6 @@ class Packaging {
 			var metaCover = qsp(packageXml, "meta", {"name":"cover"});
 			if (metaCover) {
 				var coverId = metaCover.getAttribute("content");
-				// var cover = packageXml.querySelector("item[id='" + coverId + "']");
 				var cover = packageXml.getElementById(coverId);
 				return cover ? cover.getAttribute("href") : "";
 			}
@@ -236,7 +234,6 @@ class Packaging {
 			}
 		}
 		else {
-			// var node = packageXml.querySelector("item[properties='cover-image']");
 			var node = qsp(packageXml, "item", {"properties":"cover-image"});
 			return node ? node.getAttribute("href") : "";
 		}
@@ -305,10 +302,7 @@ class Packaging {
 
 		this.spineNodeIndex = 0;
 
-		this.toc = json.toc.map((item, index) =>{
-			item.label = item.title;
-			return item;
-		});
+		this.toc = json.toc;
 
 		return {
 			"metadata" : this.metadata,

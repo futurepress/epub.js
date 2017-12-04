@@ -1,11 +1,18 @@
-import {qs, qsa, querySelectorByType, filterChildren, getParentByTagName} from "./utils/core";
+import {
+	qs,
+	qsa,
+	querySelectorByType,
+	filterChildren,
+	getParentByTagName,
+	uuid
+} from "../utils/core";
 
 /**
  * Navigation Parser
  * @param {document} xml navigation html / xhtml / ncx
  */
 class Navigation {
-	constructor(xml) {
+	constructor(xml, url) {
 		this.toc = [];
 		this.tocByHref = {};
 		this.tocById = {};
@@ -14,6 +21,9 @@ class Navigation {
 		this.landmarksByType = {};
 
 		this.length = 0;
+
+		this.url = url || "";
+
 		if (xml) {
 			this.parse(xml);
 		}
@@ -54,22 +64,24 @@ class Navigation {
 	 */
 	unpack(toc) {
 		var item;
+		var href;
 
 		for (var i = 0; i < toc.length; i++) {
 			item = toc[i];
+			href = item.href;
 
 			if (item.href) {
-				this.tocByHref[item.href] = i;
+				this.tocByHref[href] = i;
 			}
 
 			if (item.id) {
-				this.tocById[item.id] = i;
+				this.tocById[href] = i;
 			}
 
 			this.length++;
 
-			if (item.subitems.length) {
-				this.unpack(item.subitems);
+			if (item.children.length) {
+				this.unpack(item.children);
 			}
 		}
 
@@ -135,11 +147,11 @@ class Navigation {
 			item = this.navItem(navItems[i]);
 			if (item) {
 				toc[item.id] = item;
-				if(!item.parent) {
+				if(!item.parentIndex) {
 					list.push(item);
 				} else {
 					parent = toc[item.parent];
-					parent.subitems.push(item);
+					parent.children.push(item);
 				}
 			}
 		}
@@ -161,11 +173,21 @@ class Navigation {
 			return;
 		}
 
-		let src = content.getAttribute("href") || "";
-		let text = content.textContent || "";
-		let subitems = [];
+		if(!id) {
+			id = 'epubjs-autogen-toc-id-' + uuid();
+			item.setAttribute('id', id);
+		}
+
+		let href = content.getAttribute("href") || "";
+		let title = content.textContent || "";
+		let children = [];
 		let parentItem = getParentByTagName(item, "li");
 		let parent;
+
+		let split = href.split("#");
+		if (split[0] === "") {
+			href = this.url + href;
+		}
 
 		if (parentItem) {
 			parent = parentItem.getAttribute("id");
@@ -179,11 +201,11 @@ class Navigation {
 		}
 
 		return {
-			"id": id,
-			"href": src,
-			"label": text,
-			"subitems" : subitems,
-			"parent" : parent
+			id,
+			href,
+			title,
+			children,
+			parent
 		};
 	}
 
@@ -229,12 +251,17 @@ class Navigation {
 
 		let type = content.getAttributeNS("http://www.idpf.org/2007/ops", "type") || undefined;
 		let href = content.getAttribute("href") || "";
-		let text = content.textContent || "";
+		let title = content.textContent || "";
+
+		let split = href.split("#");
+		if (split[0] === "") {
+			href = this.url + href;
+		}
 
 		return {
-			"href": href,
-			"label": text,
-			"type" : type
+			href,
+			title,
+			type
 		};
 	}
 
@@ -261,7 +288,7 @@ class Navigation {
 				list.push(item);
 			} else {
 				parent = toc[item.parent];
-				parent.subitems.push(item);
+				parent.children.push(item);
 			}
 		}
 
@@ -277,10 +304,10 @@ class Navigation {
 	ncxItem(item){
 		var id = item.getAttribute("id") || false,
 				content = qs(item, "content"),
-				src = content.getAttribute("src"),
+				href = content.getAttribute("src"),
 				navLabel = qs(item, "navLabel"),
-				text = navLabel.textContent ? navLabel.textContent : "",
-				subitems = [],
+				title = navLabel.textContent ? navLabel.textContent : "",
+				children = [],
 				parentNode = item.parentNode,
 				parent;
 
@@ -288,13 +315,17 @@ class Navigation {
 			parent = parentNode.getAttribute("id");
 		}
 
+		if(!id) {
+			id = 'epubjs-autogen-toc-id-' + uuid();
+			item.setAttribute('id', id);
+		}
 
 		return {
-			"id": id,
-			"href": src,
-			"label": text,
-			"subitems" : subitems,
-			"parent" : parent
+			id,
+			href,
+			title,
+			children,
+			parent
 		};
 	}
 
@@ -304,9 +335,8 @@ class Navigation {
 	 */
 	load(json) {
 		return json.map((item) => {
-			item.label = item.title;
 			if (item.children) {
-				item.subitems = this.load(item.children);
+				item.children = this.load(item.children);
 			}
 			return item;
 		});
@@ -319,6 +349,43 @@ class Navigation {
 	 */
 	forEach(fn) {
 		return this.toc.forEach(fn);
+	}
+
+	/**
+	 * Get an Array of all Table of Contents Items
+	 */
+	getTocArray(resolver) {
+		return this.toc.map((item) => {
+			let url = resolver ? resolver(item.href) : item.href;
+
+			let obj = {
+				href: url,
+				title: item.title
+			};
+
+			if (item.children.length) {
+				obj.children = item.children;
+			}
+
+			return obj;
+		});
+	}
+
+	/**
+	 * Get an Array of all landmarks
+	 */
+	getLandmarksArray(resolver) {
+		return this.landmarks.map((item) => {
+			let url = resolver ? resolver(item.href) : item.href;
+
+			let obj = {
+				href: url,
+				title: item.title,
+				type: item.type
+			};
+
+			return obj;
+		});
 	}
 }
 

@@ -1,4 +1,4 @@
-import {extend, type, findChildren, RangeObject, isNumber} from "./utils/core";
+import {extend, type, findChildren, RangeObject, isNumber} from "./core";
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;

@@ -4,7 +4,7 @@ import Url from "./url";
 export function replaceBase(doc, section){
 	var base;
 	var head;
-	var url = section.url;
+	var url = section.href;
 	var absolute = (url.indexOf("://") > -1);
 
 	if(!doc){
@@ -30,7 +30,7 @@ export function replaceBase(doc, section){
 export function replaceCanonical(doc, section){
 	var head;
 	var link;
-	var url = section.canonical;
+	var url = section.canonical || section.href;
 
 	if(!doc){
 		return;
@@ -52,7 +52,7 @@ export function replaceCanonical(doc, section){
 export function replaceMeta(doc, section){
 	var head;
 	var meta;
-	var id = section.idref;
+	var id = section.idref || section.href;
 	if(!doc){
 		return;
 	}

@@ -1,9 +1,11 @@
 import EventEmitter from "event-emitter";
 import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
-import EpubCFI from "../../epubcfi";
-import Contents from "../../contents";
+import EpubCFI from "../../utils/epubcfi";
+import Contents from "../../rendition/contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
+import Request from "../../utils/request";
+import Hook from "../../utils/hook";
 
 class IframeView {
 	constructor(section, options) {
@@ -15,7 +17,7 @@ class IframeView {
 			height: 0,
 			layout: undefined,
 			globalLayoutProperties: {},
-			method: undefined
+			method: "url"
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -122,30 +124,29 @@ class IframeView {
 			this.supportsSrcdoc = false;
 		}
 
-		if (!this.settings.method) {
-			this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
-		}
+		// if (!this.settings.method) {
+		// 	this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
+		// }
 
 		return this.iframe;
 	}
 
 	render(request, show) {
-
+		let contents;
 		// view.onLayout = this.layout.format.bind(this.layout);
 		this.create();
 
 		// Fit to size of the container, apply padding
 		this.size();
 
-		if(!this.sectionRender) {
-			this.sectionRender = this.section.render(request);
+		if(this.settings.method === "url") {
+			contents = this.section.href;
+		} else {
+			contents = this.section.contents;
 		}
 
 		// Render Chain
-		return this.sectionRender
-			.then(function(contents){
-				return this.load(contents);
-			}.bind(this))
+		return this.load(contents)
 			.then(function(){
 
 				// apply the layout function to the contents
@@ -357,18 +358,7 @@ class IframeView {
 		} else if(this.settings.method === "srcdoc"){
 			this.iframe.srcdoc = contents;
 		} else {
-
-			this.document = this.iframe.contentDocument;
-
-			if(!this.document) {
-				loading.reject(new Error("No Document Available"));
-				return loaded;
-			}
-
-			this.iframe.contentDocument.open();
-			this.iframe.contentDocument.write(contents);
-			this.iframe.contentDocument.close();
-
+			this.iframe.src = contents;
 		}
 
 		return loaded;
@@ -383,6 +373,8 @@ class IframeView {
 
 		this.rendering = false;
 
+		/*
+		TODO: this seems not needed with replace cannonical
 		var link = this.document.querySelector("link[rel='canonical']");
 		if (link) {
 			link.setAttribute("href", this.section.canonical);
@@ -392,6 +384,7 @@ class IframeView {
 			link.setAttribute("href", this.section.canonical);
 			this.document.querySelector("head").appendChild(link);
 		}
+		*/
 
 		this.contents.on(EVENTS.CONTENTS.EXPAND, () => {
 			if(this.displayed && this.iframe) {

@@ -1,6 +1,6 @@
 {
   "name": "epubjs",
-  "version": "0.3.57",
+  "version": "0.4.0",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -10,6 +10,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/karma start ./karma.conf.js --single-run --browsers ChromeHeadless",
+    "testwatch": "./node_modules/.bin/karma start ./karma.conf.js --browsers ChromeHeadless",
     "documentation": "./node_modules/.bin/gulp docs",
     "lint": "./node_modules/.bin/eslint -c .eslintrc.js src; exit 0",
     "start": "./node_modules/.bin/webpack-dev-server --inline --d",

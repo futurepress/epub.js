@@ -1,14 +1,20 @@
 import EventEmitter from "event-emitter";
-import { extend, defer, isFloat } from "./utils/core";
-import Hook from "./utils/hook";
-import EpubCFI from "./epubcfi";
-import Queue from "./utils/queue";
+import { extend, defer, isFloat } from "../utils/core";
+import Hook from "../utils/hook";
+import EpubCFI from "../utils/epubcfi";
+import Queue from "../utils/queue";
 import Layout from "./layout";
 // import Mapping from "./mapping";
 import Themes from "./themes";
 import Contents from "./contents";
 import Annotations from "./annotations";
-import { EVENTS } from "./utils/constants";
+import { EVENTS } from "../utils/constants";
+
+import Spine from "../book/spine";
+import Locations from "../book/locations";
+import PageList from "../book/pagelist";
+import Navigation from "../book/navigation";
+import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
 
 /**
  * Displays an Epub as a series of Views for each Section.
@@ -29,7 +35,7 @@ import { EVENTS } from "./utils/constants";
  * @param {string} [options.script] url of script to be injected
  */
 class Rendition {
-	constructor(book, options) {
+	constructor(manifest, options) {
 
 		this.settings = extend(this.settings || {}, {
 			width: null,
@@ -51,8 +57,6 @@ class Rendition {
 			this.manager = this.settings.manager;
 		}
 
-		this.book = book;
-
 		/**
 		 * Adds Hook methods to the Rendition prototype
 		 * @member {object} hooks
@@ -61,7 +65,6 @@ class Rendition {
 		 */
 		this.hooks = {};
 		this.hooks.display = new Hook(this);
-		this.hooks.serialize = new Hook(this);
 		this.hooks.content = new Hook(this);
 		this.hooks.unloaded = new Hook(this);
 		this.hooks.layout = new Hook(this);
@@ -71,16 +74,6 @@ class Rendition {
 		this.hooks.content.register(this.handleLinks.bind(this));
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
-
-		this.book.spine.hooks.content.register(this.injectIdentifier.bind(this));
-
-		if (this.settings.stylesheet) {
-			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
-		}
-
-		if (this.settings.script) {
-			this.book.spine.hooks.content.register(this.injectScript.bind(this));
-		}
 
 		/**
 		 * @member {Themes} themes
@@ -127,7 +120,18 @@ class Rendition {
 		this.location = undefined;
 
 		// Hold queue until book is opened
-		this.q.enqueue(this.book.opened);
+		// this.q.enqueue(this.book.opened);
+
+		/**
+		 * @private
+		 */
+		this.spineByHref = undefined;
+		this.spineBySource = undefined;
+		this.spineById = undefined;
+
+		if (manifest) {
+			this.load(manifest);
+		}
 
 		this.starting = new defer();
 		/**
@@ -136,9 +140,59 @@ class Rendition {
 		 */
 		this.started = this.starting.promise;
 		// Block the queue until rendering is started
-		this.q.enqueue(this.start);
+		this.q.enqueue(this.started);
 	}
 
+	/**
+	 * Load Book object or JSON manifest
+	 */
+	load(manifest) {
+
+		if (typeof manifest === "string") {
+			this.manifest = JSON.parse(manifest);
+		} else {
+			this.manifest = manifest;
+		}
+
+		let spine = this.manifest.spine.map((item, index) =>{
+			item.index = index;
+			return item;
+		});
+
+		this.spineByHref = {};
+		this.spineBySource = {};
+		this.spineById = {};
+
+		this.manifest.spine.forEach((section, index) => {
+			this.spineByHref[decodeURI(section.href)] = index;
+			this.spineByHref[encodeURI(section.href)] = index;
+			this.spineByHref[section.href] = index;
+
+			if (section.source) {
+				this.spineBySource[decodeURI(section.source)] = index;
+				this.spineBySource[encodeURI(section.source)] = index;
+				this.spineBySource[section.source] = index;
+			}
+
+			this.spineById[section.idref] = index;
+		});
+
+
+		this.spine = new Spine(spine);
+		// this.spine.unpack(this.manifest);
+
+		// this.locations = new Locations();
+		// if (this.manifest.locations) {
+		// 	this.locations.load(this.manifest.locations);
+		// }
+
+		// this.pageList = new PageList();
+		// if (this.manifest.pageList) {
+		// 	this.pageList.load(this.manifest.pageList);
+		// }
+
+		this.start();
+	}
 	/**
 	 * Set the manager function
 	 * @param {function} manager
@@ -199,16 +253,18 @@ class Rendition {
 
 			this.manager = new this.ViewManager({
 				view: this.View,
-				queue: this.q,
-				request: this.book.load.bind(this.book),
+				// queue: this.q,
+				spine: this.manifest.spine,
+				hooks: this.hooks,
+				// request: this.book.load.bind(this.book),
 				settings: this.settings
 			});
 		}
 
-		this.direction(this.book.package.metadata.direction);
+		this.direction(this.manifest.metadata.direction);
 
 		// Parse metadata to get layout props
-		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
+		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.manifest.metadata);
 
 		this.flow(this.settings.globalLayoutProperties.flow);
 
@@ -287,9 +343,9 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	_display(target){
-		if (!this.book) {
-			return;
-		}
+		// if (!this.book) {
+		// 	return;
+		// }
 		var displaying = new defer();
 		var displayed = displaying.promise;
 		var section;
@@ -297,12 +353,13 @@ class Rendition {
 		this.displaying = displaying;
 
 		// Check if this is a book percentage
-		if (this.book.locations.length() &&
+		if (this.locations &&
+				this.locations.length() &&
 			 (isFloat(target) || (target === "1.0")) ) { // Handle 1.0
-			target = this.book.locations.cfiFromPercentage(parseFloat(target));
+			target = this.locations.cfiFromPercentage(parseFloat(target));
 		}
 
-		section = this.book.spine.get(target);
+		section = this.findInSpine(target);
 
 		if(!section){
 			displaying.reject(new Error("No Section Found"));
@@ -760,37 +817,41 @@ class Rendition {
 			}
 		};
 
-		let locationStart = this.book.locations.locationFromCfi(start.mapping.start);
-		let locationEnd = this.book.locations.locationFromCfi(end.mapping.end);
+		if (this.locations) {
+			let locationStart = this.locations.locationFromCfi(start.mapping.start);
+			let locationEnd = this.locations.locationFromCfi(end.mapping.end);
 
-		if (locationStart != null) {
-			located.start.location = locationStart;
-			located.start.percentage = this.book.locations.percentageFromLocation(locationStart);
-		}
-		if (locationEnd != null) {
-			located.end.location = locationEnd;
-			located.end.percentage = this.book.locations.percentageFromLocation(locationEnd);
-		}
-
-		let pageStart = this.book.pageList.pageFromCfi(start.mapping.start);
-		let pageEnd = this.book.pageList.pageFromCfi(end.mapping.end);
-
-		if (pageStart != -1) {
-			located.start.page = pageStart;
-		}
-		if (pageEnd != -1) {
-			located.end.page = pageEnd;
+			if (locationStart != null) {
+				located.start.location = locationStart;
+				located.start.percentage = this.locations.percentageFromLocation(locationStart);
+			}
+			if (locationEnd != null) {
+				located.end.location = locationEnd;
+				located.end.percentage = this.locations.percentageFromLocation(locationEnd);
+			}
 		}
 
-		if (end.index === this.book.spine.last().index &&
-				located.end.displayed.page >= located.end.displayed.total) {
-			located.atEnd = true;
+		if (this.pageList) {
+			let pageStart = this.pageList.pageFromCfi(start.mapping.start);
+			let pageEnd = this.pageList.pageFromCfi(end.mapping.end);
+
+			if (pageStart != -1) {
+				located.start.page = pageStart;
+			}
+			if (pageEnd != -1) {
+				located.end.page = pageEnd;
+			}
 		}
 
-		if (start.index === this.book.spine.first().index &&
-				located.start.displayed.page === 1) {
-			located.atStart = true;
-		}
+		// if (end.index === this.spine.last().index &&
+		// 		located.end.displayed.page >= located.end.displayed.total) {
+		// 	located.atEnd = true;
+		// }
+    //
+		// if (start.index === this.spine.first().index &&
+		// 		located.start.displayed.page === 1) {
+		// 	located.atStart = true;
+		// }
 
 		return located;
 	}
@@ -800,31 +861,34 @@ class Rendition {
 	 */
 	destroy(){
 		// Clear the queue
-		// this.q.clear();
-		// this.q = undefined;
+		this.q.clear();
+		this.q = undefined;
 
 		this.manager && this.manager.destroy();
 
-		this.book = undefined;
+		this.manifest = undefined;
 
-		// this.views = null;
+		this.spineByHref = undefined;
+		this.spineBySource = undefined;
+		this.spineById = undefined;
 
-		// this.hooks.display.clear();
-		// this.hooks.serialize.clear();
-		// this.hooks.content.clear();
-		// this.hooks.layout.clear();
-		// this.hooks.render.clear();
-		// this.hooks.show.clear();
-		// this.hooks = {};
+		console.log("destroy");
 
-		// this.themes.destroy();
-		// this.themes = undefined;
+		this.hooks.display.clear();
+		this.hooks.serialize.clear();
+		this.hooks.content.clear();
+		this.hooks.layout.clear();
+		this.hooks.render.clear();
+		this.hooks.show.clear();
+		this.hooks = {};
 
-		// this.epubcfi = undefined;
+		this.themes.destroy();
+		this.themes = undefined;
 
-		// this.starting = undefined;
-		// this.started = undefined;
+		this.epubcfi = undefined;
 
+		this.starting = undefined;
+		this.started = undefined;
 
 	}
 
@@ -970,52 +1034,29 @@ class Rendition {
 	}
 
 	/**
-	 * Hook to handle injecting stylesheet before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
+	 * @return {object} spineItem
 	 */
-	injectStylesheet(doc, section) {
-		let style = doc.createElement("link");
-		style.setAttribute("type", "text/css");
-		style.setAttribute("rel", "stylesheet");
-		style.setAttribute("href", this.settings.stylesheet);
-		doc.getElementsByTagName("head")[0].appendChild(style);
-	}
+	findInSpine(target) {
+		var index = 0;
 
-	/**
-	 * Hook to handle injecting scripts before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
-	 */
-	injectScript(doc, section) {
-		let script = doc.createElement("script");
-		script.setAttribute("type", "text/javascript");
-		script.setAttribute("src", this.settings.script);
-		script.textContent = " "; // Needed to prevent self closing tag
-		doc.getElementsByTagName("head")[0].appendChild(script);
-	}
-
-	/**
-	 * Hook to handle the document identifier before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
-	 */
-	injectIdentifier(doc, section) {
-		let ident = this.book.package.metadata.identifier;
-		let meta = doc.createElement("meta");
-		meta.setAttribute("name", "dc.relation.ispartof");
-		if (ident) {
-			meta.setAttribute("content", ident);
+		if(this.epubcfi.isCfiString(target)) {
+			let cfi = new EpubCFI(target);
+			index = cfi.spinePos;
+		} else if(typeof target === "number" || isNaN(target) === false){
+			index = target;
+		} else if(typeof target === "string" && target.indexOf("#") === 0) {
+			index = this.spineById[target.substring(1)];
+		} else if(typeof target === "string") {
+			// Remove fragments
+			target = target.split("#")[0];
+			index = this.spineByHref[target] ||
+							this.spineByHref[encodeURI(target)] ||
+							this.spineBySource[target] ||
+							this.spineBySource[encodeURI(target)];
 		}
-		doc.getElementsByTagName("head")[0].appendChild(meta);
-	}
 
+		return this.manifest.spine[index] || null;
+	}
 }
 
 //-- Enable binding events to Renderer

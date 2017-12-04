@@ -125,13 +125,13 @@
       this.book.destroy();
     });
 
-    book.loaded.navigation.then(function(toc){
+    book.ready.then(function(manifest){
 			var $select = document.getElementById("toc"),
 					docfrag = document.createDocumentFragment();
-
-			toc.forEach(function(chapter) {
+          console.log(manifest);
+			manifest.toc.forEach(function(chapter) {
 				var option = document.createElement("option");
-				option.textContent = chapter.label;
+				option.textContent = chapter.title;
 				option.setAttribute("ref", chapter.href);
 
 				docfrag.appendChild(option);

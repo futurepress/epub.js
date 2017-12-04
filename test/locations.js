@@ -1,11 +1,11 @@
 var assert = require('assert');
 
 describe('Locations', function() {
-	var Locations = require('../src/locations');
+	var Locations = require('../src/book/locations');
 	var core = require('../src/utils/core');
 
 	describe('#parse', function() {
-		var Locations = require('../src/locations');
+		var Locations = require('../src/book/locations');
 		var chapter = require('raw-loader!./fixtures/locations.xhtml');
 
 		it('parse locations from a document', function() {

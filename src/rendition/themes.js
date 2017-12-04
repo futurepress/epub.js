@@ -1,4 +1,4 @@
-import Url from "./utils/url";
+import Url from "../utils/url";
 
 /**
  * Themes to apply to displayed content

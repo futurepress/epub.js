@@ -1,4 +1,4 @@
-import EpubCFI from "./epubcfi";
+import EpubCFI from "../utils/epubcfi";
 
 /**
  * Map text locations to CFI ranges

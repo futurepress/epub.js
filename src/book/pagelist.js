@@ -1,11 +1,11 @@
-import EpubCFI from "./epubcfi";
+import EpubCFI from "../utils/epubcfi";
 import {
 	qs,
 	qsa,
 	querySelectorByType,
 	indexOfSorted,
 	locationOf
-} from "./utils/core";
+} from "../utils/core";
 
 /**
  * Page List Parser
@@ -214,6 +214,22 @@ class PageList {
 		var pg = this.pageFromCfi(cfi);
 		var percentage = this.percentageFromPage(pg);
 		return percentage;
+	}
+
+	/**
+	 * Export pages as an Array
+	 * @return {array}
+	 */
+	toArray(){
+		return this.locations;
+	}
+
+	/**
+	 * Export pages as JSON
+	 * @return {json}
+	 */
+	toJSON(){
+		return JSON.stringify(this.locations);
 	}
 
 	destroy() {

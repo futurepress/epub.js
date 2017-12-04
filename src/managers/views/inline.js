@@ -1,7 +1,7 @@
 import EventEmitter from "event-emitter";
 import {extend, borders, uuid, isNumber, bounds, defer, qs, parse} from "../../utils/core";
-import EpubCFI from "../../epubcfi";
-import Contents from "../../contents";
+import EpubCFI from "../../utils/epubcfi";
+import Contents from "../../rendition/contents";
 import { EVENTS } from "../../utils/constants";
 
 class InlineView {

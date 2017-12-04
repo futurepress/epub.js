@@ -1,5 +1,5 @@
-import { extend } from "./utils/core";
-import { EVENTS } from "./utils/constants";
+import { extend } from "../utils/core";
+import { EVENTS } from "../utils/constants";
 import EventEmitter from "event-emitter";
 
 /**

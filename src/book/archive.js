@@ -1,7 +1,7 @@
-import {defer, isXml, parse} from "./utils/core";
-import request from "./utils/request";
-import mime from "../libs/mime/mime";
-import Path from "./utils/path";
+import {defer, isXml, parse} from "../utils/core";
+import request from "../utils/request";
+import mime from "../../libs/mime/mime";
+import Path from "../utils/path";
 
 /**
  * Handles Unzipping a requesting files from an Epub Archive

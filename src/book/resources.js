@@ -1,8 +1,8 @@
-import {substitute} from "./utils/replacements";
-import {createBase64Url, createBlobUrl, blob2base64} from "./utils/core";
-import Url from "./utils/url";
-import mime from "../libs/mime/mime";
-import Path from "./utils/path";
+import {substitute} from "../utils/replacements";
+import {createBase64Url, createBlobUrl, blob2base64} from "../utils/core";
+import Url from "../utils/url";
+import mime from "../../libs/mime/mime";
+import Path from "../utils/path";
 import path from "path-webpack";
 
 /**
@@ -22,6 +22,7 @@ class Resources {
 			resolver: (options && options.resolver),
 			request: (options && options.request)
 		};
+
 		this.manifest = manifest;
 		this.resources = Object.keys(manifest).
 			map(function (key){
@@ -29,6 +30,7 @@ class Resources {
 			});
 
 		this.replacementUrls = [];
+		this.urlCache = {};
 
 		this.html = [];
 		this.assets = [];
@@ -131,8 +133,12 @@ class Resources {
 			map( (url) => {
 				var absolute = this.settings.resolver(url);
 
-				return this.createUrl(absolute).
-					catch((err) => {
+				return this.createUrl(absolute)
+					.then((url) => {
+						this.urlCache[absolute] = url;
+						return url;
+					})
+					.catch((err) => {
 						console.error(err);
 						return null;
 					});
@@ -144,6 +150,10 @@ class Resources {
 					return (typeof(url) === "string");
 				});
 				return replacementUrls;
+			})
+			.catch((err) => {
+				console.error(err);
+				return null;
 			});
 	}
 
@@ -254,7 +264,7 @@ class Resources {
 	}
 
 	/**
-	 * Get a URL for a resource
+	 * Get a URL for a resource or create one
 	 * @param  {string} path
 	 * @return {string} url
 	 */
@@ -273,6 +283,49 @@ class Resources {
 	}
 
 	/**
+	 * Replace the url for a resource
+	 * @param  {string} path
+	 * @return {string} url
+	 */
+	replace(path, url) {
+		let href = this.settings.resolver(path);
+		this.urlCache[href] = url;
+	}
+
+	/**
+	 * Resolve a path to its absolute or replaced url
+	 * @param  {string} path
+	 * @return {string}          the resolved path string
+	 */
+	resolve(path) {
+		let href = this.settings.resolver(path);
+		let resolved = href;
+
+		let search = href.split("?");
+		let anchor = href.split("#");
+		let base = href;
+		if (search.length > 1) {
+			base = search[0];
+		} else if (anchor.length > 1) {
+			base = anchor[0];
+		}
+		let cached = this.urlCache[base];
+
+		if (cached) {
+			resolved = cached;
+
+			// Add query strings back
+			if (search.length > 1) {
+				resolved += "?" + search[1];
+			} else if (anchor.length > 1) {
+				resolved += "#" + anchor[1];
+			}
+		}
+
+		return resolved;
+	}
+
+	/**
 	 * Substitute urls in content, with replacements,
 	 * relative to a url if provided
 	 * @param  {string} content
@@ -287,6 +340,31 @@ class Resources {
 			relUrls = this.urls;
 		}
 		return substitute(content, relUrls, this.replacementUrls);
+	}
+
+	/**
+	 * Export an Array of all resources
+	 * @return {array}
+	 */
+	toArray() {
+		return this.resources.map((item) => {
+
+			item.source = this.settings.resolver(item.href);
+
+			item.href = this.resolve(item.href);
+
+			// Add Cover Rel
+			if (item.properties.length && item.properties.indexOf("cover-image") > -1) {
+				item.rel = "cover";
+			}
+
+			// Add Contents Rel
+			if (item.properties.length && item.properties.indexOf("nav") > -1) {
+				item.rel = "contents";
+			}
+
+			return item;
+		});
 	}
 
 	destroy() {

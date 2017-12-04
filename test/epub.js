@@ -34,6 +34,7 @@ describe('ePub', function() {
 
 		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
+
 			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
 		});
 	});
@@ -46,6 +47,18 @@ describe('ePub', function() {
 		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
 			assert( book.archive, "book is unarchived" );
+		});
+	});
+
+	it('should open report the manifest on ready', function() {
+		var book = ePub("/fixtures/alice/OPS/package.opf");
+
+		return book.ready.then(function(manifest){
+			assert.equal( manifest.metadata.title, "Alice's Adventures in Wonderland" );
+			assert.equal( manifest.toc.length, 11);
+			assert.equal( manifest.resources.length, 42 );
+			assert.equal( manifest.spine.length, 13 );
+			assert.equal( manifest.landmarks.length, 0 );
 		});
 	});
 

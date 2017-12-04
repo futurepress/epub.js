@@ -205,7 +205,7 @@ describe('Core', function() {
 
 	});
 
-	describe("Uuid", function () {
+	describe("uuid", function () {
 
 		it("should return a valid uuid", function() {
 			let id = uuid();
@@ -226,9 +226,8 @@ describe('Core', function() {
 
 		it("should get the document height", function () {
 			let height = documentHeight();
-
-			assert.equal( height, document.documentElement.clientHeight );
-
+			let isGreaterOrEqual = (height >= document.documentElement.clientHeight);
+			assert.equal( isGreaterOrEqual, true );
 		})
 	});
 

@@ -1,7 +1,7 @@
-import {qs, sprint, locationOf, defer} from "./utils/core";
-import Queue from "./utils/queue";
-import EpubCFI from "./epubcfi";
-import { EVENTS } from "./utils/constants";
+import {qs, sprint, locationOf, defer} from "../utils/core";
+import Queue from "../utils/queue";
+import EpubCFI from "../utils/epubcfi";
+import { EVENTS } from "../utils/constants";
 import EventEmitter from "event-emitter";
 
 /**
@@ -280,10 +280,11 @@ class Locations {
 
 	/**
 	 * Save locations to JSON
+	 * @alias toJSON
 	 * @return {json}
 	 */
 	save(){
-		return JSON.stringify(this._locations);
+		return this.toJSON();
 	}
 
 	getCurrent(){
@@ -336,6 +337,22 @@ class Locations {
 	 */
 	length () {
 		return this._locations.length;
+	}
+
+	/**
+	 * Export locations as an Array
+	 * @return {array}
+	 */
+	toArray(){
+		return this._locations;
+	}
+
+	/**
+	 * Export locations as JSON
+	 * @return {json}
+	 */
+	toJSON(){
+		return JSON.stringify(this._locations);
 	}
 
 	destroy () {

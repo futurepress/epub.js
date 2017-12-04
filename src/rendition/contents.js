@@ -1,9 +1,9 @@
 import EventEmitter from "event-emitter";
-import {isNumber, prefixed, borders, defaults} from "./utils/core";
-import EpubCFI from "./epubcfi";
+import {isNumber, prefixed, borders, defaults} from "../utils/core";
+import EpubCFI from "../utils/epubcfi";
 import Mapping from "./mapping";
-import {replaceLinks} from "./utils/replacements";
-import { EVENTS, DOM_EVENTS } from "./utils/constants";
+import {replaceLinks} from "../utils/replacements";
+import { EVENTS, DOM_EVENTS } from "../utils/constants";
 
 const isChrome = /Chrome/.test(navigator.userAgent);
 const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
