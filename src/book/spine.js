@@ -120,7 +120,7 @@ class Spine {
 	 * @example spine.get("chap1.html");
 	 * @example spine.get("#id1234");
 	 */
-	get(target) {
+	get(target, resolver) {
 		var index = 0;
 
 		if (typeof target === "undefined") {
@@ -141,6 +141,9 @@ class Spine {
 		} else if(typeof target === "string") {
 			// Remove fragments
 			target = target.split("#")[0];
+			if (resolver) {
+				target = resolver(target);
+			}
 			index = this.spineByHref[target] || this.spineByHref[encodeURI(target)];
 		}
 

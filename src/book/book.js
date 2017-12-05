@@ -517,7 +517,7 @@ class Book {
 	 * @return {Section}
 	 */
 	section(target) {
-		return this.spine.get(target);
+		return this.spine.get(target, this.resolve.bind(this));
 	}
 
 	/**

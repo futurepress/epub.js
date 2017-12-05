@@ -178,18 +178,15 @@ class Rendition {
 		});
 
 
-		this.spine = new Spine(spine);
-		// this.spine.unpack(this.manifest);
+		this.locations = new Locations();
+		if (this.manifest.locations && this.manifest.locations.length) {
+			this.locations.load(this.manifest.locations);
+		}
 
-		// this.locations = new Locations();
-		// if (this.manifest.locations) {
-		// 	this.locations.load(this.manifest.locations);
-		// }
-
-		// this.pageList = new PageList();
-		// if (this.manifest.pageList) {
-		// 	this.pageList.load(this.manifest.pageList);
-		// }
+		this.pageList = new PageList();
+		if (this.manifest.pageList && this.manifest.pageList.length) {
+			this.pageList.load(this.manifest.pageList);
+		}
 
 		this.start();
 	}
@@ -843,15 +840,15 @@ class Rendition {
 			}
 		}
 
-		// if (end.index === this.spine.last().index &&
-		// 		located.end.displayed.page >= located.end.displayed.total) {
-		// 	located.atEnd = true;
-		// }
-    //
-		// if (start.index === this.spine.first().index &&
-		// 		located.start.displayed.page === 1) {
-		// 	located.atStart = true;
-		// }
+		if (end.index === this.manifest.spine[this.manifest.spine.length - 1].index &&
+				located.end.displayed.page >= located.end.displayed.total) {
+			located.atEnd = true;
+		}
+
+		if (start.index === this.manifest.spine[0].index &&
+				located.start.displayed.page === 1) {
+			located.atStart = true;
+		}
 
 		return located;
 	}

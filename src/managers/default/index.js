@@ -573,7 +573,9 @@ class DefaultViewManager {
 		}
 
 		let sections = visible.map((view) => {
-			let {index, href} = view.section;
+			let {index} = view.section;
+			let href = view.section.source || view.section.href;
+
 			let position = view.position();
 			let height = view.height();
 
@@ -622,7 +624,8 @@ class DefaultViewManager {
 		}
 
 		let sections = visible.map((view) => {
-			let {index, href} = view.section;
+			let {index} = view.section;
+			let href = view.section.source || view.section.href;
 			// let offset = view.offset().left;
 			let position = view.position().left;
 			let width = view.width();
