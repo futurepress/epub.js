@@ -20,8 +20,14 @@ export function replaceBase(doc, section){
 	}
 
 	// Fix for Safari crashing if the url doesn't have an origin
-	if (!absolute && window && window.location) {
-		url = window.location.origin + url;
+	if (!absolute && (typeof(window) !== "undefined" && window.location)) {
+		let parts = window.location.href.split("/")
+		let directory = "";
+
+		parts.pop();
+		directory = parts.join("/");
+
+		url = directory + url;
 	}
 
 	base.setAttribute("href", url);

@@ -132,7 +132,7 @@ class Archive {
 	 * @return {Blob}
 	 */
 	getBlob(url, mimeType){
-		var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+		var decodededUrl = decodeURIComponent(url.substr(1)); // Remove first slash
 		var entry = this.zip.file(decodededUrl);
 
 		if(entry) {
@@ -150,7 +150,7 @@ class Archive {
 	 * @return {string}
 	 */
 	getText(url, encoding){
-		var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+		var decodededUrl = decodeURIComponent(url.substr(1)); // Remove first slash
 		var entry = this.zip.file(decodededUrl);
 
 		if(entry) {
@@ -167,7 +167,7 @@ class Archive {
 	 * @return {string} base64 encoded
 	 */
 	getBase64(url, mimeType){
-		var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
+		var decodededUrl = decodeURIComponent(url.substr(1)); // Remove first slash
 		var entry = this.zip.file(decodededUrl);
 
 		if(entry) {
@@ -186,7 +186,7 @@ class Archive {
 	 */
 	createUrl(url, options){
 		var deferred = new defer();
-		var _URL = window.URL || window.webkitURL || window.mozURL;
+		//var _URL = window.URL || window.webkitURL || window.mozURL;
 		var tempUrl;
 		var response;
 		var useBase64 = options && options.base64;
@@ -216,7 +216,7 @@ class Archive {
 			if (response) {
 				response.then(function(blob) {
 
-					tempUrl = _URL.createObjectURL(blob);
+					tempUrl = URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
 
@@ -241,15 +241,15 @@ class Archive {
 	 * @param  {string} url url of the item in the archive
 	 */
 	revokeUrl(url){
-		var _URL = window.URL || window.webkitURL || window.mozURL;
+		//var _URL = _URL || window.webkitURL || window.mozURL;
 		var fromCache = this.urlCache[url];
-		if(fromCache) _URL.revokeObjectURL(fromCache);
+		if(fromCache) URL.revokeObjectURL(fromCache);
 	}
 
 	destroy() {
-		var _URL = window.URL || window.webkitURL || window.mozURL;
+		// var _URL = window.URL || window.webkitURL || window.mozURL;
 		for (let fromCache in this.urlCache) {
-			_URL.revokeObjectURL(fromCache);
+			URL.revokeObjectURL(fromCache);
 		}
 		this.zip = undefined;
 		this.urlCache = {};

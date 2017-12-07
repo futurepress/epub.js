@@ -137,7 +137,11 @@ class EpubCFI {
 		// cfi.spineSegment = cfi.base.steps[1];
 
 		// Chapter segment is always the second step
-		cfi.spinePos = cfi.base.steps[1].index;
+		if(!cfi.base.steps || cfi.base.steps.length < 2) {
+			return {spinePos: -1};
+		} else {
+			cfi.spinePos = cfi.base.steps[1].index;
+		}
 
 		return cfi;
 	}

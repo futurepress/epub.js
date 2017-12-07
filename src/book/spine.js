@@ -218,6 +218,14 @@ class Spine {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
 	}
 
+	/**
+	 * Map the Sections in the Spine
+	 * @return {method} map
+	 */
+	map() {
+		return this.spineItems.map.apply(this.spineItems, arguments);
+	}
+
 	first() {
 		let index = 0;
 

@@ -130,7 +130,9 @@ class DefaultViewManager {
 			scroller = window;
 		}
 
-		scroller.removeEventListener("scroll", this.onScroll.bind(this));
+		if (scroller) {
+			scroller.removeEventListener("scroll", this.onScroll.bind(this));
+		}
 	}
 
 	destroy(){
@@ -142,7 +144,7 @@ class DefaultViewManager {
 
 		this.removeEventListeners();
 
-		this.stage.destroy();
+		this.stage && this.stage.destroy();
 
 		this.rendered = false;
 

@@ -1,3 +1,5 @@
+import XMLDom from "xmldom";
+
 /**
  * Core Utilities and Helpers
  * @module Core
@@ -443,7 +445,7 @@ export function parse(markup, mime, forceXMLDom) {
 	var Parser;
 
 	if (typeof DOMParser === "undefined" || forceXMLDom) {
-		Parser = require("xmldom").DOMParser;
+		Parser = XMLDom.DOMParser;
 	} else {
 		Parser = DOMParser;
 	}

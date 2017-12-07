@@ -141,6 +141,13 @@ class Rendition {
 		this.started = this.starting.promise;
 		// Block the queue until rendering is started
 		this.q.enqueue(this.started);
+
+		// If a service workers is used, block queue till it is ready
+		if (this.settings.worker && navigator && 'serviceWorker' in navigator) {
+			this.q.enqueue(() => {
+				return this.worker(this.settings.worker)
+			});
+		}
 	}
 
 	/**
@@ -869,10 +876,8 @@ class Rendition {
 		this.spineBySource = undefined;
 		this.spineById = undefined;
 
-		console.log("destroy");
-
 		this.hooks.display.clear();
-		this.hooks.serialize.clear();
+		// this.hooks.serialize.clear();
 		this.hooks.content.clear();
 		this.hooks.layout.clear();
 		this.hooks.render.clear();
@@ -1054,6 +1059,58 @@ class Rendition {
 
 		return this.manifest.spine[index] || null;
 	}
+
+	/**
+	 * Generates the Book Key using the identifer in the manifest or other string provided
+	 * @param  {string} [identifier] to use instead of metadata identifier
+	 * @return {string} key
+	 */
+	key(identifier) {
+		var ident = identifier || this.manifest.metadata.identifier;
+		return `epubjs-${EPUBJS_VERSION}-${ident}`;
+	}
+
+	worker(workerUrl) {
+		let deferred = new defer();
+		let key = this.key();
+
+		if ('serviceWorker' in navigator) {
+
+			let worker = navigator.serviceWorker.controller;
+
+			// Worker is already running
+			if (worker) {
+				// console.log("running", worker);
+				worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
+				deferred.resolve();
+			}
+
+			navigator.serviceWorker.addEventListener('message', (event) => {
+				// console.log("msg", event.data);
+			});
+
+			navigator.serviceWorker.addEventListener("controllerchange", (event) => {
+				worker = navigator.serviceWorker.controller;
+				if (worker) {
+					worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
+					deferred.resolve();
+				}
+			});
+
+			navigator.serviceWorker.register(workerUrl, { scope: "." })
+				.catch((error) => {
+					// registration failed
+					deferred.reject('Worker registration failed', error);
+				});
+
+
+		} else {
+			deferred.resolve();
+		}
+
+		return deferred.promise;
+	}
+
 }
 
 //-- Enable binding events to Renderer

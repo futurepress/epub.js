@@ -9,6 +9,8 @@ var enter = LEGACY ? {
 		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
 	} : {
 		"epub": "./src/epub.js",
+		"worker": "./src/workers/book.worker.js",
+		"sw": "./src/workers/rendition.worker.js"
 	};
 
 module.exports = {
@@ -21,11 +23,11 @@ module.exports = {
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
 		libraryTarget: "umd",
-		publicPath: "/dist/"
+		publicPath: "/examples/"
 	},
 	externals: {
-		"jszip": "JSZip",
-		"xmldom": "xmldom"
+		// "jszip": "JSZip",
+		// "xmldom": "xmldom"
 	},
 	plugins: PROD ? [
 		new BabiliPlugin()

@@ -106,13 +106,20 @@ class Book {
 			this.loaded.resources,
 			this.opened
 		]).then(() => {
-			return this.toObject();
+			this.manifest = this.toObject();
+			return this.manifest;
 		});
 
 
 		// Queue for methods used before opening
 		this.isRendered = false;
 		// this._q = queue(this);
+
+		/**
+		 * @member {object} manifest
+		 * @memberof Book
+		 */
+		this.manifest = undefined;
 
 		/**
 		 * @member {method} request
@@ -321,15 +328,15 @@ class Book {
 	 * @param  {string} path path to the resource to load
 	 * @return {Promise}     returns a promise with the requested resource
 	 */
-	load(path) {
+	load(path, type) {
 		var resolved;
 
 		if(this.archived) {
 			resolved = this.resolve(path);
-			return this.archive.request(resolved);
+			return this.archive.request(resolved, type);
 		} else {
 			resolved = this.resolve(path);
-			return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
+			return this.request(resolved, type, this.settings.requestCredentials, this.settings.requestHeaders);
 		}
 	}
 
@@ -572,28 +579,78 @@ class Book {
 	 * @return {Promise} completed loading urls
 	 */
 	replacements() {
-		this.spine.hooks.serialize.register((output, section) => {
-			let url = this.resolve(section.source, true);
-			section.output = this.resources.substitute(output, url);
-		});
 
-		return this.resources.replacements().
-			then(() => {
-				return this.resources.replaceCss();
-			}).
-			then(() => {
-				let urls = [];
-				this.spine.each((section) => {
-					let urlPromise = section.createUrl(this.load.bind(this));
-					urls.push(urlPromise);
+		if (typeof(caches) != "undefined") {
+			let key = this.key();
+			// let base = location.origin + "/" + encodeURIComponent(key);
+			let base = encodeURIComponent(key);
 
-					urlPromise.then((url) => {
-						this.resources.replace(section.originalHref, url);
-					});
+			return caches.open(key).then((cache) => {
+				let urls = this.resources.resources.map((resource) => {
+					let path = this.resolve(resource.href);
+					let url = base + path;
+					let config = { "status" : 200 };
 
+					return cache.match(url, config)
+						.then((response) => {
+							if (!response) {
+								return this.load(path, "blob").then((blob) => {
+									let response = new Response(blob, config);
+
+									// TODO this need to be fixed to a url
+									console.log("FIX ME - resource:", resource.href, url);
+									this.resources.replace(resource.href, url);
+									resource.href = url;
+
+									return cache.put(url, response);
+								})
+							}
+						});
 				});
-				return Promise.all(urls);
-			})
+
+				return Promise.all(urls)
+					.then(() => {
+						// TODO this need to be fixed to a url
+						let split = location.href.split("/");
+						split.pop();
+						let dir = split.join("/");
+
+						this.spine.each((section) => {
+							section.originalHref = section.href;
+							console.log("FIX ME - section:", section.originalHref, dir + this.resolve(section.href));
+							section.href = dir + this.resolve(section.href);
+						})
+					})
+					.catch(function(error) {
+						console.error('Error in Resources replacements', error);
+						throw error;
+					});
+			});
+		} else {
+			this.spine.hooks.serialize.register((output, section) => {
+				let url = this.resolve(section.source, true);
+				section.output = this.resources.substitute(output, url);
+			});
+
+			return this.resources.replacements().
+				then(() => {
+					return this.resources.replaceCss();
+				}).
+				then(() => {
+					let urls = [];
+
+					this.spine.each((section) => {
+						let urlPromise = section.createUrl(this.load.bind(this));
+						urls.push(urlPromise);
+
+						urlPromise.then((url) => {
+							this.resources.replace(section.originalHref, url);
+						});
+					})
+
+					return Promise.all(urls);
+				})
+		}
 	}
 
 	/**
@@ -623,7 +680,7 @@ class Book {
 	 */
 	key(identifier) {
 		var ident = identifier || this.package.metadata.identifier || this.url.filename;
-		return `epubjs:${EPUBJS_VERSION}:${ident}`;
+		return `epubjs-${EPUBJS_VERSION}-${ident}`;
 	}
 
 	/**

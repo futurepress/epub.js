@@ -250,7 +250,8 @@ class Section {
 			href : this.href,
 			source : this.source,
 			type : this.type,
-			canonical : this.canonical
+			canonical : this.canonical,
+			cfiBase : this.cfiBase
 		}
 	}
 

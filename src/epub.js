@@ -9,12 +9,32 @@ import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
 
-class Epub extends Book {
-  constructor(url, options) {
-    super(url, options);
+import Bridge from './book/bridge.js';
+
+class Epub {
+	constructor(url, options) {
+		// super(url, options);
 
 		this.rendition = undefined;
-  }
+
+
+		if(options.worker) {
+			let bridge = new Bridge(options.worker);
+			bridge.open(url, options);
+
+			this.ready = bridge.ready.then((obj) => {
+				this.manifest = obj;
+				return this.manifest;
+			});
+		} else {
+			let book = new Book(url, options);
+
+			this.ready = book.ready.then((obj) => {
+				this.manifest = obj;
+				return this.manifest;
+			});
+		}
+	}
 
 	/**
 	 * Sugar to render a book to an element
@@ -34,10 +54,12 @@ class Epub extends Book {
 		return this.rendition;
 	}
 
-  destroy() {
-    super.destroy();
-    this.rendition.destroy();
-  }
+	destroy() {
+		// super.destroy();
+		this.book && this.book.destroy();
+		this.bridge && this.bridge.destroy();
+		this.rendition && this.rendition.destroy();
+	}
 }
 
 /**
@@ -58,6 +80,7 @@ if (typeof(global) !== "undefined") {
 }
 
 ePub.CFI = EpubCFI;
+ePub.Book = Book;
 ePub.Rendition = Rendition;
 ePub.Contents = Contents;
 ePub.utils = core;
