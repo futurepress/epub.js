@@ -261,6 +261,10 @@ class Spine {
 		});
 	}
 
+	toJSON() {
+		return JSON.stringify(this.toArray());
+	}
+
 	destroy() {
 		this.each((section) => section.destroy());
 

@@ -11,29 +11,11 @@ import ContinuousViewManager from "./managers/continuous";
 
 import Bridge from './book/bridge.js';
 
-class Epub {
+class EpubWorker extends Bridge {
 	constructor(url, options) {
-		// super(url, options);
+		super(url, options);
 
 		this.rendition = undefined;
-
-
-		if(options.worker) {
-			let bridge = new Bridge(options.worker);
-			bridge.open(url, options);
-
-			this.ready = bridge.ready.then((obj) => {
-				this.manifest = obj;
-				return this.manifest;
-			});
-		} else {
-			let book = new Book(url, options);
-
-			this.ready = book.ready.then((obj) => {
-				this.manifest = obj;
-				return this.manifest;
-			});
-		}
 	}
 
 	/**
@@ -55,22 +37,55 @@ class Epub {
 	}
 
 	destroy() {
-		// super.destroy();
-		this.book && this.book.destroy();
-		this.bridge && this.bridge.destroy();
+		super.destroy();
+		this.rendition && this.rendition.destroy();
+	}
+}
+
+class Epub extends Book {
+	constructor(url, options) {
+		super(url, options);
+
+		this.rendition = undefined;
+	}
+
+	/**
+	 * Sugar to render a book to an element
+	 * @param  {element | string} element element or string to add a rendition to
+	 * @param  {object} [options]
+	 * @return {Rendition}
+	 */
+	renderTo(element, options) {
+
+		this.rendition = new Rendition(null, options);
+		this.rendition.attachTo(element);
+
+		this.ready.then((object) => {
+			this.rendition.load(object);
+		});
+
+		return this.rendition;
+	}
+
+	destroy() {
+		super.destroy();
 		this.rendition && this.rendition.destroy();
 	}
 }
 
 /**
- * Creates a new Book
+ * Creates a new Book or Book Bridge & Worker
  * @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
  * @param {object} options to pass to the book
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
 function ePub(url, options) {
-	return new Epub(url, options);
+	if (options.worker) {
+		return new EpubWorker(url, options);
+	} else {
+		return new Epub(url, options);
+	}
 }
 
 ePub.VERSION = "0.4";

@@ -107,6 +107,7 @@ class Book {
 			this.opened
 		]).then(() => {
 			this.manifest = this.toObject();
+			this.emit(EVENTS.BOOK.READY, this.manifest);
 			return this.manifest;
 		});
 
@@ -325,6 +326,7 @@ class Book {
 
 	/**
 	 * Load a resource from the Book
+	 * @private
 	 * @param  {string} path path to the resource to load
 	 * @return {Promise}     returns a promise with the requested resource
 	 */
@@ -342,6 +344,7 @@ class Book {
 
 	/**
 	 * Resolve a path to it's absolute position in the Book
+	 * @private
 	 * @param  {string} path
 	 * @param  {boolean} [absolute] force resolving the full URL
 	 * @return {string}          the resolved path string
