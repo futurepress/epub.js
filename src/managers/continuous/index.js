@@ -1,7 +1,7 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
 import { EVENTS } from "../../utils/constants";
-import debounce from 'lodash/debounce'
+import debounce from "lodash/debounce";
 
 class ContinuousViewManager extends DefaultViewManager {
 	constructor(options) {
@@ -216,7 +216,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			return Promise.all(promises)
 				.catch((err) => {
 					updating.reject(err);
-				})
+				});
 		} else {
 			updating.resolve();
 			return updating.promise;
@@ -255,7 +255,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(prev) {
 				newViews.push(this.prepend(prev));
 			}
-		}
+		};
 
 		let append = () => {
 			let last = this.views.last();
@@ -265,7 +265,7 @@ class ContinuousViewManager extends DefaultViewManager {
 				newViews.push(this.append(next));
 			}
 
-		}
+		};
 
 		if (offset + visibleLength + delta >= contentLength) {
 			if (horizontal && rtl) {
@@ -545,10 +545,12 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.mapping.axis(axis);
 		}
 
-		if (this.layout && axis === "vertical") {
-			this.layout.spread("none");
-		} else {
-			this.layout.spread(this.layout.settings.spread);
+		if (this.layout) {
+			if (axis === "vertical") {
+				this.layout.spread("none");
+			} else {
+				this.layout.spread(this.layout.settings.spread);
+			}
 		}
 
 		if (axis === "vertical") {

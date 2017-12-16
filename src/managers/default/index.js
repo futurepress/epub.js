@@ -286,12 +286,12 @@ class DefaultViewManager {
 				displaying.resolve();
 
 			}.bind(this));
-			// .then(function(){
-			// 	return this.hooks.display.trigger(view);
-			// }.bind(this))
-			// .then(function(){
-			// 	this.views.show();
-			// }.bind(this));
+		// .then(function(){
+		// 	return this.hooks.display.trigger(view);
+		// }.bind(this))
+		// .then(function(){
+		// 	this.views.show();
+		// }.bind(this));
 		return displayed;
 	}
 
@@ -609,7 +609,7 @@ class DefaultViewManager {
 				pages,
 				totalPages,
 				mapping
-			}
+			};
 		});
 
 		return sections;
@@ -676,7 +676,7 @@ class DefaultViewManager {
 				pages,
 				totalPages,
 				mapping
-			}
+			};
 		});
 
 		return sections;
@@ -874,10 +874,12 @@ class DefaultViewManager {
 			this.mapping = new Mapping(this.layout.props, this.settings.direction, this.settings.axis);
 		}
 
-		if (this.layout && axis === "vertical") {
-			this.layout.spread("none");
-		} else {
-			this.layout.spread(this.layout.settings.spread);
+		if (this.layout) {
+			if (axis === "vertical") {
+				this.layout.spread("none");
+			} else {
+				this.layout.spread(this.layout.settings.spread);
+			}
 		}
 	}
 
