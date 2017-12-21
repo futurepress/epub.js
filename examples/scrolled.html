@@ -18,10 +18,14 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
-    var rendition = book.renderTo("viewer", {
-      flow: "scrolled-doc"
+    var epub = ePub("http://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = epub.renderTo("viewer", {
+      flow: "scrolled-doc",
     });
+
+    epub.ready.then((book) => {
+      //console.log(book);
+    })
 
     rendition.display("chapter_008.xhtml");
 
@@ -47,7 +51,7 @@
       var prevSection = section.prev();
 
       if(nextSection) {
-        nextNav = book.navigation.get(nextSection.href);
+        nextNav = epub.book.navigation.get(nextSection.href);
 
         if(nextNav) {
           nextLabel = nextNav.label;
@@ -61,7 +65,7 @@
       }
 
       if(prevSection) {
-        prevNav = book.navigation.get(prevSection.href);
+        prevNav = epub.book.navigation.get(prevSection.href);
 
         if(prevNav) {
           prevLabel = prevNav.label;

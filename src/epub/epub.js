@@ -163,14 +163,23 @@ class Epub {
 		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
+			if (this.url.origin !== location.origin && !this.settings.replacements) {
+				this.settings.replacements = true;
+			}
 			opening = this.openPackaging(this.url.Path.toString());
 		} else if(type == INPUT_TYPE.MANIFEST) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
+			if (this.url.origin !== location.origin && !this.settings.replacements) {
+				this.settings.replacements = true;
+			}
 			opening = this.openManifest(this.url.Path.toString());
 		} else {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
+			if (this.url.origin !== location.origin && !this.settings.replacements) {
+				this.settings.replacements = true;
+			}
 			opening = this.openContainer(CONTAINER_PATH)
 				.then(this.openPackaging.bind(this));
 		}
