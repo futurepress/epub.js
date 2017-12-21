@@ -52,9 +52,8 @@
 
       if(nextSection) {
         nextNav = epub.book.navigation.get(nextSection.href);
-
         if(nextNav) {
-          nextLabel = nextNav.label;
+          nextLabel = nextNav.title;
         } else {
           nextLabel = "next";
         }
@@ -68,7 +67,7 @@
         prevNav = epub.book.navigation.get(prevSection.href);
 
         if(prevNav) {
-          prevLabel = prevNav.label;
+          prevLabel = prevNav.title;
         } else {
           prevLabel = "previous";
         }

@@ -163,22 +163,38 @@ class Epub {
 		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin && !this.settings.replacements) {
-				this.settings.replacements = true;
+			if (this.url.origin !== location.origin) {
+				if(!this.settings.replacements) {
+					this.settings.replacements = true;
+				}
+				if (this.settings.cache) {
+					this.settings.cache = true;
+				}
 			}
+
 			opening = this.openPackaging(this.url.Path.toString());
 		} else if(type == INPUT_TYPE.MANIFEST) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin && !this.settings.replacements) {
-				this.settings.replacements = true;
+			if (this.url.origin !== location.origin) {
+				if(!this.settings.replacements) {
+					this.settings.replacements = true;
+				}
+				if (this.settings.cache) {
+					this.settings.cache = true;
+				}
 			}
 			opening = this.openManifest(this.url.Path.toString());
 		} else {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin && !this.settings.replacements) {
-				this.settings.replacements = true;
+			if (this.url.origin !== location.origin) {
+				if(!this.settings.replacements) {
+					this.settings.replacements = true;
+				}
+				if (this.settings.cache) {
+					this.settings.cache = true;
+				}
 			}
 			opening = this.openContainer(CONTAINER_PATH)
 				.then(this.openPackaging.bind(this));
@@ -369,19 +385,20 @@ class Epub {
 			}
 		});
 
-		let cached;
+		let processed = [];
+
 		if (this.settings.cache && typeof(caches) != "undefined") {
 			let url = location.origin; // TODO: sort out location vs url vs locationUrl
-			cached = this.resources.cache(this.key(), url );
-		} else if ( this.settings.replacements || this.archived ) {
-			cached = this.resources.replacements();
-		} else {
-			cached = new Promise((resolve, reject) => {
-				resolve();
-			});
+			let cached = this.resources.cache(this.key(), url );
+			processed.push(cached);
 		}
 
-		return cached.then(() => {
+		if ( this.settings.replacements || this.archived ) {
+			let replacements = this.resources.replacements();
+			processed.push(replacements);
+		}
+
+		return Promise.all(processed).then(() => {
 				return this.loadNavigation(this.package).then(() => {
 					return this.navigation;
 				});
