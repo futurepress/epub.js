@@ -516,6 +516,7 @@ export function qsp(el, sel, props) {
 			sel += prop + "~='" + props[prop] + "'";
 		}
 		sel += "]";
+
 		return el.querySelector(sel);
 	} else {
 		q = el.getElementsByTagName(sel);
@@ -746,7 +747,7 @@ export function nextSection(section, spine) {
 	let nextIndex = section.index;
 	while (nextIndex < spine.length-1) {
 		let next = spine[nextIndex+1];
-		if (next && next.linear) {
+		if (next && (next.linear === true || next.linear === "yes")) {
 			return next;
 		}
 		nextIndex += 1;
@@ -761,7 +762,7 @@ export function prevSection(section, spine) {
 	let prevIndex = section.index;
 	while (prevIndex > 0) {
 		let prev = spine[prevIndex-1];
-		if (prev && prev.linear) {
+		if (prev && (prev.linear === true || prev.linear === "yes")) {
 			return prev;
 		}
 		prevIndex -= 1;

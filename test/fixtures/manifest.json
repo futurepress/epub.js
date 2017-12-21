@@ -1,0 +1,31 @@
+{
+  "@context": "http://readium.org/webpub/default.jsonld",
+
+  "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Moby-Dick",
+    "author": "Herman Melville",
+    "identifier": "urn:isbn:978031600000X",
+    "language": "en",
+    "modified": "2015-09-29T17:00:00Z"
+  },
+
+  "links": [
+    {"rel": "self", "href": "http://example.org/manifest.json", "type": "application/webpub+json"},
+    {"rel": "alternate", "href": "http://example.org/publication.epub", "type": "application/epub+zip"},
+    {"rel": "search", "href": "http://example.org/search{?query}", "type": "text/html", "templated": true}
+  ],
+
+  "spine": [
+    {"href": "c001.html", "type": "text/html", "title": "Chapter 1"},
+    {"href": "c002.html", "type": "text/html", "title": "Chapter 2"}
+  ],
+
+  "resources": [
+    {"rel": "cover", "href": "cover.jpg", "type": "image/jpeg", "height": 600, "width": 400},
+    {"href": "style.css", "type": "text/css"},
+    {"href": "whale.jpg", "type": "image/jpeg"},
+    {"href": "boat.svg", "type": "image/svg+xml"},
+    {"href": "notes.html", "type": "text/html"}
+  ]
+}

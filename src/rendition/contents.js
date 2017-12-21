@@ -1127,6 +1127,19 @@ class Contents {
 		return navigator.epubReadingSystem;
 	}
 
+	/**
+	 * Add the document identifier before
+	 * @param  {string} identifier
+	 */
+	addIdentifier(identifier) {
+		let meta = this.document.createElement("meta");
+		meta.setAttribute("name", "dc.relation.ispartof");
+		if (identifier) {
+			meta.setAttribute("content", identifier);
+		}
+		this.document.getElementsByTagName("head")[0].appendChild(meta);
+	}
+
 	destroy() {
 		// Stop observing
 		if(this.observer) {

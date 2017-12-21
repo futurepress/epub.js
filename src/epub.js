@@ -1,3 +1,4 @@
+import Epub from "./epub/epub";
 import Book from "./book/book";
 import Rendition from "./rendition/rendition";
 import EpubCFI from "./utils/epubcfi";
@@ -9,69 +10,7 @@ import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
 
-import Bridge from './book/bridge.js';
-
-class EpubWorker extends Bridge {
-	constructor(url, options) {
-		super(url, options);
-
-		this.rendition = undefined;
-	}
-
-	/**
-	 * Sugar to render a book to an element
-	 * @param  {element | string} element element or string to add a rendition to
-	 * @param  {object} [options]
-	 * @return {Rendition}
-	 */
-	renderTo(element, options) {
-
-		this.rendition = new Rendition(null, options);
-		this.rendition.attachTo(element);
-
-		this.ready.then((object) => {
-			this.rendition.load(object);
-		});
-
-		return this.rendition;
-	}
-
-	destroy() {
-		super.destroy();
-		this.rendition && this.rendition.destroy();
-	}
-}
-
-class Epub extends Book {
-	constructor(url, options) {
-		super(url, options);
-
-		this.rendition = undefined;
-	}
-
-	/**
-	 * Sugar to render a book to an element
-	 * @param  {element | string} element element or string to add a rendition to
-	 * @param  {object} [options]
-	 * @return {Rendition}
-	 */
-	renderTo(element, options) {
-
-		this.rendition = new Rendition(null, options);
-		this.rendition.attachTo(element);
-
-		this.ready.then((object) => {
-			this.rendition.load(object);
-		});
-
-		return this.rendition;
-	}
-
-	destroy() {
-		super.destroy();
-		this.rendition && this.rendition.destroy();
-	}
-}
+import Bridge from './epub/bridge.js';
 
 /**
  * Creates a new Book or Book Bridge & Worker
@@ -81,11 +20,34 @@ class Epub extends Book {
  * @example ePub("/path/to/book.epub", {})
  */
 function ePub(url, options) {
-	if (options.worker) {
-		return new EpubWorker(url, options);
+	let epub;
+
+	if (options && options.worker) {
+		epub = new Bridge(url, options);
 	} else {
-		return new Epub(url, options);
+		epub = new Epub(url, options);
 	}
+
+	/**
+	 * Sugar to render a book to an element
+	 * @param  {element | string} element element or string to add a rendition to
+	 * @param  {object} [options]
+	 * @return {Rendition}
+	 */
+	epub.renderTo = (element, options) => {
+
+		epub.rendition = new Rendition(null, options);
+		epub.rendition.attachTo(element);
+
+		epub.ready.then((book) => {
+			let manifest = book.toObject();
+			epub.rendition.unpack(manifest);
+		});
+
+		return epub.rendition;
+	}
+
+	return epub;
 }
 
 ePub.VERSION = "0.4";

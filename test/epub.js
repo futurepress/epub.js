@@ -30,9 +30,10 @@ describe('ePub', function() {
 	});
 
 	it('should open a epub', function() {
-		var book = ePub("/fixtures/alice/OPS/package.opf");
+		var epub = ePub("/fixtures/alice/OPS/package.opf");
 
-		return book.opened.then(function(){
+		return epub.opened.then(function(book){
+
 			assert.equal( book.isOpen, true, "book is opened" );
 
 			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );

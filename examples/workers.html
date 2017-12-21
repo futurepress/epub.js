@@ -6,7 +6,7 @@
   <title>EPUB.js Spreads Example</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
-  <script src="../examples/epub.js"></script>
+  <script src="../dist/epub.js"></script>
 
   <link rel="stylesheet" type="text/css" href="examples.css">
 
@@ -24,30 +24,30 @@
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
     // Load the opf
-    var book = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
-      worker: "/examples/worker.js"
+    var epub = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
+      worker: "/dist/worker.js"
     });
-    var rendition = book.renderTo("viewer", {
+    var rendition = epub.renderTo("viewer", {
       width: "100%",
       height: 600,
       spread: "always",
-      worker: "/examples/sw.js"
+      worker: "/dist/sw.js"
     });
 
     rendition.display(currentSectionIndex);
 
-    book.ready.then((manifest) => {
-
+    epub.ready.then((book) => {
+      var direction = book.metadata.direction;
       var next = document.getElementById("next");
 
       next.addEventListener("click", function(e){
-        book.manifest.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+        direction === "rtl" ? rendition.prev() : rendition.next();
         e.preventDefault();
       }, false);
 
       var prev = document.getElementById("prev");
       prev.addEventListener("click", function(e){
-        book.manifest.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+        direction === "rtl" ? rendition.next() : rendition.prev();
         e.preventDefault();
       }, false);
 
@@ -55,12 +55,12 @@
 
         // Left Key
         if ((e.keyCode || e.which) == 37) {
-          book.manifest.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
+          direction === "rtl" ? rendition.next() : rendition.prev();
         }
 
         // Right Key
         if ((e.keyCode || e.which) == 39) {
-          book.manifest.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
+          direction === "rtl" ? rendition.prev() : rendition.next();
         }
 
       };
@@ -73,8 +73,7 @@
     var title = document.getElementById("title");
 
     rendition.on("rendered", function(section){
-      var current = book.navigation && book.navigation.get(section.href);
-
+      var current = epub.book.navigation && epub.book.navigation.get(section.href);
       if (current) {
         var $select = document.getElementById("toc");
         var $selected = $select.querySelector("option[selected]");
@@ -95,9 +94,9 @@
 
     rendition.on("relocated", function(location){
       console.log(location);
-
-      var next = book.manifest.metadata.direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
-      var prev = book.manifest.metadata.direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
+      var direction = epub.book.metadata.direction;
+      var next = direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
+      var prev = direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
 
       if (location.atEnd) {
         next.style.visibility = "hidden";
@@ -124,15 +123,14 @@
     });
 
     window.addEventListener("unload", function () {
-      console.log("unloading");
-      this.book.destroy();
+      epub.destroy();
     });
 
-    book.ready.then(function(manifest){
+    epub.ready.then(function(book){
 			var $select = document.getElementById("toc"),
 					docfrag = document.createDocumentFragment();
 
-			manifest.toc.forEach(function(chapter) {
+			book.toc.forEach(function(chapter) {
 				var option = document.createElement("option");
 				option.textContent = chapter.title;
 				option.setAttribute("ref", chapter.href);
@@ -152,13 +150,14 @@
 		});
 
     /*
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister()
-        }
-      });
-    }
+    // If the workers fails, switch to replacements
+    rendition.on("workerFailed", function(){
+      rendition.clear();
+      epub.replacements().then((book) => {
+        rendition.unpack(book.manifest);
+        rendition.display(rendition.location);
+      })
+    });
     */
   </script>
 

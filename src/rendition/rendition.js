@@ -11,10 +11,12 @@ import Annotations from "./annotations";
 import { EVENTS } from "../utils/constants";
 
 import Spine from "../book/spine";
-import Locations from "../book/locations";
-import PageList from "../book/pagelist";
-import Navigation from "../book/navigation";
+import Locations from "../epub/locations";
+import PageList from "../epub/pagelist";
+// import Navigation from "../epub/navigation";
 import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
+
+const DEV = false;
 
 /**
  * Displays an Epub as a series of Views for each Section.
@@ -48,7 +50,9 @@ class Rendition {
 			spread: null,
 			minSpreadWidth: 800,
 			stylesheet: null,
-			script: null
+			script: null,
+			worker: undefined,
+			workerScope: undefined
 		});
 
 		extend(this.settings, options);
@@ -130,7 +134,7 @@ class Rendition {
 		this.spineById = undefined;
 
 		if (manifest) {
-			this.load(manifest);
+			this.unpack(manifest);
 		}
 
 		this.starting = new defer();
@@ -153,7 +157,10 @@ class Rendition {
 	/**
 	 * Load Book object or JSON manifest
 	 */
-	load(manifest) {
+	unpack(manifest) {
+		if (!manifest) {
+			throw new Error("No manifest provided");
+		}
 
 		if (typeof manifest === "string") {
 			this.manifest = JSON.parse(manifest);
@@ -183,17 +190,6 @@ class Rendition {
 
 			this.spineById[section.idref] = index;
 		});
-
-
-		this.locations = new Locations();
-		if (this.manifest.locations && this.manifest.locations.length) {
-			this.locations.load(this.manifest.locations);
-		}
-
-		this.pageList = new PageList();
-		if (this.manifest.pageList && this.manifest.pageList.length) {
-			this.pageList.load(this.manifest.pageList);
-		}
 
 		this.start();
 	}
@@ -396,51 +392,6 @@ class Rendition {
 		return displayed;
 	}
 
-	/*
-	render(view, show) {
-
-		// view.onLayout = this.layout.format.bind(this.layout);
-		view.create();
-
-		// Fit to size of the container, apply padding
-		this.manager.resizeView(view);
-
-		// Render Chain
-		return view.section.render(this.book.request)
-			.then(function(contents){
-				return view.load(contents);
-			}.bind(this))
-			.then(function(doc){
-				return this.hooks.content.trigger(view, this);
-			}.bind(this))
-			.then(function(){
-				this.layout.format(view.contents);
-				return this.hooks.layout.trigger(view, this);
-			}.bind(this))
-			.then(function(){
-				return view.display();
-			}.bind(this))
-			.then(function(){
-				return this.hooks.render.trigger(view, this);
-			}.bind(this))
-			.then(function(){
-				if(show !== false) {
-					this.q.enqueue(function(view){
-						view.show();
-					}, view);
-				}
-				// this.map = new Map(view, this.layout);
-				this.hooks.show.trigger(view, this);
-				this.trigger("rendered", view.section);
-
-			}.bind(this))
-			.catch(function(e){
-				this.trigger("loaderror", e);
-			}.bind(this));
-
-	}
-	*/
-
 	/**
 	 * Report what section has been displayed
 	 * @private
@@ -591,11 +542,6 @@ class Rendition {
 		var viewport = metadata.viewport || "";
 		var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
 		var direction = this.settings.direction || metadata.direction || "ltr";
-
-		if ((this.settings.width === 0 || this.settings.width > 0) &&
-				(this.settings.height === 0 || this.settings.height > 0)) {
-			// viewport = "width="+this.settings.width+", height="+this.settings.height+"";
-		}
 
 		properties = {
 			layout : layout,
@@ -1077,31 +1023,41 @@ class Rendition {
 		if ('serviceWorker' in navigator) {
 
 			let worker = navigator.serviceWorker.controller;
-
 			// Worker is already running
 			if (worker) {
-				// console.log("running", worker);
-				worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
 				deferred.resolve();
 			}
 
+			navigator.serviceWorker.register(workerUrl, this.settings.workerScope)
+				.then((reg) => {
+					worker = navigator.serviceWorker.controller;
+
+					if (reg.active && !worker) {
+						this.emit(EVENTS.RENDITION.WORKER_INACTIVE);
+						deferred.resolve();
+					}
+
+					if (worker) {
+						deferred.resolve();
+					}
+
+				})
+				.catch((error) => {
+					// registration failed
+					this.emit(EVENTS.RENDITION.WORKER_FAILED);
+					deferred.reject('Worker registration failed', error);
+				});
+
 			navigator.serviceWorker.addEventListener('message', (event) => {
-				// console.log("msg", event.data);
+				DEV && console.log("[sw msg]", event.data);
 			});
 
 			navigator.serviceWorker.addEventListener("controllerchange", (event) => {
 				worker = navigator.serviceWorker.controller;
 				if (worker) {
-					worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
 					deferred.resolve();
 				}
 			});
-
-			navigator.serviceWorker.register(workerUrl, { scope: "." })
-				.catch((error) => {
-					// registration failed
-					deferred.reject('Worker registration failed', error);
-				});
 
 
 		} else {
@@ -1109,6 +1065,13 @@ class Rendition {
 		}
 
 		return deferred.promise;
+	}
+
+	cache(worker) {
+		if (!worker) {
+			worker = navigator.serviceWorker.controller;
+		}
+		worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
 	}
 
 }

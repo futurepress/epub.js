@@ -30,15 +30,15 @@ h4 {
 
 /* Chapter Container */
 section {
-  
+
 }
 
 section > p {
-    
+
 }
 
 /* Drop Cap */
-section > p:first-of-type:first-letter { 
+section > p:first-of-type:first-letter {
   float: left;
   font-size: 4em;
   line-height: .8;
@@ -47,23 +47,27 @@ section > p:first-of-type:first-letter {
 }
 
 figure.small {
-  
+
 }
 
 figure.full {
-  
+
 }
 
 figure > img {
-  
+
 }
 
 figcaption {
-  
+
 }
 
 figcaption > p {
 
+}
+
+.logo {
+  background: url("../images/title.jpg");
 }
 
 /* More specific Kindle Eink queries at: http://epubsecrets.com/media-queries-for-kindle-devices.php */
@@ -76,30 +80,30 @@ figcaption > p {
 /* Many device available at: https://css-tricks.com/snippets/css/media-queries-for-standard-devices/ */
 
 /* Smartphone - Portrait */
-@media only screen 
-  and (min-device-width: 320px) 
+@media only screen
+  and (min-device-width: 320px)
   and (max-device-width: 667px)
   and (orientation: portrait) {
-  
+
 }
 
 /* Smartphone - Landscape */
-@media only screen 
-  and (min-device-width: 320px) 
+@media only screen
+  and (min-device-width: 320px)
   and (max-device-width: 667px)
   and (orientation: landscape) {
 
 }
 
 /* Tablet - Portrait and Landscape */
-@media only screen 
-  and (min-device-width: 768px) 
+@media only screen
+  and (min-device-width: 768px)
   and (max-device-width: 1024px) {
 
 }
 
 /* Laptop & Desktops */
-@media only screen 
+@media only screen
   and (min-device-width: 1025px) {
 
 }

@@ -29,9 +29,9 @@
       // -- do stuff
     });
 
-    // Navigation loaded
-    book.loaded.navigation.then(function(toc){
-      // console.log(toc);
+    // Book loaded
+    book.ready.then(function(book){
+      console.log(book);
     });
 
     var next = document.getElementById("next");

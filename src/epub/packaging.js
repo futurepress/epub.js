@@ -81,6 +81,7 @@ class Packaging {
 	parseMetadata(xml){
 		var metadata = {};
 
+
 		metadata.title = this.getElementText(xml, "title");
 		metadata.creator = this.getElementText(xml, "creator");
 		metadata.description = this.getElementText(xml, "description");
@@ -99,7 +100,6 @@ class Packaging {
 		metadata.orientation = this.getPropertyText(xml, "rendition:orientation");
 		metadata.flow = this.getPropertyText(xml, "rendition:flow");
 		metadata.viewport = this.getPropertyText(xml, "rendition:viewport");
-		// metadata.page_prog_dir = packageXml.querySelector("spine").getAttribute("page-progression-direction");
 
 		return metadata;
 	}
@@ -114,7 +114,6 @@ class Packaging {
 		var manifest = {};
 
 		//-- Turn items into an array
-		// var selected = manifestXml.querySelectorAll("item");
 		var selected = qsa(manifestXml, "item");
 		var items = Array.prototype.slice.call(selected);
 
@@ -182,7 +181,6 @@ class Packaging {
 	findNavPath(manifestNode){
 		// Find item with property "nav"
 		// Should catch nav irregardless of order
-		// var node = manifestNode.querySelector("item[properties$='nav'], item[properties^='nav '], item[properties*=' nav ']");
 		var node = qsp(manifestNode, "item", {"properties":"nav"});
 		return node ? node.getAttribute("href") : false;
 	}
@@ -193,7 +191,6 @@ class Packaging {
 	 * @private
 	 */
 	findNcxPath(manifestNode, spineNode){
-		// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
 		var node = qsp(manifestNode, "item", {"media-type":"application/x-dtbncx+xml"});
 		var tocId;
 

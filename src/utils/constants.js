@@ -47,7 +47,9 @@ export const EVENTS = {
 		RELOCATED : "relocated",
 		MARK_CLICKED : "markClicked",
 		SELECTED : "selected",
-		LAYOUT: "layout"
+		LAYOUT: "layout",
+		WORKER_FAILED: "workerFailed",
+		WORKER_INACTIVE: "workerInactive"
 	},
 	LAYOUT : {
 		UPDATED : "updated"

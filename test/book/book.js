@@ -1,29 +1,234 @@
-import Book from "../src/book/book";
+import Book from "../../src/book/book";
 import assert from "assert";
 
-describe('Book', function() {
+describe("Book", function() {
+	let manifest = [
+		{
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/toc.xhtml",
+			"type": "application/xhtml+xml",
+			"properties": [
+				"nav"
+			],
+			"id": "toc",
+			"source": "toc.xhtml"
+		},
+		{
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/cover.xhtml",
+			"type": "application/xhtml+xml",
+			"properties": [],
+			"id": "cover",
+			"source": "cover.xhtml"
+		},
+		{
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/css/stylesheet.css",
+			"type": "text/css",
+			"properties": [],
+			"id": "style",
+			"source": "css/stylesheet.css"
+		},
+		{
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/images/cover_th.jpg",
+			"type": "image/jpeg",
+			"properties": [
+				"cover-image"
+			],
+			"id": "cover-image",
+			"source": "images/cover_th.jpg"
+		},
+		{
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/chapter_001.xhtml",
+			"type": "application/xhtml+xml",
+			"properties": [],
+			"id": "chapter_001",
+			"source": "chapter_001.xhtml"
+		}
+	];
+
+	let spine = [
+	  {
+	    "idref": "chapter_001",
+	    "linear": "yes",
+	    "properties": [],
+	    "index": 3,
+	    "cfiBase": "/6/8[chapter_001]",
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/chapter_001.xhtml",
+	    "source": "chapter_001.xhtml",
+	    "type": "application/xhtml+xml"
+	  },
+	  {
+	    "idref": "chapter_002",
+	    "linear": "yes",
+	    "properties": [],
+	    "index": 4,
+	    "cfiBase": "/6/10[chapter_002]",
+			"href": "http://localhost:9876/testkey-1513720249210/OPS/chapter_002.xhtml",
+	    "source": "chapter_002.xhtml",
+	    "type": "application/xhtml+xml"
+	  }
+	]
 
 	before(function(){
 
 	});
 
-	it('should open an opf file', function() {
-		let book = new Book("/fixtures/alice/OPS/package.opf");
+	describe('#metadata', function() {
+		let metadata = {
+			"title": "Moby-Dick",
+			"author": "Herman Melville",
+			"identifier": "urn:isbn:978031600000X",
+			"language": "en",
+			"modified": "2015-09-29T17:00:00Z"
+		};
 
-		return book.opened.then(function(){
-			assert.equal( book.isOpen, true, "book is opened" );
+		it('should set metadata from a object', function() {
+			let book = new Book();
 
-			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
+			book.metadata = metadata;
+
+			assert.deepEqual( book.metadata, metadata );
+		});
+
+		it('should get metadata from model', function() {
+
+			let book = new Book({
+				metadata
+			});
+
+			assert.equal( book.metadata.title, "Moby-Dick" );
+		});
+
+	});
+
+	describe('#resources', function() {
+
+		it('should set resources from an array', function() {
+
+			let book = new Book();
+
+			book.resources = manifest;
+
+			assert.deepEqual( book.resources, manifest );
+		});
+
+		it('should get resources from model', function() {
+
+			let book = new Book({
+				resources: manifest
+			});
+
+			assert.deepEqual( book.resources, manifest );
+		});
+
+	});
+
+	describe('#spine', function() {
+
+		it('should set spine from an array', function() {
+
+			let book = new Book();
+
+			book.spine = spine;
+
+			assert.equal( book.spine.length, 2 );
+		});
+
+		it('should get resources from model', function() {
+
+			let book = new Book({
+				spine: spine
+			});
+
+			assert.equal( book.spine.length, 2 );
+		});
+
+	});
+
+	describe('#cover', function() {
+
+		it('should set cover from a url', function() {
+			let url = "http://example.com/book/OPS/images/cover.jpg";
+
+			let book = new Book();
+
+			book.cover = url;
+
+			assert.equal( book.cover, url );
+		});
+
+		it('should get the cover from model', function() {
+
+			let book = new Book({
+				resources: manifest
+			});
+
+
+			assert.equal( book.cover, "http://localhost:9876/testkey-1513720249210/OPS/images/cover_th.jpg" );
+		});
+
+	});
+
+	describe('#section', function() {
+
+		it('should get a section from the spine by source', function() {
+			let book = new Book({
+				spine: spine
+			});
+			let section = book.section("chapter_001.xhtml");
+			assert.equal( section.index , 0 );
+		});
+
+		it('should get a section from the spine by id', function() {
+			let book = new Book({
+				spine: spine
+			});
+			let section = book.section("chapter_001");
+			assert.equal( section.index , 0 );
+		});
+
+		it('should get a section from the spine by href', function() {
+			let book = new Book({
+				spine: spine
+			});
+			let section = book.section("http://localhost:9876/testkey-1513720249210/OPS/chapter_001.xhtml");
+			assert.equal( section.index , 0 );
+		});
+
+	});
+
+	it('should open a manifest file', function() {
+		return fetch("/fixtures/manifest.json").then((response) => {
+			return response.json();
+		}).then((manifest) => {
+			let book = new Book(manifest);
+
+			assert.equal( book.metadata.title, "Moby-Dick" );
+			assert.equal( book.resources.length, 5 );
+			assert.equal( book.spine.length, 2 );
 		});
 	});
 
 	describe('#toObject', function() {
 
-		it('should export an opf file to a manifest object', function() {
-			let book = new Book("/fixtures/alice/OPS/package.opf");
-
-			return book.ready.then(function(){
+		it('should export to a manifest object', function() {
+			return fetch("/fixtures/manifest.json").then((response) => {
+				return response.json();
+			}).then((manifest) => {
+				let book = new Book(manifest);
 				let object = book.toObject();
+
+				assert.equal( object.metadata.title, "Moby-Dick" );
+				assert.equal( object.resources.length, 5 );
+				assert.equal( object.spine.length, 2 );
+			});
+		});
+
+		xit('should export an opf file to a manifest object', function() {
+			return fetch("/fixtures/alice.json").then((response) => {
+				return response.json();
+			}).then((manifest) => {
+				let book = new Book(manifest);
+				let object = book.toObject();
+
 				assert.equal( object.metadata.title, "Alice's Adventures in Wonderland" );
 				assert.equal( object.toc.length, 11);
 				assert.equal( object.resources.length, 42 );
@@ -36,7 +241,7 @@ describe('Book', function() {
 
 	describe('#toJSON', function() {
 
-		it('should export an opf file to a manifest json', function() {
+		xit('should export an opf file to a manifest json', function() {
 			let book = new Book("/fixtures/alice/OPS/package.opf");
 
 			return book.ready.then(function(){

@@ -1,10 +1,10 @@
 var assert = require("assert");
-var ePub = require('../src/epub');
+var ePub = require('../../src/epub');
 
 describe("section", function() {
   it("finds a single result in a section", function() {
-    var book = ePub("./fixtures/alice/", {width: 400, height: 400});
-    return book.ready.then(function() {
+    var epub = ePub("./fixtures/alice/", {width: 400, height: 400});
+    return epub.ready.then(function(book) {
       var section = book.section("chapter_001.xhtml");
       return section.load().then(function() {
         var results = section.find("they were filled with cupboards and book-shelves");
@@ -16,8 +16,8 @@ describe("section", function() {
   });
 
   it("finds multiple results in a section", function() {
-    var book = ePub("./fixtures/alice/", {width: 400, height: 400});
-    return book.ready.then(function() {
+    var epub = ePub("./fixtures/alice/", {width: 400, height: 400});
+    return epub.ready.then(function(book) {
       var section = book.section("chapter_001.xhtml");
       return section.load().then(function() {
         var results = section.find("white rabbit");

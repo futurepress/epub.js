@@ -19,7 +19,7 @@ function request(url, type, withCredentials, headers) {
 		.then(function(response) {
 			if(response.ok) {
 				return response;
-			} else if (this.response.status === 403) {
+			} else if (response.status === 403) {
 				deferred.reject({
 					status: this.response.status,
 					response: this.response.response,
@@ -29,7 +29,7 @@ function request(url, type, withCredentials, headers) {
 				return deferred.promise;
 			} else {
 				deferred.reject({
-					status: this.response.status,
+					status: response.status,
 					message : "Empty Response",
 					stack : new Error().stack
 				});

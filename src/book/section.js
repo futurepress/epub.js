@@ -246,7 +246,7 @@ class Section {
 	toObject() {
 		return {
 			idref : this.idref,
-			linear : this.linear,
+			linear : this.linear ? "yes" : "no",
 			href : this.href,
 			source : this.source,
 			type : this.type,

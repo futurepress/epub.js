@@ -16,7 +16,8 @@ self.addEventListener('fetch', function(event) {
         if (response) {
           DEV && console.log(
             '[fetch] Returning from Service Worker cache: ',
-            event.request.url
+            event.request.url,
+            response.ok
           );
           return response;
         }
@@ -68,7 +69,9 @@ self.addEventListener('message', function(event) {
             // If not found, fetch the resource and store it
             let request = new Request(href, {mode: 'no-cors'});
             return fetch(request).then(function(response) {
-              return cache.put(href, response);
+              if (response.ok) {
+                return cache.put(href, response);
+              }
             });
          }
         });
@@ -80,6 +83,12 @@ self.addEventListener('message', function(event) {
   }
 
   if (event.data.method === "remove") {
-    
+
+  }
+
+  if (event.data.method === "test") {
+    caches.open(event.data.key).then((cache) => {
+      console.log(cache);
+    });
   }
 });

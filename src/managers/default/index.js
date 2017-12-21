@@ -441,7 +441,7 @@ class DefaultViewManager {
 				.then(function(){
 					var right;
 					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
-						right = next.next();
+						right = nextSection(next, this.spine);
 						if (right) {
 							return this.append(right);
 						}
@@ -511,7 +511,7 @@ class DefaultViewManager {
 				.then(function(){
 					var left;
 					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
-						left = prev.prev();
+						left = prevSection(prev, this.spine);
 						if (left) {
 							return this.prepend(left);
 						}

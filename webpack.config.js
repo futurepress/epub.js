@@ -9,7 +9,7 @@ var enter = LEGACY ? {
 		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
 	} : {
 		"epub": "./src/epub.js",
-		"worker": "./src/workers/book.worker.js",
+		"worker": "./src/workers/epub.worker.js",
 		"sw": "./src/workers/rendition.worker.js"
 	};
 
@@ -18,12 +18,11 @@ module.exports = {
 	devtool: PROD ? false : 'source-map',
 	output: {
 		path: path.resolve("./dist"),
-		// path: "./dist",
 		filename: PROD ? "[name].min.js" : "[name].js",
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
 		libraryTarget: "umd",
-		publicPath: "/examples/"
+		publicPath: "/dist/"
 	},
 	externals: {
 		// "jszip": "JSZip",
@@ -40,7 +39,11 @@ module.exports = {
 	devServer: {
 		host: hostname,
 		port: port,
-		inline: true
+		inline: true,
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+			"Service-Worker-Allowed": "/",
+		}
 	},
 	module: {
 		loaders: [

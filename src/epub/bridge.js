@@ -1,39 +1,11 @@
 import {extend, defer} from "../utils/core";
 import { EVENTS } from "../utils/constants";
+import Book from "../book/book";
 
-import Spine from "../book/spine";
-
+const DEV = false;
 /**
- * Book proxy, always responds with promise
-
- * Promises:
- *  - opened
- *  - ready
- *
- * Objects:
- *  - manifest
- *  - spine
- *  - locations
- *  - navigation
- *  - pagelist
- *  - resources
- *
- * Methods:
- *  - open ✓
- *  - load X (private)
- *  - resolve X (private)
- *  - canonical ?
- *  - section (needs to respond with object?)
- *  - setRequestCredentials X (just set in the options)
- *  - setRequestHeaders X (just set in the options)
- *  - coverUrl (remove this?)
- *  - getRange (not gonna work => mabye move to rendition?)
- *  - key
- *  - toObject
- *  - toJSON
- *  - destroy
+ * Book proxy
  */
-
 class Bridge {
 	constructor(url, options) {
 		this.waiting = {};
@@ -46,7 +18,6 @@ class Bridge {
 		this.worker = new Worker(options.worker);
 
 		this.worker.addEventListener("message", this.listen.bind(this));
-
 
 		if (url) {
 			this.ask("init", [url, options]);
@@ -71,7 +42,7 @@ class Bridge {
 			this.waiting[promiseId] = [asking];
 		}
 
-		console.log("[ask]", str);
+		DEV && console.log("[ask]", str);
 		this.worker.postMessage(str);
 
 		return asking.promise;
@@ -83,7 +54,7 @@ class Bridge {
 			data = JSON.parse(data);
 		}
 
-		console.log("[listen]", data);
+		DEV && console.log("[listen]", data);
 
 		// Promises
 		if (data.promise && data.promise in this.waiting) {
@@ -98,7 +69,8 @@ class Bridge {
 			switch (data.eventName) {
 				case "ready":
 					this.manifest = event.data.value;
-					this.resolveReady(event.data.value);
+					this.book = new Book(this.manifest);
+					this.resolveReady(this.book, this.manifest);
 					break;
 				case "failed":
 					this.rejectReady(event.data.error);
@@ -115,8 +87,20 @@ class Bridge {
 		return this.ask("key", [identifier]);
 	}
 
-	spine() {
-		return this.ask("spine");
+	replacements() {
+		return this.ask("replacements").then((manifest) => {
+			this.manifest = manifest;
+			this.book = new Book(this.manifest);
+			return this.book;
+		});
+	}
+
+	cache() {
+		return this.ask("cache").then((manifest) => {
+			this.manifest = manifest;
+			this.book = new Book(this.manifest);
+			return this.book;
+		});
 	}
 
 	destroy() {

@@ -7,7 +7,7 @@ import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements"
  * A collection of Spine Items
  */
 class Spine {
-	constructor() {
+	constructor(items) {
 		this.spineItems = [];
 		this.spineByHref = {};
 		this.spineById = {};
@@ -30,43 +30,22 @@ class Spine {
 		this.spineNodeIndex = undefined;
 		this.baseUrl = undefined;
 		this.length = undefined;
+
+		if (items) {
+			this.unpack(items);
+		}
 	}
 
 	/**
 	 * Unpack items from a opf into spine items
-	 * @param  {Package} _package
-	 * @param  {method} resolver URL resolver
+	 * @param  {items} items
 	 */
-	unpack(_package, resolver, canonical) {
+	unpack(items) {
 
-		this.items = _package.spine;
-		this.manifest = _package.manifest;
-		this.spineNodeIndex = _package.spineNodeIndex;
-		this.baseUrl = _package.baseUrl || _package.basePath || "";
+		this.items = items;
 		this.length = this.items.length;
 
 		this.items.forEach( (item, index) => {
-			var manifestItem = this.manifest[item.idref];
-			var spineItem;
-
-			item.index = index;
-			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
-
-			if(manifestItem) {
-				item.source = manifestItem.href;
-				item.href = resolver(manifestItem.href, true);
-				item.canonical = canonical(item.href);
-				item.type = manifestItem.type;
-
-				if(manifestItem.properties.length){
-					item.properties.push.apply(item.properties, manifestItem.properties);
-				}
-			}
-
-			if (item.href) {
-				item.url = resolver(item.href, true);
-				item.canonical = canonical(item.href);
-			}
 
 			if (item.linear === "yes") {
 				item.prev = function() {
@@ -100,8 +79,7 @@ class Spine {
 				};
 			}
 
-
-			spineItem = new Section(item, this.hooks);
+			let spineItem = new Section(item, this.hooks);
 
 			this.append(spineItem);
 
@@ -118,10 +96,10 @@ class Spine {
 	 * @example spine.get();
 	 * @example spine.get(1);
 	 * @example spine.get("chap1.html");
-	 * @example spine.get("#id1234");
+	 * @example spine.get("id1234");
 	 */
-	get(target, resolver) {
-		var index = 0;
+	get(target) {
+		let index;
 
 		if (typeof target === "undefined") {
 			while (index < this.spineItems.length) {
@@ -141,13 +119,19 @@ class Spine {
 		} else if(typeof target === "string") {
 			// Remove fragments
 			target = target.split("#")[0];
-			if (resolver) {
-				target = resolver(target);
+
+			if (this.spineById[target] !== undefined) {
+				index = this.spineById[target];
+			} else if (this.spineById[target] !== undefined) {
+				index = this.spineByHref[target];
+			} else {
+				index = this.spineByHref[encodeURI(target)];
 			}
-			index = this.spineByHref[target] || this.spineByHref[encodeURI(target)];
 		}
 
-		return this.spineItems[index] || null;
+		if (index != undefined) {
+			return this.spineItems[index];
+		}
 	}
 
 	/**
@@ -166,6 +150,10 @@ class Spine {
 		this.spineByHref[decodeURI(section.href)] = index;
 		this.spineByHref[encodeURI(section.href)] = index;
 		this.spineByHref[section.href] = index;
+
+		if (section.source) {
+			this.spineByHref[section.source] = index;
+		}
 
 		this.spineById[section.idref] = index;
 
