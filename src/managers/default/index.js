@@ -874,10 +874,12 @@ class DefaultViewManager {
 			this.mapping = new Mapping(this.layout.props, this.settings.direction, this.settings.axis);
 		}
 
-		if (this.layout && axis === "vertical") {
-			this.layout.spread("none");
-		} else {
-			this.layout.spread(this.layout.settings.spread);
+		if (this.layout) {
+			if (axis === "vertical") {
+				this.layout.spread("none");
+			} else {
+				this.layout.spread(this.layout.settings.spread);
+			}
 		}
 	}
 

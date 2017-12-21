@@ -542,10 +542,12 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.mapping.axis(axis);
 		}
 
-		if (this.layout && axis === "vertical") {
-			this.layout.spread("none");
-		} else {
-			this.layout.spread(this.layout.settings.spread);
+		if (this.layout) {
+			if (axis === "vertical") {
+				this.layout.spread("none");
+			} else {
+				this.layout.spread(this.layout.settings.spread);
+			}
 		}
 
 		if (axis === "vertical") {
