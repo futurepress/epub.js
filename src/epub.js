@@ -19,6 +19,37 @@ import Bridge from './epub/bridge.js';
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
+// function ePub(url, options) {
+// 	let epub;
+//
+// 	if (options && options.worker) {
+// 		epub = new Bridge(url, options);
+// 	} else {
+// 		epub = new Epub(url, options);
+// 	}
+//
+// 	/**
+// 	 * Sugar to render a book to an element
+// 	 * @param  {element | string} element element or string to add a rendition to
+// 	 * @param  {object} [options]
+// 	 * @return {Rendition}
+// 	 */
+// 	epub.renderTo = (element, options) => {
+//
+// 		epub.rendition = new Rendition(null, options);
+// 		epub.rendition.attachTo(element);
+//
+// 		epub.ready.then((book) => {
+// 			let manifest = book.toObject();
+// 			epub.rendition.unpack(manifest);
+// 		});
+//
+// 		return epub.rendition;
+// 	}
+//
+// 	return epub;
+// }
+
 function ePub(url, options) {
 	let epub;
 
@@ -28,26 +59,36 @@ function ePub(url, options) {
 		epub = new Epub(url, options);
 	}
 
-	/**
-	 * Sugar to render a book to an element
-	 * @param  {element | string} element element or string to add a rendition to
-	 * @param  {object} [options]
-	 * @return {Rendition}
-	 */
-	epub.renderTo = (element, options) => {
+	return epub.ready.then((manifest) => {
+		let book = new Book(manifest);
 
-		epub.rendition = new Rendition(null, options);
-		epub.rendition.attachTo(element);
+		/**
+		 * Sugar to render a book to an element
+		 * @param  {element | string} element element or string to add a rendition to
+		 * @param  {object} [options]
+		 * @return {Rendition}
+		 */
+		book.renderTo = (element, renditionOptions={}) => {
 
-		epub.ready.then((book) => {
-			let manifest = book.toObject();
-			epub.rendition.unpack(manifest);
-		});
+			if (options && typeof(options.worker) !== "undefined" &&
+					renditionOptions && typeof(renditionOptions.worker) !== "undefined" ) {
+				renditionOptions.worker = options.worker;
+			}
 
-		return epub.rendition;
-	}
+			book.rendition = new Rendition(book.manifest, renditionOptions);
+			book.rendition.attachTo(element);
 
-	return epub;
+			return book.rendition;
+		}
+
+		// epub.destroy();
+		book.epub = epub;
+
+		return book;
+	});
+
+
+	// return epub;
 }
 
 ePub.VERSION = "0.4";

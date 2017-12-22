@@ -19,33 +19,31 @@
 		var $prev = document.getElementById("prev");
 		var currentSectionIndex = 9;
 		// Load the opf
-		var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-		var rendition = book.renderTo("viewer", { flow: "scrolled-doc", width: 600, height: 400});
-		var displayed = rendition.display(currentSectionIndex);
+		ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf")
+			.then((book) => {
+				var rendition = book.renderTo("viewer", { flow: "scrolled-doc", width: 600, height: 400});
+				var displayed = rendition.display(currentSectionIndex);
 
-		book.loaded.navigation.then(function(toc){
-			var $select = document.getElementById("toc"),
-					docfrag = document.createDocumentFragment();
+				var $select = document.getElementById("toc"),
+						docfrag = document.createDocumentFragment();
 
-			toc.forEach(function(chapter) {
-				var option = document.createElement("option");
-				option.textContent = chapter.label;
-				option.ref = chapter.href;
+				book.toc.forEach(function(chapter) {
+					var option = document.createElement("option");
+					option.textContent = chapter.label;
+					option.ref = chapter.href;
 
-				docfrag.appendChild(option);
+					docfrag.appendChild(option);
+				});
+
+				$select.appendChild(docfrag);
+
+				$select.onchange = function(){
+						var index = $select.selectedIndex,
+								url = $select.options[index].ref;
+						rendition.display(url);
+						return false;
+				};
 			});
-
-			$select.appendChild(docfrag);
-
-			$select.onchange = function(){
-					var index = $select.selectedIndex,
-							url = $select.options[index].ref;
-					rendition.display(url);
-					return false;
-			};
-
-
-		});
 	</script>
 
 </body>

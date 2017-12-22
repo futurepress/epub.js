@@ -285,12 +285,26 @@ class Packaging {
 		this.metadata = json.metadata;
 
 		this.spine = json.spine.map((item, index) =>{
+			let id = item.idref;
+
+			if (!id) {
+				item.idref = item.href;
+			}
+
+			if (typeof(item.linear) === "undefined") {
+				item.linear = "yes";
+			}
+
 			item.index = index;
+			this.manifest[item.idref] = item;
+
 			return item;
 		});
 
-		json.resources.forEach((item, index) => {
-			this.manifest[index] = item;
+		json.resources.forEach((item) => {
+			let id = item.id || item.href;
+
+			this.manifest[id] = item;
 
 			if (item.rel && item.rel[0] === "cover") {
 				this.coverPath = item.href;

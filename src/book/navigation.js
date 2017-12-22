@@ -65,34 +65,43 @@ class Navigation {
 	 * Unpack manifest object
 	 */
 	unpack(manifest) {
-    if (manifest.toc) {
-      this.unpackToc(manifest.toc);
-    }
+		if (manifest.toc) {
+			this.unpackToc(manifest.toc);
+		}
 
-    if (manifest.landmarks) {
-      this.unpackLandmarks(manifest.landmarks);
-    }
+		if (manifest.landmarks) {
+			this.unpackLandmarks(manifest.landmarks);
+		}
 	}
 
-  unpackToc(toc) {
-    this.toc = toc;
-    toc.forEach((item, index) => {
-      this.tocByHref[item.href] = index;
-      if (item.source) {
-        this.tocByHref[item.href] = index;
-      }
-      if (item.id) {
-        this.tocId[item.id] = index;
-      }
-    });
-  }
+	unpackToc(toc) {
+		this.toc = toc;
+		toc.forEach((item, index) => {
+			this.tocByHref[item.href] = index;
+			if (item.source) {
+				this.tocByHref[item.href] = index;
+			}
+			if (item.id) {
+				this.tocId[item.id] = index;
+			}
+		});
+	}
 
-  unpackLandmarks(landmarks) {
-    this.landmarks = landmarks;
-    landmarks.forEach((item, index) => {
-      this.landmarksByType[item.type] = index;
-    });
-  }
+	unpackLandmarks(landmarks) {
+		this.landmarks = landmarks;
+		landmarks.forEach((item, index) => {
+			this.landmarksByType[item.type] = index;
+		});
+	}
+
+	destroy() {
+		this.toc = undefined;
+		this.tocByHref = undefined;
+		this.tocById = undefined;
+
+		this.landmarks = undefined;
+		this.landmarksByType = undefined;
+	}
 }
 
 export default Navigation;

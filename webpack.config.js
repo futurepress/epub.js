@@ -9,8 +9,7 @@ var enter = LEGACY ? {
 		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
 	} : {
 		"epub": "./src/epub.js",
-		"worker": "./src/workers/epub.worker.js",
-		"sw": "./src/workers/rendition.worker.js"
+		"epub.worker": "./src/workers/epub.worker.js"
 	};
 
 module.exports = {

@@ -24,129 +24,132 @@
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
     // Load the opf
-    var book = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub");
-    var rendition = book.renderTo("viewer", {
-      width: "100%",
-      height: 600,
-      spread: "always"
-    });
+    ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub")
+      .then((book) => {
+        var rendition = book.renderTo("viewer", {
+          width: "100%",
+          height: 600,
+          spread: "always"
+        });
 
-    rendition.display(currentSectionIndex);
+        var direction = book.metadata.direction;
 
-    book.ready.then((manifest) => {
 
-      var next = document.getElementById("next");
+        // Next Arrow
+        var next = document.getElementById("next");
+        next.addEventListener("click", function(e){
+          (direction === "rtl") ? rendition.prev() : rendition.next();
+          e.preventDefault();
+        }, false);
 
-      next.addEventListener("click", function(e){
-        book.manifest.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
-        e.preventDefault();
-      }, false);
+        // Prev Arrow
+        var prev = document.getElementById("prev");
+        prev.addEventListener("click", function(e){
+          (direction === "rtl") ? rendition.next() : rendition.prev();
+          e.preventDefault();
+        }, false);
 
-      var prev = document.getElementById("prev");
-      prev.addEventListener("click", function(e){
-        book.manifest.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
-        e.preventDefault();
-      }, false);
+        var keyListener = function(e){
 
-      var keyListener = function(e){
-
-        // Left Key
-        if ((e.keyCode || e.which) == 37) {
-          book.manifest.metadata.direction === "rtl" ? rendition.next() : rendition.prev();
-        }
-
-        // Right Key
-        if ((e.keyCode || e.which) == 39) {
-          book.manifest.metadata.direction === "rtl" ? rendition.prev() : rendition.next();
-        }
-
-      };
-
-      rendition.on("keyup", keyListener);
-      document.addEventListener("keyup", keyListener, false);
-
-      rendition.on("relocated", function(location){
-        console.log(location);
-
-        var next = manifest.metadata.direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
-        var prev = manifest.metadata.direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
-
-        if (location.atEnd) {
-          next.style.visibility = "hidden";
-        } else {
-          next.style.visibility = "visible";
-        }
-
-        if (location.atStart) {
-          prev.style.visibility = "hidden";
-        } else {
-          prev.style.visibility = "visible";
-        }
-
-      });
-
-      var $select = document.getElementById("toc"),
-          docfrag = document.createDocumentFragment();
-
-      manifest.toc.forEach(function(chapter) {
-        var option = document.createElement("option");
-        option.textContent = chapter.title;
-        option.setAttribute("ref", chapter.href);
-
-        docfrag.appendChild(option);
-      });
-
-      $select.appendChild(docfrag);
-
-      $select.onchange = function(){
-          var index = $select.selectedIndex,
-              url = $select.options[index].getAttribute("ref");
-          rendition.display(url);
-          return false;
-      };
-
-    });
-
-    var title = document.getElementById("title");
-
-    rendition.on("rendered", function(section){
-      var current = book.navigation && book.navigation.get(section.href);
-
-      if (current) {
-        var $select = document.getElementById("toc");
-        var $selected = $select.querySelector("option[selected]");
-        if ($selected) {
-          $selected.removeAttribute("selected");
-        }
-
-        var $options = $select.querySelectorAll("option");
-        for (var i = 0; i < $options.length; ++i) {
-          let selected = $options[i].getAttribute("ref") === current.href;
-          if (selected) {
-            $options[i].setAttribute("selected", "");
+          // Left Key
+          if ((e.keyCode || e.which) == 37) {
+            (direction === "rtl") ? rendition.next() : rendition.prev();
           }
-        }
-      }
 
-    });
+          // Right Key
+          if ((e.keyCode || e.which) == 39) {
+            (direction === "rtl") ? rendition.prev() : rendition.next();
+          }
 
+        };
 
+        // Key Listeners
+        rendition.on("keyup", keyListener);
+        document.addEventListener("keyup", keyListener, false);
 
-    rendition.on("layout", function(layout) {
-      let viewer = document.getElementById("viewer");
+        // Relocated Event
+        rendition.on("relocated", function(location){
+          console.log(location);
 
-      if (layout.spread) {
-        viewer.classList.remove('single');
-      } else {
-        viewer.classList.add('single');
-      }
-    });
+          var next = (direction === "rtl") ?  document.getElementById("prev") : document.getElementById("next");
+          var prev = (direction === "rtl") ?  document.getElementById("next") : document.getElementById("prev");
 
-    window.addEventListener("unload", function () {
-      console.log("unloading");
-      this.book.destroy();
-    });
+          if (location.atEnd) {
+            next.style.visibility = "hidden";
+          } else {
+            next.style.visibility = "visible";
+          }
 
+          if (location.atStart) {
+            prev.style.visibility = "hidden";
+          } else {
+            prev.style.visibility = "visible";
+          }
+
+        });
+
+        // Table of Contents
+        var $select = document.getElementById("toc"),
+            docfrag = document.createDocumentFragment();
+
+        book.toc.forEach(function(chapter) {
+          var option = document.createElement("option");
+          option.textContent = chapter.title;
+          option.setAttribute("ref", chapter.href);
+
+          docfrag.appendChild(option);
+        });
+
+        $select.appendChild(docfrag);
+
+        $select.onchange = function(){
+            var index = $select.selectedIndex,
+                url = $select.options[index].getAttribute("ref");
+            rendition.display(url);
+            return false;
+        };
+
+        // Current Chapter
+        var title = document.getElementById("title");
+
+        rendition.on("rendered", function(section){
+          var current = book.navigation && book.navigation.get(section.href);
+
+          if (current) {
+            var $select = document.getElementById("toc");
+            var $selected = $select.querySelector("option[selected]");
+            if ($selected) {
+              $selected.removeAttribute("selected");
+            }
+
+            var $options = $select.querySelectorAll("option");
+            for (var i = 0; i < $options.length; ++i) {
+              let selected = $options[i].getAttribute("ref") === current.href;
+              if (selected) {
+                $options[i].setAttribute("selected", "");
+              }
+            }
+          }
+
+        });
+
+        // Layout change
+        rendition.on("layout", function(layout) {
+          var viewer = document.getElementById("viewer");
+
+          if (layout.spread) {
+            viewer.classList.remove('single');
+          } else {
+            viewer.classList.add('single');
+          }
+        });
+
+        window.addEventListener("unload", function () {
+          book.destroy();
+        });
+
+        return rendition.display(currentSectionIndex);
+      });
   </script>
 
 </body>

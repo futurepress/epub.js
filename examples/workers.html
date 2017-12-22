@@ -25,18 +25,14 @@
 
     // Load the opf
     var epub = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
-      worker: "/dist/worker.js"
-    });
-    var rendition = epub.renderTo("viewer", {
-      width: "100%",
-      height: 600,
-      spread: "always",
-      worker: "/dist/sw.js"
-    });
+      worker: "/dist/epub.worker.js"
+    }).then(function(book) {
+      var rendition = book.renderTo("viewer", {
+        width: "100%",
+        height: 600,
+        spread: "always",
+      });
 
-    rendition.display(currentSectionIndex);
-
-    epub.ready.then((book) => {
       var direction = book.metadata.direction;
       var next = document.getElementById("next");
 
@@ -68,86 +64,86 @@
       rendition.on("keyup", keyListener);
       document.addEventListener("keyup", keyListener, false);
 
-    })
 
-    var title = document.getElementById("title");
+      var title = document.getElementById("title");
 
-    rendition.on("rendered", function(section){
-      var current = epub.book.navigation && epub.book.navigation.get(section.href);
-      if (current) {
-        var $select = document.getElementById("toc");
-        var $selected = $select.querySelector("option[selected]");
-        if ($selected) {
-          $selected.removeAttribute("selected");
-        }
+      rendition.on("rendered", function(section){
+        var current = epub.book.navigation && epub.book.navigation.get(section.href);
+        if (current) {
+          var $select = document.getElementById("toc");
+          var $selected = $select.querySelector("option[selected]");
+          if ($selected) {
+            $selected.removeAttribute("selected");
+          }
 
-        var $options = $select.querySelectorAll("option");
-        for (var i = 0; i < $options.length; ++i) {
-          let selected = $options[i].getAttribute("ref") === current.href;
-          if (selected) {
-            $options[i].setAttribute("selected", "");
+          var $options = $select.querySelectorAll("option");
+          for (var i = 0; i < $options.length; ++i) {
+            let selected = $options[i].getAttribute("ref") === current.href;
+            if (selected) {
+              $options[i].setAttribute("selected", "");
+            }
           }
         }
-      }
 
-    });
+      });
 
-    rendition.on("relocated", function(location){
-      console.log(location);
-      var direction = epub.book.metadata.direction;
-      var next = direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
-      var prev = direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
+      rendition.on("relocated", function(location){
+        console.log(location);
+        var direction = epub.book.metadata.direction;
+        var next = direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
+        var prev = direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
 
-      if (location.atEnd) {
-        next.style.visibility = "hidden";
-      } else {
-        next.style.visibility = "visible";
-      }
+        if (location.atEnd) {
+          next.style.visibility = "hidden";
+        } else {
+          next.style.visibility = "visible";
+        }
 
-      if (location.atStart) {
-        prev.style.visibility = "hidden";
-      } else {
-        prev.style.visibility = "visible";
-      }
+        if (location.atStart) {
+          prev.style.visibility = "hidden";
+        } else {
+          prev.style.visibility = "visible";
+        }
 
-    });
+      });
 
-    rendition.on("layout", function(layout) {
-      let viewer = document.getElementById("viewer");
+      rendition.on("layout", function(layout) {
+        let viewer = document.getElementById("viewer");
 
-      if (layout.spread) {
-        viewer.classList.remove('single');
-      } else {
-        viewer.classList.add('single');
-      }
-    });
+        if (layout.spread) {
+          viewer.classList.remove('single');
+        } else {
+          viewer.classList.add('single');
+        }
+      });
 
-    window.addEventListener("unload", function () {
-      epub.destroy();
-    });
+      var $select = document.getElementById("toc"),
+          docfrag = document.createDocumentFragment();
 
-    epub.ready.then(function(book){
-			var $select = document.getElementById("toc"),
-					docfrag = document.createDocumentFragment();
+      book.toc.forEach(function(chapter) {
+        var option = document.createElement("option");
+        option.textContent = chapter.title;
+        option.setAttribute("ref", chapter.href);
 
-			book.toc.forEach(function(chapter) {
-				var option = document.createElement("option");
-				option.textContent = chapter.title;
-				option.setAttribute("ref", chapter.href);
+        docfrag.appendChild(option);
+      });
 
-				docfrag.appendChild(option);
-			});
+      $select.appendChild(docfrag);
 
-			$select.appendChild(docfrag);
+      $select.onchange = function(){
+          var index = $select.selectedIndex,
+              url = $select.options[index].getAttribute("ref");
+          rendition.display(url);
+          return false;
+      };
 
-			$select.onchange = function(){
-					var index = $select.selectedIndex,
-							url = $select.options[index].getAttribute("ref");
-					rendition.display(url);
-					return false;
-			};
+      window.addEventListener("unload", function () {
+        book.destroy();
+      });
 
-		});
+      return rendition.display(currentSectionIndex);
+    })
+
 
     /*
     // If the workers fails, switch to replacements

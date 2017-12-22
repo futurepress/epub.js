@@ -34,60 +34,61 @@
   <script>
     var src = window.location.search ?
         window.location.search.replace("?href=", '') :
-        "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrLmVwdWI=/manifest.json" ;
-    var book = ePub(src);
-    var rendition = book.renderTo("viewer", {
-      width: "100%",
-      height: 600
-    });
+        "https://hadriengardeur.github.io/webpub-manifest/examples/MobyDick/manifest.json";
 
-    rendition.display();
+    var epub = ePub(src, { worker: "/dist/epub.worker.js" }).then((book) => {
 
-    var title = document.getElementById("title");
+      var rendition = book.renderTo("viewer", {
+        width: "100%",
+        height: 600
+      });
 
-    var next = document.getElementById("next");
-    next.addEventListener("click", function(e){
-      rendition.next();
-      e.preventDefault();
-    }, false);
+      rendition.display();
 
-    var prev = document.getElementById("prev");
-    prev.addEventListener("click", function(e){
-      rendition.prev();
-      e.preventDefault();
-    }, false);
+      var title = document.getElementById("title");
 
-    var keyListener = function(e){
-
-      // Left Key
-      if ((e.keyCode || e.which) == 37) {
-        rendition.prev();
-      }
-
-      // Right Key
-      if ((e.keyCode || e.which) == 39) {
+      var next = document.getElementById("next");
+      next.addEventListener("click", function(e){
         rendition.next();
-      }
+        e.preventDefault();
+      }, false);
 
-    };
+      var prev = document.getElementById("prev");
+      prev.addEventListener("click", function(e){
+        rendition.prev();
+        e.preventDefault();
+      }, false);
 
-    rendition.on("keyup", keyListener);
-    document.addEventListener("keyup", keyListener, false);
+      var keyListener = function(e){
 
-    var navigation = document.getElementById("navigation");
-    var opener = document.getElementById("opener");
-    opener.addEventListener("click", function(e){
-      navigation.classList.remove("closed");
-      e.preventDefault();
-    }, false);
+        // Left Key
+        if ((e.keyCode || e.which) == 37) {
+          rendition.prev();
+        }
 
-    var closer = document.getElementById("closer");
-    closer.addEventListener("click", function(e){
-      navigation.classList.add("closed");
-      e.preventDefault();
-    }, false);
+        // Right Key
+        if ((e.keyCode || e.which) == 39) {
+          rendition.next();
+        }
 
-    book.loaded.navigation.then(function(toc){
+      };
+
+      rendition.on("keyup", keyListener);
+      document.addEventListener("keyup", keyListener, false);
+
+      var navigation = document.getElementById("navigation");
+      var opener = document.getElementById("opener");
+      opener.addEventListener("click", function(e){
+        navigation.classList.remove("closed");
+        e.preventDefault();
+      }, false);
+
+      var closer = document.getElementById("closer");
+      closer.addEventListener("click", function(e){
+        navigation.classList.add("closed");
+        e.preventDefault();
+      }, false);
+
       var $nav = document.getElementById("toc"),
           docfrag = document.createDocumentFragment();
       var addTocItems = function (parent, tocItems) {
@@ -115,63 +116,54 @@
         parent.appendChild($ul);
       };
 
-      addTocItems(docfrag, toc);
+      addTocItems(docfrag, book.toc);
 
       $nav.appendChild(docfrag);
 
-      if ($nav.offsetHeight + 60 < window.innerHeight) {
-        $nav.classList.add("fixed");
-      }
 
-    });
-
-    book.loaded.metadata.then(function(meta){
       var $title = document.getElementById("title");
       var $author = document.getElementById("author");
       var $cover = document.getElementById("cover");
 
-      $title.textContent = meta.title;
-      $author.textContent = meta.creator;
-      if (book.archive) {
-        book.archive.createUrl(book.cover)
-          .then(function (url) {
-            $cover.src = url;
-          })
-      } else {
+      $title.textContent = book.metadata.title;
+      $author.textContent = book.metadata.creator;
+
+      if (book.cover) {
         $cover.src = book.cover;
       }
-    });
 
-    rendition.on("rendered", function(section){
-      var nextSection = section.next();
-      var prevSection = section.prev();
 
-      if(nextSection) {
-        next.textContent = "›";
-      } else {
-        next.textContent = "";
-      }
+      rendition.on("rendered", function(section){
+        var nextSection = section.next();
+        var prevSection = section.prev();
 
-      if(prevSection) {
-        prev.textContent = "‹";
-      } else {
-        prev.textContent = "";
-      }
+        if(nextSection) {
+          next.textContent = "›";
+        } else {
+          next.textContent = "";
+        }
 
-    });
+        if(prevSection) {
+          prev.textContent = "‹";
+        } else {
+          prev.textContent = "";
+        }
 
-    rendition.on("relocated", function(location){
-      var current = book.navigation.get(location.href);
+      });
 
-      if (current) {
-        title.textContent = current.label;
-      }
+      rendition.on("relocated", function(location){
+        var current = book.navigation.get(location.href);
 
-      console.log(location);
-    });
+        if (current) {
+          title.textContent = current.label;
+        }
 
-    window.addEventListener("unload", function () {
-      this.book.destroy();
+        console.log(location);
+      });
+
+      window.addEventListener("unload", function () {
+        book.destroy();
+      });
     });
 
   </script>

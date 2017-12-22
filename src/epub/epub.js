@@ -36,8 +36,8 @@ const INPUT_TYPE = {
  * @param {boolean} [options.requestCredentials=undefined] send the xhr request withCredentials
  * @param {object} [options.requestHeaders=undefined] send the xhr request headers
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
- * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
- * @param {method} [options.cache=false] use cache to save book contents for a service workers
+ * @param {string} [options.replacements] use base64, blobUrl, or none for replacing assets in archived Epubs
+ * @param {method} [options.cache] use cache to save book contents for a service workers
  * @returns {Epub}
  * @example new Epub("/path/to/book.epub", {})
  * @example new Epub({ replacements: "blobUrl" })
@@ -57,7 +57,7 @@ class Epub {
 			requestHeaders: undefined,
 			encoding: undefined,
 			replacements: undefined,
-			cache: false,
+			cache: undefined,
 			stylesheet: null,
 			script: null
 		});
@@ -81,8 +81,8 @@ class Epub {
 		 */
 		this.ready = this.opened.then(() => {
 			this.manifest = this.book.toJSON();
-			this.emit(EVENTS.BOOK.READY, this.book, this.manifest);
-			return this.book;
+			this.emit(EVENTS.BOOK.READY, this.manifest);
+			return this.manifest;
 		});
 
 		/**
@@ -163,39 +163,14 @@ class Epub {
 		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin) {
-				if(!this.settings.replacements) {
-					this.settings.replacements = true;
-				}
-				if (this.settings.cache) {
-					this.settings.cache = true;
-				}
-			}
-
 			opening = this.openPackaging(this.url.Path.toString());
 		} else if(type == INPUT_TYPE.MANIFEST) {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin) {
-				if(!this.settings.replacements) {
-					this.settings.replacements = true;
-				}
-				if (this.settings.cache) {
-					this.settings.cache = true;
-				}
-			}
 			opening = this.openManifest(this.url.Path.toString());
 		} else {
 			this.url = new Url(input);
 			this.locationUrl = new Url(input);
-			if (this.url.origin !== location.origin) {
-				if(!this.settings.replacements) {
-					this.settings.replacements = true;
-				}
-				if (this.settings.cache) {
-					this.settings.cache = true;
-				}
-			}
 			opening = this.openContainer(CONTAINER_PATH)
 				.then(this.openPackaging.bind(this));
 		}
@@ -387,13 +362,29 @@ class Epub {
 
 		let processed = [];
 
+		// If we are using a worker and cache isn't set,
+		// we should cache the resources if we can
+		if (typeof(this.settings.cache) === "undefined" &&
+				this.settings.worker &&
+				typeof(caches) != "undefined") {
+			this.settings.cache = true;
+		}
+
+		// If the resource is Cross Domain, and we aren't using cache then
+		// replacements are needed.
+		if ((this.url.origin !== location.origin || this.archived ) &&
+				typeof(this.settings.cache) === "undefined" &&
+				typeof(this.settings.replacements) === "undefined") {
+			this.settings.replacements = true;
+		}
+
 		if (this.settings.cache && typeof(caches) != "undefined") {
 			let url = location.origin; // TODO: sort out location vs url vs locationUrl
 			let cached = this.resources.cache(this.key(), url );
 			processed.push(cached);
 		}
 
-		if ( this.settings.replacements || this.archived ) {
+		if ( this.settings.replacements ) {
 			let replacements = this.resources.replacements();
 			processed.push(replacements);
 		}
@@ -518,7 +509,7 @@ class Epub {
 		book.url = this.locationUrl ? this.locationUrl.resolve("manifest.json") : new Url("manifest.json").toString();
 
 		book.spine = this.package.spine.map( (item, index) => {
-			let resource = this.resources.get(item.idref);
+			let resource = this.resources.get(item.idref) || item;
 			let url = this.resources.resolve(resource.href);
 
 			item.index = index;
@@ -529,7 +520,7 @@ class Epub {
 				item.href = url;
 				item.type = resource.type;
 
-				if(resource.properties.length){
+				if(resource.properties && resource.properties.length){
 					item.properties.push.apply(item.properties, resource.properties);
 				}
 			}

@@ -32,23 +32,14 @@
   <script>
     var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo(document.body, {
+    var epub = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf")
+
+    var rendition = epub.renderTo(document.body, {
         manager: "continuous",
         flow: "scrolled",
         width: "60%"
       });
     var displayed = rendition.display("epubcfi(/6/14[xchapter_001]!4/2/24/2[c001p0011]/1:799)");
-
-
-    displayed.then(function(renderer){
-      // -- do stuff
-    });
-
-    // Navigation loaded
-    book.loaded.navigation.then(function(toc){
-      // console.log(toc);
-    });
 
 
   </script>

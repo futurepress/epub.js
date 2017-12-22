@@ -133,10 +133,6 @@ class Rendition {
 		this.spineBySource = undefined;
 		this.spineById = undefined;
 
-		if (manifest) {
-			this.unpack(manifest);
-		}
-
 		this.starting = new defer();
 		/**
 		 * @member {promise} started returns after the rendition has started
@@ -145,6 +141,10 @@ class Rendition {
 		this.started = this.starting.promise;
 		// Block the queue until rendering is started
 		this.q.enqueue(this.started);
+
+		if (manifest) {
+			this.unpack(manifest);
+		}
 
 		// If a service workers is used, block queue till it is ready
 		if (this.settings.worker && navigator && 'serviceWorker' in navigator) {
