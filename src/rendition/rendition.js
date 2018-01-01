@@ -10,11 +10,13 @@ import Contents from "./contents";
 import Annotations from "./annotations";
 import { EVENTS } from "../utils/constants";
 
+import Book from "../book/book";
 import Spine from "../book/spine";
 import Locations from "../epub/locations";
 import PageList from "../epub/pagelist";
 // import Navigation from "../epub/navigation";
 import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
+import Url from "../utils/url";
 
 const DEV = false;
 
@@ -190,6 +192,8 @@ class Rendition {
 
 			this.spineById[section.idref] = index;
 		});
+
+		this.book = new Book(manifest);
 
 		this.start();
 	}
@@ -1020,6 +1024,14 @@ class Rendition {
 		let deferred = new defer();
 		let key = this.key();
 
+		// Resolve early if book is not archived and not cross domain
+		let url = new Url(this.book.url);
+		let source = this.book.source ? this.book.source.type : '';
+		if(source !== "application/epub+zip" &&
+			 url.origin === window.location.origin) {
+			deferred.resolve();
+		}
+
 		if ('serviceWorker' in navigator) {
 
 			let worker = navigator.serviceWorker.controller;
@@ -1028,8 +1040,9 @@ class Rendition {
 				deferred.resolve();
 			}
 
-			navigator.serviceWorker.register(workerUrl, this.settings.workerScope)
+			navigator.serviceWorker.register(workerUrl, { scope: this.settings.workerScope })
 				.then((reg) => {
+
 					worker = navigator.serviceWorker.controller;
 
 					if (reg.active && !worker) {
@@ -1044,12 +1057,17 @@ class Rendition {
 				})
 				.catch((error) => {
 					// registration failed
+					console.error(error);
+
 					this.emit(EVENTS.RENDITION.WORKER_FAILED);
 					deferred.reject('Worker registration failed', error);
 				});
 
 			navigator.serviceWorker.addEventListener('message', (event) => {
 				DEV && console.log("[sw msg]", event.data);
+				if (event.data.msg === "active") {
+					deferred.resolve();
+				}
 			});
 
 			navigator.serviceWorker.addEventListener("controllerchange", (event) => {

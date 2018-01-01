@@ -10,8 +10,7 @@ import EventEmitter from "event-emitter";
  * @param {request} request
  */
 class Locations {
-	constructor(spine, request, pause) {
-		this.spine = spine;
+	constructor(request, pause) {
 		this.request = request;
 		this.pause = pause || 100;
 
@@ -35,7 +34,8 @@ class Locations {
 	 * @param  {int} chars how many chars to split on
 	 * @return {object} locations
 	 */
-	generate(chars) {
+	generate(spine, chars) {
+		this.spine = spine;
 
 		if (chars) {
 			this.break = chars;
@@ -72,10 +72,10 @@ class Locations {
 	}
 
 	process(section) {
-
 		return section.load(this.request)
 			.then(function(contents) {
 				var completed = new defer();
+
 				var locations = this.parse(contents, section.cfiBase);
 				this._locations = this._locations.concat(locations);
 

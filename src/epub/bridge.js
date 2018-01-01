@@ -70,7 +70,7 @@ class Bridge {
 				case "ready":
 					this.manifest = event.data.value;
 					this.book = new Book(this.manifest);
-					this.resolveReady(this.book, this.manifest);
+					this.resolveReady(this.book);
 					break;
 				case "failed":
 					this.rejectReady(event.data.error);
@@ -101,6 +101,41 @@ class Bridge {
 			this.book = new Book(this.manifest);
 			return this.book;
 		});
+	}
+
+	locations() {
+		return this.ask("replacements").then((manifest) => {
+			this.manifest = manifest;
+			this.book = new Book(this.manifest);
+			return this.book;
+		});
+	}
+
+	generateLocations(breakPoint) {
+		return this.ask("generateLocations", [breakPoint])
+			.then((locations) => {
+				if (!this.book) {
+					return;
+				}
+				this.book.locations = locations;
+				console.log(this.book);
+				return locations
+			});
+	}
+
+	loadLocations(json) {
+		let locations;
+		if (!this.book) {
+			return;
+		}
+
+		if (typeof locations === "string") {
+			locations = JSON.parse(json);
+		} else {
+			locations = json;
+		}
+
+		this.book.locations = locations;
 	}
 
 	destroy() {

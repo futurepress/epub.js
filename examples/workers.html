@@ -68,7 +68,7 @@
       var title = document.getElementById("title");
 
       rendition.on("rendered", function(section){
-        var current = epub.book.navigation && epub.book.navigation.get(section.href);
+        var current = book.navigation && book.navigation.get(section.href);
         if (current) {
           var $select = document.getElementById("toc");
           var $selected = $select.querySelector("option[selected]");
@@ -89,7 +89,7 @@
 
       rendition.on("relocated", function(location){
         console.log(location);
-        var direction = epub.book.metadata.direction;
+        var direction = book.metadata.direction;
         var next = direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
         var prev = direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
 

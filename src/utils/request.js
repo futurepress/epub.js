@@ -58,13 +58,13 @@ function request(url, type, withCredentials, headers) {
 
 			if(isXml(type)){
 				r = parse(result, "text/xml");
-			} else if(type == "xhtml"){
+			} else if(type === "xhtml"){
 				r = parse(result, "application/xhtml+xml");
-			} else if(type == "html" || type == "htm"){
+			} else if(type === "html" || type === "htm"){
 				r = parse(result, "text/html");
-			} else if(type == "json"){
+			} else if(type === "json"){
 				r = result;
-			} else if(type == "blob"){
+			} else if(type === "blob"){
 				r = result;
 			} else {
 				r = result;

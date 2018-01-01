@@ -82,36 +82,49 @@ class Epub {
 		this.ready = this.opened.then(() => {
 			this.manifest = this.book.toJSON();
 			this.emit(EVENTS.BOOK.READY, this.manifest);
-			return this.manifest;
+			return this.book;
 		});
 
 		/**
 		 * @member {method} request
-		 * @memberof Book
+		 * @memberof Epub
 		 * @private
 		 */
 		this.request = this.settings.requestMethod || request;
 
 		/**
 		 * @member {boolean} archived
-		 * @memberof Book
+		 * @memberof Epub
 		 * @private
 		 */
 		this.archived = false;
 
 		/**
 		 * @member {Container} container
-		 * @memberof Book
+		 * @memberof Epub
 		 * @private
 		 */
 		this.container = undefined;
 
 		/**
 		 * @member {Packaging} packaging
-		 * @memberof Book
+		 * @memberof Epub
 		 * @private
 		 */
 		this.packaging = undefined;
+
+		/**
+		 * @member {Locations} locations
+		 * @memberof Epub
+		 * @private
+		 */
+		 this.locations = undefined;
+
+		 /**
+		 * @member {PageList} pagelist
+		 * @memberof Epub
+		 */
+		this.pageList = undefined;
 
 		if(url) {
 			this.open(url).catch((error) => {
@@ -361,6 +374,7 @@ class Epub {
 		});
 
 		let processed = [];
+		let crossdomain = this.url.origin !== location.origin;
 
 		// If we are using a worker and cache isn't set,
 		// we should cache the resources if we can
@@ -372,7 +386,7 @@ class Epub {
 
 		// If the resource is Cross Domain, and we aren't using cache then
 		// replacements are needed.
-		if ((this.url.origin !== location.origin || this.archived ) &&
+		if ((crossdomain || this.archived ) &&
 				typeof(this.settings.cache) === "undefined" &&
 				typeof(this.settings.replacements) === "undefined") {
 			this.settings.replacements = true;
@@ -380,8 +394,12 @@ class Epub {
 
 		if (this.settings.cache && typeof(caches) != "undefined") {
 			let url = location.origin; // TODO: sort out location vs url vs locationUrl
-			let cached = this.resources.cache(this.key(), url );
-			processed.push(cached);
+			let cached = this.resources.cache(this.key(), url, (crossdomain === false));
+
+			// If this is an archive, or cross domain - wait till all items are cached
+			if (this.archived || crossdomain) {
+				processed.push(cached);
+			}
 		}
 
 		if ( this.settings.replacements ) {
@@ -491,6 +509,41 @@ class Epub {
 		return this.archive.open(input, encoding);
 	}
 
+	generateLocations(breakPoint) {
+		if (!this.book) {
+			return;
+		}
+		if (!this.locations) {
+			this.locations = new Locations();
+		}
+		return this.locations.generate(this.book.sections, breakPoint)
+			.then((locations) => {
+				book.locations = locations;
+				return locations;
+			})
+	}
+
+	loadLocations(json) {
+		let locations;
+		if (!this.book) {
+			return;
+		}
+
+		if (!this.locations) {
+			this.locations = new Locations();
+		}
+
+		if (typeof locations === "string") {
+			locations = JSON.parse(json);
+		} else {
+			locations = json;
+		}
+
+		this.book.locations = locations;
+
+		return locations;
+	}
+
 	/**
 	 * Generates the Book Key using the identifer in the manifest or other string provided
 	 * @param  {string} [identifier] to use instead of metadata identifier
@@ -507,6 +560,10 @@ class Epub {
 		let book = new Book();
 
 		book.url = this.locationUrl ? this.locationUrl.resolve("manifest.json") : new Url("manifest.json").toString();
+
+		if (this.archived) {
+			book.source = this.locationUrl.toString();
+		}
 
 		book.spine = this.package.spine.map( (item, index) => {
 			let resource = this.resources.get(item.idref) || item;
@@ -531,10 +588,18 @@ class Epub {
 		book.metadata = this.package.metadata;
 		book.resources = this.resources.toArray();
 
-		book.toc = this.navigation.getTocArray(resolver);
-		book.landmarks = this.navigation.getLandmarksArray(resolver);
+		if (this.navigation) {
+			book.toc = this.navigation.getTocArray(resolver);
+			book.landmarks = this.navigation.getLandmarksArray(resolver);
+		}
 
-		book.pages = this.pageList.toArray();
+		if (this.pageList) {
+			book.pages = this.pageList.toArray();
+		}
+
+		if (this.locations) {
+			book.locations = this.locations.toArray();
+		}
 
 		return book;
 	}
@@ -552,10 +617,10 @@ class Epub {
 		this.isRendered = false; //TODO: ?
 
 		this.book && this.book.destroy();
-		// this.locations && this.locations.destroy();
-		// this.pageList && this.pageList.destroy();
+		this.locations && this.locations.destroy();
+		this.pageList && this.pageList.destroy();
 		this.archive && this.archive.destroy();
-		// this.resources && this.resources.destroy();
+		this.resources && this.resources.destroy();
 		this.container && this.container.destroy();
 		this.packaging && this.packaging.destroy();
 

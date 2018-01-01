@@ -59,9 +59,7 @@ function ePub(url, options) {
 		epub = new Epub(url, options);
 	}
 
-	return epub.ready.then((manifest) => {
-		let book = new Book(manifest);
-
+	return epub.ready.then((book) => {
 		/**
 		 * Sugar to render a book to an element
 		 * @param  {element | string} element element or string to add a rendition to
@@ -71,14 +69,22 @@ function ePub(url, options) {
 		book.renderTo = (element, renditionOptions={}) => {
 
 			if (options && typeof(options.worker) !== "undefined" &&
-					renditionOptions && typeof(renditionOptions.worker) !== "undefined" ) {
+					typeof(renditionOptions.worker) === "undefined" ) {
 				renditionOptions.worker = options.worker;
 			}
 
-			book.rendition = new Rendition(book.manifest, renditionOptions);
-			book.rendition.attachTo(element);
+			let rendition = new Rendition(book.manifest, renditionOptions);
+			rendition.attachTo(element);
 
-			return book.rendition;
+			return rendition;
+		}
+
+		book.generateLocations = (chars) => {
+			return epub.generateLocations(chars)
+				.then((locations) => {
+					book.locations = locations;
+					return locations;
+				});
 		}
 
 		// epub.destroy();
@@ -86,9 +92,6 @@ function ePub(url, options) {
 
 		return book;
 	});
-
-
-	// return epub;
 }
 
 ePub.VERSION = "0.4";

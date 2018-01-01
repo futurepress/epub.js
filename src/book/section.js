@@ -60,10 +60,9 @@ class Section {
 		if(this.contents) {
 			loading.resolve(this.contents);
 		} else {
-			request(this.originalHref || this.href)
+			let type = this.type === "application/xhtml+xml" ? "xhtml" : "html";
+			request(this.href, type)
 				.then(function(xml){
-					// var directory = new Url(this.href).directory;
-
 					this.document = xml;
 					this.contents = xml.documentElement;
 

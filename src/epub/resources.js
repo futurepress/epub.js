@@ -1,5 +1,5 @@
 import {substitute} from "../utils/replacements";
-import {createBlob, createBase64Url, createBlobUrl, blob2base64, defer} from "../utils/core";
+import {createBlob, createBase64Url, createBlobUrl, blob2base64, revokeBlobUrl, defer} from "../utils/core";
 import Url from "../utils/url";
 import mime from "../../libs/mime/mime";
 import Path from "../utils/path";
@@ -116,7 +116,7 @@ class Resources {
 	 * Save all resources into the cache
 	 * @return {array}
 	 */
-	cache(key, origin) {
+	cache(key, origin, absolute) {
 		if (typeof(caches) === "undefined") {
 			return new Promise(function(resolve, reject) {
 				resolve([]);
@@ -131,9 +131,15 @@ class Resources {
 		return caches.open(key).then((cache) => {
 			let urls = this.ids.map((resourceId) => {
 				let resource = this.resources[resourceId];
-				let path = this.path.resolve(resource.href);
-				let url = new Url(base + path, origin).toString();
-
+				let href = resource.href;
+				let isAbsolute = href.indexOf("://") > -1;
+				let path = isAbsolute ? new Url(resource.href).directory : this.path.resolve(href);
+				let url;
+				if (absolute && this.url) {
+					url = this.url.resolve(href);
+				} else {
+					url = new Url(base + path, origin).toString();
+				}
 				return cache.match(url, config)
 					.then((result) => {
 						if (!result) {
@@ -615,7 +621,18 @@ class Resources {
 		}
 	}
 
+	revokeBlobUrls() {
+		this.ids.forEach((id) => {
+			let r = this.resources[id];
+			if (r.replacement) {
+				revokeBlobUrl(r.replacement);
+			}
+		});
+	}
+
 	destroy() {
+		this.revokeBlobUrls();
+
 		this.settings = undefined;
 		this.manifest = undefined;
 

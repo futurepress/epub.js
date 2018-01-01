@@ -84,14 +84,6 @@ class Book {
 			links
 		} = manifest;
 
-		if (links) {
-			links.forEach((link) => {
-				if (link.rel === "self") {
-					this.url = link.href;
-				}
-			});
-		}
-
 		this.metadata = metadata;
 		this.resources = resources;
 		this.spine = spine;
@@ -99,7 +91,7 @@ class Book {
 		this.landmarks = landmarks;
 		this.locations = locations;
 		this.pages = pages;
-
+		this.links = links;
 	}
 
 
@@ -121,7 +113,7 @@ class Book {
 		});
 
 		if (selfLink) {
-			link.href = url;
+			selfLink.href = url;
 		} else {
 			selfLink = {
 				rel: "self",
@@ -168,21 +160,29 @@ class Book {
 	 * @param {string} [coverUrl]
 	 * @return {string} coverUrl
 	 */
-	get cover() {
-		return this.manifest.cover;
-	}
+	 get cover() {
+		 let coverLink = this.manifest.links.find((link) => {
+			 return link.rel === "cover";
+		 });
+		 return coverLink && coverLink.href;
+	 }
 
-	set cover(url) {
-		if (!url) {
-			return;
-		}
-		this.manifest.cover = url;
-		this.manifest.resources.push({
-			href: url,
-			rel: "cover"
-		});
-		return this.manifest.cover;
-	}
+	 set cover(url) {
+		 let coverLink = this.manifest.links.find((link) => {
+			 return link.rel === "cover";
+		 });
+
+		 if (coverLink) {
+			 coverLink.href = url;
+		 } else {
+			 coverLink = {
+				 rel: "cover",
+				 href: url
+			 };
+			 this.manifest.links.push(coverLink);
+		 }
+		 return coverLink && coverLink.href;
+	 }
 
 	/**
 	 * Get or set the metadata
@@ -314,6 +314,62 @@ class Book {
 	}
 
 	/**
+	 * Get or set links
+	 * @param {array} [links]
+	 * @return {array} links
+	 */
+	get links() {
+		return this.manifest.links;
+	}
+
+	set links(links) {
+		if (!links) {
+			return;
+		}
+
+		links.forEach((link) => {
+			if (link.rel === "cover") {
+				this.cover = link.href;
+			}
+		});
+
+		return this.manifest.links = links;
+	}
+
+	/**
+	 * Get or set if the source of the book, if it is archived book
+	 * if returns true, the links in the books have been replaced
+	 * with service workers urls, or blob urls
+	 * @param {array} [links]
+	 * @return {array} links
+	 */
+	get source() {
+		let sourceLink = this.manifest.links.find((link) => {
+			return link.rel === "source";
+		});
+		return sourceLink && sourceLink.href;
+	}
+
+	set source(url) {
+		let sourceLink = this.manifest.links.find((link) => {
+			return link.rel === "source";
+		});
+
+		if (sourceLink) {
+			sourceLink.href = url;
+		} else {
+			sourceLink = {
+				rel: "source",
+				href: url,
+				type: "application/epub+zip"
+			};
+			this.manifest.links.push(sourceLink);
+		}
+		return sourceLink && sourceLink.href;
+	}
+
+
+	/**
 	 * Find a DOM Range for a given CFI Range
 	 * @param  {EpubCFI} cfiRange a epub cfi range
 	 * @return {Range}
@@ -332,6 +388,16 @@ class Book {
 			var range = cfi.toRange(item.document);
 			return range;
 		});
+	}
+
+	/**
+	 * Generates the Book Key using the identifer in the manifest or other string provided
+	 * @param  {string} [identifier] to use instead of metadata identifier
+	 * @return {string} key
+	 */
+	key(identifier) {
+		var ident = identifier || this.metadata.identifier;
+		return `epubjs-${EPUBJS_VERSION}-${ident}`;
 	}
 
 	/**
@@ -358,7 +424,6 @@ class Book {
 		this.navigation && this.navigation.destroy();
 
 		// Set by ePub
-		this.rendition && this.rendition.destroy();
 		this.epub && this.epub.destroy();
 
 		this.sections = undefined;

@@ -58,7 +58,7 @@ class Locators {
 			return -1;
 		}
 
-		loc = locationOf(cfi, this.locations, this.epubcfi.compare);
+		loc = locationOf(cfi, this.locations, EpubCFI.prototype.compare);
 
 		if (loc > this.totalLocations) {
 			return this.totalLocations;
@@ -145,18 +145,18 @@ class Locators {
 		var pg = -1;
 
 		// Check if the pageList has not been set yet
-		if(this.pageLocations.length === 0) {
+		if(!this.pageLocations || this.pageLocations.length === 0) {
 			return -1;
 		}
 
 		// check if the cfi is in the location list
-		var index = indexOfSorted(cfi, this.pageLocations, this.epubcfi.compare);
+		var index = indexOfSorted(cfi, this.pageLocations, EpubCFI.prototype.compare);
 		if(index != -1) {
 			pg = this.pages[index];
 		} else {
 			// Otherwise add it to the list of locations
 			// Insert it in the correct position in the locations page
-			index = locationOf(cfi, this.pageLocations, this.epubcfi.compare);
+			index = locationOf(cfi, this.pageLocations, EpubCFI.prototype.compare);
 			// Get the page at the location just before the new one, or return the first
 			pg = index-1 >= 0 ? this.pages[index-1] : this.pages[0];
 			if(pg !== undefined) {
@@ -217,7 +217,7 @@ class Locators {
 	 * @param  {string} cfi EpubCFI String
 	 * @return {number} percentage
 	 */
-	percentageFromCfi(cfi){
+	percentagePageFromCfi(cfi){
 		var pg = this.pageFromCfi(cfi);
 		var percentage = this.percentageFromPage(pg);
 		return percentage;

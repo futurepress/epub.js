@@ -24,114 +24,127 @@
 		var controls = document.getElementById("controls");
 		var currentPage = document.getElementById("current-percent");
 		var slider = document.createElement("input");
-		var slide = function(){
-				var cfi = book.locations.cfiFromPercentage(slider.value / 100);
-				rendition.display(cfi);
-		};
 		var mouseDown = false;
 
 		// Load the opf
-		var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
-		var rendition = book.renderTo("viewer", {
-			width: "100%",
-			height: 600
-		});
-
-		var displayed = rendition.display();
-
-		var title = document.getElementById("title");
-
-		var next = document.getElementById("next");
-		next.addEventListener("click", function(e){
-			rendition.next();
-			e.preventDefault();
-		}, false);
-
-		var prev = document.getElementById("prev");
-		prev.addEventListener("click", function(e){
-			rendition.prev();
-			e.preventDefault();
-		}, false);
-
-		var keyListener = function(e){
-
-			// Left Key
-			if ((e.keyCode || e.which) == 37) {
-				rendition.prev();
-			}
-
-			// Right Key
-			if ((e.keyCode || e.which) == 39) {
-				rendition.next();
-			}
-
-		};
-
-		rendition.on("keyup", keyListener);
-		document.addEventListener("keyup", keyListener, false);
-
-		book.ready.then(function(){
-			// Load in stored locations from json or local storage
-			var key = book.key()+'-locations';
-			var stored = localStorage.getItem(key);
-			if (stored) {
-				 return book.locations.load(stored);
-			} else {
-				// Or generate the locations on the fly
-				// Can pass an option number of chars to break sections by
-				// default is 150 chars
-				return book.locations.generate(1600);
-			}
-		})
-		.then(function(locations){
-				controls.style.display = "block";
-				slider.setAttribute("type", "range");
-				slider.setAttribute("min", 0);
-				slider.setAttribute("max", 100);
-				// slider.setAttribute("max", book.locations.total+1);
-				slider.setAttribute("step", 1);
-				slider.setAttribute("value", 0);
-
-				slider.addEventListener("change", slide, false);
-				slider.addEventListener("mousedown", function(){
-						mouseDown = true;
-				}, false);
-				slider.addEventListener("mouseup", function(){
-						mouseDown = false;
-				}, false);
-
-				// Wait for book to be rendered to get current page
-				displayed.then(function(){
-						// Get the current CFI
-						var currentLocation = rendition.currentLocation();
-						// Get the Percentage (or location) from that CFI
-						var currentPage = book.locations.percentageFromCfi(currentLocation.start.cfi);
-						slider.value = currentPage;
-						currentPage.value = currentPage;
+		var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub")
+			.then((book) => {
+				var rendition = book.renderTo("viewer", {
+					width: "100%",
+					height: 600
 				});
 
-				controls.appendChild(slider);
+				var displayed = rendition.display();
 
-				currentPage.addEventListener("change", function(){
-					var cfi = book.locations.cfiFromPercentage(currentPage.value/100);
-					rendition.display(cfi);
+				var title = document.getElementById("title");
+
+				var next = document.getElementById("next");
+				next.addEventListener("click", function(e){
+					rendition.next();
+					e.preventDefault();
 				}, false);
 
-				// Listen for location changed event, get percentage from CFI
-				rendition.on('relocated', function(location){
-						var percent = book.locations.percentageFromCfi(location.start.cfi);
-						var percentage = Math.floor(percent * 100);
-						if(!mouseDown) {
-								slider.value = percentage;
-						}
-						currentPage.value = percentage;
-						console.log(location);
+				var prev = document.getElementById("prev");
+				prev.addEventListener("click", function(e){
+					rendition.prev();
+					e.preventDefault();
+				}, false);
+
+				var keyListener = function(e){
+
+					// Left Key
+					if ((e.keyCode || e.which) == 37) {
+						rendition.prev();
+					}
+
+					// Right Key
+					if ((e.keyCode || e.which) == 39) {
+						rendition.next();
+					}
+
+				};
+
+				rendition.on("keyup", keyListener);
+				document.addEventListener("keyup", keyListener, false);
+
+				var slide = function(){
+						var cfi = book.locators.cfiFromPercentage(slider.value / 100);
+						rendition.display(cfi);
+				};
+
+				// Load in stored locations from json or local storage
+				var key = book.key()+'-locations';
+				var stored = localStorage.getItem(key);
+				var saved;
+
+				try {
+					saved = JSON.parse(stored);
+				} catch (e) {
+					saved = undefined;
+				}
+
+				var locations;
+				if (stored && saved) {
+					 book.locations = JSON.parse(stored);
+					 locations = book.locations;
+				} else {
+					// Or generate the locations on the fly
+					// Can pass an option number of chars to break sections by
+					// default is 150 chars
+					locations = book.generateLocations(1600);
+				}
+
+				 Promise.resolve(locations).then(function(locations){
+						controls.style.display = "block";
+						slider.setAttribute("type", "range");
+						slider.setAttribute("min", 0);
+						slider.setAttribute("max", 100);
+						// slider.setAttribute("max", book.locations.total+1);
+						slider.setAttribute("step", 1);
+						slider.setAttribute("value", 0);
+
+						slider.addEventListener("change", slide, false);
+						slider.addEventListener("mousedown", function(){
+								mouseDown = true;
+						}, false);
+						slider.addEventListener("mouseup", function(){
+								mouseDown = false;
+						}, false);
+
+						// Wait for book to be rendered to get current page
+						displayed.then(function(){
+								// Get the current CFI
+								var currentLocation = rendition.currentLocation();
+								// Get the Percentage (or location) from that CFI
+								var currentPage = book.locators.percentageFromCfi(currentLocation.start.cfi);
+								slider.value = currentPage;
+								currentPage.value = currentPage;
+						});
+
+						controls.appendChild(slider);
+
+						currentPage.addEventListener("change", function(){
+							var cfi = book.locators.cfiFromPercentage(currentPage.value/100);
+							rendition.display(cfi);
+						}, false);
+
+						// Listen for location changed event, get percentage from CFI
+						rendition.on('relocated', function(location){
+								var percent = book.locators.percentageFromCfi(location.start.cfi);
+								var percentage = Math.floor(percent * 100);
+								if(!mouseDown) {
+										slider.value = percentage;
+								}
+								currentPage.value = percentage;
+								console.log(location);
+						});
+
+						// Save out the generated locations to JSON
+						localStorage.setItem(book.key()+'-locations', JSON.stringify(book.locations));
+
 				});
+			})
 
-				// Save out the generated locations to JSON
-				localStorage.setItem(book.key()+'-locations', book.locations.save());
-
-		});
 
 	</script>
 
