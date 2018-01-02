@@ -29,37 +29,22 @@ describe('ePub', function() {
 		// server.restore();
 	});
 
-	it('should open a epub', function() {
-		var epub = ePub("/fixtures/alice/OPS/package.opf");
-
-		return epub.opened.then(function(book){
-
-			assert.equal( book.isOpen, true, "book is opened" );
-
-			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
+	it('should open a epub and report the book on ready', function() {
+		return ePub("/fixtures/alice/OPS/package.opf").then(function(book){
+			assert.equal( book.metadata.title, "Alice's Adventures in Wonderland" );
+			assert.equal( book.toc.length, 11);
+			assert.equal( book.resources.length, 42 );
+			assert.equal( book.spine.length, 13 );
+			assert.equal( book.landmarks.length, 0 );
 		});
 	});
 
 	it('should open a archived epub', function() {
-		var book = ePub("/fixtures/alice.epub");
-
 		assert(typeof (JSZip) !== "undefined", "JSZip is present" );
 
-		return book.opened.then(function(){
-			assert.equal( book.isOpen, true, "book is opened" );
-			assert( book.archive, "book is unarchived" );
-		});
-	});
-
-	it('should open report the manifest on ready', function() {
-		var book = ePub("/fixtures/alice/OPS/package.opf");
-
-		return book.ready.then(function(manifest){
-			assert.equal( manifest.metadata.title, "Alice's Adventures in Wonderland" );
-			assert.equal( manifest.toc.length, 11);
-			assert.equal( manifest.resources.length, 42 );
-			assert.equal( manifest.spine.length, 13 );
-			assert.equal( manifest.landmarks.length, 0 );
+		return ePub("/fixtures/alice.epub").then(function(book){
+			assert.equal( book.metadata.title, "Alice's Adventures in Wonderland" );
+			assert( book.source.indexOf("alice.epub") > -1, "Archive source is present" );
 		});
 	});
 

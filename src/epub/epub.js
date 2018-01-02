@@ -358,7 +358,7 @@ class Epub {
 		} else if (this.url) {
 			url = this.url.resolve(path);
 		} else {
-			url = path;
+			url = new Url(path);
 		}
 
 		this.resources = new Resources(this.package.manifest, {
@@ -374,7 +374,7 @@ class Epub {
 		});
 
 		let processed = [];
-		let crossdomain = this.url.origin !== location.origin;
+		let crossdomain = url.origin !== location.origin;
 
 		// If we are using a worker and cache isn't set,
 		// we should cache the resources if we can
