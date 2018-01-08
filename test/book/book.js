@@ -231,8 +231,9 @@ describe("Book", function() {
 
 				assert.equal( object.metadata.title, "Alice's Adventures in Wonderland" );
 				assert.equal( object.toc.length, 11);
-				assert.equal( object.resources.length, 42 );
+				assert.equal( object.resources.length, 29 );
 				assert.equal( object.spine.length, 13 );
+				assert.equal( book.spine.length + book.resources.length, 42);
 				assert.equal( object.landmarks.length, 0 );
 			});
 		});

@@ -565,9 +565,15 @@ class Epub {
 			book.source = this.locationUrl.toString();
 		}
 
+		book.resources = this.resources.toArray();
+
 		book.spine = this.package.spine.map( (item, index) => {
 			let resource = this.resources.get(item.idref) || item;
 			let url = this.resources.resolve(resource.href);
+
+			// Remove from resources array
+			let i = book.resources.indexOf(resource);
+			book.resources.splice(i, 1);
 
 			item.index = index;
 			item.cfiBase = new EpubCFI().generateChapterComponent(this.package.spineNodeIndex, item.index, item.idref);
@@ -586,7 +592,6 @@ class Epub {
 		});
 
 		book.metadata = this.package.metadata;
-		book.resources = this.resources.toArray();
 
 		if (this.navigation) {
 			book.toc = this.navigation.getTocArray(resolver);

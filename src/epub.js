@@ -19,37 +19,6 @@ import Bridge from './epub/bridge.js';
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
-// function ePub(url, options) {
-// 	let epub;
-//
-// 	if (options && options.worker) {
-// 		epub = new Bridge(url, options);
-// 	} else {
-// 		epub = new Epub(url, options);
-// 	}
-//
-// 	/**
-// 	 * Sugar to render a book to an element
-// 	 * @param  {element | string} element element or string to add a rendition to
-// 	 * @param  {object} [options]
-// 	 * @return {Rendition}
-// 	 */
-// 	epub.renderTo = (element, options) => {
-//
-// 		epub.rendition = new Rendition(null, options);
-// 		epub.rendition.attachTo(element);
-//
-// 		epub.ready.then((book) => {
-// 			let manifest = book.toObject();
-// 			epub.rendition.unpack(manifest);
-// 		});
-//
-// 		return epub.rendition;
-// 	}
-//
-// 	return epub;
-// }
-
 function ePub(url, options) {
 	let epub;
 

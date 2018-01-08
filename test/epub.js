@@ -33,8 +33,9 @@ describe('ePub', function() {
 		return ePub("/fixtures/alice/OPS/package.opf").then(function(book){
 			assert.equal( book.metadata.title, "Alice's Adventures in Wonderland" );
 			assert.equal( book.toc.length, 11);
-			assert.equal( book.resources.length, 42 );
+			assert.equal( book.resources.length, 29 );
 			assert.equal( book.spine.length, 13 );
+			assert.equal( book.spine.length + book.resources.length, 42);
 			assert.equal( book.landmarks.length, 0 );
 		});
 	});
