@@ -3446,7 +3446,8 @@ EPUBJS.Book.prototype.displayChapter = function(chap, end, deferred){
 			EPUBJS.replace.head,
 			EPUBJS.replace.resources,
 			EPUBJS.replace.posters,
-			EPUBJS.replace.svg
+			EPUBJS.replace.svg,
+			EPUBJS.replace.inlineCss
 		], true);
 
 	}
@@ -3762,7 +3763,8 @@ EPUBJS.Book.prototype.fromStorage = function(stored) {
 		EPUBJS.replace.head,
 		EPUBJS.replace.resources,
 		EPUBJS.replace.posters,
-		EPUBJS.replace.svg
+		EPUBJS.replace.svg,
+		EPUBJS.replace.inlineCss
 	];
 
 	if(this.contained || this.settings.contained) return;
@@ -4384,8 +4386,20 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 	_oldUrls = EPUBJS.core.clone(_cache);
 
 	this.replace(query, function(link, done){
-		var src = link.getAttribute(_attr),
-				full = EPUBJS.core.resolveUrl(_chapterBase, src);
+		var src = link.getAttribute(_attr);
+
+		if (query === "[style]") {
+			var bgImageUrlRegex = /url\(\'?\"?((?!data:)[^\'|^\"^\)]*)\'?\"?\)/;
+			var matches = src.match(bgImageUrlRegex);
+
+			if (matches && matches.length) {
+				src = matches[1];
+			} else {
+				return done(false);
+			}
+		}
+
+		var full = EPUBJS.core.resolveUrl(_chapterBase, src);
 
 		var replaceUrl = function(url) {
 				var timeout;
@@ -4414,6 +4428,10 @@ EPUBJS.Chapter.prototype.replaceWithStored = function(query, attr, func, callbac
 					timeout = setTimeout(function(){
 						done(url, full);
 					}, _wait);
+				}
+
+				if (query === "[style]" && url) {
+					url = link.getAttribute(_attr).replace(bgImageUrlRegex, "url('" + url + "')")
 				}
 
 				if (url) {
@@ -8493,6 +8511,16 @@ EPUBJS.replace.svg = function(callback, renderer) {
 
 	renderer.replaceWithStored("svg image", "xlink:href", function(_store, full, done){
 		_store.getUrl(full).then(done);
+	}, callback);
+
+};
+
+EPUBJS.replace.inlineCss = function (callback, renderer) {
+
+	renderer.replaceWithStored("[style]", "style", function (_store, full, done){
+		if (full) {
+			EPUBJS.replace.srcs(_store, full, done);
+		}
 	}, callback);
 
 };
