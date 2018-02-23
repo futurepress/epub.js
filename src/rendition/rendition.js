@@ -80,6 +80,7 @@ class Rendition {
 		this.hooks.content.register(this.handleLinks.bind(this));
 		this.hooks.content.register(this.passEvents.bind(this));
 		this.hooks.content.register(this.adjustImages.bind(this));
+		this.hooks.content.register(this.addIdentifier.bind(this));
 
 		/**
 		 * @member {Themes} themes
@@ -952,6 +953,16 @@ class Rendition {
 				resolve();
 			}, 1);
 		});
+	}
+
+	/**
+	 * Hook to add the book identifier
+	 * @param  {Contents} contents
+	 * @private
+	 */
+	addIdentifier(contents) {
+		let ident = this.book.metadata.identifier;
+		contents.addIdentifier(ident);
 	}
 
 	/**

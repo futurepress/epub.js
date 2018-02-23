@@ -24,7 +24,7 @@
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
     // Load the opf
-    var epub = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
+    var epub = ePub(url || "https://s3.amazonaws.com/moby-dick/book.epub", {
       worker: "/dist/epub.worker.js"
     }).then(function(book) {
       var rendition = book.renderTo("viewer", {
@@ -153,6 +153,18 @@
         rendition.unpack(book.manifest);
         rendition.display(rendition.location);
       })
+    });
+    */
+    /*
+    caches.keys().then(function (cachesNames) {
+      console.log("Delete " + document.defaultView.location.origin + " caches");
+      return Promise.all(cachesNames.map(function (cacheName) {
+        return caches.delete(cacheName).then(function () {
+          console.log("Cache with name " + cacheName + " is deleted");
+        });
+      }))
+    }).then(function () {
+      console.log("All " + document.defaultView.location.origin + " caches are deleted");
     });
     */
   </script>

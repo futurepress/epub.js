@@ -122,7 +122,26 @@ class Book {
 			};
 			this.manifest.links.push(selfLink);
 		}
+
+		// Set the Path object for resolving links
+		this.path = selfLink.href;
+
 		return selfLink && selfLink.href;
+	}
+
+	/**
+	 * Get or set the Path to resolve content
+	 * @param {string} [url]
+	 * @return {string} Path
+	 */
+	get path() {
+		return this._path;
+	}
+
+	set path(url) {
+		let uri = new Url(url);
+		this._path = uri.Path;
+		return this._path;
 	}
 
 	/**
@@ -330,6 +349,9 @@ class Book {
 		links.forEach((link) => {
 			if (link.rel === "cover") {
 				this.cover = link.href;
+			}
+			if (link.rel === "self") {
+				this.path = link.href;
 			}
 		});
 

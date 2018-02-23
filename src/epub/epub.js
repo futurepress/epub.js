@@ -387,22 +387,40 @@ class Epub {
 		// If the resource is Cross Domain, and we aren't using cache then
 		// replacements are needed.
 		if ((crossdomain || this.archived ) &&
-				typeof(this.settings.cache) === "undefined" &&
+				typeof(caches) === "undefined" &&
 				typeof(this.settings.replacements) === "undefined") {
 			this.settings.replacements = true;
 		}
 
 		if (this.settings.cache && typeof(caches) != "undefined") {
-			let url = location.origin; // TODO: sort out location vs url vs locationUrl
-			let cached = this.resources.cache(this.key(), url, (crossdomain === false));
 
-			// If this is an archive, or cross domain - wait till all items are cached
-			if (this.archived || crossdomain) {
+			let uriComponent;
+			let cached;
+			let key;
+
+			if (this.archived) {
+				uriComponent = encodeURIComponent(this.locationUrl.toString());
+				key = "epubjs-zip/";
+				url = new Url(key + uriComponent + path, location.href);
+				cached = this.resources.cache(key, url.toString());
+
+				this.cacheUrl = url;
+			} else if (crossdomain) {
+				uriComponent = encodeURIComponent(this.locationUrl.origin);
+				key = "epubjs-proxy/";
+				url = new Url(key + uriComponent + path, location.href);
+				cached = this.resources.cache(key, url.toString());
+
+				this.cacheUrl = url;
+			}
+
+			// Wait for injection (not handled in service worker)
+			if (this.settings.script || this.settings.stylesheet ) {
 				processed.push(cached);
 			}
 		}
 
-		if ( this.settings.replacements ) {
+		if ( this.settings.replacements) {
 			let replacements = this.resources.replacements();
 			processed.push(replacements);
 		}
@@ -433,8 +451,12 @@ class Epub {
 
 	}
 
-	cache() {
-		return this.resources.cache(this.key(), url )
+	cache(key, url, crossdomain) {
+		if (!key) {
+			key = this.key();
+		}
+
+		return this.resources.cache(key, url, crossdomain)
 			.then(() => {
 				this.book = this.toBook();
 				return this.book;
@@ -559,7 +581,15 @@ class Epub {
 
 		let book = new Book();
 
-		book.url = this.locationUrl ? this.locationUrl.resolve("manifest.json") : new Url("manifest.json").toString();
+		book.url = "";
+
+		if (this.cacheUrl) {
+			book.url = this.cacheUrl.resolve("manifest.json");
+		} else if (true) {
+			book.url = this.locationUrl.resolve("manifest.json")
+		} else {
+			book.url = new Url("manifest.json").toString();
+		}
 
 		if (this.archived) {
 			book.source = this.locationUrl.toString();

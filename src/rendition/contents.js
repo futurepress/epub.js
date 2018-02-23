@@ -178,7 +178,7 @@ class Contents {
 			height += border.height;
 		}
 
-		return Math.round(height);
+		return Math.ceil(height);
 	}
 
 	/**

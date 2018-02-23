@@ -1,10 +1,20 @@
 import EventEmitter from "event-emitter";
-import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
+import {
+	extend,
+	borders,
+	uuid,
+	isNumber,
+	bounds,
+	defer,
+	createBlobUrl,
+	revokeBlobUrl,
+	serialize
+} from "../../utils/core";
 import EpubCFI from "../../utils/epubcfi";
 import Contents from "../../rendition/contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
-import Request from "../../utils/request";
+import globalRequest from "../../utils/request";
 import Hook from "../../utils/hook";
 
 class IframeView {
@@ -141,8 +151,10 @@ class IframeView {
 
 		if(this.settings.method === "url") {
 			contents = this.section.href;
-		} else {
+		} else if(contents) {
 			contents = this.section.contents;
+		} else {
+			contents = globalRequest(this.section.href);
 		}
 
 		// Render Chain
@@ -287,7 +299,7 @@ class IframeView {
 
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
-			height = this.contents.textHeight();
+			height = this.contents.scrollHeight();
 		}
 
 		// Only Resize if dimensions have changed or
@@ -352,11 +364,17 @@ class IframeView {
 
 		}.bind(this);
 
-		if (this.settings.method === "blobUrl") {
-			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
-			this.iframe.src = this.blobUrl;
-		} else if(this.settings.method === "srcdoc"){
-			this.iframe.srcdoc = contents;
+		if (this.settings.method != "url") {
+			contents
+				.then((r) => {
+					let text = serialize(r);
+					if (this.settings.method === "blobUrl") {
+						this.blobUrl = createBlobUrl(text, "application/xhtml+xml");
+						this.iframe.src = this.blobUrl;
+					} else if(this.settings.method === "srcdoc"){
+						this.iframe.srcdoc = text;
+					}
+				});
 		} else {
 			this.iframe.src = contents;
 		}

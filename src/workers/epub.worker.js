@@ -1,9 +1,12 @@
 import Epub from "../epub/epub";
 import { EVENTS } from "../utils/constants";
+import JSZip from "jszip";
+import mime from "../../libs/mime/mime";
+
 const DEV = false;
 
 let CACHES = {
-  resources: 'epubjs-resources'
+	resources: 'epubjs-resources'
 };
 
 class EpubWorker {
@@ -15,36 +18,35 @@ class EpubWorker {
 		self.addEventListener('activate', this.onActivate.bind(this));
 
 		this.epub = undefined;
-
 	}
 
 	onInstall(event) {
 		DEV && console.log('[install] Kicking off service worker registration!');
-	  event.waitUntil(self.skipWaiting());
+		event.waitUntil(self.skipWaiting());
 	}
 
 	onActivate(event) {
 		// Claim the service work for this client, forcing `controllerchange` event
-	  DEV && console.log('[activate] Claiming this service worker!');
+		DEV && console.log('[activate] Claiming this service worker!');
 
-	  event.waitUntil(
-	    clients.claim().then(function() {
-	      // After the activation and claiming is complete, send a message to each of the controlled
-	      // pages letting it know that it's active.
-	      // This will trigger navigator.serviceWorker.onmessage in each client.
-	      return self.clients.matchAll().then(function(clients) {
-	        return Promise.all(clients.map(function(client) {
-	          return client.postMessage({ msg: 'active' });
-	        }));
-	      });
-	    })
-	  );
+		event.waitUntil(
+			clients.claim().then(function() {
+				// After the activation and claiming is complete, send a message to each of the controlled
+				// pages letting it know that it's active.
+				// This will trigger navigator.serviceWorker.onmessage in each client.
+				return self.clients.matchAll().then(function(clients) {
+					return Promise.all(clients.map(function(client) {
+						return client.postMessage({ msg: 'active' });
+					}));
+				});
+			})
+		);
 	}
 
 	onFetch(event) {
 		event.respondWith(
 			caches.match(event.request)
-				.then(function(response) {
+				.then((response) => {
 					// Cache hit - return the response from the cached version
 					if (response) {
 						DEV && console.log(
@@ -53,6 +55,16 @@ class EpubWorker {
 							response.ok
 						);
 						return response;
+					}
+
+					let fromZip = event.request.url.indexOf("epubjs-zip/");
+					if (fromZip > -1) {
+						return this.loadFromZip(event.request);
+					}
+
+					let fromProxy = event.request.url.indexOf("epubjs-proxy/");
+					if (fromProxy > -1) {
+						return this.loadFromProxy(event.request);
 					}
 
 					// Not in cache - return the result from the live server
@@ -167,6 +179,88 @@ class EpubWorker {
 		});
 
 		event.waitUntil(added);
+	}
+
+	loadFromZip(originalRequest) {
+		let divider = "epubjs-zip/";
+		let start = originalRequest.url.indexOf(divider) + divider.length;
+		let chunks = originalRequest.url.substring(start).split("/");
+		let cacheName = chunks.shift();
+		let url = decodeURIComponent(cacheName);
+		let path = decodeURIComponent(chunks.join("/"));
+		let mimeType = "text/plain";
+		let entry;
+
+		if (this.zip) {
+			entry = this.zip.file(path);
+			mimeType = mime.lookup(entry.name);
+
+			return entry.async("arraybuffer").then((file) => {
+					let zipResponse = new Response(file, {
+						"status" : 200,
+						"headers": { 'Content-Type': mimeType }
+					});
+					let zipResponseClone = zipResponse.clone();
+					caches.open(cacheName).then((cache) => {
+						return cache.put(originalRequest.url, zipResponseClone);
+					}).then(() => {
+						console.log("from cached zip");
+					});
+					return zipResponse;
+				});
+
+		} else {
+			this.zip = new JSZip();
+			return fetch(url).then((epubResponse) => {
+				return epubResponse.arrayBuffer();
+			}).then((buffer) => {
+				return this.zip.loadAsync(buffer);
+			}).then(() => {
+				entry = this.zip.file(path);
+				mimeType = mime.lookup(entry.name);
+				return entry.async("arraybuffer");
+			}).then((file) => {
+				let zipResponse = new Response(file, {
+					"status" : 200,
+					"headers": { 'Content-Type': mimeType }
+				});
+				let zipResponseClone = zipResponse.clone();
+				caches.open(cacheName).then((cache) => {
+					return cache.put(originalRequest.url, zipResponseClone);
+				}).then(() => {
+					console.log("loaded from zip & cached");
+				});
+				return zipResponse;
+			});
+		}
+	}
+
+	loadFromProxy(originalRequest) {
+		let divider = "epubjs-proxy/";
+		let start = originalRequest.url.indexOf(divider) + divider.length;
+		let chunks = originalRequest.url.substring(start).split("/");
+
+		let cacheName = chunks.shift();
+		let url = decodeURIComponent(cacheName);
+		let path = decodeURIComponent(chunks.join("/"));
+		let mimeType = mime.lookup(chunks[chunks.length - 1]);
+		let entry;
+		console.log("Fetchin", url + "/" + path, mimeType);
+		return fetch(url + "/" + path).then((fromProxy) => {
+			return fromProxy.arrayBuffer();
+		}).then((file) => {
+			let proxyResponse = new Response(file, {
+				"status" : 200,
+				"headers": { 'Content-Type': mimeType }
+			});
+			let proxyResponseClone = proxyResponse.clone();
+			caches.open(cacheName).then((cache) => {
+				return cache.put(originalRequest.url, proxyResponseClone);
+			}).then(() => {
+				console.log("loaded from proxy & cached");
+			});
+			return proxyResponse;
+		});
 	}
 }
 

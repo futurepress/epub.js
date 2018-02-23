@@ -86,7 +86,7 @@ export function replaceLinks(contents, fn) {
 	}
 
 	var base = qs(contents.ownerDocument, "base");
-	var location = base ? base.getAttribute("href") : undefined;
+	var location = base ? base.getAttribute("href") : contents.ownerDocument.defaultView.location.href;
 	var replaceLink = function(link){
 		var href = link.getAttribute("href");
 

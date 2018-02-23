@@ -288,11 +288,15 @@ class Packaging {
 			let id = item.idref;
 
 			if (!id) {
-				item.idref = item.href;
+				item.idref = encodeURIComponent(item.href);
 			}
 
 			if (typeof(item.linear) === "undefined") {
 				item.linear = "yes";
+			}
+
+			if (item.rel && item.rel[0] === "cover") {
+				this.coverPath = item.href;
 			}
 
 			item.index = index;
@@ -301,15 +305,17 @@ class Packaging {
 			return item;
 		});
 
-		json.resources.forEach((item) => {
-			let id = item.id || item.href;
+		if (json.resource) {
+			json.resources.forEach((item) => {
+				let id = item.id || item.href;
 
-			this.manifest[id] = item;
+				this.manifest[id] = item;
 
-			if (item.rel && item.rel[0] === "cover") {
-				this.coverPath = item.href;
-			}
-		});
+				if (item.rel && item.rel[0] === "cover") {
+					this.coverPath = item.href;
+				}
+			});
+		}
 
 		this.spineNodeIndex = 0;
 

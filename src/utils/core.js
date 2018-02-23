@@ -771,6 +771,22 @@ export function prevSection(section, spine) {
 }
 
 /**
+ * Serialize the contents of a document
+ */
+export function serialize(doc) {
+	let userAgent = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+	let isIE = userAgent.indexOf("Trident") >= 0;
+	let Serializer;
+	if (typeof XMLSerializer === "undefined" || isIE) {
+		Serializer = XMLDom.XMLSerializer;
+	} else {
+		Serializer = XMLSerializer;
+	}
+	let serializer = new Serializer();
+	return serializer.serializeToString(doc);
+}
+
+/**
  * Lightweight Polyfill for DOM Range
  * @class
  * @memberof Core

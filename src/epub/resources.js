@@ -29,7 +29,7 @@ class Resources {
 
 		this.urlCache = {};
 
-		this.resources = resources;
+		this.resources = Object.assign({}, resources);
 
 		this.resourcesByHref = {};
 
@@ -116,31 +116,51 @@ class Resources {
 	 * Save all resources into the cache
 	 * @return {array}
 	 */
-	cache(key, origin, absolute) {
+	cache(key, origin) {
 		if (typeof(caches) === "undefined") {
 			return new Promise(function(resolve, reject) {
 				resolve([]);
 			});
 		}
 
-		let base = encodeURIComponent(key);
-		let config = { "status" : 200 };
-
 		this.cacheKey = key;
+
+		let originUrl = this.url;
+		if (typeof(origin) === "string") {
+			originUrl = new Url(origin);
+		}
+
+		this.ids.map((resourceId) => {
+			let resource = this.resources[resourceId];
+			let href = resource.source || resource.href;
+			let isAbsolute = href.indexOf("://") > -1;
+			let path = isAbsolute ? href : this.path.resolve(href);
+			let url;
+
+			if (!isAbsolute && originUrl) {
+				url = originUrl.resolve(href);
+			} else {
+				let originalUrl = new Url(href, origin);
+				let base = encodeURIComponent(originalUrl.origin);
+				path = path.replace(originalUrl.origin, "");
+
+				url = new Url(key + base + path, location.href).toString();
+			}
+
+			this.resources[resourceId].path = path;
+			this.resources[resourceId].cached = url;
+			this.urlCache[path] = url;
+		});
 
 		return caches.open(key).then((cache) => {
 			let urls = this.ids.map((resourceId) => {
 				let resource = this.resources[resourceId];
-				let href = resource.href;
-				let isAbsolute = href.indexOf("://") > -1;
-				let path = isAbsolute ? new Url(resource.href).directory : this.path.resolve(href);
-				let url;
-				if (absolute && this.url) {
-					url = this.url.resolve(href);
-				} else {
-					url = new Url(base + path, origin).toString();
-				}
-				return cache.match(url, config)
+				let url = resource.cached;
+				let path = resource.path;
+
+				let mimeType = mime.lookup(path);
+
+				return cache.match(url)
 					.then((result) => {
 						if (!result) {
 							let loaded;
@@ -167,8 +187,10 @@ class Resources {
 							}
 
 							return loaded.then((blob) => {
-								let response = new Response(blob, config);
-								this.resources[resourceId].cached = url;
+								let response = new Response(blob, {
+									"status" : 200,
+									"headers": { 'Content-Type': mimeType }
+								});
 								this.urlCache[path] = url;
 								return cache.put(url, response);
 							}, (err) => {
@@ -179,7 +201,6 @@ class Resources {
 							});
 
 						} else {
-							this.resources[resourceId].cached = url;
 							this.urlCache[path] = url;
 							return url;
 						}
@@ -522,6 +543,9 @@ class Resources {
 		return text.replace(reg, "$&" + toInject);
 	}
 
+	origin(url) {
+		this.url = new Url(url);
+	}
 
 	/**
 	 * Resolve a path to its absolute url (or replaced url)
@@ -532,7 +556,8 @@ class Resources {
 		if (!path) {
 			return;
 		}
-		let href = this.path.resolve(path);
+		let isAbsolute = path.indexOf("://") > -1;
+		let href = isAbsolute ? path : this.path.resolve(path);
 		let resolved = href;
 
 		let search = href.split("?");
