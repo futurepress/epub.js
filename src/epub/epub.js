@@ -387,7 +387,8 @@ class Epub {
 		// If the resource is Cross Domain, and we aren't using cache then
 		// replacements are needed.
 		if ((crossdomain || this.archived ) &&
-				typeof(caches) === "undefined" &&
+				!this.settings.worker &&
+				!this.settings.cache &&
 				typeof(this.settings.replacements) === "undefined") {
 			this.settings.replacements = true;
 		}
