@@ -1,4 +1,4 @@
-import Epub from "../epub/epub";
+import Epub from "../streamer/epub";
 import { EVENTS } from "../utils/constants";
 import JSZip from "jszip";
 import mime from "../../libs/mime/mime";
@@ -245,7 +245,7 @@ class EpubWorker {
 		let path = decodeURIComponent(chunks.join("/"));
 		let mimeType = mime.lookup(chunks[chunks.length - 1]);
 		let entry;
-		console.log("Fetchin", url + "/" + path, mimeType);
+
 		return fetch(url + "/" + path).then((fromProxy) => {
 			return fromProxy.arrayBuffer();
 		}).then((file) => {
@@ -256,8 +256,6 @@ class EpubWorker {
 			let proxyResponseClone = proxyResponse.clone();
 			caches.open(cacheName).then((cache) => {
 				return cache.put(originalRequest.url, proxyResponseClone);
-			}).then(() => {
-				console.log("loaded from proxy & cached");
 			});
 			return proxyResponse;
 		});

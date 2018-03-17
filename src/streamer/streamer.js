@@ -1,13 +1,14 @@
 import {extend, defer} from "../utils/core";
 import { EVENTS } from "../utils/constants";
 import Book from "../book/book";
+import Epub from "./epub";
 
 const DEV = false;
 /**
  * Book proxy
  */
-class Bridge {
-	constructor(url, options) {
+class Streamer {
+	constructor(options) {
 		this.waiting = {};
 
 		this.ready = new Promise((resolve, reject) => {
@@ -15,35 +16,40 @@ class Bridge {
 			this.rejectReady = reject;
 		})
 
-		this.worker = new Worker(options.worker);
+		if (options && options.worker) {
+			this.worker = new Worker(options.worker);
+			this.worker.addEventListener("message", this.listen.bind(this));
 
-		this.worker.addEventListener("message", this.listen.bind(this));
-
-		if (url) {
-			this.ask("init", [url, options]);
-		} else {
 			this.ask("init", [options]);
+		} else {
+			this.epub = new Epub(options);
 		}
+
 	}
 
 	ask(method, args) {
 		let asking = new defer();
 		let promiseId = asking.id;
 
-		let str = JSON.stringify({
-			method: method,
-			args: args,
-			promise: promiseId
-		});
+		if (this.worker) {
+			let str = JSON.stringify({
+				method: method,
+				args: args,
+				promise: promiseId
+			});
 
-		if(method in this.waiting) {
-			this.waiting[promiseId].push(asking);
+			if(method in this.waiting) {
+				this.waiting[promiseId].push(asking);
+			} else {
+				this.waiting[promiseId] = [asking];
+			}
+
+			DEV && console.log("[ask]", str);
+			this.worker.postMessage(str);
 		} else {
-			this.waiting[promiseId] = [asking];
+			asking.resolve(this.epub[method].apply(this.epub, args))
 		}
 
-		DEV && console.log("[ask]", str);
-		this.worker.postMessage(str);
 
 		return asking.promise;
 	}
@@ -80,7 +86,17 @@ class Bridge {
 	}
 
 	open(url) {
-		return this.ask("open", [url]);
+		return this.ask("open", [url]).then((result) => {
+			if (result.data) {
+				this.manifest = result.data.value;
+				this.book = new Book(this.manifest);
+			} else {
+				this.book = result;
+			}
+
+			this.resolveReady(this.book);
+			return this.book;
+		});
 	}
 
 	key(identifier) {
@@ -118,7 +134,6 @@ class Bridge {
 					return;
 				}
 				this.book.locations = locations;
-				console.log(this.book);
 				return locations
 			});
 	}
@@ -144,4 +159,4 @@ class Bridge {
 	}
 }
 
-export default Bridge;
+export default Streamer;

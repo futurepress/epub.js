@@ -445,9 +445,6 @@ class Book {
 		this.locators && this.locators.destroy();
 		this.navigation && this.navigation.destroy();
 
-		// Set by ePub
-		this.epub && this.epub.destroy();
-
 		this.sections = undefined;
 		this.locators = undefined;
 		this.navigation = undefined;

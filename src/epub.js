@@ -1,4 +1,3 @@
-import Epub from "./epub/epub";
 import Book from "./book/book";
 import Rendition from "./rendition/rendition";
 import EpubCFI from "./utils/epubcfi";
@@ -10,7 +9,7 @@ import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
 
-import Bridge from './epub/bridge.js';
+import Streamer from './streamer/streamer';
 
 /**
  * Creates a new Book or Book Bridge & Worker
@@ -20,15 +19,12 @@ import Bridge from './epub/bridge.js';
  * @example ePub("/path/to/book.epub", {})
  */
 function ePub(url, options) {
-	let epub;
+	let streamer;
+	let rendition;
 
-	if (options && options.worker) {
-		epub = new Bridge(url, options);
-	} else {
-		epub = new Epub(url, options);
-	}
+	streamer = new Streamer(options);
 
-	return epub.ready.then((book) => {
+	return streamer.open(url).then((book) => {
 		/**
 		 * Sugar to render a book to an element
 		 * @param  {element | string} element element or string to add a rendition to
@@ -42,22 +38,29 @@ function ePub(url, options) {
 				renditionOptions.worker = options.worker;
 			}
 
-			let rendition = new Rendition(book.manifest, renditionOptions);
+			rendition = new Rendition(book.manifest, renditionOptions);
 			rendition.attachTo(element);
 
 			return rendition;
 		}
 
 		book.generateLocations = (chars) => {
-			return epub.generateLocations(chars)
+			return streamer.generateLocations(chars)
 				.then((locations) => {
 					book.locations = locations;
 					return locations;
 				});
 		}
 
-		// epub.destroy();
-		book.epub = epub;
+		book._destroy = book.destroy;
+		book.destroy = () => {
+			book._destroy();
+			streamer.destroy();
+			rendition.destroy();
+		}
+
+		// streamer.destroy();
+		window.EpubStreamer = streamer;
 
 		return book;
 	});

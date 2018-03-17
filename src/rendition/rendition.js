@@ -12,9 +12,9 @@ import { EVENTS } from "../utils/constants";
 
 import Book from "../book/book";
 import Spine from "../book/spine";
-import Locations from "../epub/locations";
-import PageList from "../epub/pagelist";
-// import Navigation from "../epub/navigation";
+import Locations from "../streamer/locations";
+import PageList from "../streamer/pagelist";
+// import Navigation from "../streamer/navigation";
 import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
 import Url from "../utils/url";
 
