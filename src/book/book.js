@@ -359,8 +359,8 @@ class Book {
 	}
 
 	/**
-	 * Get or set if the source of the book, if it is archived book
-	 * if returns true, the links in the books have been replaced
+	 * Get or set the source of the book.
+	 * If returns with an object, the links in the books have been replaced
 	 * with service workers urls, or blob urls
 	 * @param {array} [links]
 	 * @return {array} links
@@ -369,7 +369,7 @@ class Book {
 		let sourceLink = this.manifest.links.find((link) => {
 			return link.rel === "source";
 		});
-		return sourceLink && sourceLink.href;
+		return sourceLink;
 	}
 
 	set source(url) {
@@ -387,7 +387,7 @@ class Book {
 			};
 			this.manifest.links.push(sourceLink);
 		}
-		return sourceLink && sourceLink.href;
+		return sourceLink;
 	}
 
 

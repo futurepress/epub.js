@@ -376,11 +376,16 @@ class Epub {
 		let processed = [];
 		let crossdomain = url.origin !== location.origin;
 
+		// If caches doesn't exist, use replacements instead
+		if (typeof(caches) === "undefined") {
+			this.settings.replacements = true;
+			this.settings.cache = false;
+		}
+
 		// If we are using a worker and cache isn't set,
 		// we should cache the resources if we can
 		if (typeof(this.settings.cache) === "undefined" &&
-				this.settings.worker &&
-				typeof(caches) != "undefined") {
+				this.settings.worker) {
 			this.settings.cache = true;
 		}
 

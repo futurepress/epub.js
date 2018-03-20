@@ -1,4 +1,4 @@
-import Epub from "../streamer/epub";
+import Epub from "../epub/epub";
 import { EVENTS } from "../utils/constants";
 import JSZip from "jszip";
 import mime from "../../libs/mime/mime";
@@ -93,6 +93,14 @@ class EpubWorker {
 				break;
 			case "add":
 				this.add(event);
+				break;
+			case "open":
+				if (this.epub) {
+					this.epub.open.apply(this.epub, data.args).then((book) => {
+						let manifest = book.toJSON();
+						this.respond(data.method, manifest, data.promise);
+					});
+				}
 				break;
 			default:
 				if (this.epub) {

@@ -7,7 +7,7 @@ const DEV = false;
 /**
  * Book proxy
  */
-class Streamer {
+class Bridge {
 	constructor(options) {
 		this.waiting = {};
 
@@ -21,8 +21,6 @@ class Streamer {
 			this.worker.addEventListener("message", this.listen.bind(this));
 
 			this.ask("init", [options]);
-		} else {
-			this.epub = new Epub(options);
 		}
 
 	}
@@ -87,8 +85,8 @@ class Streamer {
 
 	open(url) {
 		return this.ask("open", [url]).then((result) => {
-			if (result.data) {
-				this.manifest = result.data.value;
+			if (typeof result === "string") {
+				this.manifest = JSON.parse(result);
 				this.book = new Book(this.manifest);
 			} else {
 				this.book = result;
@@ -159,4 +157,4 @@ class Streamer {
 	}
 }
 
-export default Streamer;
+export default Bridge;

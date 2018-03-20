@@ -9,7 +9,8 @@ import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
 
-import Streamer from './streamer/streamer';
+import Epub from './epub/epub';
+import EpubBridge from './epub/bridge';
 
 /**
  * Creates a new Book or Book Bridge & Worker
@@ -18,13 +19,17 @@ import Streamer from './streamer/streamer';
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
-function ePub(url, options) {
-	let streamer;
+function ePub(url, options={}) {
+	let epub;
 	let rendition;
 
-	streamer = new Streamer(options);
+	if (options.worker) {
+		epub = new EpubBridge(options);
+	} else {
+		epub = new Epub(options);
+	}
 
-	return streamer.open(url).then((book) => {
+	return epub.open(url).then((book) => {
 		/**
 		 * Sugar to render a book to an element
 		 * @param  {element | string} element element or string to add a rendition to
@@ -41,11 +46,20 @@ function ePub(url, options) {
 			rendition = new Rendition(book.manifest, renditionOptions);
 			rendition.attachTo(element);
 
+			// If the workers fails, switch to replacements
+	    rendition.on("workerFailed", function(){
+	      rendition.clear();
+	      epub.replacements().then((book) => {
+	        rendition.unpack(book.manifest);
+	        rendition.display(rendition.location);
+	      })
+	    });
+
 			return rendition;
 		}
 
 		book.generateLocations = (chars) => {
-			return streamer.generateLocations(chars)
+			return epub.generateLocations(chars)
 				.then((locations) => {
 					book.locations = locations;
 					return locations;
@@ -55,12 +69,12 @@ function ePub(url, options) {
 		book._destroy = book.destroy;
 		book.destroy = () => {
 			book._destroy();
-			streamer.destroy();
+			epub.destroy();
 			rendition.destroy();
 		}
 
-		// streamer.destroy();
-		window.EpubStreamer = streamer;
+		// epub.destroy();
+		window.Epub = epub;
 
 		return book;
 	});

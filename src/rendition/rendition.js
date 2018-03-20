@@ -12,9 +12,10 @@ import { EVENTS } from "../utils/constants";
 
 import Book from "../book/book";
 import Spine from "../book/spine";
-import Locations from "../streamer/locations";
-import PageList from "../streamer/pagelist";
-// import Navigation from "../streamer/navigation";
+import Locations from "../epub/locations";
+import PageList from "../epub/pagelist";
+import Epub from "../epub/epub";
+// import Navigation from "../epub/navigation";
 import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
 import Url from "../utils/url";
 
@@ -153,6 +154,13 @@ class Rendition {
 		if (this.settings.worker && navigator && 'serviceWorker' in navigator) {
 			this.q.enqueue(() => {
 				return this.worker(this.settings.worker)
+					.catch(() => {
+						// worker failed, will need replacements
+						this.starting = new defer();
+						this.started = this.starting.promise;
+						// Block the queue again
+						return this.q.enqueue(this.started);
+					});
 			});
 		}
 	}
@@ -1038,6 +1046,7 @@ class Rendition {
 		// Resolve early if book is not archived and not cross domain
 		let url = new Url(this.book.url);
 		let source = this.book.source ? this.book.source.type : '';
+
 		if(source !== "application/epub+zip" &&
 			 url.origin === window.location.origin) {
 			deferred.resolve();
@@ -1065,8 +1074,7 @@ class Rendition {
 						deferred.resolve();
 					}
 
-				})
-				.catch((error) => {
+				}, (error) => {
 					// registration failed
 					console.error(error);
 
