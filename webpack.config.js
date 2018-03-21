@@ -2,15 +2,26 @@ var webpack = require("webpack");
 var path = require('path');
 var BabiliPlugin = require("babili-webpack-plugin");
 var PROD = (process.env.NODE_ENV === 'production')
-var LEGACY = (process.env.LEGACY)
+var LEGACY = (process.env.LEGACY);
+var EXTERNALS = (process.env.EXTERNALS);
 var hostname = "localhost";
 var port = 8080;
-var enter = LEGACY ? {
-		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
-	} : {
+var enter = {
 		"epub": "./src/epub.js",
 		"epub.worker": "./src/workers/epub.worker.js"
-	};
+	}
+
+if (LEGACY) {
+	enter = {
+		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
+	}
+}
+
+if (EXTERNALS) {
+	enter = {
+		"epub.externals": ["./src/epub.js"]
+	}
+}
 
 module.exports = {
 	entry: enter,
@@ -24,12 +35,12 @@ module.exports = {
 		globalObject: "typeof self !== \'undefined\' ? self : this",
 		publicPath: "/dist/"
 	},
-	externals: {
-		// "jszip": "JSZip",
-		// "xmldom": "xmldom"
-	},
+	externals: EXTERNALS ? {
+		"jszip": "JSZip",
+		"xmldom": "xmldom"
+	} : {},
 	plugins: PROD ? [
-		// new BabiliPlugin()
+		new BabiliPlugin()
 	] : [],
 	resolve: {
 		alias: {
