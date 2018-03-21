@@ -55,7 +55,7 @@ module.exports = function(config) {
         }
       },
       module: {
-        loaders: [
+        rules: [
           {
             test: /\.js$/,
             exclude: /node_modules\/(?!(marks-pane)\/).*/,

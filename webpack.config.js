@@ -21,6 +21,7 @@ module.exports = {
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
 		libraryTarget: "umd",
+		globalObject: "typeof self !== \'undefined\' ? self : this",
 		publicPath: "/dist/"
 	},
 	externals: {
@@ -28,7 +29,7 @@ module.exports = {
 		// "xmldom": "xmldom"
 	},
 	plugins: PROD ? [
-		new BabiliPlugin()
+		// new BabiliPlugin()
 	] : [],
 	resolve: {
 		alias: {
@@ -45,7 +46,7 @@ module.exports = {
 		}
 	},
 	module: {
-		loaders: [
+		rules: [
 			{
 				test: /\.js$/,
 				exclude: /node_modules\/(?!(marks-pane)\/).*/,
