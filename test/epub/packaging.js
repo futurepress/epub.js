@@ -1,7 +1,8 @@
-import assert from "assert";
-
+// import assert from "assert";
 // import Epub from "../../src/epub/epub";
 import Packaging from "../../src/epub/packaging";
+import chai from 'chai';
+const assert = chai.assert;
 
 describe('Packaging', function() {
 	let opf;

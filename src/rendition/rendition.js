@@ -8,7 +8,7 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Contents from "./contents";
 import Annotations from "./annotations";
-import { EVENTS } from "../utils/constants";
+import { EVENTS, EPUBJS_VERSION } from "../utils/constants";
 
 import Book from "../book/book";
 import Spine from "../book/spine";

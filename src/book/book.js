@@ -8,7 +8,7 @@ import Locators from "./locators";
 import Navigation from "./navigation";
 import request from "../utils/request";
 import EpubCFI from "../utils/epubcfi";
-import { EVENTS } from "../utils/constants";
+import { EVENTS, EPUBJS_VERSION } from "../utils/constants";
 
 /**
  * An Epub Book representation with methods for the loading and manipulation

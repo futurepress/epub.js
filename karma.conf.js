@@ -1,3 +1,27 @@
+const resolve = require('rollup-plugin-node-resolve');
+const commonjs = require('rollup-plugin-commonjs');
+const babel = require('rollup-plugin-babel');
+const alias = require('rollup-plugin-alias');
+const pkg = require('./package.json');
+const builtins = require('rollup-plugin-node-builtins');
+const globals = require('rollup-plugin-node-globals');
+
+const plugins = [
+	alias({
+		path: 'path-webpack'
+	}),
+	resolve({
+		preferBuiltins: false
+	}),
+	commonjs(),
+	globals(),
+	builtins(),
+	babel({
+		exclude: ['node_modules/**'],
+		runtimeHelpers: true
+	})
+];
+
 // Karma configuration
 // Generated on Wed Oct 26 2016 10:56:59 GMT+0200 (CEST)
 
@@ -16,17 +40,17 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
 
-      {pattern: 'src/**/*.js', watched: true, included: false, served: false},
+      {pattern: 'src/**/*.js', watched: false, included: false, served: false},
 
       {pattern: 'test/**/*.js', watched: true},
       // {pattern: 'test/**/*.js', watched: false}
-      {pattern: 'test/fixtures/**/*', watched: false, included: false, served: true},
+      {pattern: 'test/fixtures/**/*', watched: true, included: true, served: true},
 
       {pattern: 'node_modules/jszip/dist/jszip.js', watched: false, included: true, served: true},
 
       // {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
 
-      {pattern: 'libs/url/url-polyfill.js', watched: false, included: true, served: true}
+      {pattern: 'libs/url/url-polyfill.js', watched: false, included: true, served: true},
 
     ],
 
@@ -39,41 +63,23 @@ module.exports = function(config) {
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
       // add webpack as preprocessor
-      'test/**/*.js': ['webpack', 'sourcemap'],
+      'test/**/*.js': ['rollup', 'sourcemap'],
       // 'test/**/*.js': ['webpack', 'sourcemap']
+      'test/fixtures/*.xhtml': ['html2js']
     },
 
-    webpack:{
-      externals: {
-        "jszip": "JSZip"
-        // "xmldom": "xmldom"
-      },
-      devtool: 'inline-source-map',
-      resolve: {
-        alias: {
-          path: "path-webpack"
-        }
-      },
-      module: {
-        rules: [
-          {
-            test: /\.js$/,
-            exclude: /node_modules\/(?!(marks-pane)\/).*/,
-            loader: "babel-loader",
-            query: {
-              presets: ['es2015'],
-              plugins: [
-                "add-module-exports",
-                "transform-runtime"
-              ]
-            }
-          }
-        ]
-      }
-    },
-
-    webpackMiddleware: {
-      stats: 'errors-only'
+		rollupPreprocessor: {
+      plugins: plugins,
+  		// external: ['jszip', 'xmldom'],
+  		output: {
+  			globals: {
+  				// jszip: 'JSZip',
+  				// xmldom: 'xmldom'
+  			},
+  			format: 'iife',    // Helps prevent naming collisions.
+  			name: 'epubjs',    // Required for 'iife' format.
+  			sourcemap: 'inline',       // Sensible for testing.
+  		}
     },
 
     // test results reporter to use

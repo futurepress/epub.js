@@ -3,11 +3,12 @@ import Rendition from "./rendition/rendition";
 import EpubCFI from "./utils/epubcfi";
 import Contents from "./rendition/contents";
 import * as core from "./utils/core";
+import { EPUBJS_VERSION } from "./utils/constants";
 import "../libs/url/url-polyfill";
 
 import IframeView from "./managers/views/iframe";
-import DefaultViewManager from "./managers/default";
-import ContinuousViewManager from "./managers/continuous";
+import DefaultViewManager from "./managers/default/index";
+import ContinuousViewManager from "./managers/continuous/index";
 
 import Epub from './epub/epub';
 import EpubBridge from './epub/bridge';
@@ -19,9 +20,13 @@ import EpubBridge from './epub/bridge';
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
-function ePub(url, options={}) {
+async function ePub(url, options={}) {
 	let epub;
 	let rendition;
+
+	if (typeof(url) !== "string") {
+		return new Epub(...arguments);
+	}
 
 	if (options.worker) {
 		epub = new EpubBridge(options);
@@ -80,11 +85,7 @@ function ePub(url, options={}) {
 	});
 }
 
-ePub.VERSION = "0.4";
-
-if (typeof(global) !== "undefined") {
-	global.EPUBJS_VERSION = ePub.VERSION;
-}
+ePub.VERSION = EPUBJS_VERSION;
 
 ePub.CFI = EpubCFI;
 ePub.Book = Book;

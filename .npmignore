@@ -1,3 +1,4 @@
 books
 test
 .babelrc
+dist/*.dev.js

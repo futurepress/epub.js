@@ -1,7 +1,8 @@
-var assert = require('assert');
-// var sinon = require('sinon');
-
+// import assert from "assert";
 import Epub from "../../src/epub/epub";
+
+import chai from 'chai';
+const assert = chai.assert;
 
 describe('Epub', function() {
 

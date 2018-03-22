@@ -1,6 +1,8 @@
-var assert = require("assert");
-var ePub = require('../../src/epub');
+// import assert from "assert";
+import ePub from '../../src/epub';
 
+import chai from 'chai';
+const assert = chai.assert;
 describe("section", function() {
   it("finds a single result in a section", function() {
     return ePub("./fixtures/alice/", {width: 400, height: 400})

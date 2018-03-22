@@ -1,5 +1,5 @@
 import {extend, defer, requestAnimationFrame, nextSection, prevSection} from "../../utils/core";
-import DefaultViewManager from "../default";
+import DefaultViewManager from "../default/index";
 import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
 

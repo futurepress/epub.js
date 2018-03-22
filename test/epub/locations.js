@@ -1,12 +1,16 @@
-var assert = require('assert');
+// import assert from "assert";
+import Locations from '../../src/epub/locations';
+import * as core from '../../src/utils/core';
+// import fs from 'fs';
+import chai from 'chai';
+const assert = chai.assert;
 
 describe('Locations', function() {
-	var Locations = require('../../src/epub/locations');
-	var core = require('../../src/utils/core');
 
 	describe('#parse', function() {
-		var Locations = require('../../src/epub/locations');
-		var chapter = require('raw-loader!../fixtures/locations.xhtml');
+		// var chapter = require('raw-loader!../fixtures/locations.xhtml');
+		// var chapter = fs.readFileSync(__dirname + '/fixtures/locations.xhtml', 'utf8');
+		var chapter = window.__html__["test/fixtures/locations.xhtml"];
 
 		it('parse locations from a document', function() {
 			var doc = core.parse(chapter, "application/xhtml+xml");

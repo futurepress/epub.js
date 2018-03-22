@@ -1,9 +1,10 @@
-var assert = require('assert');
+// import assert from 'assert';
+import ePub from '../src/epub';
 // var sinon = require('sinon');
-
+import chai from 'chai';
+const assert = chai.assert;
 
 describe('ePub', function() {
-	var ePub = require('../src/epub');
 	var server;
 	before(function(){
 		/*

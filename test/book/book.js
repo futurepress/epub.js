@@ -1,5 +1,7 @@
 import Book from "../../src/book/book";
-import assert from "assert";
+// import assert from "assert";
+import chai from 'chai';
+const assert = chai.assert;
 
 describe("Book", function() {
 	let manifest = [

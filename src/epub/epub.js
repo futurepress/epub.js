@@ -13,10 +13,9 @@ import PageList from "./pagelist";
 import Archive from "./archive";
 import request from "../utils/request";
 import EpubCFI from "../utils/epubcfi";
-import { EVENTS } from "../utils/constants";
+import { EVENTS, EPUBJS_VERSION } from "../utils/constants";
 
 const CONTAINER_PATH = "META-INF/container.xml";
-const EPUBJS_VERSION = "0.4";
 
 const INPUT_TYPE = {
 	BINARY: "binary",

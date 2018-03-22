@@ -1,11 +1,16 @@
-var assert = require('assert');
+// import assert from 'assert';
+// import fs from 'fs';
 // var fs = require('fs');
-if (typeof DOMParser === "undefined") {
-	global.DOMParser = require('xmldom').DOMParser;
-}
+// if (typeof DOMParser === "undefined") {
+// 	global.DOMParser = require('xmldom').DOMParser;
+// }
+import EpubCFI from '../src/utils/epubcfi.js';
+
+import chai from 'chai';
+const assert = chai.assert;
 
 describe('EpubCFI', function() {
-	var EpubCFI = require('../src/utils/epubcfi.js');
+	// var EpubCFI = require('../src/utils/epubcfi.js');
 
 	it('parse a cfi on init', function() {
 		var cfi = new EpubCFI("epubcfi(/6/2[cover]!/6)");
@@ -137,7 +142,8 @@ describe('EpubCFI', function() {
 	describe('#fromNode()', function() {
 		var base = "/6/4[chap01ref]";
 		// var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
-		var contents = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		// var contents = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		var contents = window.__html__["test/fixtures/chapter1-highlights.xhtml"];
 
 		// var serializer = new XMLSerializer();
 		// var doc = serializer.serializeToString(contents);
@@ -186,16 +192,20 @@ describe('EpubCFI', function() {
 		var base = "/6/4[chap01ref]";
 
 		// var contentsClean = fs.readFileSync(__dirname + '/fixtures/chapter1.xhtml', 'utf8');
-		var contentsClean = require('raw-loader!./fixtures/chapter1.xhtml');
+		// var contentsClean = require('raw-loader!./fixtures/chapter1.xhtml');
+		var contents = window.__html__["test/fixtures/chapter1.xhtml"];
 
 		var doc = new DOMParser().parseFromString(contentsClean, "application/xhtml+xml");
 
 		// var contentsHighlights = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
-		var contentsHighlights = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		// var contentsHighlights = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		var contentsHighlights = window.__html__["test/fixtures/chapter1-highlights.xhtml"];
+
 		var docHighlights = new DOMParser().parseFromString(contentsHighlights, "application/xhtml+xml");
 
 		// var highlightContents = fs.readFileSync(__dirname + '/fixtures/highlight.xhtml', 'utf8');
-		var highlightContents = require('raw-loader!./fixtures/highlight.xhtml');
+		// var highlightContents = require('raw-loader!./fixtures/highlight.xhtml');
+		var highlightContents = window.__html__["test/fixtures/highlight.xhtml"];
 		var docHighlightsAlice = new DOMParser().parseFromString(highlightContents, "application/xhtml+xml");
 
 		it('get a cfi from a collapsed range', function() {
@@ -302,7 +312,8 @@ describe('EpubCFI', function() {
 	describe('#toRange()', function() {
 		var base = "/6/4[chap01ref]";
 		// var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
-		var contents = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		// var contents = require('raw-loader!./fixtures/chapter1-highlights.xhtml');
+		var contents = window.__html__['test/fixtures/chapter1-highlights.xhtml'];
 		var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
 
 		// var serializer = new XMLSerializer();
