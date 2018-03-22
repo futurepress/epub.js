@@ -24,7 +24,9 @@ async function ePub(url, options={}) {
 	let epub;
 	let rendition;
 
-	if (typeof(url) !== "string") {
+	if (arguments.length === 0 ||
+		 (arguments.length === 1 &&
+		  typeof(arguments[0]) === "object")) {
 		return new Epub(...arguments);
 	}
 

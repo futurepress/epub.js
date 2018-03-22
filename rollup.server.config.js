@@ -26,7 +26,7 @@ export default [
 		input: 'src/index.js',
 		output: {
 			name: 'ePub',
-			file: pkg.browser.replace('.js', '.dev.js'),
+			file: pkg.browser,
 			format: 'umd',
 			globals: {
 				jszip: 'JSZip',
@@ -53,7 +53,7 @@ export default [
 		input: 'src/workers/epub.worker.js',
 		output: {
 			name: 'ePubWorker',
-			file: pkg.worker.replace('.js', '.dev.js'),
+			file: pkg.worker,
 			format: 'umd',
 			sourcemap: 'inline'
 		},
