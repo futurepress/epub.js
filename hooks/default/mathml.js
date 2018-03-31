@@ -17,8 +17,7 @@ EPUBJS.Hooks.register("beforeChapterDisplay").mathml = function(callback, render
                 ';
         renderer.doc.body.appendChild(s);
         // add MathJax.js to renderer head
-        EPUBJS.core.addScript("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML", null, renderer.doc.head);
-    
+        EPUBJS.core.addScript("https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML", null, renderer.doc.head);
     } else {
         if(callback) callback();
     }
