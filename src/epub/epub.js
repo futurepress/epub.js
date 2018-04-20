@@ -607,8 +607,13 @@ class Epub {
 			let url = this.resources.resolve(resource.href);
 
 			// Remove from resources array
-			let i = book.resources.indexOf(resource);
-			book.resources.splice(i, 1);
+			let i = book.resources.findIndex((r) => {
+				return r.id === resource.id;
+			});
+
+			if (i > -1) {
+				book.resources.splice(i, 1);
+			}
 
 			item.index = index;
 			item.cfiBase = new EpubCFI().generateChapterComponent(this.package.spineNodeIndex, item.index, item.idref);
