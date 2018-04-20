@@ -24,6 +24,7 @@ class Stage {
 		let overflow  = options.overflow || false;
 		let axis = options.axis || "vertical";
 		let direction = options.direction;
+		let scale = options.scale;
 
 		if(options.height && isNumber(options.height)) {
 			height = options.height + "px";
@@ -44,7 +45,7 @@ class Stage {
 		container.style.wordSpacing = "0";
 		container.style.lineHeight = "0";
 		container.style.verticalAlign = "top";
-		container.style.position = "relative";
+		// container.style.position = "relative";
 
 		if(axis === "horizontal") {
 			// container.style.whiteSpace = "nowrap";
@@ -72,6 +73,12 @@ class Stage {
 
 		if (direction && this.settings.fullsize) {
 			document.body.style["direction"] = direction;
+		}
+
+		if (scale) {
+			container.style["transform-origin"] = "top left";
+			container.style["transform"] = "scale(" + scale + ")";
+			container.style.overflow = "visible";
 		}
 
 		return container;
@@ -205,6 +212,9 @@ class Stage {
 			height = _windowBounds.height;
 		}
 
+		this.width = width;
+		this.height = height;
+
 		return {
 			width: width -
 							this.containerPadding.left -
@@ -288,6 +298,13 @@ class Stage {
 
 		if (this.settings.fullsize) {
 			document.body.style["direction"] = dir;
+		}
+	}
+
+	scale(s) {
+		if (this.container) {
+			this.container.style["transform-origin"] = "top left";
+			this.container.style["transform"] = "scale(" + s + ")";
 		}
 	}
 

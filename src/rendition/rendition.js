@@ -1111,6 +1111,10 @@ class Rendition {
 		worker.postMessage({ method: "add", key: key, resources: this.manifest.resources });
 	}
 
+	scale(s) {
+		return this.manager && this.manager.scale(s);
+	}
+
 }
 
 //-- Enable binding events to Renderer
