@@ -1,16 +1,11 @@
 {
-  // Environments
   "browser": true,
   "devel": true,
   "worker": true,
 
-  // Enforcing
-  //"maxlen": 80,
-  //"quotmark": "single",
   "trailing": true,
   "strict": false,
-  
-  // Relaxing
+
   "boss": true,
   "funcscope": true,
   "globalstrict": true,
@@ -19,8 +14,8 @@
   "nonstandard": true,
   "sub": true,
   "validthis": true,
-    
-  "globals": { 
+
+  "globals": {
     "_": false,
     "define" : false,
     "module" : false

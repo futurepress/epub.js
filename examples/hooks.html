@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Single Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <a id="prev" href="#prev" class="navlink">...</a>
+  <div id="viewer" class="scrolled"></div>
+  <a id="next" href="#next" class="navlink">...</a>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    var rendition = book.renderTo("viewer", { flow: "scrolled-doc" });
+
+    rendition.display("chapter_001.xhtml");
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        nextNav = book.navigation.get(nextSection.href);
+
+        if(nextNav) {
+          nextLabel = nextNav.label;
+        } else {
+          nextLabel = "next";
+        }
+
+        next.textContent = nextLabel + " »";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prevNav = book.navigation.get(prevSection.href);
+
+        if(prevNav) {
+          prevLabel = prevNav.label;
+        } else {
+          prevLabel = "previous";
+        }
+
+        prev.textContent = "« " + prevLabel;
+      } else {
+        prev.textContent = "";
+      }
+
+    });
+
+    // Hooks
+
+    // Add a single script
+    rendition.hooks.content.register(function(contents){
+     return contents.addScript("https://code.jquery.com/jquery-2.1.4.min.js")
+       .then(function(){
+            // init code
+       });
+    });
+
+    // Add several scripts / css
+    rendition.hooks.content.register(function(contents){
+
+        var loaded = Promise.all([
+            contents.addScript("https://code.jquery.com/jquery-2.1.4.min.js"),
+            contents.addStylesheet("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css")
+        ]);
+
+        // return loaded promise
+        return loaded;
+    });
+
+  </script>
+
+</body>
+</html>

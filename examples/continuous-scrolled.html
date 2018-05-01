@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Continuous Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+  <style type="text/css">
+
+    .epub-container {
+      min-width: 320px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .epub-container .epub-view > iframe {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        /*margin: 10px;
+        padding: 20px;*/
+    }
+
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    var rendition = book.renderTo(document.body, {
+        manager: "continuous",
+        flow: "scrolled",
+        width: "60%"
+      });
+    var displayed = rendition.display("epubcfi(/6/14[xchapter_001]!4/2/24/2[c001p0011]/1:799)");
+
+
+    displayed.then(function(renderer){
+      // -- do stuff
+    });
+
+    // Navigation loaded
+    book.loaded.navigation.then(function(toc){
+      // console.log(toc);
+    });
+
+
+  </script>
+
+</body>
+</html>

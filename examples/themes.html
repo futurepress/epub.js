@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Spreads Example</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <div id="title"></div>
+  <div id="viewer" class="spreads"></div>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
+
+  <script>
+    var currentSectionIndex = 8;
+    // Load the opf
+    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: 600,
+      manager: "continuous"
+    });
+
+    rendition.display("chapter_007.xhtml");
+
+    var title = document.getElementById("title");
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+      var current = book.navigation.get(section.href);
+
+      if (current) {
+        title.textContent = current.label;
+      }
+
+      if(nextSection) {
+        next.textContent = "›";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prev.textContent = "‹";
+      } else {
+        prev.textContent = "";
+      }
+
+
+
+    });
+
+    rendition.on("relocated", function(location){
+      console.log(location);
+    });
+
+
+    rendition.themes.register("dark", "themes.css");
+    rendition.themes.register("light", "themes.css");
+    rendition.themes.register("tan", "themes.css");
+
+
+
+    rendition.themes.default({
+      h2: {
+        'font-size': '32px',
+        color: 'purple'
+      },
+      p: {
+        "margin": '10px'
+      }
+    });
+
+    rendition.themes.select("tan");
+    rendition.themes.fontSize("140%");
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title></title>
+
+  <script src="../dist/epub.js"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+      -webkit-scroll-snap-type: mandatory;
+      -webkit-scroll-snap-points-x: repeat(100%);
+      -webkit-overflow-scrolling: auto;
+
+      /*This scroll snap functionality is part of a polyfill
+      that enables the functionality in Chrome.*/
+      scroll-snap-type: mandatory;
+      scroll-snap-points-x: repeat(100%);
+      width: 100vw;
+      overflow: auto;
+    }
+
+    .epub-container {
+      margin: 0;
+      /*-webkit-scroll-snap-type: mandatory;
+      -webkit-scroll-snap-points-x: repeat(100%);*/
+      /* -webkit-overflow-scrolling: touch; */
+    }
+  </style>
+</head>
+<body>
+
+  <script>
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+    var currentCfi = (params && params.get("cfi")) ? params.get("cfi") : undefined;
+    var currentSectionIndex = (params && params.get("loc")) ? parseInt(params.get("loc")) : undefined;
+
+    // Load the opf
+    var book = ePub(url || "https://s3.amazonaws.com/moby-dick/");
+    var rendition = book.renderTo(document.body, {
+      // width: "100vw",
+      // height: "100vh",
+      overflow: "visible",
+      manager: "continuous",
+      // flow: "paginated"
+    });
+
+    rendition.display(currentCfi || currentSectionIndex);
+
+
+    rendition.on("rendered", function(section){
+      console.log("rendered", section);
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      var current = book.navigation && book.navigation.get(section.href);
+
+      if (current) {
+        document.title = current.label;
+      }
+    });
+
+    rendition.on("relocated", function(location){
+      console.log("locationChanged", location)
+      console.log("locationChanged start", location.start.cfi)
+      console.log("locationChanged end", location.end.cfi)
+    });
+
+    window.addEventListener("unload", function () {
+      console.log("unloading");
+      this.book.destroy();
+    });
+
+  </script>
+  <script>
+    /*
+    var isChrome = /Chrome/.test(navigator.userAgent);
+    var isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
+
+    var snapWidth = window.innerWidth;
+    var last_known_scroll_position = 0;
+    var ticking = false;
+    var wait;
+
+    var touchCanceler = false;
+    var resizeCanceler = false;
+    var beforeTouchMovePosition = false;
+
+    if(!isWebkit) {
+      window.addEventListener('scroll', function(e) {
+        last_known_scroll_position = window.scrollX;
+        clearTimeout(wait);
+
+        if (!touchCanceler) {
+          wait = setTimeout(function() {
+            snap(last_known_scroll_position);
+          }, 100);
+        }
+      });
+
+      window.addEventListener('touchup', function(e) {
+        touchCanceler = false;
+
+        if (last_known_scroll_position !== beforeTouchMovePosition) {
+          wait = setTimeout(function() {
+            snap(last_known_scroll_position);
+          }, 100);
+        }
+
+        beforeTouchMovePosition = false;
+      });
+
+      window.addEventListener('touchmove', function(e) {
+        touchCanceler = true;
+        beforeTouchMovePosition = last_known_scroll_position;
+      });
+
+      window.addEventListener('resize', function(e) {
+        resizeCanceler = true;
+        snapWidth = window.innerWidth;
+      });
+    }
+
+    function snap(scroll_pos) {
+      var snapTo = Math.round(scroll_pos / snapWidth) * snapWidth;
+      if (scroll_pos % snapWidth > 0) {
+        scrollToX(snapTo, 20000);
+      }
+    }
+
+    function scrollToX(scrollTargetX, speed, easing) {
+        var scrollX = window.scrollX,
+            scrollTargetX = scrollTargetX || 0,
+            speed = speed || 2000,
+            easing = easing || 'easeOutSine',
+            currentTime = 0;
+
+        // min time .1, max time .8 seconds
+        var time = Math.max(.1, Math.min(Math.abs(scrollX - scrollTargetX) / speed, .8));
+
+        // easing equations from https://github.com/danro/easing-js/blob/master/easing.js
+        var PI_D2 = Math.PI / 2,
+        easingEquations = {
+            easeOutSine: function (pos) {
+                return Math.sin(pos * (Math.PI / 2));
+            },
+            easeInOutSine: function (pos) {
+                return (-0.5 * (Math.cos(Math.PI * pos) - 1));
+            },
+            easeInOutQuint: function (pos) {
+                if ((pos /= 0.5) < 1) {
+                    return 0.5 * Math.pow(pos, 5);
+                }
+                return 0.5 * (Math.pow((pos - 2), 5) + 2);
+            }
+        };
+
+        // add animation loop
+        function tick() {
+            currentTime += 1 / 60;
+
+            var p = currentTime / time;
+            var t = easingEquations[easing](p);
+
+            if (touchCanceler) {
+              return;
+            }
+
+            if (resizeCanceler) {
+              resizeCanceler = false;
+              return;
+            }
+
+            if (p < 1) {
+                window.requestAnimationFrame(tick);
+
+                window.scrollTo(scrollX + ((scrollTargetX - scrollX) * t), 0);
+            } else {
+                window.scrollTo(scrollTargetX, 0);
+            }
+        }
+
+        tick();
+    }
+    */
+  </script>
+  <!-- <script src="../node_modules/scrollsnap-polyfill/vendor/philipwalton/polyfill.js"></script>
+  <script src="../node_modules/scrollsnap-polyfill/src/scrollsnap-polyfill.js"></script> -->
+</body>
+</html>

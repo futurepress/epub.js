@@ -1,243 +1,364 @@
-EPUBJS.Locations = function(spine, store, credentials) {
-  this.spine = spine;
-  this.store = store;
-  this.credentials = credentials;
+import {qs, sprint, locationOf, defer} from "./utils/core";
+import Queue from "./utils/queue";
+import EpubCFI from "./epubcfi";
+import { EVENTS } from "./utils/constants";
+import EventEmitter from "event-emitter";
 
-  this.epubcfi = new EPUBJS.EpubCFI();
+/**
+ * Find Locations for a Book
+ * @param {Spine} spine
+ * @param {request} request
+ */
+class Locations {
+	constructor(spine, request, pause) {
+		this.spine = spine;
+		this.request = request;
+		this.pause = pause || 100;
 
-  this._locations = [];
-  this.total = 0;
+		this.q = new Queue(this);
+		this.epubcfi = new EpubCFI();
 
-  this.break = 150;
+		this._locations = [];
+		this.total = 0;
 
-  this._current = 0;
+		this.break = 150;
 
-};
+		this._current = 0;
 
-EPUBJS.Locations.prototype.generate = function(chars) {
-	var deferred = new RSVP.defer();
-	var spinePos = -1;
-	var spineLength = this.spine.length;
-  var finished;
-	var nextChapter = function(deferred){
-		var chapter;
-		var next = spinePos + 1;
-		var done = deferred || new RSVP.defer();
-		var loaded;
-		if(next >= spineLength) {
-			done.resolve();
-		} else {
-			spinePos = next;
-			chapter = new EPUBJS.Chapter(this.spine[spinePos], this.store, this.credentials);
+		this.currentLocation = '';
+		this._currentCfi ='';
+		this.processingTimeout = undefined;
+	}
 
-      this.process(chapter).then(function() {
-        // Load up the next chapter
-				setTimeout(function(){
-					nextChapter(done);
-				}, 1);
+	/**
+	 * Load all of sections in the book to generate locations
+	 * @param  {int} chars how many chars to split on
+	 * @return {object} locations
+	 */
+	generate(chars) {
 
-      });
+		if (chars) {
+			this.break = chars;
 		}
-		return done.promise;
-	}.bind(this);
 
-  if(typeof chars === 'number') {
-    this.break = chars;
-  }
+		this.q.pause();
 
-	finished = nextChapter().then(function(){
-    this.total = this._locations.length-1;
+		this.spine.each(function(section) {
+			if (section.linear) {
+				this.q.enqueue(this.process.bind(this), section);
+			}
+		}.bind(this));
 
-    if (this._currentCfi) {
-      this.currentLocation = this._currentCfi;
-    }
-		deferred.resolve(this._locations);
-	}.bind(this));
+		return this.q.run().then(function() {
+			this.total = this._locations.length - 1;
 
-	return deferred.promise;
-};
+			if (this._currentCfi) {
+				this.currentLocation = this._currentCfi;
+			}
 
-EPUBJS.Locations.prototype.process = function(chapter) {
-  return chapter.load()
-    .then(function(_doc) {
+			return this._locations;
+			// console.log(this.percentage(this.book.rendition.location.start), this.percentage(this.book.rendition.location.end));
+		}.bind(this));
 
-      var range;
-      var doc = _doc;
-      var contents = doc.documentElement.querySelector("body");
-      var counter = 0;
-      var prev;
-      var cfi;
-      var _break = this.break;
-
-      this.sprint(contents, function(node) {
-        var len = node.length;
-        var dist;
-        var pos = 0;
-
-        if (node.textContent.trim().length === 0) {
-          return false; // continue
-        }
-
-        // Start range
-        if (counter === 0) {
-          range = doc.createRange();
-          range.setStart(node, 0);
-        }
-
-        dist = _break - counter;
-
-        // Node is smaller than a break
-        if(dist > len){
-          counter += len;
-          pos = len;
-        }
-
-        while (pos < len) {
-          dist = _break - counter;
-
-          if (counter === 0) {
-            pos += 1;
-            range = doc.createRange();
-            range.setStart(node, pos);
-          }
-
-          // Gone over
-          if(pos + dist >= len){
-            // Continue counter for next node
-            counter += len - pos;
-            // break
-            pos = len;
-          // At End
-          } else {
-            // Advance pos
-            pos += dist;
-
-            // End the previous range
-            range.setEnd(node, pos);
-            cfi = chapter.cfiFromRange(range);
-            this._locations.push(cfi);
-            counter = 0;
-          }
-        }
-
-        prev = node;
-
-      }.bind(this));
-
-      // Close remaining
-      if (range) {
-        range.setEnd(prev, prev.length);
-        cfi = chapter.cfiFromRange(range);
-        this._locations.push(cfi);
-        counter = 0;
-      }
-
-    }.bind(this));
-
-};
-
-EPUBJS.Locations.prototype.sprint = function(root, func) {
-  var node;
-	var treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-
-	while ((node = treeWalker.nextNode())) {
-		func(node);
 	}
 
-};
-
-EPUBJS.Locations.prototype.locationFromCfi = function(cfi){
-  // Check if the location has not been set yet
-	if(this._locations.length === 0) {
-		return -1;
+	createRange () {
+		return {
+			startContainer: undefined,
+			startOffset: undefined,
+			endContainer: undefined,
+			endOffset: undefined
+		};
 	}
 
-  return EPUBJS.core.locationOf(cfi, this._locations, this.epubcfi.compare);
-};
+	process(section) {
 
-EPUBJS.Locations.prototype.percentageFromCfi = function(cfi) {
-  // Find closest cfi
-  var loc = this.locationFromCfi(cfi);
-  // Get percentage in total
-  return this.percentageFromLocation(loc);
-};
+		return section.load(this.request)
+			.then(function(contents) {
+				var completed = new defer();
+				var locations = this.parse(contents, section.cfiBase);
+				this._locations = this._locations.concat(locations);
 
-EPUBJS.Locations.prototype.percentageFromLocation = function(loc) {
-  if (!loc || !this.total) {
-    return 0;
-  }
-  return (loc / this.total);
-};
+				section.unload();
 
-EPUBJS.Locations.prototype.cfiFromLocation = function(loc){
-	var cfi = -1;
-	// check that pg is an int
-	if(typeof loc != "number"){
-		loc = parseInt(loc);
+				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
+				return completed.promise;
+			}.bind(this));
+
 	}
 
-	if(loc >= 0 && loc < this._locations.length) {
-		cfi = this._locations[loc];
+	parse(contents, cfiBase, chars) {
+		var locations = [];
+		var range;
+		var doc = contents.ownerDocument;
+		var body = qs(doc, "body");
+		var counter = 0;
+		var prev;
+		var _break = chars || this.break;
+		var parser = function(node) {
+			var len = node.length;
+			var dist;
+			var pos = 0;
+
+			if (node.textContent.trim().length === 0) {
+				return false; // continue
+			}
+
+			// Start range
+			if (counter == 0) {
+				range = this.createRange();
+				range.startContainer = node;
+				range.startOffset = 0;
+			}
+
+			dist = _break - counter;
+
+			// Node is smaller than a break,
+			// skip over it
+			if(dist > len){
+				counter += len;
+				pos = len;
+			}
+
+
+			while (pos < len) {
+				dist = _break - counter;
+
+				if (counter === 0) {
+					// Start new range
+					pos += 1;
+					range = this.createRange();
+					range.startContainer = node;
+					range.startOffset = pos;
+				}
+
+				// pos += dist;
+
+				// Gone over
+				if(pos + dist >= len){
+					// Continue counter for next node
+					counter += len - pos;
+					// break
+					pos = len;
+				// At End
+				} else {
+					// Advance pos
+					pos += dist;
+
+					// End the previous range
+					range.endContainer = node;
+					range.endOffset = pos;
+					// cfi = section.cfiFromRange(range);
+					let cfi = new EpubCFI(range, cfiBase).toString();
+					locations.push(cfi);
+					counter = 0;
+				}
+			}
+			prev = node;
+		};
+
+		sprint(body, parser.bind(this));
+
+		// Close remaining
+		if (range && range.startContainer && prev) {
+			range.endContainer = prev;
+			range.endOffset = prev.length;
+			let cfi = new EpubCFI(range, cfiBase).toString();
+			locations.push(cfi);
+			counter = 0;
+		}
+
+		return locations;
 	}
 
-	return cfi;
-};
+	/**
+	 * Get a location from an EpubCFI
+	 * @param {EpubCFI} cfi
+	 * @return {number}
+	 */
+	locationFromCfi(cfi){
+		let loc;
+		if (EpubCFI.prototype.isCfiString(cfi)) {
+			cfi = new EpubCFI(cfi);
+		}
+		// Check if the location has not been set yet
+		if(this._locations.length === 0) {
+			return -1;
+		}
 
-EPUBJS.Locations.prototype.cfiFromPercentage = function(value){
-  var percentage = (value > 1) ? value / 100 : value; // Normalize value to 0-1
-	var loc = Math.ceil(this.total * percentage);
+		loc = locationOf(cfi, this._locations, this.epubcfi.compare);
 
-	return this.cfiFromLocation(loc);
-};
+		if (loc > this.total) {
+			return this.total;
+		}
 
-EPUBJS.Locations.prototype.load = function(locations){
-	this._locations = JSON.parse(locations);
-  this.total = this._locations.length-1;
-  return this._locations;
-};
-
-EPUBJS.Locations.prototype.save = function(json){
-	return JSON.stringify(this._locations);
-};
-
-EPUBJS.Locations.prototype.getCurrent = function(json){
-	return this._current;
-};
-
-EPUBJS.Locations.prototype.setCurrent = function(curr){
-  var loc;
-
-  if(typeof curr == "string"){
-    this._currentCfi = curr;
-  } else if (typeof curr == "number") {
-    this._current = curr;
-  } else {
-    return;
-  }
-
-  if(this._locations.length === 0) {
-    return;
+		return loc;
 	}
 
-  if(typeof curr == "string"){
-    loc = this.locationFromCfi(curr);
-    this._current = loc;
-  } else {
-    loc = curr;
-  }
+	/**
+	 * Get a percentage position in locations from an EpubCFI
+	 * @param {EpubCFI} cfi
+	 * @return {number}
+	 */
+	percentageFromCfi(cfi) {
+		if(this._locations.length === 0) {
+			return null;
+		}
+		// Find closest cfi
+		var loc = this.locationFromCfi(cfi);
+		// Get percentage in total
+		return this.percentageFromLocation(loc);
+	}
 
-  this.trigger("changed", {
-    percentage: this.percentageFromLocation(loc)
-  });
-};
+	/**
+	 * Get a percentage position from a location index
+	 * @param {number} location
+	 * @return {number}
+	 */
+	percentageFromLocation(loc) {
+		if (!loc || !this.total) {
+			return 0;
+		}
 
-Object.defineProperty(EPUBJS.Locations.prototype, 'currentLocation', {
-  get: function () {
-    return this._current;
-  },
-  set: function (curr) {
-    this.setCurrent(curr);
-  }
-});
+		return (loc / this.total);
+	}
 
-RSVP.EventTarget.mixin(EPUBJS.Locations.prototype);
+	/**
+	 * Get an EpubCFI from location index
+	 * @param {number} loc
+	 * @return {EpubCFI} cfi
+	 */
+	cfiFromLocation(loc){
+		var cfi = -1;
+		// check that pg is an int
+		if(typeof loc != "number"){
+			loc = parseInt(loc);
+		}
+
+		if(loc >= 0 && loc < this._locations.length) {
+			cfi = this._locations[loc];
+		}
+
+		return cfi;
+	}
+
+	/**
+	 * Get an EpubCFI from location percentage
+	 * @param {number} percentage
+	 * @return {EpubCFI} cfi
+	 */
+	cfiFromPercentage(percentage){
+		let loc;
+		if (percentage > 1) {
+			console.warn("Normalize cfiFromPercentage value to between 0 - 1");
+		}
+
+		// Make sure 1 goes to very end
+		if (percentage >= 1) {
+			let cfi = new EpubCFI(this._locations[this.total]);
+			cfi.collapse();
+			return cfi.toString();
+		}
+
+		loc = Math.ceil(this.total * percentage);
+		return this.cfiFromLocation(loc);
+	}
+
+	/**
+	 * Load locations from JSON
+	 * @param {json} locations
+	 */
+	load(locations){
+		if (typeof locations === "string") {
+			this._locations = JSON.parse(locations);
+		} else {
+			this._locations = locations;
+		}
+		this.total = this._locations.length - 1;
+		return this._locations;
+	}
+
+	/**
+	 * Save locations to JSON
+	 * @return {json}
+	 */
+	save(){
+		return JSON.stringify(this._locations);
+	}
+
+	getCurrent(){
+		return this._current;
+	}
+
+	setCurrent(curr){
+		var loc;
+
+		if(typeof curr == "string"){
+			this._currentCfi = curr;
+		} else if (typeof curr == "number") {
+			this._current = curr;
+		} else {
+			return;
+		}
+
+		if(this._locations.length === 0) {
+			return;
+		}
+
+		if(typeof curr == "string"){
+			loc = this.locationFromCfi(curr);
+			this._current = loc;
+		} else {
+			loc = curr;
+		}
+
+		this.emit(EVENTS.LOCATIONS.CHANGED, {
+			percentage: this.percentageFromLocation(loc)
+		});
+	}
+
+	/**
+	 * Get the current location
+	 */
+	get currentLocation() {
+		return this._current;
+	}
+
+	/**
+	 * Set the current location
+	 */
+	set currentLocation(curr) {
+		this.setCurrent(curr);
+	}
+
+	/**
+	 * Locations length
+	 */
+	length () {
+		return this._locations.length;
+	}
+
+	destroy () {
+		this.spine = undefined;
+		this.request = undefined;
+		this.pause = undefined;
+
+		this.q.stop();
+		this.q = undefined;
+		this.epubcfi = undefined;
+
+		this._locations = undefined
+		this.total = undefined;
+
+		this.break = undefined;
+		this._current = undefined;
+
+		this.currentLocation = undefined;
+		this._currentCfi = undefined;
+		clearTimeout(this.processingTimeout);
+	}
+}
+
+EventEmitter(Locations.prototype);
+
+export default Locations;

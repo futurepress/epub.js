@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Scrolled Full Example</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="../dist/epub.js"></script>
+
+
+  <style type="text/css">
+    body {
+      margin: 0;
+      background: #fafafa;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #333;
+    }
+
+    #navigation {
+      width: 300px;
+      position: absolute;
+      overflow: auto;
+      top: 60px;
+      left: 1000px
+    }
+
+    #navigation.fixed {
+      position: fixed;
+    }
+
+    #navigation h1 {
+      width: 200px;
+      font-size: 16px;
+      font-weight: normal;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    #navigation h2 {
+      font-size: 14px;
+      font-weight: normal;
+      color: #B0B0B0;
+      margin-bottom: 20px;
+    }
+
+    #navigation ul {
+      padding-left: 18px;
+      margin-left: 0;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    #navigation ul li {
+      list-style: decimal;
+      margin-bottom: 10px;
+      color: #cccddd;
+      font-size: 12px;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    #navigation ul li a {
+      color: #ccc;
+      text-decoration: none;
+    }
+
+    #navigation ul li a:hover {
+      color: #777;
+      text-decoration: underline;
+    }
+
+    #navigation ul li a.active {
+      color: #000;
+    }
+
+    #viewer {
+
+      overflow: hidden;
+      width: 800px;
+      margin: 0 50px;
+      background: url('ajax-loader.gif') center center no-repeat;
+
+    }
+
+    #viewer .epub-view {
+        background: white;
+        box-shadow: 0 0 4px #ccc;
+        /*margin: 10px;*/
+        /*padding: 40px 80px;*/
+    }
+
+    #main {
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      width: 800px;
+      z-index: 2;
+      transition: left .15s cubic-bezier(.55, 0, .2, .8) .08s;
+    }
+
+    #main.open {
+      left: 0;
+    }
+
+    #pagination {
+      text-align: center;
+      margin-left: 80px;
+      /*padding: 0 50px;*/
+    }
+
+    .arrow {
+      margin: 14px;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      color: #ccc;
+    }
+
+    .arrow:hover {
+      color: #777;
+    }
+
+    .arrow:active {
+      color: #000;
+    }
+
+    #prev {
+      float: left;
+    }
+
+    #next {
+      float: right;
+    }
+
+    #toc {
+      display: block;
+      margin: 10px auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="navigation">
+    <h1 id="title">...</h1>
+    <image id="cover" width="150px"/>
+    <h2 id="author">...</h2>
+    <div id="toc"></div>
+  </div>
+  <div id="main">
+    <div id="viewer"></div>
+    <div id="pagination">
+      <a id="prev" href="#prev" class="arrow">...</a>
+      <a id="next" href="#next" class="arrow">...</a>
+    </div>
+  </div>
+
+  <script>
+    // Load the opf
+    var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
+    var rendition = book.renderTo("viewer", {
+      flow: "scrolled-doc"
+    });
+    var hash = window.location.hash.slice(2);
+    console.log(hash);
+    rendition.display(hash || undefined);
+
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        nextNav = book.navigation.get(nextSection.href);
+
+        if(nextNav) {
+          nextLabel = nextNav.label;
+        } else {
+          nextLabel = "next";
+        }
+
+        next.textContent = nextLabel + " »";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prevNav = book.navigation.get(prevSection.href);
+
+        if(prevNav) {
+          prevLabel = prevNav.label;
+        } else {
+          prevLabel = "previous";
+        }
+
+        prev.textContent = "« " + prevLabel;
+      } else {
+        prev.textContent = "";
+      }
+
+      // Add CFI fragment to the history
+      //history.pushState({}, '', section.href);
+      window.location.hash = "#/"+section.href
+    });
+
+    rendition.on("relocated", function(location){
+      console.log(location);
+    });
+
+    book.loaded.navigation.then(function(toc){
+      var $nav = document.getElementById("toc"),
+          docfrag = document.createDocumentFragment();
+      var addTocItems = function (parent, tocItems) {
+        var $ul = document.createElement("ul");
+        tocItems.forEach(function(chapter) {
+          var item = document.createElement("li");
+          var link = document.createElement("a");
+          link.textContent = chapter.label;
+          link.href = chapter.href;
+          item.appendChild(link);
+
+          if (chapter.subitems) {
+            addTocItems(item, chapter.subitems)
+          }
+
+          link.onclick = function(){
+            var url = link.getAttribute("href");
+            rendition.display(url);
+            return false;
+          };
+
+          $ul.appendChild(item);
+        });
+        parent.appendChild($ul);
+      };
+
+      addTocItems(docfrag, toc);
+
+      $nav.appendChild(docfrag);
+
+      if ($nav.offsetHeight + 60 < window.innerHeight) {
+        $nav.classList.add("fixed");
+      }
+
+    });
+
+    book.loaded.metadata.then(function(meta){
+      var $title = document.getElementById("title");
+      var $author = document.getElementById("author");
+      var $cover = document.getElementById("cover");
+
+      $title.textContent = meta.title;
+      $author.textContent = meta.creator;
+      if (book.archive) {
+        book.archive.createUrl(book.cover)
+          .then(function (url) {
+            $cover.src = url;
+          })
+      } else {
+        $cover.src = book.cover;
+      }
+
+    });
+  </script>
+
+</body>
+</html>
