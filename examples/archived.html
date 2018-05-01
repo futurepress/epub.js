@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Archived Example</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <div id="viewer" class="spreads"></div>
+  <div id="prev" class="arrow">‹</div>
+  <div id="next" class="arrow">›</div>
+  <script>
+    var book = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
+    var rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: 600
+    });
+
+    var displayed = rendition.display();
+
+
+    displayed.then(function(renderer){
+      // -- do stuff
+    });
+
+    // Navigation loaded
+    book.loaded.navigation.then(function(toc){
+      // console.log(toc);
+    });
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(){
+      rendition.next();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(){
+      rendition.prev();
+    }, false);
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+
+  </script>
+
+</body>
+</html>

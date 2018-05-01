@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Pagination Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <div id="title"></div>
+  <div id="viewer" class="spreads"></div>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
+
+  <script>
+    // Load the opf
+    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
+
+    var rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: 600
+    });
+
+    var displayed = rendition.display(6);
+
+    // Navigation loaded
+    book.loaded.navigation.then(function(toc){
+      // console.log(toc);
+    });
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(){
+      rendition.next();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(){
+      rendition.prev();
+    }, false);
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+    rendition.on("relocated", function(location){
+      // console.log(location);
+    });
+
+
+    // Apply a class to selected text
+    rendition.on("selected", function(cfiRange, contents) {
+
+      var m = contents.mark(cfiRange, {'something' : true}, (e) => {
+        var bounds = e.target.getBoundingClientRect();
+        var clientX = e.clientX;
+
+        if (clientX > bounds.right) {
+          console.log("mark clicked", e.target);
+        }
+      });
+
+      contents.window.getSelection().removeAllRanges();
+
+    });
+
+    this.rendition.themes.default({
+      'p': {
+        'padding': '0 20px 0 0',
+        'text-align': 'left',
+        'position': 'relative'
+      },
+      '[ref="epubjs-mk"]::before' : {
+        'content': '""',
+        'background': 'url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPScxLjEnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZycgeG1sbnM6eGxpbms9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsnIHg9JzBweCcgeT0nMHB4JyB2aWV3Qm94PScwIDAgNzUgNzUnPjxnIGZpbGw9JyNCREJEQkQnIGlkPSdidWJibGUnPjxwYXRoIGNsYXNzPSdzdDAnIGQ9J00zNy41LDkuNEMxOS42LDkuNCw1LDIwLjUsNSwzNC4zYzAsNS45LDIuNywxMS4zLDcuMSwxNS42TDkuNiw2NS42bDE5LTcuM2MyLjgsMC42LDUuOCwwLjksOC45LDAuOSBDNTUuNSw1OS4yLDcwLDQ4LjEsNzAsMzQuM0M3MCwyMC41LDU1LjQsOS40LDM3LjUsOS40eicvPjwvZz48L3N2Zz4=") no-repeat',
+        'display': 'block',
+        'right' : '0',
+        'position' : 'absolute',
+        'width': '20px',
+        'height': '20px',
+        'margin': '0',
+        'cursor': 'pointer'
+      }
+    });
+
+
+  </script>
+
+</body>
+</html>

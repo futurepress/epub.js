@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Spreads Example</title>
+
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <h1 id="title">...</h1>
+  <div id="opener">
+    <svg height="24px" id="hamburger" style="enable-background:new 0 0 32 32;" version="1.1" viewBox="0 0 32 32" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <path d="M4,10h24c1.104,0,2-0.896,2-2s-0.896-2-2-2H4C2.896,6,2,6.896,2,8S2.896,10,4,10z M28,14H4c-1.104,0-2,0.896-2,2  s0.896,2,2,2h24c1.104,0,2-0.896,2-2S29.104,14,28,14z M28,22H4c-1.104,0-2,0.896-2,2s0.896,2,2,2h24c1.104,0,2-0.896,2-2  S29.104,22,28,22z"/>
+    </svg>
+  </div>
+  <div id="viewer" class="spreads"></div>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
+  <div id="navigation" class="closed">
+    <div id="closer">
+      <svg viewbox="0 0 40 40">
+          <path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" />
+        </svg>
+    </div>
+    <image id="cover" width="150px"/>
+    <h2 id="author">...</h2>
+    <div id="toc"></div>
+  </div>
+
+  <script>
+    var src = window.location.search ?
+        window.location.search.replace("?href=", '') :
+        "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrLmVwdWI=/manifest.json" ;
+    var book = ePub(src);
+    var rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: 600
+    });
+
+    rendition.display();
+
+    var title = document.getElementById("title");
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(e){
+      rendition.next();
+      e.preventDefault();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(e){
+      rendition.prev();
+      e.preventDefault();
+    }, false);
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+    var navigation = document.getElementById("navigation");
+    var opener = document.getElementById("opener");
+    opener.addEventListener("click", function(e){
+      navigation.classList.remove("closed");
+      e.preventDefault();
+    }, false);
+
+    var closer = document.getElementById("closer");
+    closer.addEventListener("click", function(e){
+      navigation.classList.add("closed");
+      e.preventDefault();
+    }, false);
+
+    book.loaded.navigation.then(function(toc){
+      var $nav = document.getElementById("toc"),
+          docfrag = document.createDocumentFragment();
+      var addTocItems = function (parent, tocItems) {
+        var $ul = document.createElement("ul");
+        tocItems.forEach(function(chapter) {
+          var item = document.createElement("li");
+          var link = document.createElement("a");
+          link.textContent = chapter.label;
+          link.href = chapter.href;
+          item.appendChild(link);
+
+          if (chapter.subitems) {
+            addTocItems(item, chapter.subitems)
+          }
+
+          link.onclick = function(){
+            var url = link.getAttribute("href");
+            rendition.display(url);
+            navigation.classList.add("closed");
+            return false;
+          };
+
+          $ul.appendChild(item);
+        });
+        parent.appendChild($ul);
+      };
+
+      addTocItems(docfrag, toc);
+
+      $nav.appendChild(docfrag);
+
+      if ($nav.offsetHeight + 60 < window.innerHeight) {
+        $nav.classList.add("fixed");
+      }
+
+    });
+
+    book.loaded.metadata.then(function(meta){
+      var $title = document.getElementById("title");
+      var $author = document.getElementById("author");
+      var $cover = document.getElementById("cover");
+
+      $title.textContent = meta.title;
+      $author.textContent = meta.creator;
+      if (book.archive) {
+        book.archive.createUrl(book.cover)
+          .then(function (url) {
+            $cover.src = url;
+          })
+      } else {
+        $cover.src = book.cover;
+      }
+    });
+
+    rendition.on("rendered", function(section){
+      var nextSection = section.next();
+      var prevSection = section.prev();
+
+      if(nextSection) {
+        next.textContent = "›";
+      } else {
+        next.textContent = "";
+      }
+
+      if(prevSection) {
+        prev.textContent = "‹";
+      } else {
+        prev.textContent = "";
+      }
+
+    });
+
+    rendition.on("relocated", function(location){
+      var current = book.navigation.get(location.href);
+
+      if (current) {
+        title.textContent = current.label;
+      }
+
+      console.log(location);
+    });
+
+    window.addEventListener("unload", function () {
+      this.book.destroy();
+    });
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+var	argv = require('optimist').argv;
+var server = require('./serve.js');
+
+var port = argv.p;
+
+if (!argv.p) {
+	server();
+} else {
+	server(port);
+}
