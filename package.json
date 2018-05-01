@@ -9,7 +9,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "./node_modules/.bin/karma start --single-run --browsers ChromeHeadless",
+    "test": "./node_modules/.bin/karma start --single-run --browsers ChromeHeadlessNoSandbox",
     "documentation": "./node_modules/.bin/gulp docs",
     "lint": "./node_modules/.bin/eslint -c .eslintrc.js src; exit 0",
     "start": "./node_modules/.bin/webpack-dev-server --inline --d",
