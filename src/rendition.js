@@ -10,6 +10,13 @@ import Contents from "./contents";
 import Annotations from "./annotations";
 import { EVENTS } from "./utils/constants";
 
+// Default Views
+import IframeView from "./managers/views/iframe";
+
+// Default View Managers
+import DefaultViewManager from "./managers/default/index";
+import ContinuousViewManager from "./managers/continuous/index";
+
 /**
  * Displays an Epub as a series of Views for each Section.
  * Requires Manager and View class to handle specifics of rendering
@@ -155,10 +162,11 @@ class Rendition {
 	requireManager(manager) {
 		var viewManager;
 
-		// If manager is a string, try to load from global registered managers
-		if (typeof manager === "string" && typeof ePub != "undefined") {
-			// Use global
-			viewManager = ePub.ViewManagers[manager];
+		// If manager is a string, try to load from imported managers
+		if (typeof manager === "string" && manager === "default") {
+			viewManager = DefaultViewManager;
+		} else if (typeof manager === "string" && manager === "continuous") {
+			viewManager = ContinuousViewManager;
 		} else {
 			// otherwise, assume we were passed a class function
 			viewManager = manager;
@@ -175,10 +183,9 @@ class Rendition {
 	requireView(view) {
 		var View;
 
-		// If view is a string, try to load from global registered views,
-		if (typeof view == "string" && typeof ePub != "undefined") {
-			// Use global
-			View = ePub.Views[view];
+		// If view is a string, try to load from imported views,
+		if (typeof view == "string" && view === "iframe") {
+			View = IframeView;
 		} else {
 			// otherwise, assume we were passed a class function
 			View = view;
@@ -488,7 +495,7 @@ class Rendition {
 			this.settings.width = width;
 		}
 		if (height) {
-			this.settings.height = width;
+			this.settings.height = height;
 		}
 		this.manager.resize(width, height);
 	}

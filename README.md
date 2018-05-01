@@ -1,5 +1,4 @@
-Epub.js v0.3
-================================
+# Epub.js v0.3
 
 ![FuturePress Views](http://fchasen.com/futurepress/fp.png)
 
@@ -9,9 +8,7 @@ Epub.js provides an interface for common ebook functions (such as rendering, per
 
 [Try it while reading Moby Dick](http://futurepress.github.com/epub.js/reader/)
 
-
-Why EPUB
--------------------------
+## Why EPUB
 
 ![Why EPUB](http://fchasen.com/futurepress/whyepub.png)
 
@@ -21,8 +18,7 @@ An unzipped ePUB3 is a collection of HTML5 files, CSS, images and other media â€
 
 More specifically, the ePUB schema standardizes the table of contents, provides a manifest that enables the caching of the entire book, and separates the storage of the content from how itâ€™s displayed.
 
-Getting Started
--------------------------
+## Getting Started
 
 Get the minified code from the build folder:
 
@@ -33,7 +29,7 @@ Get the minified code from the build folder:
 If using archived `.epub` files include JSZip:
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
 ```
 
 Setup a element to render to:
@@ -52,29 +48,53 @@ Create the new ePub, and then render it to that element:
 </script>
 ```
 
-Render Methods
--------------------------
+## Render Methods
 
-Single: `book.renderTo("area");`
+### Default
 
-[View example](https://s3.amazonaws.com/epubjs/examples/single.html)
+```js
+book.renderTo("area", { method: "default", width: "100%", height: "100%" });
+```
 
-Continuous: `book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });`
+[View example](https://s3.amazonaws.com/epubjs/examples/spreads.html)
 
-[View example](https://s3.amazonaws.com/epubjs/examples/continuous.html)
+The default manager only displays a single section at a time.
 
-Paginate: `book.renderTo("area", { method: "paginate", width: "900", height: "600" });`
+### Continuous
 
-[View example](https://s3.amazonaws.com/epubjs/examples/pages.html)
+```js
+book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });
+```
+[View example](https://s3.amazonaws.com/epubjs/examples/continuous-scrolled.html)
 
+The continuous manager will display as many sections as need to fill the screen, and preload the next section offscreen. This enables seamless swiping / scrolling between pages on mobile and desktop, but is less performant than the default method.
 
-Documentation
--------------------------
+## Flow Overrides
 
-Work in progress documentation at [API.js](https://github.com/futurepress/epub.js/blob/v0.3/API.js)
+### Auto (Default)
+`book.renderTo("area", { flow: "auto", width: "900", height: "600" });`
 
-Running Locally
--------------------------
+Flow will be based on the settings in the OPF, defaults to `paginated`.
+
+### Paginated
+
+```js
+book.renderTo("area", { flow: "paginated", width: "900", height: "600" });
+```
+
+[View example](https://s3.amazonaws.com/epubjs/examples/spreads.html)
+
+Scrolled: `book.renderTo("area", { flow: "scrolled-doc" });`
+
+[View example](https://s3.amazonaws.com/epubjs/examples/scrolled.html)
+
+## Documentation
+
+API documentation is available at [epubjs.org/documentation/0.3/](http://epubjs.org/documentation/0.3/)
+
+A Markdown version is included in the repo at [documentation/API.md](htts://github.com/futurepress/epub.js/blob/v0.3/documentation/API.md)
+
+## Running Locally
 
 install [node.js](http://nodejs.org/)
 
@@ -86,78 +106,80 @@ npm install
 then you can run the reader locally with the command
 
 ```javascript
-./tools/serve
+npm start
 ```
 
-install [bower](http://bower.io/)
-```javascript
-bower install
-```
-Examples
--------------------------
+## Examples
 
-See examples folder
++ [Spreads](http://futurepress.github.io/epub.js/examples/spreads.html)
++ [Scrolled](http://futurepress.github.io/epub.js/examples/scrolled.html)
++ [Swipe](http://futurepress.github.io/epub.js/examples/swipe.html)
++ [Input](http://futurepress.github.io/epub.js/examples/input.html)
++ [Highlights](http://futurepress.github.io/epub.js/examples/highlights.html)
 
-Testing
--------------------------
+[View All Examples](http://futurepress.github.io/epub.js/examples/)
 
-Once you start a server you can run the [QUnit](http://qunitjs.com/) tests at [http://localhost:8080/tests/](http://localhost:8080/tests/)
+## Testing
 
-You can download the test books from https://github.com/futurepress/books by running:
-```
-git submodule update --init --recursive
-```
+Test can be run by Karma from NPM
 
-Then you can pull the latest with:
-```
-git submodule foreach git pull origin master
+```js
+npm test
 ```
 
-Building for Distribution
--------------------------
+## Building for Distribution
 
-Builds are concatenated and minified using [gulp](http://gulpjs.com/)
+Builds are concatenated and minified using [webpack](https://webpack.js.org/) and [babel](https://babeljs.io/)
 
 To generate a new build run
 
 ```javascript
-gulp
+npm run preprocess
 ```
 
 or to continuously build run
 
 ```javascript
-gulp watch
+npm run watch
 ```
 
-Hooks
--------------------------
+## Hooks
 
 Similar to a plugins, Epub.js implements events that can be "hooked" into. Thus you can interact with and manipulate the contents of the book.
 
 Examples of this functionality is loading videos from YouTube links before displaying a chapters contents or implementing annotation.
 
-Hooks require a event to latch onto and a callback for when they are finished.
+Hooks require an event to register to and a can return a promise to block until they are finished.
 
 Example hook:
 
 ```javascript
-EPUBJS.Hooks.register("beforeChapterDisplay").example = function(callback, renderer){
+rendition.hooks.content.register(function(contents, view) {
 
-    var elements = render.doc.querySelectorAll('[video]'),
-        items = Array.prototype.slice.call(elements);
+    var elements = contents.document.querySelectorAll('[video]');
+    var items = Array.prototype.slice.call(elements);
 
     items.forEach(function(item){
-      //-- do something with the video item
-    }
+      // do something with the video item
+    });
 
-    if(callback) callback();
-
-}
+})
 ```
 
-Additional Resources
--------------------------
+The parts of the rendering process that can be hooked into are below.
+
+```js
+book.spine.hooks.serialize // Section is being converted to text
+book.spine.hooks.content // Section has been loaded and parsed
+rendition.hooks.render // Section is rendered to the screen
+rendition.hooks.content // Section contents have been loaded
+rendition.hooks.unloaded // Section contents are being unloaded
+```
+
+## Reader
+The reader has moved to its own repo at: https://github.com/futurepress/epubjs-reader/
+
+## Additional Resources
 
 [Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
@@ -167,8 +189,6 @@ Follow us on twitter: @Epubjs
 
 + http://twitter.com/#!/Epubjs
 
-Other
--------------------------
+## Other
 
 EPUB is a registered trademark of the [IDPF](http://idpf.org/).
-

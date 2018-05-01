@@ -1,6 +1,6 @@
 {
   "name": "epubjs",
-  "version": "0.3.58",
+  "version": "0.3.59",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -19,7 +19,7 @@
     "compile": "./node_modules/.bin/babel --optional runtime -d lib/ src/",
     "watch": "./node_modules/.bin/babel --watch --optional runtime -d lib/ src/",
     "serve": "./node_modules/.bin/gulp serve",
-    "prepublish": "npm run compile && npm run build && npm run minify && npm run legacy"
+    "preprocess": "npm run compile && npm run build && npm run minify && npm run legacy"
   },
   "author": "fchasen@gmail.com",
   "license": "BSD-2-Clause",
@@ -74,9 +74,9 @@
   },
   "dependencies": {
     "event-emitter": "^0.3.5",
-    "jszip": "^3.1.4",
+    "jszip": "^3.1.5",
     "lodash": "^4.17.4",
-    "marks-pane": "^1.0.5",
+    "marks-pane": "^1.0.7",
     "path-webpack": "0.0.3",
     "stream-browserify": "^2.0.1",
     "xmldom": "^0.1.27"

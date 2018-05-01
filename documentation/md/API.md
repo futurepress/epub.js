@@ -17,28 +17,6 @@ ePub("/path/to/book.epub", {})
 
 Returns **[Book](#book)** a new Book object
 
-### register
-
-Register Managers and Views
-
-#### manager
-
-register a new view manager
-
-**Parameters**
-
--   `name`  
--   `manager`  
-
-#### view
-
-register a new view
-
-**Parameters**
-
--   `name`  
--   `view`  
-
 ## Book
 
 An Epub representation with methods for the loading, parsing and manipulation
