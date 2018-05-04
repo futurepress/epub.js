@@ -182,6 +182,8 @@ The reader has moved to its own repo at: https://github.com/futurepress/epubjs-r
 
 ## Additional Resources
 
+[![Gitter Chat](https://badges.gitter.im/futurepress/epub.js.png)](https://gitter.im/futurepress/epub.js "Gitter Chat")
+
 [Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
 
 IRC Server: freenode.net Channel: #epub.js
