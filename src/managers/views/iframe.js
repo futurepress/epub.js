@@ -750,13 +750,15 @@ class IframeView {
 			this.stopExpanding = true;
 			this.element.removeChild(this.iframe);
 
-			this.iframe = null;
+			this.iframe = undefined;
+			this.contents = undefined;
 
 			this._textWidth = null;
 			this._textHeight = null;
 			this._width = null;
 			this._height = null;
 		}
+
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";
 	}
