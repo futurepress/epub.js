@@ -80,7 +80,7 @@ function request(url, type, withCredentials, headers) {
 				responseXML = this.responseXML;
 			}
 
-			if (this.status === 200 || responseXML ) { //-- Firefox is reporting 0 for blob urls
+			if (this.status === 200 || this.status === 0 || responseXML) { //-- Firefox is reporting 0 for blob urls
 				var r;
 
 				if (!this.response && !responseXML) {
