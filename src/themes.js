@@ -188,7 +188,7 @@ class Themes {
 	 * @param {string} f
 	 */
 	font (f) {
-		this.override("font-family", f);
+		this.override("font-family", f, true);
 	}
 
 	destroy() {
