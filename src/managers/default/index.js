@@ -10,6 +10,7 @@ class DefaultViewManager {
 	constructor(options) {
 
 		this.name = "default";
+		this.optsSettings = options.settings;
 		this.View = options.view;
 		this.request = options.request;
 		this.renditionQueue = options.queue;
@@ -156,6 +157,10 @@ class DefaultViewManager {
 	}
 
 	onOrientationChange(e) {
+		if(this.optsSettings.disableOrientationEvent) {
+	    		return;
+    		}
+		
 		let {orientation} = window;
 
 		this.resize();
