@@ -22,11 +22,11 @@ import Url from "../utils/url";
 const DEV = false;
 
 // Default Views
-import IframeView from "./managers/views/iframe";
+import IframeView from "../managers/views/iframe";
 
 // Default View Managers
-import DefaultViewManager from "./managers/default/index";
-import ContinuousViewManager from "./managers/continuous/index";
+import DefaultViewManager from "../managers/default/index";
+import ContinuousViewManager from "../managers/continuous/index";
 
 /**
  * Displays an Epub as a series of Views for each Section.
