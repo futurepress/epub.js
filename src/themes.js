@@ -152,13 +152,16 @@ class Themes {
 		}
 	}
 
-	override (name, value) {
+	override (name, value, priority) {
 		var contents = this.rendition.getContents();
 
-		this._overrides[name] = value;
+		this._overrides[name] = {
+			value: value,
+			priority: priority === true
+		};
 
 		contents.forEach( (content) => {
-			content.css(name, this._overrides[name]);
+			content.css(name, this._overrides[name].value, this._overrides[name].priority);
 		});
 	}
 
@@ -167,7 +170,7 @@ class Themes {
 
 		for (var rule in overrides) {
 			if (overrides.hasOwnProperty(rule)) {
-				contents.css(rule, overrides[rule]);
+				contents.css(rule, overrides[rule].value, overrides[rule].priority);
 			}
 		}
 	}
@@ -185,7 +188,7 @@ class Themes {
 	 * @param {string} f
 	 */
 	font (f) {
-		this.override("font-family", f);
+		this.override("font-family", f, true);
 	}
 
 	destroy() {
