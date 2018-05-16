@@ -5,8 +5,10 @@ import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
 
-const isChrome = /Chrome/.test(navigator.userAgent);
-const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
+const hasNavigator = typeof (navigator) !== "undefined";
+
+const isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
+const isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userAgent);
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
