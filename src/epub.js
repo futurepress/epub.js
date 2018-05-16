@@ -2,7 +2,7 @@ import Book from "./book/book";
 import Rendition from "./rendition/rendition";
 import EpubCFI from "./utils/epubcfi";
 import Contents from "./rendition/contents";
-import * as core from "./utils/core";
+import * as utils from "./utils/core";
 import { EPUBJS_VERSION } from "./utils/constants";
 import "../libs/url/url-polyfill";
 
@@ -93,33 +93,6 @@ ePub.CFI = EpubCFI;
 ePub.Book = Book;
 ePub.Rendition = Rendition;
 ePub.Contents = Contents;
-ePub.utils = core;
-
-ePub.ViewManagers = {};
-ePub.Views = {};
-/**
- * Register Managers and Views
- */
-ePub.register = {
-	/**
-	 * register a new view manager
-	 */
-	manager : function(name, manager){
-		return ePub.ViewManagers[name] = manager;
-	},
-	/**
-	 * register a new view
-	 */
-	view : function(name, view){
-		return ePub.Views[name] = view;
-	}
-};
-
-// Default Views
-ePub.register.view("iframe", IframeView);
-
-// Default View Managers
-ePub.register.manager("default", DefaultViewManager);
-ePub.register.manager("continuous", ContinuousViewManager);
+ePub.utils = utils;
 
 export default ePub;
