@@ -157,13 +157,11 @@ class DefaultViewManager {
 	}
 
 	onOrientationChange(e) {
-		if(this.optsSettings.disableOrientationEvent) {
-	    		return;
-    		}
-		
 		let {orientation} = window;
-
-		this.resize();
+		
+		if(this.optsSettings.disableOrientationEvent) {
+			this.resize();
+		}
 
 		// Per ampproject:
 		// In IOS 10.3, the measured size of an element is incorrect if the
@@ -173,7 +171,11 @@ class DefaultViewManager {
 		clearTimeout(this.orientationTimeout);
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
-			this.resize();
+			
+			if(this.optsSettings.disableOrientationEvent) {
+				this.resize();
+			}
+			
 			this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 		}.bind(this), 500);
 
