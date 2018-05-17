@@ -39,6 +39,7 @@ const INPUT_TYPE = {
  * @param {string} [options.encoding=binary] optional to pass 'binary' or base64' for archived Epubs
  * @param {string} [options.replacements=none] use base64, blobUrl, or none for replacing assets in archived Epubs
  * @param {method} [options.canonical] optional function to determine canonical urls for a path
+ * @param {string} [options.openAs] optional string to determine the input type
  * @returns {Book}
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
@@ -46,8 +47,9 @@ const INPUT_TYPE = {
 class Book {
 	constructor(url, options) {
 		// Allow passing just options to the Book
-		if (typeof(options) === "undefined"
-			&& typeof(url) === "object") {
+		if (typeof(options) === "undefined" &&
+			  typeof(url) !== "string" &&
+		    url instanceof Blob === false) {
 			options = url;
 			url = undefined;
 		}
@@ -58,7 +60,8 @@ class Book {
 			requestHeaders: undefined,
 			encoding: undefined,
 			replacements: undefined,
-			canonical: undefined
+			canonical: undefined,
+			openAs: undefined
 		});
 
 		extend(this.settings, options);
@@ -202,7 +205,7 @@ class Book {
 		// this.toc = undefined;
 
 		if(url) {
-			this.open(url).catch((error) => {
+			this.open(url, this.settings.openAs).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
 				this.emit(EVENTS.BOOK.OPEN_FAILED, err);
 			});
