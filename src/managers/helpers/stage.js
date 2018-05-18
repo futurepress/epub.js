@@ -7,6 +7,7 @@ class Stage {
 		this.id = "epubjs-container-" + uuid();
 
 		this.container = this.create(this.settings);
+		this.size = { width: this.settings.width, height: this.settings.height };
 
 		if(this.settings.hidden) {
 			this.wrapper = this.wrap(this.container);
@@ -19,19 +20,10 @@ class Stage {
 	* Resizes to passed width and height or to the elements size
 	*/
 	create(options){
-		let height  = options.height;// !== false ? options.height : "100%";
-		let width   = options.width;// !== false ? options.width : "100%";
 		let overflow  = options.overflow || false;
 		let axis = options.axis || "vertical";
 		let direction = options.direction;
-
-		if(options.height && isNumber(options.height)) {
-			height = options.height + "px";
-		}
-
-		if(options.width && isNumber(options.width)) {
-			width = options.width + "px";
-		}
+		let scale = options.scale;
 
 		// Create new container element
 		let container = document.createElement("div");
@@ -44,7 +36,7 @@ class Stage {
 		container.style.wordSpacing = "0";
 		container.style.lineHeight = "0";
 		container.style.verticalAlign = "top";
-		container.style.position = "relative";
+		// container.style.position = "relative";
 
 		if(axis === "horizontal") {
 			// container.style.whiteSpace = "nowrap";
@@ -53,13 +45,6 @@ class Stage {
 			container.style.flexWrap = "nowrap";
 		}
 
-		if(width){
-			container.style.width = width;
-		}
-
-		if(height){
-			container.style.height = height;
-		}
 
 		if (overflow) {
 			container.style.overflow = overflow;
@@ -72,6 +57,12 @@ class Stage {
 
 		if (direction && this.settings.fullsize) {
 			document.body.style["direction"] = direction;
+		}
+
+		if (scale) {
+			container.style["transform-origin"] = "top left";
+			container.style["transform"] = "scale(" + scale + ")";
+			container.style.overflow = "visible";
 		}
 
 		return container;
@@ -149,43 +140,21 @@ class Stage {
 		window.addEventListener("orientationchange", this.orientationChangeFunc, false);
 	}
 
-	size(width, height){
+	get size(){
 		var bounds;
-		// var width = _width || this.settings.width;
-		// var height = _height || this.settings.height;
+		var width;
+		var height;
 
-		// If width or height are set to false, inherit them from containing element
-		if(width === null) {
-			bounds = this.element.getBoundingClientRect();
-
-			if(bounds.width) {
-				width = bounds.width;
-				this.container.style.width = bounds.width + "px";
-			}
-		}
-
-		if(height === null) {
-			bounds = bounds || this.element.getBoundingClientRect();
-
-			if(bounds.height) {
-				height = bounds.height;
-				this.container.style.height = bounds.height + "px";
-			}
-
-		}
-
-		if(!isNumber(width)) {
+		if (this.settings.fullsize) {
+			// Bounds not set, get them from window
+			bounds = windowBounds();
+			width = bounds.width;
+			height = bounds.height;
+		} else {
 			bounds = this.container.getBoundingClientRect();
 			width = bounds.width;
-			//height = bounds.height;
-		}
-
-		if(!isNumber(height)) {
-			bounds = bounds || this.container.getBoundingClientRect();
-			//width = bounds.width;
 			height = bounds.height;
 		}
-
 
 		this.containerStyles = window.getComputedStyle(this.container);
 
@@ -196,15 +165,6 @@ class Stage {
 			bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
 		};
 
-		// Bounds not set, get them from window
-		let _windowBounds = windowBounds();
-		if (!width) {
-			width = _windowBounds.width;
-		}
-		if (this.settings.fullsize || !height) {
-			height = _windowBounds.height;
-		}
-
 		return {
 			width: width -
 							this.containerPadding.left -
@@ -214,6 +174,32 @@ class Stage {
 							this.containerPadding.bottom
 		};
 
+	}
+
+	set size(obj){
+		let {width, height} = obj;
+		var bounds;
+
+		if (this.settings.fullsize !== true &&
+			  typeof width !== "undefined" &&
+				typeof height !== "undefined"){
+
+			if(isNumber(width)) {
+				this.container.style.width = width + "px";
+			} else {
+				this.container.style.width = width;
+			}
+
+			if(isNumber(height)) {
+				this.container.style.height = height + "px";
+			} else {
+				this.container.style.height = height;
+			}
+
+			bounds = this.container.getBoundingClientRect();
+			width = bounds.width;
+			height = bounds.height;
+		}
 	}
 
 	bounds(){
@@ -288,6 +274,13 @@ class Stage {
 
 		if (this.settings.fullsize) {
 			document.body.style["direction"] = dir;
+		}
+	}
+
+	scale(s) {
+		if (this.container) {
+			this.container.style["transform-origin"] = "top left";
+			this.container.style["transform"] = "scale(" + s + ")";
 		}
 	}
 

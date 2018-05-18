@@ -20,6 +20,7 @@ class DefaultViewManager {
 			hidden: false,
 			width: undefined,
 			height: undefined,
+			fullsize: undefined,
 			axis: undefined,
 			flow: "scrolled",
 			ignoreClass: ""
@@ -45,7 +46,8 @@ class DefaultViewManager {
 	render(element, size){
 		let tag = element.tagName;
 
-		if (tag && (tag.toLowerCase() == "body" ||
+		if (this.settings.fullsize ||
+				tag && (tag.toLowerCase() == "body" ||
 				tag.toLowerCase() == "html")) {
   			this.fullsize = true;
 		}
@@ -78,7 +80,7 @@ class DefaultViewManager {
 
 		// Calculate Stage Size
 		this._bounds = this.bounds();
-		this._stageSize = this.stage.size();
+		this._stageSize = this.stage.size;
 
 		// Set the dimensions for views
 		this.viewSettings.width = this._stageSize.width;
@@ -179,7 +181,7 @@ class DefaultViewManager {
 	}
 
 	resize(width, height){
-		let stageSize = this.stage.size(width, height);
+		let stageSize = this.stage.size = { width, height };
 
 		// For Safari, wait for orientation to catch up
 		// if the window is a square
@@ -546,7 +548,7 @@ class DefaultViewManager {
 
 	clear () {
 
-		// this.q.clear();
+		this.q.clear();
 
 		if (this.views) {
 			this.views.hide();
@@ -811,7 +813,7 @@ class DefaultViewManager {
 			return;
 		}
 
-		this._stageSize = this.stage.size();
+		this._stageSize = this.stage.size;
 
 		if(!this.isPaginated) {
 			this.layout.calculate(this._stageSize.width, this._stageSize.height);
@@ -935,6 +937,14 @@ class DefaultViewManager {
 
 	isRendered() {
 		return this.rendered;
+	}
+
+	scale(s) {
+		this.settings.scale = s;
+
+		if (this.stage) {
+			this.stage.scale(s);
+		}
 	}
 }
 

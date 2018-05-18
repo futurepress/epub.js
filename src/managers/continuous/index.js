@@ -44,6 +44,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	display(section, target){
 		return DefaultViewManager.prototype.display.call(this, section, target)
 			.then(function () {
+				this.q.clear();
 				return this.fill();
 			}.bind(this));
 	}
