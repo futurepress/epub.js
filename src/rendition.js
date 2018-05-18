@@ -33,6 +33,7 @@ import ContinuousViewManager from "./managers/continuous/index";
  * @param {string} [options.spread] force spread value
  * @param {number} [options.minSpreadWidth] overridden by spread: none (never) / both (always)
  * @param {string} [options.stylesheet] url of stylesheet to be injected
+ * @param {boolean} [options.resizeOnOrientationChange] false to disable orientation events
  * @param {string} [options.script] url of script to be injected
  */
 class Rendition {
@@ -49,6 +50,7 @@ class Rendition {
 			spread: null,
 			minSpreadWidth: 800,
 			stylesheet: null,
+			resizeOnOrientationChange: true,
 			script: null
 		});
 

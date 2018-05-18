@@ -10,6 +10,7 @@ class DefaultViewManager {
 	constructor(options) {
 
 		this.name = "default";
+		this.optsSettings = options.settings;
 		this.View = options.view;
 		this.request = options.request;
 		this.renditionQueue = options.queue;
@@ -157,8 +158,10 @@ class DefaultViewManager {
 
 	onOrientationChange(e) {
 		let {orientation} = window;
-
-		this.resize();
+		
+		if(this.optsSettings.resizeOnOrientationChange) {
+			this.resize();
+		}
 
 		// Per ampproject:
 		// In IOS 10.3, the measured size of an element is incorrect if the
@@ -168,7 +171,11 @@ class DefaultViewManager {
 		clearTimeout(this.orientationTimeout);
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
-			this.resize();
+			
+			if(this.optsSettings.resizeOnOrientationChange) {
+				this.resize();
+			}
+			
 			this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 		}.bind(this), 500);
 
