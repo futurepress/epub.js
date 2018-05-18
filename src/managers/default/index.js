@@ -159,7 +159,7 @@ class DefaultViewManager {
 	onOrientationChange(e) {
 		let {orientation} = window;
 		
-		if(this.optsSettings.disableOrientationEvent) {
+		if(this.optsSettings.resizeOnOrientationChange) {
 			this.resize();
 		}
 
@@ -172,7 +172,7 @@ class DefaultViewManager {
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
 			
-			if(this.optsSettings.disableOrientationEvent) {
+			if(this.optsSettings.resizeOnOrientationChange) {
 				this.resize();
 			}
 			
