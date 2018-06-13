@@ -245,7 +245,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		let dir = horizontal && rtl ? -1 : 1; //RTL reverses scrollTop
 
 		var offset = horizontal ? this.scrollLeft : this.scrollTop * dir;
-		var visibleLength = horizontal ? bounds.width : bounds.height;
+		var visibleLength = horizontal ? Math.floor(bounds.width) : bounds.height;
 		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 
 		let prepend = () => {
@@ -356,7 +356,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(this.settings.axis === "vertical") {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
-				this.scrollTo(prevLeft - bounds.width, 0, true);
+				this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
 			}
 		}
 
