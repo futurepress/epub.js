@@ -159,8 +159,8 @@ class Stage {
 			bounds = this.element.getBoundingClientRect();
 
 			if(bounds.width) {
-				width = bounds.width;
-				this.container.style.width = bounds.width + "px";
+				width = Math.floor(bounds.width);
+				this.container.style.width = width + "px";
 			}
 		}
 
@@ -176,7 +176,7 @@ class Stage {
 
 		if(!isNumber(width)) {
 			bounds = this.container.getBoundingClientRect();
-			width = bounds.width;
+			width = Math.floor(bounds.width);
 			//height = bounds.height;
 		}
 
