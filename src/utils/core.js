@@ -69,7 +69,16 @@ export function isNumber(n) {
  */
 export function isFloat(n) {
 	let f = parseFloat(n);
-	return f === n && isNumber(n) && (Math.floor(f) !== n);
+
+	if (isNumber(n) === false) {
+		return false;
+	}
+
+	if (typeof n === "string" && n.indexOf(".") > -1) {
+		return true;
+	}
+
+	return Math.floor(f) !== f;
 }
 
 /**
