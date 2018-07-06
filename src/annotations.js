@@ -26,9 +26,11 @@ class Annotations {
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
 	 * @param {function} [cb] Callback after annotation is added
+	 * @param {string} className CSS class to assign to annotation
+	 * @param {object} styles CSS styles to assign to annotation
 	 * @returns {Annotation} annotation
 	 */
-	add (type, cfiRange, data, cb) {
+	add (type, cfiRange, data, cb, className, styles) {
 		let hash = encodeURI(cfiRange);
 		let cfi = new EpubCFI(cfiRange);
 		let sectionIndex = cfi.spinePos;
@@ -37,7 +39,9 @@ class Annotations {
 			cfiRange,
 			data,
 			sectionIndex,
-			cb
+			cb,
+			className,
+			styles
 		});
 
 		this._annotations[hash] = annotation;
@@ -108,9 +112,11 @@ class Annotations {
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
 	 * @param {function} cb Callback after annotation is added
+	 * @param {string} className CSS class to assign to annotation
+	 * @param {object} styles CSS styles to assign to annotation
 	 */
-	highlight (cfiRange, data, cb) {
-		this.add("highlight", cfiRange, data, cb);
+	highlight (cfiRange, data, cb, className, styles) {
+		this.add("highlight", cfiRange, data, cb, className, styles);
 	}
 
 	/**
@@ -118,9 +124,11 @@ class Annotations {
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
 	 * @param {function} cb Callback after annotation is added
+	 * @param {string} className CSS class to assign to annotation
+	 * @param {object} styles CSS styles to assign to annotation
 	 */
-	underline (cfiRange, data, cb) {
-		this.add("underline", cfiRange, data, cb);
+	underline (cfiRange, data, cb, className, styles) {
+		this.add("underline", cfiRange, data, cb, className, styles);
 	}
 
 	/**
@@ -199,6 +207,8 @@ class Annotations {
  * @param {object} options.data Data to assign to annotation
  * @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
  * @param {function} [options.cb] Callback after annotation is added
+ * @param {string} className CSS class to assign to annotation
+ * @param {object} styles CSS styles to assign to annotation
  * @returns {Annotation} annotation
  */
 class Annotation {
@@ -208,7 +218,9 @@ class Annotation {
 		cfiRange,
 		data,
 		sectionIndex,
-		cb
+		cb, 
+		className, 
+		styles
 	}) {
 		this.type = type;
 		this.cfiRange = cfiRange;
@@ -216,6 +228,8 @@ class Annotation {
 		this.sectionIndex = sectionIndex;
 		this.mark = undefined;
 		this.cb = cb;
+		this.className = className;
+		this.styles = styles;
 	}
 
 	/**
@@ -231,13 +245,13 @@ class Annotation {
 	 * @param {View} view
 	 */
 	attach (view) {
-		let {cfiRange, data, type, mark, cb} = this;
+		let {cfiRange, data, type, mark, cb, className, styles} = this;
 		let result;
 
 		if (type === "highlight") {
-			result = view.highlight(cfiRange, data, cb);
+			result = view.highlight(cfiRange, data, cb, className, styles);
 		} else if (type === "underline") {
-			result = view.underline(cfiRange, data, cb);
+			result = view.underline(cfiRange, data, cb, className, styles);
 		} else if (type === "mark") {
 			result = view.mark(cfiRange, data, cb);
 		}
