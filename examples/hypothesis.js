@@ -3,9 +3,14 @@
   function start() {
     var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
     var url = params && params.get("url") && decodeURIComponent(params.get("url"));
-
+    var defaultUrl = window.location.protocol + "//s3.amazonaws.com/epubjs.org/books/moby-dick-hypothesis-demo.epub";
     // Load the opf
-    var book = ePub(url || window.location.protocol + "//s3.amazonaws.com/epubjs.org/books/moby-dick-hypothesis-demo.epub");
+    var book = ePub(url || defaultUrl, {
+      canonical: function(path) {
+        var url =  window.location.href.replace(/loc=([^&]*)/, "loc="+path);
+        return url;
+      }
+    });
     var rendition = book.renderTo("viewer", {
       ignoreClass: "annotator-hl",
       width: "100%",
