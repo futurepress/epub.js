@@ -303,11 +303,9 @@ class Navigation {
 	 * @param  {object} json the items to be loaded
 	 */
 	load(json) {
-		return json.map((item) => {
+		return json.map(item => {
 			item.label = item.title;
-			if (item.children) {
-				item.subitems = this.load(item.children);
-			}
+			item.subitems = item.children ? this.load(item.children) : [];
 			return item;
 		});
 	}
