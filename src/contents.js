@@ -933,7 +933,7 @@ class Contents {
 		if (width >= 0) {
 			this.width(width);
 			viewport.width = width;
-			this.css("padding", "0 "+(width/12)+"px", true);
+			this.css("padding", "0 "+(width/12)+"px");
 		}
 
 		if (height >= 0) {
@@ -985,9 +985,15 @@ class Contents {
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
-			this.css("padding", (gap / 2) + "px 20px", true);
+			this.css("padding-top", (gap / 2) + "px", true);
+			this.css("padding-bottom", (gap / 2) + "px", true);
+			this.css("padding-left", "20px");
+			this.css("padding-right", "20px");
 		} else {
-			this.css("padding", "20px " + (gap / 2) + "px", true);
+			this.css("padding-top", "20px");
+			this.css("padding-bottom", "20px");
+			this.css("padding-left", (gap / 2) + "px", true);
+			this.css("padding-right", (gap / 2) + "px", true);
 		}
 
 		this.css("box-sizing", "border-box");
