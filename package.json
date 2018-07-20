@@ -76,7 +76,7 @@
     "event-emitter": "^0.3.5",
     "jszip": "^3.1.5",
     "lodash": "^4.17.4",
-    "marks-pane": "^1.0.8",
+    "marks-pane": "^1.0.9",
     "path-webpack": "0.0.3",
     "stream-browserify": "^2.0.1",
     "xmldom": "^0.1.27"
