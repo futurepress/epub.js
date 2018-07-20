@@ -32,6 +32,7 @@ of its contents.
     -   `options.encoding` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** optional to pass 'binary' or base64' for archived Epubs (optional, default `binary`)
     -   `options.replacements` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** use base64, blobUrl, or none for replacing assets in archived Epubs (optional, default `none`)
     -   `options.canonical` **method?** optional function to determine canonical urls for a path
+    -   `options.openAs` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional string to determine the input type
 
 **Examples**
 
@@ -1290,6 +1291,8 @@ Add an annotation to store
 -   `cfiRange` **[EpubCFI](#epubcfi)** EpubCFI range to attach annotation to
 -   `data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Data to assign to annotation
 -   `cb` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** Callback after annotation is added
+-   `className` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** CSS class to assign to annotation
+-   `styles` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** CSS styles to assign to annotation
 
 Returns **[Annotation](#annotation)** annotation
 
@@ -1311,6 +1314,8 @@ Add a highlight to the store
 -   `cfiRange` **[EpubCFI](#epubcfi)** EpubCFI range to attach annotation to
 -   `data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Data to assign to annotation
 -   `cb` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** Callback after annotation is added
+-   `className` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** CSS class to assign to annotation
+-   `styles` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** CSS styles to assign to annotation
 
 ### underline
 
@@ -1321,6 +1326,8 @@ Add a underline to the store
 -   `cfiRange` **[EpubCFI](#epubcfi)** EpubCFI range to attach annotation to
 -   `data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Data to assign to annotation
 -   `cb` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** Callback after annotation is added
+-   `className` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** CSS class to assign to annotation
+-   `styles` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** CSS styles to assign to annotation
 
 ### mark
 
@@ -1350,12 +1357,22 @@ Annotation object
 
 **Parameters**
 
+-   `$0` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+    -   `$0.type`  
+    -   `$0.cfiRange`  
+    -   `$0.data`  
+    -   `$0.sectionIndex`  
+    -   `$0.cb`  
+    -   `$0.className`  
+    -   `$0.styles`  
 -   `options` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
     -   `options.type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Type of annotation to add: "highlight", "underline", "mark"
     -   `options.cfiRange` **[EpubCFI](#epubcfi)** EpubCFI range to attach annotation to
     -   `options.data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Data to assign to annotation
     -   `options.sectionIndex` **int** Index in the Spine of the Section annotation belongs to
     -   `options.cb` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** Callback after annotation is added
+-   `className` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** CSS class to assign to annotation
+-   `styles` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** CSS styles to assign to annotation
 
 Returns **[Annotation](#annotation)** annotation
 
