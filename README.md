@@ -56,7 +56,7 @@ Create the new ePub, and then render it to that element:
 book.renderTo("area", { method: "default", width: "100%", height: "100%" });
 ```
 
-[View example](https://s3.amazonaws.com/epubjs/examples/spreads.html)
+[View example](http://futurepress.github.io/epub.js/examples/spreads.html)
 
 The default manager only displays a single section at a time.
 
@@ -65,7 +65,7 @@ The default manager only displays a single section at a time.
 ```js
 book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });
 ```
-[View example](https://s3.amazonaws.com/epubjs/examples/continuous-scrolled.html)
+[View example](http://futurepress.github.io/epub.js/examples/continuous-scrolled.html)
 
 The continuous manager will display as many sections as need to fill the screen, and preload the next section offscreen. This enables seamless swiping / scrolling between pages on mobile and desktop, but is less performant than the default method.
 
@@ -82,17 +82,17 @@ Flow will be based on the settings in the OPF, defaults to `paginated`.
 book.renderTo("area", { flow: "paginated", width: "900", height: "600" });
 ```
 
-[View example](https://s3.amazonaws.com/epubjs/examples/spreads.html)
+[View example](http://futurepress.github.io/epub.js/examples/spreads.html)
 
 Scrolled: `book.renderTo("area", { flow: "scrolled-doc" });`
 
-[View example](https://s3.amazonaws.com/epubjs/examples/scrolled.html)
+[View example](http://futurepress.github.io/epub.js/examples/scrolled.html)
 
 ## Documentation
 
 API documentation is available at [epubjs.org/documentation/0.3/](http://epubjs.org/documentation/0.3/)
 
-A Markdown version is included in the repo at [documentation/API.md](htts://github.com/futurepress/epub.js/blob/v0.3/documentation/API.md)
+A Markdown version is included in the repo at [documentation/API.md](https://github.com/futurepress/epub.js/blob/master/documentation/md/API.md)
 
 ## Running Locally
 
