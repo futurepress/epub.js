@@ -305,7 +305,7 @@ class Packaging {
 			return item;
 		});
 
-		if (json.resource) {
+		if (json.resources) {
 			json.resources.forEach((item) => {
 				let id = item.id || item.href;
 
