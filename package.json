@@ -1,6 +1,6 @@
 {
   "name": "epubjs",
-  "version": "0.3.65",
+  "version": "0.3.66",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",

@@ -3,6 +3,7 @@ import Rendition from "./rendition";
 import CFI from "./epubcfi";
 import Contents from "./contents";
 import * as utils from "./utils/core";
+import { EPUBJS_VERSION } from "./utils/constants";
 import '../libs/url/url-polyfill'
 
 import IframeView from "./managers/views/iframe";
@@ -20,10 +21,10 @@ function ePub(url, options) {
 	return new Book(url, options);
 }
 
-ePub.VERSION = "0.3";
+ePub.VERSION = EPUBJS_VERSION;
 
 if (typeof(global) !== "undefined") {
-	global.EPUBJS_VERSION = ePub.VERSION;
+	global.EPUBJS_VERSION = EPUBJS_VERSION;
 }
 
 ePub.Book = Book;

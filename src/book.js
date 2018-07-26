@@ -13,10 +13,9 @@ import Rendition from "./rendition";
 import Archive from "./archive";
 import request from "./utils/request";
 import EpubCFI from "./epubcfi";
-import { EVENTS } from "./utils/constants";
+import { EPUBJS_VERSION, EVENTS } from "./utils/constants";
 
 const CONTAINER_PATH = "META-INF/container.xml";
-const EPUBJS_VERSION = "0.3";
 
 const INPUT_TYPE = {
 	BINARY: "binary",

@@ -3,7 +3,7 @@ import {isNumber, prefixed, borders, defaults} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "./utils/replacements";
-import { EVENTS, DOM_EVENTS } from "./utils/constants";
+import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "./utils/constants";
 
 const hasNavigator = typeof (navigator) !== "undefined";
 
@@ -39,7 +39,7 @@ class Contents {
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
 
-		this.epubReadingSystem("epub.js", ePub.VERSION);
+		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
 
 		this.listeners();
 	}
