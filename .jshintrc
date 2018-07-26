@@ -1,4 +1,6 @@
 {
+  "esversion": 6,
+
   "browser": true,
   "devel": true,
   "worker": true,
