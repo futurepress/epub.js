@@ -6,9 +6,12 @@ import minify from 'rollup-plugin-babel-minify';
 
 import pkg from './package.json';
 
+const path = require('path');
+
 const plugins = [
 	alias({
-		path: 'path-webpack'
+		path: 'path-webpack',
+        jszip: path.resolve("./node_modules/jszip/dist/jszip")
 	}),
 	resolve(),
 	commonjs()

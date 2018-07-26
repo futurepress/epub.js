@@ -1,6 +1,6 @@
 import Epub from "../epub/epub";
 import { EVENTS } from "../utils/constants";
-import JSZip from "jszip/dist/jszip";
+import JSZip from "jszip";
 import mime from "../../libs/mime/mime";
 
 const DEV = false;
