@@ -4,6 +4,7 @@
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
+  "types": "types/index.d.ts",
   "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
@@ -49,6 +50,7 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
+    "jsdoc": "^3.5.5",
     "jshint": "^2.9.5",
     "karma": "^1.7.1",
     "karma-chrome-launcher": "^2.2.0",
@@ -64,6 +66,7 @@
     "portfinder": "^1.0.13",
     "raw-loader": "^0.5.1",
     "serve-static": "^1.13.2",
+    "tsd-jsdoc": "^2.0.0-beta.6",
     "uglify": "^0.1.5",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^1.1.2",

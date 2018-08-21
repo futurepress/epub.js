@@ -34,8 +34,9 @@ class Spine {
 
 	/**
 	 * Unpack items from a opf into spine items
-	 * @param  {Package} _package
+	 * @param  {Packaging} _package
 	 * @param  {method} resolver URL resolver
+	 * @param  {method} canonical Resolve canonical url
 	 */
 	unpack(_package, resolver, canonical) {
 
@@ -112,7 +113,7 @@ class Spine {
 
 	/**
 	 * Get an item from the spine
-	 * @param  {string|int} [target]
+	 * @param  {string|number} [target]
 	 * @return {Section} section
 	 * @example spine.get();
 	 * @example spine.get(1);
@@ -214,6 +215,10 @@ class Spine {
 		return this.spineItems.forEach.apply(this.spineItems, arguments);
 	}
 
+	/**
+	 * Find the first Section in the Spine
+	 * @return {Section} first section
+	 */
 	first() {
 		let index = 0;
 
@@ -227,6 +232,10 @@ class Spine {
 		} while (index < this.spineItems.length) ;
 	}
 
+	/**
+	 * Find the last Section in the Spine
+	 * @return {Section} last section
+	 */
 	last() {
 		let index = this.spineItems.length-1;
 

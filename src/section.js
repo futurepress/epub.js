@@ -40,7 +40,7 @@ class Section {
 
 	/**
 	 * Load the section from its url
-	 * @param  {method} _request a request method to use for loading
+	 * @param  {method} [_request] a request method to use for loading
 	 * @return {document} a promise with the xml document
 	 */
 	load(_request){
@@ -81,7 +81,7 @@ class Section {
 
 	/**
 	 * Render the contents of a section
-	 * @param  {method} _request a request method to use for loading
+	 * @param  {method} [_request] a request method to use for loading
 	 * @return {string} output a serialized XML Document
 	 */
 	render(_request){
@@ -176,15 +176,15 @@ class Section {
 	/**
 	* Reconciles the current chapters layout properies with
 	* the global layout properities.
-	* @param {object} global  The globa layout settings object, chapter properties string
+	* @param {object} globalLayout  The global layout settings object, chapter properties string
 	* @return {object} layoutProperties Object with layout properties
 	*/
-	reconcileLayoutSettings(global){
+	reconcileLayoutSettings(globalLayout){
 		//-- Get the global defaults
 		var settings = {
-			layout : global.layout,
-			spread : global.spread,
-			orientation : global.orientation
+			layout : globalLayout.layout,
+			spread : globalLayout.spread,
+			orientation : globalLayout.orientation
 		};
 
 		//-- Get the chapter's display type

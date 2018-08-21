@@ -66,6 +66,10 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Register themes object
+	 * @param {object} themes
+	 */
 	registerThemes (themes) {
 		for (var theme in themes) {
 			if (themes.hasOwnProperty(theme)) {
@@ -78,6 +82,11 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Register a url
+	 * @param {string} name
+	 * @param {string} input
+	 */
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
@@ -86,6 +95,11 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Register rule
+	 * @param {string} name
+	 * @param {object} rules
+	 */
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
@@ -94,6 +108,10 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Select a theme
+	 * @param {string} name
+	 */
 	select (name) {
 		var prev = this._current;
 		var contents;
@@ -108,6 +126,10 @@ class Themes {
 		});
 	}
 
+	/**
+	 * Update a theme
+	 * @param {string} name
+	 */
 	update (name) {
 		var contents = this.rendition.getContents();
 		contents.forEach( (content) => {
@@ -115,6 +137,10 @@ class Themes {
 		});
 	}
 
+	/**
+	 * Inject all themes into contents
+	 * @param {Contents} contents
+	 */
 	inject (contents) {
 		var links = [];
 		var themes = this._themes;
@@ -135,6 +161,11 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Add Theme to contents
+	 * @param {string} name
+	 * @param {Contents} contents
+	 */
 	add (name, contents) {
 		var theme = this._themes[name];
 
@@ -152,6 +183,12 @@ class Themes {
 		}
 	}
 
+	/**
+	 * Add override
+	 * @param {string} name
+	 * @param {string} value
+	 * @param {boolean} priority
+	 */
 	override (name, value, priority) {
 		var contents = this.rendition.getContents();
 
@@ -165,6 +202,10 @@ class Themes {
 		});
 	}
 
+	/**
+	 * Add all overrides
+	 * @param {Content} content
+	 */
 	overrides (contents) {
 		var overrides = this._overrides;
 

@@ -1,8 +1,13 @@
 import EpubCFI from "./epubcfi";
+import { nodeBounds } from "./utils/core";
 
 /**
  * Map text locations to CFI ranges
  * @class
+ * @param {Layout} layout Layout to apply
+ * @param {string} [direction="ltr"] Text direction
+ * @param {string} [axis="horizontal"] vertical or horizontal axis
+ * @param {boolean} [dev] toggle developer highlighting
  */
 class Mapping {
 	constructor(layout, direction, axis, dev) {
@@ -24,6 +29,10 @@ class Mapping {
 
 	/**
 	 * Find CFI pairs for a page
+	 * @param {Contents} contents Contents from view
+	 * @param {string} cfiBase string of the base for a cfi
+	 * @param {number} start position to start at
+	 * @param {number} end position to end at
 	 */
 	page(contents, cfiBase, start, end) {
 		var root = contents && contents.document ? contents.document.body : false;
@@ -54,6 +63,13 @@ class Mapping {
 		return result;
 	}
 
+	/**
+	 * Walk a node, preforming a function on each node it finds
+	 * @private
+	 * @param {Node} root Node to walkToNode
+	 * @param {function} func walk function
+	 * @return {*} returns the result of the walk function
+	 */
 	walk(root, func) {
 		// IE11 has strange issue, if root is text node IE throws exception on
 		// calling treeWalker.nextNode(), saying
@@ -107,6 +123,14 @@ class Mapping {
 		return columns;
 	}
 
+	/**
+	 * Find Start Range
+	 * @private
+	 * @param {Node} root root node
+	 * @param {number} start position to start at
+	 * @param {number} end position to end at
+	 * @return {Range}
+	 */
 	findStart(root, start, end){
 		var stack = [root];
 		var $el;
@@ -123,7 +147,7 @@ class Mapping {
 				var elRange;
 
 
-				elPos = this.getBounds(node);
+				elPos = nodeBounds(node);
 
 				if (this.horizontal && this.direction === "ltr") {
 
@@ -182,6 +206,14 @@ class Mapping {
 		return this.findTextStartRange($prev, start, end);
 	}
 
+	/**
+	 * Find End Range
+	 * @private
+	 * @param {Node} root root node
+	 * @param {number} start position to start at
+	 * @param {number} end position to end at
+	 * @return {Range}
+	 */
 	findEnd(root, start, end){
 		var stack = [root];
 		var $el;
@@ -198,7 +230,7 @@ class Mapping {
 				var elPos;
 				var elRange;
 
-				elPos = this.getBounds(node);
+				elPos = nodeBounds(node);
 
 				if (this.horizontal && this.direction === "ltr") {
 
@@ -257,7 +289,14 @@ class Mapping {
 		return this.findTextEndRange($prev, start, end);
 	}
 
-
+	/**
+	 * Find Text Start Range
+	 * @private
+	 * @param {Node} root root node
+	 * @param {number} start position to start at
+	 * @param {number} end position to end at
+	 * @return {Range}
+	 */
 	findTextStartRange(node, start, end){
 		var ranges = this.splitTextNodeIntoRanges(node);
 		var range;
@@ -299,6 +338,14 @@ class Mapping {
 		return ranges[0];
 	}
 
+	/**
+	 * Find Text End Range
+	 * @private
+	 * @param {Node} root root node
+	 * @param {number} start position to start at
+	 * @param {number} end position to end at
+	 * @return {Range}
+	 */
 	findTextEndRange(node, start, end){
 		var ranges = this.splitTextNodeIntoRanges(node);
 		var prev;
@@ -356,6 +403,13 @@ class Mapping {
 
 	}
 
+	/**
+	 * Split up a text node into ranges for each word
+	 * @private
+	 * @param {Node} root root node
+	 * @param {string} [_splitter] what to split on
+	 * @return {Range[]}
+	 */
 	splitTextNodeIntoRanges(node, _splitter){
 		var ranges = [];
 		var textContent = node.textContent || "";
@@ -402,7 +456,13 @@ class Mapping {
 	}
 
 
-
+	/**
+	 * Turn a pair of ranges into a pair of CFIs
+	 * @private
+	 * @param {string} cfiBase base string for an EpubCFI
+	 * @param {object} rangePair { start: Range, end: Range }
+	 * @return {object} { start: "epubcfi(...)", end: "epubcfi(...)" }
+	 */
 	rangePairToCfiPair(cfiBase, rangePair){
 
 		var startRange = rangePair.start;
@@ -435,18 +495,11 @@ class Mapping {
 		return map;
 	}
 
-	getBounds(node) {
-		let elPos;
-		if(node.nodeType == Node.TEXT_NODE){
-			let elRange = document.createRange();
-			elRange.selectNodeContents(node);
-			elPos = elRange.getBoundingClientRect();
-		} else {
-			elPos = node.getBoundingClientRect();
-		}
-		return elPos;
-	}
-
+	/**
+	 * Set the axis for mapping
+	 * @param {string} axis horizontal | vertical
+	 * @return {boolean} is it horizontal?
+	 */
 	axis(axis) {
 		if (axis) {
 			this.horizontal = (axis === "horizontal") ? true : false;

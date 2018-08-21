@@ -8,6 +8,7 @@ import EventEmitter from "event-emitter";
  * Find Locations for a Book
  * @param {Spine} spine
  * @param {request} request
+ * @param {number} [pause=100]
  */
 class Locations {
 	constructor(spine, request, pause) {

@@ -511,7 +511,11 @@ class Contents {
 		this.observer.observe(this.document, config);
 	}
 
-	imageLoadListeners(target) {
+	/**
+	 * Test if images are loaded or add listener for when they load
+	 * @private
+	 */
+	imageLoadListeners() {
 		var images = this.document.querySelectorAll("img");
 		var img;
 		for (var i = 0; i < images.length; i++) {
@@ -528,7 +532,7 @@ class Contents {
 	 * Listen for font load and check for resize when loaded
 	 * @private
 	 */
-	fontLoadListeners(target) {
+	fontLoadListeners() {
 		if (!this.document || !this.document.fonts) {
 			return;
 		}
