@@ -9,10 +9,10 @@ import path from "path-webpack";
  * Handle Package Resources
  * @class
  * @param {Manifest} manifest
- * @param {[object]} options
- * @param {[string="base64"]} options.replacements
- * @param {[Archive]} options.archive
- * @param {[method]} options.resolver
+ * @param {object} [options]
+ * @param {string} [options.replacements="base64"]
+ * @param {Archive} [options.archive]
+ * @param {method} [options.resolver]
  */
 class Resources {
 	constructor(manifest, options) {
@@ -93,6 +93,11 @@ class Resources {
 
 	}
 
+	/**
+	 * Create a url to a resource
+	 * @param {string} url
+	 * @return {Promise<string>} Promise resolves with url string
+	 */
 	createUrl (url) {
 		var parsedUrl = new Url(url);
 		var mimeType = mime.lookup(parsedUrl.filename);
@@ -239,7 +244,7 @@ class Resources {
 	/**
 	 * Resolve all resources URLs relative to an absolute URL
 	 * @param  {string} absolute to be resolved to
-	 * @param  {[resolver]} resolver
+	 * @param  {resolver} [resolver]
 	 * @return {string[]} array with relative Urls
 	 */
 	relativeTo(absolute, resolver){

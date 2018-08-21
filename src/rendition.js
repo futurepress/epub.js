@@ -839,7 +839,7 @@ class Rendition {
 	/**
 	 * Pass the events from a view's Contents
 	 * @private
-	 * @param  {View} view
+	 * @param  {Contents} view contents
 	 */
 	passEvents(contents){
 		var listenedEvents = Contents.listenedEvents;

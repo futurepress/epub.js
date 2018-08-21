@@ -75,7 +75,7 @@ class Packaging {
 	/**
 	 * Parse Metadata
 	 * @private
-	 * @param  {document} xml
+	 * @param  {node} xml
 	 * @return {object} metadata
 	 */
 	parseMetadata(xml){
@@ -107,7 +107,7 @@ class Packaging {
 	/**
 	 * Parse Manifest
 	 * @private
-	 * @param  {document} manifestXml
+	 * @param  {node} manifestXml
 	 * @return {object} manifest
 	 */
 	parseManifest(manifestXml){
@@ -140,7 +140,8 @@ class Packaging {
 
 	/**
 	 * Parse Spine
-	 * @param  {document} spineXml
+	 * @private
+	 * @param  {node} spineXml
 	 * @param  {Packaging.manifest} manifest
 	 * @return {object} spine
 	 */
@@ -179,6 +180,8 @@ class Packaging {
 	/**
 	 * Find TOC NAV
 	 * @private
+	 * @param {element} manifestNode
+	 * @return {string}
 	 */
 	findNavPath(manifestNode){
 		// Find item with property "nav"
@@ -192,6 +195,9 @@ class Packaging {
 	 * Find TOC NCX
 	 * media-type="application/x-dtbncx+xml" href="toc.ncx"
 	 * @private
+	 * @param {element} manifestNode
+	 * @param {element} spineNode
+	 * @return {string}
 	 */
 	findNcxPath(manifestNode, spineNode){
 		// var node = manifestNode.querySelector("item[media-type='application/x-dtbncx+xml']");
@@ -216,7 +222,8 @@ class Packaging {
 	 * Find the Cover Path
 	 * <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
 	 * Fallback for Epub 2.0
-	 * @param  {document} packageXml
+	 * @private
+	 * @param  {node} packageXml
 	 * @return {string} href
 	 */
 	findCoverPath(packageXml){
@@ -245,7 +252,7 @@ class Packaging {
 	/**
 	 * Get text of a namespaced element
 	 * @private
-	 * @param  {document} xml
+	 * @param  {node} xml
 	 * @param  {string} tag
 	 * @return {string} text
 	 */
@@ -268,7 +275,7 @@ class Packaging {
 	/**
 	 * Get text by property
 	 * @private
-	 * @param  {document} xml
+	 * @param  {node} xml
 	 * @param  {string} property
 	 * @return {string} text
 	 */
