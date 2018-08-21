@@ -38,7 +38,7 @@ class Archive {
 	/**
 	 * Open an archive
 	 * @param  {binary} input
-	 * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+	 * @param  {boolean} [isBase64] tells JSZip if the input data is base64 encoded
 	 * @return {Promise} zipfile
 	 */
 	open(input, isBase64){
@@ -48,7 +48,7 @@ class Archive {
 	/**
 	 * Load and Open an archive
 	 * @param  {string} zipUrl
-	 * @param  {boolean} isBase64 tells JSZip if the input data is base64 encoded
+	 * @param  {boolean} [isBase64] tells JSZip if the input data is base64 encoded
 	 * @return {Promise} zipfile
 	 */
 	openUrl(zipUrl, isBase64){
@@ -62,7 +62,7 @@ class Archive {
 	 * Request a url from the archive
 	 * @param  {string} url  a url to request from the archive
 	 * @param  {string} [type] specify the type of the returned result
-	 * @return {Promise}
+	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 	 */
 	request(url, type){
 		var deferred = new defer();
