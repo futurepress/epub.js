@@ -2,6 +2,7 @@ import Epub from "../epub/epub";
 import { EVENTS } from "../utils/constants";
 import JSZip from "jszip/dist/jszip";
 import mime from "../../libs/mime/mime";
+import { uuid } from "../utils/core";
 
 const DEV = false;
 
@@ -11,6 +12,8 @@ let CACHES = {
 
 class EpubWorker {
 	constructor() {
+		this.uuid = uuid();
+
 		self.addEventListener("message", this.onMessage.bind(this));
 
 		self.addEventListener('install', this.onInstall.bind(this));
@@ -21,16 +24,17 @@ class EpubWorker {
 	}
 
 	onInstall(event) {
-		DEV && console.log('[install] Kicking off service worker registration!');
+		DEV && console.log("[worker-"+this.uuid+"]" + '[install] Kicking off service worker registration!');
+
 		event.waitUntil(self.skipWaiting());
 	}
 
 	onActivate(event) {
 		// Claim the service work for this client, forcing `controllerchange` event
-		DEV && console.log('[activate] Claiming this service worker!');
+		DEV && console.log("[worker-"+this.uuid+"]" + '[activate] Claiming this service worker!');
 
 		event.waitUntil(
-			clients.claim().then(function() {
+			self.clients.claim().then(function() {
 				// After the activation and claiming is complete, send a message to each of the controlled
 				// pages letting it know that it's active.
 				// This will trigger navigator.serviceWorker.onmessage in each client.
@@ -50,7 +54,7 @@ class EpubWorker {
 					// Cache hit - return the response from the cached version
 					if (response) {
 						DEV && console.log(
-							'[fetch] Returning from Service Worker cache: ',
+							"[worker-"+this.uuid+"]" + '[fetch] Returning from Service Worker cache: ',
 							event.request.url,
 							response.ok
 						);
@@ -68,7 +72,7 @@ class EpubWorker {
 					}
 
 					// Not in cache - return the result from the live server
-					DEV && console.log('[fetch] Returning from server: ', event.request.url);
+					DEV && console.log("[worker-"+this.uuid+"]" + '[fetch] Returning from server: ', event.request.url);
 					return fetch(event.request);
 				}
 			)
@@ -81,7 +85,7 @@ class EpubWorker {
 			data = JSON.parse(data);
 		}
 
-		DEV && console.log("[worker]", data);
+		DEV && console.log("[worker-"+this.uuid+"]", data);
 
 		switch (data.method) {
 			case "init":

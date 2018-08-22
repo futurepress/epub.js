@@ -1048,7 +1048,7 @@ class Rendition {
 
 	worker(workerUrl) {
 		let deferred = new defer();
-		let key = this.key();
+		// let key = this.key();
 
 		// Resolve early if book is not archived and not cross domain
 		let url = new Url(this.book.url);
@@ -1057,51 +1057,39 @@ class Rendition {
 		if(source !== "application/epub+zip" &&
 			 url.origin === window.location.origin) {
 			deferred.resolve();
+			return deferred.promise;
 		}
 
 		if ('serviceWorker' in navigator) {
 
 			let worker = navigator.serviceWorker.controller;
+
 			// Worker is already running
 			if (worker) {
-				deferred.resolve();
+				deferred.resolve(worker);
+				return deferred.promise;
 			}
 
 			navigator.serviceWorker.register(workerUrl, { scope: this.settings.workerScope })
 				.then((reg) => {
 
-					worker = navigator.serviceWorker.controller;
-
-					if (reg.active && !worker) {
-						this.emit(EVENTS.RENDITION.WORKER_INACTIVE);
-						deferred.resolve();
-					}
-
-					if (worker) {
-						deferred.resolve();
+					if (reg.active) {
+						worker = reg.active;
+						deferred.resolve(worker);
+					} else {
+						worker = reg.installing;
+						worker.addEventListener('statechange', () => {
+							if(worker.state === "activated") {
+								deferred.resolve(worker);
+							}
+						});
 					}
 
 				}, (error) => {
 					// registration failed
-					console.error(error);
-
 					this.emit(EVENTS.RENDITION.WORKER_FAILED);
 					deferred.reject('Worker registration failed', error);
 				});
-
-			navigator.serviceWorker.addEventListener('message', (event) => {
-				DEV && console.log("[sw msg]", event.data);
-				if (event.data.msg === "active") {
-					deferred.resolve();
-				}
-			});
-
-			navigator.serviceWorker.addEventListener("controllerchange", (event) => {
-				worker = navigator.serviceWorker.controller;
-				if (worker) {
-					deferred.resolve();
-				}
-			});
 
 
 		} else {
@@ -1112,6 +1100,7 @@ class Rendition {
 	}
 
 	cache(worker) {
+		let key = this.key();
 		if (!worker) {
 			worker = navigator.serviceWorker.controller;
 		}
