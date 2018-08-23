@@ -101,6 +101,9 @@ function request(url, type, withCredentials, headers) {
 					});
 					return deferred.promise;
 				}
+				if(type == "text"){
+					r = this.responseText;
+				}else
 				if(responseXML){
 					r = this.responseXML;
 				} else

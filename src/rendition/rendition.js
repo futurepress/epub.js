@@ -18,6 +18,7 @@ import Epub from "../epub/epub";
 // import Navigation from "../epub/navigation";
 import {replaceBase, replaceCanonical, replaceMeta} from "../utils/replacements";
 import Url from "../utils/url";
+import request from "../utils/request";
 
 const DEV = false;
 
@@ -153,7 +154,11 @@ class Rendition {
 		// Block the queue until rendering is started
 		this.q.enqueue(this.started);
 
-		if (manifest) {
+		if (typeof manifest.then !== "undefined") { // Promise
+			manifest.then((result) => {
+				this.unpack(result);
+			});
+		} else {
 			this.unpack(manifest);
 		}
 
@@ -175,15 +180,17 @@ class Rendition {
 	/**
 	 * Load Book object or JSON manifest
 	 */
-	unpack(manifest) {
-		if (!manifest) {
+	unpack(contents) {
+		if (!contents) {
 			throw new Error("No manifest provided");
 		}
 
-		if (typeof manifest === "string") {
-			this.manifest = JSON.parse(manifest);
+		if (typeof contents === "string") {
+			this.manifest = JSON.parse(contents);
+		} else if (typeof contents.manifest === "object") {
+			this.manifest = contents.manifest;
 		} else {
-			this.manifest = manifest;
+			this.manifest = contents;
 		}
 
 		let spine = this.manifest.spine.map((item, index) =>{
@@ -209,7 +216,11 @@ class Rendition {
 			this.spineById[section.idref] = index;
 		});
 
-		this.book = new Book(manifest);
+		if (contents.manifest) {
+			this.book = new Book(contents);
+		} else {
+			this.book = new Book(this.manifest);
+		}
 
 		this.start();
 	}

@@ -262,7 +262,6 @@ class Epub {
 	 */
 	load(path, type) {
 		var resolved;
-
 		if(this.archived) {
 			resolved = this.resolve(path);
 			return this.archive.request(resolved, type);

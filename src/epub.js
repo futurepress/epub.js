@@ -54,13 +54,13 @@ async function ePub(url, options={}) {
 			rendition.attachTo(element);
 
 			// If the workers fails, switch to replacements
-	    rendition.on("workerFailed", function(){
-	      rendition.clear();
-	      epub.replacements().then((book) => {
-	        rendition.unpack(book.manifest);
-	        rendition.display(rendition.location);
-	      })
-	    });
+			rendition.on("workerFailed", function(){
+				rendition.clear();
+				epub.replacements().then((book) => {
+					rendition.unpack(book.manifest);
+					rendition.display(rendition.location);
+				})
+			});
 
 			return rendition;
 		}
