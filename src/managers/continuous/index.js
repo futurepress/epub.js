@@ -340,7 +340,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var prevTop;
 		var prevLeft;
 
-		if(this.settings.height) {
+		if(!this.settings.fullsize) {
 			prevTop = this.container.scrollTop;
 			prevLeft = this.container.scrollLeft;
 		} else {
@@ -378,7 +378,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.tick = requestAnimationFrame;
 
-		if(this.settings.height) {
+		if(!this.settings.fullsize) {
 			this.prevScrollTop = this.container.scrollTop;
 			this.prevScrollLeft = this.container.scrollLeft;
 		} else {
@@ -389,7 +389,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.scrollDeltaVert = 0;
 		this.scrollDeltaHorz = 0;
 
-		if(this.settings.height) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 			this.scrollTop = this.container.scrollTop;
 			this.scrollLeft = this.container.scrollLeft;
@@ -410,7 +410,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	removeEventListeners(){
 		var scroller;
 
-		if(this.settings.height) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -424,7 +424,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		let scrollLeft;
 		let dir = this.settings.direction === "rtl" ? -1 : 1;
 
-		if(this.settings.height) {
+		if(!this.settings.fullsize) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
 		} else {

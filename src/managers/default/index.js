@@ -23,7 +23,8 @@ class DefaultViewManager {
 			height: undefined,
 			axis: undefined,
 			flow: "scrolled",
-			ignoreClass: ""
+			ignoreClass: "",
+			fullsize: undefined
 		});
 
 		extend(this.settings, options.settings || {});
@@ -46,12 +47,13 @@ class DefaultViewManager {
 	render(element, size){
 		let tag = element.tagName;
 
-		if (tag && (tag.toLowerCase() == "body" ||
+		if (typeof this.settings.fullsize === "undefined" &&
+				tag && (tag.toLowerCase() == "body" ||
 				tag.toLowerCase() == "html")) {
-  			this.fullsize = true;
+				this.settings.fullsize = true;
 		}
 
-		if (this.fullsize) {
+		if (this.settings.fullsize) {
 			this.settings.overflow = "visible";
 			this.overflow = this.settings.overflow;
 		}
@@ -65,7 +67,7 @@ class DefaultViewManager {
 			overflow: this.overflow,
 			hidden: this.settings.hidden,
 			axis: this.settings.axis,
-			fullsize: this.fullsize,
+			fullsize: this.settings.fullsize,
 			direction: this.settings.direction
 		});
 
@@ -158,7 +160,7 @@ class DefaultViewManager {
 
 	onOrientationChange(e) {
 		let {orientation} = window;
-		
+
 		if(this.optsSettings.resizeOnOrientationChange) {
 			this.resize();
 		}
@@ -171,11 +173,11 @@ class DefaultViewManager {
 		clearTimeout(this.orientationTimeout);
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
-			
+
 			if(this.optsSettings.resizeOnOrientationChange) {
 				this.resize();
 			}
-			
+
 			this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 		}.bind(this), 500);
 

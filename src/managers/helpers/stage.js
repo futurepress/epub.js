@@ -211,7 +211,7 @@ class Stage {
 								bodyPadding.left -
 								bodyPadding.right;
 		}
-		if (this.settings.fullsize || !height) {
+		if ((this.settings.fullsize && !height) || !height) {
 			height = _windowBounds.height -
 								bodyPadding.top -
 								bodyPadding.bottom;
