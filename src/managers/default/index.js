@@ -113,7 +113,7 @@ class DefaultViewManager {
 			this.destroy();
 		}.bind(this));
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -125,7 +125,7 @@ class DefaultViewManager {
 	removeEventListeners(){
 		var scroller;
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -582,7 +582,7 @@ class DefaultViewManager {
 		let offset = 0;
 		let used = 0;
 
-		if(this.fullsize) {
+		if(this.settings.fullsize) {
 			offset = window.scrollY;
 		}
 
@@ -631,7 +631,7 @@ class DefaultViewManager {
 		let left = 0;
 		let used = 0;
 
-		if(this.fullsize) {
+		if(this.settings.fullsize) {
 			left = window.scrollX;
 		}
 
@@ -739,7 +739,7 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			if(x) this.container.scrollLeft += x * dir;
 			if(y) this.container.scrollTop += y;
 		} else {
@@ -753,7 +753,7 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			this.container.scrollLeft = x;
 			this.container.scrollTop = y;
 		} else {
@@ -766,7 +766,7 @@ class DefaultViewManager {
 		let scrollTop;
 		let scrollLeft;
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
 		} else {
