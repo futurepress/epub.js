@@ -484,6 +484,11 @@ class IframeView {
 
 		if(this.iframe){
 			this.iframe.style.visibility = "visible";
+
+			// Remind Safari to redraw the iframe
+			this.iframe.style.transform = "translateZ(0)";
+			this.iframe.offsetWidth;
+			this.iframe.style.transform = null;
 		}
 
 		this.emit(EVENTS.VIEWS.SHOWN, this);
