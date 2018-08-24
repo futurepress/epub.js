@@ -162,6 +162,12 @@ class Stage {
 				width = Math.floor(bounds.width);
 				this.container.style.width = width + "px";
 			}
+		} else {
+			if (isNumber(width)) {
+				this.container.style.width = width + "px";
+			} else {
+				this.container.style.width = width;
+			}
 		}
 
 		if(height === null) {
@@ -169,9 +175,15 @@ class Stage {
 
 			if(bounds.height) {
 				height = bounds.height;
-				this.container.style.height = bounds.height + "px";
+				this.container.style.height = height + "px";
 			}
 
+		} else {
+			if (isNumber(height)) {
+				this.container.style.height = height + "px";
+			} else {
+				this.container.style.height = height;
+			}
 		}
 
 		if(!isNumber(width)) {
