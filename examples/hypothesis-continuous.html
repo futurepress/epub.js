@@ -80,55 +80,51 @@
   <script>
     // var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
-    var rendition = book.renderTo(document.body, { method: "continuous", flow: "scrolled-continuous", width: "60%" });
-    var displayed = rendition.display();
+    var epub = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf")
+      .then(function(book) {
+        var rendition = book.renderTo(document.body, {
+          method: "continuous",
+          flow: "scrolled-continuous",
+          width: "60%"
+        });
+        var displayed = rendition.display();
 
+        rendition.hooks.content.register(function(view) {
+          return view.contents.addScript("//hypothes.is/embed.js").then(function() {
+            view.contents.window.hypothesisConfig = function () {
 
-    displayed.then(function(renderer){
-      // -- do stuff
-    });
+              return {
+                constructor: this.Annotator.Guest,
+                    app: 'https://hypothes.is/app.html'
+              };
+            };
 
-    // Navigation loaded
-    book.loaded.navigation.then(function(toc){
-      // console.log(toc);
-    });
+            // view.window.hypothesisInstall();
+          });
+        });
 
-    book.rendition.hooks.content.register(function(view) {
-      return view.addScript("//hypothes.is/embed.js").then(function() {
-        view.window.hypothesisConfig = function () {
-
-      		return {
-      			constructor: this.Annotator.Guest,
-              	app: 'https://hypothes.is/app.html'
-      		};
-      	};
-
-        // view.window.hypothesisInstall();
+        rendition.hooks.render.register(function(view) {
+          var getVisibleAnnotations = function ($) {
+            var height = document.documentElement.clientHeight;
+            return $('.annotator-hl').map(function() {
+              var $this = $(this),
+                  pos = view.position().top,
+                  top = pos + this.getBoundingClientRect().top;
+              if (top >= 0 && top <= height) {
+                return $this.data('annotation');
+              }
+            }).get();
+          };
+          rendition.on("scroll", function() {
+            var annotator = view.contents.window.annotator;
+            var annotations;
+            if(annotator && annotator.constructor.$) {
+              annotations = getVisibleAnnotations(annotator.constructor.$);
+              annotator.showAnnotations(annotations);
+            }
+          });
+        });
       });
-    });
-
-    book.rendition.hooks.render.register(function(view) {
-    	var getVisibleAnnotations = function ($) {
-    		var height = document.documentElement.clientHeight;
-    		return $('.annotator-hl').map(function() {
-    			var $this = $(this),
-              pos = view.position().top,
-              top = pos + this.getBoundingClientRect().top;
-    			if (top >= 0 && top <= height) {
-    				return $this.data('annotation');
-    			}
-    		}).get();
-    	};
-      book.rendition.on("scroll", function() {
-        var annotator = view.window.annotator;
-        var annotations;
-        if(annotator && annotator.constructor.$) {
-          annotations = getVisibleAnnotations(annotator.constructor.$);
-          annotator.showAnnotations(annotations);
-        }
-      });
-    });
 
   </script>
 

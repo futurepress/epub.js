@@ -40,41 +40,42 @@
     var currentSectionIndex = (params && params.get("loc")) ? parseInt(params.get("loc")) : undefined;
 
     // Load the opf
-    var book = ePub(url || "https://s3.amazonaws.com/moby-dick/");
-    var rendition = book.renderTo(document.body, {
-      // width: "100vw",
-      // height: "100vh",
-      overflow: "visible",
-      manager: "continuous",
-      // flow: "paginated"
-    });
+    var book = ePub(url || "https://s3.amazonaws.com/moby-dick/")
+      .then(function(book) {
+        var rendition = book.renderTo(document.body, {
+          // width: "100vw",
+          // height: "100vh",
+          overflow: "visible",
+          manager: "continuous",
+          // flow: "paginated"
+        });
 
-    rendition.display(currentCfi || currentSectionIndex);
+        rendition.display(currentCfi || currentSectionIndex);
 
 
-    rendition.on("rendered", function(section){
-      console.log("rendered", section);
-      var nextSection = section.next();
-      var prevSection = section.prev();
+        rendition.on("rendered", function(section){
+          console.log("rendered", section);
+          var nextSection = section.next();
+          var prevSection = section.prev();
 
-      var current = book.navigation && book.navigation.get(section.href);
+          var current = book.navigation && book.navigation.get(section.href);
 
-      if (current) {
-        document.title = current.label;
-      }
-    });
+          if (current) {
+            document.title = current.label;
+          }
+        });
 
-    rendition.on("relocated", function(location){
-      console.log("locationChanged", location)
-      console.log("locationChanged start", location.start.cfi)
-      console.log("locationChanged end", location.end.cfi)
-    });
+        rendition.on("relocated", function(location){
+          console.log("locationChanged", location)
+          console.log("locationChanged start", location.start.cfi)
+          console.log("locationChanged end", location.end.cfi)
+        });
 
-    window.addEventListener("unload", function () {
-      console.log("unloading");
-      this.book.destroy();
-    });
-
+        window.addEventListener("unload", function () {
+          console.log("unloading");
+          book.destroy();
+        });
+      });
   </script>
   <script>
     /*

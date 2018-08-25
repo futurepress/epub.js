@@ -23,17 +23,19 @@
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
     // Load the opf
-    window.epub = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
+    var epub = ePub(url || "https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
       worker: "/dist/epub.worker.js"
     });
 
-    var rendition = epub.renderTo("viewer", {
+    var rendition = new ePub.Rendition(epub, {
       manager: "continuous",
       flow: "paginated",
       width: "100%",
       height: 600,
-      worker: "/dist/rendition.worker.js"
+      worker: "/dist/epub.worker.js"
     });
+
+    rendition.renderTo("viewer");
 
     var displayed = rendition.display(currentSectionIndex);
 
@@ -42,7 +44,7 @@
       // -- do stuff
     });
 
-    epub.ready.then((book) => {
+    epub.then((book) => {
       var next = document.getElementById("next");
       var direction = book.metadata.direction;
 
@@ -114,7 +116,7 @@
 
     rendition.on("relocated", function(location){
       console.log(location);
-      var direction = epub.book.metadata.direction;
+      var direction = rendition.settings.direction;
       var next = direction === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
       var prev = direction === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
 

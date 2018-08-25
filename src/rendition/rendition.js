@@ -331,7 +331,7 @@ class Rendition {
 	 * @param  {element} element to attach to
 	 * @return {Promise}
 	 */
-	attachTo(element){
+	renderTo(element){
 
 		return this.q.enqueue(function () {
 
@@ -350,6 +350,16 @@ class Rendition {
 
 		}.bind(this));
 
+	}
+
+	/**
+	 * Alias for renderTo
+	 * @alias renderTo
+	 * @param  {element} element to attach to
+	 * @return {Promise}
+	 */
+	attachTo(element) {
+		return this.renderTo(element);
 	}
 
 	/**

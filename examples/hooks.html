@@ -19,7 +19,9 @@
     var currentSectionIndex = 8;
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer", { flow: "scrolled-doc" });
+    var rendition = new ePub.Rendition(book, { flow: "scrolled-doc" });
+
+    rendition.renderTo("viewer");
 
     rendition.display("chapter_001.xhtml");
 
@@ -43,10 +45,10 @@
       var prevSection = section.prev();
 
       if(nextSection) {
-        nextNav = book.navigation.get(nextSection.href);
+        nextNav = rendition.book.navigation.get(nextSection.href);
 
         if(nextNav) {
-          nextLabel = nextNav.label;
+          nextLabel = nextNav.title;
         } else {
           nextLabel = "next";
         }
@@ -57,10 +59,10 @@
       }
 
       if(prevSection) {
-        prevNav = book.navigation.get(prevSection.href);
+        prevNav = rendition.book.navigation.get(prevSection.href);
 
         if(prevNav) {
-          prevLabel = prevNav.label;
+          prevLabel = prevNav.title;
         } else {
           prevLabel = "previous";
         }

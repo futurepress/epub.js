@@ -19,84 +19,81 @@
   <div id="next" class="arrow">›</div>
   <script>
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf");
-    var rendition = book.renderTo("viewer", {
-      width: "100%",
-      height: 600,
-      ignoreClass: 'annotator-hl'
-    });
-
-    var displayed = rendition.display(3);
-
-    // Navigation loaded
-    book.loaded.navigation.then(function(toc){
-      // console.log(toc);
-    });
-
-    var next = document.getElementById("next");
-    next.addEventListener("click", function(){
-      rendition.next();
-    }, false);
-
-    var prev = document.getElementById("prev");
-    prev.addEventListener("click", function(){
-      rendition.prev();
-    }, false);
-
-    var keyListener = function(e){
-
-      // Left Key
-      if ((e.keyCode || e.which) == 37) {
-        rendition.prev();
-      }
-
-      // Right Key
-      if ((e.keyCode || e.which) == 39) {
-        rendition.next();
-      }
-
-    };
-
-    rendition.on("keyup", keyListener);
-    document.addEventListener("keyup", keyListener, false);
-
-    rendition.on("relocated", function(location){
-      // console.log(location);
-    });
-
-    rendition.hooks.render.register(function (view) {
-
-      var adder = [
-        ['.annotator-adder, .annotator-outer', ['position', 'fixed']]
-      ];
-
-      view.addScript('https://cdn.jsdelivr.net/jquery/3.0.0-beta1/jquery.min.js').
-        then(function () {
-          return view.addScript('https://cdn.jsdelivr.net/annotator/1.2.9/annotator-full.min.js');
-        }).
-        then(function () {
-          return view.addCss('https://cdn.jsdelivr.net/annotator/1.2.9/annotator.min.css');
-        }).
-        then(function () {
-
-          view.addStylesheetRules(adder);
-
-          view.window.Annotator.Util.mousePosition = function(event) {
-              var body = view.document.body;
-              // var offset = view.position();
-
-              return {
-                  top: event.pageY,
-                  left: event.pageX
-              };
-          };
-          var ann = new view.window.Annotator(view.document.body);
+    var book = ePub("https://s3.amazonaws.com/moby-dick/OPS/package.opf")
+      .then(function(book) {
+        var rendition = book.renderTo("viewer", {
+          width: "100%",
+          height: 600,
+          ignoreClass: 'annotator-hl'
         });
 
+        var displayed = rendition.display(3);
 
-    })
+        // Navigation
+        // console.log(book.toc);
+
+        var next = document.getElementById("next");
+        next.addEventListener("click", function(){
+          rendition.next();
+        }, false);
+
+        var prev = document.getElementById("prev");
+        prev.addEventListener("click", function(){
+          rendition.prev();
+        }, false);
+
+        var keyListener = function(e){
+
+          // Left Key
+          if ((e.keyCode || e.which) == 37) {
+            rendition.prev();
+          }
+
+          // Right Key
+          if ((e.keyCode || e.which) == 39) {
+            rendition.next();
+          }
+
+        };
+
+        rendition.on("keyup", keyListener);
+        document.addEventListener("keyup", keyListener, false);
+
+        rendition.on("relocated", function(location){
+          // console.log(location);
+        });
+
+        rendition.hooks.render.register(function (view) {
+          var adder = [
+            ['.annotator-adder, .annotator-outer', ['position', 'fixed']]
+          ];
+
+          view.contents.addScript('https://cdn.jsdelivr.net/jquery/3.0.0-beta1/jquery.min.js').
+            then(function () {
+              return view.contents.addScript('https://cdn.jsdelivr.net/annotator/1.2.9/annotator-full.min.js');
+            }).
+            then(function () {
+              return view.contents.addStylesheet('https://cdn.jsdelivr.net/annotator/1.2.9/annotator.min.css');
+            }).
+            then(function () {
+
+              view.contents.addStylesheetRules(adder);
+
+              view.contents.window.Annotator.Util.mousePosition = function(event) {
+                  var body = view.contents.document.body;
+                  // var offset = view.position();
+
+                  return {
+                      top: event.pageY,
+                      left: event.pageX
+                  };
+              };
+              var ann = new view.contents.window.Annotator(view.contents.document.body);
+            });
 
 
+        })
+      });
   </script>
 
 </body>

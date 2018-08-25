@@ -51,7 +51,7 @@ async function ePub(url, options={}) {
 			}
 
 			rendition = new Rendition(book.manifest, renditionOptions);
-			rendition.attachTo(element);
+			rendition.renderTo(element);
 
 			// If the workers fails, switch to replacements
 			rendition.on("workerFailed", function(){
@@ -81,7 +81,7 @@ async function ePub(url, options={}) {
 		}
 
 		// epub.destroy();
-		window.Epub = epub;
+		book.epub = epub;
 
 		return book;
 	});
@@ -94,5 +94,7 @@ ePub.Book = Book;
 ePub.Rendition = Rendition;
 ePub.Contents = Contents;
 ePub.utils = utils;
+ePub.Epub = Epub;
+ePub.EpubBridge = Epub;
 
 export default ePub;
