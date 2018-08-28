@@ -144,6 +144,7 @@ class Contents {
 		* @returns {number} width
 		*/
 	textWidth() {
+		let rect;
 		let width;
 		let range = this.document.createRange();
 		let content = this.content || this.document.body;
@@ -153,7 +154,12 @@ class Contents {
 		range.selectNodeContents(content);
 
 		// get the width of the text content
-		width = range.getBoundingClientRect().width;
+		rect = range.getBoundingClientRect();
+		width = rect.width;
+
+		if (this.content === this.document.body && rect.left) {
+			width += rect.left;
+		}
 
 		if (border && border.width) {
 			width += border.width;
@@ -167,6 +173,7 @@ class Contents {
 		* @returns {number} height
 		*/
 	textHeight() {
+		let rect;
 		let height;
 		let range = this.document.createRange();
 		let content = this.content || this.document.body;
@@ -174,7 +181,12 @@ class Contents {
 
 		range.selectNodeContents(content);
 
-		height = range.getBoundingClientRect().height;
+		rect = range.getBoundingClientRect();
+		height = rect.height;
+
+		if (this.content === this.document.body && rect.top) {
+			height += rect.top;
+		}
 
 		if (height && border.height) {
 			height += border.height;
