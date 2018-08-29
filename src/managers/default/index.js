@@ -10,6 +10,7 @@ class DefaultViewManager {
 	constructor(options) {
 
 		this.name = "default";
+		this.optsSettings = options.settings;
 		this.View = options.view;
 		this.request = options.request;
 		this.spine = options.spine;
@@ -23,7 +24,8 @@ class DefaultViewManager {
 			height: undefined,
 			axis: undefined,
 			flow: "scrolled",
-			ignoreClass: ""
+			ignoreClass: "",
+			fullsize: undefined
 		});
 
 		extend(this.settings, options.settings || {});
@@ -47,12 +49,13 @@ class DefaultViewManager {
 	render(element, size){
 		let tag = element.tagName;
 
-		if (tag && (tag.toLowerCase() == "body" ||
+		if (typeof this.settings.fullsize === "undefined" &&
+				tag && (tag.toLowerCase() == "body" ||
 				tag.toLowerCase() == "html")) {
-			this.fullsize = true;
+				this.settings.fullsize = true;
 		}
 
-		if (this.fullsize) {
+		if (this.settings.fullsize) {
 			this.settings.overflow = "visible";
 			this.overflow = this.settings.overflow;
 		}
@@ -66,7 +69,7 @@ class DefaultViewManager {
 			overflow: this.overflow,
 			hidden: this.settings.hidden,
 			axis: this.settings.axis,
-			fullsize: this.fullsize,
+			fullsize: this.settings.fullsize,
 			direction: this.settings.direction,
 			scale: this.settings.scale
 		});
@@ -113,7 +116,7 @@ class DefaultViewManager {
 			this.destroy();
 		}.bind(this));
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -125,7 +128,7 @@ class DefaultViewManager {
 	removeEventListeners(){
 		var scroller;
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scroller = this.container;
 		} else {
 			scroller = window;
@@ -163,7 +166,9 @@ class DefaultViewManager {
 	onOrientationChange(e) {
 		let {orientation} = window;
 
-		this.resize();
+		if(this.optsSettings.resizeOnOrientationChange) {
+			this.resize();
+		}
 
 		// Per ampproject:
 		// In IOS 10.3, the measured size of an element is incorrect if the
@@ -173,7 +178,11 @@ class DefaultViewManager {
 		clearTimeout(this.orientationTimeout);
 		this.orientationTimeout = setTimeout(function(){
 			this.orientationTimeout = undefined;
-			this.resize();
+
+			if(this.optsSettings.resizeOnOrientationChange) {
+				this.resize();
+			}
+
 			this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 		}.bind(this), 500);
 
@@ -571,7 +580,7 @@ class DefaultViewManager {
 		let offset = 0;
 		let used = 0;
 
-		if(this.fullsize) {
+		if(this.settings.fullsize) {
 			offset = window.scrollY;
 		}
 
@@ -622,7 +631,7 @@ class DefaultViewManager {
 		let left = 0;
 		let used = 0;
 
-		if(this.fullsize) {
+		if(this.settings.fullsize) {
 			left = window.scrollX;
 		}
 
@@ -731,7 +740,7 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			if(x) this.container.scrollLeft += x * dir;
 			if(y) this.container.scrollTop += y;
 		} else {
@@ -745,7 +754,7 @@ class DefaultViewManager {
 			this.ignore = true;
 		}
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			this.container.scrollLeft = x;
 			this.container.scrollTop = y;
 		} else {
@@ -758,7 +767,7 @@ class DefaultViewManager {
 		let scrollTop;
 		let scrollLeft;
 
-		if(!this.fullsize) {
+		if(!this.settings.fullsize) {
 			scrollTop = this.container.scrollTop;
 			scrollLeft = this.container.scrollLeft;
 		} else {

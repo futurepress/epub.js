@@ -100,6 +100,7 @@ class Packaging {
 		metadata.orientation = this.getPropertyText(xml, "rendition:orientation");
 		metadata.flow = this.getPropertyText(xml, "rendition:flow");
 		metadata.viewport = this.getPropertyText(xml, "rendition:viewport");
+		metadata.media_active_class = this.getPropertyText(xml, "media:active-class");
 
 		return metadata;
 	}
@@ -122,12 +123,14 @@ class Packaging {
 			var id = item.getAttribute("id"),
 					href = item.getAttribute("href") || "",
 					type = item.getAttribute("media-type") || "",
+					overlay = item.getAttribute("media-overlay") || "",
 					properties = item.getAttribute("properties") || "";
 
 			manifest[id] = {
 				"href" : href,
 				"type" : type,
-				"properties" : properties.length ? properties.split(" ") : [],
+				"overlay" : overlay,
+				"properties" : properties.length ? properties.split(" ") : []
 			};
 
 		});

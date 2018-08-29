@@ -61,6 +61,7 @@ class Rendition {
 			spread: null,
 			minSpreadWidth: 800,
 			stylesheet: null,
+			resizeOnOrientationChange: true,
 			script: null,
 			worker: undefined,
 			workerScope: undefined
