@@ -23,7 +23,7 @@ const plugins = [
 
 export default [
 	{
-		input: 'src/index.js',
+		input: 'src/epub.js',
 		output: {
 			name: 'ePub',
 			file: pkg.browser,

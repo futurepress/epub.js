@@ -27,7 +27,7 @@ const pluginsMinify = pluginsBabel.concat([
 
 export default [
 	{
-		input: 'src/index.js',
+		input: 'src/epub.js',
 		output: {
 			name: 'ePub',
 			file: pkg.browser,
@@ -53,7 +53,7 @@ export default [
 	},
 	// native, no babel
 	{
-		input: 'src/index.js',
+		input: 'src/epub.js',
 		output: {
 			name: 'ePub',
 			file: pkg.browser.replace('.js', '.native.js'),
@@ -79,7 +79,7 @@ export default [
 	},
 	// minified
 	{
-		input: 'src/index.js',
+		input: 'src/epub.js',
 		output: {
 			name: 'ePub',
 			file: pkg.browser.replace('.js', '.min.js'),
