@@ -91,7 +91,7 @@ class Spine {
 
 	/**
 	 * Get an item from the spine
-	 * @param  {string|int} [target]
+	 * @param  {string|number} [target]
 	 * @return {Section} section
 	 * @example spine.get();
 	 * @example spine.get(1);
@@ -207,13 +207,9 @@ class Spine {
 	}
 
 	/**
-	 * Map the Sections in the Spine
-	 * @return {method} map
+	 * Find the first Section in the Spine
+	 * @return {Section} first section
 	 */
-	map() {
-		return this.spineItems.map.apply(this.spineItems, arguments);
-	}
-
 	first() {
 		let index = 0;
 
@@ -227,6 +223,10 @@ class Spine {
 		} while (index < this.spineItems.length) ;
 	}
 
+	/**
+	 * Find the last Section in the Spine
+	 * @return {Section} last section
+	 */
 	last() {
 		let index = this.spineItems.length-1;
 

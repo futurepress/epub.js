@@ -74,6 +74,7 @@ class Url {
 
 	/**
 	 * Resolves a relative path to a absolute url
+	 * @param {string} what
 	 * @returns {string} url
 	 */
 	resolve (what) {
@@ -90,6 +91,7 @@ class Url {
 
 	/**
 	 * Resolve a path relative to the url
+	 * @param {string} what
 	 * @returns {string} path
 	 */
 	relative (what) {

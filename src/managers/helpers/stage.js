@@ -166,8 +166,8 @@ class Stage {
 			bounds = this.element.getBoundingClientRect();
 
 			if(bounds.width) {
-				width = bounds.width;
-				this.container.style.width = bounds.width + "px";
+				width = Math.floor(bounds.width);
+				this.container.style.width = width + "px";
 			}
 		}
 
@@ -183,7 +183,7 @@ class Stage {
 
 		if(!isNumber(width)) {
 			bounds = this.container.getBoundingClientRect();
-			width = bounds.width;
+			width = Math.floor(bounds.width);
 			//height = bounds.height;
 		}
 
@@ -205,11 +205,23 @@ class Stage {
 
 		// Bounds not set, get them from window
 		let _windowBounds = windowBounds();
+		let bodyStyles = window.getComputedStyle(document.body);
+		let bodyPadding = {
+			left: parseFloat(bodyStyles["padding-left"]) || 0,
+			right: parseFloat(bodyStyles["padding-right"]) || 0,
+			top: parseFloat(bodyStyles["padding-top"]) || 0,
+			bottom: parseFloat(bodyStyles["padding-bottom"]) || 0
+		};
+
 		if (!width) {
-			width = _windowBounds.width;
+			width = _windowBounds.width -
+								bodyPadding.left -
+								bodyPadding.right;
 		}
 		if (this.settings.fullsize || !height) {
-			height = _windowBounds.height;
+			height = _windowBounds.height -
+								bodyPadding.top -
+								bodyPadding.bottom;
 		}
 
 		this.width = width;

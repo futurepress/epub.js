@@ -4,6 +4,7 @@
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
+  "types": "types/index.d.ts",
   "browser": "dist/epub.js",
   "worker": "dist/epub.worker.js",
   "repository": "https://github.com/futurepress/epub.js",

@@ -52,6 +52,7 @@ export function documentHeight() {
 
 /**
  * Checks if a node is an element
+ * @param {object} obj
  * @returns {boolean}
  * @memberof Core
  */
@@ -60,6 +61,7 @@ export function isElement(obj) {
 }
 
 /**
+ * @param {any} n
  * @returns {boolean}
  * @memberof Core
  */
@@ -68,16 +70,27 @@ export function isNumber(n) {
 }
 
 /**
+ * @param {any} n
  * @returns {boolean}
  * @memberof Core
  */
 export function isFloat(n) {
 	let f = parseFloat(n);
-	return isNumber(n) && (Math.floor(f) !== parseFloat(n));
+
+	if (isNumber(n) === false) {
+		return false;
+	}
+
+	if (typeof n === "string" && n.indexOf(".") > -1) {
+		return true;
+	}
+
+	return Math.floor(f) !== f;
 }
 
 /**
  * Get a prefixed css property
+ * @param {string} unprefixed
  * @returns {string}
  * @memberof Core
  */
@@ -292,6 +305,26 @@ export function borders(el) {
 }
 
 /**
+ * Find the bounds of any node
+ * allows for getting bounds of text nodes by wrapping them in a range
+ * @param {node} node
+ * @returns {BoundingClientRect}
+ * @memberof Core
+ */
+export function nodeBounds(node) {
+	let elPos;
+	let doc = node.ownerDocument;
+	if(node.nodeType == Node.TEXT_NODE){
+		let elRange = doc.createRange();
+		elRange.selectNodeContents(node);
+		elPos = elRange.getBoundingClientRect();
+	} else {
+		elPos = node.getBoundingClientRect();
+	}
+	return elPos;
+}
+
+/**
  * Find the equivelent of getBoundingClientRect of a browser window
  * @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
  * @memberof Core
@@ -314,7 +347,9 @@ export function windowBounds() {
 
 /**
  * Gets the index of a node in its parent
- * @private
+ * @param {Node} node
+ * @param {string} typeId
+ * @return {number} index
  * @memberof Core
  */
 export function indexOfNode(node, typeId) {
@@ -504,7 +539,7 @@ export function qsa(el, sel) {
  * querySelector by property
  * @param {element} el
  * @param {string} sel selector string
- * @param {props[]} props
+ * @param {object[]} props
  * @returns {element[]} elements
  * @memberof Core
  */
@@ -554,6 +589,13 @@ export function sprint(root, func) {
 	}
 }
 
+/**
+ * Create a treeWalker
+ * @memberof Core
+ * @param  {element} root element to start with
+ * @param  {function} func function to run on each element
+ * @param  {function | object} filter funtion or object to filter with
+ */
 export function treeWalker(root, func, filter) {
 	var treeWalker = document.createTreeWalker(root, filter, null, false);
 	let node;

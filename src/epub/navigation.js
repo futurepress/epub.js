@@ -90,7 +90,7 @@ class Navigation {
 	/**
 	 * Get an item from the navigation
 	 * @param  {string} target
-	 * @return {object} navItems
+	 * @return {object} navItem
 	 */
 	get(target) {
 		var index;
@@ -112,7 +112,7 @@ class Navigation {
 	 * Get a landmark by type
 	 * List of types: https://idpf.github.io/epub-vocabs/structure/
 	 * @param  {string} type
-	 * @return {object} landmarkItems
+	 * @return {object} landmarkItem
 	 */
 	landmark(type) {
 		var index;
@@ -332,11 +332,14 @@ class Navigation {
 	/**
 	 * Load Spine Items
 	 * @param  {object} json the items to be loaded
+	 * @return {Array} navItems
 	 */
 	load(json) {
 		return json.map((item) => {
 			if (item.children) {
 				item.children = this.load(item.children);
+			} else {
+				item.children = [];
 			}
 			return item;
 		});

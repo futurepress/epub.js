@@ -884,7 +884,7 @@ class Rendition {
 	/**
 	 * Pass the events from a view's Contents
 	 * @private
-	 * @param  {View} view
+	 * @param  {Contents} view contents
 	 */
 	passEvents(contents){
 		var listenedEvents = Contents.listenedEvents;
@@ -969,17 +969,22 @@ class Rendition {
 			});
 		}
 
+		let computed = contents.window.getComputedStyle(contents.content, null);
+		let height = contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom));
+
 		contents.addStylesheetRules({
 			"img" : {
 				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
-				"max-height": (this._layout.height ? (this._layout.height * 0.6) + "px" : "60%") + "!important",
+				"max-height": height + "px" + "!important",
 				"object-fit": "contain",
-				"page-break-inside": "avoid"
+				"page-break-inside": "avoid",
+				"break-inside": "avoid"
 			},
 			"svg" : {
 				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
-				"max-height": (this._layout.height ? (this._layout.height * 0.6) + "px" : "60%") + "!important",
-				"page-break-inside": "avoid"
+				"max-height": height + "px" + "!important",
+				"page-break-inside": "avoid",
+				"break-inside": "avoid"
 			}
 		});
 

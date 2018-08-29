@@ -552,10 +552,11 @@ class IframeView {
 		return this.elementBounds;
 	}
 
-	highlight(cfiRange, data={}, cb) {
+	highlight(cfiRange, data={}, cb, className = "epubjs-hl", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
+		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		let range = this.contents.range(cfiRange);
 
 		let emitter = () => {
@@ -568,12 +569,12 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Highlight(range, "epubjs-hl", data, {"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"});
+		let m = new Highlight(range, className, data, attributes);
 		let h = this.pane.addMark(m);
 
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
-		h.element.setAttribute("ref", "epubjs-hl");
+		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
 		h.element.addEventListener("touchstart", emitter);
 
@@ -584,10 +585,11 @@ class IframeView {
 		return h;
 	}
 
-	underline(cfiRange, data={}, cb) {
+	underline(cfiRange, data={}, cb, className = "epubjs-ul", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
+		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		let range = this.contents.range(cfiRange);
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
@@ -599,12 +601,12 @@ class IframeView {
 			this.pane = new Pane(this.iframe, this.element);
 		}
 
-		let m = new Underline(range, "epubjs-ul", data, {"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"});
+		let m = new Underline(range, className, data, attributes);
 		let h = this.pane.addMark(m);
 
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
-		h.element.setAttribute("ref", "epubjs-ul");
+		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
 		h.element.addEventListener("touchstart", emitter);
 

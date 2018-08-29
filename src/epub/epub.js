@@ -44,8 +44,9 @@ const INPUT_TYPE = {
 class Epub {
 	constructor(url, options) {
 		// Allow passing just options to the Book
-		if (typeof(options) === "undefined"
-			&& typeof(url) === "object") {
+		if (typeof(options) === "undefined" &&
+			  typeof(url) !== "string" &&
+		    url instanceof Blob === false) {
 			options = url;
 			url = undefined;
 		}
@@ -56,9 +57,11 @@ class Epub {
 			requestHeaders: undefined,
 			encoding: undefined,
 			replacements: undefined,
+			canonical: undefined,
 			cache: undefined,
 			stylesheet: null,
-			script: null
+			script: null,
+			openAs: undefined
 		});
 
 		extend(this.settings, options);
@@ -126,7 +129,7 @@ class Epub {
 		this.pageList = undefined;
 
 		if(url) {
-			this.open(url).catch((error) => {
+			this.open(url, this.settings.openAs).catch((error) => {
 				var err = new Error("Cannot load book at "+ url );
 				this.emit(EVENTS.BOOK.OPEN_FAILED, err);
 				console.error(error);
@@ -170,7 +173,7 @@ class Epub {
 			this.archived = true;
 			this.url = new Url("/", "");
 			this.locationUrl = new Url(input, inputLocation);
-			opening = this.request(input, "binary")
+			opening = this.request(input, "binary",this.settings.requestCredentials)
 				.then(this.openEpub.bind(this));
 		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);

@@ -3,10 +3,12 @@ import {isNumber, prefixed, borders, defaults} from "../utils/core";
 import EpubCFI from "../utils/epubcfi";
 import Mapping from "./mapping";
 import {replaceLinks} from "../utils/replacements";
-import { EVENTS, DOM_EVENTS } from "../utils/constants";
+import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "../utils/constants";
 
-const isChrome = /Chrome/.test(navigator.userAgent);
-const isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
+const hasNavigator = typeof (navigator) !== "undefined";
+
+const isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
+const isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userAgent);
 
 const ELEMENT_NODE = 1;
 // const TEXT_NODE = 3;
@@ -37,7 +39,7 @@ class Contents {
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
 
-		this.epubReadingSystem("epub.js", ePub.VERSION);
+		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
 
 		this.listeners();
 	}
@@ -506,7 +508,11 @@ class Contents {
 		this.observer.observe(this.document, config);
 	}
 
-	imageLoadListeners(target) {
+	/**
+	 * Test if images are loaded or add listener for when they load
+	 * @private
+	 */
+	imageLoadListeners() {
 		var images = this.document.querySelectorAll("img");
 		var img;
 		for (var i = 0; i < images.length; i++) {
@@ -523,7 +529,7 @@ class Contents {
 	 * Listen for font load and check for resize when loaded
 	 * @private
 	 */
-	fontLoadListeners(target) {
+	fontLoadListeners() {
 		if (!this.document || !this.document.fonts) {
 			return;
 		}
@@ -928,7 +934,7 @@ class Contents {
 		if (width >= 0) {
 			this.width(width);
 			viewport.width = width;
-			this.css("padding", "0 "+(width/12)+"px", true);
+			this.css("padding", "0 "+(width/12)+"px");
 		}
 
 		if (height >= 0) {
@@ -980,9 +986,15 @@ class Contents {
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
-			this.css("padding", (gap / 2) + "px 20px", true);
+			this.css("padding-top", (gap / 2) + "px", true);
+			this.css("padding-bottom", (gap / 2) + "px", true);
+			this.css("padding-left", "20px");
+			this.css("padding-right", "20px");
 		} else {
-			this.css("padding", "20px " + (gap / 2) + "px", true);
+			this.css("padding-top", "20px");
+			this.css("padding-bottom", "20px");
+			this.css("padding-left", (gap / 2) + "px", true);
+			this.css("padding-right", (gap / 2) + "px", true);
 		}
 
 		this.css("box-sizing", "border-box");

@@ -8,7 +8,7 @@ import EventEmitter from "event-emitter";
  * @param {object} settings
  * @param {string} [settings.layout='reflowable']
  * @param {string} [settings.spread]
- * @param {int} [settings.minSpreadWidth=800]
+ * @param {number} [settings.minSpreadWidth=800]
  * @param {boolean} [settings.evenSpreads=false]
  */
 class Layout {
@@ -55,6 +55,7 @@ class Layout {
 	/**
 	 * Switch the flow between paginated and scrolled
 	 * @param  {string} flow paginated | scrolled
+	 * @return {string} simplified flow
 	 */
 	flow(flow) {
 		if (typeof(flow) != "undefined") {
@@ -74,8 +75,9 @@ class Layout {
 	/**
 	 * Switch between using spreads or not, and set the
 	 * width at which they switch to single.
-	 * @param  {string} spread true | false
-	 * @param  {boolean} min integer in pixels
+	 * @param  {string} spread "none" | "always" | "auto"
+	 * @param  {number} min integer in pixels
+	 * @return {boolean} spread true | false
 	 */
 	spread(spread, min) {
 
@@ -94,9 +96,9 @@ class Layout {
 
 	/**
 	 * Calculate the dimensions of the pagination
-	 * @param  {number} _width  [description]
-	 * @param  {number} _height [description]
-	 * @param  {number} _gap    [description]
+	 * @param  {number} _width  width of the rendering
+	 * @param  {number} _height height of the rendering
+	 * @param  {number} _gap    width of the gap between columns
 	 */
 	calculate(_width, _height, _gap){
 
@@ -231,6 +233,11 @@ class Layout {
 
 	}
 
+	/**
+	 * Update props that have changed
+	 * @private
+	 * @param  {object} props
+	 */
 	update(props) {
 		// Remove props that haven't changed
 		Object.keys(props).forEach((propName) => {
