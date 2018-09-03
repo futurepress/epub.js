@@ -3,23 +3,10 @@
 
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
-'use strict';
-(function (root, factory) {
-    // Fix for this being undefined in modules
-    if (!root) {
-      root = window || global;
-    }
-    if (typeof module === 'object' && module.exports) {
-        // Node
-        module.exports = factory(root);
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else {
-        // Browser globals (root is window)
-        root.URL = factory(root);
-  }
-}(this, function (scope) {
+
+(function(scope) {
+  'use strict';
+
   // feature detect for URL constructor
   var hasWorkingUrl = false;
   if (!scope.forceJURL) {
@@ -31,7 +18,7 @@
   }
 
   if (hasWorkingUrl)
-    return scope.URL;
+    return;
 
   var relative = Object.create(null);
   relative['ftp'] = 21;
@@ -479,6 +466,10 @@
 
   // Does not process domain names or IP addresses.
   // Does not handle encoding for the query parameter.
+  /**
+   * @constructor
+   * @implements {URL}
+   */
   function jURL(url, base /* , encoding */) {
     if (base !== undefined && !(base instanceof jURL))
       base = new jURL(String(base));
@@ -600,9 +591,8 @@
       // Gecko returns String("") for file: mailto:
       // WebKit/Blink returns String("SCHEME://") for file: mailto:
       switch (this._scheme) {
-        case 'file':
-          return 'file://' // EPUBJS Added
         case 'data':
+        case 'file':
         case 'javascript':
         case 'mailto':
           return 'null';
@@ -628,5 +618,6 @@
     };
   }
 
-  return jURL;
-}));
+  scope.URL = jURL;
+
+})(window);
