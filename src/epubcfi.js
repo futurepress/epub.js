@@ -77,11 +77,11 @@ class EpubCFI {
 		if (this.isCfiString(cfi)) {
 			return "string";
 		// Is a range object
-		} else if (typeof cfi === "object" && (type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
+		} else if (cfi && typeof cfi === "object" && (type(cfi) === "Range" || typeof(cfi.startContainer) != "undefined")){
 			return "range";
-		} else if (typeof cfi === "object" && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === "function"
+		} else if (cfi && typeof cfi === "object" && typeof(cfi.nodeType) != "undefined" ){ // || typeof cfi === "function"
 			return "node";
-		} else if (typeof cfi === "object" && cfi instanceof EpubCFI){
+		} else if (cfi && typeof cfi === "object" && cfi instanceof EpubCFI){
 			return "EpubCFI";
 		} else {
 			return false;
