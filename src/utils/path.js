@@ -1,4 +1,5 @@
 import path from "path-webpack";
+import URL from "../../libs/url/url-polyfill";
 
 /**
  * Creates a Path object for parsing and manipulation of a path strings
