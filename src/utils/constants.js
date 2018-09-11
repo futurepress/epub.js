@@ -23,7 +23,8 @@ export const EVENTS = {
     ORIENTATION_CHANGE : "orientationchange",
     ADDED : "added",
     SCROLL : "scroll",
-    SCROLLED : "scrolled"
+    SCROLLED : "scrolled",
+    REMOVED : "removed",
   },
   VIEWS : {
     AXIS : "axis",
