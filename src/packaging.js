@@ -214,7 +214,7 @@ class Packaging {
 			tocId = spineNode.getAttribute("toc");
 			if(tocId) {
 				// node = manifestNode.querySelector("item[id='" + tocId + "']");
-				node = manifestNode.getElementById(tocId);
+				node = manifestNode.querySelector(`#${tocId}`);
 			}
 		}
 
