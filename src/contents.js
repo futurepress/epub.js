@@ -157,10 +157,6 @@ class Contents {
 		rect = range.getBoundingClientRect();
 		width = rect.width;
 
-		if (this.content === this.document.body && rect.left) {
-			width += rect.left;
-		}
-
 		if (border && border.width) {
 			width += border.width;
 		}
@@ -183,10 +179,6 @@ class Contents {
 
 		rect = range.getBoundingClientRect();
 		height = rect.height;
-
-		if (this.content === this.document.body && rect.top) {
-			height += rect.top;
-		}
 
 		if (height && border.height) {
 			height += border.height;

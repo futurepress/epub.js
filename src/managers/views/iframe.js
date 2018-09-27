@@ -277,12 +277,12 @@ class IframeView {
 			}
 
 			if (this.settings.forceEvenPages) {
-				columns = (width / this.layout.delta);
+				columns = (width / this.layout.pageWidth);
 				if ( this.layout.divisor > 1 &&
 						 this.layout.name === "reflowable" &&
 						(columns % 2 > 0)) {
 					// add a blank page
-					width += this.layout.gap + this.layout.columnWidth;
+					width += this.layout.pageWidth;
 				}
 			}
 
