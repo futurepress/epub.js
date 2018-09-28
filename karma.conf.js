@@ -61,9 +61,9 @@ module.exports = function(config) {
             exclude: /node_modules\/(?!(marks-pane)\/).*/,
             loader: "babel-loader",
             query: {
-              presets: ['es2015'],
+              presets: ['env'],
               plugins: [
-                "add-module-exports",
+                "babel-plugin-add-module-exports",
                 "transform-runtime"
               ]
             }

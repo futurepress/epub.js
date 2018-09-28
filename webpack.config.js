@@ -12,6 +12,7 @@ var enter = LEGACY ? {
 	};
 
 module.exports = {
+	mode: process.env.NODE_ENV,
 	entry: enter,
 	devtool: PROD ? false : 'source-map',
 	output: {
@@ -21,6 +22,7 @@ module.exports = {
 		sourceMapFilename: "[name].js.map",
 		library: "ePub",
 		libraryTarget: "umd",
+		libraryExport: "default",
 		publicPath: "/dist/"
 	},
 	externals: {
@@ -28,7 +30,7 @@ module.exports = {
 		"xmldom": "xmldom"
 	},
 	plugins: PROD ? [
-		new BabiliPlugin()
+		// new BabiliPlugin()
 	] : [],
 	resolve: {
 		alias: {
@@ -41,18 +43,18 @@ module.exports = {
 		inline: true
 	},
 	module: {
-		loaders: [
+		rules: [
 			{
 				test: /\.js$/,
 				exclude: /node_modules\/(?!(marks-pane)\/).*/,
 				loader: "babel-loader",
 				query: LEGACY ? {
-					presets: ['es2015'],
+					presets: ['@babel/preset-env'],
 					plugins: [
-						"add-module-exports",
+						"babel-plugin-add-module-exports"
 					]
 				} : {
-					presets: [["env", {
+					presets: [["@babel/preset-env", {
 						"targets": {
 							"chrome": 54,
 							"safari" : 10,
@@ -61,7 +63,7 @@ module.exports = {
 						}
 					}]],
 					plugins: [
-						"add-module-exports",
+						"babel-plugin-add-module-exports"
 					]
 				}
 			}
