@@ -44,6 +44,7 @@ module.exports = function(config) {
     },
 
     webpack:{
+      mode: "development",
       externals: {
         "jszip": "JSZip"
         // "xmldom": "xmldom"
@@ -55,16 +56,21 @@ module.exports = function(config) {
         }
       },
       module: {
-        loaders: [
+        rules: [
           {
             test: /\.js$/,
-            exclude: /node_modules\/(?!(marks-pane)\/).*/,
+            exclude: /node_modules/,
             loader: "babel-loader",
             query: {
-              presets: ['env'],
+              presets: [['@babel/preset-env', {
+                targets: {
+                  "chrome": "58",
+                  "ie": "11"
+                }
+              }]],
               plugins: [
-                "babel-plugin-add-module-exports",
-                "transform-runtime"
+                // "@babel/plugin-transform-runtime",
+                "babel-plugin-add-module-exports"
               ]
             }
           }

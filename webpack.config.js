@@ -46,7 +46,7 @@ module.exports = {
 		rules: [
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!(marks-pane)\/).*/,
+				exclude: /node_modules/,
 				loader: "babel-loader",
 				query: LEGACY ? {
 					presets: ['@babel/preset-env'],
