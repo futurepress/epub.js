@@ -300,7 +300,8 @@ class Packaging {
 	load(json) {
 		this.metadata = json.metadata;
 
-		this.spine = json.spine.map((item, index) =>{
+		let spine = json.readingOrder || json.spine;
+		this.spine = spine.map((item, index) =>{
 			item.index = index;
 			return item;
 		});
