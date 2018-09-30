@@ -54,7 +54,7 @@ class Book {
 			landmarks: [],
 			locations: [],
 			pages: [],
-			spine: [],
+			readingOrder: [],
 			links: []
 		};
 
@@ -81,12 +81,13 @@ class Book {
 			locations,
 			pages,
 			spine,
+			readingOrder,
 			links
 		} = manifest;
 
 		this.metadata = metadata;
 		this.resources = resources;
-		this.spine = spine;
+		this.spine = readingOrder || spine;
 		this.toc = toc;
 		this.landmarks = landmarks;
 		this.locations = locations;
@@ -145,33 +146,37 @@ class Book {
 	}
 
 	/**
-	 * Get or set the Spine
+	 * Get or set the readingOrder
 	 * @param {array} [spineItems]
 	 * @return {array} spineItems
 	 */
-	get spine() {
-		return this.manifest.spine;
+	get readingOrder() {
+		return this.manifest.readingOrder;
 	}
 
-	set spine(items) {
+	set readingOrder(items) {
 		if (!items) {
 			return;
 		}
 		this.sections.unpack(items);
 
-		this.manifest.spine = items;
+		this.manifest.readingOrder = items;
 
-		return this.manifest.spine;
+		return this.manifest.readingOrder;
 	}
 
 	/**
-	 * Gets a Section of the Book from the Spine
-	 * Alias for `book.spine.get`
-	 * @param {string} target
-	 * @return {Section}
+	 * Get or set the Spine
+	 * Alias for `book.readingOrder`
+	 * @param {array} [spineItems]
+	 * @return {array} spineItems
 	 */
-	section(target) {
-		return this.sections.get(target);
+	 get spine() {
+		return this.manifest.readingOrder;
+	}
+
+	set spine(items) {
+		return this.manifest.readingOrder(items);
 	}
 
 	/**
