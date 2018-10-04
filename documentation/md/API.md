@@ -1451,7 +1451,7 @@ Compare which of two CFIs is earlier in the text
 -   `cfiOne`  
 -   `cfiTwo`  
 
-Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** First is earlier = 1, Second is earlier = -1, They are equal = 0
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** First is earlier = -1, Second is earlier = 1, They are equal = 0
 
 ### fromRange
 
