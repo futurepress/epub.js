@@ -332,7 +332,7 @@ class EpubCFI {
 
 	/**
 	 * Compare which of two CFIs is earlier in the text
-	 * @returns {number} First is earlier = 1, Second is earlier = -1, They are equal = 0
+	 * @returns {number} First is earlier = -1, Second is earlier = 1, They are equal = 0
 	 */
 	compare(cfiOne, cfiTwo) {
 		var stepsA, stepsB;
