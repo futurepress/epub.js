@@ -327,6 +327,16 @@ class IframeView {
 
 		this.pane && this.pane.render();
 
+		requestAnimationFrame(() => {
+			let mark;
+			for (let m in this.marks) {
+				if (this.marks.hasOwnProperty(m)) {
+					mark = this.marks[m];
+					this.placeMark(mark.element, mark.range);
+				}
+			}
+		});
+
 		this.onResize(this, size);
 
 		this.emit(EVENTS.VIEWS.RESIZED, size);
@@ -643,33 +653,9 @@ class IframeView {
 			range.selectNodeContents(parent);
 		}
 
-		let top, right, left;
-
-		if(this.layout.name === "pre-paginated" ||
-			this.settings.axis !== "horizontal") {
-			let pos = range.getBoundingClientRect();
-			top = pos.top;
-			right = pos.right;
-		} else {
-			// Element might break columns, so find the left most element
-			let rects = range.getClientRects();
-			let rect;
-			for (var i = 0; i != rects.length; i++) {
-				rect = rects[i];
-				if (!left || rect.left < left) {
-					left = rect.left;
-					right = left + this.layout.columnWidth - this.layout.gap;
-					top = rect.top;
-				}
-			}
-		}
-
-
 		let mark = this.document.createElement("a");
 		mark.setAttribute("ref", "epubjs-mk");
 		mark.style.position = "absolute";
-		mark.style.top = `${top}px`;
-		mark.style.left = `${right}px`;
 
 		mark.dataset["epubcfi"] = cfiRange;
 
@@ -687,11 +673,40 @@ class IframeView {
 		mark.addEventListener("click", emitter);
 		mark.addEventListener("touchstart", emitter);
 
+		this.placeMark(mark, range);
+
 		this.element.appendChild(mark);
 
-		this.marks[cfiRange] = { "element": mark, "listeners": [emitter, cb] };
+		this.marks[cfiRange] = { "element": mark, "range": range, "listeners": [emitter, cb] };
 
 		return parent;
+	}
+
+	placeMark(element, range) {
+		let top, right, left;
+
+		if(this.layout.name === "pre-paginated" ||
+			this.settings.axis !== "horizontal") {
+			let pos = range.getBoundingClientRect();
+			top = pos.top;
+			right = pos.right;
+		} else {
+			// Element might break columns, so find the left most element
+			let rects = range.getClientRects();
+
+			let rect;
+			for (var i = 0; i != rects.length; i++) {
+				rect = rects[i];
+				if (!left || rect.left < left) {
+					left = rect.left;
+					right = left + this.layout.columnWidth - this.layout.gap;
+					top = rect.top;
+				}
+			}
+		}
+
+		element.style.top = `${top}px`;
+		element.style.left = `${right}px`;
 	}
 
 	unhighlight(cfiRange) {

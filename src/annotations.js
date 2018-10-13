@@ -218,8 +218,8 @@ class Annotation {
 		cfiRange,
 		data,
 		sectionIndex,
-		cb, 
-		className, 
+		cb,
+		className,
 		styles
 	}) {
 		this.type = type;
