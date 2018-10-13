@@ -56,6 +56,7 @@ class Packaging {
 
 		this.spine = this.parseSpine(spineNode, this.manifest);
 
+		this.uniqueIdentifier = this.findUniqueIdentifier(packageDocument);
 		this.metadata = this.parseMetadata(metadataNode);
 
 		this.metadata.direction = spineNode.getAttribute("page-progression-direction");
@@ -178,6 +179,29 @@ class Packaging {
 		});
 
 		return spine;
+	}
+
+	/**
+	 * Find Unique Identifier
+	 * @private
+	 * @param  {node} packageXml
+	 * @return {string} Unique Identifier text
+	 */
+	findUniqueIdentifier(packageXml){
+		var uniqueIdentifierId = packageXml.documentElement.getAttribute("unique-identifier");
+		if (! uniqueIdentifierId) {
+			return "";
+		}
+		var identifier = packageXml.getElementById(uniqueIdentifierId);
+		if (! identifier) {
+			return "";
+		}
+
+		if (identifier.localName === "identifier" && identifier.namespaceURI === "http://purl.org/dc/elements/1.1/") {
+			return identifier.childNodes[0].nodeValue.trim();
+		}
+
+		return "";
 	}
 
 	/**
