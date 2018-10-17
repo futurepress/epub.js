@@ -13,8 +13,20 @@ interface EpubCFIStep {
 	index: number
 }
 
+interface EpubCFIComponent {
+  steps: Array<EpubCFIStep>,
+  terminal: {
+    offset: number,
+    assertion: string
+  }
+}
+
 export default class EpubCFI {
     constructor(cfiFrom?: string | Range | Node, base?: string | object, ignoreClass?: string);
+
+    base: EpubCFIComponent;
+		spinePos: number;
+		range: boolean;
 
     isCfiString(str: string): boolean;
 

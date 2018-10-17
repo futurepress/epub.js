@@ -9,16 +9,20 @@ import Annotations from "./annotations";
 import Queue from "./utils/queue";
 
 export interface RenditionOptions {
-  width?: number,
-  height?: number,
+  width?: number | string,
+  height?: number | string,
   ignoreClass?: string,
   manager?: string | Function | object,
   view?: string | Function | object,
+  flow?: string,
   layout?: string,
   spread?: string,
   minSpreadWidth?: number,
   stylesheet?: string,
-  script?: string
+  resizeOnOrientationChange?: boolean,
+  script?: string,
+  infinite?: boolean,
+  overflow?: string,
 }
 
 export interface DisplayedLocation {

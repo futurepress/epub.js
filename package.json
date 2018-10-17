@@ -1,6 +1,6 @@
 {
   "name": "epubjs",
-  "version": "0.3.73",
+  "version": "0.3.74",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -25,6 +25,7 @@
   "author": "fchasen@gmail.com",
   "license": "BSD-2-Clause",
   "devDependencies": {
+    "@types/jszip": "^3.1.4",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
@@ -75,7 +76,6 @@
     "webpack-dev-server": "^2.11.2"
   },
   "dependencies": {
-    "@types/jszip": "^3.1.4",
     "event-emitter": "^0.3.5",
     "jszip": "^3.1.5",
     "lodash": "^4.17.10",

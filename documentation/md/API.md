@@ -200,7 +200,7 @@ Resolves a relative path to a absolute url
 
 **Parameters**
 
--   `what`  
+-   `what` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** url
 
@@ -210,7 +210,7 @@ Resolve a path relative to the url
 
 **Parameters**
 
--   `what`  
+-   `what` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** path
 
@@ -296,9 +296,9 @@ Unpack items from a opf into spine items
 
 **Parameters**
 
--   `_package` **Package** 
+-   `_package` **[Packaging](#packaging)** 
 -   `resolver` **method** URL resolver
--   `canonical`  
+-   `canonical` **method** Resolve canonical url
 
 ### get
 
@@ -306,7 +306,7 @@ Get an item from the spine
 
 **Parameters**
 
--   `target` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | int)?** 
+-   `target` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number))?** 
 
 **Examples**
 
@@ -334,6 +334,18 @@ Loop over the Sections in the Spine
 
 Returns **method** forEach
 
+### first
+
+Find the first Section in the Spine
+
+Returns **[Section](#section)** first section
+
+### last
+
+Find the last Section in the Spine
+
+Returns **[Section](#section)** last section
+
 ## Section
 
 Represents a Section of the Book
@@ -351,7 +363,7 @@ Load the section from its url
 
 **Parameters**
 
--   `_request` **method** a request method to use for loading
+-   `_request` **method?** a request method to use for loading
 
 Returns **[document](https://developer.mozilla.org/en-US/docs/Web/JavaScript)** a promise with the xml document
 
@@ -361,7 +373,7 @@ Render the contents of a section
 
 **Parameters**
 
--   `_request` **method** a request method to use for loading
+-   `_request` **method?** a request method to use for loading
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** output a serialized XML Document
 
@@ -382,7 +394,7 @@ the global layout properities.
 
 **Parameters**
 
--   `global` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The globa layout settings object, chapter properties string
+-   `globalLayout` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The global layout settings object, chapter properties string
 
 Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** layoutProperties Object with layout properties
 
@@ -418,7 +430,7 @@ Find Locations for a Book
 
 -   `spine` **[Spine](#spine)** 
 -   `request` **[request](https://developer.mozilla.org/en-US/Add-ons/SDK/High-Level_APIs/request)** 
--   `pause`  
+-   `pause` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)**  (optional, default `100`)
 
 ### generate
 
@@ -545,29 +557,6 @@ Parse OPF XML
 
 Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** parsed package parts
 
-### parseSpine
-
-Parse Spine
-
-**Parameters**
-
--   `spineXml` **[document](https://developer.mozilla.org/en-US/docs/Web/JavaScript)** 
--   `manifest` **Packaging.manifest** 
-
-Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** spine
-
-### findCoverPath
-
-Find the Cover Path
-<item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-Fallback for Epub 2.0
-
-**Parameters**
-
--   `packageXml` **[document](https://developer.mozilla.org/en-US/docs/Web/JavaScript)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** href
-
 ### load
 
 Load JSON Manifest
@@ -603,7 +592,7 @@ Get an item from the navigation
 
 -   `target` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
-Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** navItems
+Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** navItem
 
 ### landmark
 
@@ -614,7 +603,7 @@ List of types: <https://idpf.github.io/epub-vocabs/structure/>
 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
-Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** landmarkItems
+Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** landmarkItem
 
 ### load
 
@@ -623,6 +612,8 @@ Load Spine Items
 **Parameters**
 
 -   `json` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** the items to be loaded
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)** navItems
 
 ### forEach
 
@@ -641,9 +632,20 @@ Handle Package Resources
 **Parameters**
 
 -   `manifest` **Manifest** 
--   `options` **\[[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)]** 
-    -   `options.archive` **\[[Archive](#archive)]** 
-    -   `options.resolver` **\[method]** 
+-   `options` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** 
+    -   `options.replacements` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)**  (optional, default `"base64"`)
+    -   `options.archive` **[Archive](#archive)?** 
+    -   `options.resolver` **method?** 
+
+### createUrl
+
+Create a url to a resource
+
+**Parameters**
+
+-   `url` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** Promise resolves with url string
 
 ### replacements
 
@@ -658,7 +660,7 @@ Resolve all resources URLs relative to an absolute URL
 **Parameters**
 
 -   `absolute` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** to be resolved to
--   `resolver` **\[resolver]** 
+-   `resolver` **resolver?** 
 
 Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** array with relative Urls
 
@@ -708,7 +710,7 @@ Get a PageList result from a EpubCFI
 
 -   `cfi` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** EpubCFI String
 
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** page
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** page
 
 ### cfiFromPage
 
@@ -716,7 +718,7 @@ Get an EpubCFI from a Page List Item
 
 **Parameters**
 
--   `pg` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `pg` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number))** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** cfi
 
@@ -728,7 +730,7 @@ Get a Page from Book percentage
 
 -   `percent` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
 
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** page
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** page
 
 ### percentageFromPage
 
@@ -736,7 +738,7 @@ Returns a value between 0 - 1 corresponding to the location of a page
 
 **Parameters**
 
--   `pg` **int** the page
+-   `pg` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** the page
 
 Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** percentage
 
@@ -750,6 +752,10 @@ Returns a value between 0 - 1 corresponding to the location of a cfi
 
 Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** percentage
 
+### destroy
+
+Destroy
+
 ## Archive
 
 Handles Unzipping a requesting files from an Epub Archive
@@ -761,7 +767,7 @@ Open an archive
 **Parameters**
 
 -   `input` **binary** 
--   `isBase64` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** tells JSZip if the input data is base64 encoded
+-   `isBase64` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** tells JSZip if the input data is base64 encoded
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** zipfile
 
@@ -772,7 +778,7 @@ Load and Open an archive
 **Parameters**
 
 -   `zipUrl` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `isBase64` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** tells JSZip if the input data is base64 encoded
+-   `isBase64` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** tells JSZip if the input data is base64 encoded
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** zipfile
 
@@ -785,7 +791,7 @@ Request a url from the archive
 -   `url` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** a url to request from the archive
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** specify the type of the returned result
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) \| [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) \| [Document](https://developer.mozilla.org/en-US/docs/Web/JavaScript) | XMLDocument)>** 
 
 ### getBlob
 
@@ -858,6 +864,7 @@ the section contetn.
     -   `options.spread` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** force spread value
     -   `options.minSpreadWidth` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)?** overridden by spread: none (never) / both (always)
     -   `options.stylesheet` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** url of stylesheet to be injected
+    -   `options.resizeOnOrientationChange` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** false to disable orientation events
     -   `options.script` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** url of script to be injected
 
 ### setManager
@@ -1142,7 +1149,7 @@ Clear all items in wait
 
 Get the number of tasks in the queue
 
-Returns **int** tasks
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** tasks
 
 ### pause
 
@@ -1161,7 +1168,7 @@ Figures out the CSS values to apply for a layout
 -   `settings` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
     -   `settings.layout` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)**  (optional, default `'reflowable'`)
     -   `settings.spread` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
-    -   `settings.minSpreadWidth` **int**  (optional, default `800`)
+    -   `settings.minSpreadWidth` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)**  (optional, default `800`)
     -   `settings.evenSpreads` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)**  (optional, default `false`)
 
 ### flow
@@ -1172,6 +1179,8 @@ Switch the flow between paginated and scrolled
 
 -   `flow` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** paginated | scrolled
 
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** simplified flow
+
 ### spread
 
 Switch between using spreads or not, and set the
@@ -1179,8 +1188,10 @@ width at which they switch to single.
 
 **Parameters**
 
--   `spread` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** true | false
--   `min` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** integer in pixels
+-   `spread` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** "none" | "always" | "auto"
+-   `min` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** integer in pixels
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** spread true | false
 
 ### calculate
 
@@ -1188,9 +1199,9 @@ Calculate the dimensions of the pagination
 
 **Parameters**
 
--   `_width` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** [description]
--   `_height` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** [description]
--   `_gap` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** [description]
+-   `_width` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** width of the rendering
+-   `_height` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** height of the rendering
+-   `_gap` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** width of the gap between columns
 
 ### format
 
@@ -1256,6 +1267,84 @@ themes.register("http://example.com/default.css")
 ```javascript
 themes.register({ "body": { "color": "purple"}})
 ```
+
+### registerThemes
+
+Register themes object
+
+**Parameters**
+
+-   `themes` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+### registerUrl
+
+Register a url
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `input` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### registerRules
+
+Register rule
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `rules` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+### select
+
+Select a theme
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### update
+
+Update a theme
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### inject
+
+Inject all themes into contents
+
+**Parameters**
+
+-   `contents` **[Contents](#contents)** 
+
+### add
+
+Add Theme to contents
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `contents` **[Contents](#contents)** 
+
+### override
+
+Add override
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `value` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `priority` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+
+### overrides
+
+Add all overrides
+
+**Parameters**
+
+-   `contents`  
+-   `content` **Content** 
 
 ### fontSize
 
@@ -1787,10 +1876,10 @@ Map text locations to CFI ranges
 
 **Parameters**
 
--   `layout`  
--   `direction`  
--   `axis`  
--   `dev`  
+-   `layout` **[Layout](#layout)** Layout to apply
+-   `direction` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Text direction (optional, default `"ltr"`)
+-   `axis` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** vertical or horizontal axis (optional, default `"horizontal"`)
+-   `dev` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** toggle developer highlighting
 
 ### section
 
@@ -1806,10 +1895,20 @@ Find CFI pairs for a page
 
 **Parameters**
 
--   `contents`  
--   `cfiBase`  
--   `start`  
--   `end`  
+-   `contents` **[Contents](#contents)** Contents from view
+-   `cfiBase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** string of the base for a cfi
+-   `start` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** position to start at
+-   `end` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** position to end at
+
+### axis
+
+Set the axis for mapping
+
+**Parameters**
+
+-   `axis` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** horizontal | vertical
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** is it horizontal?
 
 ## Core
 
@@ -1840,7 +1939,7 @@ Checks if a node is an element
 
 **Parameters**
 
--   `obj`  
+-   `obj` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
@@ -1848,7 +1947,7 @@ Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 **Parameters**
 
--   `n`  
+-   `n` **any** 
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
@@ -1856,7 +1955,7 @@ Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 **Parameters**
 
--   `n`  
+-   `n` **any** 
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 
@@ -1866,7 +1965,7 @@ Get a prefixed css property
 
 **Parameters**
 
--   `unprefixed`  
+-   `unprefixed` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
@@ -1954,11 +2053,33 @@ taking padding, margin and borders into account
 
 Returns **{width: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), height: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}** 
 
+### nodeBounds
+
+Find the bounds of any node
+allows for getting bounds of text nodes by wrapping them in a range
+
+**Parameters**
+
+-   `node` **[node](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling)** 
+
+Returns **BoundingClientRect** 
+
 ### windowBounds
 
 Find the equivelent of getBoundingClientRect of a browser window
 
 Returns **{width: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), height: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), top: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), left: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), right: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), bottom: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}** 
+
+### indexOfNode
+
+Gets the index of a node in its parent
+
+**Parameters**
+
+-   `node` **[Node](https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling)** 
+-   `typeId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** index
 
 ### indexOfTextNode
 
@@ -2083,7 +2204,7 @@ querySelector by property
 
 -   `el` **[element](https://developer.mozilla.org/en-US/docs/Web/API/Element)** 
 -   `sel` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** selector string
--   `props` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;props>** 
+-   `props` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** 
 
 Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[element](https://developer.mozilla.org/en-US/docs/Web/API/Element)>** elements
 
@@ -2095,6 +2216,16 @@ Sprint through all text nodes in a document
 
 -   `root` **[element](https://developer.mozilla.org/en-US/docs/Web/API/Element)** element to start with
 -   `func` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function to run on each element
+
+### treeWalker
+
+Create a treeWalker
+
+**Parameters**
+
+-   `root` **[element](https://developer.mozilla.org/en-US/docs/Web/API/Element)** element to start with
+-   `func` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function to run on each element
+-   `filter` **([function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function) \| [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object))** funtion or object to filter with
 
 ### walk
 
