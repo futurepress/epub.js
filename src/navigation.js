@@ -296,7 +296,7 @@ class Navigation {
 				parentNode = item.parentNode,
 				parent;
 
-		if(parentNode && parentNode.nodeName === "navPoint") {
+		if(parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(':').slice(-1)[0] === "navPoint")) {
 			parent = parentNode.getAttribute("id");
 		}
 
