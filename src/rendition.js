@@ -622,13 +622,21 @@ class Rendition {
 	/**
 	 * Adjust if the rendition uses spreads
 	 * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
-	 * @param  {int} min min width to use spreads at
+	 * @param  {int} [min] min width to use spreads at
 	 */
 	spread(spread, min){
 
-		this._layout.spread(spread, min);
+		this.settings.spread = spread;
 
-		if (this.manager.isRendered()) {
+		if (min) {
+			this.settings.minSpreadWidth = min;
+		}
+
+		if (this._layout) {
+			this._layout.spread(spread, min);
+		}
+
+		if (this.manager && this.manager.isRendered()) {
 			this.manager.updateLayout();
 		}
 	}
