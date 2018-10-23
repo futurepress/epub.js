@@ -25,7 +25,6 @@
   "author": "fchasen@gmail.com",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "@types/jszip": "^3.1.4",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
@@ -82,6 +81,7 @@
     "marks-pane": "^1.0.9",
     "path-webpack": "0.0.3",
     "stream-browserify": "^2.0.1",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.1.27",
+    "@types/jszip": "^3.1.4"
   }
 }
