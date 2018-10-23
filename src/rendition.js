@@ -35,6 +35,9 @@ import ContinuousViewManager from "./managers/continuous/index";
  * @param {string} [options.stylesheet] url of stylesheet to be injected
  * @param {boolean} [options.resizeOnOrientationChange] false to disable orientation events
  * @param {string} [options.script] url of script to be injected
+ * @param {number} [options.gap] override column-gap with this value
+ * @param {number} [options.verticalPadding] overrides padding-left & padding-right
+ * @param {number} [options.horizontalPadding] overrides padding-top & padding-bottom
  */
 class Rendition {
 	constructor(book, options) {
@@ -553,7 +556,9 @@ class Rendition {
 			flow : flow,
 			viewport : viewport,
 			minSpreadWidth : minSpreadWidth,
-			direction: direction
+			direction: direction,
+			verticalPadding: this.settings.verticalPadding,
+			horizontalPadding: this.settings.horizontalPadding
 		};
 
 		return properties;

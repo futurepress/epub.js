@@ -963,7 +963,7 @@ class Contents {
 	 * @param {number} columnWidth
 	 * @param {number} gap
 	 */
-	columns(width, height, columnWidth, gap){
+	columns(width, height, columnWidth, gap, verticalPadding, horizontalPadding){
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
@@ -993,15 +993,19 @@ class Contents {
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
-			this.css("padding-top", (gap / 2) + "px", true);
-			this.css("padding-bottom", (gap / 2) + "px", true);
-			this.css("padding-left", "20px");
-			this.css("padding-right", "20px");
+			const _verticalPadding = typeof verticalPadding === "number" ? verticalPadding : "20px";
+			const _horizontalPadding = typeof horizontalPadding === "number" ? horizontalPadding : (gap / 2);
+			this.css("padding-top", _horizontalPadding + "px", true);
+			this.css("padding-bottom", _horizontalPadding + "px", true);
+			this.css("padding-left", _verticalPadding);
+			this.css("padding-right", _verticalPadding);
 		} else {
-			this.css("padding-top", "20px");
-			this.css("padding-bottom", "20px");
-			this.css("padding-left", (gap / 2) + "px", true);
-			this.css("padding-right", (gap / 2) + "px", true);
+			const _verticalPadding = typeof verticalPadding === "number" ? verticalPadding : (gap / 2);
+			const _horizontalPadding = typeof horizontalPadding === "number" ? horizontalPadding : "20px";
+			this.css("padding-top", _horizontalPadding);
+			this.css("padding-bottom", _horizontalPadding);
+			this.css("padding-left", _verticalPadding + "px", true);
+			this.css("padding-right", _verticalPadding + "px", true);
 		}
 
 		this.css("box-sizing", "border-box");
@@ -1010,8 +1014,8 @@ class Contents {
 		this.css(COLUMN_AXIS, "horizontal");
 		this.css(COLUMN_FILL, "auto");
 
-		this.css(COLUMN_GAP, gap+"px");
-		this.css(COLUMN_WIDTH, columnWidth+"px");
+		this.css(COLUMN_GAP, gap + "px");
+		this.css(COLUMN_WIDTH, columnWidth + "px");
 	}
 
 	/**

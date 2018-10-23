@@ -42,6 +42,7 @@ class DefaultViewManager {
 
 		this.rendered = false;
 
+		this.updateAxis();
 	}
 
 	render(element, size){
@@ -828,7 +829,8 @@ class DefaultViewManager {
 			this.layout.calculate(
 				this._stageSize.width,
 				this._stageSize.height,
-				this.settings.gap
+				this.settings.gap,
+				this.settings.axis
 			);
 
 			// Set the look ahead offset for what is visible

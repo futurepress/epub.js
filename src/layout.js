@@ -10,6 +10,8 @@ import EventEmitter from "event-emitter";
  * @param {string} [settings.spread]
  * @param {number} [settings.minSpreadWidth=800]
  * @param {boolean} [settings.evenSpreads=false]
+ * @param {number} [settings.verticalPadding] overrides padding-left & padding-right
+ * @param {number} [settings.horizontalPadding] overrides padding-top & padding-bottom
  */
 class Layout {
 	constructor(settings) {
@@ -18,6 +20,8 @@ class Layout {
 		this._spread = (settings.spread === "none") ? false : true;
 		this._minSpreadWidth = settings.minSpreadWidth || 800;
 		this._evenSpreads = settings.evenSpreads || false;
+		this.verticalPadding = settings.verticalPadding;
+		this.horizontalPadding = settings.horizontalPadding;
 
 		if (settings.flow === "scrolled" ||
 				settings.flow === "scrolled-continuous" ||
@@ -100,7 +104,7 @@ class Layout {
 	 * @param  {number} _height height of the rendering
 	 * @param  {number} _gap    width of the gap between columns
 	 */
-	calculate(_width, _height, _gap){
+	calculate(_width, _height, _gap, axis){
 
 		var divisor = 1;
 		var gap = _gap || 0;
@@ -149,7 +153,11 @@ class Layout {
 
 		spreadWidth = (columnWidth * divisor) + gap;
 
-		delta = width;
+		if (axis === "vertical" && typeof this.verticalPadding === "number") {
+			delta = width + gap;
+		} else {
+			delta = width;
+		}
 
 		this.width = width;
 		this.height = height;
@@ -195,7 +203,7 @@ class Layout {
 		if (this.name === "pre-paginated") {
 			formating = contents.fit(this.columnWidth, this.height);
 		} else if (this._flow === "paginated") {
-			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
+			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap, this.verticalPadding, this.horizontalPadding);
 		} else { // scrolled
 			formating = contents.size(this.width, null);
 		}
