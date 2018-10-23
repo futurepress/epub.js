@@ -927,7 +927,7 @@ class Rendition {
 		}
 
 		let computed = contents.window.getComputedStyle(contents.content, null);
-		let height = contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom));
+		let height = (contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) * .95;
 
 		contents.addStylesheetRules({
 			"img" : {
@@ -935,7 +935,8 @@ class Rendition {
 				"max-height": height + "px" + "!important",
 				"object-fit": "contain",
 				"page-break-inside": "avoid",
-				"break-inside": "avoid"
+				"break-inside": "avoid",
+				"box-sizing": "border-box"
 			},
 			"svg" : {
 				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
