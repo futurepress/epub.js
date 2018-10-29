@@ -23,7 +23,8 @@ export interface BookOptions {
   encoding?: string,
   replacements?: string,
   canonical?: (path: string) => string,
-  openAs?: string
+  openAs?: string,
+  store?: string
 }
 
 export default class Book {

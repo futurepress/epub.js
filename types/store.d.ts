@@ -2,11 +2,11 @@ import localForage = require('localforage');
 import Resources from "./resources";
 
 export default class Store {
-  constructor();
+  constructor(name: string, request?: Function, resolver?: Function);
 
   add(resources: Resources, force?: boolean): Promise<Array<object>>;
 
-  put(url: string): Promise<Blob>;
+  put(url: string, withCredentials?: boolean, headers?: object): Promise<Blob>;
 
   request(url: string, type?: string, withCredentials?: boolean, headers?: object): Promise<Blob | string | JSON | Document | XMLDocument>;
 

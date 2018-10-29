@@ -7,23 +7,24 @@ import EventEmitter from "event-emitter";
 /**
  * Handles saving and requesting files from local storage
  * @class
+ * @param {string} name This should be the name of the application for modals
+ * @param {function} [requester]
+ * @param {function} [resolver]
  */
 class Store {
 
 	constructor(name, requester, resolver) {
 		this.urlCache = {};
 
+		this.storage = undefined;
+
+		this.name = name;
 		this.requester = requester || httpRequest;
 		this.resolver = resolver;
 
 		this.online = true;
 
 		this.checkRequirements();
-
-		// This should be the name of the application for modals
-		localforage.config({
-			name: name || 'epubjs'
-		});
 
 		this.addListeners();
 	}
@@ -35,9 +36,15 @@ class Store {
 	 */
 	checkRequirements(){
 		try {
-			if (typeof localForage === "undefined") {
-				let localForage = require("localforage");
+			let store;
+			if (typeof localforage === "undefined") {
+				store = require("localforage");
+			} else {
+				store = localforage;
 			}
+			this.storage = store.createInstance({
+					name: this.name
+			});
 		} catch (e) {
 			throw new Error("localForage lib not loaded");
 		}
@@ -87,11 +94,11 @@ class Store {
 			let url = this.resolver(href);
 			let encodedUrl = window.encodeURIComponent(url);
 
-			return localforage.getItem(encodedUrl).then((item) => {
+			return this.storage.getItem(encodedUrl).then((item) => {
 				if (!item || force) {
 					return this.requester(url, "binary")
 						.then((data) => {
-							return localforage.setItem(encodedUrl, data);
+							return this.storage.setItem(encodedUrl, data);
 						});
 				} else {
 					return item;
@@ -105,15 +112,17 @@ class Store {
 	/**
 	 * Put binary data from a url to storage
 	 * @param  {string} url  a url to request from storage
+	 * @param  {boolean} [withCredentials]
+	 * @param  {object} [headers]
 	 * @return {Promise<Blob>}
 	 */
-	put(url) {
+	put(url, withCredentials, headers) {
 		let encodedUrl = window.encodeURIComponent(url);
 
-		return localforage.getItem(encodedUrl).then((result) => {
+		return this.storage.getItem(encodedUrl).then((result) => {
 			if (!result) {
 				return this.requester(url, "binary", withCredentials, headers).then((data) => {
-					return localforage.setItem(encodedUrl, data);
+					return this.storage.setItem(encodedUrl, data);
 				});
 			}
 			return result;
@@ -222,7 +231,7 @@ class Store {
 	getBlob(url, mimeType){
 		let encodedUrl = window.encodeURIComponent(url);
 
-		return localforage.getItem(encodedUrl).then(function(uint8array) {
+		return this.storage.getItem(encodedUrl).then(function(uint8array) {
 			if(!uint8array) return;
 
 			mimeType = mimeType || mime.lookup(url);
@@ -243,12 +252,14 @@ class Store {
 
 		mimeType = mimeType || mime.lookup(url);
 
-		return localforage.getItem(encodedUrl).then(function(uint8array) {
+		return this.storage.getItem(encodedUrl).then(function(uint8array) {
 			var deferred = new defer();
 			var reader = new FileReader();
-			var blob = new Blob([uint8array], {type : mimeType});
+			var blob;
 
-			if(!blob) return;
+			if(!uint8array) return;
+
+			blob = new Blob([uint8array], {type : mimeType});
 
 			reader.addEventListener("loadend", () => {
 				deferred.resolve(reader.result);
@@ -271,12 +282,14 @@ class Store {
 
 		mimeType = mimeType || mime.lookup(url);
 
-		return localforage.getItem(encodedUrl).then((uint8array) => {
+		return this.storage.getItem(encodedUrl).then((uint8array) => {
 			var deferred = new defer();
 			var reader = new FileReader();
-			var blob = new Blob([uint8array], {type : mimeType});
+			var blob;
 
-			if(!blob) return;
+			if(!uint8array) return;
+
+			blob = new Blob([uint8array], {type : mimeType});
 
 			reader.addEventListener("loadend", () => {
 				deferred.resolve(reader.result);
