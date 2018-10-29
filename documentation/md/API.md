@@ -849,7 +849,7 @@ Revoke Temp Url for a achive item
 
 Displays an Epub as a series of Views for each Section.
 Requires Manager and View class to handle specifics of rendering
-the section contetn.
+the section content.
 
 **Parameters**
 
