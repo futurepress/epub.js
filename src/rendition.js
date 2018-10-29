@@ -20,7 +20,7 @@ import ContinuousViewManager from "./managers/continuous/index";
 /**
  * Displays an Epub as a series of Views for each Section.
  * Requires Manager and View class to handle specifics of rendering
- * the section contetn.
+ * the section content.
  * @class
  * @param {Book} book
  * @param {object} [options]
