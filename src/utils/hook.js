@@ -29,6 +29,21 @@ class Hook {
 	}
 
 	/**
+	 * Removes a function
+	 * @example this.content.deregister(function(){...});
+	 */
+	deregister(func){
+		let hook;
+		for (let i = 0; i < this.hooks.length; i++) {
+			hook = this.hooks[i];
+			if (hook === func) {
+				this.hooks.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	/**
 	 * Triggers a hook to run all functions
 	 * @example this.content.trigger(args).then(function(){...});
 	 */
