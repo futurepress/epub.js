@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Storage Example</title>
+
+  <script src="../node_modules/jszip/dist/jszip.min.js"></script>
+  <script src="../node_modules/localforage/dist/localforage.min.js"></script>
+  <script src="../dist/epub.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+  <style type="text/css">
+
+    #offline {
+      position: fixed;
+      top: -40px;
+      left: 0;
+      background-color: yellow;
+      width: 100%;
+      text-align: center;
+      padding: 10px 0;
+      transition: top .5s;
+      z-index: 99;
+    }
+  </style>
+
+</head>
+<body>
+  <div id="offline">You are offline. Loading from Storage.</div>
+  <div id="viewer" class="spreads"></div>
+  <div id="prev" class="arrow">‹</div>
+  <div id="next" class="arrow">›</div>
+  <script>
+    var book = ePub("https://s3.amazonaws.com/moby-dick/", {
+      store: "epubjs-test"
+    });
+
+    var rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: 600
+    });
+
+    var displayed = rendition.display();
+
+    displayed.then(function(renderer){
+      // Add all resources to the store
+      // Add `true` to force re-saving resources
+      book.storage.add(book.resources, true).then(() => {
+        console.log("stored");
+      })
+    });
+
+    var next = document.getElementById("next");
+    next.addEventListener("click", function(){
+      rendition.next();
+    }, false);
+
+    var prev = document.getElementById("prev");
+    prev.addEventListener("click", function(){
+      rendition.prev();
+    }, false);
+
+    var keyListener = function(e){
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+    var msg = document.getElementById('offline');
+    book.storage.on("online", function () {
+			console.log("online");
+			msg.style.top = "-40px";
+		});
+
+		book.storage.on("offline", function () {
+			console.log("offline");
+			msg.style.top = "0px";
+		});
+
+
+  </script>
+
+</body>
+</html>

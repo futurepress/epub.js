@@ -457,7 +457,7 @@ class DefaultViewManager {
 						}
 					}
 				}.bind(this), (err) => {
-					displaying.reject(err);
+					return err;
 				})
 				.then(function(){
 					this.views.show();
@@ -529,7 +529,7 @@ class DefaultViewManager {
 						}
 					}
 				}.bind(this), (err) => {
-					displaying.reject(err);
+					return err;
 				})
 				.then(function(){
 					if(this.isPaginated && this.settings.axis === "horizontal") {
