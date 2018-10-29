@@ -103,7 +103,25 @@ class Store {
 	}
 
 	/**
-	 * Request a url from storage
+	 * Put binary data from a url to storage
+	 * @param  {string} url  a url to request from storage
+	 * @return {Promise<Blob>}
+	 */
+	put(url) {
+		let encodedUrl = window.encodeURIComponent(url);
+
+		return localforage.getItem(encodedUrl).then((result) => {
+			if (!result) {
+				return this.requester(url, "binary", withCredentials, headers).then((data) => {
+					return localforage.setItem(encodedUrl, data);
+				});
+			}
+			return result;
+		});
+	}
+
+	/**
+	 * Request a url
 	 * @param  {string} url  a url to request from storage
 	 * @param  {string} [type] specify the type of the returned result
 	 * @param  {boolean} [withCredentials]
@@ -111,54 +129,57 @@ class Store {
 	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 	 */
 	request(url, type, withCredentials, headers){
+		if (this.online) {
+			// From network
+			return this.requester(url, type, withCredentials, headers).then((data) => {
+				// save to store if not present
+				this.put(url);
+				return data;
+			})
+		} else {
+			// From store
+			return this.retrieve(url, type);
+		}
+
+	}
+
+	/**
+	 * Request a url from storage
+	 * @param  {string} url  a url to request from storage
+	 * @param  {string} [type] specify the type of the returned result
+	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
+	 */
+	retrieve(url, type) {
 		var deferred = new defer();
 		var response;
 		var path = new Path(url);
 
-		if (this.online) {
-			return this.requester(url, type, withCredentials, headers).then((data) => {
-				// from network
-				let encodedUrl = window.encodeURIComponent(url);
-
-				localforage.getItem(encodedUrl).then((result) => {
-					if (!result) {
-						this.requester(url, "binary", withCredentials, headers).then((data) => {
-							localforage.setItem(encodedUrl, data);
-						});
-					}
-				});
-
-				return data;
-			})
-		} else {
-			// If type isn't set, determine it from the file extension
-			if(!type) {
-				type = path.extension;
-			}
-
-			if(type == "blob"){
-				response = this.getBlob(url);
-			} else {
-				response = this.getText(url);
-			}
-
-
-			return response.then((r) => {
-				var deferred = new defer();
-				var result;
-				if (r) {
-					result = this.handleResponse(r, type);
-					deferred.resolve(result);
-				} else {
-					deferred.reject({
-						message : "File not found in storage: " + url,
-						stack : new Error().stack
-					});
-				}
-				return deferred.promise;
-			});
+		// If type isn't set, determine it from the file extension
+		if(!type) {
+			type = path.extension;
 		}
 
+		if(type == "blob"){
+			response = this.getBlob(url);
+		} else {
+			response = this.getText(url);
+		}
+
+
+		return response.then((r) => {
+			var deferred = new defer();
+			var result;
+			if (r) {
+				result = this.handleResponse(r, type);
+				deferred.resolve(result);
+			} else {
+				deferred.reject({
+					message : "File not found in storage: " + url,
+					stack : new Error().stack
+				});
+			}
+			return deferred.promise;
+		});
 	}
 
 	/**

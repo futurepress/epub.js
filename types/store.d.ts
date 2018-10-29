@@ -4,9 +4,13 @@ import Resources from "./resources";
 export default class Store {
   constructor();
 
-	add(resources: Resources, force?: boolean): Promise<Array<object>>;
+  add(resources: Resources, force?: boolean): Promise<Array<object>>;
 
-	request(url: string, type?: string, withCredentials?: boolean, headers?: object): Promise<Blob | string | JSON | Document | XMLDocument>;
+  put(url: string): Promise<Blob>;
+
+  request(url: string, type?: string, withCredentials?: boolean, headers?: object): Promise<Blob | string | JSON | Document | XMLDocument>;
+
+  retrieve(url: string, type?: string): Promise<Blob | string | JSON | Document | XMLDocument>;
 
   getBlob(url: string, mimeType?: string): Promise<Blob>;
 
