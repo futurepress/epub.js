@@ -9,6 +9,8 @@ export default class Resources {
     request?: Function
   });
 
+  process(manifest: PackagingManifestObject): void;
+
   createUrl(url: string): Promise<string>;
 
   replacements(): Promise<Array<string>>;

@@ -19,9 +19,9 @@ export default class Locations {
 
   cfiFromPercentage(percentage: number): string;
 
-	load(locations: JSON): Array<string>;
+	load(locations: string): Array<string>;
 
-  save(): JSON;
+  save(): string;
 
   currentLocation(): Location;
   currentLocation(curr: string | number): void;

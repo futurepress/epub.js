@@ -25,7 +25,7 @@ class Themes {
 
 	/**
 	 * Add themes to be used by a rendition
-	 * @param {object | string}
+	 * @param {object | Array<object> | string}
 	 * @example themes.register("light", "http://example.com/light.css")
 	 * @example themes.register("light", { "body": { "color": "purple"}})
 	 * @example themes.register({ "light" : {...}, "dark" : {...}})

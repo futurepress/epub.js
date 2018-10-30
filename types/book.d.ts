@@ -16,6 +16,8 @@ import Path from "./utils/path";
 import Resources from "./resources";
 import Container from "./container";
 import Packaging from "./packaging";
+import Store from "./store";
+
 export interface BookOptions {
   requestMethod?: (url: string, type: string, withCredentials: object, headers: object) => Promise<object>;
   requestCredentials?: object,
@@ -33,7 +35,7 @@ export default class Book {
 
     settings: BookOptions;
     opening: any; // should be core.defer
-    opened: Promise<void>
+    opened: Promise<Book>;
     isOpen: boolean;
     loaded: {
       metadata: Promise<PackagingMetadataObject>,
@@ -58,6 +60,7 @@ export default class Book {
     rendition: Rendition
     container: Container;
     packaging: Packaging;
+    storage: Store;
 
 
     canonical(path: string): string;
@@ -70,7 +73,7 @@ export default class Book {
 
     getRange(cfiRange: string): Range;
 
-    key(identifier: string): string;
+    key(identifier?: string): string;
 
     load(path: string): Promise<object>;
 
@@ -102,6 +105,8 @@ export default class Book {
     setRequestHeaders(headers: object): void;
 
     unarchive(input: BinaryType, encoding?: string): Promise<Archive>;
+
+    store(name: string): Store;
 
     unpack(opf: XMLDocument): Promise<Book>;
 

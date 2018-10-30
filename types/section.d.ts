@@ -28,7 +28,7 @@ export default class Section {
   constructor(item: SpineItem, hooks: HooksObject);
 
   idref: string;
-  linear: string;
+  linear: boolean;
   properties: Array<string>;
   index: number;
   href: string;

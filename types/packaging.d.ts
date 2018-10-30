@@ -45,9 +45,17 @@ export interface PackagingManifestObject {
 export default class Packaging {
   constructor(packageDocument: XMLDocument);
 
+  manifest: PackagingManifestObject;
+  navPath: string;
+  ncxPath: string;
+  coverPath: string;
+  spineNodeIndex: number;
+  spine: Array<PackagingSpineItem>;
+  metadata: PackagingMetadataObject;
+
   parse(packageDocument: XMLDocument): PackagingObject;
 
-  load(json: JSON): PackagingObject;
+  load(json: string): PackagingObject;
 
   destroy(): void;
 

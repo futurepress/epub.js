@@ -22,6 +22,15 @@ class Resources {
 			resolver: (options && options.resolver),
 			request: (options && options.request)
 		};
+
+		this.process(manifest);
+	}
+
+	/**
+	 * Process resources
+	 * @param {Manifest} manifest
+	 */
+	process(manifest){
 		this.manifest = manifest;
 		this.resources = Object.keys(manifest).
 			map(function (key){

@@ -1031,7 +1031,7 @@ class Rendition {
 	 * @private
 	 */
 	injectIdentifier(doc, section) {
-		let ident = this.book.package.metadata.identifier;
+		let ident = this.book.packaging.metadata.identifier;
 		let meta = doc.createElement("meta");
 		meta.setAttribute("name", "dc.relation.ispartof");
 		if (ident) {

@@ -213,7 +213,7 @@ class Book {
 
 		// this.toc = undefined;
 		if (this.settings.store) {
-			this.store();
+			this.store(this.settings.store);
 		}
 
 		if(url) {
@@ -430,33 +430,33 @@ class Book {
 
 
 	/**
-	 * unpack the contents of the Books packageXml
+	 * unpack the contents of the Books packaging
 	 * @private
-	 * @param {document} packageXml XML Document
+	 * @param {Packaging} packaging object
 	 */
-	unpack(opf) {
-		this.package = opf;
+	unpack(packaging) {
+		this.package = packaging; //TODO: deprecated this
 
-		this.spine.unpack(this.package, this.resolve.bind(this), this.canonical.bind(this));
+		this.spine.unpack(this.packaging, this.resolve.bind(this), this.canonical.bind(this));
 
-		this.resources = new Resources(this.package.manifest, {
+		this.resources = new Resources(this.packaging.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
 			request: this.request.bind(this),
 			replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 		});
 
-		this.loadNavigation(this.package).then(() => {
+		this.loadNavigation(this.packaging).then(() => {
 			// this.toc = this.navigation.toc;
 			this.loading.navigation.resolve(this.navigation);
 		});
 
-		if (this.package.coverPath) {
-			this.cover = this.resolve(this.package.coverPath);
+		if (this.packaging.coverPath) {
+			this.cover = this.resolve(this.packaging.coverPath);
 		}
 		// Resolve promises
-		this.loading.manifest.resolve(this.package.manifest);
-		this.loading.metadata.resolve(this.package.metadata);
+		this.loading.manifest.resolve(this.packaging.manifest);
+		this.loading.metadata.resolve(this.packaging.metadata);
 		this.loading.spine.resolve(this.spine);
 		this.loading.cover.resolve(this.cover);
 		this.loading.resources.resolve(this.resources);
@@ -481,19 +481,19 @@ class Book {
 	/**
 	 * Load Navigation and PageList from package
 	 * @private
-	 * @param {document} opf XML Document
+	 * @param {Packaging} packaging
 	 */
-	loadNavigation(opf) {
-		let navPath = opf.navPath || opf.ncxPath;
-		let toc = opf.toc;
+	loadNavigation(packaging) {
+		let navPath = packaging.navPath || packaging.ncxPath;
+		let toc = packaging.toc;
 
 		// From json manifest
 		if (toc) {
 			return new Promise((resolve, reject) => {
 				this.navigation = new Navigation(toc);
 
-				if (opf.pageList) {
-					this.pageList = new PageList(opf.pageList); // TODO: handle page lists from Manifest
+				if (packaging.pageList) {
+					this.pageList = new PageList(packaging.pageList); // TODO: handle page lists from Manifest
 				}
 
 				resolve(this.navigation);
@@ -575,7 +575,7 @@ class Book {
 	 * @param  {string} [encoding]
 	 * @return {Store}
 	 */
-	store() {
+	store(name) {
 		// Use "blobUrl" or "base64" for replacements
 		let replacementsSetting = this.settings.replacements && this.settings.replacements !== "none";
 		// Save original url
@@ -583,7 +583,7 @@ class Book {
 		// Save original request method
 		let requester = this.settings.requestMethod || request.bind(this);
 		// Create new Store
-		this.storage = new Store(this.settings.store, requester, this.resolve.bind(this));
+		this.storage = new Store(name, requester, this.resolve.bind(this));
 		// Replace request method to go through store
 		this.request = this.storage.request.bind(this.storage);
 
@@ -683,7 +683,7 @@ class Book {
 	 * @return {string} key
 	 */
 	key(identifier) {
-		var ident = identifier || this.package.metadata.identifier || this.url.filename;
+		var ident = identifier || this.packaging.metadata.identifier || this.url.filename;
 		return `epubjs:${EPUBJS_VERSION}:${ident}`;
 	}
 

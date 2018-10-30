@@ -1,7 +1,7 @@
 export interface NavItem {
-  id?: string,
-  href?: string,
-  label?: string,
+  id: string,
+  href: string,
+  label: string,
   subitems?: Array<NavItem>,
   parent?: NavItem
 }
@@ -15,13 +15,16 @@ export interface LandmarkItem {
 export default class Navigation {
   constructor(xml: XMLDocument);
 
+  toc: Array<NavItem>;
+  landmarks: Array<LandmarkItem>;
+
   parse(xml: XMLDocument): void;
 
   get(target: string) : NavItem;
 
   landmark(type: string) : LandmarkItem;
 
-  load(json: JSON): Array<NavItem>;
+  load(json: string): Array<NavItem>;
 
   forEach(fn: (item: NavItem) => {}): any;
 
