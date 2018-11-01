@@ -102,7 +102,6 @@ class IframeView {
 
 		this.element.setAttribute("ref", this.index);
 
-		this.element.appendChild(this.iframe);
 		this.added = true;
 
 		this.elementBounds = bounds(this.element);
@@ -366,9 +365,13 @@ class IframeView {
 		if (this.settings.method === "blobUrl") {
 			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
 			this.iframe.src = this.blobUrl;
+			this.element.appendChild(this.iframe);
 		} else if(this.settings.method === "srcdoc"){
 			this.iframe.srcdoc = contents;
+			this.element.appendChild(this.iframe);
 		} else {
+
+			this.element.appendChild(this.iframe);
 
 			this.document = this.iframe.contentDocument;
 
