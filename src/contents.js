@@ -184,6 +184,10 @@ class Contents {
 			height += border.height;
 		}
 
+		if (height && rect.top) {
+			height += rect.top;
+		}
+
 		return Math.round(height);
 	}
 
