@@ -814,7 +814,7 @@ class Contents {
 		}
 
 		DOM_EVENTS.forEach(function(eventName){
-			this.document.addEventListener(eventName, this.triggerEvent.bind(this), false);
+			this.document.addEventListener(eventName, this.triggerEvent.bind(this), { passive: true });
 		}, this);
 
 	}

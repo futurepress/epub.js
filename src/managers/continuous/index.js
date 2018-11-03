@@ -1,5 +1,6 @@
 import {extend, defer, requestAnimationFrame} from "../../utils/core";
 import DefaultViewManager from "../default";
+import Snap from "../helpers/snap";
 import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
 
@@ -17,7 +18,9 @@ class ContinuousViewManager extends DefaultViewManager {
 			offset: 500,
 			offsetDelta: 250,
 			width: undefined,
-			height: undefined
+			height: undefined,
+			snap: false,
+			afterScrolledTimeout: 10
 		});
 
 		extend(this.settings, options.settings || {});
@@ -75,10 +78,10 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		if(!this.isPaginated) {
 			distY = offset.top;
-			offsetY = offset.top+this.settings.offset;
+			offsetY = offset.top+this.settings.offsetDelta;
 		} else {
 			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
-			offsetX = distX+this.settings.offset;
+			offsetX = distX+this.settings.offsetDelta;
 		}
 
 		if (distX > 0 || distY > 0) {
@@ -371,6 +374,10 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 
 		this.addScrollListeners();
+
+		if (this.isPaginated && this.settings.snap) {
+			this.snapper = new Snap(this, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
+		}
 	}
 
 	addScrollListeners() {
@@ -455,12 +462,14 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.scrollDeltaHorz = 0;
 		}.bind(this), 150);
 
+		clearTimeout(this.afterScrolled);
 
 		this.didScroll = false;
 
 	}
 
 	scrolled() {
+
 		this.q.enqueue(function() {
 			this.check();
 		}.bind(this));
@@ -472,11 +481,18 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		clearTimeout(this.afterScrolled);
 		this.afterScrolled = setTimeout(function () {
+
+			// Don't report scroll if we are about the snap
+			if (this.snapper && this.snapper.needsSnap()) {
+				return;
+			}
+
 			this.emit(EVENTS.MANAGERS.SCROLLED, {
 				top: this.scrollTop,
 				left: this.scrollLeft
 			});
-		}.bind(this));
+
+		}.bind(this), this.settings.afterScrolledTimeout);
 	}
 
 	next(){
@@ -557,6 +573,14 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.settings.infinite = true;
 		} else {
 			this.settings.infinite = false;
+		}
+	}
+
+	destroy(){
+		super.destroy();
+
+		if (this.snapper) {
+			this.snapper.destroy();
 		}
 	}
 

@@ -8,7 +8,7 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Contents from "./contents";
 import Annotations from "./annotations";
-import { EVENTS } from "./utils/constants";
+import { EVENTS, DOM_EVENTS } from "./utils/constants";
 
 // Default Views
 import IframeView from "./managers/views/iframe";
@@ -35,6 +35,7 @@ import ContinuousViewManager from "./managers/continuous/index";
  * @param {string} [options.stylesheet] url of stylesheet to be injected
  * @param {boolean} [options.resizeOnOrientationChange] false to disable orientation events
  * @param {string} [options.script] url of script to be injected
+ * @param {boolean | object} [options.snap=false] use snap scrolling
  */
 class Rendition {
 	constructor(book, options) {
@@ -51,7 +52,8 @@ class Rendition {
 			minSpreadWidth: 800,
 			stylesheet: null,
 			resizeOnOrientationChange: true,
-			script: null
+			script: null,
+			snap: false
 		});
 
 		extend(this.settings, options);
@@ -852,9 +854,7 @@ class Rendition {
 	 * @param  {Contents} view contents
 	 */
 	passEvents(contents){
-		var listenedEvents = Contents.listenedEvents;
-
-		listenedEvents.forEach((e) => {
+		DOM_EVENTS.forEach((e) => {
 			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
 		});
 

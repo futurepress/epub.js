@@ -23,6 +23,7 @@ export interface RenditionOptions {
   script?: string,
   infinite?: boolean,
   overflow?: string,
+  snap?: boolean | object,
 }
 
 export interface DisplayedLocation {
