@@ -936,10 +936,11 @@ class Rendition {
 
 		let computed = contents.window.getComputedStyle(contents.content, null);
 		let height = (contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) * .95;
+		let verticalPadding = parseFloat(computed.verticalPadding);
 
 		contents.addStylesheetRules({
 			"img" : {
-				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
+				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - verticalPadding) + "px" : "100%") + "!important",
 				"max-height": height + "px" + "!important",
 				"object-fit": "contain",
 				"page-break-inside": "avoid",
@@ -947,7 +948,7 @@ class Rendition {
 				"box-sizing": "border-box"
 			},
 			"svg" : {
-				"max-width": (this._layout.columnWidth ? this._layout.columnWidth + "px" : "100%") + "!important",
+				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - verticalPadding) + "px" : "100%") + "!important",
 				"max-height": height + "px" + "!important",
 				"page-break-inside": "avoid",
 				"break-inside": "avoid"
