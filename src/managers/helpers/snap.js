@@ -25,10 +25,6 @@ const EASING_EQUATIONS = {
 class Snap {
 	constructor(manager, options) {
 
-		if (this.supportsTouch() === false) {
-			return;
-		}
-
 		this.settings = extend({
 			duration: 80,
 			minVelocity: 0.2,
@@ -36,7 +32,11 @@ class Snap {
 			easing: EASING_EQUATIONS['easeInCubic']
 		}, options || {});
 
-		this.setup(manager);
+		this.supportsTouch = this.supportsTouch();
+
+		if (this.supportsTouch) {
+			this.setup(manager);
+		}
 	}
 
 	setup(manager) {
@@ -55,8 +55,7 @@ class Snap {
 			this.element.style["WebkitOverflowScrolling"] = "touch";
 		}
 
-
-		this.overflow = this.manager.overflow;
+		// this.overflow = this.manager.overflow;
 
 		// set lookahead offset to page width
 		this.manager.settings.offset = this.layout.width;
@@ -100,25 +99,53 @@ class Snap {
 	}
 
 	enableScroll() {
-		this.element.style.overflow = "scroll";
+		this.element.style.overflow = "";
 	}
 
 	addListeners() {
+		this._onResize = this.onResize.bind(this);
+		window.addEventListener('resize', this._onResize);
 
-		window.addEventListener('resize', this.onResize.bind(this));
+		this._onScroll = this.onScroll.bind(this);
+		this.scroller.addEventListener('scroll', this._onScroll);
 
-		this.scroller.addEventListener('scroll', this.onScroll.bind(this));
+		this._onTouchStart = this.onTouchStart.bind(this);
+		this.scroller.addEventListener('touchstart', this._onTouchStart, { passive: true });
+		this.on('touchstart', this._onTouchStart);
 
-		window.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
-		this.on('touchstart', this.onTouchStart.bind(this));
+		this._onTouchMove = this.onTouchMove.bind(this);
+		this.scroller.addEventListener('touchmove', this._onTouchMove, { passive: true });
+		this.on('touchmove', this._onTouchMove);
 
-		window.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: true });
-		this.on('touchmove', this.onTouchMove.bind(this));
+		this._onTouchEnd = this.onTouchEnd.bind(this);
+		this.scroller.addEventListener('touchend', this._onTouchEnd, { passive: true });
+		this.on('touchend', this._onTouchEnd);
 
-		window.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
-		this.on('touchend', this.onTouchEnd.bind(this));
+		this._afterDisplayed = this.afterDisplayed.bind(this);
+		this.manager.on(EVENTS.MANAGERS.ADDED, this._afterDisplayed);
+	}
 
-		this.manager.on(EVENTS.MANAGERS.ADDED, this.afterDisplayed.bind(this));
+	removeListeners() {
+		window.removeEventListener('resize', this._onResize);
+		this._onResize = undefined;
+
+		this.scroller.removeEventListener('scroll', this._onScroll);
+		this._onScroll = undefined;
+
+		this.scroller.removeEventListener('touchstart', this._onTouchStart, { passive: true });
+		this.off('touchstart', this._onTouchStart);
+		this._onTouchStart = undefined;
+
+		this.scroller.removeEventListener('touchmove', this._onTouchMove, { passive: true });
+		this.off('touchmove', this._onTouchMove);
+		this._onTouchMove = undefined;
+
+		this.scroller.removeEventListener('touchend', this._onTouchEnd, { passive: true });
+		this.off('touchend', this._onTouchEnd);
+		this._onTouchEnd = undefined;
+
+		this.manager.off(EVENTS.MANAGERS.ADDED, this._afterDisplayed);
+		this._afterDisplayed = undefined;
 	}
 
 	afterDisplayed(view) {
@@ -292,15 +319,17 @@ class Snap {
 	}
 
 	destroy() {
-		this.scroller.removeEventListener('scroll', this.onScroll.bind(this));
+		if (!this.scroller) {
+			return;
+		}
 
-		window.removeEventListener('resize', this.onResize.bind(this));
+		if (this.fullsize) {
+			this.enableScroll();
+		}
 
-		window.removeEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
+		this.removeListeners();
 
-		window.removeEventListener('touchmove', this.onTouchMove.bind(this), { passive: true });
-
-		window.removeEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
+		this.scroller = undefined;
 	}
 }
 
