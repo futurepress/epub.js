@@ -55,8 +55,9 @@ class Store {
 	 * @private
 	 */
 	addListeners() {
-		window.addEventListener('online',  this.status.bind(this));
-	  window.addEventListener('offline', this.status.bind(this));
+		this._status = this.status.bind(this);
+		window.addEventListener('online',  this._status);
+	  window.addEventListener('offline', this._status);
 	}
 
 	/**
@@ -64,8 +65,9 @@ class Store {
 	 * @private
 	 */
 	removeListeners() {
-		window.removeEventListener('online',  this.status.bind(this));
-	  window.removeEventListener('offline', this.status.bind(this));
+		window.removeEventListener('online',  this._status);
+	  window.removeEventListener('offline', this._status);
+		this._status = undefined;
 	}
 
 	/**

@@ -466,7 +466,8 @@ class Contents {
 		body.style['transitionTimingFunction'] = "linear";
 		body.style['transitionDelay'] = "0";
 
-		this.document.addEventListener('transitionend', this.resizeCheck.bind(this));
+		this._resizeCheck = this.resizeCheck.bind(this);
+		this.document.addEventListener('transitionend', this._resizeCheck);
 	}
 
 	/**
@@ -813,8 +814,10 @@ class Contents {
 			return;
 		}
 
+		this._triggerEvent = this.triggerEvent.bind(this);
+
 		DOM_EVENTS.forEach(function(eventName){
-			this.document.addEventListener(eventName, this.triggerEvent.bind(this), { passive: true });
+			this.document.addEventListener(eventName, this._triggerEvent, { passive: true });
 		}, this);
 
 	}
@@ -828,9 +831,9 @@ class Contents {
 			return;
 		}
 		DOM_EVENTS.forEach(function(eventName){
-			this.document.removeEventListener(eventName, this.triggerEvent, false);
+			this.document.removeEventListener(eventName, this._triggerEvent, { passive: true });
 		}, this);
-
+		this._triggerEvent = undefined;
 	}
 
 	/**
@@ -849,7 +852,8 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		this.document.addEventListener("selectionchange", this.onSelectionChange.bind(this), false);
+		this._onSelectionChange = this.onSelectionChange.bind(this);
+		this.document.addEventListener("selectionchange", this._onSelectionChange, { passive: true });
 	}
 
 	/**
@@ -860,7 +864,8 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		this.document.removeEventListener("selectionchange", this.onSelectionChange, false);
+		this.document.removeEventListener("selectionchange", this._onSelectionChange, { passive: true });
+		this._onSelectionChange = undefined;
 	}
 
 	/**
@@ -1156,7 +1161,7 @@ class Contents {
 			this.observer.disconnect();
 		}
 
-		this.document.removeEventListener('transitionend', this.resizeCheck);
+		this.document.removeEventListener('transitionend', this._resizeCheck);
 
 		this.removeListeners();
 

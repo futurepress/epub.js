@@ -129,11 +129,9 @@ class ContinuousViewManager extends DefaultViewManager {
 			view.expanded = true;
 		});
 
-		/*
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
-		*/
 
 		this.views.append(view);
 
@@ -150,11 +148,9 @@ class ContinuousViewManager extends DefaultViewManager {
 			view.expanded = true;
 		});
 
-		/*
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
 		});
-		*/
 
 		this.views.prepend(view);
 
@@ -406,7 +402,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.scrollLeft = window.scrollX;
 		}
 
-		scroller.addEventListener("scroll", this.onScroll.bind(this));
+		this._onScroll = this.onScroll.bind(this);
+		scroller.addEventListener("scroll", this._onScroll);
 		this._scrolled = debounce(this.scrolled.bind(this), 30);
 		// this.tick.call(window, this.onScroll.bind(this));
 
@@ -423,7 +420,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			scroller = window;
 		}
 
-		scroller.removeEventListener("scroll", this.onScroll.bind(this));
+		scroller.removeEventListener("scroll", this._onScroll);
+		this._onScroll = undefined;
 	}
 
 	onScroll(){
@@ -483,7 +481,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.afterScrolled = setTimeout(function () {
 
 			// Don't report scroll if we are about the snap
-			if (this.snapper && this.snapper.needsSnap()) {
+			if (this.snapper && this.snapper.supportsTouch && this.snapper.needsSnap()) {
 				return;
 			}
 
@@ -541,38 +539,27 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this));
 	}
 
-	updateAxis(axis, forceUpdate){
+	// updateAxis(axis, forceUpdate){
+	//
+	// 	super.updateAxis(axis, forceUpdate);
+	//
+	// 	if (axis === "vertical") {
+	// 		this.settings.infinite = true;
+	// 	} else {
+	// 		this.settings.infinite = false;
+	// 	}
+	// }
 
-		if (!this.isPaginated) {
-			axis = "vertical";
+	updateFlow(flow){
+		if (this.rendered && this.snapper) {
+			this.snapper.destroy();
+			this.snapper = undefined;
 		}
 
-		if (!forceUpdate && axis === this.settings.axis) {
-			return;
-		}
+		super.updateFlow(flow);
 
-		this.settings.axis = axis;
-
-		this.stage && this.stage.axis(axis);
-
-		this.viewSettings.axis = axis;
-
-		if (this.mapping) {
-			this.mapping.axis(axis);
-		}
-
-		if (this.layout) {
-			if (axis === "vertical") {
-				this.layout.spread("none");
-			} else {
-				this.layout.spread(this.layout.settings.spread);
-			}
-		}
-
-		if (axis === "vertical") {
-			this.settings.infinite = true;
-		} else {
-			this.settings.infinite = false;
+		if (this.rendered && this.isPaginated && this.settings.snap) {
+			this.snapper = new Snap(this, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
 		}
 	}
 

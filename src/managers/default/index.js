@@ -119,7 +119,8 @@ class DefaultViewManager {
 			scroller = window;
 		}
 
-		scroller.addEventListener("scroll", this.onScroll.bind(this));
+		this._onScroll = this.onScroll.bind(this);
+		scroller.addEventListener("scroll", this._onScroll);
 	}
 
 	removeEventListeners(){
@@ -131,7 +132,8 @@ class DefaultViewManager {
 			scroller = window;
 		}
 
-		scroller.removeEventListener("scroll", this.onScroll.bind(this));
+		scroller.removeEventListener("scroll", this._onScroll);
+		this._onScroll = undefined;
 	}
 
 	destroy(){
@@ -901,6 +903,8 @@ class DefaultViewManager {
 				flow === "scrolled-continuous" ||
 				flow === "scrolled") {
 			this.updateAxis("vertical");
+		} else {
+			this.updateAxis("horizontal");
 		}
 
 		this.viewSettings.flow = flow;
@@ -910,9 +914,8 @@ class DefaultViewManager {
 		} else {
 			this.overflow = this.settings.overflow;
 		}
-		// this.views.forEach(function(view){
-		// 	view.setAxis(axis);
-		// });
+
+		this.stage && this.stage.overflow(this.overflow);
 
 		this.updateLayout();
 

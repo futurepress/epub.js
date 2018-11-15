@@ -151,8 +151,8 @@ class Stage {
 
 	size(width, height){
 		var bounds;
-		// var width = _width || this.settings.width;
-		// var height = _height || this.settings.height;
+		let _width = width || this.settings.width;
+		let _height = height || this.settings.height;
 
 		// If width or height are set to false, inherit them from containing element
 		if(width === null) {
@@ -218,12 +218,13 @@ class Stage {
 			bottom: parseFloat(bodyStyles["padding-bottom"]) || 0
 		};
 
-		if (!width) {
+		if (!_width) {
 			width = _windowBounds.width -
 								bodyPadding.left -
 								bodyPadding.right;
 		}
-		if ((this.settings.fullsize && !height) || !height) {
+
+		if ((this.settings.fullsize && !_height) || !_height) {
 			height = _windowBounds.height -
 								bodyPadding.top -
 								bodyPadding.bottom;
@@ -312,6 +313,12 @@ class Stage {
 
 		if (this.settings.fullsize) {
 			document.body.style["direction"] = dir;
+		}
+	}
+
+	overflow(overflow) {
+		if (this.container) {
+			this.container.style["overflow"] = overflow;
 		}
 	}
 
