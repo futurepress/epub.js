@@ -1049,20 +1049,32 @@ class Contents {
 	 */
 	fit(width, height){
 		var viewport = this.viewport();
-		var widthScale = width / parseInt(viewport.width);
-		var heightScale = height / parseInt(viewport.height);
+		var viewportWidth = parseInt(viewport.width);
+		var viewportHeight = parseInt(viewport.height);
+		var widthScale = width / viewportWidth;
+		var heightScale = height / viewportHeight;
 		var scale = widthScale < heightScale ? widthScale : heightScale;
 
-		var offsetY = (height - (viewport.height * scale)) / 2;
+		// the translate does not work as intended, elements can end up unaligned
+		// var offsetY = (height - (viewportHeight * scale)) / 2;
+		// var offsetX = 0;
+		// if (this.sectionIndex % 2 === 1) {
+		// 	offsetX = width - (viewportWidth * scale);
+		// }
 
 		this.layoutStyle("paginated");
 
-		this.width(width);
-		this.height(height);
+		// scale needs width and height to be set
+		this.width(viewportWidth);
+		this.height(viewportHeight);
 		this.overflow("hidden");
 
 		// Scale to the correct size
-		this.scaler(scale, 0, offsetY);
+		this.scaler(scale, 0, 0);
+		// this.scaler(scale, offsetX > 0 ? offsetX : 0, offsetY);
+
+		// background images are not scaled by transform
+		this.css("background-size", viewportWidth * scale + "px " + viewportHeight * scale + "px");
 
 		this.css("background-color", "transparent");
 	}
