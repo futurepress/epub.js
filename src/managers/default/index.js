@@ -283,7 +283,8 @@ class DefaultViewManager {
 			.then(function(){
 				var next;
 				if (this.layout.name === "pre-paginated" &&
-						this.layout.divisor > 1) {
+						this.layout.divisor > 1 && section.index > 0) {
+					// First page (cover) should stand alone for pre-paginated books
 					next = section.next();
 					if (next) {
 						return this.add(next);
