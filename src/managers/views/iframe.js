@@ -627,7 +627,6 @@ class IframeView {
 	}
 
 	mark(cfiRange, data={}, cb) {
-
 		if (!this.contents) {
 			return;
 		}
@@ -702,7 +701,8 @@ class IframeView {
 				rect = rects[i];
 				if (!left || rect.left < left) {
 					left = rect.left;
-					right = left + this.layout.columnWidth - this.layout.gap;
+					// right = rect.right;
+					right = Math.ceil(left / this.layout.props.pageWidth) * this.layout.props.pageWidth - (this.layout.gap / 2);
 					top = rect.top;
 				}
 			}
@@ -719,7 +719,10 @@ class IframeView {
 
 			this.pane.removeMark(item.mark);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+				};
 			});
 			delete this.highlights[cfiRange];
 		}
@@ -731,7 +734,10 @@ class IframeView {
 			item = this.underlines[cfiRange];
 			this.pane.removeMark(item.mark);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+				};
 			});
 			delete this.underlines[cfiRange];
 		}
@@ -743,7 +749,10 @@ class IframeView {
 			item = this.marks[cfiRange];
 			this.element.removeChild(item.element);
 			item.listeners.forEach((l) => {
-				if (l) { item.element.removeEventListener("click", l) };
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+				};
 			});
 			delete this.marks[cfiRange];
 		}
