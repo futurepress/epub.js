@@ -203,6 +203,9 @@ class Rendition {
 	 * @return {Promise} rendering has started
 	 */
 	start(){
+		if (!this.settings.layout && (this.book.package.metadata.layout === "pre-paginated" || this.book.displayOptions.fixedLayout === "true")) {
+			this.settings.layout = "pre-paginated";
+		}
 
 		if(!this.manager) {
 			this.ViewManager = this.requireManager(this.settings.manager);
