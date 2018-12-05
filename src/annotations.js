@@ -1,5 +1,6 @@
 import EventEmitter from "event-emitter";
 import EpubCFI from "./epubcfi";
+import { EVENTS } from "./utils/constants";
 
 /**
 	* Handles managing adding & removing Annotations
@@ -111,34 +112,34 @@ class Annotations {
 	 * Add a highlight to the store
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
-	 * @param {function} cb Callback after annotation is added
+	 * @param {function} cb Callback after annotation is clicked
 	 * @param {string} className CSS class to assign to annotation
 	 * @param {object} styles CSS styles to assign to annotation
 	 */
 	highlight (cfiRange, data, cb, className, styles) {
-		this.add("highlight", cfiRange, data, cb, className, styles);
+		return this.add("highlight", cfiRange, data, cb, className, styles);
 	}
 
 	/**
 	 * Add a underline to the store
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
-	 * @param {function} cb Callback after annotation is added
+	 * @param {function} cb Callback after annotation is clicked
 	 * @param {string} className CSS class to assign to annotation
 	 * @param {object} styles CSS styles to assign to annotation
 	 */
 	underline (cfiRange, data, cb, className, styles) {
-		this.add("underline", cfiRange, data, cb, className, styles);
+		return this.add("underline", cfiRange, data, cb, className, styles);
 	}
 
 	/**
 	 * Add a mark to the store
 	 * @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
 	 * @param {object} data Data to assign to annotation
-	 * @param {function} cb Callback after annotation is added
+	 * @param {function} cb Callback after annotation is clicked
 	 */
 	mark (cfiRange, data, cb) {
-		this.add("mark", cfiRange, data, cb);
+		return this.add("mark", cfiRange, data, cb);
 	}
 
 	/**
@@ -206,7 +207,7 @@ class Annotations {
  * @param {EpubCFI} options.cfiRange EpubCFI range to attach annotation to
  * @param {object} options.data Data to assign to annotation
  * @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
- * @param {function} [options.cb] Callback after annotation is added
+ * @param {function} [options.cb] Callback after annotation is clicked
  * @param {string} className CSS class to assign to annotation
  * @param {object} styles CSS styles to assign to annotation
  * @returns {Annotation} annotation
@@ -257,7 +258,7 @@ class Annotation {
 		}
 
 		this.mark = result;
-
+		this.emit(EVENTS.ANNOTATION.ATTACH, result);
 		return result;
 	}
 
@@ -280,7 +281,7 @@ class Annotation {
 		}
 
 		this.mark = undefined;
-
+		this.emit(EVENTS.ANNOTATION.DETACH, result);
 		return result;
 	}
 
