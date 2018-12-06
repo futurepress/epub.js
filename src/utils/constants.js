@@ -53,5 +53,9 @@ export const EVENTS = {
   },
   LAYOUT : {
     UPDATED : "updated"
+  },
+  ANNOTATION : {
+    ATTACH : "attach",
+    DETACH : "detach"
   }
 }
