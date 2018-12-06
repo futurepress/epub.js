@@ -4,7 +4,7 @@ import CFI from "./epubcfi";
 import Contents from "./contents";
 import * as utils from "./utils/core";
 import { EPUBJS_VERSION } from "./utils/constants";
-import '../libs/url/url-polyfill'
+import * as URLpolyfill from "url-polyfill";
 
 import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default";

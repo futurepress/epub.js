@@ -26,7 +26,7 @@ module.exports = function(config) {
 
       // {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
 
-      {pattern: 'libs/url/url-polyfill.js', watched: false, included: true, served: true}
+      // {pattern: 'libs/url/url-polyfill.js', watched: false, included: true, served: true}
 
     ],
 
