@@ -895,7 +895,7 @@ class DefaultViewManager {
 		}
 	}
 
-	updateFlow(flow){
+	updateFlow(flow, defaultScrolledOverflow="auto"){
 		let isPaginated = (flow === "paginated" || flow === "auto");
 
 		this.isPaginated = isPaginated;
@@ -911,7 +911,7 @@ class DefaultViewManager {
 		this.viewSettings.flow = flow;
 
 		if (!this.settings.overflow) {
-			this.overflow = isPaginated ? "hidden" : "auto";
+			this.overflow = isPaginated ? "hidden" : defaultScrolledOverflow;
 		} else {
 			this.overflow = this.settings.overflow;
 		}
