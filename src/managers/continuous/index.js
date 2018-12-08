@@ -556,7 +556,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.snapper = undefined;
 		}
 
-		super.updateFlow(flow);
+		super.updateFlow(flow, "scroll");
 
 		if (this.rendered && this.isPaginated && this.settings.snap) {
 			this.snapper = new Snap(this, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
