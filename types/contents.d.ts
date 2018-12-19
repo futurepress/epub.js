@@ -28,7 +28,9 @@ export default class Contents {
 
     addStylesheet(src: string): Promise<boolean>;
 
-    addStylesheetRules(rules: Array<object> | object): Promise<boolean>;
+    addStylesheetRules(rules: Array<object> | object, key: string): Promise<boolean>;
+
+    addStylesheetCss(serializedCss: string, key: string): Promise<boolean>;
 
     cfiFromNode(node: Node, ignoreClass?: string): string;
 

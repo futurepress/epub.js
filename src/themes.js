@@ -188,9 +188,10 @@ class Themes {
 		if (theme.url) {
 			contents.addStylesheet(theme.url);
 		} else if (theme.serialized) {
-			contents.addStylesheetSerialized(theme.serialized);
+			contents.addStylesheetCss(theme.serialized, name);
+			theme.injected = true;
 		} else if (theme.rules) {
-			contents.addStylesheetRules(theme.rules);
+			contents.addStylesheetRules(theme.rules, name);
 			theme.injected = true;
 		}
 	}

@@ -676,9 +676,11 @@ class Contents {
 		}.bind(this));
 	}
 
-	_getStylesheetNode() {
+	_getStylesheetNode(key) {
 		var styleEl;
-		var key = "epubjs-inserted-css";
+		key = "epubjs-inserted-css-" + (key || '');
+
+		if(!this.document) return false;
 		
 		// Check if link already exists
 		styleEl = this.document.getElementById(key);
@@ -694,11 +696,16 @@ class Contents {
 	/**
 	 * Append stylesheet css
 	 * @param {string} serializedCss 
+	 * @param {string} key If the key is the same, the CSS will be replaced instead of inserted
 	 */
-	addStylesheetSerialized(serializedCss) {
+	addStylesheetCss(serializedCss, key) {
+		if(!this.document || !serializedCss) return false;
+
 		var styleEl;
-		styleEl = this._getStylesheetNode();
-		styleEl.innerText = serializedCss;
+		styleEl = this._getStylesheetNode(key);
+		styleEl.innerHTML = serializedCss;
+		
+		return true;
 	}
 
 	/**
@@ -706,14 +713,15 @@ class Contents {
 	 * Array: https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
 	 * Object: https://github.com/desirable-objects/json-to-css
 	 * @param {array | object} rules
+	 * @param {string} key If the key is the same, the CSS will be replaced instead of inserted
 	 */
-	addStylesheetRules(rules) {
+	addStylesheetRules(rules, key) {
 		var styleSheet;
 
 		if(!this.document || !rules || rules.length === 0) return;
 
 		// Grab style sheet
-		styleSheet = this._getStylesheetNode().sheet;
+		styleSheet = this._getStylesheetNode(key).sheet;
 
 		if (Object.prototype.toString.call(rules) === "[object Array]") {
 			for (var i = 0, rl = rules.length; i < rl; i++) {
