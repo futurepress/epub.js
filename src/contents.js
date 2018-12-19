@@ -681,7 +681,7 @@ class Contents {
 		var key = "epubjs-inserted-css";
 		
 		// Check if link already exists
-		styleEl = this.document.getElementById("#"+key);
+		styleEl = this.document.getElementById(key);
 		if (!styleEl) {
 			styleEl = this.document.createElement("style");
 			styleEl.id = key;
@@ -708,15 +708,12 @@ class Contents {
 	 * @param {array | object} rules
 	 */
 	addStylesheetRules(rules) {
-		var styleEl;
 		var styleSheet;
 
 		if(!this.document || !rules || rules.length === 0) return;
 
-		styleEl = this._getStylesheetNode();
-
 		// Grab style sheet
-		styleSheet = styleEl.sheet;
+		styleSheet = this._getStylesheetNode().sheet;
 
 		if (Object.prototype.toString.call(rules) === "[object Array]") {
 			for (var i = 0, rl = rules.length; i < rl; i++) {
