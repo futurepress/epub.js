@@ -676,6 +676,31 @@ class Contents {
 		}.bind(this));
 	}
 
+	_getStylesheetNode() {
+		var styleEl;
+		var key = "epubjs-inserted-css";
+		
+		// Check if link already exists
+		styleEl = this.document.getElementById("#"+key);
+		if (!styleEl) {
+			styleEl = this.document.createElement("style");
+			styleEl.id = key;
+			// Append style element to head
+			this.document.head.appendChild(styleEl);
+		}
+		return styleEl;
+	}
+
+	/**
+	 * Append stylesheet css
+	 * @param {string} serializedCss 
+	 */
+	addStylesheetSerialized(serializedCss) {
+		var styleEl;
+		styleEl = this._getStylesheetNode();
+		styleEl.innerText = serializedCss;
+	}
+
 	/**
 	 * Append stylesheet rules to a generate stylesheet
 	 * Array: https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/insertRule
@@ -685,19 +710,10 @@ class Contents {
 	addStylesheetRules(rules) {
 		var styleEl;
 		var styleSheet;
-		var key = "epubjs-inserted-css";
 
 		if(!this.document || !rules || rules.length === 0) return;
 
-		// Check if link already exists
-		styleEl = this.document.getElementById("#"+key);
-		if (!styleEl) {
-			styleEl = this.document.createElement("style");
-			styleEl.id = key;
-		}
-
-		// Append style element to head
-		this.document.head.appendChild(styleEl);
+		styleEl = this._getStylesheetNode();
 
 		// Grab style sheet
 		styleSheet = styleEl.sheet;

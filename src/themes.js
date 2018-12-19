@@ -83,6 +83,18 @@ class Themes {
 	}
 
 	/**
+	 * Register a theme by passing its css as string
+	 * @param {string} name 
+	 * @param {string} css 
+	 */
+	registerCss (name, css) {
+		this._themes[name] = { "serialized" : css };
+		if (this._injected[name]) {
+			this.update(name);
+		}
+	}
+
+	/**
 	 * Register a url
 	 * @param {string} name
 	 * @param {string} input
@@ -176,7 +188,7 @@ class Themes {
 		if (theme.url) {
 			contents.addStylesheet(theme.url);
 		} else if (theme.serialized) {
-			// TODO: handle serialized
+			contents.addStylesheetSerialized(theme.serialized);
 		} else if (theme.rules) {
 			contents.addStylesheetRules(theme.rules);
 			theme.injected = true;
