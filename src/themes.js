@@ -89,7 +89,7 @@ class Themes {
 	 */
 	registerCss (name, css) {
 		this._themes[name] = { "serialized" : css };
-		if (this._injected[name]) {
+		if (this._injected[name] || name == 'default') {
 			this.update(name);
 		}
 	}
@@ -102,7 +102,7 @@ class Themes {
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
-		if (this._injected[name]) {
+		if (this._injected[name] || name == 'default') {
 			this.update(name);
 		}
 	}
@@ -115,7 +115,7 @@ class Themes {
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
-		if (this._injected[name]) {
+		if (this._injected[name] || name == 'default') {
 			this.update(name);
 		}
 	}
