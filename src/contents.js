@@ -574,6 +574,17 @@ class Contents {
 
 		if(this.epubcfi.isCfiString(target)) {
 			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
+			try {
+				if (!range.endContainer) {
+					// If the end for the range is not set, it results in collapsed becoming
+					// true. This in turn leads to inconsistent behaviour when calling 
+					// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
+					// https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/15684911/
+					range.setEnd(range.startContainer, range.startContainer.textContent.length);
+				}
+			} catch (e) {
+				console.error("setting end offset to start container length failed", e);
+			}
 
 			if(range) {
 				if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
