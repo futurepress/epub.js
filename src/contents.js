@@ -574,19 +574,26 @@ class Contents {
 
 		if(this.epubcfi.isCfiString(target)) {
 			let range = new EpubCFI(target).toRange(this.document, ignoreClass);
-			try {
-				if (!range.endContainer) {
-					// If the end for the range is not set, it results in collapsed becoming
-					// true. This in turn leads to inconsistent behaviour when calling 
-					// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
-					// https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/15684911/
-					range.setEnd(range.startContainer, range.startContainer.textContent.length);
-				}
-			} catch (e) {
-				console.error("setting end offset to start container length failed", e);
-			}
 
 			if(range) {
+				try {
+					if (!range.endContainer ||
+						(range.startContainer == range.endContainer 
+						&& range.startOffset == range.endOffset)) {
+						// If the end for the range is not set, it results in collapsed becoming
+						// true. This in turn leads to inconsistent behaviour when calling 
+						// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
+						// https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/15684911/
+						let pos = range.startContainer.textContent.indexOf(" ", range.startOffset);
+						if (pos == -1) {
+							pos = range.startContainer.textContent.length;
+						}
+						range.setEnd(range.startContainer, pos);
+					}
+				} catch (e) {
+					console.error("setting end offset to start container length failed", e);
+				}
+
 				if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
 					position = range.startContainer.getBoundingClientRect();
 					targetPos.left = position.left;
