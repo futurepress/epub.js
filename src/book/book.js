@@ -171,12 +171,12 @@ class Book {
 	 * @param {array} [spineItems]
 	 * @return {array} spineItems
 	 */
-	 get spine() {
-		return this.manifest.readingOrder;
+	get spine() {
+		return this.readingOrder;
 	}
 
 	set spine(items) {
-		return this.manifest.readingOrder(items);
+		return this.readingOrder = items;
 	}
 
 	/**

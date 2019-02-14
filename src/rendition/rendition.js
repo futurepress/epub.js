@@ -194,7 +194,7 @@ class Rendition {
 			this.manifest = contents;
 		}
 
-		let spine = this.manifest.spine.map((item, index) =>{
+		let spine = this.manifest.readingOrder.map((item, index) =>{
 			item.index = index;
 			return item;
 		});
@@ -203,7 +203,7 @@ class Rendition {
 		this.spineBySource = {};
 		this.spineById = {};
 
-		this.manifest.spine.forEach((section, index) => {
+		this.manifest.readingOrder.forEach((section, index) => {
 			this.spineByHref[decodeURI(section.href)] = index;
 			this.spineByHref[encodeURI(section.href)] = index;
 			this.spineByHref[section.href] = index;
@@ -286,7 +286,7 @@ class Rendition {
 			this.manager = new this.ViewManager({
 				view: this.View,
 				// queue: this.q,
-				spine: this.manifest.spine,
+				spine: this.manifest.readingOrder,
 				hooks: this.hooks,
 				// request: this.book.load.bind(this.book),
 				settings: this.settings
@@ -835,12 +835,12 @@ class Rendition {
 			}
 		}
 
-		if (end.index === this.manifest.spine[this.manifest.spine.length - 1].index &&
+		if (end.index === this.manifest.readingOrder[this.manifest.readingOrder.length - 1].index &&
 				located.end.displayed.page >= located.end.displayed.total) {
 			located.atEnd = true;
 		}
 
-		if (start.index === this.manifest.spine[0].index &&
+		if (start.index === this.manifest.readingOrder[0].index &&
 				located.start.displayed.page === 1) {
 			located.atStart = true;
 		}
@@ -1060,7 +1060,7 @@ class Rendition {
 							this.spineBySource[encodeURI(target)];
 		}
 
-		return this.manifest.spine[index] || null;
+		return this.manifest.readingOrder[index] || null;
 	}
 
 	/**
