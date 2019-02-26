@@ -968,7 +968,6 @@ class EpubCFI {
 				missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
 				range.setStart(missed.container, missed.offset);
 			}
-			
 		} else {
 			console.log("No startContainer found for", this.toString());
 			// No start found
