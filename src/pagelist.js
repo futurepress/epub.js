@@ -43,8 +43,8 @@ class PageList {
 
 		if(html) {
 			return this.parseNav(xml);
-		} else if(ncx){ // Not supported
-			// return this.parseNcx(xml);
+		} else if(ncx){
+			return this.parseNcx(xml);
 			return;
 		}
 
@@ -72,6 +72,34 @@ class PageList {
 		}
 
 		return list;
+	}
+
+	parseNcx(navXml) {
+		const pageList = qs(navXml, 'pageList');
+		if (!pageList) return [];
+
+		const pageTargets = qsa(pageList, 'pageTarget');
+
+		if (!pageTargets || pageTargets.length === 0) {
+			return [];
+		}
+
+		return [...pageTargets].map(x => this.ncxItem(x));
+	}
+
+	ncxItem(item) {
+		const navLabel = qs(item, 'navLabel');
+		const navLabelText = qs(navLabel, 'text');
+		const pageText = navLabelText.textContent;
+		const content = qs(item, 'content');
+
+		const href = content.getAttribute('src');
+		const page = parseInt(pageText, 10);
+
+		return {
+			href,
+			page,
+		};
 	}
 
 	/**
