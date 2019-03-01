@@ -45,7 +45,6 @@ class PageList {
 			return this.parseNav(xml);
 		} else if(ncx){
 			return this.parseNcx(xml);
-			return;
 		}
 
 	}
