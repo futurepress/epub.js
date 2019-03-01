@@ -75,30 +75,43 @@ class PageList {
 	}
 
 	parseNcx(navXml) {
-		const pageList = qs(navXml, 'pageList');
-		if (!pageList) return [];
+		var list = [];
+		var i = 0;
+		var item;
+		var pageList;
+		var pageTargets;
+		var length = 0;
 
-		const pageTargets = qsa(pageList, 'pageTarget');
+		pageList = qs(navXml, "pageList");
+		if (!pageList) return list;
+
+		pageTargets = qsa(pageList, "pageTarget");
+		length = pageTargets.length;
 
 		if (!pageTargets || pageTargets.length === 0) {
-			return [];
+			return list;
 		}
 
-		return [...pageTargets].map(x => this.ncxItem(x));
+		for (i = 0; i < length; ++i) {
+			item = this.ncxItem(pageTargets[i]);
+			list.push(item);
+		}
+
+		return list;
 	}
 
 	ncxItem(item) {
-		const navLabel = qs(item, 'navLabel');
-		const navLabelText = qs(navLabel, 'text');
-		const pageText = navLabelText.textContent;
-		const content = qs(item, 'content');
+		var navLabel = qs(item, "navLabel");
+		var navLabelText = qs(navLabel, "text");
+		var pageText = navLabelText.textContent;
+		var content = qs(item, "content");
 
-		const href = content.getAttribute('src');
-		const page = parseInt(pageText, 10);
+		var href = content.getAttribute("src");
+		var page = parseInt(pageText, 10);
 
 		return {
-			href,
-			page,
+			"href": href,
+			"page": page,
 		};
 	}
 
