@@ -135,7 +135,7 @@ Builds are concatenated and minified using [webpack](https://webpack.js.org/) an
 To generate a new build run
 
 ```javascript
-npm run preprocess
+npm run prepare
 ```
 
 or to continuously build run
