@@ -327,6 +327,7 @@ class Packaging {
 		let spine = json.readingOrder || json.spine;
 		this.spine = spine.map((item, index) =>{
 			item.index = index;
+			item.linear = item.linear || "yes";
 			return item;
 		});
 

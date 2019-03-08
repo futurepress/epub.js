@@ -46,14 +46,9 @@ body {
   margin: 0 auto;
   position: relative;
   background: url('ajax-loader.gif') center center no-repeat;
-
-}
-
-#viewer.scrolled .epub-container {
-  background: white;
   box-shadow: 0 0 4px #ccc;
-  margin: 10px;
   padding: 20px;
+  background: white;
 }
 
 #viewer.scrolled .epub-view > iframe {

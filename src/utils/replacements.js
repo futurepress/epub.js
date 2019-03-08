@@ -90,13 +90,19 @@ export function replaceLinks(contents, fn) {
 		}
 
 		var absolute = (href.indexOf("://") > -1);
-		var linkUrl = new Url(href, location);
 
 		if(absolute){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
+			var linkUrl;
+			try {
+				linkUrl = new Url(href, location);	
+			} catch(error) {
+				// NOOP
+			}
+
 			link.onclick = function(){
 
 				if(linkUrl && linkUrl.hash) {

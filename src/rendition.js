@@ -203,6 +203,9 @@ class Rendition {
 	 * @return {Promise} rendering has started
 	 */
 	start(){
+		if (!this.settings.layout && (this.book.package.metadata.layout === "pre-paginated" || this.book.displayOptions.fixedLayout === "true")) {
+			this.settings.layout = "pre-paginated";
+		}
 
 		if(!this.manager) {
 			this.ViewManager = this.requireManager(this.settings.manager);
@@ -399,7 +402,7 @@ class Rendition {
 	 */
 	afterDisplayed(view){
 
-		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view));
+		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
 
 		this.hooks.render.trigger(view, this)
 			.then(() => {

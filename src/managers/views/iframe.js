@@ -780,6 +780,7 @@ class IframeView {
 			this.displayed = false;
 
 			this.removeListeners();
+			this.contents.destroy();
 
 			this.stopExpanding = true;
 			this.element.removeChild(this.iframe);
