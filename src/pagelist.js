@@ -43,9 +43,8 @@ class PageList {
 
 		if(html) {
 			return this.parseNav(xml);
-		} else if(ncx){ // Not supported
-			// return this.parseNcx(xml);
-			return;
+		} else if(ncx){
+			return this.parseNcx(xml);
 		}
 
 	}
@@ -72,6 +71,47 @@ class PageList {
 		}
 
 		return list;
+	}
+
+	parseNcx(navXml) {
+		var list = [];
+		var i = 0;
+		var item;
+		var pageList;
+		var pageTargets;
+		var length = 0;
+
+		pageList = qs(navXml, "pageList");
+		if (!pageList) return list;
+
+		pageTargets = qsa(pageList, "pageTarget");
+		length = pageTargets.length;
+
+		if (!pageTargets || pageTargets.length === 0) {
+			return list;
+		}
+
+		for (i = 0; i < length; ++i) {
+			item = this.ncxItem(pageTargets[i]);
+			list.push(item);
+		}
+
+		return list;
+	}
+
+	ncxItem(item) {
+		var navLabel = qs(item, "navLabel");
+		var navLabelText = qs(navLabel, "text");
+		var pageText = navLabelText.textContent;
+		var content = qs(item, "content");
+
+		var href = content.getAttribute("src");
+		var page = parseInt(pageText, 10);
+
+		return {
+			"href": href,
+			"page": page,
+		};
 	}
 
 	/**
