@@ -15,7 +15,8 @@ class IframeView {
 			height: 0,
 			layout: undefined,
 			globalLayoutProperties: {},
-			method: undefined
+			method: undefined,
+			forceRight: false
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -164,6 +165,10 @@ class IframeView {
 				return new Promise((resolve, reject) => {
 					// Expand the iframe to the full size of the content
 					this.expand();
+					//
+					if (this.settings.forceRight) {
+						this.element.style.marginLeft = this.width() + "px";
+					}
 					resolve();
 				});
 
