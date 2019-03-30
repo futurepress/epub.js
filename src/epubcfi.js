@@ -392,7 +392,7 @@ class EpubCFI {
 
 		// All steps in First equal to Second and First is Less Specific
 		if(stepsA.length < stepsB.length) {
-			return 1;
+			return -1;
 		}
 
 		// Compare the charecter offset of the text node
