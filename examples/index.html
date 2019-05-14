@@ -7,15 +7,17 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
-
-        <link rel="stylesheet" type="text/css" href="examples.css">
-
         <style type="text/css">
 
           body {
-            font-size: 1em;
-            line-height: 1.33em;
-            font-family: serif;
+            margin: 0;
+			background: #fafafa;
+			font-family: serif;
+			color: #333;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			min-height: 800px;
           }
 
           h1 {
@@ -32,8 +34,7 @@
           }
 
           ol {
-            width: 350px;
-            margin: 50px auto;
+            margin: 28px auto;
           }
 
           a {
@@ -42,37 +43,65 @@
             color: #000;
           }
 
-          #book-wrapper {
-            position: inherit;
+          #main {
+			width: 100%
+		  }
+		  
+		  #example-wrapper {
+            width: 695px;
+			overflow: hidden;
+            border: 1px solid #ccc;
+            margin: 28px auto;
+            background: #fff;
+            border-radius: 5px;
+          }
+              
+          #example-viewer {
+            width: 680px;
+			height: 100%;
+            margin: -30px 10px 0 0;
+            -moz-box-shadow:      inset 10px 0 20px rgba(0,0,0,.1);
+            -webkit-box-shadow:   inset 10px 0 20px rgba(0,0,0,.1);
+            box-shadow:           inset 10px 0 20px rgba(0,0,0,.1);
           }
         </style>
 
 
     </head>
     <body>
-        <div id="main">
-          <div id="book-wrapper">
-            <div id="book-viewer">
+        <div id="main">  
+		  <div id="example-wrapper">
+            <div id="example-viewer">
 
               <h1>Examples</h1>
               <ol>
-                <li><a href="spreads.html">Spreads</a></li>
-                <li><a href="archived.html">Archived</a></li>
-                <li><a href="scrolled.html">Scrolled Doc</a></li>
-                <li><a href="continuous-spreads.html">Spreads Continuous</a></li>
-                <li><a href="continuous-scrolled.html">Scrolled Continuous</a></li>
-                <li><a href="swipe.html">Swipe</a></li>
-                <li><a href="input.html">Open from File</a></li>
-                <li><a href="renderless.html">Renderless</a></li>
-                <li><a href="hooks.html">Hooks</a></li>
-                <li><a href="highlights.html">Highlights</a></li>
-                <li><a href="hypothesis.html">Hypothes.is</a></li>
+                <li><a href="spreads.html">Spreads</a><p>
+				Display an ebook two pages at a time. Also includes code to provide table-of-contents in a select object above the rendered ebook.  Sections of the ebook are displayed separately so if a section has a single page or an odd number of pages it will display with a blank page on the right.</p></li>
+                <li><a href="archived.html">Archived</a><p>
+				Display ebook from an XXXX.epub file rather than an unzipped folder. This may be substantially slower for large ebooks.</p></li>
+                <li><a href="scrolled.html">Scrolled Doc</a><p>
+				Displays each "section" or "chapter" of the ebook in its entirety as a single page of variable height that you can scroll up and down. Includes code to provide navigation links above and below the rendered section to go to the previous or next section.</p></li>
+                <li><a href="continuous-spreads.html">Spreads Continuous</a><p>
+				The view is the same as 1) above except that the entire document is rendered at once without breaks so if a section has one page, the next section is shown beginning on the right-hand-page rather than a blank page. </p></li>
+                <li><a href="continuous-scrolled.html">Scrolled Continuous</a><p>
+				The view is the same as 3) except the entire ebook is rendered in the browser at once so there are no navigation links above and below each chapter. This version may take longer to render and uses more memory since the whole ebook is loaded into memory. This version has no links to navigate or jump between chapters.</p></li>
+                <li><a href="swipe.html">Swipe</a><p>
+				This example includes a function in the script to link "swipe" events on touchscreens, particularly mobile devices, to navigate forward and back. Note that swipes do not work in Chrome Desktop even if you turn on device emulation in the "inspect" toolbar. </p></li>
+                <li><a href="input.html">Open from File</a><p>
+				Allows you to select an epub file from your local computer that gets rendered in the browser. As of 5/14/2019 only the cover renders.</p></li>
+                <li><a href="renderless.html">Renderless</a><p>
+				The name for this example is misleading since the book certainly does render. What's unique in this example is that the book's table of contents is read in and a list of sections in developed, then each section is rendered as it is called for by a section.render() call, but there's no master book.renderTo() call.  Functionlly this seems exactly the same as 1) and 3).</p></li>
+                <li><a href="hooks.html">Hooks</a><p>
+				This example shows how to insert external javascript and external css files into a book after the book has been loaded into memory.  This might, for example, allow you to override internal css from the ebook to change fonts and text-size by either replacing a css file from the ebook or calling a javascript that gets added to the inside of the ebook such as adding jQuery inside the ebook.  For example: this could be used to have + and - buttons that increase or decrease the font-size in the ebook. When the + or - button is pressed it could call to insert and execute a script to replace the font-size of paragraph elements with one slightly larger or smaller.  This example doesn't actually implement any such thing, it just shows how to insert the code, or insert a css file.</p><p>
+				You can't just run a script on the outer page to change things inside the rendered ebook because the ebook is rendered inside an iframe. This mechanism lets you inject things into the iframe and run them after the book is rendered.</p></li>
+                <li><a href="highlights.html">Highlights</a><p>
+				Adds the ability to highlight text in the ebook. This version provides no mechanism for saving highlights after the browser is closed. It is an example of capability rather than a working implementation. It works as follows: When a section of text is selected a rendition.on("selected"...) function notes the location of the beginning and ending of the selected text.  Two things happen. The code adds a new element to the outer page in a list at the bottom describing the selection and providing a "remove" link. The code also paints a yellow block in an SVG overlay to highlight the selected text. Unfortunately as of 5/14/2019 the remove link does remove the yellow overlay from the highlighted text but, does not remove the annotation from the list at the bottom of the page.</p></li>
+                <li><a href="hypothesis.html">Hypothes.is</a><p>
+				Visit their site for an explanation at <a href="https://web.hypothes.is/demos/epubjs/">https://web.hypothes.is/demos/epubjs/</a>.</p></li>
               </ol>
 
             </div>
           </div>
-        </div>
-
-
+		</div>
     </body>
 </html>
