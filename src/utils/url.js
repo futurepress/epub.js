@@ -44,7 +44,7 @@ class Url {
 				this.hash = this.Url.hash;
 				this.search = this.Url.search;
 
-				pathname = this.Url.pathname;
+				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : '');
 			} catch (e) {
 				// Skip URL parsing
 				this.Url = undefined;
