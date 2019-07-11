@@ -189,7 +189,7 @@ class DefaultViewManager {
 		this.resize();
 	}
 
-	resize(width, height){
+	resize(width, height, epubcfi){
 		let stageSize = this.stage.size(width, height);
 
 		// For Safari, wait for orientation to catch up
@@ -225,7 +225,7 @@ class DefaultViewManager {
 		this.emit(EVENTS.MANAGERS.RESIZED, {
 			width: this._stageSize.width,
 			height: this._stageSize.height
-		});
+		}, epubcfi);
 	}
 
 	createView(section) {

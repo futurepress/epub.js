@@ -446,22 +446,23 @@ class Rendition {
 	 * Report resize events and display the last seen location
 	 * @private
 	 */
-	onResized(size){
+	onResized(size, epubcfi){
 
 		/**
 		 * Emit that the rendition has been resized
 		 * @event resized
 		 * @param {number} width
 		 * @param {height} height
+		 * @param {string} epubcfi (optional)
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.RESIZED, {
 			width: size.width,
 			height: size.height
-		});
+		}, epubcfi);
 
 		if (this.location && this.location.start) {
-			this.display(this.location.start.cfi);
+			this.display(epubcfi || this.location.start.cfi);
 		}
 
 	}
@@ -493,15 +494,16 @@ class Rendition {
 	 * Trigger a resize of the views
 	 * @param {number} [width]
 	 * @param {number} [height]
+	 * @param {string} [epubcfi] (optional)
 	 */
-	resize(width, height){
+	resize(width, height, epubcfi){
 		if (width) {
 			this.settings.width = width;
 		}
 		if (height) {
 			this.settings.height = height;
 		}
-		this.manager.resize(width, height);
+		this.manager.resize(width, height, epubcfi);
 	}
 
 	/**
