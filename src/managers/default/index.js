@@ -60,6 +60,29 @@ class DefaultViewManager {
 
 		this.settings.size = size;
 
+        //Detect RTL scroll type
+        var definer = document.createElement('div');
+        definer.style.position = "absolute";
+        definer.style.width = "1px";
+        definer.style.height = "1px";
+        definer.style.overflow = "scroll";
+        definer.dir="rtl";
+        definer.appendChild(document.createTextNode('A'));
+
+        document.body.appendChild(definer);
+        var type = 'reverse';
+
+        if (definer.scrollLeft > 0) {
+            type = 'default';
+        } else {
+            definer.scrollLeft = 1;
+            if (definer.scrollLeft === 0) {
+                type = 'negative';
+            }
+        }
+        document.body.removeChild(definer);
+        this.settings.rtlScrollType = type;
+
 		// Save the stage
 		this.stage = new Stage({
 			width: size.width,
@@ -423,13 +446,25 @@ class DefaultViewManager {
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft;
+            if (this.settings.rtlScrollType === "default"){
+					left = this.container.scrollLeft;
 
-			if(left > 0) {
-				this.scrollBy(this.layout.delta, 0, true);
-			} else {
-				next = this.views.last().section.next();
-			}
+					if (left > 0) {
+						this.scrollBy(this.layout.delta, 0, true);
+					} else {
+						next = this.views.last().section.next();
+					}
+				}
+				else{
+					left = this.container.scrollLeft + ( this.layout.delta * -1 );
+					if (left > this.container.scrollWidth * -1){
+						this.scrollBy(this.layout.delta, 0, true);
+					}
+					else{
+						next = this.views.last().section.next();
+
+					}
+				}
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
 
@@ -493,13 +528,25 @@ class DefaultViewManager {
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+            if (this.settings.rtlScrollType === "default"){
+					left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
-			if(left <= this.container.scrollWidth) {
-				this.scrollBy(-this.layout.delta, 0, true);
-			} else {
-				prev = this.views.first().section.prev();
-			}
+					if (left <= this.container.scrollWidth) {
+						this.scrollBy(-this.layout.delta, 0, true);
+					} else {
+						prev = this.views.first().section.prev();
+					}
+				}
+				else{
+					left = this.container.scrollLeft;
+
+					if (left < 0) {
+						this.scrollBy(-this.layout.delta, 0, true);
+					} else {
+						prev = this.views.first().section.prev();
+					}
+
+				}
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
 
@@ -537,7 +584,12 @@ class DefaultViewManager {
 				.then(function(){
 					if(this.isPaginated && this.settings.axis === "horizontal") {
 						if (this.settings.direction === "rtl") {
-							this.scrollTo(0, 0, true);
+                            if (this.settings.rtlScrollType === "default"){
+								this.scrollTo(0, 0, true);
+							}
+							else{
+								this.scrollTo((this.container.scrollWidth * -1) + this.layout.delta, 0, true);
+							}
 						} else {
 							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 						}

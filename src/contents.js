@@ -578,10 +578,10 @@ class Contents {
 			if(range) {
 				try {
 					if (!range.endContainer ||
-						(range.startContainer == range.endContainer 
+						(range.startContainer == range.endContainer
 						&& range.startOffset == range.endOffset)) {
 						// If the end for the range is not set, it results in collapsed becoming
-						// true. This in turn leads to inconsistent behaviour when calling 
+						// true. This in turn leads to inconsistent behaviour when calling
 						// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
 						// https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/15684911/
 						let pos = range.startContainer.textContent.indexOf(" ", range.startOffset);
@@ -995,7 +995,7 @@ class Contents {
 	 * @param {number} columnWidth
 	 * @param {number} gap
 	 */
-	columns(width, height, columnWidth, gap){
+	columns(width, height, columnWidth, gap, dir){
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
@@ -1006,9 +1006,8 @@ class Contents {
 
 		this.layoutStyle("paginated");
 
-		// Fix body width issues if rtl is only set on body element
-		if (this.content.dir === "rtl") {
-			this.direction("rtl");
+        if (dir === "rtl") {
+		    this.direction(dir);
 		}
 
 		this.width(width);

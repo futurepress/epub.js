@@ -195,7 +195,7 @@ class Layout {
 		if (this.name === "pre-paginated") {
 			formating = contents.fit(this.columnWidth, this.height);
 		} else if (this._flow === "paginated") {
-			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
+			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap, this.settings.direction);
 		} else { // scrolled
 			formating = contents.size(this.width, null);
 		}

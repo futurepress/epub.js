@@ -265,20 +265,34 @@ class ContinuousViewManager extends DefaultViewManager {
 			}
 
 		};
+        //Horizontal negative scrooling
+        if (horizontal  && rtl && this.settings.rtlScrollType === "negative") {
 
-		if (offset + visibleLength + delta >= contentLength) {
-			if (horizontal && rtl) {
-				prepend();
-			} else {
-				append();
+			if (offset - delta <= (-1 * contentLength)) {
+					append();
 			}
-		}
 
-		if (offset - delta < 0 ) {
-			if (horizontal && rtl) {
-				append();
-			} else {
-				prepend();
+			if (offset  + delta > 0) {
+					prepend();
+			}
+
+		}
+        //default scrooling
+		else {
+			if (offset + visibleLength + delta >= contentLength) {
+				if (horizontal && rtl) {
+					prepend();
+				} else {
+					append();
+				}
+			}
+
+			if (offset - delta < 0) {
+				if (horizontal && rtl) {
+					append();
+				} else {
+					prepend();
+				}
 			}
 		}
 
@@ -355,7 +369,17 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(this.settings.axis === "vertical") {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
-				this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
+                if(this.settings.direction === 'rtl') {
+					if (this.settings.rtlScrollType === "default") {
+					    this.scrollTo(prevLeft, 0, true);
+					}
+					else {
+						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
+					}
+				}
+				else {
+					this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
+				}
 			}
 		}
 
