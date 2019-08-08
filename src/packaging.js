@@ -198,7 +198,7 @@ class Packaging {
 		}
 
 		if (identifier.localName === "identifier" && identifier.namespaceURI === "http://purl.org/dc/elements/1.1/") {
-			return identifier.childNodes[0].nodeValue.trim();
+			return identifier.childNodes.length > 0 ? identifier.childNodes[0].nodeValue.trim() : "";
 		}
 
 		return "";
