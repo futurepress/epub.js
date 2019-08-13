@@ -1070,7 +1070,7 @@ class Contents {
 	 * @param {number} width
 	 * @param {number} height
 	 */
-	fit(width, height){
+	fit(width, height, section){
 		var viewport = this.viewport();
 		var viewportWidth = parseInt(viewport.width);
 		var viewportHeight = parseInt(viewport.height);
@@ -1100,6 +1100,11 @@ class Contents {
 		this.css("background-size", viewportWidth * scale + "px " + viewportHeight * scale + "px");
 
 		this.css("background-color", "transparent");
+		if (section && section.properties.includes("page-spread-left")) {
+			// set margin since scale is weird
+			var marginLeft = width - (viewportWidth * scale);
+			this.css("margin-left", marginLeft + "px");
+		}
 	}
 
 	/**

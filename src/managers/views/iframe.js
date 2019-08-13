@@ -149,7 +149,7 @@ class IframeView {
 			.then(function(){
 
 				// apply the layout function to the contents
-				this.layout.format(this.contents);
+				this.layout.format(this.contents, this.section);
 
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
