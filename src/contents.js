@@ -261,6 +261,8 @@ class Contents {
 
 		if (value) {
 			content.style.setProperty(property, value, priority ? "important" : "");
+		} else {
+			content.style.removeProperty(property);
 		}
 
 		return this.window.getComputedStyle(content)[property];
