@@ -12,6 +12,7 @@ const isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userA
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
+let doVisualUpdates = true;
 
 /**
 	* Handles DOM manipulation, queries and events for View contents
@@ -386,7 +387,10 @@ class Contents {
 	 * @private
 	 */
 	listeners() {
-
+    document.addEventListener('visibilitychange', () => {
+      doVisualUpdates = !document.hidden;
+      this.resizeListeners();
+    });
 		this.imageLoadListeners();
 
 		this.mediaQueryListeners();
@@ -449,8 +453,10 @@ class Contents {
 		// Test size again
 		clearTimeout(this.expanding);
 
-		requestAnimationFrame(this.resizeCheck.bind(this));
-		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
+    if (doVisualUpdates) {
+      requestAnimationFrame(this.resizeCheck.bind(this));
+      this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
+    }
 	}
 
 	/**
