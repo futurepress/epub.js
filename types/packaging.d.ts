@@ -23,7 +23,8 @@ export interface PackagingMetadataObject {
   layout: string,
   orientation: string,
   flow: string,
-  viewport: string
+  viewport: string,
+  spread: string
 }
 
 export interface PackagingSpineItem {
