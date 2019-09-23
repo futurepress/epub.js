@@ -645,7 +645,7 @@ class DefaultViewManager {
 			let width = view.width();
 
 			// Find mapping
-			let start = left + container.left - position + used;
+			let start = left + container.left - position + view.offset().left + used;
 			let end = start + this.layout.width - used;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
