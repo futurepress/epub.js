@@ -184,14 +184,20 @@ class Locations {
 	 * @return {object} locations
 	 */
 	generateFromWords(startCfi, wordCount, count) {
-		var start = new EpubCFI(startCfi);
+		var start = startCfi ? new EpubCFI(startCfi) : undefined;
 		this.q.pause();
 		this._locationsWords = [];
 		this._wordCounter = 0;
 
 		this.spine.each(function(section) {
-			if (section.linear && section.index >= start.spinePos) {
-				this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+			if (section.linear) {
+				if (start) {
+					if (section.index >= start.spinePos) {
+						this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+					}
+				} else {
+					this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+				}
 			}
 		}.bind(this));
 
