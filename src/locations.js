@@ -221,7 +221,7 @@ class Locations {
 				var completed = new defer();
 				var locations = this.parseWords(contents, section, wordCount, startCfi);
 				var remainingCount = count - this._locationsWords.length;
-				this._locationsWords = this._locationsWords.concat(locations.length <= count ? locations.slice(0, remainingCount) : locations);
+				this._locationsWords = this._locationsWords.concat(locations.length >= count ? locations.slice(0, remainingCount) : locations);
 
 				section.unload();
 
