@@ -202,6 +202,16 @@ class Themes {
 		});
 	}
 
+	removeOverride (name) {
+		var contents = this.rendition.getContents();
+
+		delete this._overrides[name];
+
+		contents.forEach( (content) => {
+			content.css(name);
+		});
+	}
+
 	/**
 	 * Add all overrides
 	 * @param {Content} content
