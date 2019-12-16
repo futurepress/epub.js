@@ -93,7 +93,34 @@ class Navigation {
 			index = this.tocByHref[target];
 		}
 
-		return this.toc[index];
+		return this.getByIndex(target, index, this.toc);
+	}
+
+	/**
+	 * Get an item from navigation subitems recursively by index
+	 * @param  {string} target
+	 * @param  {number} index
+	 * @param  {array} navItems
+	 * @return {object} navItem
+	 */
+	getByIndex(target, index, navItems) {
+		if (navItems.length === 0) {
+			return;
+		}
+
+		const item = navItems[index];
+		if (item && (target === item.id || target === item.href)) {
+			return item;
+		} else {
+			let result;
+			for (let i = 0; i < navItems.length; ++i) {
+				result = this.getByIndex(target, index, navItems[i].subitems);
+				if (result) {
+					break;
+				}
+			}
+			return result;
+		}
 	}
 
 	/**

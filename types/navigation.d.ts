@@ -41,4 +41,6 @@ export default class Navigation {
   private parseNcx(navHtml: XMLDocument): Array<NavItem>;
 
   private ncxItem(item: Element): NavItem;
+
+  private getByIndex(target: string, index: number, navItems: NavItem[]): NavItem;
 }
