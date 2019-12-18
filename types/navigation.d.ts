@@ -3,7 +3,7 @@ export interface NavItem {
   href: string,
   label: string,
   subitems?: Array<NavItem>,
-  parent?: NavItem
+  parent?: string
 }
 
 export interface LandmarkItem {
