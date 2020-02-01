@@ -42,6 +42,11 @@ class DefaultViewManager {
 
 		this.rendered = false;
 
+		// Firefox 1.0+
+		this.isFirefox = typeof InstallTrigger !== 'undefined';
+		// Safari 3.0+ "[object HTMLElementConstructor]" 
+		this.isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+
 	}
 
 	render(element, size){
@@ -425,6 +430,11 @@ class DefaultViewManager {
 
 			left = this.container.scrollLeft;
 
+			// Fix for Firefox and iOS jump to next chapter instead of turning to next page
+			if(this.isFirefox || this.isSafari) {
+				left += this.container.scrollWidth - this.container.clientWidth;
+			}
+
 			if(left > 0) {
 				this.scrollBy(this.layout.delta, 0, true);
 			} else {
@@ -495,6 +505,11 @@ class DefaultViewManager {
 
 			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
 
+			// Fix for Firefox and iOS stay on the first chapter page instead of turning to previous chapter
+			if(this.isFirefox || this.isSafari) {
+				left += this.container.scrollWidth - this.container.clientWidth;
+			}
+
 			if(left <= this.container.scrollWidth) {
 				this.scrollBy(-this.layout.delta, 0, true);
 			} else {
@@ -537,7 +552,9 @@ class DefaultViewManager {
 				.then(function(){
 					if(this.isPaginated && this.settings.axis === "horizontal") {
 						if (this.settings.direction === "rtl") {
-							this.scrollTo(0, 0, true);
+							// Fix Firefox and iOS turn to last page of chapter instead of first page
+							if((!this.isFirefox) && (!this.isSafari))
+								this.scrollTo(0, 0, true);
 						} else {
 							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
 						}
