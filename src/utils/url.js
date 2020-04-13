@@ -1,5 +1,5 @@
-import Path from "./path";
 import path from "path-webpack";
+import Path from "./path";
 
 /**
  * creates a Url object for parsing and manipulation of a url string
@@ -44,7 +44,7 @@ class Url {
 				this.hash = this.Url.hash;
 				this.search = this.Url.search;
 
-				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : '');
+				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
 			} catch (e) {
 				// Skip URL parsing
 				this.Url = undefined;
@@ -76,8 +76,9 @@ class Url {
 	 * @param {string} what
 	 * @returns {string} url
 	 */
-	resolve (what) {
+	resolve(what) {
 		var isAbsolute = (what.indexOf("://") > -1);
+		const hasSearch = what.indexOf("?") > -1;
 		var fullpath;
 
 		if (isAbsolute) {
@@ -85,7 +86,7 @@ class Url {
 		}
 
 		fullpath = path.resolve(this.directory, what);
-		return this.origin + fullpath;
+		return this.origin + fullpath + (!hasSearch ? this.search : "");
 	}
 
 	/**
@@ -94,7 +95,9 @@ class Url {
 	 * @returns {string} path
 	 */
 	relative (what) {
-		return path.relative(what, this.directory);
+		const hasSearch = what.indexOf("?") > -1;
+		
+		return path.relative(what, this.directory) + (!hasSearch ? this.search : "");
 	}
 
 	/**
