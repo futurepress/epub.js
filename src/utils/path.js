@@ -28,7 +28,7 @@ class Path {
 		}
 
 		this.filename = parsed.base;
-		this.extension = parsed.ext.slice(1);
+		this.extension = parsed.ext.substr(parsed.ext.lastIndexOf(".") + 1);
 
 	}
 
@@ -55,7 +55,7 @@ class Path {
 	 * @returns {boolean}
 	 */
 	isDirectory (what) {
-		return (what.charAt(what.length-1) === "/");
+		return (what.charAt(what.length-1) === "/") || what.lastIndexOf(".") === -1;
 	}
 
 	/**
