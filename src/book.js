@@ -258,7 +258,7 @@ class Book {
 		} else if (type === INPUT_TYPE.EPUB) {
 			this.archived = true;
 			this.url = new Url("/", "");
-			opening = this.request(input, "binary", this.settings.requestCredentials)
+			opening = this.request(input, "binary", this.settings.requestCredentials, this.settings.requestHeaders)
 				.then(this.openEpub.bind(this));
 		} else if(type == INPUT_TYPE.OPF) {
 			this.url = new Url(input);
