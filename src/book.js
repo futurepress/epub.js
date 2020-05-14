@@ -423,6 +423,11 @@ class Book {
 		path = url.path();
 		extension = path.extension;
 
+		// If there's a search string, remove it before determining type
+		if (extension) {
+			extension = extension.replace(/\?.*$/, "");
+		}
+
 		if (!extension) {
 			return INPUT_TYPE.DIRECTORY;
 		}
