@@ -83,6 +83,18 @@ class Themes {
 	}
 
 	/**
+	 * Register a theme by passing its css as string
+	 * @param {string} name 
+	 * @param {string} css 
+	 */
+	registerCss (name, css) {
+		this._themes[name] = { "serialized" : css };
+		if (this._injected[name] || name == 'default') {
+			this.update(name);
+		}
+	}
+
+	/**
 	 * Register a url
 	 * @param {string} name
 	 * @param {string} input
@@ -90,7 +102,7 @@ class Themes {
 	registerUrl (name, input) {
 		var url = new Url(input);
 		this._themes[name] = { "url": url.toString() };
-		if (this._injected[name]) {
+		if (this._injected[name] || name == 'default') {
 			this.update(name);
 		}
 	}
@@ -103,7 +115,7 @@ class Themes {
 	registerRules (name, rules) {
 		this._themes[name] = { "rules": rules };
 		// TODO: serialize css rules
-		if (this._injected[name]) {
+		if (this._injected[name] || name == 'default') {
 			this.update(name);
 		}
 	}
@@ -176,9 +188,10 @@ class Themes {
 		if (theme.url) {
 			contents.addStylesheet(theme.url);
 		} else if (theme.serialized) {
-			// TODO: handle serialized
+			contents.addStylesheetCss(theme.serialized, name);
+			theme.injected = true;
 		} else if (theme.rules) {
-			contents.addStylesheetRules(theme.rules);
+			contents.addStylesheetRules(theme.rules, name);
 			theme.injected = true;
 		}
 	}

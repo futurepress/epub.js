@@ -14,6 +14,8 @@ export default class Themes {
 
   registerThemes( themes: object ): void;
 
+  registerCss( name: string, css: string ): void;
+
   registerUrl( name: string, input: string ): void;
 
   registerRules( name: string, rules: object ): void;
