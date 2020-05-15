@@ -449,7 +449,7 @@ class Contents {
 		var width, height;
 		// Test size again
 		clearTimeout(this.expanding);
-    requestAnimationFrame(this.resizeCheck.bind(this));
+		requestAnimationFrame(this.resizeCheck.bind(this));
 	}
 
 	/**
@@ -698,7 +698,7 @@ class Contents {
 		key = "epubjs-inserted-css-" + (key || '');
 
 		if(!this.document) return false;
-		
+
 		// Check if link already exists
 		styleEl = this.document.getElementById(key);
 		if (!styleEl) {
@@ -712,7 +712,7 @@ class Contents {
 
 	/**
 	 * Append stylesheet css
-	 * @param {string} serializedCss 
+	 * @param {string} serializedCss
 	 * @param {string} key If the key is the same, the CSS will be replaced instead of inserted
 	 */
 	addStylesheetCss(serializedCss, key) {
@@ -721,7 +721,7 @@ class Contents {
 		var styleEl;
 		styleEl = this._getStylesheetNode(key);
 		styleEl.innerHTML = serializedCss;
-		
+
 		return true;
 	}
 
@@ -1026,8 +1026,8 @@ class Contents {
 
 		this.layoutStyle("paginated");
 
-        if (dir === "rtl") {
-		    this.direction(dir);
+		if (dir === "rtl") {
+			this.direction(dir);
 		}
 
 		this.width(width);
