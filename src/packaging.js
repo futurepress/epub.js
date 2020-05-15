@@ -59,7 +59,21 @@ class Packaging {
 		this.uniqueIdentifier = this.findUniqueIdentifier(packageDocument);
 		this.metadata = this.parseMetadata(metadataNode);
 
-		this.metadata.direction = spineNode.getAttribute("page-progression-direction");
+        // Detect book direction - default ltr
+        //RTL detection
+        //1. spineNode attributes page-progression-direction
+        //2. Language metadata field check against rtl languages
+        this.metadata.direction = ( function() {
+    		var defaultDirection = "ltr";
+    		var rtlLanguages =
+    		["ar", "arc", "dv", "fa", "ha", "he", "khw", "ku", "ps", "ur", "yi"];
+
+    		var isRTLLanguage = rtlLanguages.indexOf(this.metadata.language.toLowerCase()) > -1;
+
+    		return  spineNode.getAttribute("page-progression-direction") ||
+    				isRTLLanguage ? "rtl" : ""							 ||
+    				defaultDirection;
+			}.bind(this))();
 
 
 		return {
