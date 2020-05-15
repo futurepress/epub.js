@@ -283,7 +283,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		let promises = newViews.map((view) => {
-			return view.displayed;
+			return view.display(this.request);
 		});
 
 		if(newViews.length){
