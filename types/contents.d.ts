@@ -36,7 +36,7 @@ export default class Contents {
 
     cfiFromRange(range: Range, ignoreClass?: string): string;
 
-    columns(width: number, height: number, columnWidth: number, gap: number): void;
+    columns(width: number, height: number, columnWidth: number, gap: number, dir: string): void;
 
     contentHeight(h: number): number;
 

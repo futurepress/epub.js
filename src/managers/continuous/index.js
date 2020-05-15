@@ -265,8 +265,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			}
 
 		};
-        //Horizontal negative scrooling
-        if (horizontal  && rtl && this.settings.rtlScrollType === "negative") {
+		//Horizontal negative scrolling
+		if (horizontal  && rtl && this.settings.rtlScrollType === "negative") {
 
 			if (offset - delta <= (-1 * contentLength)) {
 					append();
@@ -277,7 +277,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			}
 
 		}
-        //default scrooling
+		//default scrolling
 		else {
 			if (offset + visibleLength + delta >= contentLength) {
 				if (horizontal && rtl) {
@@ -367,15 +367,14 @@ class ContinuousViewManager extends DefaultViewManager {
 			if(this.settings.axis === "vertical") {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
-                if(this.settings.direction === 'rtl') {
+				if(this.settings.direction === 'rtl') {
 					if (this.settings.rtlScrollType === "default") {
-					    this.scrollTo(prevLeft, 0, true);
+						this.scrollTo(prevLeft, 0, true);
 					}
 					else {
 						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
 					}
-				}
-				else {
+				} else {
 					this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
 				}
 			}

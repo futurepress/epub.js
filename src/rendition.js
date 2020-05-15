@@ -53,7 +53,8 @@ class Rendition {
 			stylesheet: null,
 			resizeOnOrientationChange: true,
 			script: null,
-			snap: false
+			snap: false,
+			defaultDirection: "ltr"
 		});
 
 		extend(this.settings, options);
@@ -227,7 +228,7 @@ class Rendition {
 			});
 		}
 
-		this.direction(this.book.package.metadata.direction);
+		this.direction(this.book.package.metadata.direction || this.settings.defaultDirection);
 
 		// Parse metadata to get layout props
 		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
