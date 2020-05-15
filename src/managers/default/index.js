@@ -228,8 +228,23 @@ class DefaultViewManager {
 		}, epubcfi);
 	}
 
-	createView(section) {
-		return new this.View(section, this.viewSettings);
+	createView(section, forceRight) {
+		return new this.View(section, extend(this.viewSettings, { forceRight }) );
+	}
+
+	handleNextPrePaginated(forceRight, section, action) {
+		let next;
+
+		if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
+			if (forceRight || section.index === 0) {
+				// First page (cover) should stand alone for pre-paginated books
+				return;
+			}
+			next = section.next();
+			if (next && !next.properties.includes("page-spread-left")) {
+				return action.call(this, next);
+			}
+		}
 	}
 
 	display(section, target){
@@ -246,7 +261,7 @@ class DefaultViewManager {
 		var visible = this.views.find(section);
 
 		// View is already shown, just move to correct location in view
-		if(visible && section) {
+		if(visible && section && this.layout.name !== "pre-paginated") {
 			let offset = visible.offset();
 
 			if (this.settings.direction === "ltr") {
@@ -268,7 +283,12 @@ class DefaultViewManager {
 		// Hide all current views
 		this.clear();
 
-		this.add(section)
+		let forceRight = false;
+		if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && section.properties.includes("page-spread-right")) {
+			forceRight = true;
+		}
+
+		this.add(section, forceRight)
 			.then(function(view){
 
 				// Move to correct place within the section, if needed
@@ -281,15 +301,7 @@ class DefaultViewManager {
 				displaying.reject(err);
 			})
 			.then(function(){
-				var next;
-				if (this.layout.name === "pre-paginated" &&
-						this.layout.divisor > 1 && section.index > 0) {
-					// First page (cover) should stand alone for pre-paginated books
-					next = section.next();
-					if (next) {
-						return this.add(next);
-					}
-				}
+				return this.handleNextPrePaginated(forceRight, section, this.add);
 			}.bind(this))
 			.then(function(){
 
@@ -331,8 +343,8 @@ class DefaultViewManager {
 		this.scrollTo(distX, distY, true);
 	}
 
-	add(section){
-		var view = this.createView(section);
+	add(section, forceRight){
+		var view = this.createView(section, forceRight);
 
 		this.views.append(view);
 
@@ -345,11 +357,10 @@ class DefaultViewManager {
 		});
 
 		return view.display(this.request);
-
 	}
 
-	append(section){
-		var view = this.createView(section);
+	append(section, forceRight){
+		var view = this.createView(section, forceRight);
 		this.views.append(view);
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
@@ -362,8 +373,8 @@ class DefaultViewManager {
 		return view.display(this.request);
 	}
 
-	prepend(section){
-		var view = this.createView(section);
+	prepend(section, forceRight){
+		var view = this.createView(section, forceRight);
 
 		view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 			this.counter(bounds);
@@ -450,15 +461,14 @@ class DefaultViewManager {
 		if(next) {
 			this.clear();
 
-			return this.append(next)
+			let forceRight = false;
+			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties.includes("page-spread-right")) {
+				forceRight = true;
+			}
+
+			return this.append(next, forceRight)
 				.then(function(){
-					var right;
-					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
-						right = next.next();
-						if (right) {
-							return this.append(right);
-						}
-					}
+					return this.handleNextPrePaginated(forceRight, next, this.append);
 				}.bind(this), (err) => {
 					return err;
 				})
@@ -522,11 +532,16 @@ class DefaultViewManager {
 		if(prev) {
 			this.clear();
 
-			return this.prepend(prev)
+			let forceRight = false;
+			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && typeof prev.prev() !== "object") {
+				forceRight = true;
+			}
+
+			return this.prepend(prev, forceRight)
 				.then(function(){
 					var left;
 					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
-						left = prev.prev();
+						left = prev.prev();	
 						if (left) {
 							return this.prepend(left);
 						}
@@ -806,6 +821,9 @@ class DefaultViewManager {
 
 		this.layout = layout;
 		this.updateLayout();
+		if (this.views && this.views.length > 0 && this.layout.name === "pre-paginated") {
+			this.display(this.views.first().section);
+		}
 		 // this.manager.layout(this.layout.format);
 	}
 

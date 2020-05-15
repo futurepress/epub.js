@@ -15,7 +15,8 @@ class IframeView {
 			height: 0,
 			layout: undefined,
 			globalLayoutProperties: {},
-			method: undefined
+			method: undefined,
+			forceRight: false
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -148,7 +149,7 @@ class IframeView {
 			.then(function(){
 
 				// apply the layout function to the contents
-				this.layout.format(this.contents);
+				this.layout.format(this.contents, this.section);
 
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
@@ -164,6 +165,10 @@ class IframeView {
 				return new Promise((resolve, reject) => {
 					// Expand the iframe to the full size of the content
 					this.expand();
+					//
+					if (this.settings.forceRight) {
+						this.element.style.marginLeft = this.width() + "px";
+					}
 					resolve();
 				});
 

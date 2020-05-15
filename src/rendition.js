@@ -206,6 +206,14 @@ class Rendition {
 		if (!this.settings.layout && (this.book.package.metadata.layout === "pre-paginated" || this.book.displayOptions.fixedLayout === "true")) {
 			this.settings.layout = "pre-paginated";
 		}
+		switch(this.book.package.metadata.spread) {
+			case 'none':
+				this.settings.spread = 'none';
+				break;
+			case 'both':
+				this.settings.spread = true;
+				break;
+		}
 
 		if(!this.manager) {
 			this.ViewManager = this.requireManager(this.settings.manager);
@@ -318,6 +326,10 @@ class Rendition {
 		}
 
 		section = this.book.spine.get(target);
+
+		if (!section && target.includes(".xhtml")) {
+			section = this.book.spine.get("xhtml/" + target);
+		}
 
 		if(!section){
 			displaying.reject(new Error("No Section Found"));

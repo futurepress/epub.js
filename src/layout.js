@@ -189,11 +189,11 @@ class Layout {
 	 * @param  {Contents} contents
 	 * @return {Promise}
 	 */
-	format(contents){
+	format(contents, section){
 		var formating;
 
 		if (this.name === "pre-paginated") {
-			formating = contents.fit(this.columnWidth, this.height);
+			formating = contents.fit(this.columnWidth, this.height, section);
 		} else if (this._flow === "paginated") {
 			formating = contents.columns(this.width, this.height, this.columnWidth, this.gap);
 		} else { // scrolled
