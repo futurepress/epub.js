@@ -289,9 +289,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		if(newViews.length){
 			return Promise.all(promises)
 				.then(() => {
-					if (this.layout.name === "pre-paginated" && this.layout.props.spread) {
-						return this.check();
-					}
+					return this.check();
 				})
 				.then(() => {
 					// Check to see if anything new is on screen after rendering
