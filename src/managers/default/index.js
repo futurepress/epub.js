@@ -497,7 +497,7 @@ class DefaultViewManager {
 		var prev;
 		var left;
 		let dir = this.settings.direction;
-		console.log(dir);
+
 		if(!this.views.length) return;
 
 		if(this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
