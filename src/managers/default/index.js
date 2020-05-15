@@ -645,18 +645,10 @@ class DefaultViewManager {
 			let width = view.width();
 
 			// Find mapping
-			let start = left + container.left - position + used;
+			let start = left + container.left - position + offset + used;
 			let end = start + this.layout.width - used;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
-
-			// Find displayed pages
-			//console.log("pre", end, offset + width);
-			// if (end > offset + width) {
-			// 	end = offset + width;
-			// 	used = this.layout.pageWidth;
-			// }
-			// console.log("post", end);
 
 			let totalPages = this.layout.count(width).pages;
 			let startPage = Math.floor(start / this.layout.pageWidth);
