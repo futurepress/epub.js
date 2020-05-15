@@ -24,6 +24,7 @@ export interface RenditionOptions {
   infinite?: boolean,
   overflow?: string,
   snap?: boolean | object,
+  defaultDirection?: string,
 }
 
 export interface DisplayedLocation {
