@@ -517,7 +517,7 @@ class DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 
 			if (this.settings.rtlScrollType === "default"){
-				left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+				left = this.container.scrollLeft + this.layout.spreadWidth;
 
 				if (left <= this.container.scrollWidth) {
 					this.scrollBy(-this.layout.delta, 0, true);
