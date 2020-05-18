@@ -660,14 +660,13 @@ class Book {
 
 	/**
 	 * Get the cover url
-	 * @return {string} coverUrl
+	 * @return {Promise<string>} coverUrl
 	 */
 	coverUrl() {
 		var retrieved = this.loaded.cover.
 			then((url) => {
 				if(this.archived) {
-					// return this.archive.createUrl(this.cover);
-					return this.resources.get(this.cover);
+					return this.archive.createUrl(this.cover);
 				}else{
 					return this.cover;
 				}
