@@ -1,11 +1,32 @@
 var assert = require('assert');
+
 describe('Book', function() {
 
 	var Book = require('../src/book');
 
-	before(function(){
-
+	describe('Unarchived', function() {
+		var book = new Book("/fixtures/alice/OPS/package.opf");
+		it('should open a epub', async function() {
+			await book.opened
+			assert.equal(book.isOpen, true, "book is opened");
+			assert.equal( book.url.toString(), "http://localhost:9876/fixtures/alice/OPS/package.opf", "book url is passed to new Book" );
+		});
+		it('should have a local coverUrl', async function() {
+			assert.equal( await book.coverUrl(), "http://localhost:9876/fixtures/alice/OPS/images/cover_th.jpg", "cover url is available" );
+		});
 	});
 
+	describe('Archived epub', function() {
+		var book = new Book("/fixtures/alice.epub");
 
-})
+		it('should open a archived epub', async function() {
+			await book.opened
+			assert.equal(book.isOpen, true, "book is opened");
+			assert(book.archive, "book is unarchived");
+		});
+		it('should have a blob coverUrl', async function() {
+			let coverUrl = await book.coverUrl()
+			assert( /^blob:http:\/\/localhost:9876\/[^\/]+$/.test(coverUrl), "cover url is available and a blob: url" );
+		});
+	});
+});
