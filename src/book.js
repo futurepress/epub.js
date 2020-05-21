@@ -52,7 +52,8 @@ class Book {
 		// Allow passing just options to the Book
 		if (typeof(options) === "undefined" &&
 			  typeof(url) !== "string" &&
-		    url instanceof Blob === false) {
+		    url instanceof Blob === false &&
+		    url instanceof ArrayBuffer === false) {
 			options = url;
 			url = undefined;
 		}
