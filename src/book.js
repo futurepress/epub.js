@@ -665,8 +665,8 @@ class Book {
 	 */
 	coverUrl() {
 		var retrieved = this.loaded.cover.
-			then((url) => {
-				if(this.archived) {
+			then(() => {
+				if(this.archived && this.cover) {
 					return this.archive.createUrl(this.cover);
 				}else{
 					return this.cover;
