@@ -61,7 +61,7 @@ describe('Book', function() {
 		});
 		it('should have a empty coverUrl', async function() {
 			let coverUrl = await book.coverUrl()
-			assert.equal(coverUrl, undefined, "cover url should be undefined" );
+			assert.equal(coverUrl, null, "cover url should be null" );
 		});
 	});
 });

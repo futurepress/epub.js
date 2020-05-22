@@ -661,19 +661,20 @@ class Book {
 
 	/**
 	 * Get the cover url
-	 * @return {Promise<string>} coverUrl
+	 * @return {Promise<?string>} coverUrl
 	 */
 	coverUrl() {
-		var retrieved = this.loaded.cover.
-			then(() => {
-				if(this.archived && this.cover) {
-					return this.archive.createUrl(this.cover);
-				}else{
-					return this.cover;
-				}
-			});
+		return this.loaded.cover.then(() => {
+			if (!this.cover) {
+				return null;
+			}
 
-		return retrieved;
+			if (this.archived) {
+				return this.archive.createUrl(this.cover);
+			} else {
+				return this.cover;
+			}
+		});
 	}
 
 	/**
