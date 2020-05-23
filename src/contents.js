@@ -69,7 +69,7 @@ class Contents {
 			// this.content.style.width = w;
 		}
 
-		return this.window.getComputedStyle(frame)["width"];
+		return parseInt(this.window.getComputedStyle(frame)["width"]);
 
 
 	}
@@ -92,7 +92,7 @@ class Contents {
 			// this.content.style.height = h;
 		}
 
-		return this.window.getComputedStyle(frame)["height"];
+		return parseInt(this.window.getComputedStyle(frame)["height"]);
 
 	}
 
@@ -113,7 +113,7 @@ class Contents {
 			content.style.width = w;
 		}
 
-		return this.window.getComputedStyle(content)["width"];
+		return parseInt(this.window.getComputedStyle(content)["width"]);
 
 
 	}
@@ -135,7 +135,7 @@ class Contents {
 			content.style.height = h;
 		}
 
-		return this.window.getComputedStyle(content)["height"];
+		return parseInt(this.window.getComputedStyle(content)["height"]);
 
 	}
 
@@ -182,10 +182,6 @@ class Contents {
 
 		if (height && border.height) {
 			height += border.height;
-		}
-
-		if (height && rect.top) {
-			height += rect.top;
 		}
 
 		return Math.round(height);
@@ -1026,7 +1022,7 @@ class Contents {
 
 		this.layoutStyle("paginated");
 
-		if (dir === "rtl") {
+		if (dir === "rtl" && axis === "horizontal") {
 			this.direction(dir);
 		}
 
@@ -1048,17 +1044,18 @@ class Contents {
 			this.css("padding-bottom", (gap / 2) + "px", true);
 			this.css("padding-left", "20px");
 			this.css("padding-right", "20px");
+			this.css(COLUMN_AXIS, "vertical");
 		} else {
 			this.css("padding-top", "20px");
 			this.css("padding-bottom", "20px");
 			this.css("padding-left", (gap / 2) + "px", true);
 			this.css("padding-right", (gap / 2) + "px", true);
+			this.css(COLUMN_AXIS, "horizontal");
 		}
 
 		this.css("box-sizing", "border-box");
 		this.css("max-width", "inherit");
 
-		this.css(COLUMN_AXIS, "horizontal");
 		this.css(COLUMN_FILL, "auto");
 
 		this.css(COLUMN_GAP, gap+"px");
