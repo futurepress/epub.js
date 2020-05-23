@@ -65,7 +65,7 @@ export default class Book {
 
     canonical(path: string): string;
 
-    coverUrl(): Promise<string>;
+    coverUrl(): Promise<string | null>;
 
     destroy(): void;
 

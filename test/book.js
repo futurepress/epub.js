@@ -50,4 +50,18 @@ describe('Book', function() {
 			assert( /^blob:http:\/\/localhost:9876\/[^\/]+$/.test(coverUrl), "cover url is available and a blob: url" );
 		});
 	});
+
+	describe('Archived epub without cover', function() {
+		var book = new Book("/fixtures/alice_without_cover.epub");
+
+		it('should open a archived epub', async function() {
+			await book.opened
+			assert.equal(book.isOpen, true, "book is opened");
+			assert(book.archive, "book is unarchived");
+		});
+		it('should have a empty coverUrl', async function() {
+			let coverUrl = await book.coverUrl()
+			assert.equal(coverUrl, null, "cover url should be null" );
+		});
+	});
 });
