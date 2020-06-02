@@ -3,6 +3,7 @@ import httpRequest from "./utils/request";
 import mime from "../libs/mime/mime";
 import Path from "./utils/path";
 import EventEmitter from "event-emitter";
+import localforage from "localforage";
 
 /**
  * Handles saving and requesting files from local storage
@@ -38,8 +39,6 @@ class Store {
 		try {
 			let store;
 			if (typeof localforage === "undefined") {
-				store = require("localforage");
-			} else {
 				store = localforage;
 			}
 			this.storage = store.createInstance({

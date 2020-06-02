@@ -141,8 +141,7 @@ class Resources {
 			}.bind(this));
 		}
 
-		var replacements = this.urls.
-			map( (url) => {
+		var replacements = this.urls.map( (url) => {
 				var absolute = this.settings.resolver(url);
 
 				return this.createUrl(absolute).

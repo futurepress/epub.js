@@ -1,0 +1,13 @@
+{
+	"presets": [
+		["@babel/preset-env", {
+			"targets": "> 0.5% and last 2 versions and not dead and not ie <=11",
+			"bugfixes": true
+		}]
+	],
+	"plugins": [
+		["@babel/plugin-transform-runtime", {
+		"corejs": 3,
+		"useESModules": true
+	}]]
+}

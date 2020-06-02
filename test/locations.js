@@ -1,14 +1,13 @@
-var assert = require('assert');
+import assert from 'assert';
+import Locations from '../src/locations';
+import * as core from '../src/utils/core';
 
 describe('Locations', function() {
-	var Locations = require('../src/locations');
-	var core = require('../src/utils/core');
 
 	describe('#parse', function() {
-		var Locations = require('../src/locations');
-		var chapter = require('raw-loader!./fixtures/locations.xhtml');
+		var chapter = require('./fixtures/locations.xhtml').default;
 
-		it('parse locations from a document', function() {
+		it('parse locations from a document', function() {			
 			var doc = core.parse(chapter, "application/xhtml+xml");
 			var contents = doc.documentElement;
 			var locations = new Locations();

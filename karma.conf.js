@@ -62,17 +62,19 @@ module.exports = function(config) {
             exclude: /node_modules/,
             loader: "babel-loader",
             query: {
-              presets: [['@babel/preset-env', {
-                targets: {
-                  "chrome": "58",
-                  "ie": "11"
-                }
+              presets: [["@babel/preset-env", {
+                targets: "default",
               }]],
               plugins: [
-                // "@babel/plugin-transform-runtime",
-                "babel-plugin-add-module-exports"
+                ["@babel/plugin-transform-runtime", {
+                  corejs: 3
+                }],
               ]
             }
+          },
+          {
+            test: /\.xhtml$/i,
+            use: 'raw-loader',
           }
         ]
       }

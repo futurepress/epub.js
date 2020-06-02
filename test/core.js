@@ -1,4 +1,7 @@
-var assert = require('assert');
+import assert from 'assert';
+import Url from '../src/utils/url';
+import Path from '../src/utils/path';
+
 describe('Core', function() {
 
 
@@ -8,8 +11,6 @@ describe('Core', function() {
 
 
 	describe('Url', function () {
-
-		var Url = require('../src/utils/url');
 
 		it("Url()", function() {
 			var url = new Url("http://example.com/fred/chasen/derf.html");
@@ -89,8 +90,6 @@ describe('Core', function() {
 	});
 
 	describe('Path', function () {
-
-		var Path = require('../src/utils/path');
 
 		it("Path()", function() {
 			var path = new Path("/fred/chasen/derf.html");
