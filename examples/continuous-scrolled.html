@@ -37,16 +37,19 @@
   <div id="viewer"></div>
 
   <script>
-    var currentSectionIndex = 8;
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+    var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
+
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    var book = ePub(url || "https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
         manager: "continuous",
         flow: "scrolled",
         width: "100%",
         height: "100%"
       });
-    var displayed = rendition.display("epubcfi(/6/14[xchapter_001]!4/2/24/2[c001p0011]/1:799)");
+    var displayed = rendition.display(currentSectionIndex);
 
 
     displayed.then(function(renderer){

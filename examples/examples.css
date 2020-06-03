@@ -248,6 +248,7 @@ body {
   -webkit-transform: translate(-400px, 0);
   -moz-transform: translate(-400px, 0);
   -ms-transform: translate(-400px, 0);
+  transform: translate(-400px, 0);
 }
 
 svg {

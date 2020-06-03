@@ -9,7 +9,7 @@ class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
 			ignoreClass : "",
-			axis: options.layout && options.layout.props.flow === "scrolled" ? "vertical" : "horizontal",
+			axis: undefined, //options.layout && options.layout.props.flow === "scrolled" ? "vertical" : "horizontal",
 			direction: undefined,
 			width: 0,
 			height: 0,
@@ -148,16 +148,24 @@ class IframeView {
 			}.bind(this))
 			.then(function(){
 
-				// apply the layout function to the contents
-				this.layout.format(this.contents, this.section);
-
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
-				let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 
+				// Set the axis based on the flow and writing mode
+				let axis;
+				if (this.settings.flow === "scrolled") {
+					axis = (writingMode.indexOf("vertical") === 0) ? "horizontal" : "vertical";
+				} else {
+					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
+				}
+
+				// this.element.style.writingMode = writingMode;
 				this.setAxis(axis);
 				this.emit(EVENTS.VIEWS.AXIS, axis);
 
+
+				// apply the layout function to the contents
+				this.layout.format(this.contents, this.section, this.axis);
 
 				// Listen for events that require an expansion of the iframe
 				this.addListeners();
@@ -165,7 +173,7 @@ class IframeView {
 				return new Promise((resolve, reject) => {
 					// Expand the iframe to the full size of the content
 					this.expand();
-					//
+
 					if (this.settings.forceRight) {
 						this.element.style.marginLeft = this.width() + "px";
 					}
@@ -207,7 +215,7 @@ class IframeView {
 			this.lock("both", width, height);
 		} else if(this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {
+		} else {			
 			this.lock("width", width, height);
 		}
 
@@ -452,11 +460,6 @@ class IframeView {
 	}
 
 	setAxis(axis) {
-
-		// Force vertical for scrolled
-		if (this.layout.props.flow === "scrolled") {
-			axis = "vertical";
-		}
 
 		this.settings.axis = axis;
 

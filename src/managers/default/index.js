@@ -486,6 +486,15 @@ class DefaultViewManager {
 					return err;
 				})
 				.then(function(){
+
+					// Reset position to start for scrolled-doc vertical-rl in default mode
+					if (!this.isPaginated &&
+						this.settings.axis === "horizontal" &&
+						this.settings.direction === "rtl" &&
+						this.settings.rtlScrollType === "default") {
+						
+						this.scrollTo(this.container.scrollWidth, 0, true);
+					}
 					this.views.show();
 				}.bind(this));
 		}
@@ -612,11 +621,10 @@ class DefaultViewManager {
 	}
 
 	currentLocation(){
-
-		if (this.settings.axis === "vertical") {
-			this.location = this.scrolledLocation();
-		} else {
+		if (this.isPaginated && this.settings.axis === "horizontal") {
 			this.location = this.paginatedLocation();
+		} else {
+			this.location = this.scrolledLocation();
 		}
 		return this.location;
 	}
@@ -625,31 +633,55 @@ class DefaultViewManager {
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
-
+		let pageWidth = (container.width < window.innerWidth) ? container.width : window.innerWidth;
+		let vertical = (this.settings.axis === "vertical");
+		let rtl =  (this.settings.direction === "rtl"); 
+			
 		let offset = 0;
 		let used = 0;
 
 		if(this.settings.fullsize) {
-			offset = window.scrollY;
+			offset = vertical ? window.scrollY : window.scrollX;
 		}
 
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
 			let position = view.position();
+			let width = view.width();
 			let height = view.height();
 
-			let startPos = offset + container.top - position.top + used;
-			let endPos = startPos + pageHeight - used;
-			if (endPos > height) {
-				endPos = height;
-				used = (endPos - startPos);
+			let startPos;
+			let endPos;
+			let stopPos;
+			let totalPages;
+
+			if (vertical) {
+				startPos = offset + container.top - position.top + used;
+				endPos = startPos + pageHeight - used;
+				totalPages = this.layout.count(height, pageHeight).pages;
+				stopPos = pageHeight;
+				// TODO: what was this doing? Seem to break things.
+				// if (endPos > stopPos) {
+				// 	endPos = stopPos;
+				// 	used = (endPos - startPos);
+				// }
+			} else {
+				startPos = offset + container.left - position.left + used;
+				endPos = startPos + pageWidth - used;
+				totalPages = this.layout.count(width, pageWidth).pages;
+				stopPos = pageWidth;
 			}
 
-			let totalPages = this.layout.count(height, pageHeight).pages;
-
-			let currPage = Math.ceil(startPos / pageHeight);
+			let currPage = Math.ceil(startPos / stopPos);
 			let pages = [];
-			let endPage = Math.ceil(endPos / pageHeight);
+			let endPage = Math.ceil(endPos / stopPos);
+
+			// Reverse page counts for horizontal rtl
+			if (this.settings.direction === "rtl" && !vertical) {
+				let tempStartPage = currPage;
+				currPage = totalPages - endPage;
+				endPage = totalPages - tempStartPage;
+			}
 
 			pages = [];
 			for (var i = currPage; i <= endPage; i++) {
@@ -691,6 +723,14 @@ class DefaultViewManager {
 			// Find mapping
 			let start = left + container.left - position + offset + used;
 			let end = start + this.layout.width - used;
+			if (this.settings.direction === "rtl") {
+				start = width - left - container.width + container.left - position + offset + used;
+				end = start + this.layout.width - used;
+			} else {
+				start = left + container.left - position + offset + used;
+				end = start + this.layout.width - used;
+			}
+
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
@@ -698,7 +738,7 @@ class DefaultViewManager {
 			let startPage = Math.floor(start / this.layout.pageWidth);
 			let pages = [];
 			let endPage = Math.floor(end / this.layout.pageWidth);
-
+			
 			// start page should not be negative
 			if (startPage < 0) {
 				startPage = 0;
@@ -908,7 +948,7 @@ class DefaultViewManager {
 	updateAxis(axis, forceUpdate){
 
 		if (!this.isPaginated) {
-			axis = "vertical";
+			// axis = "vertical";
 		}
 
 		if (!forceUpdate && axis === this.settings.axis) {
