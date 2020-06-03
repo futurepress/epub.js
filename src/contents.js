@@ -173,16 +173,11 @@ class Contents {
 		let height;
 		let range = this.document.createRange();
 		let content = this.content || this.document.body;
-		let border = borders(content);
 
 		range.selectNodeContents(content);
 
 		rect = range.getBoundingClientRect();
-		height = rect.height;
-
-		if (height && border.height) {
-			height += border.height;
-		}
+		height = rect.bottom;
 
 		return Math.round(height);
 	}
