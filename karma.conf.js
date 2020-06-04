@@ -63,7 +63,7 @@ module.exports = function(config) {
             loader: "babel-loader",
             query: {
               presets: [["@babel/preset-env", {
-                targets: "default",
+                targets: "defaults",
               }]],
               plugins: [
                 ["@babel/plugin-transform-runtime", {
