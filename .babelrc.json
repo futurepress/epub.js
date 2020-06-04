@@ -1,13 +1,11 @@
 {
 	"presets": [
 		["@babel/preset-env", {
-			"targets": "> 0.5% and last 2 versions and not dead and not ie <=11",
-			"bugfixes": true
+			"targets": "last 2 Chrome versions, last 2 Safari versions, last 2 ChromeAndroid versions, last 2 iOS versions, last 2 Firefox versions, last 2 Edge versions",
+			"corejs": 3,
+			"useBuiltIns": "usage",
+			"bugfixes": true,
+			"modules": "auto"
 		}]
 	],
-	"plugins": [
-		["@babel/plugin-transform-runtime", {
-		"corejs": 3,
-		"useESModules": true
-	}]]
 }

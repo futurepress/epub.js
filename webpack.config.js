@@ -6,22 +6,25 @@ var MINIMIZE = (process.env.MINIMIZE === "true")
 var hostname = "localhost";
 var port = 8080;
 
-var filename = "[name].js";
-var sourceMapFilename = "[name].js.map";
-if (MINIMIZE) {
-	filename = "[name].min.js";
-	sourceMapFilename = "[name].min.js.map";
-}
+var filename = "[name]";
+var sourceMapFilename = "[name]";
 if (LEGACY) {
-	filename = "[name].legacy.js";
-	sourceMapFilename = "[name].legacy.js.map";
+	filename += ".legacy";
 }
+if (MINIMIZE) {
+	filename += ".min.js";
+	sourceMapFilename += ".min.js.map";
+} else {
+	filename += ".js";
+	sourceMapFilename += ".js.map";
+}
+
 module.exports = {
 	mode: process.env.NODE_ENV,
 	entry: {
 		"epub": "./src/epub.js",
 	},
-	devtool: PROD ? false : 'source-map',
+	devtool: MINIMIZE ? false : 'source-map',
 	output: {
 		path: path.resolve("./dist"),
 		filename: filename,
@@ -35,7 +38,7 @@ module.exports = {
 		minimize: MINIMIZE
 	},
 	externals: {
-		"jszip": "jszip",
+		"jszip/dist/jszip": "JSZip",
 		"xmldom": "xmldom"
 	},
 	plugins: [],
@@ -54,17 +57,17 @@ module.exports = {
 			{
 				test: /\.js$/,
 				exclude: /node_modules/,
-				loader: "babel-loader",
-				query: {
-					presets: [["@babel/preset-env", {
-						targets: LEGACY ? "defaults" : "> 0.5% and last 2 versions and not dead and not ie <=11"
-					}]],
-					plugins: [["@babel/plugin-transform-runtime", {
-						corejs: 3,
-						useESModules: true,
-						bugfixes: true,
-						modules: false
-					}]],
+				use: {
+					loader: "babel-loader",
+					options: {
+						presets: [["@babel/preset-env", {
+							targets: LEGACY ? "defaults" : "last 2 Chrome versions, last 2 Safari versions, last 2 ChromeAndroid versions, last 2 iOS versions, last 2 Firefox versions, last 2 Edge versions",
+							corejs: 3,
+							useBuiltIns: "usage",
+							bugfixes: true,
+							modules: false
+						}]]
+					}
 				}
 			}
 		]
