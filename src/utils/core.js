@@ -2,6 +2,7 @@
  * Core Utilities and Helpers
  * @module Core
 */
+import { DOMParser as XMLDOMParser } from "xmldom";
 
 /**
  * Vendor prefixed requestAnimationFrame
@@ -476,7 +477,7 @@ export function parse(markup, mime, forceXMLDom) {
 	var Parser;
 
 	if (typeof DOMParser === "undefined" || forceXMLDom) {
-		Parser = require("xmldom").DOMParser;
+		Parser = XMLDOMParser;
 	} else {
 		Parser = DOMParser;
 	}

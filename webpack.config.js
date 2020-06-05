@@ -1,35 +1,47 @@
 var webpack = require("webpack");
-var path = require('path');
-var BabiliPlugin = require("babili-webpack-plugin");
-var PROD = (process.env.NODE_ENV === 'production')
+var path = require("path");
+var PROD = (process.env.NODE_ENV === "production")
 var LEGACY = (process.env.LEGACY)
+var MINIMIZE = (process.env.MINIMIZE === "true")
 var hostname = "localhost";
 var port = 8080;
-var enter = LEGACY ? {
-		"epub.legacy": ["babel-polyfill", "./src/epub.js"]
-	} : {
-		"epub": "./src/epub.js",
-	};
+
+var filename = "[name]";
+var sourceMapFilename = "[name]";
+if (LEGACY) {
+	filename += ".legacy";
+}
+if (MINIMIZE) {
+	filename += ".min.js";
+	sourceMapFilename += ".min.js.map";
+} else {
+	filename += ".js";
+	sourceMapFilename += ".js.map";
+}
 
 module.exports = {
-	entry: enter,
-	devtool: PROD ? false : 'source-map',
+	mode: process.env.NODE_ENV,
+	entry: {
+		"epub": "./src/epub.js",
+	},
+	devtool: MINIMIZE ? false : 'source-map',
 	output: {
 		path: path.resolve("./dist"),
-		// path: "./dist",
-		filename: PROD ? "[name].min.js" : "[name].js",
-		sourceMapFilename: "[name].js.map",
+		filename: filename,
+		sourceMapFilename: sourceMapFilename,
 		library: "ePub",
 		libraryTarget: "umd",
+		libraryExport: "default",
 		publicPath: "/dist/"
 	},
+	optimization: {
+		minimize: MINIMIZE
+	},
 	externals: {
-		"jszip": "jszip",
+		"jszip/dist/jszip": "JSZip",
 		"xmldom": "xmldom"
 	},
-	plugins: PROD ? [
-		new BabiliPlugin()
-	] : [],
+	plugins: [],
 	resolve: {
 		alias: {
 			path: "path-webpack"
@@ -38,33 +50,34 @@ module.exports = {
 	devServer: {
 		host: hostname,
 		port: port,
-		inline: true
+		inline: true,
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+			"Access-Control-Allow-Methods": "GET,PUT,POST,DELETE",
+			"Access-Control-Allow-Headers": "Content-Type"
+		}
 	},
 	module: {
-		loaders: [
+		rules: [
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!(marks-pane)\/).*/,
-				loader: "babel-loader",
-				query: LEGACY ? {
-					presets: ['es2015'],
-					plugins: [
-						"add-module-exports",
-					]
-				} : {
-					presets: [["env", {
-						"targets": {
-							"chrome": 54,
-							"safari" : 10,
-							"firefox" : 50,
-							"edge" : 14
-						}
-					}]],
-					plugins: [
-						"add-module-exports",
-					]
+				exclude: /node_modules/,
+				use: {
+					loader: "babel-loader",
+					options: {
+						presets: [["@babel/preset-env", {
+							targets: LEGACY ? "defaults" : "last 2 Chrome versions, last 2 Safari versions, last 2 ChromeAndroid versions, last 2 iOS versions, last 2 Firefox versions, last 2 Edge versions",
+							corejs: 3,
+							useBuiltIns: "usage",
+							bugfixes: true,
+							modules: false
+						}]]
+					}
 				}
 			}
 		]
+	},
+	performance: {
+		hints: false
 	}
 }

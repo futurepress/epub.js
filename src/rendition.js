@@ -147,6 +147,7 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.started = this.starting.promise;
+
 		// Block the queue until rendering is started
 		this.q.enqueue(this.start);
 	}

@@ -1,8 +1,7 @@
-var assert = require('assert');
+import Book from '../src/book';
+import assert from 'assert';
 
 describe('Book', function() {
-
-	var Book = require('../src/book');
 
 	describe('Unarchived', function() {
 		var book = new Book("/fixtures/alice/OPS/package.opf");

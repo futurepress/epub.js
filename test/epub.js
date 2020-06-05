@@ -1,16 +1,16 @@
-var assert = require('assert');
+import assert from 'assert';
+import ePub from '../src/epub';
 // var sinon = require('sinon');
 
 
 describe('ePub', function() {
-	var ePub = require('../src/epub');
 	var server;
 	before(function(){
 		/*
 		// var packageContents = fs.readFileSync(__dirname + '/../books/moby-dick/OPS/package.opf', 'utf8');
 		// var tocContents = fs.readFileSync(__dirname + '/../books/moby-dick/OPS/toc.xhtml', 'utf8');
-		var packageContents = require('raw-loader!./fixtures/moby-dick/OPS/package.opf');
-		var tocContents = require('raw-loader!./fixtures/moby-dick/OPS/toc.xhtml');
+		var packageContents = require('./fixtures/moby-dick/OPS/package.opf');
+		var tocContents = require('./fixtures/moby-dick/OPS/toc.xhtml');
 
 		server = sinon.fakeServer.create();
 		server.autoRespond = true;
@@ -41,7 +41,7 @@ describe('ePub', function() {
 	it('should open a archived epub', function() {
 		var book = ePub("/fixtures/alice.epub");
 
-		assert(typeof (JSZip) !== "undefined", "JSZip is present" );
+		// assert(typeof (JSZip) !== "undefined", "JSZip is present" );
 
 		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );

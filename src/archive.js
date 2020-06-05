@@ -2,6 +2,7 @@ import {defer, isXml, parse} from "./utils/core";
 import request from "./utils/request";
 import mime from "../libs/mime/mime";
 import Path from "./utils/path";
+import JSZip from "jszip/dist/jszip";
 
 /**
  * Handles Unzipping a requesting files from an Epub Archive
@@ -24,12 +25,7 @@ class Archive {
 	 */
 	checkRequirements(){
 		try {
-			if (typeof JSZip === "undefined") {
-				let JSZip = require("jszip");
-				this.zip = new JSZip();
-			} else {
-				this.zip = new JSZip();
-			}
+			this.zip = new JSZip();
 		} catch (e) {
 			throw new Error("JSZip lib not loaded");
 		}

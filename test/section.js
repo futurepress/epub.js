@@ -1,5 +1,5 @@
-var assert = require("assert");
-var ePub = require('../src/epub');
+import assert from 'assert';
+import ePub from '../src/epub';
 
 describe("section", function() {
         it("finds a single result in a section", function() {

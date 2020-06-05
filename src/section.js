@@ -3,6 +3,8 @@ import EpubCFI from "./epubcfi";
 import Hook from "./utils/hook";
 import { sprint } from "./utils/core";
 import { replaceBase } from "./utils/replacements";
+import Request from "./utils/request";
+import { XMLDOMParser as XMLDOMSerializer } from "xmldom";
 
 /**
  * Represents a Section of the Book
@@ -44,7 +46,7 @@ class Section {
 	 * @return {document} a promise with the xml document
 	 */
 	load(_request){
-		var request = _request || this.request || require("./utils/request");
+		var request = _request || this.request || Request;
 		var loading = new defer();
 		var loaded = loading.promise;
 
@@ -95,7 +97,7 @@ class Section {
 				var isIE = userAgent.indexOf('Trident') >= 0;
 				var Serializer;
 				if (typeof XMLSerializer === "undefined" || isIE) {
-					Serializer = require("xmldom/dom-parser").XMLSerializer;
+					Serializer = XMLDOMSerializer;
 				} else {
 					Serializer = XMLSerializer;
 				}

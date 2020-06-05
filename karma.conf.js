@@ -1,5 +1,10 @@
-// Karma configuration
-// Generated on Wed Oct 26 2016 10:56:59 GMT+0200 (CEST)
+let webpackConfig = require("./webpack.config.js");
+webpackConfig.mode = "development";
+webpackConfig.externals = {};
+webpackConfig.module.rules.push({
+  test: /\.xhtml$/i,
+  use: 'raw-loader',
+});
 
 module.exports = function(config) {
   config.set({
@@ -19,10 +24,10 @@ module.exports = function(config) {
       {pattern: 'src/*.js', watched: true, included: false, served: false},
 
       {pattern: 'test/*.js', watched: false},
-      // {pattern: 'test/**/*.js', watched: false}
+
       {pattern: 'test/fixtures/**/*', watched: false, included: false, served: true},
 
-      {pattern: 'node_modules/jszip/dist/jszip.js', watched: false, included: true, served: true},
+      // {pattern: 'node_modules/jszip/dist/jszip.js', watched: false, included: true, served: true},
 
       // {pattern: 'node_modules/es6-promise/dist/es6-promise.auto.js', watched: false, included: true, served: true},
 
@@ -43,34 +48,39 @@ module.exports = function(config) {
       // 'test/**/*.js': ['webpack', 'sourcemap']
     },
 
-    webpack:{
-      externals: {
-        "jszip": "JSZip"
-        // "xmldom": "xmldom"
-      },
-      devtool: 'inline-source-map',
-      resolve: {
-        alias: {
-          path: "path-webpack"
-        }
-      },
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            exclude: /node_modules\/(?!(marks-pane)\/).*/,
-            loader: "babel-loader",
-            query: {
-              presets: ['es2015'],
-              plugins: [
-                "add-module-exports",
-                "transform-runtime"
-              ]
-            }
-          }
-        ]
-      }
-    },
+    webpack: webpackConfig, 
+    
+    // {
+    //   mode: "development",
+    //   externals: {
+    //     "jszip": "JSZip"
+    //     // "xmldom": "xmldom"
+    //   },
+    //   devtool: 'inline-source-map',
+    //   resolve: {
+    //     alias: {
+    //       path: "path-webpack"
+    //     }
+    //   },
+    //   module: {
+    //     rules: [
+    //       {
+    //         test: /\.js$/,
+    //         exclude: /node_modules/,
+    //         loader: "babel-loader",
+    //         query: {
+    //           presets: [["@babel/preset-env", {
+    //             targets: "defaults",
+    //           }]],
+    //         }
+    //       },
+    //       {
+    //         test: /\.xhtml$/i,
+    //         use: 'raw-loader',
+    //       }
+    //     ]
+    //   }
+    // },
 
     webpackMiddleware: {
       stats: 'errors-only'
