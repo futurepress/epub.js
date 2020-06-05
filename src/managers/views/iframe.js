@@ -301,6 +301,10 @@ class IframeView {
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
 			height = this.contents.textHeight();
+			if (this.settings.flow === "paginated" &&
+				height % this.layout.height > 0) {
+				height = Math.ceil(height / this.layout.height) * this.layout.height;
+			}
 		}
 
 		// Only Resize if dimensions have changed or
