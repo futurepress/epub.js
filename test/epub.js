@@ -41,7 +41,7 @@ describe('ePub', function() {
 	it('should open a archived epub', function() {
 		var book = ePub("/fixtures/alice.epub");
 
-		assert(typeof (JSZip) !== "undefined", "JSZip is present" );
+		// assert(typeof (JSZip) !== "undefined", "JSZip is present" );
 
 		return book.opened.then(function(){
 			assert.equal( book.isOpen, true, "book is opened" );
