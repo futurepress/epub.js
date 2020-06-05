@@ -40,7 +40,8 @@ class Contents {
 		this.cfiBase = cfiBase || "";
 
 		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
-
+		this.called = 0;
+		this.active = true;
 		this.listeners();
 	}
 
@@ -391,9 +392,14 @@ class Contents {
 
 		// this.transitionListeners();
 
-		this.resizeListeners();
+		if (typeof ResizeObserver === "undefined") {
+			this.resizeListeners();
+			this.visibilityListeners();
+		} else {
+			this.resizeObservers();
+		}
 
-		// this.resizeObservers();
+		// this.mutationObservers();
 
 		this.linksHandler();
 	}
@@ -407,6 +413,10 @@ class Contents {
 		this.removeEventListeners();
 
 		this.removeSelectionListeners();
+
+		if (this.observer) {
+			this.observer.disconnect();
+		}
 
 		clearTimeout(this.expanding);
 	}
@@ -441,6 +451,23 @@ class Contents {
 		// Test size again
 		clearTimeout(this.expanding);
 		requestAnimationFrame(this.resizeCheck.bind(this));
+		this.expanding = setTimeout(this.resizeListeners.bind(this), 350);
+	}
+
+	/**
+	 * Listen for visibility of tab to change
+	 * @private
+	 */
+	visibilityListeners() {
+		document.addEventListener("visibilitychange", () => {
+			if (document.visibilityState === "visible" && this.active === false) {
+				this.active = true;
+				this.resizeListeners();
+			} else {
+				this.active = false;
+				clearTimeout(this.expanding);
+			}
+		});
 	}
 
 	/**
@@ -493,10 +520,25 @@ class Contents {
 	}
 
 	/**
-	 * Use MutationObserver to listen for changes in the DOM and check for resize
+	 * Use ResizeObserver to listen for changes in the DOM and check for resize
 	 * @private
 	 */
 	resizeObservers() {
+		// create an observer instance
+		this.observer = new ResizeObserver((e) => {
+			console.log("ResizeObserver", e);
+			this.resizeCheck();
+		});
+
+		// pass in the target node
+		this.observer.observe(this.document.documentElement);
+	}
+
+	/**
+	 * Use MutationObserver to listen for changes in the DOM and check for resize
+	 * @private
+	 */
+	mutationObservers() {
 		// create an observer instance
 		this.observer = new MutationObserver((mutations) => {
 			this.resizeCheck();
@@ -1211,12 +1253,7 @@ class Contents {
 	}
 
 	destroy() {
-		// Stop observing
-		if(this.observer) {
-			this.observer.disconnect();
-		}
-
-		this.document.removeEventListener('transitionend', this._resizeCheck);
+		// this.document.removeEventListener('transitionend', this._resizeCheck);
 
 		this.removeListeners();
 
