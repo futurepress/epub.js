@@ -526,7 +526,6 @@ class Contents {
 	resizeObservers() {
 		// create an observer instance
 		this.observer = new ResizeObserver((e) => {
-			console.log("ResizeObserver", e);
 			this.resizeCheck();
 		});
 
