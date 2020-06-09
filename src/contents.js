@@ -526,7 +526,7 @@ class Contents {
 	resizeObservers() {
 		// create an observer instance
 		this.observer = new ResizeObserver((e) => {
-			this.resizeCheck();
+			requestAnimationFrame(this.resizeCheck.bind(this));
 		});
 
 		// pass in the target node
