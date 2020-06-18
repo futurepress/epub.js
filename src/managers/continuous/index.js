@@ -163,6 +163,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		if(this.settings.axis === "vertical") {
 			this.scrollBy(0, bounds.heightDelta, true);
 		} else {
+			console.log("counter", bounds.widthDelta)
 			this.scrollBy(bounds.widthDelta, 0, true);
 		}
 
@@ -369,9 +370,11 @@ class ContinuousViewManager extends DefaultViewManager {
 			} else {
 				if(this.settings.direction === 'rtl') {
 					if (this.settings.rtlScrollType === "default") {
+						console.log("erase 1", window.scrollX, prevLeft, bounds.width);
 						this.scrollTo(prevLeft, 0, true);
 					}
 					else {
+						console.log("erase 2", prevLeft + Math.floor(bounds.width));
 						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
 					}
 				} else {

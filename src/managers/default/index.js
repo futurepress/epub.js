@@ -660,11 +660,6 @@ class DefaultViewManager {
 				endPos = startPos + pageHeight - used;
 				totalPages = this.layout.count(height, pageHeight).pages;
 				stopPos = pageHeight;
-				// TODO: what was this doing? Seem to break things.
-				// if (endPos > stopPos) {
-				// 	endPos = stopPos;
-				// 	used = (endPos - startPos);
-				// }
 			} else {
 				startPos = offset + container.left - position.left + used;
 				endPos = startPos + pageWidth - used;
@@ -716,21 +711,28 @@ class DefaultViewManager {
 
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
-			let offset = view.offset().left;
-			let position = view.position().left;
+			let offset;
+			let position = view.position();
 			let width = view.width();
 
 			// Find mapping
-			let start = left + container.left - position + offset + used;
-			let end = start + this.layout.width - used;
+			let start;
+			let end;
+			let pageWidth;
+
 			if (this.settings.direction === "rtl") {
-				start = width - left - container.width + container.left - position + offset + used;
-				end = start + this.layout.width - used;
+				offset = container.right - left;
+				pageWidth = Math.min(Math.abs(offset - position.left), this.layout.width) - used;
+				end = position.width - (position.right - offset) - used;
+				start = end - pageWidth;
 			} else {
-				start = left + container.left - position + offset + used;
-				end = start + this.layout.width - used;
+				offset = container.left + left;
+				pageWidth = Math.min(position.right - offset, this.layout.width) - used;
+				start = offset - position.left + used;
+				end = start + pageWidth;
 			}
 
+			used += pageWidth;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
