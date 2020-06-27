@@ -12,7 +12,8 @@ export { default as Book } from './book';
 export { default as EpubCFI } from './epubcfi';
 export { default as Rendition, Location } from './rendition';
 export { default as Contents } from './contents';
-export { default as Layout, NavItem } from './layout';
+export { default as Layout } from './layout';
+export { NavItem } from './navigation';
 
 declare namespace ePub {
 
