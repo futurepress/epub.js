@@ -159,9 +159,15 @@ class IframeView {
 					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				}
 
-				// this.element.style.writingMode = writingMode;
+				if (writingMode.indexOf("vertical") === 0 && this.settings.flow === "paginated") {
+					this.layout.delta = this.layout.height;
+				}
+
 				this.setAxis(axis);
 				this.emit(EVENTS.VIEWS.AXIS, axis);
+
+				this.setWritingMode(writingMode);
+				this.emit(EVENTS.VIEWS.WRITING_MODE, writingMode);
 
 
 				// apply the layout function to the contents
@@ -475,6 +481,11 @@ class IframeView {
 
 		this.size();
 
+	}
+
+	setWritingMode(mode) {
+		// this.element.style.writingMode = writingMode;
+		this.writingMode = mode;
 	}
 
 	addListeners() {

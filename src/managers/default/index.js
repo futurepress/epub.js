@@ -23,6 +23,7 @@ class DefaultViewManager {
 			width: undefined,
 			height: undefined,
 			axis: undefined,
+			writingMode: undefined,
 			flow: "scrolled",
 			ignoreClass: "",
 			fullsize: undefined
@@ -359,6 +360,10 @@ class DefaultViewManager {
 			this.updateAxis(axis);
 		});
 
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
+		});
+
 		return view.display(this.request);
 	}
 
@@ -371,6 +376,10 @@ class DefaultViewManager {
 
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
+		});
+
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
 		});
 
 		return view.display(this.request);
@@ -390,6 +399,10 @@ class DefaultViewManager {
 
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
+		});
+
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
 		});
 
 		return view.display(this.request);
@@ -916,7 +929,7 @@ class DefaultViewManager {
 			);
 
 			// Set the look ahead offset for what is visible
-			this.settings.offset = this.layout.delta;
+			this.settings.offset = this.layout.delta / this.layout.divisor;
 
 			// this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
@@ -947,11 +960,11 @@ class DefaultViewManager {
 
 	}
 
-	updateAxis(axis, forceUpdate){
+	updateWritingMode(mode) {
+		this.writingMode = mode;
+	}
 
-		if (!this.isPaginated) {
-			// axis = "vertical";
-		}
+	updateAxis(axis, forceUpdate){
 
 		if (!forceUpdate && axis === this.settings.axis) {
 			return;

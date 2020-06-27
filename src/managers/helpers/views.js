@@ -80,7 +80,7 @@ class Views {
 		if(view.displayed){
 			view.destroy();
 		}
-
+		
 		if(this.container){
 			 this.container.removeChild(view.element);
 		}
