@@ -23,6 +23,7 @@ class DefaultViewManager {
 			width: undefined,
 			height: undefined,
 			axis: undefined,
+			writingMode: undefined,
 			flow: "scrolled",
 			ignoreClass: "",
 			fullsize: undefined
@@ -359,6 +360,10 @@ class DefaultViewManager {
 			this.updateAxis(axis);
 		});
 
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
+		});
+
 		return view.display(this.request);
 	}
 
@@ -371,6 +376,10 @@ class DefaultViewManager {
 
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
+		});
+
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
 		});
 
 		return view.display(this.request);
@@ -390,6 +399,10 @@ class DefaultViewManager {
 
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
+		});
+
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
 		});
 
 		return view.display(this.request);
@@ -486,6 +499,15 @@ class DefaultViewManager {
 					return err;
 				})
 				.then(function(){
+
+					// Reset position to start for scrolled-doc vertical-rl in default mode
+					if (!this.isPaginated &&
+						this.settings.axis === "horizontal" &&
+						this.settings.direction === "rtl" &&
+						this.settings.rtlScrollType === "default") {
+						
+						this.scrollTo(this.container.scrollWidth, 0, true);
+					}
 					this.views.show();
 				}.bind(this));
 		}
@@ -612,11 +634,10 @@ class DefaultViewManager {
 	}
 
 	currentLocation(){
-
-		if (this.settings.axis === "vertical") {
-			this.location = this.scrolledLocation();
-		} else {
+		if (this.isPaginated && this.settings.axis === "horizontal") {
 			this.location = this.paginatedLocation();
+		} else {
+			this.location = this.scrolledLocation();
 		}
 		return this.location;
 	}
@@ -625,31 +646,50 @@ class DefaultViewManager {
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
-
+		let pageWidth = (container.width < window.innerWidth) ? container.width : window.innerWidth;
+		let vertical = (this.settings.axis === "vertical");
+		let rtl =  (this.settings.direction === "rtl"); 
+			
 		let offset = 0;
 		let used = 0;
 
 		if(this.settings.fullsize) {
-			offset = window.scrollY;
+			offset = vertical ? window.scrollY : window.scrollX;
 		}
 
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
 			let position = view.position();
+			let width = view.width();
 			let height = view.height();
 
-			let startPos = offset + container.top - position.top + used;
-			let endPos = startPos + pageHeight - used;
-			if (endPos > height) {
-				endPos = height;
-				used = (endPos - startPos);
+			let startPos;
+			let endPos;
+			let stopPos;
+			let totalPages;
+
+			if (vertical) {
+				startPos = offset + container.top - position.top + used;
+				endPos = startPos + pageHeight - used;
+				totalPages = this.layout.count(height, pageHeight).pages;
+				stopPos = pageHeight;
+			} else {
+				startPos = offset + container.left - position.left + used;
+				endPos = startPos + pageWidth - used;
+				totalPages = this.layout.count(width, pageWidth).pages;
+				stopPos = pageWidth;
 			}
 
-			let totalPages = this.layout.count(height, pageHeight).pages;
-
-			let currPage = Math.ceil(startPos / pageHeight);
+			let currPage = Math.ceil(startPos / stopPos);
 			let pages = [];
-			let endPage = Math.ceil(endPos / pageHeight);
+			let endPage = Math.ceil(endPos / stopPos);
+
+			// Reverse page counts for horizontal rtl
+			if (this.settings.direction === "rtl" && !vertical) {
+				let tempStartPage = currPage;
+				currPage = totalPages - endPage;
+				endPage = totalPages - tempStartPage;
+			}
 
 			pages = [];
 			for (var i = currPage; i <= endPage; i++) {
@@ -684,13 +724,28 @@ class DefaultViewManager {
 
 		let sections = visible.map((view) => {
 			let {index, href} = view.section;
-			let offset = view.offset().left;
-			let position = view.position().left;
+			let offset;
+			let position = view.position();
 			let width = view.width();
 
 			// Find mapping
-			let start = left + container.left - position + offset + used;
-			let end = start + this.layout.width - used;
+			let start;
+			let end;
+			let pageWidth;
+
+			if (this.settings.direction === "rtl") {
+				offset = container.right - left;
+				pageWidth = Math.min(Math.abs(offset - position.left), this.layout.width) - used;
+				end = position.width - (position.right - offset) - used;
+				start = end - pageWidth;
+			} else {
+				offset = container.left + left;
+				pageWidth = Math.min(position.right - offset, this.layout.width) - used;
+				start = offset - position.left + used;
+				end = start + pageWidth;
+			}
+
+			used += pageWidth;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
@@ -698,7 +753,7 @@ class DefaultViewManager {
 			let startPage = Math.floor(start / this.layout.pageWidth);
 			let pages = [];
 			let endPage = Math.floor(end / this.layout.pageWidth);
-
+			
 			// start page should not be negative
 			if (startPage < 0) {
 				startPage = 0;
@@ -874,7 +929,7 @@ class DefaultViewManager {
 			);
 
 			// Set the look ahead offset for what is visible
-			this.settings.offset = this.layout.delta;
+			this.settings.offset = this.layout.delta / this.layout.divisor;
 
 			// this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
@@ -905,11 +960,11 @@ class DefaultViewManager {
 
 	}
 
-	updateAxis(axis, forceUpdate){
+	updateWritingMode(mode) {
+		this.writingMode = mode;
+	}
 
-		if (!this.isPaginated) {
-			axis = "vertical";
-		}
+	updateAxis(axis, forceUpdate){
 
 		if (!forceUpdate && axis === this.settings.axis) {
 			return;

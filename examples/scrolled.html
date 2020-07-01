@@ -16,15 +16,19 @@
   <a id="next" href="#next" class="navlink">...</a>
 
   <script>
-    var currentSectionIndex = 8;
     // Load the opf
-    var book = ePub("https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
+    var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+    var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
+
+    var book = ePub(url || "https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       flow: "scrolled-doc",
-      width: "100%"
+      width: "100%",
+      fullsize: true
     });
 
-    rendition.display("chapter_008.xhtml");
+    rendition.display(currentSectionIndex);
 
 
     var next = document.getElementById("next");

@@ -10,7 +10,7 @@ import { nodeBounds } from "./utils/core";
  * @param {boolean} [dev] toggle developer highlighting
  */
 class Mapping {
-	constructor(layout, direction, axis, dev) {
+	constructor(layout, direction, axis, dev=false) {
 		this.layout = layout;
 		this.horizontal = (axis === "horizontal") ? true : false;
 		this.direction = direction || "ltr";

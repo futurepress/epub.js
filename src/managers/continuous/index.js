@@ -14,6 +14,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			infinite: true,
 			overflow: undefined,
 			axis: undefined,
+			writingMode: undefined,
 			flow: "scrolled",
 			offset: 500,
 			offsetDelta: 250,
@@ -115,6 +116,10 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.updateAxis(axis);
 		});
 
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
+		});
+
 		// view.on(EVENTS.VIEWS.SHOWN, this.afterDisplayed.bind(this));
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
@@ -131,6 +136,10 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		view.on(EVENTS.VIEWS.AXIS, (axis) => {
 			this.updateAxis(axis);
+		});
+
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
 		});
 
 		this.views.append(view);
@@ -152,6 +161,10 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.updateAxis(axis);
 		});
 
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
+			this.updateWritingMode(mode);
+		});
+
 		this.views.prepend(view);
 
 		view.onDisplayed = this.afterDisplayed.bind(this);
@@ -165,7 +178,6 @@ class ContinuousViewManager extends DefaultViewManager {
 		} else {
 			this.scrollBy(bounds.widthDelta, 0, true);
 		}
-
 	}
 
 	update(_offset){
@@ -185,7 +197,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			isVisible = this.isVisible(view, offset, offset, container);
 
 			if(isVisible === true) {
-				// console.log("visible " + view.index);
+				// console.log("visible " + view.index, view.displayed);
 
 				if (!view.displayed) {
 					let displayed = view.display(this.request)
@@ -201,7 +213,7 @@ class ContinuousViewManager extends DefaultViewManager {
 				visible.push(view);
 			} else {
 				this.q.enqueue(view.destroy.bind(view));
-				// console.log("hidden " + view.index);
+				// console.log("hidden " + view.index, view.displayed);
 
 				clearTimeout(this.trimTimeout);
 				this.trimTimeout = setTimeout(function(){
@@ -240,12 +252,29 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = this._bounds; // bounds saved this until resize
 
+		let offset = horizontal ? this.scrollLeft : this.scrollTop;
+		let visibleLength = horizontal ? Math.floor(bounds.width) : bounds.height;
+		let contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
+		let writingMode = (this.writingMode && this.writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
+		let rtlScrollType = this.settings.rtlScrollType;
 		let rtl = this.settings.direction === "rtl";
-		let dir = horizontal && rtl ? -1 : 1; //RTL reverses scrollTop
 
-		var offset = horizontal ? this.scrollLeft : this.scrollTop * dir;
-		var visibleLength = horizontal ? Math.floor(bounds.width) : bounds.height;
-		var contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
+		if (!this.settings.fullsize) {
+			// Scroll offset starts at width of element
+			if (rtl && rtlScrollType === "default" && writingMode === "horizontal") {
+				offset = contentLength - visibleLength - offset;
+			}
+			// Scroll offset starts at 0 and goes negative
+			if (rtl && rtlScrollType === "negative" && writingMode === "horizontal") {
+				offset = offset * -1;
+			}
+		} else {
+			// Scroll offset starts at 0 and goes negative
+			if ((horizontal && rtl && rtlScrollType === "negative") ||
+				(!horizontal && rtl && rtlScrollType === "default")) {
+				offset = offset * -1;
+			}
+		}
 
 		let prepend = () => {
 			let first = this.views.first();
@@ -265,36 +294,18 @@ class ContinuousViewManager extends DefaultViewManager {
 			}
 
 		};
-		//Horizontal negative scrolling
-		if (horizontal  && rtl && this.settings.rtlScrollType === "negative") {
 
-			if (offset - delta <= (-1 * contentLength)) {
-					append();
-			}
+		let end = offset + visibleLength + delta;
+		let start = offset - delta;
 
-			if (offset  + delta > 0) {
-					prepend();
-			}
-
+		if (end >= contentLength) {
+			append();
 		}
-		//default scrolling
-		else {
-			if (offset + visibleLength + delta >= contentLength) {
-				if (horizontal && rtl) {
-					prepend();
-				} else {
-					append();
-				}
-			}
-
-			if (offset - delta < 0) {
-				if (horizontal && rtl) {
-					append();
-				} else {
-					prepend();
-				}
-			}
+		
+		if (start < 0) {
+			prepend();
 		}
+		
 
 		let promises = newViews.map((view) => {
 			return view.display(this.request);
@@ -362,16 +373,15 @@ class ContinuousViewManager extends DefaultViewManager {
 		var bounds = view.bounds();
 
 		this.views.remove(view);
-
+		
 		if(above) {
-			if(this.settings.axis === "vertical") {
+			if (this.settings.axis === "vertical") {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
 				if(this.settings.direction === 'rtl') {
-					if (this.settings.rtlScrollType === "default") {
-						this.scrollTo(prevLeft, 0, true);
-					}
-					else {
+					if (!this.settings.fullsize) {
+						this.scrollTo(prevLeft, 0, true);					
+					} else {
 						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
 					}
 				} else {
@@ -402,13 +412,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.tick = requestAnimationFrame;
 
-		if(!this.settings.fullsize) {
-			this.prevScrollTop = this.container.scrollTop;
-			this.prevScrollLeft = this.container.scrollLeft;
-		} else {
-			this.prevScrollTop = window.scrollY;
-			this.prevScrollLeft = window.scrollX;
-		}
+		let dir = this.settings.direction === "rtl" && this.settings.rtlScrollType === "default" ? -1 : 1;
 
 		this.scrollDeltaVert = 0;
 		this.scrollDeltaHorz = 0;
@@ -419,8 +423,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 		} else {
 			scroller = window;
-			this.scrollTop = window.scrollY;
-			this.scrollLeft = window.scrollX;
+			this.scrollTop = window.scrollY * dir;
+			this.scrollLeft = window.scrollX * dir;
 		}
 
 		this._onScroll = this.onScroll.bind(this);
@@ -448,7 +452,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;
-		let dir = this.settings.direction === "rtl" ? -1 : 1;
+		let dir = this.settings.direction === "rtl" && this.settings.rtlScrollType === "default" ? -1 : 1;
 
 		if(!this.settings.fullsize) {
 			scrollTop = this.container.scrollTop;
@@ -490,7 +494,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	scrolled() {
 
 		this.q.enqueue(function() {
-			this.check();
+			return this.check();
 		}.bind(this));
 
 		this.emit(EVENTS.MANAGERS.SCROLL, {
@@ -516,7 +520,6 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	next(){
 
-		let dir = this.settings.direction;
 		let delta = this.layout.props.name === "pre-paginated" &&
 								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
 
@@ -533,13 +536,12 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		this.q.enqueue(function() {
-			this.check();
+			return this.check();
 		}.bind(this));
 	}
 
 	prev(){
 
-		let dir = this.settings.direction;
 		let delta = this.layout.props.name === "pre-paginated" &&
 								this.layout.props.spread ? this.layout.props.delta * 2 : this.layout.props.delta;
 
@@ -556,20 +558,9 @@ class ContinuousViewManager extends DefaultViewManager {
 		}
 
 		this.q.enqueue(function() {
-			this.check();
+			return this.check();
 		}.bind(this));
 	}
-
-	// updateAxis(axis, forceUpdate){
-	//
-	// 	super.updateAxis(axis, forceUpdate);
-	//
-	// 	if (axis === "vertical") {
-	// 		this.settings.infinite = true;
-	// 	} else {
-	// 		this.settings.infinite = false;
-	// 	}
-	// }
 
 	updateFlow(flow){
 		if (this.rendered && this.snapper) {

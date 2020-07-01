@@ -27,7 +27,8 @@ export const EVENTS = {
     REMOVED : "removed",
   },
   VIEWS : {
-    AXIS : "axis",
+    AXIS: "axis",
+    WRITING_MODE: "writingMode",
     LOAD_ERROR : "loaderror",
     RENDERED : "rendered",
     RESIZED : "resized",
