@@ -24,7 +24,8 @@
     var book = ePub(url || "https://s3.amazonaws.com/epubjs/books/alice/OPS/package.opf");
     var rendition = book.renderTo("viewer", {
       flow: "scrolled-doc",
-      width: "100%"
+      width: "100%",
+      fullsize: true
     });
 
     rendition.display(currentSectionIndex);
