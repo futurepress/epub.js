@@ -712,6 +712,7 @@ class DefaultViewManager {
 	}
 
 	paginatedLocation(){
+		this.updateLayout();
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 
