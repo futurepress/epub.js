@@ -634,6 +634,7 @@ class DefaultViewManager {
 	}
 
 	currentLocation(){
+		this.updateLayout();
 		if (this.isPaginated && this.settings.axis === "horizontal") {
 			this.location = this.paginatedLocation();
 		} else {
@@ -712,7 +713,6 @@ class DefaultViewManager {
 	}
 
 	paginatedLocation(){
-		this.updateLayout();
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 
