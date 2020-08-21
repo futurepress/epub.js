@@ -149,17 +149,14 @@ class Navigation {
 	 */
 	parseNav(navHtml){
 		var navElement = querySelectorByType(navHtml, "nav", "toc");
-		var navItems = navElement ? qsa(navElement, "li") : [];
-		var length = navItems.length;
 		var list = [];
 
-		if(!navItems || length === 0) return list;
-
 		if (!navElement) return list;
-		if (!navElement.children) return list;
-		if (!navElement.children[0]) return list;
 
-		list = this.parseNavList(navElement.children[0]);
+		let navList = filterChildren(navElement, "ol", true);
+		if (!navList) return list;
+
+		list = this.parseNavList(navList);
 		return list;
 	}
 
@@ -176,7 +173,11 @@ class Navigation {
 		if (!navListHtml.children) return result;
 		
 		for (let i = 0; i < navListHtml.children.length; i++) {
-			result.push(this.navItem(navListHtml.children[i], parent));
+			const item = this.navItem(navListHtml.children[i], parent);
+
+			if (item) {
+				result.push(item);
+			}
 		}
 
 		return result;
