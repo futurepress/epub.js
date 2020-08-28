@@ -53,7 +53,11 @@ class Hook {
 		var promises = [];
 
 		this.hooks.forEach(function(task) {
-			var executing = task.apply(context, args);
+			try {
+				var executing = task.apply(context, args);
+			} catch (err) {
+				console.log(err);
+			}
 
 			if(executing && typeof executing["then"] === "function") {
 				// Task is a function that returns a promise
