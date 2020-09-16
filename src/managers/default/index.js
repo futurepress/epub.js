@@ -930,12 +930,13 @@ class DefaultViewManager {
 		this._stageSize = this.stage.size();
 
 		if(!this.isPaginated) {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height);
+			this.layout.calculate(this._stageSize.width, this._stageSize.height, undefined, this.settings.axis);
 		} else {
 			this.layout.calculate(
 				this._stageSize.width,
 				this._stageSize.height,
-				this.settings.gap
+				this.settings.gap,
+				this.settings.axis
 			);
 
 			// Set the look ahead offset for what is visible

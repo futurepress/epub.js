@@ -100,7 +100,7 @@ class Layout {
 	 * @param  {number} _height height of the rendering
 	 * @param  {number} _gap    width of the gap between columns
 	 */
-	calculate(_width, _height, _gap){
+	calculate(_width, _height, _gap, axis){
 
 		var divisor = 1;
 		var gap = _gap || 0;
@@ -110,7 +110,7 @@ class Layout {
 		var width = _width;
 		var height = _height;
 
-		var section = Math.floor(width / 12);
+		var section = Math.floor((axis === 'vertical' ? height : width) / 12);
 
 		var columnWidth;
 		var spreadWidth;
