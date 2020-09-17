@@ -457,7 +457,7 @@ class DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 
 			if (this.settings.rtlScrollType === "default"){
-				left = this.container.scrollLeft;
+				left = Math.floor(this.container.scrollLeft);
 
 				if (left > 0) {
 					this.scrollBy(this.layout.delta, 0, true);
@@ -492,8 +492,6 @@ class DefaultViewManager {
 
 		if(next) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
-			this.updateLayout();
 
 			let forceRight = false;
 			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties.includes("page-spread-right")) {
@@ -585,8 +583,6 @@ class DefaultViewManager {
 
 		if(prev) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
-			this.updateLayout();
 
 			let forceRight = false;
 			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && typeof prev.prev() !== "object") {
@@ -998,6 +994,7 @@ class DefaultViewManager {
 				this.layout.spread(this.layout.settings.spread);
 			}
 		}
+		this.updateLayout();
 	}
 
 	updateFlow(flow, defaultScrolledOverflow="auto"){
