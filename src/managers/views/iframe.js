@@ -221,7 +221,7 @@ class IframeView {
 			this.lock("both", width, height);
 		} else if(this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {			
+		} else {
 			this.lock("width", width, height);
 		}
 
@@ -610,7 +610,11 @@ class IframeView {
 		}
 
 		let m = new Highlight(range, className, data, attributes);
-		let h = this.pane.addMark(m);
+		let h;
+
+		try {
+			h = this.pane.addMark(m);
+		} catch (error) {}
 
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
@@ -642,7 +646,11 @@ class IframeView {
 		}
 
 		let m = new Underline(range, className, data, attributes);
-		let h = this.pane.addMark(m);
+		let h;
+
+		try {
+			h = this.pane.addMark(m);
+		} catch (error) {}
 
 		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
