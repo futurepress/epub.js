@@ -100,17 +100,17 @@ class Layout {
 	 * @param  {number} _height height of the rendering
 	 * @param  {number} _gap    width of the gap between columns
 	 */
-	calculate(_width, _height, _gap, axis){
+	calculate(_width, _height, _gap){
 
 		var divisor = 1;
-		var gap = _gap || 0;
+		var gap = _gap || 20;
 
 		//-- Check the width and create even width columns
 		// var fullWidth = Math.floor(_width);
 		var width = _width;
 		var height = _height;
 
-		var section = Math.floor((axis === 'vertical' ? height : width) / 12);
+		//var section = Math.floor(width / 12);
 
 		var columnWidth;
 		var spreadWidth;
@@ -123,9 +123,11 @@ class Layout {
 			divisor = 1;
 		}
 
+		/*
 		if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
 			gap = ((section % 2 === 0) ? section : section - 1);
 		}
+		*/
 
 		if (this.name === "pre-paginated" ) {
 			gap = 0;
