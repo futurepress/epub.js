@@ -457,6 +457,8 @@ class DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 
 			if (this.settings.rtlScrollType === "default"){
+				this.scrollLeft = Math.floor(this.container.scrollLeft);
+				// this.container.scrollLeft could has fractional part.
 				left = Math.floor(this.container.scrollLeft);
 
 				if (left > 0) {
@@ -492,6 +494,7 @@ class DefaultViewManager {
 
 		if(next) {
 			this.clear();
+			this.updateLayout();
 
 			let forceRight = false;
 			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties.includes("page-spread-right")) {
@@ -565,9 +568,10 @@ class DefaultViewManager {
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
 
-			this.scrollTop = this.container.scrollTop;
+			this.scrollTop = Math.floor(this.container.scrollTop);
 
-			let top = this.container.scrollTop;
+			// this.container.scrollTop could has fractional part.
+			let top = Math.floor(this.container.scrollTop);
 
 			if(top > 0) {
 				this.scrollBy(0, -(this.layout.height), true);
@@ -583,6 +587,7 @@ class DefaultViewManager {
 
 		if(prev) {
 			this.clear();
+			this.updateLayout();
 
 			let forceRight = false;
 			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && typeof prev.prev() !== "object") {
@@ -994,7 +999,6 @@ class DefaultViewManager {
 				this.layout.spread(this.layout.settings.spread);
 			}
 		}
-		this.updateLayout();
 	}
 
 	updateFlow(flow, defaultScrolledOverflow="auto"){
