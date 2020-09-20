@@ -87,9 +87,9 @@ class DefaultViewManager {
 		this._bounds = this.bounds();
 		this._stageSize = this.stage.size();
 
+
 		// Set the dimensions for views
-		this.viewSettings.width = this._stageSize.width;
-		this.viewSettings.height = this._stageSize.height;
+		this.updateSize(this._stageSize.width, this._stageSize.height);
 
 		// Function to handle a resize event.
 		// Will only attach if width and height are both fixed.
@@ -220,9 +220,11 @@ class DefaultViewManager {
 		// Clear current views
 		this.clear();
 
+		/* Redundant codes? this.updateLayout() will update them!?
 		// Update for new views
 		this.viewSettings.width = this._stageSize.width;
 		this.viewSettings.height = this._stageSize.height;
+		*/
 
 		this.updateLayout();
 
@@ -948,10 +950,24 @@ class DefaultViewManager {
 		}
 
 		// Set the dimensions for views
-		this.viewSettings.width = this.layout.width;
-		this.viewSettings.height = this.layout.height;
+		this.updateSize(this.layout.width, this.layout.height);
 
 		this.setLayout(this.layout);
+	}
+
+	updateSize(width, height) {
+		if (this.layout._flow === "scrolled") {
+			if (this.settings.axis === "vertical") {
+				this.viewSettings.width = width - this.settings.scrollbarWidth;
+				this.viewSettings.height = height;
+			} else {
+				this.viewSettings.width = width;
+				this.viewSettings.height = height - this.settings.scrollbarWidth;
+			}
+		} else {
+			this.viewSettings.width = width;
+			this.viewSettings.height = height;
+		}
 	}
 
 	setLayout(layout){
