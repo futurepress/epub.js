@@ -958,11 +958,11 @@ class DefaultViewManager {
 	updateSize(width, height) {
 		if (this.layout._flow === "scrolled") {
 			if (this.settings.axis === "vertical") {
-				this.viewSettings.width = width - this.settings.scrollbarWidth;
+				this.viewSettings.width = width - (this.settings.scrollbarWidth || 0);
 				this.viewSettings.height = height;
 			} else {
 				this.viewSettings.width = width;
-				this.viewSettings.height = height - this.settings.scrollbarWidth;
+				this.viewSettings.height = height - (this.settings.scrollbarWidth || 0);
 			}
 		} else {
 			this.viewSettings.width = width;
