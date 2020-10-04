@@ -769,6 +769,8 @@ class DefaultViewManager {
 					end = start + pageWidth;
 				}
 			}
+			// Because scrollBy() is not precise (see its comment),
+			// applying ceiling to workaround the page calculation problem!
 			start = Math.ceil(start);
 			end = Math.ceil(end);
 
@@ -861,6 +863,10 @@ class DefaultViewManager {
 		}
 
 		if (!this.settings.fullsize) {
+			// Notice! These operations are no percise!
+			// E.g., this.container.scrollTop is 0 and y is 100,
+			// after this.container.scrollTop += y
+			// this.container.scrollTop might become 99.xxx!
 			if (x) this.container.scrollLeft += x * dir;
 			if (y) this.container.scrollTop += y;
 		} else {
