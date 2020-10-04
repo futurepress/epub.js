@@ -751,18 +751,11 @@ class DefaultViewManager {
 			let pageWidth;
 			let pageHeight;
 
-			if (this.settings.direction === "rtl") {
-				if (vertical) {
-					offset = container.bottom - top;
-					pageHeight = Math.min(Math.abs(offset - position.top), this.layout.height) - used;
-					end = position.height - (position.bottom - offset) - used;
-					start = end - pageHeight;
-				} else {
-					offset = container.right - left;
-					pageWidth = Math.min(Math.abs(offset - position.left), this.layout.width) - used;
-					end = position.width - (position.right - offset) - used;
-					start = end - pageWidth;
-				}
+			if (!vertical && this.settings.direction === "rtl") {
+				offset = container.right - left;
+				pageWidth = Math.min(Math.abs(offset - position.left), this.layout.width) - used;
+				end = position.width - (position.right - offset) - used;
+				start = end - pageWidth;
 			} else {
 				if (vertical) {
 					offset = container.top + top;
@@ -776,15 +769,17 @@ class DefaultViewManager {
 					end = start + pageWidth;
 				}
 			}
+			start = Math.ceil(start);
+			end = Math.ceil(end);
 
 			used += vertical ? pageHeight : pageWidth;
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
 			let totalPages = this.layout.count(vertical ? height : width).pages;
-			let startPage = Math.floor(start / (vertical ?  this.layout.pageHeight : this.layout.pageWidth));
+			let startPage = Math.floor(start / (vertical ? this.layout.pageHeight : this.layout.pageWidth));
 			let pages = [];
-			let endPage = Math.floor(end / (vertical ?  this.layout.pageHeight : this.layout.pageWidth));
+			let endPage = Math.floor(end / (vertical ? this.layout.pageHeight : this.layout.pageWidth));
 
 			// start page should not be negative
 			if (startPage < 0) {
@@ -793,7 +788,7 @@ class DefaultViewManager {
 			}
 
 			// Reverse page counts for rtl
-			if (this.settings.direction === "rtl") {
+			if (!vertical && this.settings.direction === "rtl") {
 				let tempStartPage = startPage;
 				startPage = totalPages - endPage;
 				endPage = totalPages - tempStartPage;
