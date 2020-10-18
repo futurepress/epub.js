@@ -89,7 +89,7 @@ class DefaultViewManager {
 
 
 		// Set the dimensions for views
-		this.updateSize(this._stageSize.width, this._stageSize.height);
+		this.updateLayout();
 
 		// Function to handle a resize event.
 		// Will only attach if width and height are both fixed.
@@ -932,8 +932,17 @@ class DefaultViewManager {
 
 		this._stageSize = this.stage.size();
 
-		if(!this.isPaginated) {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height, undefined, this.settings.axis);
+		if (!this.isPaginated) {
+			let width;
+			let height;
+			if (this.settings.axis === "vertical") {
+				width = this._stageSize.width - (this.settings.scrollbarWidth | 0);
+				height = this._stageSize.height;
+			} else {
+				width = this._stageSize.width;
+				height =  this._stageSize.height - (this.settings.scrollbarWidth | 0);
+			}
+			this.layout.calculate(width, height, undefined, this.settings.axis);
 		} else {
 			this.layout.calculate(
 				this._stageSize.width,
@@ -950,27 +959,13 @@ class DefaultViewManager {
 		}
 
 		// Set the dimensions for views
-		this.updateSize(this.layout.width, this.layout.height);
+		this.viewSettings.width = this.layout.width;
+		this.viewSettings.height = this.layout.height;
 
 		this.setLayout(this.layout);
 	}
 
-	updateSize(width, height) {
-		if (this.layout._flow === "scrolled") {
-			if (this.settings.axis === "vertical") {
-				this.viewSettings.width = width - (this.settings.scrollbarWidth || 0);
-				this.viewSettings.height = height;
-			} else {
-				this.viewSettings.width = width;
-				this.viewSettings.height = height - (this.settings.scrollbarWidth || 0);
-			}
-		} else {
-			this.viewSettings.width = width;
-			this.viewSettings.height = height;
-		}
-	}
-
-	setLayout(layout){
+	setLayout(layout) {
 
 		this.viewSettings.layout = layout;
 
