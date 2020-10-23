@@ -854,7 +854,7 @@ class DefaultViewManager {
 		}
 		return visible;
 	}
-
+	
 	scrollBy(x, y, silent) {
 		let dir = this.settings.direction === "rtl" ? -1 : 1;
 
@@ -863,12 +863,31 @@ class DefaultViewManager {
 		}
 
 		if (!this.settings.fullsize) {
-			// Notice! These operations are no percise!
+			// Notice! Operations on scrollLeft and scrollTop are not precise!
 			// E.g., this.container.scrollTop is 0 and y is 100,
 			// after this.container.scrollTop += y
 			// this.container.scrollTop might become 99.xxx!
-			if (x) this.container.scrollLeft += x * dir;
-			if (y) this.container.scrollTop += y;
+			// Without compensation, this error increases after each scroll operation!
+      if (x) {
+        this.container.scrollLeft += x * dir;
+        const remainder = this.container.scrollLeft % x;
+        if (Math.abs(x - remainder) >= 1) {
+          // Determine if the current scroll position is closer to the next page or current page.
+          const compensationDir = Math.round(remainder / x) === 1 ? 1 : -1;
+          // Compensate it by 1 pixel.
+          this.container.scrollLeft += compensationDir;
+        }
+      }
+      if (y) {
+        this.container.scrollTop += y;
+        const remainder = this.container.scrollTop % y;
+        if (Math.abs(y - remainder) >= 1) {
+          // Determine if the current scroll position is closer to the next page or current page.
+          const compensationDir = Math.round(remainder / y) === 1 ? 1 : -1;
+          // Compensate it by 1 pixel.
+          this.container.scrollTop += compensationDir;
+        }
+      }
 		} else {
 			window.scrollBy(x * dir, y * dir);
 		}
