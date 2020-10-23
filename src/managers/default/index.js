@@ -854,7 +854,7 @@ class DefaultViewManager {
 		}
 		return visible;
 	}
-	
+
 	scrollBy(x, y, silent) {
 		let dir = this.settings.direction === "rtl" ? -1 : 1;
 
@@ -869,21 +869,23 @@ class DefaultViewManager {
 			// this.container.scrollTop might become 99.xxx!
 			// Without compensation, this error increases after each scroll operation!
       if (x) {
-        this.container.scrollLeft += x * dir;
-        const remainder = this.container.scrollLeft % x;
-        if (Math.abs(x - remainder) >= 1) {
+				this.container.scrollLeft += x * dir;
+				const absX = Math.abs(x);
+        const remainder = this.container.scrollLeft % absX;
+        if (Math.abs(absX - remainder) >= 1) {
           // Determine if the current scroll position is closer to the next page or current page.
-          const compensationDir = Math.round(remainder / x) === 1 ? 1 : -1;
+          const compensationDir = Math.round(remainder / absX) === 1 ? 1 : -1;
           // Compensate it by 1 pixel.
           this.container.scrollLeft += compensationDir;
         }
       }
       if (y) {
         this.container.scrollTop += y;
-        const remainder = this.container.scrollTop % y;
-        if (Math.abs(y - remainder) >= 1) {
+				const absY = Math.abs(y);
+        const remainder = this.container.scrollTop % absY;
+        if (Math.abs(absY - remainder) >= 1) {
           // Determine if the current scroll position is closer to the next page or current page.
-          const compensationDir = Math.round(remainder / y) === 1 ? 1 : -1;
+          const compensationDir = Math.round(remainder / absY) === 1 ? 1 : -1;
           // Compensate it by 1 pixel.
           this.container.scrollTop += compensationDir;
         }
