@@ -103,18 +103,21 @@ class Layout {
 	calculate(_width, _height, _gap){
 
 		var divisor = 1;
-		var gap = _gap || 0;
+		var gap = _gap || 20;
 
 		//-- Check the width and create even width columns
 		// var fullWidth = Math.floor(_width);
 		var width = _width;
 		var height = _height;
 
-		var section = Math.floor(width / 12);
+		//var section = Math.floor(width / 12);
 
 		var columnWidth;
+		var columnHeight;
 		var spreadWidth;
+		var spreadHeight;
 		var pageWidth;
+		var pageHeight;
 		var delta;
 
 		if (this._spread && width >= this._minSpreadWidth) {
@@ -123,9 +126,11 @@ class Layout {
 			divisor = 1;
 		}
 
+		/*
 		if (this.name === "reflowable" && this._flow === "paginated" && !(_gap >= 0)) {
 			gap = ((section % 2 === 0) ? section : section - 1);
 		}
+		*/
 
 		if (this.name === "pre-paginated" ) {
 			gap = 0;
@@ -138,16 +143,22 @@ class Layout {
 			// gap = gap / divisor;
 			columnWidth = (width / divisor) - gap;
 			pageWidth = columnWidth + gap;
+			columnHeight = (height / divisor) - gap;
+			pageHeight = columnHeight + gap;
 		} else {
 			columnWidth = width;
 			pageWidth = width;
+			columnWidth = height;
+			pageHeight = height;
 		}
 
 		if (this.name === "pre-paginated" && divisor > 1) {
 			width = columnWidth;
+			height = columnHeight;
 		}
 
 		spreadWidth = (columnWidth * divisor) + gap;
+		spreadHeight = (columnHeight * divisor) + gap;
 
 		delta = width;
 
@@ -155,9 +166,12 @@ class Layout {
 		this.height = height;
 		this.spreadWidth = spreadWidth;
 		this.pageWidth = pageWidth;
+		this.spreadHeight = spreadHeight;
+		this.pageHeight = pageHeight;
 		this.delta = delta;
 
 		this.columnWidth = columnWidth;
+		this.columnHeight = columnHeight;
 		this.gap = gap;
 		this.divisor = divisor;
 
@@ -175,9 +189,12 @@ class Layout {
 			width,
 			height,
 			spreadWidth,
+			spreadHeight,
 			pageWidth,
+			pageHeight,
 			delta,
 			columnWidth,
+			columnHeight,
 			gap,
 			divisor
 		});
