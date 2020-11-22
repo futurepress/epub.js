@@ -435,7 +435,7 @@ class DefaultViewManager {
 	//
 	// };
 
-	next() {
+	next(n) {
 		var next;
 		var left;
 
@@ -447,10 +447,10 @@ class DefaultViewManager {
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta * n;
 
 			if (left <= this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0, true);
+				this.scrollBy(this.layout.delta * n, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -461,18 +461,18 @@ class DefaultViewManager {
 			if (this.settings.rtlScrollType === "default") {
 				this.scrollLeft = Math.floor(this.container.scrollLeft);
 				// this.container.scrollLeft could has fractional part.
-				left = Math.floor(this.container.scrollLeft);
+				 left = Math.floor(this.container.scrollLeft);
 
 				if (left > 0) {
-					this.scrollBy(this.layout.delta, 0, true);
+					this.scrollBy(this.layout.delta * n, 0, true);
 				} else {
 					next = this.views.last().section.next();
 				}
 			} else {
-				left = this.container.scrollLeft + (this.layout.delta * -1);
+				left = this.container.scrollLeft + (this.layout.delta * -n);
 
 				if (left > this.container.scrollWidth * -1) {
-					this.scrollBy(this.layout.delta, 0, true);
+					this.scrollBy(this.layout.delta * n, 0, true);
 				} else {
 					next = this.views.last().section.next();
 				}
@@ -482,10 +482,10 @@ class DefaultViewManager {
 
 			this.scrollTop = this.container.scrollTop;
 
-			let top = this.container.scrollTop + this.container.offsetHeight;
+			let top = this.container.scrollTop + this.container.offsetHeight + this.layout.height * n;
 
-			if (top < this.container.scrollHeight) {
-				this.scrollBy(0, this.layout.height, true);
+			if (top <= this.container.scrollHeight) {
+				this.scrollBy(0, this.layout.height * n, true);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -526,7 +526,7 @@ class DefaultViewManager {
 
 	}
 
-	prev() {
+	prev(n) {
 		var prev;
 		var left;
 		let dir = this.settings.direction;
@@ -540,7 +540,7 @@ class DefaultViewManager {
 			left = this.container.scrollLeft;
 
 			if (left > 0) {
-				this.scrollBy(-this.layout.delta, 0, true);
+				this.scrollBy(-n * this.layout.delta, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
@@ -576,7 +576,7 @@ class DefaultViewManager {
 			let top = Math.floor(this.container.scrollTop);
 
 			if (top > 0) {
-				this.scrollBy(0, -(this.layout.height), true);
+				this.scrollBy(0, -n * this.layout.height, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}

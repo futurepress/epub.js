@@ -525,19 +525,21 @@ class Rendition {
 
 	/**
 	 * Go to the next "page" in the rendition
+	 * @param  {number} n
 	 * @return {Promise}
 	 */
-	next(){
-		return this.q.enqueue(this.manager.next.bind(this.manager))
+	next(n = 1){
+		return this.q.enqueue(this.manager.next.bind(this.manager), n)
 			.then(this.reportLocation.bind(this));
 	}
 
 	/**
 	 * Go to the previous "page" in the rendition
+	 * @param  {number} n
 	 * @return {Promise}
 	 */
-	prev(){
-		return this.q.enqueue(this.manager.prev.bind(this.manager))
+	prev(n = 1){
+		return this.q.enqueue(this.manager.prev.bind(this.manager), n)
 			.then(this.reportLocation.bind(this));
 	}
 
