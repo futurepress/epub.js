@@ -104,13 +104,13 @@ export default class Rendition {
 
     moveTo(offset: number): void;
 
-    next(n: number): Promise<void>;
+    next(n?: number): Promise<void>;
 
     onOrientationChange(orientation: string): void;
 
     passEvents(contents: Contents): void;
 
-    prev(n: number): Promise<void>;
+    prev(n?: number): Promise<void>;
 
     reportLocation(): Promise<void>;
 
