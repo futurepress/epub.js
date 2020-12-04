@@ -148,7 +148,7 @@ class Layout {
 		} else {
 			columnWidth = width;
 			pageWidth = width;
-			columnWidth = height;
+			columnHeight = height;
 			pageHeight = height;
 		}
 
