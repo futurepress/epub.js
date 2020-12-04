@@ -655,7 +655,9 @@ class Contents {
 							console.error(e, e.stack);
 						}
 					} else {
-						position = range.getBoundingClientRect();
+						// range.toString() might be an empty string and range.getBoundingClientRect() returns a all-zeros position.
+						// Thus, we use the parent element containing the range to get a valid bounding rect.
+						position = range.startContainer.parentElement.getBoundingClientRect();
 					}
 				}
 			}
