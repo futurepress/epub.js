@@ -1,0 +1,137 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="../dist/epub.js"></script>
+
+  <style type="text/css">
+    body,
+    html {
+      position: fixed;
+    }
+
+    body {
+      width: 100vw;
+      margin: 0;
+      padding: 0;
+      overflow-y: hidden;
+    }
+
+    ::selection {
+      background: #FEC27C;
+    }
+
+    iframe {
+      z-index: 199;
+      position: relative;
+    }
+
+    svg {
+      z-index: 2000;
+    }
+
+    .epubjs-hl,
+    .epubjs-hl g {
+      fill: #FEC27C;
+      fill-opacity: 0.6;
+      mix-blend-mode: multiply;
+    }
+
+    rect {
+      height: 30;
+      transform: translateY(-1px);
+    }
+
+    #highlights {
+      list-style: none;
+      margin-left: 0;
+      padding: 0;
+    }
+
+    #highlights a {
+      display: block;
+    }
+
+    #viewer.spreads {
+      box-sizing: border-box;
+      top: 0;
+      height: 100vh;
+      padding: 0 20px;
+      margin: 0 auto;
+      overflow-y: hidden;
+      width: 100%;
+    }
+
+    #viewer {
+      background-color: #FFFBED;
+    }
+
+    .highlight-modal {
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      color: #FFFBED;
+      position: absolute;
+      bottom: 10px;
+      right: 30px;
+      left: 30px;
+      z-index: 2001;
+    }
+
+    .button-thing {
+      background-color: transparent;
+      border: 0;
+      color: #FFFBED;
+      padding: 20px 10px;
+      font-size: 18px;
+      width: 100%;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewer" class="spreads tan"></div>
+  <div class="highlight-modal hidden">
+    <button class="button-thing" onclick="highlightContent()">Highlight</button>
+  </div>
+  <script id="E-READER">
+    let currentSelection;
+    let currentSection;
+    let rendition;
+
+    const book = ePub('https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf');
+
+    rendition = book.renderTo("viewer", {
+      manager: "continuous",
+      flow: "paginated",
+      width: "100%",
+      height: "100%",
+      snap: {
+        duration: 200,
+        minVelocity: 0.4,
+        minDistance: 2,
+        easing(pos) {
+          if ((pos /= 0.5) < 1) {
+            return 0.5 * Math.pow(pos, 5);
+          }
+          return 0.5 * (Math.pow((pos - 2), 5) + 2);
+        },
+      }
+    });
+
+    rendition.display();
+
+    rendition.themes.fontSize('24px');
+    rendition.themes.register("thread", {
+      '.thread': { 'background': '#FFFBED' },
+      'p': {
+        'text-align': 'justify',
+        'line-height': '1.3em'
+      }
+    });
+    rendition.themes.select("thread");
+  </script>
+</body>

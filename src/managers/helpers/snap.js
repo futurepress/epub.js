@@ -1,36 +1,36 @@
-import {extend, defer, requestAnimationFrame, prefixed} from "../../utils/core";
-import { EVENTS, DOM_EVENTS } from "../../utils/constants";
-import EventEmitter from "event-emitter";
+import { extend, defer } from '../../utils/core';
+import { EVENTS } from '../../utils/constants';
+import EventEmitter from 'event-emitter';
 
 // easing equations from https://github.com/danro/easing-js/blob/master/easing.js
 const PI_D2 = (Math.PI / 2);
 const EASING_EQUATIONS = {
-		easeOutSine: function (pos) {
-				return Math.sin(pos * PI_D2);
-		},
-		easeInOutSine: function (pos) {
-				return (-0.5 * (Math.cos(Math.PI * pos) - 1));
-		},
-		easeInOutQuint: function (pos) {
-				if ((pos /= 0.5) < 1) {
-						return 0.5 * Math.pow(pos, 5);
-				}
-				return 0.5 * (Math.pow((pos - 2), 5) + 2);
-		},
-		easeInCubic: function(pos) {
-			return Math.pow(pos, 3);
-  	}
+  easeOutSine: function(pos) {
+    return Math.sin(pos * PI_D2);
+  },
+  easeInOutSine: function(pos) {
+    return (-0.5 * (Math.cos(Math.PI * pos) - 1));
+  },
+  easeInOutQuint: function(pos) {
+    if ((pos /= 0.5) < 1) {
+      return 0.5 * Math.pow(pos, 5);
+    }
+    return 0.5 * (Math.pow((pos - 2), 5) + 2);
+  },
+  easeInCubic: function(pos) {
+    return Math.pow(pos, 3);
+	},
 };
 
 class Snap {
 	constructor(manager, options) {
 
-		this.settings = extend({
-			duration: 80,
-			minVelocity: 0.2,
-			minDistance: 10,
-			easing: EASING_EQUATIONS['easeInCubic']
-		}, options || {});
+    this.settings = extend({
+      duration: 350,
+      minVelocity: 0.2,
+      minDistance: 10,
+			easing: EASING_EQUATIONS['easeOutSine'],
+    }, options || {});
 
 		this.supportsTouch = this.supportsTouch();
 
@@ -132,205 +132,208 @@ class Snap {
 		this.scroller.removeEventListener('scroll', this._onScroll);
 		this._onScroll = undefined;
 
-		this.scroller.removeEventListener('touchstart', this._onTouchStart, { passive: true });
-		this.off('touchstart', this._onTouchStart);
-		this._onTouchStart = undefined;
+    this.scroller.removeEventListener('touchstart', this._onTouchStart, { passive: true });
+    this.off('touchstart', this._onTouchStart);
+    this._onTouchStart = undefined;
 
-		this.scroller.removeEventListener('touchmove', this._onTouchMove, { passive: true });
-		this.off('touchmove', this._onTouchMove);
-		this._onTouchMove = undefined;
+    this.scroller.removeEventListener('touchmove', this._onTouchMove, { passive: true });
+    this.off('touchmove', this._onTouchMove);
+    this._onTouchMove = undefined;
 
-		this.scroller.removeEventListener('touchend', this._onTouchEnd, { passive: true });
-		this.off('touchend', this._onTouchEnd);
-		this._onTouchEnd = undefined;
+    this.scroller.removeEventListener('touchend', this._onTouchEnd, { passive: true });
+    this.off('touchend', this._onTouchEnd);
+    this._onTouchEnd = undefined;
 
-		this.manager.off(EVENTS.MANAGERS.ADDED, this._afterDisplayed);
-		this._afterDisplayed = undefined;
-	}
+    this.manager.off(EVENTS.MANAGERS.ADDED, this._afterDisplayed);
+    this._afterDisplayed = undefined;
+  }
 
-	afterDisplayed(view) {
-		let contents = view.contents;
-		["touchstart", "touchmove", "touchend"].forEach((e) => {
-			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
-		});
-	}
+  afterDisplayed(view) {
+    const contents = view.contents;
+    ['touchstart', 'touchmove', 'touchend'].forEach(e => {
+      contents.on(e, ev => this.triggerViewEvent(ev, contents));
+    });
+  }
 
-	triggerViewEvent(e, contents){
-		this.emit(e.type, e, contents);
-	}
+  triggerViewEvent(e, contents){
+    this.emit(e.type, e, contents);
+  }
 
-	onScroll(e) {
-		this.scrollLeft = this.fullsize ? window.scrollX : this.scroller.scrollLeft;
-		this.scrollTop = this.fullsize ? window.scrollY : this.scroller.scrollTop;
-	}
+  onScroll(e) {
+    this.scrollLeft = this.fullsize ? window.scrollX : this.scroller.scrollLeft;
+    this.scrollTop = this.fullsize ? window.scrollY : this.scroller.scrollTop;
+  }
 
-	onResize(e) {
-		this.resizeCanceler = true;
-	}
+  onResize(e) {
+    this.resizeCanceler = true;
+  }
 
-	onTouchStart(e) {
-		let { screenX, screenY } = e.touches[0];
-
-		if (this.fullsize) {
-			this.enableScroll();
-		}
-
-		this.touchCanceler = true;
-
-		if (!this.startTouchX) {
-			this.startTouchX = screenX;
-			this.startTouchY = screenY;
-			this.startTime = this.now();
-		}
-
-		this.endTouchX = screenX;
-		this.endTouchY = screenY;
-		this.endTime = this.now();
-	}
-
-	onTouchMove(e) {
-		let { screenX, screenY } = e.touches[0];
-		let deltaY = Math.abs(screenY - this.endTouchY);
-
-		this.touchCanceler = true;
-
-
-		if (!this.fullsize && deltaY < 10) {
-			this.element.scrollLeft -= screenX - this.endTouchX;
-		}
-
-		this.endTouchX = screenX;
-		this.endTouchY = screenY;
-		this.endTime = this.now();
-	}
-
-	onTouchEnd(e) {
-		if (this.fullsize) {
-			this.disableScroll();
-		}
-
-		this.touchCanceler = false;
-
-		let swipped = this.wasSwiped();
-
-		if (swipped !== 0) {
-			this.snap(swipped);
-		} else {
-			this.snap();
-		}
-
-		this.startTouchX = undefined;
-		this.startTouchY = undefined;
-		this.startTime = undefined;
-		this.endTouchX = undefined;
-		this.endTouchY = undefined;
-		this.endTime = undefined;
-	}
-
-	wasSwiped() {
-		let snapWidth = this.layout.pageWidth * this.layout.divisor;
-		let distance = (this.endTouchX - this.startTouchX);
-		let absolute = Math.abs(distance);
-		let time = this.endTime - this.startTime;
-		let velocity = (distance / time);
-		let minVelocity = this.settings.minVelocity;
-
-		if (absolute <= this.settings.minDistance || absolute >= snapWidth) {
-			return 0;
-		}
-
-		if (velocity > minVelocity) {
-			// previous
-			return -1;
-		} else if (velocity < -minVelocity) {
-			// next
-			return 1;
-		}
-	}
-
-	needsSnap() {
-		let left = this.scrollLeft;
-		let snapWidth = this.layout.pageWidth * this.layout.divisor;
-		return (left % snapWidth) !== 0;
-	}
-
-	snap(howMany=0) {
-		let left = this.scrollLeft;
-		let snapWidth = this.layout.pageWidth * this.layout.divisor;
-		let snapTo = Math.round(left / snapWidth) * snapWidth;
-
-		if (howMany) {
-			snapTo += (howMany * snapWidth);
-		}
-
-		return this.smoothScrollTo(snapTo);
-	}
-
-	smoothScrollTo(destination) {
-		const deferred = new defer();
-		const start = this.scrollLeft;
-		const startTime = this.now();
-
-		const duration = this.settings.duration;
-		const easing = this.settings.easing;
-
-		this.snapping = true;
-
-		// add animation loop
-		function tick() {
-			const now = this.now();
-			const time = Math.min(1, ((now - startTime) / duration));
-			const timeFunction = easing(time);
-
-
-			if (this.touchCanceler || this.resizeCanceler) {
-				this.resizeCanceler = false;
-				this.snapping = false;
-				deferred.resolve();
-				return;
-			}
-
-			if (time < 1) {
-					window.requestAnimationFrame(tick.bind(this));
-					this.scrollTo(start + ((destination - start) * time), 0);
-			} else {
-					this.scrollTo(destination, 0);
-					this.snapping = false;
-					deferred.resolve();
-			}
-		}
-
-		tick.call(this);
-
-		return deferred.promise;
-	}
-
-	scrollTo(left=0, top=0) {
-		if (this.fullsize) {
-			window.scroll(left, top);
-		} else {
-			this.scroller.scrollLeft = left;
-			this.scroller.scrollTop = top;
-		}
-	}
-
-	now() {
-		return ('now' in window.performance) ? performance.now() : new Date().getTime();
-	}
-
-	destroy() {
-		if (!this.scroller) {
+  onTouchStart(e) {
+		if (this.touchCanceler) {
 			return;
 		}
+    const { screenX, screenY } = e.touches[0];
 
-		if (this.fullsize) {
-			this.enableScroll();
-		}
+    if (this.fullsize) {
+      this.enableScroll();
+    }
 
-		this.removeListeners();
+    this.touchCanceler = true;
 
-		this.scroller = undefined;
-	}
+    if (!this.startTouchX) {
+      this.startTouchX = screenX;
+      this.startTouchY = screenY;
+      this.startTime = this.now();
+    }
+
+    this.endTouchX = screenX;
+    this.endTouchY = screenY;
+    this.endTime = this.now();
+  }
+
+  onTouchMove(e) {
+    const { screenX, screenY } = e.touches[0];
+    const deltaY = Math.abs(screenY - this.endTouchY);
+
+    this.touchCanceler = true;
+
+
+    if (!this.fullsize && deltaY < 10) {
+      this.element.scrollLeft -= screenX - this.endTouchX;
+    }
+
+    this.endTouchX = screenX;
+    this.endTouchY = screenY;
+    this.endTime = this.now();
+  }
+
+  onTouchEnd(e) {
+    if (this.fullsize) {
+      this.disableScroll();
+    }
+
+    this.touchCanceler = false;
+
+    const swipped = this.wasSwiped();
+
+    if (swipped !== 0) {
+      this.snap(swipped);
+    } else {
+      this.snap();
+    }
+
+    this.startTouchX = undefined;
+    this.startTouchY = undefined;
+    this.startTime = undefined;
+    this.endTouchX = undefined;
+    this.endTouchY = undefined;
+    this.endTime = undefined;
+  }
+
+  wasSwiped() {
+    const snapWidth = this.layout.pageWidth * this.layout.divisor;
+    const distance = (this.endTouchX - this.startTouchX);
+    const absolute = Math.abs(distance);
+    const time = this.endTime - this.startTime;
+    const velocity = (distance / time);
+    const minVelocity = this.settings.minVelocity;
+
+    if (absolute <= this.settings.minDistance || absolute >= snapWidth) {
+      return 0;
+    }
+
+    if (velocity > minVelocity) {
+      // previous
+      return -1;
+    } else if (velocity < -minVelocity) {
+      // next
+      return 1;
+    }
+  }
+
+  needsSnap() {
+    const left = this.scrollLeft;
+    const snapWidth = this.layout.pageWidth * this.layout.divisor;
+    return (left % snapWidth) !== 0;
+  }
+
+  snap(howMany = 0) {
+    const left = this.scrollLeft;
+    const snapWidth = this.layout.pageWidth * this.layout.divisor;
+    let snapTo = Math.round(left / snapWidth) * snapWidth;
+
+    // if (howMany) {
+    //   snapTo += (howMany * snapWidth);
+    // }
+
+    return this.smoothScrollTo(snapTo);
+  }
+
+  smoothScrollTo(destination) {
+    const deferred = new defer();
+    const start = this.scrollLeft;
+    const startTime = this.now();
+
+    const duration = this.settings.duration;
+    const easing = this.settings.easing;
+
+    this.snapping = true;
+
+    // add animation loop
+    function tick() {
+      const now = this.now();
+      const time = Math.min(1, ((now - startTime) / duration));
+      const timeFunction = easing(time);
+
+
+      if (this.touchCanceler || this.resizeCanceler) {
+        this.resizeCanceler = false;
+        this.snapping = false;
+        deferred.resolve();
+        return;
+      }
+
+      if (time < 1) {
+        window.requestAnimationFrame(tick.bind(this));
+        this.scrollTo(start + ((destination - start) * time), 0);
+      } else {
+        this.scrollTo(destination, 0);
+        this.snapping = false;
+        deferred.resolve();
+      }
+    }
+
+    tick.call(this);
+
+    return deferred.promise;
+  }
+
+  scrollTo(left = 0, top = 0) {
+    if (this.fullsize) {
+      window.scroll(left, top);
+    } else {
+      this.scroller.scrollLeft = left;
+      this.scroller.scrollTop = top;
+    }
+  }
+
+  now() {
+    return ('now' in window.performance) ? performance.now() : new Date().getTime();
+  }
+
+  destroy() {
+    if (!this.scroller) {
+      return;
+    }
+
+    if (this.fullsize) {
+      this.enableScroll();
+    }
+
+    this.removeListeners();
+
+    this.scroller = undefined;
+  }
 }
 
 EventEmitter(Snap.prototype);

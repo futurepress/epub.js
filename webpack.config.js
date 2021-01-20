@@ -4,7 +4,7 @@ var PROD = (process.env.NODE_ENV === "production")
 var LEGACY = (process.env.LEGACY)
 var MINIMIZE = (process.env.MINIMIZE === "true")
 var hostname = "localhost";
-var port = 8080;
+var port = 8088;
 
 var filename = "[name]";
 var sourceMapFilename = "[name]";

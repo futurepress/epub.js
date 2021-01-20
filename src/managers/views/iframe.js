@@ -325,63 +325,63 @@ class IframeView {
 	reframe(width, height) {
 		var size;
 
-		if(isNumber(width)){
-			this.element.style.width = width + "px";
-			this.iframe.style.width = width + "px";
-			this._width = width;
-		}
+    if (isNumber(width)){
+      this.element.style.width = `${width}px`;
+      this.iframe.style.width = `${width}px`;
+      this._width = width;
+    }
 
-		if(isNumber(height)){
-			this.element.style.height = height + "px";
-			this.iframe.style.height = height + "px";
-			this._height = height;
-		}
+    if (isNumber(height)){
+      this.element.style.height = `${height}px`;
+      this.iframe.style.height = `${height}px`;
+      this._height = height;
+    }
 
 		let widthDelta = this.prevBounds ? width - this.prevBounds.width : width;
 		let heightDelta = this.prevBounds ? height - this.prevBounds.height : height;
 
-		size = {
-			width: width,
-			height: height,
-			widthDelta: widthDelta,
-			heightDelta: heightDelta,
-		};
+    size = {
+      width: width,
+      height: height,
+      widthDelta: widthDelta,
+      heightDelta: heightDelta,
+    };
 
-		this.pane && this.pane.render();
+    // this.pane && this.pane.render();
 
-		requestAnimationFrame(() => {
-			let mark;
-			for (let m in this.marks) {
-				if (this.marks.hasOwnProperty(m)) {
-					mark = this.marks[m];
-					this.placeMark(mark.element, mark.range);
-				}
-			}
-		});
+    requestAnimationFrame(() => {
+      let mark;
+      for (const m in this.marks) {
+        if (this.marks.hasOwnProperty(m)) {
+          mark = this.marks[m];
+          this.placeMark(mark.element, mark.range);
+        }
+      }
+    });
 
-		this.onResize(this, size);
+    this.onResize(this, size);
 
-		this.emit(EVENTS.VIEWS.RESIZED, size);
+    this.emit(EVENTS.VIEWS.RESIZED, size);
 
-		this.prevBounds = size;
+    this.prevBounds = size;
 
-		this.elementBounds = bounds(this.element);
+    this.elementBounds = bounds(this.element);
 
-	}
+  }
 
 
-	load(contents) {
-		var loading = new defer();
-		var loaded = loading.promise;
+  load(contents) {
+    const loading = new defer();
+    const loaded = loading.promise;
 
-		if(!this.iframe) {
-			loading.reject(new Error("No Iframe Available"));
-			return loaded;
-		}
+    if (!this.iframe) {
+      loading.reject(new Error('No Iframe Available'));
+      return loaded;
+    }
 
-		this.iframe.onload = function(event) {
+    this.iframe.onload = function(event) {
 
-			this.onLoad(event, loading);
+      this.onLoad(event, loading);
 
 		}.bind(this);
 

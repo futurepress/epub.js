@@ -13,42 +13,23 @@
 
   <style type="text/css">
     body {
-      display: flex;
-      -webkit-align-items: center;
-      -webkit-justify-content: center;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+      overflow-y: hidden;
     }
 
     #viewer {
-      width: 290px;
-      height: 580px;
-      box-shadow: 0 0 4px #ccc;
-      padding: 10px 10px 0px 10px;
-      margin: 5px auto;
+      width:100vw;
+      height: 100vh;
       background: white;
-    }
-
-
-    @media only screen
-      and (min-device-width : 320px)
-      and (max-device-width : 667px) {
-        #viewer {
-          height: 96.5%;
-        }
-        #viewer iframe {
-          /* pointer-events: none; */
-        }
-        .arrow {
-          position: inherit;
-          display: none;
-        }
+      overflow-y: hidden;
     }
 
   </style>
 </head>
 <body>
   <div id="viewer"></div>
-  <div id="prev" class="arrow">‹</div>
-  <div id="next" class="arrow">›</div>
   <script>
     // Load the opf
     var book = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
@@ -57,7 +38,26 @@
       flow: "paginated",
       width: "100%",
       height: "100%",
-      snap: true
+      snap: {
+        duration: 200,
+        minVelocity: 0.4,
+        minDistance: 10,
+        easing(pos) {
+          if ((pos /= 0.5) < 1) {
+            return 0.5 * Math.pow(pos, 5);
+          }
+          return 0.5 * (Math.pow((pos - 2), 5) + 2);
+        },
+      }
+    });
+
+    rendition.themes.fontSize('24px');
+    rendition.themes.register("thread", {
+      '.thread': { 'background': '#FFFBED' },
+      'p': {
+        'text-align': 'justify',
+        'line-height': '1.3em'
+      }
     });
 
     var displayed = rendition.display("chapter_001.xhtml");
