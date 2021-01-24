@@ -15,6 +15,7 @@ export interface RenditionOptions {
   manager?: string | Function | object,
   view?: string | Function | object,
   flow?: string,
+  scrollbarWidth?: number,
   layout?: string,
   spread?: string,
   minSpreadWidth?: number,
@@ -103,13 +104,13 @@ export default class Rendition {
 
     moveTo(offset: number): void;
 
-    next(): Promise<void>;
+    next(n?: number): Promise<void>;
 
     onOrientationChange(orientation: string): void;
 
     passEvents(contents: Contents): void;
 
-    prev(): Promise<void>;
+    prev(n?: number): Promise<void>;
 
     reportLocation(): Promise<void>;
 
