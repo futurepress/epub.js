@@ -1,14 +1,14 @@
 import EventEmitter from "event-emitter";
-import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
-import EpubCFI from "../../epubcfi";
+import { Highlight, Pane, Underline } from "marks-pane";
 import Contents from "../../contents";
+import EpubCFI from "../../epubcfi";
 import { EVENTS } from "../../utils/constants";
-import { Pane, Highlight, Underline } from "marks-pane";
+import { borders, bounds, createBlobUrl, defer, extend, isNumber, revokeBlobUrl, uuid } from "../../utils/core";
 
 class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
-			ignoreClass : "",
+			ignoreClass: "",
 			axis: undefined, //options.layout && options.layout.props.flow === "scrolled" ? "vertical" : "horizontal",
 			direction: undefined,
 			width: 0,
@@ -32,7 +32,7 @@ class IframeView {
 		// this.width  = this.settings.width;
 		// this.height = this.settings.height;
 
-		this.fixedWidth  = 0;
+		this.fixedWidth = 0;
 		this.fixedHeight = 0;
 
 		// Blank Cfi for Parsing
@@ -61,7 +61,7 @@ class IframeView {
 		element.style.position = "relative";
 		element.style.display = "block";
 
-		if(axis && axis == "horizontal"){
+		if (axis && axis == "horizontal") {
 			element.style.flex = "none";
 		} else {
 			element.style.flex = "initial";
@@ -72,11 +72,11 @@ class IframeView {
 
 	create() {
 
-		if(this.iframe) {
+		if (this.iframe) {
 			return this.iframe;
 		}
 
-		if(!this.element) {
+		if (!this.element) {
 			this.element = this.createContainer();
 		}
 
@@ -116,7 +116,7 @@ class IframeView {
 		// }
 
 
-		if(("srcdoc" in this.iframe)) {
+		if (("srcdoc" in this.iframe)) {
 			this.supportsSrcdoc = true;
 		} else {
 			this.supportsSrcdoc = false;
@@ -137,16 +137,16 @@ class IframeView {
 		// Fit to size of the container, apply padding
 		this.size();
 
-		if(!this.sectionRender) {
+		if (!this.sectionRender) {
 			this.sectionRender = this.section.render(request);
 		}
 
 		// Render Chain
 		return this.sectionRender
-			.then(function(contents){
+			.then(function (contents) {
 				return this.load(contents);
 			}.bind(this))
-			.then(function(){
+			.then(function () {
 
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
@@ -186,19 +186,19 @@ class IframeView {
 					resolve();
 				});
 
-			}.bind(this), function(e){
+			}.bind(this), function (e) {
 				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 				return new Promise((resolve, reject) => {
 					reject(e);
 				});
 			}.bind(this))
-			.then(function() {
+			.then(function () {
 				this.emit(EVENTS.VIEWS.RENDERED, this.section);
 			}.bind(this));
 
 	}
 
-	reset () {
+	reset() {
 		if (this.iframe) {
 			this.iframe.style.width = "0";
 			this.iframe.style.height = "0";
@@ -217,11 +217,11 @@ class IframeView {
 		var width = _width || this.settings.width;
 		var height = _height || this.settings.height;
 
-		if(this.layout.name === "pre-paginated") {
+		if (this.layout.name === "pre-paginated") {
 			this.lock("both", width, height);
-		} else if(this.settings.axis === "horizontal") {
+		} else if (this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {			
+		} else {
 			this.lock("width", width, height);
 		}
 
@@ -234,32 +234,32 @@ class IframeView {
 		var elBorders = borders(this.element);
 		var iframeBorders;
 
-		if(this.iframe) {
+		if (this.iframe) {
 			iframeBorders = borders(this.iframe);
 		} else {
-			iframeBorders = {width: 0, height: 0};
+			iframeBorders = { width: 0, height: 0 };
 		}
 
-		if(what == "width" && isNumber(width)){
+		if (what == "width" && isNumber(width)) {
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
 			// this.resize(this.lockedWidth, width); //  width keeps ratio correct
 		}
 
-		if(what == "height" && isNumber(height)){
+		if (what == "height" && isNumber(height)) {
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
 			// this.resize(width, this.lockedHeight);
 		}
 
-		if(what === "both" &&
-			 isNumber(width) &&
-			 isNumber(height)){
+		if (what === "both" &&
+			isNumber(width) &&
+			isNumber(height)) {
 
 			this.lockedWidth = width - elBorders.width - iframeBorders.width;
 			this.lockedHeight = height - elBorders.height - iframeBorders.height;
 			// this.resize(this.lockedWidth, this.lockedHeight);
 		}
 
-		if(this.displayed && this.iframe) {
+		if (this.displayed && this.iframe) {
 
 			// this.contents.layout();
 			this.expand();
@@ -277,16 +277,16 @@ class IframeView {
 
 		var textWidth, textHeight;
 
-		if(!this.iframe || this._expanding) return;
+		if (!this.iframe || this._expanding) return;
 
 		this._expanding = true;
 
-		if(this.layout.name === "pre-paginated") {
+		if (this.layout.name === "pre-paginated") {
 			width = this.layout.columnWidth;
 			height = this.layout.height;
 		}
 		// Expand Horizontally
-		else if(this.settings.axis === "horizontal") {
+		else if (this.settings.axis === "horizontal") {
 			// Get the width of the text
 			width = this.contents.textWidth();
 
@@ -296,16 +296,16 @@ class IframeView {
 
 			if (this.settings.forceEvenPages) {
 				columns = (width / this.layout.pageWidth);
-				if ( this.layout.divisor > 1 &&
-						 this.layout.name === "reflowable" &&
-						(columns % 2 > 0)) {
+				if (this.layout.divisor > 1 &&
+					this.layout.name === "reflowable" &&
+					(columns % 2 > 0)) {
 					// add a blank page
 					width += this.layout.pageWidth;
 				}
 			}
 
 		} // Expand Vertically
-		else if(this.settings.axis === "vertical") {
+		else if (this.settings.axis === "vertical") {
 			height = this.contents.textHeight();
 			if (this.settings.flow === "paginated" &&
 				height % this.layout.height > 0) {
@@ -315,7 +315,7 @@ class IframeView {
 
 		// Only Resize if dimensions have changed or
 		// if Frame is still hidden, so needs reframing
-		if(this._needsReframe || width != this._width || height != this._height){
+		if (this._needsReframe || width != this._width || height != this._height) {
 			this.reframe(width, height);
 		}
 
@@ -325,13 +325,13 @@ class IframeView {
 	reframe(width, height) {
 		var size;
 
-		if(isNumber(width)){
+		if (isNumber(width)) {
 			this.element.style.width = width + "px";
 			this.iframe.style.width = width + "px";
 			this._width = width;
 		}
 
-		if(isNumber(height)){
+		if (isNumber(height)) {
 			this.element.style.height = height + "px";
 			this.iframe.style.height = height + "px";
 			this._height = height;
@@ -374,12 +374,12 @@ class IframeView {
 		var loading = new defer();
 		var loaded = loading.promise;
 
-		if(!this.iframe) {
+		if (!this.iframe) {
 			loading.reject(new Error("No Iframe Available"));
 			return loaded;
 		}
 
-		this.iframe.onload = function(event) {
+		this.iframe.onload = function (event) {
 
 			this.onLoad(event, loading);
 
@@ -389,7 +389,7 @@ class IframeView {
 			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
 			this.iframe.src = this.blobUrl;
 			this.element.appendChild(this.iframe);
-		} else if(this.settings.method === "srcdoc"){
+		} else if (this.settings.method === "srcdoc") {
 			this.iframe.srcdoc = contents;
 			this.element.appendChild(this.iframe);
 		} else {
@@ -398,14 +398,14 @@ class IframeView {
 
 			this.document = this.iframe.contentDocument;
 
-			if(!this.document) {
+			if (!this.document) {
 				loading.reject(new Error("No Document Available"));
 				return loaded;
 			}
 
 			this.iframe.contentDocument.open();
 			// For Cordova windows platform
-			if(window.MSApp && MSApp.execUnsafeLocalFunction) {
+			if (window.MSApp && MSApp.execUnsafeLocalFunction) {
 				var outerThis = this;
 				MSApp.execUnsafeLocalFunction(function () {
 					outerThis.iframe.contentDocument.write(contents);
@@ -440,7 +440,7 @@ class IframeView {
 		}
 
 		this.contents.on(EVENTS.CONTENTS.EXPAND, () => {
-			if(this.displayed && this.iframe) {
+			if (this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
 					this.layout.format(this.contents);
@@ -449,7 +449,7 @@ class IframeView {
 		});
 
 		this.contents.on(EVENTS.CONTENTS.RESIZE, (e) => {
-			if(this.displayed && this.iframe) {
+			if (this.displayed && this.iframe) {
 				this.expand();
 				if (this.contents) {
 					this.layout.format(this.contents);
@@ -473,7 +473,7 @@ class IframeView {
 
 		this.settings.axis = axis;
 
-		if(axis == "horizontal"){
+		if (axis == "horizontal") {
 			this.element.style.flex = "none";
 		} else {
 			this.element.style.flex = "initial";
@@ -526,7 +526,7 @@ class IframeView {
 
 		this.element.style.visibility = "visible";
 
-		if(this.iframe){
+		if (this.iframe) {
 			this.iframe.style.visibility = "visible";
 
 			// Remind Safari to redraw the iframe
@@ -585,18 +585,18 @@ class IframeView {
 	}
 
 	bounds(force) {
-		if(force || !this.elementBounds) {
+		if (force || !this.elementBounds) {
 			this.elementBounds = bounds(this.element);
 		}
 
 		return this.elementBounds;
 	}
 
-	highlight(cfiRange, data={}, cb, className = "epubjs-hl", styles = {}) {
+	highlight(cfiRange, data = {}, cb, className = "epubjs-hl", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
-		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
+		const attributes = Object.assign({ "fill": "yellow", "fill-opacity": "1", "mix-blend-mode": "multiply" }, styles);
 		let range = this.contents.range(cfiRange);
 
 		let emitter = () => {
@@ -625,11 +625,11 @@ class IframeView {
 		return h;
 	}
 
-	underline(cfiRange, data={}, cb, className = "epubjs-ul", styles = {}) {
+	underline(cfiRange, data = {}, cb, className = "epubjs-ul", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
-		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
+		const attributes = Object.assign({ "stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply" }, styles);
 		let range = this.contents.range(cfiRange);
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
@@ -657,7 +657,7 @@ class IframeView {
 		return h;
 	}
 
-	mark(cfiRange, data={}, cb) {
+	mark(cfiRange, data = {}, cb) {
 		if (!this.contents) {
 			return;
 		}
@@ -718,7 +718,7 @@ class IframeView {
 	placeMark(element, range) {
 		let top, right, left;
 
-		if(this.layout.name === "pre-paginated" ||
+		if (this.layout.name === "pre-paginated" ||
 			this.settings.axis !== "horizontal") {
 			let pos = range.getBoundingClientRect();
 			top = pos.top;
@@ -807,7 +807,7 @@ class IframeView {
 			revokeBlobUrl(this.blobUrl);
 		}
 
-		if(this.displayed){
+		if (this.displayed) {
 			this.displayed = false;
 
 			this.removeListeners();
