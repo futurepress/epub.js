@@ -149,29 +149,38 @@ class Navigation {
 	 */
 	parseNav(navHtml){
 		var navElement = querySelectorByType(navHtml, "nav", "toc");
-		var navItems = navElement ? qsa(navElement, "li") : [];
-		var length = navItems.length;
-		var i;
-		var toc = {};
 		var list = [];
-		var item, parent;
 
-		if(!navItems || length === 0) return list;
+		if (!navElement) return list;
 
-		for (i = 0; i < length; ++i) {
-			item = this.navItem(navItems[i]);
+		let navList = filterChildren(navElement, "ol", true);
+		if (!navList) return list;
+
+		list = this.parseNavList(navList);
+		return list;
+	}
+
+	/**
+	 * Parses lists in the toc
+	 * @param  {document} navListHtml
+	 * @param  {string} parent id
+	 * @return {array} navigation list
+	 */
+	parseNavList(navListHtml, parent) {
+		const result = [];
+
+		if (!navListHtml) return result;
+		if (!navListHtml.children) return result;
+		
+		for (let i = 0; i < navListHtml.children.length; i++) {
+			const item = this.navItem(navListHtml.children[i], parent);
+
 			if (item) {
-				toc[item.id] = item;
-				if(!item.parent) {
-					list.push(item);
-				} else {
-					parent = toc[item.parent];
-					parent.subitems.push(item);
-				}
+				result.push(item);
 			}
 		}
 
-		return list;
+		return result;
 	}
 
 	/**
@@ -180,7 +189,7 @@ class Navigation {
 	 * @param  {element} item
 	 * @return {object} navItem
 	 */
-	navItem(item){
+	navItem(item, parent) {
 		let id = item.getAttribute("id") || undefined;
 		let content = filterChildren(item, "a", true);
 
@@ -194,27 +203,11 @@ class Navigation {
 			id = src;
 		}
 		let text = content.textContent || "";
+
 		let subitems = [];
-		let parentItem = getParentByTagName(item, "li");
-		let parent;
-
-		if (parentItem) {
-			parent = parentItem.getAttribute("id");
-			if (!parent) {
-				const parentContent = filterChildren(parentItem, "a", true);
-				parent = parentContent && parentContent.getAttribute("href");
-      			}
-		}
-
-		while (!parent && parentItem) {
-			parentItem = getParentByTagName(parentItem, "li");
-			if (parentItem) {
-				parent = parentItem.getAttribute("id");
-				if (!parent) {
-					const parentContent = filterChildren(parentItem, "a", true);
-          				parent = parentContent && parentContent.getAttribute("href");
-        			}
-			}
+		let nested = filterChildren(item, "ol", true);
+		if (nested) {
+			subitems = 	this.parseNavList(nested, id);
 		}
 
 		return {
