@@ -343,6 +343,12 @@ class DefaultViewManager {
 			if (distX + this.layout.delta > this.container.scrollWidth) {
 				distX = this.container.scrollWidth - this.layout.delta;
 			}
+
+			distY = Math.floor(offset.top / this.layout.delta) * this.layout.delta;
+
+			if (distY + this.layout.delta > this.container.scrollHeight) {
+				distY = this.container.scrollHeight - this.layout.delta;
+			}
 		}
 		this.scrollTo(distX, distY, true);
 	}
