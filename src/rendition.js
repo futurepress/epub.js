@@ -888,13 +888,13 @@ class Rendition {
 	/**
 	 * Emit a selection event's CFI Range passed from a a view
 	 * @private
-	 * @param  {EpubCFI} cfirange
+	 * @param  {string} cfirange
 	 */
 	triggerSelectedEvent(cfirange, contents){
 		/**
 		 * Emit that a text selection has occured
 		 * @event selected
-		 * @param {EpubCFI} cfirange
+		 * @param {string} cfirange
 		 * @param {Contents} contents
 		 * @memberof Rendition
 		 */
