@@ -644,6 +644,7 @@ class DefaultViewManager {
 	}
 
 	currentLocation(){
+		this.updateLayout();
 		if (this.isPaginated && this.settings.axis === "horizontal") {
 			this.location = this.paginatedLocation();
 		} else {
