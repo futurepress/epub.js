@@ -71,7 +71,7 @@ export default class Book {
 
     determineType(input: string): string;
 
-    getRange(cfiRange: string): Range;
+    getRange(cfiRange: string): Promise<Range>;
 
     key(identifier?: string): string;
 

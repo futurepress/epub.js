@@ -696,7 +696,7 @@ class Book {
 	/**
 	 * Find a DOM Range for a given CFI Range
 	 * @param  {EpubCFI} cfiRange a epub cfi range
-	 * @return {Range}
+	 * @return {Promise}
 	 */
 	getRange(cfiRange) {
 		var cfi = new EpubCFI(cfiRange);
