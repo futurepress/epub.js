@@ -1,6 +1,6 @@
 import {defer, isXml, parse} from "./utils/core";
 import httpRequest from "./utils/request";
-import mime from "../libs/mime/mime";
+import mime from "./utils/mime";
 import Path from "./utils/path";
 import EventEmitter from "event-emitter";
 import localforage from "localforage";

@@ -1,7 +1,7 @@
 import {substitute} from "./utils/replacements";
 import {createBase64Url, createBlobUrl, blob2base64} from "./utils/core";
 import Url from "./utils/url";
-import mime from "../libs/mime/mime";
+import mime from "./utils/mime";
 import Path from "./utils/path";
 import path from "path-webpack";
 
