@@ -277,7 +277,8 @@ class DefaultViewManager {
 
 			if(target) {
 				let offset = visible.locationOf(target);
-				this.moveTo(offset);
+				let width = visible.width();
+				this.moveTo(offset, width);
 			}
 
 			displaying.resolve();
@@ -298,7 +299,8 @@ class DefaultViewManager {
 				// Move to correct place within the section, if needed
 				if(target) {
 					let offset = view.locationOf(target);
-					this.moveTo(offset);
+					let width = view.width();
+					this.moveTo(offset, width);
 				}
 
 			}.bind(this), (err) => {
@@ -331,7 +333,7 @@ class DefaultViewManager {
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
-	moveTo(offset){
+	moveTo(offset, width){
 		var distX = 0,
 				distY = 0;
 
@@ -349,6 +351,15 @@ class DefaultViewManager {
 			if (distY + this.layout.delta > this.container.scrollHeight) {
 				distY = this.container.scrollHeight - this.layout.delta;
 			}
+		}
+		if(this.settings.direction === 'rtl'){
+			/***
+				the `floor` function above (L343) is on positive values, so we should add one `layout.delta` 
+				to distX or use `Math.ceil` function, or multiply offset.left by -1
+				before `Math.floor`
+			*/
+			distX = distX + this.layout.delta 
+			distX = distX - width
 		}
 		this.scrollTo(distX, distY, true);
 	}
