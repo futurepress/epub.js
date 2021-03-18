@@ -816,6 +816,11 @@ class IframeView {
 			this.stopExpanding = true;
 			this.element.removeChild(this.iframe);
 
+			if (this.pane) {
+				this.pane.element.remove();
+				this.pane = undefined;
+			}
+
 			this.iframe = undefined;
 			this.contents = undefined;
 
