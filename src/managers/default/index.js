@@ -476,7 +476,7 @@ class DefaultViewManager {
 					next = this.views.last().section.next();
 				}
 			} else {
-				left = this.container.scrollLeft + ( this.layout.delta * -1 );
+				left = this.container.scrollLeft - this.container.offsetWidth;
 
 				if (left > this.container.scrollWidth * -1){
 					this.scrollBy(this.layout.delta, 0, true);
