@@ -379,10 +379,10 @@ class ContinuousViewManager extends DefaultViewManager {
 				this.scrollTo(0, prevTop - bounds.height, true);
 			} else {
 				if(this.settings.direction === 'rtl') {
-					if (!this.settings.fullsize) {
-						this.scrollTo(prevLeft, 0, true);					
-					} else {
+					if (this.settings.rtlScrollType === "negative") {
 						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
+					} else {
+						this.scrollTo(prevLeft, 0, true);
 					}
 				} else {
 					this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
