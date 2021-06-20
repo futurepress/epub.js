@@ -4,7 +4,7 @@ import Hook from "./utils/hook";
 import { sprint } from "./utils/core";
 import { replaceBase } from "./utils/replacements";
 import Request from "./utils/request";
-import { XMLDOMParser as XMLDOMSerializer } from "xmldom";
+import { DOMParser as XMLDOMSerializer } from "xmldom";
 
 /**
  * Represents a Section of the Book
