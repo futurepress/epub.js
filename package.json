@@ -56,13 +56,13 @@
   },
   "dependencies": {
     "@types/localforage": "0.0.34",
+    "@xmldom/xmldom": "^0.7.5",
     "core-js": "^3.6.5",
     "event-emitter": "^0.3.5",
     "jszip": "^3.4.0",
     "localforage": "^1.7.3",
     "lodash": "^4.17.15",
     "marks-pane": "^1.0.9",
-    "path-webpack": "0.0.3",
-    "xmldom": "^0.3.0"
+    "path-webpack": "0.0.3"
   }
 }
