@@ -115,13 +115,12 @@
 
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
-      rendition.annotations.highlight(cfiRange, {}, (e) => {
-        console.log("highlight clicked", e.target);
-      });
+      rendition.annotations.underline(cfiRange, {}, (e) => {
+      },'',{"stroke-opacity": '1',"stroke": "red","lineType": "wave"});
       contents.window.getSelection().removeAllRanges();
 
     });
-
+    
     this.rendition.themes.default({
       '::selection': {
         'background': 'rgba(255,255,0, 0.3)'
