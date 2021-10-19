@@ -610,7 +610,15 @@ class IframeView {
 		}
 
 		let m = new Highlight(range, className, data, attributes);
-		let h = this.pane.addMark(m);
+		let h;
+		try {
+			h = this.pane.addMark(m);
+		} catch (err) {
+			// Print error only for invalid highlights.
+			// Throwing an error here will cause ePub display stops after navigate out and then in a section with an invalid highlight.
+			console.error(err);
+			return;
+		}
 
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
