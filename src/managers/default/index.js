@@ -87,9 +87,9 @@ class DefaultViewManager {
 		this._bounds = this.bounds();
 		this._stageSize = this.stage.size();
 
+
 		// Set the dimensions for views
-		this.viewSettings.width = this._stageSize.width;
-		this.viewSettings.height = this._stageSize.height;
+		this.updateLayout();
 
 		// Function to handle a resize event.
 		// Will only attach if width and height are both fixed.
@@ -220,9 +220,11 @@ class DefaultViewManager {
 		// Clear current views
 		this.clear();
 
+		/* Redundant codes? this.updateLayout() will update them!?
 		// Update for new views
 		this.viewSettings.width = this._stageSize.width;
 		this.viewSettings.height = this._stageSize.height;
+		*/
 
 		this.updateLayout();
 
@@ -468,7 +470,9 @@ class DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 
 			if (this.settings.rtlScrollType === "default"){
-				left = this.container.scrollLeft;
+				this.scrollLeft = Math.floor(this.container.scrollLeft);
+				// this.container.scrollLeft could has fractional part.
+				left = Math.floor(this.container.scrollLeft);
 
 				if (left > 0) {
 					this.scrollBy(this.layout.delta, 0, true);
@@ -503,7 +507,6 @@ class DefaultViewManager {
 
 		if(next) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
 			let forceRight = false;
@@ -578,9 +581,10 @@ class DefaultViewManager {
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
 
-			this.scrollTop = this.container.scrollTop;
+			this.scrollTop = Math.floor(this.container.scrollTop);
 
-			let top = this.container.scrollTop;
+			// this.container.scrollTop could has fractional part.
+			let top = Math.floor(this.container.scrollTop);
 
 			if(top > 0) {
 				this.scrollBy(0, -(this.layout.height), true);
@@ -596,7 +600,6 @@ class DefaultViewManager {
 
 		if(prev) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
 			let forceRight = false;
@@ -941,13 +944,23 @@ class DefaultViewManager {
 
 		this._stageSize = this.stage.size();
 
-		if(!this.isPaginated) {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height);
+		if (!this.isPaginated) {
+			let width;
+			let height;
+			if (this.settings.axis === "vertical") {
+				width = this._stageSize.width - (this.settings.scrollbarWidth | 0);
+				height = this._stageSize.height;
+			} else {
+				width = this._stageSize.width;
+				height =  this._stageSize.height - (this.settings.scrollbarWidth | 0);
+			}
+			this.layout.calculate(width, height, undefined, this.settings.axis);
 		} else {
 			this.layout.calculate(
 				this._stageSize.width,
 				this._stageSize.height,
-				this.settings.gap
+				this.settings.gap,
+				this.settings.axis
 			);
 
 			// Set the look ahead offset for what is visible
@@ -964,7 +977,7 @@ class DefaultViewManager {
 		this.setLayout(this.layout);
 	}
 
-	setLayout(layout){
+	setLayout(layout) {
 
 		this.viewSettings.layout = layout;
 

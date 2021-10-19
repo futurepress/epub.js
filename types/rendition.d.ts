@@ -15,6 +15,7 @@ export interface RenditionOptions {
   manager?: string | Function | object,
   view?: string | Function | object,
   flow?: string,
+  scrollbarWidth?: number,
   layout?: string,
   spread?: string,
   minSpreadWidth?: number,
