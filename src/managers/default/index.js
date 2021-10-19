@@ -468,7 +468,9 @@ class DefaultViewManager {
 			this.scrollLeft = this.container.scrollLeft;
 
 			if (this.settings.rtlScrollType === "default"){
-				left = this.container.scrollLeft;
+				this.scrollLeft = Math.floor(this.container.scrollLeft);
+				// this.container.scrollLeft could has fractional part.
+				left = Math.floor(this.container.scrollLeft);
 
 				if (left > 0) {
 					this.scrollBy(this.layout.delta, 0, true);
@@ -503,7 +505,6 @@ class DefaultViewManager {
 
 		if(next) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
 			let forceRight = false;
@@ -578,9 +579,10 @@ class DefaultViewManager {
 
 		} else if (this.isPaginated && this.settings.axis === "vertical") {
 
-			this.scrollTop = this.container.scrollTop;
+			this.scrollTop = Math.floor(this.container.scrollTop);
 
-			let top = this.container.scrollTop;
+			// this.container.scrollTop could has fractional part.
+			let top = Math.floor(this.container.scrollTop);
 
 			if(top > 0) {
 				this.scrollBy(0, -(this.layout.height), true);
@@ -596,7 +598,6 @@ class DefaultViewManager {
 
 		if(prev) {
 			this.clear();
-			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
 			let forceRight = false;
@@ -942,12 +943,13 @@ class DefaultViewManager {
 		this._stageSize = this.stage.size();
 
 		if(!this.isPaginated) {
-			this.layout.calculate(this._stageSize.width, this._stageSize.height);
+			this.layout.calculate(this._stageSize.width, this._stageSize.height, undefined, this.settings.axis);
 		} else {
 			this.layout.calculate(
 				this._stageSize.width,
 				this._stageSize.height,
-				this.settings.gap
+				this.settings.gap,
+				this.settings.axis
 			);
 
 			// Set the look ahead offset for what is visible
