@@ -69,7 +69,7 @@
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
 
-      var m = contents.mark(cfiRange, {'something' : true}, (e) => {
+      rendition.annotations.mark(cfiRange, {'something' : true}, (e) => {
         var bounds = e.target.getBoundingClientRect();
         var clientX = e.clientX;
 
