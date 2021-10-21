@@ -25,6 +25,7 @@ export interface RenditionOptions {
   overflow?: string,
   snap?: boolean | object,
   defaultDirection?: string,
+  allowScriptedContent?: boolean
 }
 
 export interface DisplayedLocation {

@@ -16,7 +16,8 @@ class IframeView {
 			layout: undefined,
 			globalLayoutProperties: {},
 			method: undefined,
-			forceRight: false
+			forceRight: false,
+			allowScriptedContent: false
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -87,6 +88,12 @@ class IframeView {
 		this.iframe.seamless = "seamless";
 		// Back up if seamless isn't supported
 		this.iframe.style.border = "none";
+
+		// sandbox
+		this.iframe.sandbox = "allow-same-origin";
+		if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
+			this.iframe.sandbox += " allow-scripts"
+		}
 
 		this.iframe.setAttribute("enable-annotation", "true");
 

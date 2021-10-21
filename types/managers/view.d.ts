@@ -10,7 +10,8 @@ export interface ViewSettings {
   method?: string,
   width?: number,
   height?: number,
-  forceEvenPages?: boolean
+  forceEvenPages?: boolean,
+  allowScriptedContent?: boolean
 }
 
 export default class View {
