@@ -21,7 +21,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			width: undefined,
 			height: undefined,
 			snap: false,
-			afterScrolledTimeout: 10
+			afterScrolledTimeout: 10,
+			allowScriptedContent: false
 		});
 
 		extend(this.settings, options.settings || {});
@@ -38,7 +39,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			layout: this.layout,
 			width: 0,
 			height: 0,
-			forceEvenPages: false
+			forceEvenPages: false,
+			allowScriptedContent: this.settings.allowScriptedContent
 		};
 
 		this.scrollTop = 0;

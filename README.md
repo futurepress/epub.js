@@ -88,6 +88,26 @@ Scrolled: `book.renderTo("area", { flow: "scrolled-doc" });`
 
 [View example](http://futurepress.github.io/epub.js/examples/scrolled.html)
 
+## Scripted Content
+
+[Scripted content](https://www.w3.org/TR/epub-33/#sec-scripted-content), JavasScript the ePub HTML content, is disabled by default due to the potential for executing malicious content. 
+
+This is done by sandboxing the iframe the content is rendered into, though it is still recommened to santize the ePub content server-side as well.
+
+If a trusted ePub contains interactivity, it can be enabled by passing `allowScriptedContent: true` to the `Rendition` settings.
+
+```html
+<script>
+  var rendition = book.renderTo("area", {
+    width: 600,
+    height: 400,
+    allowScriptedContent: true
+  });
+</script>
+```
+
+This will allow the sandboxed content to run scripts, but currently makes the sandbox insecure.
+
 ## Documentation
 
 API documentation is available at [epubjs.org/documentation/0.3/](http://epubjs.org/documentation/0.3/)
