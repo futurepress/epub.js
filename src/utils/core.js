@@ -2,7 +2,7 @@
  * Core Utilities and Helpers
  * @module Core
 */
-import { DOMParser as XMLDOMParser } from "xmldom";
+import { DOMParser as XMLDOMParser } from "@xmldom/xmldom";
 
 /**
  * Vendor prefixed requestAnimationFrame
