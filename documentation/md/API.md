@@ -150,7 +150,7 @@ Returns **[Range](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Inpu
 
 ### key
 
-Generates the Book Key using the identifer in the manifest or other string provided
+Generates the Book Key using the identifier in the manifest or other string provided
 
 **Parameters**
 
@@ -350,7 +350,7 @@ Returns **[Section](#section)** last section
 
 Represents a Section of the Book
 
-In most books this is equivelent to a Chapter
+In most books this is equivalent to a Chapter
 
 **Parameters**
 
@@ -389,8 +389,8 @@ Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 
 ### reconcileLayoutSettings
 
-Reconciles the current chapters layout properies with
-the global layout properities.
+Reconciles the current chapters layout properties with
+the global layout properties.
 
 **Parameters**
 
@@ -839,7 +839,7 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 ### revokeUrl
 
-Revoke Temp Url for a achive item
+Revoke Temp Url for a archive item
 
 **Parameters**
 
@@ -1077,7 +1077,7 @@ A Rendered Location Range
 
 Hooks allow for injecting functions that must all complete in order before finishing
 They will execute in parallel but all must finish before continuing
-Functions may return a promise if they are asycn.
+Functions may return a promise if they are async.
 
 **Parameters**
 
@@ -2066,7 +2066,7 @@ Returns **BoundingClientRect**
 
 ### windowBounds
 
-Find the equivelent of getBoundingClientRect of a browser window
+Find the equivalent of getBoundingClientRect of a browser window
 
 Returns **{width: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), height: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), top: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), left: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), right: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number), bottom: [Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}** 
 
@@ -2225,7 +2225,7 @@ Create a treeWalker
 
 -   `root` **[element](https://developer.mozilla.org/en-US/docs/Web/API/Element)** element to start with
 -   `func` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function to run on each element
--   `filter` **([function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function) \| [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object))** funtion or object to filter with
+-   `filter` **([function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function) \| [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object))** function or object to filter with
 
 ### walk
 
@@ -2264,7 +2264,7 @@ Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 
 ### findChildren
 
-Find direct decendents of an element
+Find direct descendents of an element
 
 **Parameters**
 
@@ -2284,7 +2284,7 @@ Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 
 ### filterChildren
 
-Find all direct decendents of a specific type
+Find all direct descendents of a specific type
 
 **Parameters**
 

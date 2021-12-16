@@ -73,7 +73,7 @@ class Mapping {
 	walk(root, func) {
 		// IE11 has strange issue, if root is text node IE throws exception on
 		// calling treeWalker.nextNode(), saying
-		// Unexpected call to method or property access instead of returing null value
+		// Unexpected call to method or property access instead of returning null value
 		if(root && root.nodeType === Node.TEXT_NODE) {
 			return;
 		}
