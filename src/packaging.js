@@ -167,6 +167,7 @@ class Packaging {
 			// var manifestPropArray = manifestProps.length ? manifestProps.split(" ") : [];
 
 			var itemref = {
+				"id" : item.getAttribute("id"),
 				"idref" : idref,
 				"linear" : item.getAttribute("linear") || "yes",
 				"properties" : propArray,
