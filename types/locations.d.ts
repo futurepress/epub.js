@@ -5,13 +5,13 @@ import EpubCFI from "./epubcfi";
 export default class Locations {
   constructor(spine: Spine, request?: Function, pause?: number);
 
-  generate(chars: number): object;
+  generate(chars: number): Promise<Array<string>>;
 
   process(section: Section): Promise<Array<string>>;
 
-	locationFromCfi(cfi: string | EpubCFI): Location;
+  locationFromCfi(cfi: string | EpubCFI): Location;
 
-	percentageFromCfi(cfi: string | EpubCFI): number;
+  percentageFromCfi(cfi: string | EpubCFI): number;
 
   percentageFromLocation(loc: number): number;
 
@@ -19,7 +19,7 @@ export default class Locations {
 
   cfiFromPercentage(percentage: number): string;
 
-	load(locations: string): Array<string>;
+  load(locations: string): Array<string>;
 
   save(): string;
 
