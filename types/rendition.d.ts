@@ -32,6 +32,8 @@ export interface DisplayedLocation {
   index: number,
   href: string,
   cfi: string,
+  location: number,
+  percentage: number,
   displayed: {
     page: number,
     total: number
