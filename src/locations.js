@@ -39,10 +39,21 @@ class Locations {
 	 * @param  {int} chars how many chars to split on
 	 * @return {object} locations
 	 */
-	generate(chars) {
+	generate(chars, cachedLocations) {
 
 		if (chars) {
 			this.break = chars;
+		}
+
+		if (cachedLocations && Array.isArray(cachedLocations)) {
+			this._locations = cachedLocations;
+			this.total = cachedLocations.length - 1;
+
+			if (this._currentCfi) {
+				this.currentLocation = this._currentCfi;
+			}
+
+			return this._locations;
 		}
 
 		this.q.pause();

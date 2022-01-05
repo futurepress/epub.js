@@ -5,7 +5,7 @@ import EpubCFI from "./epubcfi";
 export default class Locations {
   constructor(spine: Spine, request?: Function, pause?: number);
 
-  generate(chars: number): object;
+  generate(chars: number, cachedLocations?: Array<string>): object;
 
   process(section: Section): Promise<Array<string>>;
 

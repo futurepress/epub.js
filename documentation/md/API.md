@@ -435,6 +435,7 @@ Find Locations for a Book
 ### generate
 
 Load all of sections in the book to generate locations
+Allows passing a cached array locations to faster load percentages
 
 **Parameters**
 

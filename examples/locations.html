@@ -80,7 +80,10 @@
 				// Or generate the locations on the fly
 				// Can pass an option number of chars to break sections by
 				// default is 150 chars
-				return book.locations.generate(1600);
+				const cachedLocations = JSON.parse(localStorage.getItem('moby-dick-locations'));
+				const generatedLocations =  book.locations.generate(1600, cachedLocations);
+				localStorage.setItem('moby-dick-locations', JSON.stringify(generatedLocations));
+				return generatedLocations;
 			}
 		})
 		.then(function(locations){
