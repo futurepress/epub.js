@@ -91,7 +91,7 @@ class IframeView {
 
 		// sandbox
 		this.iframe.sandbox = "allow-same-origin";
-		if (this.settings.allowScriptedContent && this.section.properties.indexOf("scripted") > -1) {
+		if (this.settings.allowScriptedContent) {
 			this.iframe.sandbox += " allow-scripts"
 		}
 
