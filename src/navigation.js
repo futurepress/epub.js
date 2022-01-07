@@ -191,7 +191,8 @@ class Navigation {
 	 */
 	navItem(item, parent) {
 		let id = item.getAttribute("id") || undefined;
-		let content = filterChildren(item, "a", true);
+		let content = filterChildren(item, "a", true)
+			|| filterChildren(item, "span", true);
 
 		if (!content) {
 			return;
