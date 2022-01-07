@@ -714,7 +714,7 @@ class Book {
 	}
 
 	/**
-	 * Generates the Book Key using the identifer in the manifest or other string provided
+	 * Generates the Book Key using the identifier in the manifest or other string provided
 	 * @param  {string} [identifier] to use instead of metadata identifier
 	 * @return {string} key
 	 */

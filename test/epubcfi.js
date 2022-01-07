@@ -34,7 +34,7 @@ describe('EpubCFI', function() {
 			assert.equal( parsed.spinePos, 0, "base is ignored and spinePos is parsed as the first item" );
 		});
 
-		it('parse a cfi with a charecter offset', function() {
+		it('parse a cfi with a character offset', function() {
 			var parsed = cfi.parse("epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)");
 
 			assert.equal( parsed.path.terminal.offset, 3, "Path has a terminal offset of 3" );
@@ -285,7 +285,7 @@ describe('EpubCFI', function() {
 
 		});
 
-		it('get a cfi from a range inbetween two highlights', function() {
+		it('get a cfi from a range in between two highlights', function() {
 			var t1 = docHighlightsAlice.getElementById('p2').childNodes[1];
 			var range = docHighlightsAlice.createRange();
 			var cfi;

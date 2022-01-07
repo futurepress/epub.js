@@ -233,7 +233,7 @@ class Archive {
 	}
 
 	/**
-	 * Revoke Temp Url for a achive item
+	 * Revoke Temp Url for a archive item
 	 * @param  {string} url url of the item in the archive
 	 */
 	revokeUrl(url){

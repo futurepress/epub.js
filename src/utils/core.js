@@ -322,7 +322,7 @@ export function nodeBounds(node) {
 }
 
 /**
- * Find the equivelent of getBoundingClientRect of a browser window
+ * Find the equivalent of getBoundingClientRect of a browser window
  * @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
  * @memberof Core
  */
@@ -590,7 +590,7 @@ export function sprint(root, func) {
  * @memberof Core
  * @param  {element} root element to start with
  * @param  {function} func function to run on each element
- * @param  {function | object} filter funtion or object to filter with
+ * @param  {function | object} filter function or object to filter with
  */
 export function treeWalker(root, func, filter) {
 	var treeWalker = document.createTreeWalker(root, filter, null, false);
@@ -653,7 +653,7 @@ export function defer() {
 	 */
 	this.resolve = null;
 
-	/* A method to reject the assocaited Promise with the value passed.
+	/* A method to reject the associated Promise with the value passed.
 	 * If the promise is already settled it does nothing.
 	 *
 	 * @param {anything} reason: The reason for the rejection of the Promise.
@@ -702,7 +702,7 @@ export function querySelectorByType(html, element, type){
 }
 
 /**
- * Find direct decendents of an element
+ * Find direct descendents of an element
  * @param {element} el
  * @returns {element[]} children
  * @memberof Core
@@ -734,7 +734,7 @@ export function parents(node) {
 }
 
 /**
- * Find all direct decendents of a specific type
+ * Find all direct descendents of a specific type
  * @param {element} el
  * @param {string} nodeName
  * @param {boolean} [single]

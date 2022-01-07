@@ -1,7 +1,7 @@
 /**
  * Hooks allow for injecting functions that must all complete in order before finishing
  * They will execute in parallel but all must finish before continuing
- * Functions may return a promise if they are asycn.
+ * Functions may return a promise if they are async.
  * @param {any} context scope of this
  * @example this.content = new EPUBJS.Hook(this);
  */

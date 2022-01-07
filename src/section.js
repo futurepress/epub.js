@@ -9,7 +9,7 @@ import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
 /**
  * Represents a Section of the Book
  *
- * In most books this is equivelent to a Chapter
+ * In most books this is equivalent to a Chapter
  * @param {object} item  The spine item representing the section
  * @param {object} hooks hooks for serialize and content
  */
@@ -179,7 +179,7 @@ class Section {
 	/**
 	 * Search a string in multiple sequential Element of the section. If the document.createTreeWalker api is missed(eg: IE8), use `find` as a fallback.
 	 * @param  {string} _query The query string to search
-	 * @param  {int} maxSeqEle The maximum number of Element that are combined for search, defualt value is 5.
+	 * @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
 	 * @return {object[]} A list of matches, with form {cfi, excerpt}
 	 */
 	search(_query , maxSeqEle = 5){
@@ -245,8 +245,8 @@ class Section {
 	}
 
 	/**
-	* Reconciles the current chapters layout properies with
-	* the global layout properities.
+	* Reconciles the current chapters layout properties with
+	* the global layout properties.
 	* @param {object} globalLayout  The global layout settings object, chapter properties string
 	* @return {object} layoutProperties Object with layout properties
 	*/
