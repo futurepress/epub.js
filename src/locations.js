@@ -37,7 +37,7 @@ class Locations {
 	/**
 	 * Load all of sections in the book to generate locations
 	 * @param  {int} chars how many chars to split on
-	 * @return {object} locations
+	 * @return {Promise<Array<string>>} locations
 	 */
 	generate(chars) {
 
