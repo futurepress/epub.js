@@ -38,6 +38,7 @@ import ContinuousViewManager from "./managers/continuous/index";
  * @param {boolean | object} [options.snap=false] use snap scrolling
  * @param {string} [options.defaultDirection='ltr'] default text direction
  * @param {boolean} [options.allowScriptedContent=false] enable running scripts in content
+ * @param {boolean} [options.allowPopups=false] enable opening popup in content
  */
 class Rendition {
 	constructor(book, options) {
@@ -57,7 +58,8 @@ class Rendition {
 			script: null,
 			snap: false,
 			defaultDirection: "ltr",
-			allowScriptedContent: false
+			allowScriptedContent: false,
+			allowPopups: false
 		});
 
 		extend(this.settings, options);

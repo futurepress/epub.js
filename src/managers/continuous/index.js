@@ -22,7 +22,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			height: undefined,
 			snap: false,
 			afterScrolledTimeout: 10,
-			allowScriptedContent: false
+			allowScriptedContent: false,
+			allowPopups: false
 		});
 
 		extend(this.settings, options.settings || {});
@@ -40,7 +41,8 @@ class ContinuousViewManager extends DefaultViewManager {
 			width: 0,
 			height: 0,
 			forceEvenPages: false,
-			allowScriptedContent: this.settings.allowScriptedContent
+			allowScriptedContent: this.settings.allowScriptedContent,
+			allowPopups: this.settings.allowPopups
 		};
 
 		this.scrollTop = 0;
@@ -382,7 +384,7 @@ class ContinuousViewManager extends DefaultViewManager {
 			} else {
 				if(this.settings.direction === 'rtl') {
 					if (!this.settings.fullsize) {
-						this.scrollTo(prevLeft, 0, true);					
+						this.scrollTo(prevLeft, 0, true);
 					} else {
 						this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
 					}
