@@ -1,4 +1,4 @@
-import {defer, requestAnimationFrame} from "./core";
+import { defer, requestAnimationFrame } from "./core.js";
 
 /**
  * Queue for handling tasks one at a time

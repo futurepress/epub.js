@@ -1,5 +1,5 @@
-import {uuid, isNumber, isElement, windowBounds, extend} from "../../utils/core";
-import throttle from 'lodash/throttle'
+import {uuid, isNumber, isElement, windowBounds, extend, throttle} from "../../utils/core.js";
+// import throttle from 'lodash/throttle'
 
 class Stage {
 	constructor(_options) {

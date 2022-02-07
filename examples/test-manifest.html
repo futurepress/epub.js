@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Spreads Example</title>
+
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script> -->
+  <!-- <script src="../dist/epub.js"></script> -->
+  <!-- <script src="../src/index.js" type="module"></script> -->
+  <!-- <script type="importmap">
+      {
+        "imports": {
+          "event-emitter" : "../node_modules/event-emitter/index.js",
+        }
+      }
+    </script> -->
+  <link rel="stylesheet" type="text/css" href="examples.css">
+
+</head>
+<body>
+  <!-- <div id="title"></div> -->
+  <select id="toc"></select>
+  <div id="viewer" class="spreads"></div>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
+
+  <script type="module">
+    import { Manifest, Rendition } from "../src/index.js"
+
+    const params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+    const url = params && params.get("url") && decodeURIComponent(params.get("url"));
+    const currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
+
+    // Load the opf
+    // let book = await new Epub(url || "https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    let book = await new Manifest(url || "/books/alice-manifest/manifest.jsonld");
+
+    book.opened.then(() => {
+      console.log("Manifest", book);
+    })
+    
+    let rendition = new Rendition(book, {
+      element: "viewer",
+      width: "100%",
+      height: 600,
+      spread: "always"
+    });
+
+    let displayed = await rendition.display(currentSectionIndex);
+
+
+    let next = document.getElementById("next");
+    next.addEventListener("click", function (e) {
+      book.metadata.readingProgression === "rtl" ? rendition.prev() : rendition.next();
+      e.preventDefault();
+    }, false);
+
+    let prev = document.getElementById("prev");
+    prev.addEventListener("click", function (e) {
+      book.metadata.readingProgression === "rtl" ? rendition.next() : rendition.prev();
+      e.preventDefault();
+    }, false);
+
+    let keyListener = function (e) {
+
+      // Left Key
+      if ((e.keyCode || e.which) == 37) {
+        book.metadata.readingProgression === "rtl" ? rendition.next() : rendition.prev();
+      }
+
+      // Right Key
+      if ((e.keyCode || e.which) == 39) {
+        book.metadata.readingProgression === "rtl" ? rendition.prev() : rendition.next();
+      }
+
+    };
+
+    rendition.on("keyup", keyListener);
+    document.addEventListener("keyup", keyListener, false);
+
+
+    var title = document.getElementById("title");
+
+    rendition.on("rendered", function(section){
+      var current = book.navigation && book.navigation.get(section.url);
+
+      if (current) {
+        var $select = document.getElementById("toc");
+        var $selected = $select.querySelector("option[selected]");
+        if ($selected) {
+          $selected.removeAttribute("selected");
+        }
+
+        var $options = $select.querySelectorAll("option");
+        for (var i = 0; i < $options.length; ++i) {
+          let selected = $options[i].getAttribute("ref") === current.url;
+          if (selected) {
+            $options[i].setAttribute("selected", "");
+          }
+        }
+      }
+
+    });
+
+    rendition.on("relocated", function(location){
+      console.log(location);
+
+      var next = book.metadata.readingProgression === "rtl" ?  document.getElementById("prev") : document.getElementById("next");
+      var prev = book.metadata.readingProgression === "rtl" ?  document.getElementById("next") : document.getElementById("prev");
+
+      if (location.atEnd) {
+        next.style.visibility = "hidden";
+      } else {
+        next.style.visibility = "visible";
+      }
+
+      if (location.atStart) {
+        prev.style.visibility = "hidden";
+      } else {
+        prev.style.visibility = "visible";
+      }
+
+    });
+
+    rendition.on("layout", function(layout) {
+      let viewer = document.getElementById("viewer");
+
+      if (layout.spread) {
+        viewer.classList.remove('single');
+      } else {
+        viewer.classList.add('single');
+      }
+    });
+
+    window.addEventListener("unload", function () {
+      rendition.destroy();
+      book.destroy();
+    });
+
+
+    let $select = document.getElementById("toc");
+    let docfrag = document.createDocumentFragment();
+    book.navigation.forEach(function(chapter) {
+      let option = document.createElement("option");
+      option.textContent = chapter.name;
+      option.setAttribute("ref", chapter.url);
+
+      docfrag.appendChild(option);
+    });
+
+    $select.appendChild(docfrag);
+
+    $select.onchange = function(){
+        let index = $select.selectedIndex;
+        let url = $select.options[index].getAttribute("ref");
+        rendition.display(url);
+        return false;
+    };
+
+  </script>
+
+</body>
+</html>

@@ -1,8 +1,9 @@
 /**
  * Core Utilities and Helpers
  * @module Core
-*/
-import { DOMParser as XMLDOMParser } from "@xmldom/xmldom";
+ */
+
+import { XML_NS } from "./constants.js";
 
 /**
  * Vendor prefixed requestAnimationFrame
@@ -10,11 +11,10 @@ import { DOMParser as XMLDOMParser } from "@xmldom/xmldom";
  * @memberof Core
  */
 export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
-const ELEMENT_NODE = 1;
-const TEXT_NODE = 3;
-const COMMENT_NODE = 8;
-const DOCUMENT_NODE = 9;
-const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
+export const ELEMENT_NODE = 1;
+export const TEXT_NODE = 3;
+export const COMMENT_NODE = 8;
+export const DOCUMENT_NODE = 9;
 
 /**
  * Generates a UUID
@@ -24,12 +24,14 @@ const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (
  */
 export function uuid() {
 	var d = new Date().getTime();
-	var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-		var r = (d + Math.random()*16)%16 | 0;
-		d = Math.floor(d/16);
-		return (c=="x" ? r : (r&0x7|0x8)).toString(16);
+	if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+		d += performance.now(); //use high-precision timer if available
+	}
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+		var r = (d + Math.random() * 16) % 16 | 0;
+		d = Math.floor(d / 16);
+		return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
 	});
-	return uuid;
 }
 
 /**
@@ -39,11 +41,11 @@ export function uuid() {
  */
 export function documentHeight() {
 	return Math.max(
-			document.documentElement.clientHeight,
-			document.body.scrollHeight,
-			document.documentElement.scrollHeight,
-			document.body.offsetHeight,
-			document.documentElement.offsetHeight
+		document.documentElement.clientHeight,
+		document.body.scrollHeight,
+		document.documentElement.scrollHeight,
+		document.body.offsetHeight,
+		document.documentElement.offsetHeight
 	);
 }
 
@@ -92,18 +94,18 @@ export function isFloat(n) {
  * @memberof Core
  */
 export function prefixed(unprefixed) {
-	var vendors = ["Webkit", "webkit", "Moz", "O", "ms" ];
+	var vendors = ["Webkit", "webkit", "Moz", "O", "ms"];
 	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
-	var lower = unprefixed.toLowerCase();
+	var upper = unprefixed[0].toUpperCase() + unprefixed.slice(1);
 	var length = vendors.length;
 
-	if (typeof(document) === "undefined" || typeof(document.body.style[lower]) != "undefined") {
+	if (typeof (document) === "undefined" || typeof (document.body.style[unprefixed]) != "undefined") {
 		return unprefixed;
 	}
 
 	for (var i = 0; i < length; i++) {
-		if (typeof(document.body.style[prefixes[i] + lower]) != "undefined") {
-			return prefixes[i] + lower;
+		if (typeof (document.body.style[vendors[i] + upper]) != "undefined") {
+			return prefixes[i] + unprefixed;
 		}
 	}
 
@@ -135,8 +137,8 @@ export function defaults(obj) {
 export function extend(target) {
 	var sources = [].slice.call(arguments, 1);
 	sources.forEach(function (source) {
-		if(!source) return;
-		Object.getOwnPropertyNames(source).forEach(function(propName) {
+		if (!source) return;
+		Object.getOwnPropertyNames(source).forEach(function (propName) {
 			Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
 		});
 	});
@@ -174,27 +176,27 @@ export function locationOf(item, array, compareFunction, _start, _end) {
 	var end = _end || array.length;
 	var pivot = parseInt(start + (end - start) / 2);
 	var compared;
-	if(!compareFunction){
-		compareFunction = function(a, b) {
-			if(a > b) return 1;
-			if(a < b) return -1;
-			if(a == b) return 0;
+	if (!compareFunction) {
+		compareFunction = function (a, b) {
+			if (a > b) return 1;
+			if (a < b) return -1;
+			if (a == b) return 0;
 		};
 	}
-	if(end-start <= 0) {
+	if (end - start <= 0) {
 		return pivot;
 	}
 
 	compared = compareFunction(array[pivot], item);
-	if(end-start === 1) {
+	if (end - start === 1) {
 		return compared >= 0 ? pivot : pivot + 1;
 	}
-	if(compared === 0) {
+	if (compared === 0) {
 		return pivot;
 	}
-	if(compared === -1) {
+	if (compared === -1) {
 		return locationOf(item, array, compareFunction, pivot, end);
-	} else{
+	} else {
 		return locationOf(item, array, compareFunction, start, pivot);
 	}
 }
@@ -215,27 +217,27 @@ export function indexOfSorted(item, array, compareFunction, _start, _end) {
 	var end = _end || array.length;
 	var pivot = parseInt(start + (end - start) / 2);
 	var compared;
-	if(!compareFunction){
-		compareFunction = function(a, b) {
-			if(a > b) return 1;
-			if(a < b) return -1;
-			if(a == b) return 0;
+	if (!compareFunction) {
+		compareFunction = function (a, b) {
+			if (a > b) return 1;
+			if (a < b) return -1;
+			if (a == b) return 0;
 		};
 	}
-	if(end-start <= 0) {
+	if (end - start <= 0) {
 		return -1; // Not found
 	}
 
 	compared = compareFunction(array[pivot], item);
-	if(end-start === 1) {
+	if (end - start === 1) {
 		return compared === 0 ? pivot : -1;
 	}
-	if(compared === 0) {
+	if (compared === 0) {
 		return pivot; // Found
 	}
-	if(compared === -1) {
+	if (compared === -1) {
 		return indexOfSorted(item, array, compareFunction, pivot, end);
-	} else{
+	} else {
 		return indexOfSorted(item, array, compareFunction, start, pivot);
 	}
 }
@@ -255,11 +257,11 @@ export function bounds(el) {
 	var width = 0;
 	var height = 0;
 
-	widthProps.forEach(function(prop){
+	widthProps.forEach(function (prop) {
 		width += parseFloat(style[prop]) || 0;
 	});
 
-	heightProps.forEach(function(prop){
+	heightProps.forEach(function (prop) {
 		height += parseFloat(style[prop]) || 0;
 	});
 
@@ -286,11 +288,11 @@ export function borders(el) {
 	var width = 0;
 	var height = 0;
 
-	widthProps.forEach(function(prop){
+	widthProps.forEach(function (prop) {
 		width += parseFloat(style[prop]) || 0;
 	});
 
-	heightProps.forEach(function(prop){
+	heightProps.forEach(function (prop) {
 		height += parseFloat(style[prop]) || 0;
 	});
 
@@ -311,7 +313,7 @@ export function borders(el) {
 export function nodeBounds(node) {
 	let elPos;
 	let doc = node.ownerDocument;
-	if(node.nodeType == Node.TEXT_NODE){
+	if (node.nodeType == Node.TEXT_NODE) {
 		let elRange = doc.createRange();
 		elRange.selectNodeContents(node);
 		elPos = elRange.getBoundingClientRect();
@@ -322,7 +324,7 @@ export function nodeBounds(node) {
 }
 
 /**
- * Find the equivalent of getBoundingClientRect of a browser window
+ * Find the equivelent of getBoundingClientRect of a browser window
  * @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
  * @memberof Core
  */
@@ -402,8 +404,10 @@ export function isXml(ext) {
  * @returns {Blob}
  * @memberof Core
  */
-export function createBlob(content, mime){
-	return new Blob([content], {type : mime });
+export function createBlob(content, mime) {
+	return new Blob([content], {
+		type: mime
+	});
 }
 
 /**
@@ -413,11 +417,11 @@ export function createBlob(content, mime){
  * @returns {string} url
  * @memberof Core
  */
-export function createBlobUrl(content, mime){
+export function createBlobUrl(content, mime) {
 	var tempUrl;
 	var blob = createBlob(content, mime);
 
-	tempUrl = _URL.createObjectURL(blob);
+	tempUrl = URL.createObjectURL(blob);
 
 	return tempUrl;
 }
@@ -427,8 +431,8 @@ export function createBlobUrl(content, mime){
  * @param {string} url
  * @memberof Core
  */
-export function revokeBlobUrl(url){
-	return _URL.revokeObjectURL(url);
+export function revokeBlobUrl(url) {
+	return URL.revokeObjectURL(url);
 }
 
 /**
@@ -438,11 +442,11 @@ export function revokeBlobUrl(url){
  * @returns {string} url
  * @memberof Core
  */
-export function createBase64Url(content, mime){
+export function createBase64Url(content, mime) {
 	var data;
 	var datauri;
 
-	if (typeof(content) !== "string") {
+	if (typeof (content) !== "string") {
 		// Only handles strings
 		return;
 	}
@@ -460,7 +464,7 @@ export function createBase64Url(content, mime){
  * @returns {string} type
  * @memberof Core
  */
-export function type(obj){
+export function type(obj) {
 	return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
@@ -468,23 +472,17 @@ export function type(obj){
  * Parse xml (or html) markup
  * @param {string} markup
  * @param {string} mime
- * @param {boolean} forceXMLDom force using xmlDom to parse instead of native parser
+ * @param {DOMParser} parser use xmlDom to parse instead of native parser
  * @returns {document} document
  * @memberof Core
  */
-export function parse(markup, mime, forceXMLDom) {
-	var doc;
-	var Parser;
-
-	if (typeof DOMParser === "undefined" || forceXMLDom) {
-		Parser = XMLDOMParser;
-	} else {
-		Parser = DOMParser;
-	}
+export function parse(markup, mime, parser) {
+	let doc;
+	const Parser = parser || DOMParser;
 
 	// Remove byte order mark before parsing
 	// https://www.w3.org/International/questions/qa-byte-order-mark
-	if(markup.charCodeAt(0) === 0xFEFF) {
+	if (markup.charCodeAt(0) === 0xFEFF) {
 		markup = markup.slice(1);
 	}
 
@@ -548,12 +546,13 @@ export function qsp(el, sel, props) {
 			sel += prop + "~='" + props[prop] + "'";
 		}
 		sel += "]";
+
 		return el.querySelector(sel);
 	} else {
 		q = el.getElementsByTagName(sel);
-		filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
+		filtered = Array.prototype.slice.call(q, 0).filter(function (el) {
 			for (var prop in props) {
-				if(el.getAttribute(prop) === props[prop]){
+				if (el.getAttribute(prop) === props[prop]) {
 					return true;
 				}
 			}
@@ -574,10 +573,10 @@ export function qsp(el, sel, props) {
  */
 export function sprint(root, func) {
 	var doc = root.ownerDocument || root;
-	if (typeof(doc.createTreeWalker) !== "undefined") {
+	if (typeof (doc.createTreeWalker) !== "undefined") {
 		treeWalker(root, func, NodeFilter.SHOW_TEXT);
 	} else {
-		walk(root, function(node) {
+		walk(root, function (node) {
 			if (node && node.nodeType === 3) { // Node.TEXT_NODE
 				func(node);
 			}
@@ -590,7 +589,7 @@ export function sprint(root, func) {
  * @memberof Core
  * @param  {element} root element to start with
  * @param  {function} func function to run on each element
- * @param  {function | object} filter function or object to filter with
+ * @param  {function | object} filter funtion or object to filter with
  */
 export function treeWalker(root, func, filter) {
 	var treeWalker = document.createTreeWalker(root, filter, null, false);
@@ -605,19 +604,19 @@ export function treeWalker(root, func, filter) {
  * @param {node} node
  * @param {callback} return false for continue,true for break inside callback
  */
-export function walk(node,callback){
-	if(callback(node)){
+export function walk(node, callback) {
+	if (callback(node)) {
 		return true;
 	}
 	node = node.firstChild;
-	if(node){
-		do{
-			let walked = walk(node,callback);
-			if(walked){
+	if (node) {
+		do {
+			let walked = walk(node, callback);
+			if (walked) {
 				return true;
 			}
 			node = node.nextSibling;
-		} while(node);
+		} while (node);
 	}
 }
 
@@ -628,10 +627,10 @@ export function walk(node,callback){
  * @memberof Core
  */
 export function blob2base64(blob) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		var reader = new FileReader();
 		reader.readAsDataURL(blob);
-		reader.onloadend = function() {
+		reader.onloadend = function () {
 			resolve(reader.result);
 		};
 	});
@@ -653,7 +652,7 @@ export function defer() {
 	 */
 	this.resolve = null;
 
-	/* A method to reject the associated Promise with the value passed.
+	/* A method to reject the assocaited Promise with the value passed.
 	 * If the promise is already settled it does nothing.
 	 *
 	 * @param {anything} reason: The reason for the rejection of the Promise.
@@ -682,17 +681,17 @@ export function defer() {
  * @returns {element[]} elements
  * @memberof Core
  */
-export function querySelectorByType(html, element, type){
+export function querySelectorByType(html, element, type) {
 	var query;
 	if (typeof html.querySelector != "undefined") {
 		query = html.querySelector(`${element}[*|type="${type}"]`);
 	}
 	// Handle IE not supporting namespaced epub:type in querySelector
-	if(!query || query.length === 0) {
+	if (!query || query.length === 0) {
 		query = qsa(html, element);
 		for (var i = 0; i < query.length; i++) {
-			if(query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
-				 query[i].getAttribute("epub:type") === type) {
+			if (query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
+				query[i].getAttribute("epub:type") === type) {
 				return query[i];
 			}
 		}
@@ -702,7 +701,7 @@ export function querySelectorByType(html, element, type){
 }
 
 /**
- * Find direct descendents of an element
+ * Find direct decendents of an element
  * @param {element} el
  * @returns {element[]} children
  * @memberof Core
@@ -730,11 +729,11 @@ export function parents(node) {
 	for (; node; node = node.parentNode) {
 		nodes.unshift(node);
 	}
-	return nodes
+	return nodes;
 }
 
 /**
- * Find all direct descendents of a specific type
+ * Find all direct decendents of a specific type
  * @param {element} el
  * @param {string} nodeName
  * @param {boolean} [single]
@@ -768,7 +767,7 @@ export function filterChildren(el, nodeName, single) {
  */
 export function getParentByTagName(node, tagname) {
 	let parent;
-	if (node === null || tagname === '') return;
+	if (node === null || tagname === "") return;
 	parent = node.parentNode;
 	while (parent.nodeType === 1) {
 		if (parent.tagName.toLowerCase() === tagname) {
@@ -776,6 +775,44 @@ export function getParentByTagName(node, tagname) {
 		}
 		parent = parent.parentNode;
 	}
+}
+
+/**
+ * Get the next section in the spine
+ */
+export function nextSection(section, readingOrder) {
+	let nextIndex = section.index;
+	if (nextIndex < readingOrder.length - 1) {
+		return readingOrder.get(nextIndex + 1);
+	}
+	return;
+}
+
+/**
+ * Get the previous section in the spine
+ */
+export function prevSection(section, readingOrder) {
+	let prevIndex = section.index;
+	if (prevIndex > 0) {
+		return readingOrder.get(prevIndex - 1);
+	}
+	return;
+}
+
+/**
+ * Serialize the contents of a document
+ */
+export function serialize(doc) {
+	let userAgent = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+	let isIE = userAgent.indexOf("Trident") >= 0;
+	let Serializer;
+	if (typeof XMLSerializer === "undefined" || isIE) {
+		// Serializer = XMLDom.XMLSerializer;
+	} else {
+		Serializer = XMLSerializer;
+	}
+	let serializer = new Serializer();
+	return serializer.serializeToString(doc);
 }
 
 /**
@@ -841,9 +878,9 @@ export class RangeObject {
 	}
 
 	selectNodeContents(referenceNode) {
-		let end = referenceNode.childNodes[referenceNode.childNodes - 1];
+		// let end = referenceNode.childNodes[referenceNode.childNodes - 1];
 		let endIndex = (referenceNode.nodeType === 3) ?
-				referenceNode.textContent.length : parent.childNodes.length;
+			referenceNode.textContent.length : parent.childNodes.length;
 		this.setStart(referenceNode, 0);
 		this.setEnd(referenceNode, endIndex);
 	}
@@ -863,7 +900,7 @@ export class RangeObject {
 
 	_checkCollapsed() {
 		if (this.startContainer === this.endContainer &&
-				this.startOffset === this.endOffset) {
+			this.startOffset === this.endOffset) {
 			this.collapsed = true;
 		} else {
 			this.collapsed = false;
@@ -873,4 +910,46 @@ export class RangeObject {
 	toString() {
 		// TODO: implement walking between start and end to find text
 	}
+}
+
+export function debounce(func, timeout = 300) {
+	let timer;
+	return (...args) => {
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			func.apply(this, args);
+		}, timeout);
+	};
+}
+
+export function throttle(func, wait = 300, options = {}) {
+	let result;
+	let timeout = null;
+	let previous = 0;
+	return (...args) => {
+		let now = Date.now();
+		if (!previous && options.leading === false) {
+			previous = now;
+		}
+		let remaining = wait - (now - previous);
+		if (remaining <= 0 || remaining > wait) {
+			if (timeout) {
+				clearTimeout(timeout);
+				timeout = null;
+			}
+			previous = now;
+			result = func.apply(this, args);
+		} else if (!timeout && options.trailing !== false) {
+			timeout = setTimeout(() => {
+				previous = (options.leading === false) ? 0 : Date.now();
+				timeout = null;
+				result = func.apply(this, args);
+			}, remaining);
+		}
+		return result;
+	};
+}
+
+export function isXMLDocument(doc) {
+	return doc && doc.documentElement.getAttribute('xmlns') === XML_NS;
 }

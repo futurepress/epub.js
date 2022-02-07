@@ -1,13 +1,15 @@
-import Book from "./book";
-import EpubCFI from "./epubcfi";
-import Rendition from "./rendition";
-import Contents from "./contents";
-import Layout from "./layout";
-import ePub from "./epub";
-
-export default ePub;
+import Publication from "./publication/publication.js";
+import EpubCFI from "./utils/epubcfi.js";
+import Rendition from "./rendition/rendition.js";
+import Contents from "./rendition/contents.js";
+import Layout from "./rendition/layout.js";
+import Epub from "./epub/epub.js";
+import Manifest from "./manifest/manifest.js";
+// import ePub from "./epub.js";
 export {
-	Book,
+	Publication,
+	Epub,
+	Manifest,
 	EpubCFI,
 	Rendition,
 	Contents,

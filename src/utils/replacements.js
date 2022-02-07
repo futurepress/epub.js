@@ -1,11 +1,10 @@
-import { qs, qsa } from "./core";
-import Url from "./url";
-import Path from "./path";
+import { qs } from "./core.js";
+import { createUrl, isAbsolute } from "./url.js";
 
 export function replaceBase(doc, section){
 	var base;
 	var head;
-	var url = section.url;
+	var url = section.href;
 	var absolute = (url.indexOf("://") > -1);
 
 	if(!doc){
@@ -21,8 +20,14 @@ export function replaceBase(doc, section){
 	}
 
 	// Fix for Safari crashing if the url doesn't have an origin
-	if (!absolute && window && window.location) {
-		url = window.location.origin + url;
+	if (!absolute && (typeof(window) !== "undefined" && window.location)) {
+		let parts = window.location.href.split("/")
+		let directory = "";
+
+		parts.pop();
+		directory = parts.join("/");
+
+		url = directory + url;
 	}
 
 	base.setAttribute("href", url);
@@ -31,7 +36,7 @@ export function replaceBase(doc, section){
 export function replaceCanonical(doc, section){
 	var head;
 	var link;
-	var url = section.canonical;
+	var url = section.canonical || section.href;
 
 	if(!doc){
 		return;
@@ -53,7 +58,7 @@ export function replaceCanonical(doc, section){
 export function replaceMeta(doc, section){
 	var head;
 	var meta;
-	var id = section.idref;
+	var id = section.idref || section.href;
 	if(!doc){
 		return;
 	}
@@ -74,15 +79,15 @@ export function replaceMeta(doc, section){
 // TODO: move me to Contents
 export function replaceLinks(contents, fn) {
 
-	var links = contents.querySelectorAll("a[href]");
+	let links = contents.querySelectorAll("a[href]");
 
 	if (!links.length) {
 		return;
 	}
 
-	var base = qs(contents.ownerDocument, "base");
-	var location = base ? base.getAttribute("href") : undefined;
-	var replaceLink = function(link){
+	let base = qs(contents.ownerDocument, "base");
+	let location = base ? base.getAttribute("href") : contents.ownerDocument.defaultView.location.href;
+	let replaceLink = function(link){
 		var href = link.getAttribute("href");
 
 		if(href.indexOf("mailto:") === 0){
@@ -91,27 +96,14 @@ export function replaceLinks(contents, fn) {
 
 		var absolute = (href.indexOf("://") > -1);
 
-		if(absolute){
+		if(isAbsolute(href)){
 
 			link.setAttribute("target", "_blank");
 
 		}else{
-			var linkUrl;
-			try {
-				linkUrl = new Url(href, location);	
-			} catch(error) {
-				// NOOP
-			}
-
 			link.onclick = function(){
-
-				if(linkUrl && linkUrl.hash) {
-					fn(linkUrl.Path.path + linkUrl.hash);
-				} else if(linkUrl){
-					fn(linkUrl.Path.path);
-				} else {
-					fn(href);
-				}
+				let linkUrl = createUrl(href, location);
+				fn(linkUrl.toString());
 
 				return false;
 			};
@@ -128,9 +120,6 @@ export function replaceLinks(contents, fn) {
 export function substitute(content, urls, replacements) {
 	urls.forEach(function(url, i){
 		if (url && replacements[i]) {
-			// Account for special characters in the file name.
-			// See https://stackoverflow.com/a/6318729.
-			url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 			content = content.replace(new RegExp(url, "g"), replacements[i]);
 		}
 	});

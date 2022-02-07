@@ -190,8 +190,8 @@ rendition.hooks.content.register(function(contents, view) {
 The parts of the rendering process that can be hooked into are below.
 
 ```js
-book.spine.hooks.serialize // Section is being converted to text
-book.spine.hooks.content // Section has been loaded and parsed
+rendition.hooks.serialize // Section is being converted to text
+rendition.hooks.content // Section has been loaded and parsed
 rendition.hooks.render // Section is rendered to the screen
 rendition.hooks.content // Section contents have been loaded
 rendition.hooks.unloaded // Section contents are being unloaded

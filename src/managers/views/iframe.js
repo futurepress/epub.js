@@ -1,9 +1,21 @@
-import EventEmitter from "event-emitter";
-import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
-import EpubCFI from "../../epubcfi";
-import Contents from "../../contents";
-import { EVENTS } from "../../utils/constants";
-import { Pane, Highlight, Underline } from "marks-pane";
+import EventEmitter from "../../utils/eventemitter.js";
+import {
+	extend,
+	borders,
+	uuid,
+	isNumber,
+	bounds,
+	defer,
+	createBlobUrl,
+	revokeBlobUrl,
+	serialize
+} from "../../utils/core.js";
+import EpubCFI from "../../utils/epubcfi.js";
+import Contents from "../../rendition/contents.js";
+import { EVENTS } from "../../utils/constants.js";
+import { Pane, Highlight, Underline } from "../../marks/marks.js";
+import request from "../../utils/request.js";
+import Hook from "../../utils/hook.js";
 
 class IframeView {
 	constructor(section, options) {
@@ -15,10 +27,25 @@ class IframeView {
 			height: 0,
 			layout: undefined,
 			globalLayoutProperties: {},
-			method: undefined,
 			forceRight: false,
-			allowScriptedContent: false
+			allowScriptedContent: false,
+			request: undefined,
+			hooks: undefined
 		}, options || {});
+
+		if (this.settings.request) {
+			this.request = this.settings.request;
+		} else {
+			this.request = request;
+		}
+
+		if (this.settings.hooks) {
+			this.hooks = this.settings.hooks;
+		} else {
+			this.hooks = {};
+			this.hooks.serialize = new Hook(this);
+			this.hooks.document = new Hook(this);
+		}
 
 		this.id = "epubjs-view-" + uuid();
 		this.section = section;
@@ -110,6 +137,7 @@ class IframeView {
 
 		this.element.setAttribute("ref", this.index);
 
+		this.element.appendChild(this.iframe);
 		this.added = true;
 
 		this.elementBounds = bounds(this.element);
@@ -129,31 +157,29 @@ class IframeView {
 			this.supportsSrcdoc = false;
 		}
 
-		if (!this.settings.method) {
-			this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
-		}
-
 		return this.iframe;
 	}
 
-	render(request, show) {
-
+	render(requestMethod, show) {
+		let sectionDocument;
 		// view.onLayout = this.layout.format.bind(this.layout);
 		this.create();
 
 		// Fit to size of the container, apply padding
 		this.size();
 
-		if(!this.sectionRender) {
-			this.sectionRender = this.section.render(request);
-		}
+		const loader = requestMethod || this.request;
+
+		sectionDocument = loader(this.section.url).catch((e) => {
+			this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
+			return new Promise((resolve, reject) => {
+				reject(e);
+			});
+		});
 
 		// Render Chain
-		return this.sectionRender
-			.then(function(contents){
-				return this.load(contents);
-			}.bind(this))
-			.then(function(){
+		return this.load(sectionDocument, this.section.encoding)
+			.then(() => {
 
 				// find and report the writingMode axis
 				let writingMode = this.contents.writingMode();
@@ -193,15 +219,15 @@ class IframeView {
 					resolve();
 				});
 
-			}.bind(this), function(e){
+			}, (e) => {
 				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 				return new Promise((resolve, reject) => {
 					reject(e);
 				});
-			}.bind(this))
-			.then(function() {
+			})
+			.then(() => {
 				this.emit(EVENTS.VIEWS.RENDERED, this.section);
-			}.bind(this));
+			});
 
 	}
 
@@ -228,7 +254,7 @@ class IframeView {
 			this.lock("both", width, height);
 		} else if(this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {			
+		} else {
 			this.lock("width", width, height);
 		}
 
@@ -377,7 +403,7 @@ class IframeView {
 	}
 
 
-	load(contents) {
+	load(sectionDocument, mimeType="text/html") {
 		var loading = new defer();
 		var loaded = loading.promise;
 
@@ -392,58 +418,28 @@ class IframeView {
 
 		}.bind(this);
 
-		if (this.settings.method === "blobUrl") {
-			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
+		sectionDocument.then(async (r) => {
+			await this.hooks.document.trigger(r, this.section, this);
+			let text = serialize(r);
+			await this.hooks.serialize.trigger(text, this);
+			this.blobUrl = createBlobUrl(text, mimeType); //"application/xhtml+xml"
 			this.iframe.src = this.blobUrl;
-			this.element.appendChild(this.iframe);
-		} else if(this.settings.method === "srcdoc"){
-			this.iframe.srcdoc = contents;
-			this.element.appendChild(this.iframe);
-		} else {
-
-			this.element.appendChild(this.iframe);
-
-			this.document = this.iframe.contentDocument;
-
-			if(!this.document) {
-				loading.reject(new Error("No Document Available"));
-				return loaded;
-			}
-
-			this.iframe.contentDocument.open();
-			// For Cordova windows platform
-			if(window.MSApp && MSApp.execUnsafeLocalFunction) {
-				var outerThis = this;
-				MSApp.execUnsafeLocalFunction(function () {
-					outerThis.iframe.contentDocument.write(contents);
-				});
-			} else {
-				this.iframe.contentDocument.write(contents);
-			}
-			this.iframe.contentDocument.close();
-
-		}
+		});
 
 		return loaded;
 	}
 
-	onLoad(event, promise) {
+	async onLoad(event, promise) {
 
 		this.window = this.iframe.contentWindow;
 		this.document = this.iframe.contentDocument;
 
-		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase, this.section.index);
+		this.contents = new Contents(this.document, this.document.body, this.section.canonical, this.section.index);
 
 		this.rendering = false;
 
-		var link = this.document.querySelector("link[rel='canonical']");
-		if (link) {
-			link.setAttribute("href", this.section.canonical);
-		} else {
-			link = this.document.createElement("link");
-			link.setAttribute("rel", "canonical");
-			link.setAttribute("href", this.section.canonical);
-			this.document.querySelector("head").appendChild(link);
+		if (document.fonts) {
+			await document.fonts.ready;			
 		}
 
 		this.contents.on(EVENTS.CONTENTS.EXPAND, () => {
@@ -503,12 +499,12 @@ class IframeView {
 		//TODO: remove content listeners for expanding
 	}
 
-	display(request) {
+	display(requestMethod) {
 		var displayed = new defer();
 
 		if (!this.displayed) {
 
-			this.render(request)
+			this.render(requestMethod)
 				.then(function () {
 
 					this.emit(EVENTS.VIEWS.DISPLAYED, this);

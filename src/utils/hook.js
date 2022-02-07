@@ -14,6 +14,7 @@ class Hook {
 	/**
 	 * Adds a function to be run before a hook completes
 	 * @example this.content.register(function(){...});
+	 * @return {undefined} void
 	 */
 	register(){
 		for(var i = 0; i < arguments.length; ++i) {
@@ -29,23 +30,9 @@ class Hook {
 	}
 
 	/**
-	 * Removes a function
-	 * @example this.content.deregister(function(){...});
-	 */
-	deregister(func){
-		let hook;
-		for (let i = 0; i < this.hooks.length; i++) {
-			hook = this.hooks[i];
-			if (hook === func) {
-				this.hooks.splice(i, 1);
-				break;
-			}
-		}
-	}
-
-	/**
 	 * Triggers a hook to run all functions
 	 * @example this.content.trigger(args).then(function(){...});
+	 * @return {Promise} results
 	 */
 	trigger(){
 		var args = arguments;
@@ -53,21 +40,40 @@ class Hook {
 		var promises = [];
 
 		this.hooks.forEach(function(task) {
-			try {
-				var executing = task.apply(context, args);
-			} catch (err) {
-				console.log(err);
-			}
+			var executing = task.apply(context, args);
 
 			if(executing && typeof executing["then"] === "function") {
 				// Task is a function that returns a promise
 				promises.push(executing);
 			}
-			// Otherwise Task resolves immediately, continue
+			// Otherwise Task resolves immediately, add resolved promise with result
+			promises.push(new Promise((resolve, reject) => {
+				resolve(executing);
+			}));
 		});
 
 
 		return Promise.all(promises);
+	}
+	
+	/**
+	 * Triggers a hook to run all functions synchronously
+	 * @example this.content.trigger(args).then(function(){...});
+	 * @return {Array} results
+	*/
+	triggerSync(){
+		var args = arguments;
+		var context = this.context;
+		var results = [];
+	
+		this.hooks.forEach(function(task) {
+			var executing = task.apply(context, args);
+	
+			results.push(executing);
+		});
+	
+	
+		return results;
 	}
 
 	// Adds a function to be run before a hook completes

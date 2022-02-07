@@ -1,62 +1,61 @@
-export const EPUBJS_VERSION = "0.3";
+export const EPUBJS_VERSION = "0.4";
 
 // Dom events to listen for
-export const DOM_EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "mousemove", "click", "touchend", "touchstart", "touchmove"];
+export const DOM_EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
 
 export const EVENTS = {
-  BOOK : {
-    OPEN_FAILED : "openFailed"
-  },
-  CONTENTS : {
-    EXPAND : "expand",
-    RESIZE : "resize",
-    SELECTED : "selected",
-    SELECTED_RANGE : "selectedRange",
-    LINK_CLICKED : "linkClicked"
-  },
-  LOCATIONS : {
-    CHANGED : "changed"
-  },
-  MANAGERS : {
-    RESIZE : "resize",
-    RESIZED : "resized",
-    ORIENTATION_CHANGE : "orientationchange",
-    ADDED : "added",
-    SCROLL : "scroll",
-    SCROLLED : "scrolled",
-    REMOVED : "removed",
-  },
-  VIEWS : {
-    AXIS: "axis",
-    WRITING_MODE: "writingMode",
-    LOAD_ERROR : "loaderror",
-    RENDERED : "rendered",
-    RESIZED : "resized",
-    DISPLAYED : "displayed",
-    SHOWN : "shown",
-    HIDDEN : "hidden",
-    MARK_CLICKED : "markClicked"
-  },
-  RENDITION : {
-    STARTED : "started",
-    ATTACHED : "attached",
-    DISPLAYED : "displayed",
-    DISPLAY_ERROR : "displayerror",
-    RENDERED : "rendered",
-    REMOVED : "removed",
-    RESIZED : "resized",
-    ORIENTATION_CHANGE : "orientationchange",
-    LOCATION_CHANGED : "locationChanged",
-    RELOCATED : "relocated",
-    MARK_CLICKED : "markClicked",
-    SELECTED : "selected",
-    LAYOUT: "layout"
-  },
-  LAYOUT : {
-    UPDATED : "updated"
-  },
-  ANNOTATION : {
-    ATTACH : "attach",
-    DETACH : "detach"
-  }
-}
+	BOOK : {
+		OPEN_FAILED : "openFailed",
+		READY : "ready"
+	},
+	CONTENTS : {
+		EXPAND : "expand",
+		RESIZE : "resize",
+		SELECTED : "selected",
+		SELECTED_RANGE : "selectedRange",
+		LINK_CLICKED : "linkClicked"
+	},
+	LOCATIONS : {
+		CHANGED : "changed"
+	},
+	MANAGERS : {
+		RESIZE : "resize",
+		RESIZED : "resized",
+		ORIENTATION_CHANGE : "orientationchange",
+		ADDED : "added",
+		SCROLL : "scroll",
+		SCROLLED : "scrolled"
+	},
+	VIEWS : {
+		AXIS : "axis",
+		LOAD_ERROR : "loaderror",
+		RENDERED : "rendered",
+		RESIZED : "resized",
+		DISPLAYED : "displayed",
+		SHOWN : "shown",
+		HIDDEN : "hidden",
+		MARK_CLICKED : "markClicked"
+	},
+	RENDITION : {
+		STARTED : "started",
+		ATTACHED : "attached",
+		DISPLAYED : "displayed",
+		DISPLAY_ERROR : "displayerror",
+		RENDERED : "rendered",
+		REMOVED : "removed",
+		RESIZED : "resized",
+		ORIENTATION_CHANGE : "orientationchange",
+		LOCATION_CHANGED : "locationChanged",
+		RELOCATED : "relocated",
+		MARK_CLICKED : "markClicked",
+		SELECTED : "selected",
+		LAYOUT: "layout",
+		WORKER_FAILED: "workerFailed",
+		WORKER_INACTIVE: "workerInactive"
+	},
+	LAYOUT : {
+		UPDATED : "updated"
+	}
+};
+
+export const XML_NS = "http://www.w3.org/1999/xhtml";

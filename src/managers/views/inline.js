@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import EventEmitter from "../../utils/eventemitter.js";
 import {extend, borders, uuid, isNumber, bounds, defer, qs, parse} from "../../utils/core";
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
