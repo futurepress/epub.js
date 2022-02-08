@@ -19,6 +19,7 @@ import DefaultViewManager from "../managers/default/default.js";
 import ContinuousViewManager from "../managers/continuous/continuous.js";
 
 import Publication from "../publication/publication.js";
+import Locators from "./locators.js";
 
 /**
  * Displays an Epub as a series of Views for each Section.
@@ -252,6 +253,8 @@ class Rendition {
 				settings: this.settings
 			});
 		}
+
+		this.locators = new Locators(this.publication);
 
 		this.direction(this.publication.metadata.direction || this.settings.defaultDirection);
 
@@ -846,22 +849,22 @@ class Rendition {
 		};
 
 		if (this.publication.locations.length) {
-			let locationStart = this.publication.locators.locationFromCfi(start.mapping.start);
-			let locationEnd = this.publication.locators.locationFromCfi(end.mapping.end);
+			let locationStart = this.locators.locationFromCfi(start.mapping.start);
+			let locationEnd = this.locators.locationFromCfi(end.mapping.end);
 
 			if (locationStart != null) {
 				located.start.location = locationStart;
-				located.start.percentage = this.publication.locators.percentageFromLocation(locationStart);
+				located.start.percentage = this.locators.percentageFromLocation(locationStart);
 			}
 			if (locationEnd != null) {
 				located.end.location = locationEnd;
-				located.end.percentage = this.publication.locators.percentageFromLocation(locationEnd);
+				located.end.percentage = this.locators.percentageFromLocation(locationEnd);
 			}
 		}
 
 		if (this.publication.pagelist.length) {
-			let pageStart = this.publication.locators.pageFromCfi(start.mapping.start);
-			let pageEnd = this.publication.locators.pageFromCfi(end.mapping.end);
+			let pageStart = this.locators.pageFromCfi(start.mapping.start);
+			let pageEnd = this.locators.pageFromCfi(end.mapping.end);
 
 			if (pageStart != -1) {
 				located.start.page = pageStart;

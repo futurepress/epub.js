@@ -1,7 +1,5 @@
-import {qs, sprint, locationOf, defer} from "../utils/core.js";
-import Queue from "../utils/queue.js";
+import { locationOf } from "../utils/core.js";
 import EpubCFI from "../utils/epubcfi.js";
-import { EVENTS } from "../utils/constants.js";
 import EventEmitter from "../utils/eventemitter.js";
 
 /**
@@ -9,19 +7,19 @@ import EventEmitter from "../utils/eventemitter.js";
  * @param {object} [manifest]
  */
 class Locators {
-	constructor(manifest) {
-		if (manifest) {
-			this.unpack(manifest);
+	constructor(publication) {
+		if (publication) {
+			this.unpack(publication);
 		}
 	}
 
-	unpack(manifest) {
-		if (manifest.locations) {
-			this.unpackLocations(manifest.locations);
+	unpack(publication) {
+		if (publication.locations) {
+			this.unpackLocations(publication.locations);
 		}
 
-		if (manifest.pages) {
-			this.unpackPages(manifest.page);
+		if (publication.pagelist) {
+			this.unpackPages(publication.pagelist);
 		}
 	}
 

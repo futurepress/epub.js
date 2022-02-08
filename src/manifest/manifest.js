@@ -35,7 +35,17 @@ class Manifest extends Publication {
 
 		const contentsUrl = this.contentsUrl;
 		if (contentsUrl) {
-			this.contents = await this.loadContents(contentsUrl);
+			this.contents = await this.loadNavigation(contentsUrl, "toc");
+		}
+
+		const landmarksUrl = this.landmarksUrl;
+		if (landmarksUrl) {
+			this.landmarks = await this.loadNavigation(landmarksUrl, "landmarks");
+		}
+
+		const pagelistUrl = this.pagelistUrl;
+		if (pagelistUrl) {
+			this.pagelist = await this.loadNavigation(pagelistUrl, "pagelist");
 		}
 
 	}
@@ -48,13 +58,13 @@ class Manifest extends Publication {
 		return this.unpack(manifest);
 	}
 
-	async loadContents(contentsUrl) {
+	async loadNavigation(contentsUrl, role="toc") {
 		const html = await this.load(contentsUrl, "html");
 		let items = [];
 		let url = createUrl(contentsUrl);
 
 		const title = html.querySelector("h1, h2, h3, h4, h5, h6");
-		const toc = html.querySelector("*[role='doc-toc']");		
+		const toc = html.querySelector(`*[role='doc-${role}']`);		
 		if (toc) {
 			const links = toc.querySelectorAll("ol > li > a, ul > li > a");			
 			for (const link of links) {

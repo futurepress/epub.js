@@ -34,7 +34,7 @@ class Publication {
 			resources: new ResourceList(),
 			links: new ResourceList(),
 			uniqueResources: new ResourceList(),
-			displayOptions: new DisplayOptions()
+			displayOptions: new DisplayOptions(),
 		};
 
 		if (requestMethod) {
