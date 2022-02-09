@@ -48,6 +48,12 @@ class Manifest extends Publication {
 			this.pagelist = await this.loadNavigation(pagelistUrl, "pagelist");
 		}
 
+		const locationsUrl = this.locationsUrl;
+		console.log(locationsUrl);
+		if (locationsUrl) {
+			this.locations = await await this.load(locationsUrl, "json");
+		}
+
 	}
 
 	async open(url) {
@@ -222,6 +228,35 @@ class Manifest extends Publication {
 			this.resources.push(pagelistUrl);
 		}
 		return pagelistUrl && pagelistUrl.url;
+	}
+
+	/**
+	* Get or set the locations url
+	* @param {string} [url]
+	* @return {string} pagelistUrl
+	*/
+	get locationsUrl() {
+		let locationsUrl = this.resources.find((resource) => {
+			return resource.rel.includes("locations");
+		});
+		return locationsUrl && locationsUrl.url;
+	}
+
+	set locationsUrl(url) {
+		let locationsUrl = this.resources.find((resource) => {
+			return resource.rel.includes("locations");
+		});
+
+		if (locationsUrl) {
+			locationsUrl.url = url;
+		} else {
+			locationsUrl = {
+				rel: ["locations"],
+				url: url
+			};
+			this.resources.push(locationsUrl);
+		}
+		return locationsUrl && locationsUrl.url;
 	}
 
 	get readingOrder() {

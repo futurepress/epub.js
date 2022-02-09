@@ -159,7 +159,8 @@ class Publication {
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);
 			item.id = id;
 			// Index 2 for Sections
-			item.canonical = item.canonical || `2/${index * 2}[${id}]`;
+			item.cfiBase = item.cfiBase || `2/${index * 2}[${id}]`
+			item.canonical = item.canonical || item.cfiBase;
 
 			const resource = new Resource(item);
 			this.data.sections.append(resource);
@@ -211,7 +212,8 @@ class Publication {
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);
 			item.id = id;
 			// Index 4 for Resources
-			item.canonical = item.canonical || `4/${index * 2}[${id}]`;
+			item.cfiBase = item.cfiBase || `4/${index * 2}[${id}]`
+			item.canonical = item.canonical || item.cfiBase;
 
 			const resource = new Resource(item);
 			this.data.resources.add(resource);
@@ -313,10 +315,7 @@ class Publication {
 		}
 
 		for (const item of items) {
-			item.url = this.resolve(item.url);
-			item.canonical = item.canonical || item.url;
-
-			const loc = new Locator(item);
+			const loc = new Locator({ url: item, cfi: item});
 			this.data.locations.append(loc);
 		}
 
@@ -397,7 +396,7 @@ class Publication {
 	 * @return {string} key
 	 */
 	key(identifier) {
-		var ident = identifier || this.metadata.identifier;
+		let ident = identifier || this.metadata.get("id") || this.metadata.get("identifier");
 		return `epubjs-${EPUBJS_VERSION}-${ident}`;
 	}
 

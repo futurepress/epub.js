@@ -158,15 +158,12 @@ class Rendition {
 		// Hold queue until publication is opened
 		this.q.enqueue(this.publication.opened);
 
-		// this.starting = new defer();
-		// /**
-		//  * @member {promise} started returns after the rendition has started
-		//  * @memberof Rendition
-		//  */
-		// this.started = this.starting.promise;
-
 		// Block the queue until rendering is started
-		this.q.enqueue(this.start);
+		/**
+		 * @member {promise} started returns after the rendition has started
+		 * @memberof Rendition
+		 */
+		this.started = this.q.enqueue(this.start);
 
 		// Start rendering
 		if (this.settings.element) {
@@ -352,8 +349,8 @@ class Rendition {
 		this.displaying = displaying;
 
 		// Check if this is a publication percentage
-		if (this.publication.locations.length && isFloat(target)) {
-			target = this.publication.locations.cfiFromPercentage(parseFloat(target));
+		if (this.locators.locations.length && isFloat(target)) {
+			target = this.locators.cfiFromPercentage(parseFloat(target));
 		}
 
 		if (typeof target === "undefined") {
@@ -848,7 +845,7 @@ class Rendition {
 			}
 		};
 
-		if (this.publication.locations.length) {
+		if (this.locators.locations.length) {
 			let locationStart = this.locators.locationFromCfi(start.mapping.start);
 			let locationEnd = this.locators.locationFromCfi(end.mapping.end);
 
@@ -862,7 +859,7 @@ class Rendition {
 			}
 		}
 
-		if (this.publication.pagelist.length) {
+		if (this.locators.pages.length) {
 			let pageStart = this.locators.pageFromCfi(start.mapping.start);
 			let pageEnd = this.locators.pageFromCfi(end.mapping.end);
 

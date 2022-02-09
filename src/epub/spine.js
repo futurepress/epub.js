@@ -35,7 +35,7 @@ class Spine {
 			let manifestItem = this.manifest[item.idref];
 
 			item.id = item.idref;
-			item.canonical = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
+			item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.idref);
 			item.cfiPos = index;
 
 			if(manifestItem) {

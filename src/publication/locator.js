@@ -41,6 +41,14 @@ class Locator {
 		this.data.id = id;
 	}
 
+	get cfi() {
+		return this.data.cfi;
+	}
+
+	set cfi(cfi) {
+		this.data.cfi = cfi;
+	}
+
 	get type() {
 		return this.data.type;
 	}

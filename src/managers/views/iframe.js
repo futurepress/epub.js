@@ -434,7 +434,7 @@ class IframeView {
 		this.window = this.iframe.contentWindow;
 		this.document = this.iframe.contentDocument;
 
-		this.contents = new Contents(this.document, this.document.body, this.section.canonical, this.section.index);
+		this.contents = new Contents(this.document, this.document.body, this.section.cfiBase, this.section.index);
 
 		this.rendering = false;
 

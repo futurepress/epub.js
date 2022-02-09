@@ -29,7 +29,7 @@ class Section {
 		this.next = item.next;
 		this.prev = item.prev;
 
-		this.canonical = item.canonical;
+		this.cfiBase = item.cfiBase;
 
 		if (hooks) {
 			this.hooks = hooks;
@@ -218,7 +218,7 @@ class Section {
 	 * @return {string} cfi an EpubCFI string
 	 */
 	cfiFromRange(_range) {
-		return new EpubCFI(_range, this.canonical).toString();
+		return new EpubCFI(_range, this.cfiBase).toString();
 	}
 
 	/**
@@ -227,7 +227,7 @@ class Section {
 	 * @return {string} cfi an EpubCFI string
 	 */
 	cfiFromElement(el) {
-		return new EpubCFI(el, this.canonical).toString();
+		return new EpubCFI(el, this.cfiBase).toString();
 	}
 
 	/**

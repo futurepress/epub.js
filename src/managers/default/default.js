@@ -726,7 +726,7 @@ class DefaultViewManager {
 				pages.push(pg);
 			}
 
-			let mapping = this.mapping.page(view.contents, view.section.canonical, startPos, endPos);
+			let mapping = this.mapping.page(view.contents, view.section.cfiBase, startPos, endPos);
 
 			return {
 				index,

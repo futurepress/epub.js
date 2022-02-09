@@ -24,12 +24,27 @@ class Locators {
 	}
 
 	unpackLocations(locations) {
-		this.locations = locations;
+		if (!locations) {
+			return;
+		}
+		this.locations = [];
+		for (const [key, location] of locations) {
+			if (EpubCFI.prototype.isCfiString(location)) {
+				this.locations.push(location);
+			} else if (location.cfi) {
+				this.locations.push(location.cfi);				
+			}
+		}
 		this.totalLocations = this.locations.length - 1;
 	}
 
 	unpackPages(pages) {
+		if (!pages) {
+			return;
+		}
 		this.pages = pages;
+		this.pageLocations = [];
+		
 		this.firstPage = parseInt(this.pages[0]);
 		this.lastPage = parseInt(this.pages[this.pages.length-1]);
 		this.totalPages = this.lastPage - this.firstPage;
@@ -71,11 +86,11 @@ class Locators {
 	 * @return {number}
 	 */
 	percentageFromCfi(cfi) {
-		if(this.locations.length === 0) {
+		if(!this.locations || this.locations.length === 0) {
 			return null;
 		}
 		// Find closest cfi
-		var loc = this.locationFromCfi(cfi);
+		let loc = this.locationFromCfi(cfi);
 		// Get percentage in total
 		return this.percentageFromLocation(loc);
 	}

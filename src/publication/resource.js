@@ -22,7 +22,8 @@ class Resource {
 			properites: item.properites,
 			rel: item.rel || [],
 			name: item.name,
-			cfiPos: item.cfiPos 
+			cfiPos: item.cfiPos,
+			cfiBase: item.cfiBase
 		}
 	}
 
@@ -104,6 +105,14 @@ class Resource {
 
 	set cfiPos(pos) {
 		this.data.cfiPos = pos;
+	}
+
+	get cfiBase() {
+		return this.data.cfiBase;
+	}
+
+	set cfiBase(base) {
+		this.data.cfiBase = base;
 	}
 
 	/**

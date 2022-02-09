@@ -22,7 +22,7 @@ class Mapping {
 	 */
 	section(view) {
 		var ranges = this.findRanges(view);
-		var map = this.rangeListToCfiList(view.section.canonical, ranges);
+		var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
 
 		return map;
 	}

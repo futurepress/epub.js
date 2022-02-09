@@ -1,6 +1,6 @@
 import EventEmitter from "../utils/eventemitter.js";
 import Publication from "../publication/publication.js";
-import Locations from "./locations.js";
+import Locations from "../publication/locations-old.js";
 import Container from "./container.js";
 import Packaging from "./packaging.js";
 import Navigation from "./navigation.js";

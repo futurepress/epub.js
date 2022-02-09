@@ -24,16 +24,18 @@
   <div id="viewer" class="spreads"></div>
   <a id="prev" href="#prev" class="arrow">‹</a>
   <a id="next" href="#next" class="arrow">›</a>
-
+	<div id="controls">
+    <input id="current-percent" size="3" value="0" /> %
+  </div>
   <script type="module">
     import { Manifest, Rendition } from "../src/index.js"
+    import { generateLocations } from "../src/utils/locations.js"
 
     const params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
     const url = params && params.get("url") && decodeURIComponent(params.get("url"));
     const currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
-    // Load the opf
-    // let book = await new Epub(url || "https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    // Load the manifest
     let book = await new Manifest(url || "/books/alice-manifest/manifest.jsonld");
 
     book.opened.then(() => {
@@ -157,6 +159,85 @@
         rendition.display(url);
         return false;
     };
+
+
+    let controls = document.getElementById("controls");
+		let currentPage = document.getElementById("current-percent");
+		let slider = document.createElement("input");
+		let slide = function(){
+				var cfi = rendition.locators.cfiFromPercentage(slider.value / 100);
+				rendition.display(cfi);
+		};
+		let mouseDown = false;
+    
+    /*
+    // Generate and Save locations
+    let key = book.key()+'-locations';
+		let stored = localStorage.getItem(key);
+
+    if (stored) {
+      rendition.locators.unpackLocations(JSON.parse(stored));
+    } else {
+				// Or generate the locations on the fly
+				// Can pass an option number of chars to break sections by
+				// default is 150 chars
+        let locations = await generateLocations(book.sections, 1600);
+        rendition.locators.unpackLocations(locations);
+
+        // Save out the generated locations to JSON
+				localStorage.setItem(book.key()+'-locations', JSON.stringify(locations));
+		}
+    */
+
+      controls.style.display = "block";
+      slider.setAttribute("type", "range");
+      slider.setAttribute("min", 0);
+      slider.setAttribute("max", 100);
+      slider.setAttribute("step", 1);
+      slider.setAttribute("value", 0);
+
+      slider.addEventListener("change", slide, false);
+      slider.addEventListener("mousedown", function(){
+          mouseDown = true;
+      }, false);
+      slider.addEventListener("mouseup", function(){
+          mouseDown = false;
+      }, false);
+
+      // Get the current CFI
+      let currentLocation = rendition.currentLocation();
+      // Get the Percentage (or location) from that CFI
+      let loc = rendition.locators.percentageFromCfi(currentLocation.start.cfi);
+      
+      if (currentLocation.atEnd) {
+        loc = 100;
+      }
+
+      if (currentPage !== null) {
+        slider.value = `${loc}`;
+        currentPage.value = `${loc}`;
+      }
+
+      controls.appendChild(slider);
+
+      currentPage.addEventListener("change", function(){
+        let cfi = rendition.locators.cfiFromPercentage(currentPage.value/100);
+        rendition.display(cfi);
+      }, false);
+
+      // Listen for location changed event, get percentage from CFI
+      rendition.on('relocated', function(location){
+          let percent = rendition.locators.percentageFromCfi(location.start.cfi);
+          let percentage = Math.floor(percent * 100);
+          if (location.atEnd) {
+            percentage = 100;
+          }
+          if(!mouseDown) {
+              slider.value = percentage;
+          }
+          currentPage.value = percentage;
+          console.log(location);
+      });
 
   </script>
 
