@@ -447,7 +447,7 @@ export function createBase64Url(content, mime){
 		return;
 	}
 
-	data = btoa(encodeURIComponent(content));
+	data = btoa(content);
 
 	datauri = "data:" + mime + ";base64," + data;
 
