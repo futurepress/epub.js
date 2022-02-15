@@ -27,7 +27,8 @@ class DefaultViewManager {
 			flow: "scrolled",
 			ignoreClass: "",
 			fullsize: undefined,
-			allowScriptedContent: false
+			allowScriptedContent: false,
+			allowPopups: false
 		});
 
 		extend(this.settings, options.settings || {});
@@ -41,7 +42,8 @@ class DefaultViewManager {
 			width: 0,
 			height: 0,
 			forceEvenPages: true,
-			allowScriptedContent: this.settings.allowScriptedContent
+			allowScriptedContent: this.settings.allowScriptedContent,
+			allowPopups: this.settings.allowPopups
 		};
 
 		this.rendered = false;
@@ -356,11 +358,11 @@ class DefaultViewManager {
 		}
 		if(this.settings.direction === 'rtl'){
 			/***
-				the `floor` function above (L343) is on positive values, so we should add one `layout.delta` 
+				the `floor` function above (L343) is on positive values, so we should add one `layout.delta`
 				to distX or use `Math.ceil` function, or multiply offset.left by -1
 				before `Math.floor`
 			*/
-			distX = distX + this.layout.delta 
+			distX = distX + this.layout.delta
 			distX = distX - width
 		}
 		this.scrollTo(distX, distY, true);
@@ -672,8 +674,8 @@ class DefaultViewManager {
 		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
 		let pageWidth = (container.width < window.innerWidth) ? container.width : window.innerWidth;
 		let vertical = (this.settings.axis === "vertical");
-		let rtl =  (this.settings.direction === "rtl"); 
-			
+		let rtl =  (this.settings.direction === "rtl");
+		
 		let offset = 0;
 		let used = 0;
 

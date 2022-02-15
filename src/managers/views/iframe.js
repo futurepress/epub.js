@@ -17,7 +17,8 @@ class IframeView {
 			globalLayoutProperties: {},
 			method: undefined,
 			forceRight: false,
-			allowScriptedContent: false
+			allowScriptedContent: false,
+			allowPopups: false
 		}, options || {});
 
 		this.id = "epubjs-view-" + uuid();
@@ -92,9 +93,12 @@ class IframeView {
 		// sandbox
 		this.iframe.sandbox = "allow-same-origin";
 		if (this.settings.allowScriptedContent) {
-			this.iframe.sandbox += " allow-scripts"
+			this.iframe.sandbox += " allow-scripts";
 		}
-
+		if (this.settings.allowPopups) {
+			this.iframe.sandbox += " allow-popups";
+		}
+		
 		this.iframe.setAttribute("enable-annotation", "true");
 
 		this.resizing = true;
@@ -228,7 +232,7 @@ class IframeView {
 			this.lock("both", width, height);
 		} else if(this.settings.axis === "horizontal") {
 			this.lock("height", width, height);
-		} else {			
+		} else {
 			this.lock("width", width, height);
 		}
 
