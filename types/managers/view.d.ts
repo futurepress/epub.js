@@ -11,7 +11,9 @@ export interface ViewSettings {
   width?: number,
   height?: number,
   forceEvenPages?: boolean,
-  allowScriptedContent?: boolean
+  allowScriptedContent?: boolean,
+  selectionStopDelay?:number
+
 }
 
 export default class View {

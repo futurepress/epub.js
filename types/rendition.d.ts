@@ -26,6 +26,7 @@ export interface RenditionOptions {
   snap?: boolean | object,
   defaultDirection?: string,
   allowScriptedContent?: boolean
+  selectionStopDelay?:number
 }
 
 export interface DisplayedLocation {
