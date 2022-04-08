@@ -203,7 +203,7 @@ class Epub extends Publication {
 	}
 
 	toJSON() {
-
+		return super.toJSON();
 	}
 
 	/**

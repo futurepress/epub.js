@@ -188,7 +188,7 @@ class ResourceList extends Map {
 	}
 
 	toJSON() {
-		return JSON.stringify(this.toArray());
+		return this.toArray();
 	}
 }
 

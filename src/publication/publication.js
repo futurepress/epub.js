@@ -412,7 +412,7 @@ class Publication {
 	 * Generates a JSON output of the publication structure
 	 */
 	toJSON() {
-		return JSON.stringify(this.data);
+		return this.data;
 	 }
 
 	/**

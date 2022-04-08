@@ -203,10 +203,10 @@ class Sections {
 	}
 
 	toJSON() {
-		return JSON.stringify({
+		return {
 			readingOrder: this.toOrderedArray(),
 			unordered: this.toUnorderedArray()
-		});
+		};
 	}
 
 	destroy() {

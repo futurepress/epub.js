@@ -3,7 +3,8 @@
  * @param  {string} _query The query string to find
  * @return {object[]} A list of matches, with form {cfi, excerpt}
  */
-find(_query){
+/*
+find(_query) {
 	var section = this;
 	var matches = [];
 	var query = _query.toLowerCase();
@@ -54,3 +55,4 @@ find(_query){
 
 	return matches;
 }
+*/

@@ -269,7 +269,7 @@ class PageList {
 	 * @return {json}
 	 */
 	toJSON() {
-		return JSON.stringify(this.locations);
+		return this.locations;
 	}
 
 	/**

@@ -12,9 +12,9 @@ class Locator {
 			cfi: item.cfi,
 			type: item.type,
 			name: item.name,
-            parent: undefined,
-            children: new ResourceList()
-		}
+			parent: undefined,
+			children: new ResourceList()
+		};
 	}
 
 	get url() {
@@ -65,21 +65,21 @@ class Locator {
 		return this.data.name;
 	}
 
-    get parent() {
-        return this.data.parent;
-    }
-
-	set parent(item) {
-        this.data.parent = item;
+	get parent() {
 		return this.data.parent;
 	}
 
-    get children() {
-        return this.data.children;
-    }
+	set parent(item) {
+		this.data.parent = item;
+		return this.data.parent;
+	}
+
+	get children() {
+		return this.data.children;
+	}
 
 	set children(items) {
-        for (const childItem of items) {
+		for (const childItem of items) {
 			const child = new Locator(childItem);
 			child.parent = this;
 			this.children.append(child);
@@ -89,7 +89,7 @@ class Locator {
 
 
 	toJSON() {
-        return JSON.stringify(this);
+		return this.data;
 	}
 
 	destroy() {

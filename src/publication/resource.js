@@ -124,7 +124,7 @@ class Resource {
 
 
 	toJSON() {
-
+		return this.data;
 	}
 
 	destroy() {
