@@ -14,7 +14,7 @@ const plugins = [
 
 export default [
 	{
-		input: pkg.module,
+		input: pkg.main,
 		output: {
 			name: "ePub",
 			file: pkg.browser,
@@ -24,7 +24,7 @@ export default [
 	},
 
 	{
-		input: pkg.module,
+		input: pkg.main,
 		output: {
 			name: "ePub",
 			file: "./dist/epub.esm.js",

@@ -3,8 +3,8 @@ import commonjs from "@rollup/plugin-commonjs";
 
 import pkg from "./package.json";
 
-import serve from 'rollup-plugin-serve'
-import livereload from 'rollup-plugin-livereload'
+import serve from 'rollup-plugin-serve';
+import livereload from 'rollup-plugin-livereload';
 
 const plugins = [
 	nodeResolve(),
@@ -13,7 +13,7 @@ const plugins = [
 
 export default [
 	{
-		input: pkg.module,
+		input: pkg.main,
 		output: {
 			name: 'ePub',
 			file: pkg.browser,
