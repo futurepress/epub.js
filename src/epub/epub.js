@@ -5,7 +5,7 @@ import Packaging from "./packaging.js";
 import Navigation from "./navigation.js";
 import PageList from "./pagelist.js";
 import Spine from "./spine.js";
-import { extension } from "../utils/url.js";
+import { extension, resolve } from "../utils/url.js";
 import EpubCFI from "../utils/epubcfi.js";
 
 const CONTAINER_PATH = "META-INF/container.xml";
@@ -13,7 +13,8 @@ const IBOOKS_DISPLAY_OPTIONS_PATH = "META-INF/com.apple.ibooks.display-options.x
 const INPUT_TYPE = {
 	EPUB: "epub",
 	OPF: "opf",
-	DIRECTORY: "directory"
+	DIRECTORY: "directory",
+	CONTAINER: "container"
 };
 
 class Epub extends Publication {
@@ -45,6 +46,10 @@ class Epub extends Publication {
 		if (ext === "opf") {
 			return INPUT_TYPE.OPF;
 		}
+
+		if (ext === "xml") {
+			return INPUT_TYPE.CONTAINER;
+		}
 	}
 
 	/**
@@ -55,9 +60,9 @@ class Epub extends Publication {
 	 */
 	async loadContainer(url) {
 		const xml = await this.load(url);
-			
+
 		this.container = new Container(xml);
-		return this.container.packagePath;
+		return this.container;
 	}
 
 	/**
@@ -170,16 +175,21 @@ class Epub extends Publication {
 		const type = what || this.determineType(url);
 		let packaging;
 
-		this.url = url;
-
 		if (type === INPUT_TYPE.EPUB) {
 			throw new Error("Epub must be unarchived");
 		}
 
 		if (type === INPUT_TYPE.DIRECTORY) {
 			const container = await this.loadContainer(CONTAINER_PATH);
+			this.url = url + container.packagePath;
 			packaging = await this.loadPackaging(container.packagePath);
+		} else if (type === INPUT_TYPE.CONTAINER) {
+			const container = await this.loadContainer(url);
+			const packageUrl = resolve(url, "../" + container.packagePath);
+			this.url = packageUrl;
+			packaging = await this.loadPackaging(packageUrl);
 		} else {
+			this.url = url;
 			packaging = await this.loadPackaging(url);
 		}
 

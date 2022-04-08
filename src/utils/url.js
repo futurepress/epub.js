@@ -16,6 +16,8 @@ export function createUrl(inputUrl, base) {
 		if (typeof(window) !== "undefined" &&
 			typeof(window.location) !== "undefined") {
 			locationBase = window.location.href;
+		} else {
+			locationBase = "http://example.com"; // Prevent URL error
 		}
 		return new URL(inputUrl, locationBase);
 	} else {
