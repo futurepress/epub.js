@@ -133,6 +133,9 @@ class Themes {
 
 		contents = this.rendition.getContents();
 		contents.forEach( (content) => {
+			var previousStyleSheet = content._getStylesheetNode(prev);
+			previousStyleSheet.remove();
+
 			content.removeClass(prev);
 			content.addClass(name);
 		});
