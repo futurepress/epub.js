@@ -167,6 +167,12 @@ class Epub extends Publication {
 
 		this.displayOptions = await this.loadDisplayOptions(packaging);
 
+		if (packaging.coverImagePath) {
+			let cover = this.resources.get(this.resolve(packaging.coverPath))
+			if (cover) {
+				cover.rel.push("cover-image")
+			}
+		}
 
 		return this;
 	}

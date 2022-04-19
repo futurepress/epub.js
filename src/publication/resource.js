@@ -9,7 +9,7 @@ class Resource {
 		if (item && !item.url) {
 			throw new Error("Resource url is required.");
 		}
-		if (item.rel || !Array.isArray(item.rel)) {
+		if (item.rel && !Array.isArray(item.rel)) {
 			item.rel = [item.rel];
 		}
 		this.data = {

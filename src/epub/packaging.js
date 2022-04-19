@@ -45,6 +45,7 @@ class Packaging {
 			throw new Error("No Spine Found");
 		}
 
+		this.metadata = this.parseMetadata(metadataNode);
 		this.manifest = this.parseManifest(manifestNode);
 		this.navPath = this.findNavPath(manifestNode);
 		this.ncxPath = this.findNcxPath(manifestNode, spineNode);
@@ -56,7 +57,6 @@ class Packaging {
 		this.spine = this.parseSpine(spineNode, this.manifest);
 
 		this.uniqueIdentifier = this.findUniqueIdentifier(packageDocument);
-		this.metadata = this.parseMetadata(metadataNode);
 
 		this.metadata.direction = spineNode.getAttribute("page-progression-direction");
 
@@ -121,7 +121,7 @@ class Packaging {
 		var items = Array.prototype.slice.call(selected);
 
 		//-- Create an object with the id as key
-		items.forEach(function (item) {
+		items.forEach((item) => {
 			var id = item.getAttribute("id"),
 				href = item.getAttribute("href") || "",
 				type = item.getAttribute("media-type") || "",
@@ -158,7 +158,7 @@ class Packaging {
 		// var epubcfi = new EpubCFI();
 
 		//-- Add to array to maintain ordering and cross reference with manifest
-		items.forEach(function(item, index){
+		items.forEach((item, index) => {
 			const idref = item.getAttribute("idref");
 			const props = item.getAttribute("properties") || "";
 			const propArray = props.length ? props.split(" ") : [];
