@@ -27,6 +27,19 @@ class Manifest extends Publication {
 				case "resources":
 					this.resources = value;
 					break;
+				case "navigation":
+				case "toc":
+					this.navigation = value;
+					break;
+				case "landmarks":
+					this.landmarks = value;
+					break;
+				case "pagelist":
+					this.pagelist = value;
+					break;
+				case "locations":
+					this.locations = value;
+					break;
 				default:
 					this.setMetadata(key, value);
 					break;
@@ -49,9 +62,8 @@ class Manifest extends Publication {
 		}
 
 		const locationsUrl = this.locationsUrl;
-		console.log(locationsUrl);
 		if (locationsUrl) {
-			this.locations = await await this.load(locationsUrl, "json");
+			this.locations = await this.load(locationsUrl, "json");
 		}
 
 	}
@@ -111,153 +123,6 @@ class Manifest extends Publication {
 		this.metadata.set(key, value);
 	}
 
-
-	/**
-	 * Get or set the cover url
-	 * @param {string} [url]
-	 * @return {string} coverUrl
-	 */
-	get coverUrl() {
-		let coverResource = this.resources.find((resource) => {
-			return resource.rel.includes("cover");
-		});
-		return coverResource && coverResource.url;
-	}
-
-	set coverUrl(url) {
-		let coverResource = this.resources.find((resource) => {
-			return resource.includes("cover");
-		});
-
-		if (coverResource) {
-			coverResource.url = url;
-		} else {
-			coverResource = new Resource({
-				rel: ["cover"],
-				url: url
-			});
-			this.resources.push(coverResource);
-		}
-		return coverResource && coverResource.url;
-	}
-
-	/**
-	* Get or set the table of contents url
-	* @param {string} [url]
-	* @return {string} contents
-	*/
-	get contentsUrl() {
-		let contentsUrl = this.resources.find((resource) => {
-			return resource.rel.includes("contents");
-		});
-		return contentsUrl && contentsUrl.url;
-	}
-
-	set contentsUrl(url) {
-		let contentsUrl = this.resources.find((resource) => {
-			return resource.rel.includes("contents");
-		});
-
-		if (contentsUrl) {
-			contentsUrl.url = url;
-		} else {
-			contentsUrl = {
-				rel: ["contents"],
-				url: url
-			};
-			this.resources.push(contentsUrl);
-		}
-		return contentsUrl && contentsUrl.url;
-	}
-
-
-	/**
-	* Get or set the landmarksUrl url
-	* @param {string} [url]
-	* @return {string} landmarksUrl
-	*/
-	get landmarksUrl() {
-		let landmarksUrl = this.resources.find((resource) => {
-			return resource.rel.includes("landmarks");
-		});
-		return landmarksUrl && landmarksUrl.url;
-	}
-
-	set landmarksUrl(url) {
-		let landmarksUrl = this.resources.find((resource) => {
-			return resource.rel.includes("landmarks");
-		});
-
-		if (landmarksUrl) {
-			landmarksUrl.url = url;
-		} else {
-			landmarksUrl = {
-				rel: ["landmarks"],
-				url: url
-			};
-			this.resources.push(landmarksUrl);
-		}
-		return landmarksUrl && landmarksUrl.url;
-	}
-
-
-	/**
-	* Get or set the pagelist url
-	* @param {string} [url]
-	* @return {string} pagelistUrl
-	*/
-	get pagelistUrl() {
-		let pagelistUrl = this.resources.find((resource) => {
-			return resource.rel.includes("pagelist");
-		});
-		return pagelistUrl && pagelistUrl.url;
-	}
-
-	set pagelistUrl(url) {
-		let pagelistUrl = this.resources.find((resource) => {
-			return resource.rel.includes("pagelist");
-		});
-
-		if (pagelistUrl) {
-			pagelistUrl.url = url;
-		} else {
-			pagelistUrl = {
-				rel: ["pagelist"],
-				url: url
-			};
-			this.resources.push(pagelistUrl);
-		}
-		return pagelistUrl && pagelistUrl.url;
-	}
-
-	/**
-	* Get or set the locations url
-	* @param {string} [url]
-	* @return {string} pagelistUrl
-	*/
-	get locationsUrl() {
-		let locationsUrl = this.resources.find((resource) => {
-			return resource.rel.includes("locations");
-		});
-		return locationsUrl && locationsUrl.url;
-	}
-
-	set locationsUrl(url) {
-		let locationsUrl = this.resources.find((resource) => {
-			return resource.rel.includes("locations");
-		});
-
-		if (locationsUrl) {
-			locationsUrl.url = url;
-		} else {
-			locationsUrl = {
-				rel: ["locations"],
-				url: url
-			};
-			this.resources.push(locationsUrl);
-		}
-		return locationsUrl && locationsUrl.url;
-	}
 
 	get readingOrder() {
 		return this.sections;

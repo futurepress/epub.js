@@ -95,10 +95,28 @@ class Epub extends Publication {
 			}
 		}
 
-		const xml = await this.load(navPath, "xml");
+		const navUrl = this.resolve(navPath);
+		const xml = await this.load(navUrl, "xml");
 
-		const navigation = new Navigation(xml, this.resolve(navPath));
+		const navigation = new Navigation(xml, navUrl);
 		const pagelist = new PageList(xml);
+
+		if (navigation.toc && navigation.toc.length) {
+			this.contentsUrl = navUrl;
+		}
+
+		if (navigation.landmarks && navigation.landmarks.length) {
+			this.landmarksUrl = navUrl;
+		}
+
+		if (pagelist.pages && pagelist.pages.length) {
+			this.pagelistUrl = navUrl;
+		}
+
+		if (pagelist.locations && pagelist.locations.length) {
+			this.locationsUrl = navUrl;
+		}
+
 		return {
 			toc: navigation.toc,
 			landmarks: navigation.landmarks,
@@ -160,7 +178,7 @@ class Epub extends Publication {
 		this.resources = [...unordered, ...resources];
 
 		const { toc, landmarks, pageList, locations } = await this.loadNavigation(packaging);
-		this.navigation = toc;
+		this.toc = toc;
 		this.landmarks = landmarks;
 		this.pagelist = pageList;
 		this.locations = locations;

@@ -154,7 +154,7 @@ class Publication {
 		}
 		let index = 1;
 		for (const item of items) {
-			item.url = resolve(this.url, item.url);
+			item.url = resolve(this.url, item.url  || item.href);
 			// TEMP hack for handling EpubCFI
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);
 			item.id = id;
@@ -207,7 +207,7 @@ class Publication {
 		}
 		let index = 1;
 		for (const item of items) {
-			item.url = this.resolve(item.url);
+			item.url = this.resolve(item.url || item.href);
 			// TEMP hack for handling EpubCFI
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);
 			item.id = id;
@@ -240,7 +240,7 @@ class Publication {
 		}
 
 		for (const item of items) {
-			item.url = this.resolve(item.url);
+			item.url = this.resolve(item.url  || item.href);
 			item.canonical = item.canonical || item.url;
 
 			const resource = new Resource(item);
@@ -265,7 +265,7 @@ class Publication {
 		}
 
 		for (const item of items) {
-			item.url = this.resolve(item.url);
+			item.url = this.resolve(item.url || item.href);
 			item.canonical = item.canonical || item.url;
 
 			const loc = new Locator(item);
@@ -290,7 +290,7 @@ class Publication {
 		}
 
 		for (const item of items) {
-			item.url = this.resolve(item.url);
+			item.url = this.resolve(item.url || item.href);
 			item.canonical = item.canonical || item.url;
 
 			const loc = new Locator(item);
@@ -337,7 +337,7 @@ class Publication {
 		}
 
 		for (const item of items) {
-			item.url = this.resolve(item.url);
+			item.url = this.resolve(item.url || item.href);
 			item.canonical = item.canonical || item.url;
 
 			const loc = new Locator(item);
@@ -367,6 +367,153 @@ class Publication {
 	set displayOptions(options) {
 		this.data.displayOptions = new DisplayOptions(options);
 		return this.data.displayOptions;
+	}
+
+	/**
+	 * Get or set the cover url
+	 * @param {string} [url]
+	 * @return {string} coverUrl
+	 */
+	 get coverUrl() {
+		let coverResource = this.data.resources.find((resource) => {
+			return resource.rel.includes("cover");
+		});
+		return coverResource && coverResource.url;
+	}
+
+	set coverUrl(url) {
+		let coverResource = this.data.resources.find((resource) => {
+			return resource.includes("cover");
+		});
+
+		if (coverResource) {
+			coverResource.url = url;
+		} else {
+			coverResource = new Resource({
+				rel: ["cover"],
+				url: url
+			});
+			this.data.resources.add(coverResource);
+		}
+		return coverResource && coverResource.url;
+	}
+
+	/**
+	* Get or set the table of contents url
+	* @param {string} [url]
+	* @return {string} contents
+	*/
+	get contentsUrl() {
+		let contentsUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("contents");
+		});
+		return contentsUrl && contentsUrl.url;
+	}
+
+	set contentsUrl(url) {
+		let contentsUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("contents");
+		});
+
+		if (contentsUrl) {
+			contentsUrl.url = url;
+		} else {
+			contentsUrl = {
+				rel: ["contents"],
+				url: url
+			};
+			this.data.resources.add(contentsUrl);
+		}
+		return contentsUrl && contentsUrl.url;
+	}
+
+
+	/**
+	* Get or set the landmarksUrl url
+	* @param {string} [url]
+	* @return {string} landmarksUrl
+	*/
+	get landmarksUrl() {
+		let landmarksUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("landmarks");
+		});
+		return landmarksUrl && landmarksUrl.url;
+	}
+
+	set landmarksUrl(url) {
+		let landmarksUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("landmarks");
+		});
+
+		if (landmarksUrl) {
+			landmarksUrl.url = url;
+		} else {
+			landmarksUrl = {
+				rel: ["landmarks"],
+				url: url
+			};
+			this.data.resources.add(landmarksUrl);
+		}
+		return landmarksUrl && landmarksUrl.url;
+	}
+
+
+	/**
+	* Get or set the pagelist url
+	* @param {string} [url]
+	* @return {string} pagelistUrl
+	*/
+	get pagelistUrl() {
+		let pagelistUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("pagelist");
+		});
+		return pagelistUrl && pagelistUrl.url;
+	}
+
+	set pagelistUrl(url) {
+		let pagelistUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("pagelist");
+		});
+
+		if (pagelistUrl) {
+			pagelistUrl.url = url;
+		} else {
+			pagelistUrl = {
+				rel: ["pagelist"],
+				url: url
+			};
+			this.data.resources.add(pagelistUrl);
+		}
+		return pagelistUrl && pagelistUrl.url;
+	}
+
+	/**
+	* Get or set the locations url
+	* @param {string} [url]
+	* @return {string} pagelistUrl
+	*/
+	get locationsUrl() {
+		let locationsUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("locations");
+		});
+		return locationsUrl && locationsUrl.url;
+	}
+
+	set locationsUrl(url) {
+		let locationsUrl = this.data.resources.find((resource) => {
+			return resource.rel.includes("locations");
+		});
+
+		if (locationsUrl) {
+			locationsUrl.url = url;
+		} else {
+			locationsUrl = {
+				rel: ["locations"],
+				url: url
+			};
+			this.data.resources.add(locationsUrl);
+		}
+		return locationsUrl && locationsUrl.url;
 	}
 
 	/**
