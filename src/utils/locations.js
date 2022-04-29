@@ -2,6 +2,7 @@ import {qs, sprint} from "./core.js";
 import Queue from "./queue.js";
 import EpubCFI from "./epubcfi.js";
 import request from "./request.js";
+import Locator from "../publication/locator.js";
 
 export async function generateLocations(sections, options={}) {
     let q = new Queue();
@@ -106,7 +107,7 @@ function parse(doc, cfiBase, chars) {
                 range.endOffset = pos;
                 // cfi = section.cfiFromRange(range);
                 let cfi = new EpubCFI(range, cfiBase).toString();
-                locations.push(cfi);
+                locations.push({cfi});
                 counter = 0;
             }
         }
@@ -120,7 +121,7 @@ function parse(doc, cfiBase, chars) {
         range.endContainer = prev;
         range.endOffset = prev.length;
         let cfi = new EpubCFI(range, cfiBase).toString();
-        locations.push(cfi);
+        locations.push({cfi});
         counter = 0;
     }
 

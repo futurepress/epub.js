@@ -313,12 +313,16 @@ class Publication {
 		if (!items) {
 			return;
 		}
-
 		for (const item of items) {
-			const loc = new Locator({ url: item, cfi: item});
+			let loc;
+			if (typeof item === "string") {
+				loc = new Locator({ url: item, cfi: item});				
+			} else {
+				const { url, cfi } = item;
+				loc = new Locator({ url: url || cfi, cfi: cfi || url });
+			}
 			this.data.locations.append(loc);
 		}
-
 		return this.data.locations;
 	}
 

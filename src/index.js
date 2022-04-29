@@ -5,6 +5,7 @@ import Contents from "./rendition/contents.js";
 import Layout from "./rendition/layout.js";
 import Epub from "./epub/epub.js";
 import Manifest from "./manifest/manifest.js";
+import { generateLocations } from "./utils/locations.js"
 // import ePub from "./epub.js";
 export {
 	Publication,
@@ -13,5 +14,6 @@ export {
 	EpubCFI,
 	Rendition,
 	Contents,
-	Layout
+	Layout,
+	generateLocations
 };
