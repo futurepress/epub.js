@@ -9,13 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
   <script src="../dist/epub.js"></script>
 
-  <link rel="stylesheet" type="text/css" href="examples.css">
+  <link rel="stylesheet" type="text/css" href="reader.css">
 
 </head>
 
 <body>
   <div id="title"><input type="file" id="input"></div>
-  <div id="viewer" class="spreads"></div>
+  <div id="viewer"></div>
   <a id="prev" href="#prev" class="arrow">‹</a>
   <a id="next" href="#next" class="arrow">›</a>
 
@@ -43,9 +43,16 @@
 
       book.open(bookData, "binary");
 
-      rendition = book.renderTo("viewer", {
+      /*rendition = book.renderTo("viewer", {
         width: "100%",
         height: "100%"
+      });*/
+      var rendition = book.renderTo("viewer", {
+        //manager: "continuous",
+        flow: "paginated",
+        width: "100%",
+        height: "100%",
+        snap: true
       });
 
       rendition.display();
