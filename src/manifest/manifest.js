@@ -13,6 +13,10 @@ class Manifest extends Publication {
 	constructor(url, options) {
 		super();
 
+		this.settings = Object.assign({
+			url: undefined
+		}, options)
+
 		if (url) {
 			this.opened = this.open(url);
 		}
@@ -69,7 +73,7 @@ class Manifest extends Publication {
 	}
 
 	async open(url) {
-		this.url = url;
+		this.url = this.settings.url ? this.settings.url : url;
 
 		const manifest = await this.load(url, "json");
 

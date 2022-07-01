@@ -40,7 +40,7 @@ function createRange() {
 
 async function process(section, chars, requestMethod, pause) {
     let contents = await requestMethod(section.url);
-    let locations = parse(contents, section.cfiBase);
+    let locations = parse(contents, section.cfiBase, chars);
 
     return locations;
 }

@@ -341,6 +341,7 @@ class Publication {
 		}
 
 		for (const item of items) {
+			console.log("ITEM", item)
 			item.url = this.resolve(item.url || item.href);
 			item.canonical = item.canonical || item.url;
 

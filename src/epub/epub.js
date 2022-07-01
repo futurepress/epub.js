@@ -109,7 +109,7 @@ class Epub extends Publication {
 			this.landmarksUrl = navUrl;
 		}
 
-		if (pagelist.pages && pagelist.pages.length) {
+		if (pagelist.pageList && pagelist.pageList.length) {
 			this.pagelistUrl = navUrl;
 		}
 
@@ -120,7 +120,7 @@ class Epub extends Publication {
 		return {
 			toc: navigation.toc,
 			landmarks: navigation.landmarks,
-			pageList: pagelist.pages,
+			pageList: pagelist.pageList,
 			locations: pagelist.locations
 		}
 	}
@@ -180,6 +180,7 @@ class Epub extends Publication {
 		const { toc, landmarks, pageList, locations } = await this.loadNavigation(packaging);
 		this.toc = toc;
 		this.landmarks = landmarks;
+		console.log("pageList", pageList);
 		this.pagelist = pageList;
 		this.locations = locations;
 

@@ -124,7 +124,7 @@ class PageList {
 		var content = qs(item, "a"),
 				href = content.getAttribute("href") || "",
 				text = content.textContent || "",
-				page = parseInt(text),
+				page = text,
 				isCfi = href.indexOf("epubcfi"),
 				split,
 				packageUrl,
