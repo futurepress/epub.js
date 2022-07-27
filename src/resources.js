@@ -141,7 +141,7 @@ class Resources {
 				resolve(this.urls);
 			}.bind(this));
 		}
-		console.log("creating urls for smil resources");
+
 		var replacements = this.urls.map((url) => {
 			var absolute = this.settings.resolver(url);
 
