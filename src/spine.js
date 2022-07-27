@@ -45,7 +45,7 @@ class Spine {
 		this.spineNodeIndex = _package.spineNodeIndex;
 		this.baseUrl = _package.baseUrl || _package.basePath || "";
 		this.length = this.items.length;
-
+		//KEM: unpacking opf file
 		this.items.forEach((item, index) => {
 			var manifestItem = this.manifest[item.idref];
 			var spineItem;
@@ -63,7 +63,12 @@ class Spine {
 				item.href = manifestItem.href;
 				item.url = resolver(item.href, true);
 				item.canonical = canonical(item.href);
-
+				//KEM: added overlay so can load later in section
+				item.overlay = this.manifest[manifestItem.overlay];
+				if (item.overlay) {
+					item.overlay.url = resolver(item.overlay.href, true);
+					item.overlay.canonical = canonical(item.overlay.href);
+				}
 				if (manifestItem.properties.length) {
 					item.properties.push.apply(item.properties, manifestItem.properties);
 				}

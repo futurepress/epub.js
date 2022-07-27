@@ -332,7 +332,7 @@ class Rendition {
 		if (this.book.locations.length() && isFloat(target)) {
 			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
-
+		//KEM: Section display
 		section = this.book.spine.get(target);
 
 		if (!section) {
