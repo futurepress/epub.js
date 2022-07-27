@@ -23,12 +23,9 @@ function openBook(e) {
     var prev = document.getElementById("prev");
 
     book.open(bookData, "binary");
-    console.log("opened book")
-    console.log(book)
-    /*rendition = book.renderTo("viewer", {
-    width: "100%",
-    height: "100%"
-    });*/
+    /*     console.log("opened book")
+        console.log(book) */
+
     var rendition = book.renderTo("viewer", {
         //manager: "continuous",
         flow: "paginated",
@@ -38,7 +35,6 @@ function openBook(e) {
     });
 
     rendition.display();
-
     var keyListener = function (e) {
 
         // Left Key
@@ -59,7 +55,6 @@ function openBook(e) {
     });
 
     next.addEventListener("click", function (e) {
-        console.log(rendition)
         rendition.next();
         e.preventDefault();
     }, false);
@@ -75,16 +70,11 @@ function openBook(e) {
     document.addEventListener("keyup", keyListener, false);
 }
 function playPause() {
-    var iframeList = document.getElementsByTagName("iframe");
-    for (let iframe of iframeList) {
-        var iframeDoc = iframe.contentDocument;
-        iframeDoc.querySelectorAll('audio').forEach(audio => {
-            audio.play();
-            // audio.addEventListener('play', () => {
-
-            //     const currentPlaying = getCurrentlyPlayingAudio();
-            //     console.log('current playing audio:', currentPlaying);
-            // });
-        });
-    }
+    /* var iframeList = document.getElementsByTagName("iframe");
+     for (let iframe of iframeList) {
+         var iframeDoc = iframe.contentDocument;
+         iframeDoc.querySelectorAll('audio').forEach(audio => {
+             audio.play();
+         });
+     }*/
 }
