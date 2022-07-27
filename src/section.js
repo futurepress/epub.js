@@ -26,7 +26,7 @@ class Section {
 		this.canonical = item.canonical;
 		this.next = item.next;
 		this.prev = item.prev;
-
+		this.overlay = item.overlay;
 		this.cfiBase = item.cfiBase;
 
 		if (hooks) {
@@ -40,6 +40,7 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+		this.mediaOverlay = undefined;
 	}
 
 	/**
@@ -331,6 +332,7 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+		this.mediaOverlay = undefined;
 	}
 
 	destroy() {
