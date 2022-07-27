@@ -69,12 +69,17 @@ function openBook(e) {
 
     document.addEventListener("keyup", keyListener, false);
 }
+/**
+ * This is where the audio play/pause function should load and play everything on the page.
+ * Needs to loop through all available iframes because there may be 1-2 pages loaded separately on the page.
+ * I believe the audio tags will be in order per epub spec.  Could look at play start and check if that's not the case.
+ */
 function playPause() {
-    /* var iframeList = document.getElementsByTagName("iframe");
-     for (let iframe of iframeList) {
-         var iframeDoc = iframe.contentDocument;
-         iframeDoc.querySelectorAll('audio').forEach(audio => {
-             audio.play();
-         });
-     }*/
+    var iframeList = document.getElementsByTagName("iframe");
+    for (let iframe of iframeList) {
+        var iframeDoc = iframe.contentDocument;
+        iframeDoc.querySelectorAll('audio').forEach(audio => {
+            audio.play();
+        });
+    }
 }
