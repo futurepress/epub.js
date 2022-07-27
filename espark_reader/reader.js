@@ -73,6 +73,12 @@ function openBook(e) {
  * This is where the audio play/pause function should load and play everything on the page.
  * Needs to loop through all available iframes because there may be 1-2 pages loaded separately on the page.
  * I believe the audio tags will be in order per epub spec.  Could look at play start and check if that's not the case.
+ * To play audio and go through highlighting the text and stopping at the right point, need to look at the clipBegin/clipEnd properties
+ * You could go through each audio tag and play/stop for each one but I think that'd cause some choppy behavior.  Probably would be smoother to get the start/end for the page,
+ * and then track the time so that you can track the word for highlighting and pausing.
+ * 
+ * 
+ * Something to consider: will tracking the pages like this get messed up if the device rotates and only shows one page?
  */
 function playPause() {
     var iframeList = document.getElementsByTagName("iframe");
@@ -82,4 +88,11 @@ function playPause() {
             audio.play();
         });
     }
+}
+/**
+ * To highlight text with audio, search for the span with the id that matches the #id in the text src wrapping the audio.  Each par tag has a text with source and the audio.
+ * Add a css highlight class to the span, then remove when moving to the next word.
+ */
+function highlightText() {
+
 }
