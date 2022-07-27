@@ -15,8 +15,6 @@ import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
  */
 class Section {
 	constructor(item, hooks) {
-		console.log("Creating section")
-		console.log(item)
 		this.idref = item.idref;
 		this.linear = item.linear === "yes";
 		this.properties = item.properties;
@@ -123,7 +121,7 @@ class Section {
 		var rendering = new defer();
 		var rendered = rendering.promise;
 		this.output; // TODO: better way to return this from hooks?
-		console.log("rendering section");
+		//console.log("rendering section");
 		this.load(_request).
 			then(function (contents) {
 				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
