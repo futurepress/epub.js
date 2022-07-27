@@ -111,7 +111,7 @@ class Resources {
 	createUrl(url) {
 		var parsedUrl = new Url(url);
 		var mimeType = mime.lookup(parsedUrl.filename);
-
+		//KEM: based on the printout of the parsedUrl here, the url is correct, but the smil file is referring to it differently.  May need to modify the replacement to include the ../
 		if (this.settings.archive) {
 			return this.settings.archive.createUrl(url, { "base64": (this.settings.replacements === "base64") });
 		} else {
@@ -141,7 +141,7 @@ class Resources {
 				resolve(this.urls);
 			}.bind(this));
 		}
-
+		console.log("creating urls for smil resources");
 		var replacements = this.urls.map((url) => {
 			var absolute = this.settings.resolver(url);
 
@@ -301,6 +301,9 @@ class Resources {
 		} else {
 			relUrls = this.urls;
 		}
+		//KEM: this seems to be where the audio urls are going wrong, but it could be that there's a problem with the original file.  
+		//KEM: The smil files have relative paths to the resources with an extra folder jump like ../, and the regular pages don't do that
+		//KEM: so there may need to be some kind of check to see where the files actually are before replacing them?
 		return substitute(content, relUrls, this.replacementUrls);
 	}
 
