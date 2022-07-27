@@ -75,12 +75,16 @@ function openBook(e) {
     document.addEventListener("keyup", keyListener, false);
 }
 function playPause() {
-    document.querySelectorAll('audio').forEach(audio => {
-        audio.play();
-        // audio.addEventListener('play', () => {
+    var iframeList = document.getElementsByTagName("iframe");
+    for (let iframe of iframeList) {
+        var iframeDoc = iframe.contentDocument;
+        iframeDoc.querySelectorAll('audio').forEach(audio => {
+            audio.play();
+            // audio.addEventListener('play', () => {
 
-        //     const currentPlaying = getCurrentlyPlayingAudio();
-        //     console.log('current playing audio:', currentPlaying);
-        // });
-    });
+            //     const currentPlaying = getCurrentlyPlayingAudio();
+            //     console.log('current playing audio:', currentPlaying);
+            // });
+        });
+    }
 }

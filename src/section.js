@@ -93,7 +93,7 @@ class Section {
 		var rendering = new defer();
 		var rendered = rendering.promise;
 		this.output; // TODO: better way to return this from hooks?
-
+		console.log("rendering section");
 		this.load(_request).
 			then(function (contents) {
 				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';

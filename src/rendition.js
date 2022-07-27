@@ -176,6 +176,7 @@ class Rendition {
 		// If manager is a string, try to load from imported managers
 		if (typeof manager === "string" && manager === "default") {
 			viewManager = DefaultViewManager;
+			console.log(viewManager.options)
 		} else if (typeof manager === "string" && manager === "continuous") {
 			viewManager = ContinuousViewManager;
 		} else {
