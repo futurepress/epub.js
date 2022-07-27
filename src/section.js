@@ -51,26 +51,55 @@ class Section {
 		var request = _request || this.request || Request;
 		var loading = new defer();
 		var loaded = loading.promise;
-		if (this.contents) {
-			loading.resolve(this.contents);
-		} else {
-			//KEM: this is where the file is loaded and turned into xml
-			//KEM: add in a load to the smil file and append it?
-			request(this.url)
-				.then(function (xml) {
-					// var directory = new Url(this.url).directory;
 
+		//KEM: this is where the file is loaded and turned into xml
+		//KEM: add in a load to the smil file and append it?
+
+		//KEM: try to load overlay
+		if (this.overlay) {
+			if (this.contents) {
+				loading.resolve(this.contents);
+			} else {
+				request(this.overlay.url).then(function (overlayXml) {
+					var div = document.createElement("div");
+					//overlay is returning as a string?  possibly because xml instead of xhtml
+					var start = overlayXml.search("<smil");
+					var xmlStr = overlayXml.substring(start);
+					div.insertAdjacentHTML('beforeend', xmlStr);
+					this.mediaOverlay = div;
+					return request(this.url).then(function (xml) {
+						this.document = xml;
+						this.contents = xml.documentElement;
+						this.contents.appendChild(div);
+						return this.hooks.content.trigger(this.document, this);
+
+					}.bind(this)).then(function () {
+						loading.resolve(this.contents);
+					}.bind(this)).catch(function (error) {
+						loading.reject(error);
+					});
+				}
+					.bind(this)).catch(function (error) {
+						loading.reject(error);
+					});
+			}
+		}
+		else {
+			if (this.contents) {
+				loading.resolve(this.contents);
+			} else {
+				request(this.url).then(function (xml) {
+					// var directory = new Url(this.url).directory;
 					this.document = xml;
 					this.contents = xml.documentElement;
-
 					return this.hooks.content.trigger(this.document, this);
-				}.bind(this))
-				.then(function () {
+
+				}.bind(this)).then(function () {
 					loading.resolve(this.contents);
-				}.bind(this))
-				.catch(function (error) {
+				}.bind(this)).catch(function (error) {
 					loading.reject(error);
 				});
+			}
 		}
 
 		return loaded;
