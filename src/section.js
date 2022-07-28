@@ -61,6 +61,7 @@ class Section {
 			} else {
 				request(this.overlay.url).then(function (overlayXml) {
 					var div = document.createElement("div");
+					div.classList.add("audioContainer");
 					//overlay is returning as a string?  possibly because xml instead of xhtml
 					var start = overlayXml.search("<smil");
 					var xmlStr = overlayXml.substring(start);

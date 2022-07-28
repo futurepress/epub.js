@@ -2,7 +2,9 @@ var book = ePub();
 var rendition;
 
 var inputElement;
-
+var audioClips=[];
+var currentWord=0;
+var isPlaying=false;
 function init() {
     inputElement = document.getElementById("input");
 
@@ -52,6 +54,22 @@ function openBook(e) {
     rendition.on("keyup", keyListener);
     rendition.on("relocated", function (location) {
         console.log(location);
+        var iframeList = document.getElementsByTagName("iframe");
+
+        for (let iframe of iframeList) {
+            var iframeDoc = iframe.contentDocument;
+            
+            iframeDoc.querySelectorAll('par').forEach(par => {
+                text = par.getElementsByTagName("text")[0]; //should only be one
+                audio = par.getElementsByTagName("audio")[0]; //should only be one
+                textId=text.getAttribute("src");
+                audioClips.push({
+                    textId:textId,
+                    audio:audio
+                })
+            });
+        }
+        console.log(audioClips);
     });
 
     next.addEventListener("click", function (e) {
@@ -63,9 +81,6 @@ function openBook(e) {
         rendition.prev();
         e.preventDefault();
     }, false);
-
-
-
 
     document.addEventListener("keyup", keyListener, false);
 }
@@ -81,12 +96,15 @@ function openBook(e) {
  * Something to consider: will tracking the pages like this get messed up if the device rotates and only shows one page?
  */
 function playPause() {
-    var iframeList = document.getElementsByTagName("iframe");
-    for (let iframe of iframeList) {
-        var iframeDoc = iframe.contentDocument;
-        iframeDoc.querySelectorAll('audio').forEach(audio => {
-            audio.play();
-        });
+    if(audioClips.length>0){
+        if(isPlaying){
+            audioClips[currentWord].audio.pause();
+            isPlaying=false;
+        }
+        else{
+            audioClips[currentWord].audio.play();
+            isPlaying=true;
+        }
     }
 }
 /**
