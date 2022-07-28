@@ -1,5 +1,3 @@
-//const {Howl, Howler} = require('howler');
-
 var book = ePub();
 var rendition;
 
@@ -56,23 +54,7 @@ function openBook(e) {
     rendition.on("keyup", keyListener);
     rendition.on("relocated", function (location) {
         console.log(location);
-        var iframeList = document.getElementsByTagName("iframe");
-
-        for (let iframe of iframeList) {
-            var iframeDoc = iframe.contentDocument;
-
-            iframeDoc.querySelectorAll('par').forEach(par => {
-                var text = par.getElementsByTagName("text")[0]; //should only be one
-                var audio = par.getElementsByTagName("audio")[0]; //should only be one
-                var textId = text.getAttribute("src");
-                var audioSrc = audio.getAttribute("src");
-                audioClips.push({
-                    textId: textId,
-                    audio: audio
-                })
-            });
-        }
-        console.log(audioClips);
+        initAudio();
     });
 
     next.addEventListener("click", function (e) {
@@ -86,6 +68,44 @@ function openBook(e) {
     }, false);
 
     document.addEventListener("keyup", keyListener, false);
+
+
+}
+function initAudio() {
+    var iframeList = document.getElementsByTagName("iframe");
+    audioClips = [];
+    for (let iframe of iframeList) {
+        var iframeDoc = iframe.contentDocument;
+
+        //get audio information
+        iframeDoc.querySelectorAll('par').forEach(par => {
+            var text = par.getElementsByTagName("text")[0]; //should only be one
+            var audio = par.getElementsByTagName("audio")[0]; //should only be one
+            var textId = text.getAttribute("src").split("#")[1];//text source format is page.xhtml#word
+            var textRef = iframeDoc.getElementById(textId);
+            var audioSrc = audio.getAttribute("src");
+            const contentType = "audio/mp3";
+            /*var sound = new Howl({
+                src: [`data:${contentType};base64,${audioSrc}`]
+            });*/
+            audioClips.push({
+                textId: textId,
+                text: textRef,
+                audio: audio,
+                clipBegin: audio.getAttribute("clipbegin"),
+                clipEnd: audio.getAttribute("clipend"),
+                duration: 1000 * (audio.getAttribute("clipend") - audio.getAttribute("clipbegin"))
+            })
+        });
+        //add next clip's start to the duration to account for pauses
+        for (let i = 0; i < audioClips.length - 1; i++) {
+            audioClips[i].duration = audioClips[i].duration + audioClips[i + 1].clipBegin * 1000;
+        }
+        if (audioClips.length > 0) {
+            resetAudioToStart();
+        }
+    }
+
 }
 /**
  * This is where the audio play/pause function should load and play everything on the page.
@@ -101,19 +121,60 @@ function openBook(e) {
 function playPause() {
     if (audioClips.length > 0) {
         if (isPlaying) {
-            audioClips[currentWord].audio.pause();
-            isPlaying = false;
+            pauseAudio();
         }
         else {
-            audioClips[currentWord].audio.play();
-            isPlaying = true;
+            playAudio();
+            highlightWord();
         }
     }
+}
+/**
+ * There's no real reason for playing the audio of the current word instead of the first one
+ * since they use the same file,
+ * but it might be useful if they ever have different files
+ */
+function playAudio() {
+    isPlaying = true;
+    audioClips[currentWord].audio.play();
+}
+function pauseAudio() {
+    isPlaying = false;
+    audioClips[currentWord].audio.pause();
+}
+function resetAudioToStart() {
+    currentWord = 0;
+    pauseAudio();
+    audioClips[currentWord].audio.currentTime = audioClips[currentWord].clipBegin;
+}
+function resetAudioToWord() {
+    audioClips[currentWord].audio.currentTime = audioClips[currentWord].clipBegin;
 }
 /**
  * To highlight text with audio, search for the span with the id that matches the #id in the text src wrapping the audio.  Each par tag has a text with source and the audio.
  * Add a css highlight class to the span, then remove when moving to the next word.
  */
-function highlightText() {
+function highlightWord() {
+    console.log("highlighting " + currentWord);
+    //don't increment words if the audio is ended
+    if (currentWord >= audioClips.length) {
+        resetAudioToStart();
+        return;
+    }
+    if (!isPlaying) {
+        return;
+    }
+    /**
+     * note: using class add/remove doesn't work with iframes because the css is separate
+     */
 
+    //highlight current word
+    if (currentWord > 0)
+        audioClips[currentWord - 1].text.setAttribute("style", "");
+
+    audioClips[currentWord].text.setAttribute("style", "background-color:yellow;");
+    //setup timer for when word is done being read
+    const myTimeout = setTimeout(highlightWord, audioClips[currentWord].duration);
+    //increment word index
+    currentWord++;
 }

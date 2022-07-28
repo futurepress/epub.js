@@ -268,7 +268,6 @@ class Resources {
 				if (relative.includes("audio")) {
 					relative = "../" + relative;
 				}
-				console.log(resolved, relative);
 				return relative;
 			}.bind(this));
 	}
