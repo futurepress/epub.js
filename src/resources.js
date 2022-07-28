@@ -258,12 +258,17 @@ class Resources {
 	 */
 	relativeTo(absolute, resolver) {
 		resolver = resolver || this.settings.resolver;
-
 		// Get Urls relative to current sections
 		return this.urls.
 			map(function (href) {
 				var resolved = resolver(href);
 				var relative = new Path(absolute).relative(resolved);
+				//KEM: hardcoding to fix audio links for testing
+				//KEM: these are the links that are searched for in the content
+				if (relative.includes("audio")) {
+					relative = "../" + relative;
+				}
+				console.log(resolved, relative);
 				return relative;
 			}.bind(this));
 	}
@@ -304,6 +309,9 @@ class Resources {
 		//KEM: this seems to be where the audio urls are going wrong, but it could be that there's a problem with the original file.  
 		//KEM: The smil files have relative paths to the resources with an extra folder jump like ../, and the regular pages don't do that
 		//KEM: so there may need to be some kind of check to see where the files actually are before replacing them?
+		/**
+		 * Goes through the content and replaces any instances of relUrls with this.replacementUrls
+		 */
 		return substitute(content, relUrls, this.replacementUrls);
 	}
 
