@@ -15,8 +15,12 @@
 </head>
 
 <body>
-  <div id="title"><input type="file" id="input"></div>
-  <div id="audioplayer"><button onclick="playPause()">Play audio</button></div>
+  <div id="title">
+    <input type="file" id="input">
+    <div id="audioplayer"><button id="playButton" onclick="playPause()">Play</button><button id="resetButton"
+        onclick="resetAudioToStart()">Reset</button></div>
+  </div>
+
   <div id="viewer"></div>
   <a id="prev" href="#prev" class="arrow">‹</a>
   <a id="next" href="#next" class="arrow">›</a>

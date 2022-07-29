@@ -92,17 +92,21 @@ function initAudio() {
                 textId: textId,
                 text: textRef,
                 audio: audio,
-                clipBegin: audio.getAttribute("clipbegin"),
-                clipEnd: audio.getAttribute("clipend"),
-                duration: 1000 * (audio.getAttribute("clipend") - audio.getAttribute("clipbegin"))
+                clipBegin: parseFloat(audio.getAttribute("clipbegin")),
+                clipEnd: parseFloat(audio.getAttribute("clipend"))
+                //duration: 1000 * (parseFloat(audio.getAttribute("clipend")) - parseFloat(audio.getAttribute("clipbegin")))
             })
         });
         //add next clip's start to the duration to account for pauses
         for (let i = 0; i < audioClips.length - 1; i++) {
-            audioClips[i].duration = audioClips[i].duration + audioClips[i + 1].clipBegin * 1000;
+            audioClips[i].duration = 1000 * (audioClips[i + 1].clipBegin - audioClips[i].clipBegin);
         }
         if (audioClips.length > 0) {
+            document.getElementById("audioplayer").style.visibility = "visible";
             resetAudioToStart();
+        }
+        else {
+            document.getElementById("audioplayer").style.visibility = "hidden";
         }
     }
 
@@ -125,37 +129,38 @@ function playPause() {
         }
         else {
             playAudio();
-            highlightWord();
         }
     }
 }
 /**
- * There's no real reason for playing the audio of the current word instead of the first one
- * since they use the same file,
- * but it might be useful if they ever have different files
+ * The audio is the same for the whole book, need to play/pause the same audio tag
  */
 function playAudio() {
     isPlaying = true;
-    audioClips[currentWord].audio.play();
+    highlightWord();
+    audioClips[0].audio.play();
+    document.getElementById("playButton").textContent = "Pause";
 }
 function pauseAudio() {
     isPlaying = false;
-    audioClips[currentWord].audio.pause();
+    audioClips[0].audio.pause();
+    document.getElementById("playButton").textContent = "Play";
 }
 function resetAudioToStart() {
+    if (currentWord > 0)
+        audioClips[currentWord - 1].text.setAttribute("style", "");
     currentWord = 0;
     pauseAudio();
-    audioClips[currentWord].audio.currentTime = audioClips[currentWord].clipBegin;
+    audioClips[0].audio.currentTime = audioClips[currentWord].clipBegin;
 }
 function resetAudioToWord() {
-    audioClips[currentWord].audio.currentTime = audioClips[currentWord].clipBegin;
+    audioClips[0].audio.currentTime = audioClips[currentWord].clipBegin;
 }
 /**
  * To highlight text with audio, search for the span with the id that matches the #id in the text src wrapping the audio.  Each par tag has a text with source and the audio.
  * Add a css highlight class to the span, then remove when moving to the next word.
  */
 function highlightWord() {
-    console.log("highlighting " + currentWord);
     //don't increment words if the audio is ended
     if (currentWord >= audioClips.length) {
         resetAudioToStart();
@@ -164,6 +169,7 @@ function highlightWord() {
     if (!isPlaying) {
         return;
     }
+
     /**
      * note: using class add/remove doesn't work with iframes because the css is separate
      */
