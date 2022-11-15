@@ -28,7 +28,8 @@
     var rendition = book.renderTo("viewer", {
       width: "100%",
       height: 600,
-      spread: "always"
+      spread: "always",
+      allowScriptedContent: true
     });
 
     rendition.display(currentSectionIndex);
