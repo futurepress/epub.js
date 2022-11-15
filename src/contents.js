@@ -667,10 +667,18 @@ class Contents {
 			let el = this.document.getElementById(id);
 			if(el) {
 				if (isWebkit) {
-					// Webkit reports incorrect bounding rects in Columns
+					// Webkit reports incorrect bounding rects in Columns unless a range
+					// is used to measure
 					let newRange = new Range();
 					newRange.selectNode(el);
-					position = newRange.getBoundingClientRect();
+					
+					// Webkit reports a position of 0/0 for empty ranges. Temporarily
+					// inserting a zero-width space ensures that we can locate empty target
+					// elements
+					let zeroWidthSpace = document.createTextNode('\ufeff');
+    					newRange.insertNode(zeroWidthSpace);
+    					position = newRange.getBoundingClientRect();
+    					zeroWidthSpace.remove();
 				} else {
 					position = el.getBoundingClientRect();
 				}
