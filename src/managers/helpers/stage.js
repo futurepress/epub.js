@@ -47,6 +47,7 @@ class Stage {
 		container.style.lineHeight = "0";
 		container.style.verticalAlign = "top";
 		container.style.position = "relative";
+		container.style.overflowAnchor = "none";
 
 		if(axis === "horizontal") {
 			// container.style.whiteSpace = "nowrap";
