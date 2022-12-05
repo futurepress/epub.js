@@ -10,8 +10,8 @@ import { createUrl, resolve } from "../utils/url.js";
  * @example new Manifest(manifest)
  */
 class Manifest extends Publication {
-	constructor(url, options) {
-		super();
+	constructor(url, requestMethod, requestOptions) {
+		super(null, requestMethod, requestOptions);
 
 		if (url) {
 			this.opened = this.open(url);

@@ -153,7 +153,12 @@ class Publication {
 			return;
 		}
 		let index = 1;
-		for (const item of items) {
+		for (let item of items) {
+			if (typeof item === "string") {
+				item = {
+					url: item
+				};
+			}
 			item.url = resolve(this.url, item.url  || item.href);
 			// TEMP hack for handling EpubCFI
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);
@@ -206,7 +211,12 @@ class Publication {
 			return;
 		}
 		let index = 1;
-		for (const item of items) {
+		for (let item of items) {
+			if (typeof item === "string") {
+				item = {
+					url: item
+				};
+			}
 			item.url = this.resolve(item.url || item.href);
 			// TEMP hack for handling EpubCFI
 			const id = encodeURIComponent(filename(item.url).split(".")[0]);

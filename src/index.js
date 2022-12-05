@@ -5,7 +5,9 @@ import Contents from "./rendition/contents.js";
 import Layout from "./rendition/layout.js";
 import Epub from "./epub/epub.js";
 import Manifest from "./manifest/manifest.js";
-import { generateLocations } from "./utils/locations.js"
+import { generateLocations } from "./utils/locations.js";
+import * as core from "./utils/core.js";
+import * as url from "./utils/url.js";
 // import ePub from "./epub.js";
 export {
 	Publication,
@@ -15,5 +17,7 @@ export {
 	Rendition,
 	Contents,
 	Layout,
-	generateLocations
+	generateLocations,
+	core,
+	url
 };

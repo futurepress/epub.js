@@ -42,8 +42,12 @@ export function extension(inputUrl) {
 }
 
 export function resolve(inputUrl, path) {
-	const url = createUrl(inputUrl); 
-	return new URL(path, url).href;
+	const url = createUrl(inputUrl);
+	if (url.origin === "http://example.com") {
+		return new URL(path, url).href.replace("http://example.com/", "");
+	} else {
+		return new URL(path, url).href
+	}
 }
 
 export function relative(inputUrl, path) {

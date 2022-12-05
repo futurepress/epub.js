@@ -19,7 +19,7 @@ class Resource {
 			canonical: item.canonical,
 			type: item.type,
 			encoding: item.encoding || lookup(item.url),
-			properites: item.properites,
+			properites: item.properites || [],
 			rel: item.rel || [],
 			name: item.name,
 			cfiPos: item.cfiPos,
@@ -80,7 +80,7 @@ class Resource {
 	}
 
 	set properites(properites) {
-		this.data.id = properites;
+		this.data.properites = properites;
 	}
 
 	get rel() {
