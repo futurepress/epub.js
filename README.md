@@ -20,16 +20,16 @@ More specifically, the EPUB schema standardizes the table of contents, provides 
 
 ## Getting Started
 
+If using archived `.epub` files include JSZip (this must precede inclusion of epub.js):
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+```
+
 Get the minified code from the build folder:
 
 ```html
 <script src="../dist/epub.min.js"></script>
-```
-
-If using archived `.epub` files include JSZip:
-
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
 ```
 
 Set up a element to render to:
