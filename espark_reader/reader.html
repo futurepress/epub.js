@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB.js Input Example</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="../dist/epub.js"></script>
+  <script src="../howler.js/src/howler.core.js"></script>
+  <script src="reader.js"></script>
+  <link rel="stylesheet" type="text/css" href="reader.css">
+
+</head>
+
+<body>
+  <div id="title">
+    <input type="file" id="input">
+    <div id="audioplayer"><button id="playButton" onclick="playPause()">Play</button><button id="resetButton"
+        onclick="resetAudioToStart()">Reset</button></div>
+  </div>
+
+  <div id="viewer"></div>
+  <a id="prev" href="#prev" class="arrow">‹</a>
+  <a id="next" href="#next" class="arrow">›</a>
+
+  <script>
+
+    init();
+
+
+
+  </script>
+
+</body>
+
+</html>

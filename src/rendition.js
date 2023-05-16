@@ -64,7 +64,7 @@ class Rendition {
 
 		extend(this.settings, options);
 
-		if (typeof(this.settings.manager) === "object") {
+		if (typeof (this.settings.manager) === "object") {
 			this.manager = this.settings.manager;
 		}
 
@@ -176,6 +176,7 @@ class Rendition {
 		// If manager is a string, try to load from imported managers
 		if (typeof manager === "string" && manager === "default") {
 			viewManager = DefaultViewManager;
+
 		} else if (typeof manager === "string" && manager === "continuous") {
 			viewManager = ContinuousViewManager;
 		} else {
@@ -209,11 +210,11 @@ class Rendition {
 	 * Start the rendering
 	 * @return {Promise} rendering has started
 	 */
-	start(){
+	start() {
 		if (!this.settings.layout && (this.book.package.metadata.layout === "pre-paginated" || this.book.displayOptions.fixedLayout === "true")) {
 			this.settings.layout = "pre-paginated";
 		}
-		switch(this.book.package.metadata.spread) {
+		switch (this.book.package.metadata.spread) {
 			case 'none':
 				this.settings.spread = 'none';
 				break;
@@ -222,7 +223,7 @@ class Rendition {
 				break;
 		}
 
-		if(!this.manager) {
+		if (!this.manager) {
 			this.ViewManager = this.requireManager(this.settings.manager);
 			this.View = this.requireView(this.settings.view);
 
@@ -273,14 +274,14 @@ class Rendition {
 	 * @param  {element} element to attach to
 	 * @return {Promise}
 	 */
-	attachTo(element){
+	attachTo(element) {
 
 		return this.q.enqueue(function () {
 
 			// Start rendering
 			this.manager.render(element, {
-				"width"  : this.settings.width,
-				"height" : this.settings.height
+				"width": this.settings.width,
+				"height": this.settings.height
 			});
 
 			/**
@@ -302,7 +303,7 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	display(target){
+	display(target) {
 		if (this.displaying) {
 			this.displaying.resolve();
 		}
@@ -315,7 +316,7 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	_display(target){
+	_display(target) {
 		if (!this.book) {
 			return;
 		}
@@ -331,10 +332,10 @@ class Rendition {
 		if (this.book.locations.length() && isFloat(target)) {
 			target = this.book.locations.cfiFromPercentage(parseFloat(target));
 		}
-
+		//KEM: Section display
 		section = this.book.spine.get(target);
 
-		if(!section){
+		if (!section) {
 			displaying.reject(new Error("No Section Found"));
 			return displayed;
 		}
@@ -415,7 +416,7 @@ class Rendition {
 	 * @private
 	 * @param  {*} view
 	 */
-	afterDisplayed(view){
+	afterDisplayed(view) {
 
 		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
 
@@ -444,7 +445,7 @@ class Rendition {
 	 * @private
 	 * @param  {*} view
 	 */
-	afterRemoved(view){
+	afterRemoved(view) {
 		this.hooks.unloaded.trigger(view, this).then(() => {
 			/**
 			 * Emit that a section has been removed
@@ -461,7 +462,7 @@ class Rendition {
 	 * Report resize events and display the last seen location
 	 * @private
 	 */
-	onResized(size, epubcfi){
+	onResized(size, epubcfi) {
 
 		/**
 		 * Emit that the rendition has been resized
@@ -486,7 +487,7 @@ class Rendition {
 	 * Report orientation events and display the last seen location
 	 * @private
 	 */
-	onOrientationChange(orientation){
+	onOrientationChange(orientation) {
 		/**
 		 * Emit that the rendition has been rotated
 		 * @event orientationchange
@@ -501,7 +502,7 @@ class Rendition {
 	 * Usually you would be better off calling display()
 	 * @param {object} offset
 	 */
-	moveTo(offset){
+	moveTo(offset) {
 		this.manager.moveTo(offset);
 	}
 
@@ -511,7 +512,7 @@ class Rendition {
 	 * @param {number} [height]
 	 * @param {string} [epubcfi] (optional)
 	 */
-	resize(width, height, epubcfi){
+	resize(width, height, epubcfi) {
 		if (width) {
 			this.settings.width = width;
 		}
@@ -524,7 +525,7 @@ class Rendition {
 	/**
 	 * Clear all rendered views
 	 */
-	clear(){
+	clear() {
 		this.manager.clear();
 	}
 
@@ -532,7 +533,7 @@ class Rendition {
 	 * Go to the next "page" in the rendition
 	 * @return {Promise}
 	 */
-	next(){
+	next() {
 		return this.q.enqueue(this.manager.next.bind(this.manager))
 			.then(this.reportLocation.bind(this));
 	}
@@ -541,7 +542,7 @@ class Rendition {
 	 * Go to the previous "page" in the rendition
 	 * @return {Promise}
 	 */
-	prev(){
+	prev() {
 		return this.q.enqueue(this.manager.prev.bind(this.manager))
 			.then(this.reportLocation.bind(this));
 	}
@@ -553,7 +554,7 @@ class Rendition {
 	 * @param  {object} metadata
 	 * @return {object} properties
 	 */
-	determineLayoutProperties(metadata){
+	determineLayoutProperties(metadata) {
 		var properties;
 		var layout = this.settings.layout || metadata.layout || "reflowable";
 		var spread = this.settings.spread || metadata.spread || "auto";
@@ -564,17 +565,17 @@ class Rendition {
 		var direction = this.settings.direction || metadata.direction || "ltr";
 
 		if ((this.settings.width === 0 || this.settings.width > 0) &&
-				(this.settings.height === 0 || this.settings.height > 0)) {
+			(this.settings.height === 0 || this.settings.height > 0)) {
 			// viewport = "width="+this.settings.width+", height="+this.settings.height+"";
 		}
 
 		properties = {
-			layout : layout,
-			spread : spread,
-			orientation : orientation,
-			flow : flow,
-			viewport : viewport,
-			minSpreadWidth : minSpreadWidth,
+			layout: layout,
+			spread: spread,
+			orientation: orientation,
+			flow: flow,
+			viewport: viewport,
+			minSpreadWidth: minSpreadWidth,
 			direction: direction
 		};
 
@@ -586,11 +587,11 @@ class Rendition {
 	 * (scrolled-continuous vs scrolled-doc are handled by different view managers)
 	 * @param  {string} flow
 	 */
-	flow(flow){
+	flow(flow) {
 		var _flow = flow;
 		if (flow === "scrolled" ||
-				flow === "scrolled-doc" ||
-				flow === "scrolled-continuous") {
+			flow === "scrolled-doc" ||
+			flow === "scrolled-continuous") {
 			_flow = "scrolled";
 		}
 
@@ -622,7 +623,7 @@ class Rendition {
 	 * Adjust the layout of the rendition to reflowable or pre-paginated
 	 * @param  {object} settings
 	 */
-	layout(settings){
+	layout(settings) {
 		if (settings) {
 			this._layout = new Layout(settings);
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
@@ -646,7 +647,7 @@ class Rendition {
 	 * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
 	 * @param  {int} [min] min width to use spreads at
 	 */
-	spread(spread, min){
+	spread(spread, min) {
 
 		this.settings.spread = spread;
 
@@ -667,7 +668,7 @@ class Rendition {
 	 * Adjust the direction of the rendition
 	 * @param  {string} dir
 	 */
-	direction(dir){
+	direction(dir) {
 
 		this.settings.direction = dir || "ltr";
 
@@ -686,12 +687,12 @@ class Rendition {
 	 * @fires relocated
 	 * @fires locationChanged
 	 */
-	reportLocation(){
-		return this.q.enqueue(function reportedLocation(){
+	reportLocation() {
+		return this.q.enqueue(function reportedLocation() {
 			requestAnimationFrame(function reportedLocationAfterRAF() {
 				var location = this.manager.currentLocation();
 				if (location && location.then && typeof location.then === "function") {
-					location.then(function(result) {
+					location.then(function (result) {
 						let located = this.located(result);
 
 						if (!located || !located.start || !located.end) {
@@ -753,10 +754,10 @@ class Rendition {
 	 * Get the Current Location object
 	 * @return {displayedLocation | promise} location (may be a promise)
 	 */
-	currentLocation(){
+	currentLocation() {
 		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === "function") {
-			location.then(function(result) {
+			location.then(function (result) {
 				let located = this.located(result);
 				return located;
 			}.bind(this));
@@ -772,12 +773,12 @@ class Rendition {
 	 * @returns {displayedLocation}
 	 * @private
 	 */
-	located(location){
+	located(location) {
 		if (!location.length) {
 			return {};
 		}
 		let start = location[0];
-		let end = location[location.length-1];
+		let end = location[location.length - 1];
 
 		let located = {
 			start: {
@@ -794,7 +795,7 @@ class Rendition {
 				href: end.href,
 				cfi: end.mapping.end,
 				displayed: {
-					page: end.pages[end.pages.length-1] || 1,
+					page: end.pages[end.pages.length - 1] || 1,
 					total: end.totalPages
 				}
 			}
@@ -823,12 +824,12 @@ class Rendition {
 		}
 
 		if (end.index === this.book.spine.last().index &&
-				located.end.displayed.page >= located.end.displayed.total) {
+			located.end.displayed.page >= located.end.displayed.total) {
 			located.atEnd = true;
 		}
 
 		if (start.index === this.book.spine.first().index &&
-				located.start.displayed.page === 1) {
+			located.start.displayed.page === 1) {
 			located.atStart = true;
 		}
 
@@ -838,7 +839,7 @@ class Rendition {
 	/**
 	 * Remove and Clean Up the Rendition
 	 */
-	destroy(){
+	destroy() {
 		// Clear the queue
 		// this.q.clear();
 		// this.q = undefined;
@@ -873,7 +874,7 @@ class Rendition {
 	 * @private
 	 * @param  {Contents} view contents
 	 */
-	passEvents(contents){
+	passEvents(contents) {
 		DOM_EVENTS.forEach((e) => {
 			contents.on(e, (ev) => this.triggerViewEvent(ev, contents));
 		});
@@ -886,7 +887,7 @@ class Rendition {
 	 * @private
 	 * @param  {event} e
 	 */
-	triggerViewEvent(e, contents){
+	triggerViewEvent(e, contents) {
 		this.emit(e.type, e, contents);
 	}
 
@@ -895,7 +896,7 @@ class Rendition {
 	 * @private
 	 * @param  {string} cfirange
 	 */
-	triggerSelectedEvent(cfirange, contents){
+	triggerSelectedEvent(cfirange, contents) {
 		/**
 		 * Emit that a text selection has occurred
 		 * @event selected
@@ -911,7 +912,7 @@ class Rendition {
 	 * @private
 	 * @param  {EpubCFI} cfirange
 	 */
-	triggerMarkEvent(cfiRange, data, contents){
+	triggerMarkEvent(cfiRange, data, contents) {
 		/**
 		 * Emit that a mark was clicked
 		 * @event markClicked
@@ -929,10 +930,10 @@ class Rendition {
 	 * @param  {string} ignoreClass
 	 * @return {range}
 	 */
-	getRange(cfi, ignoreClass){
+	getRange(cfi, ignoreClass) {
 		var _cfi = new EpubCFI(cfi);
 		var found = this.manager.visible().filter(function (view) {
-			if(_cfi.spinePos === view.index) return true;
+			if (_cfi.spinePos === view.index) return true;
 		});
 
 		// Should only every return 1 item
@@ -949,7 +950,7 @@ class Rendition {
 	adjustImages(contents) {
 
 		if (this._layout.name === "pre-paginated") {
-			return new Promise(function(resolve){
+			return new Promise(function (resolve) {
 				resolve();
 			});
 		}
@@ -959,7 +960,7 @@ class Rendition {
 		let horizontalPadding = parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight);
 
 		contents.addStylesheetRules({
-			"img" : {
+			"img": {
 				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - horizontalPadding) + "px" : "100%") + "!important",
 				"max-height": height + "px" + "!important",
 				"object-fit": "contain",
@@ -967,7 +968,7 @@ class Rendition {
 				"break-inside": "avoid",
 				"box-sizing": "border-box"
 			},
-			"svg" : {
+			"svg": {
 				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - horizontalPadding) + "px" : "100%") + "!important",
 				"max-height": height + "px" + "!important",
 				"page-break-inside": "avoid",
@@ -975,9 +976,9 @@ class Rendition {
 			}
 		});
 
-		return new Promise(function(resolve, reject){
+		return new Promise(function (resolve, reject) {
 			// Wait to apply
-			setTimeout(function() {
+			setTimeout(function () {
 				resolve();
 			}, 1);
 		});
@@ -987,7 +988,7 @@ class Rendition {
 	 * Get the Contents object of each rendered view
 	 * @returns {Contents[]}
 	 */
-	getContents () {
+	getContents() {
 		return this.manager ? this.manager.getContents() : [];
 	}
 
@@ -995,7 +996,7 @@ class Rendition {
 	 * Get the views member from the manager
 	 * @returns {Views}
 	 */
-	views () {
+	views() {
 		let views = this.manager ? this.manager.views : undefined;
 		return views || [];
 	}

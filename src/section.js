@@ -14,7 +14,7 @@ import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
  * @param {object} hooks hooks for serialize and content
  */
 class Section {
-	constructor(item, hooks){
+	constructor(item, hooks) {
 		this.idref = item.idref;
 		this.linear = item.linear === "yes";
 		this.properties = item.properties;
@@ -24,7 +24,7 @@ class Section {
 		this.canonical = item.canonical;
 		this.next = item.next;
 		this.prev = item.prev;
-
+		this.overlay = item.overlay;
 		this.cfiBase = item.cfiBase;
 
 		if (hooks) {
@@ -38,6 +38,7 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+		this.mediaOverlay = undefined;
 	}
 
 	/**
@@ -45,29 +46,60 @@ class Section {
 	 * @param  {method} [_request] a request method to use for loading
 	 * @return {document} a promise with the xml document
 	 */
-	load(_request){
+	load(_request) {
 		var request = _request || this.request || Request;
 		var loading = new defer();
 		var loaded = loading.promise;
 
-		if(this.contents) {
-			loading.resolve(this.contents);
-		} else {
-			request(this.url)
-				.then(function(xml){
-					// var directory = new Url(this.url).directory;
+		//KEM: this is where the file is loaded and turned into xml
+		//KEM: add in a load to the smil file and append it?
 
+		//KEM: try to load overlay
+		if (this.overlay) {
+			if (this.contents) {
+				loading.resolve(this.contents);
+			} else {
+				request(this.overlay.url).then(function (overlayXml) {
+					var div = document.createElement("div");
+					div.classList.add("audioContainer");
+					//overlay is returning as a string?  possibly because xml instead of xhtml
+					var start = overlayXml.search("<smil");
+					var xmlStr = overlayXml.substring(start);
+					div.insertAdjacentHTML('beforeend', xmlStr);
+					this.mediaOverlay = div;
+					return request(this.url).then(function (xml) {
+						this.document = xml;
+						this.contents = xml.documentElement;
+						this.contents.appendChild(div);
+						return this.hooks.content.trigger(this.document, this);
+
+					}.bind(this)).then(function () {
+						loading.resolve(this.contents);
+					}.bind(this)).catch(function (error) {
+						loading.reject(error);
+					});
+				}
+					.bind(this)).catch(function (error) {
+						loading.reject(error);
+					});
+			}
+		}
+		else {
+			if (this.contents) {
+				loading.resolve(this.contents);
+			} else {
+				request(this.url).then(function (xml) {
+					// var directory = new Url(this.url).directory;
 					this.document = xml;
 					this.contents = xml.documentElement;
-
 					return this.hooks.content.trigger(this.document, this);
-				}.bind(this))
-				.then(function(){
+
+				}.bind(this)).then(function () {
 					loading.resolve(this.contents);
-				}.bind(this))
-				.catch(function(error){
+				}.bind(this)).catch(function (error) {
 					loading.reject(error);
 				});
+			}
 		}
 
 		return loaded;
@@ -77,7 +109,7 @@ class Section {
 	 * Adds a base tag for resolving urls in the section
 	 * @private
 	 */
-	base(){
+	base() {
 		return replaceBase(this.document, this);
 	}
 
@@ -86,13 +118,13 @@ class Section {
 	 * @param  {method} [_request] a request method to use for loading
 	 * @return {string} output a serialized XML Document
 	 */
-	render(_request){
+	render(_request) {
 		var rendering = new defer();
 		var rendered = rendering.promise;
 		this.output; // TODO: better way to return this from hooks?
-
+		//console.log("rendering section");
 		this.load(_request).
-			then(function(contents){
+			then(function (contents) {
 				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
 				var isIE = userAgent.indexOf('Trident') >= 0;
 				var Serializer;
@@ -105,13 +137,13 @@ class Section {
 				this.output = serializer.serializeToString(contents);
 				return this.output;
 			}.bind(this)).
-			then(function(){
+			then(function () {
 				return this.hooks.serialize.trigger(this.output, this);
 			}.bind(this)).
-			then(function(){
+			then(function () {
 				rendering.resolve(this.output);
 			}.bind(this))
-			.catch(function(error){
+			.catch(function (error) {
 				rendering.reject(error);
 			});
 
@@ -123,11 +155,11 @@ class Section {
 	 * @param  {string} _query The query string to find
 	 * @return {object[]} A list of matches, with form {cfi, excerpt}
 	 */
-	find(_query){
+	find(_query) {
 		var section = this;
 		var matches = [];
 		var query = _query.toLowerCase();
-		var find = function(node){
+		var find = function (node) {
 			var text = node.textContent.toLowerCase();
 			var range = section.document.createRange();
 			var cfi;
@@ -153,7 +185,7 @@ class Section {
 						excerpt = node.textContent;
 					}
 					else {
-						excerpt = node.textContent.substring(pos - limit/2, pos + limit/2);
+						excerpt = node.textContent.substring(pos - limit / 2, pos + limit / 2);
 						excerpt = "..." + excerpt + "...";
 					}
 
@@ -168,7 +200,7 @@ class Section {
 			}
 		};
 
-		sprint(section.document, function(node) {
+		sprint(section.document, function (node) {
 			find(node);
 		});
 
@@ -182,43 +214,43 @@ class Section {
 	 * @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
 	 * @return {object[]} A list of matches, with form {cfi, excerpt}
 	 */
-	search(_query , maxSeqEle = 5){
-		if (typeof(document.createTreeWalker) == "undefined") {
+	search(_query, maxSeqEle = 5) {
+		if (typeof (document.createTreeWalker) == "undefined") {
 			return this.find(_query);
 		}
 		let matches = [];
 		const excerptLimit = 150;
 		const section = this;
 		const query = _query.toLowerCase();
-		const search = function(nodeList){
-			const textWithCase =  nodeList.reduce((acc ,current)=>{
+		const search = function (nodeList) {
+			const textWithCase = nodeList.reduce((acc, current) => {
 				return acc + current.textContent;
-			},"");
+			}, "");
 			const text = textWithCase.toLowerCase();
 			const pos = text.indexOf(query);
-			if (pos != -1){
-				const startNodeIndex = 0 , endPos = pos + query.length;
-				let endNodeIndex = 0 , l = 0;
-				if (pos < nodeList[startNodeIndex].length){
+			if (pos != -1) {
+				const startNodeIndex = 0, endPos = pos + query.length;
+				let endNodeIndex = 0, l = 0;
+				if (pos < nodeList[startNodeIndex].length) {
 					let cfi;
-					while( endNodeIndex < nodeList.length - 1 ){
+					while (endNodeIndex < nodeList.length - 1) {
 						l += nodeList[endNodeIndex].length;
-						if ( endPos <= l){
+						if (endPos <= l) {
 							break;
 						}
 						endNodeIndex += 1;
 					}
 
-					let startNode = nodeList[startNodeIndex] , endNode = nodeList[endNodeIndex];
+					let startNode = nodeList[startNodeIndex], endNode = nodeList[endNodeIndex];
 					let range = section.document.createRange();
-					range.setStart(startNode,pos);
-					let beforeEndLengthCount =  nodeList.slice(0, endNodeIndex).reduce((acc,current)=>{return acc+current.textContent.length;},0) ;
-					range.setEnd(endNode, beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount );
+					range.setStart(startNode, pos);
+					let beforeEndLengthCount = nodeList.slice(0, endNodeIndex).reduce((acc, current) => { return acc + current.textContent.length; }, 0);
+					range.setEnd(endNode, beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount);
 					cfi = section.cfiFromRange(range);
 
-					let excerpt = nodeList.slice(0, endNodeIndex+1).reduce((acc,current)=>{return acc+current.textContent ;},"");
-					if (excerpt.length > excerptLimit){
-						excerpt = excerpt.substring(pos - excerptLimit/2, pos + excerptLimit/2);
+					let excerpt = nodeList.slice(0, endNodeIndex + 1).reduce((acc, current) => { return acc + current.textContent; }, "");
+					if (excerpt.length > excerptLimit) {
+						excerpt = excerpt.substring(pos - excerptLimit / 2, pos + excerptLimit / 2);
 						excerpt = "..." + excerpt + "...";
 					}
 					matches.push({
@@ -230,15 +262,15 @@ class Section {
 		}
 
 		const treeWalker = document.createTreeWalker(section.document, NodeFilter.SHOW_TEXT, null, false);
-		let node , nodeList = [];
+		let node, nodeList = [];
 		while (node = treeWalker.nextNode()) {
 			nodeList.push(node);
-			if (nodeList.length == maxSeqEle){
-				search(nodeList.slice(0 , maxSeqEle));
+			if (nodeList.length == maxSeqEle) {
+				search(nodeList.slice(0, maxSeqEle));
 				nodeList = nodeList.slice(1, maxSeqEle);
 			}
 		}
-		if (nodeList.length > 0){
+		if (nodeList.length > 0) {
 			search(nodeList);
 		}
 		return matches;
@@ -250,23 +282,23 @@ class Section {
 	* @param {object} globalLayout  The global layout settings object, chapter properties string
 	* @return {object} layoutProperties Object with layout properties
 	*/
-	reconcileLayoutSettings(globalLayout){
+	reconcileLayoutSettings(globalLayout) {
 		//-- Get the global defaults
 		var settings = {
-			layout : globalLayout.layout,
-			spread : globalLayout.spread,
-			orientation : globalLayout.orientation
+			layout: globalLayout.layout,
+			spread: globalLayout.spread,
+			orientation: globalLayout.orientation
 		};
 
 		//-- Get the chapter's display type
-		this.properties.forEach(function(prop){
+		this.properties.forEach(function (prop) {
 			var rendition = prop.replace("rendition:", "");
 			var split = rendition.indexOf("-");
 			var property, value;
 
-			if(split != -1){
+			if (split != -1) {
 				property = rendition.slice(0, split);
-				value = rendition.slice(split+1);
+				value = rendition.slice(split + 1);
 
 				settings[property] = value;
 			}
@@ -299,6 +331,7 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+		this.mediaOverlay = undefined;
 	}
 
 	destroy() {
