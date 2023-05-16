@@ -55,7 +55,6 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@types/localforage": "0.0.34",
     "@xmldom/xmldom": "^0.7.5",
     "core-js": "^3.18.3",
     "event-emitter": "^0.3.5",
