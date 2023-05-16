@@ -34,6 +34,7 @@
     "@babel/preset-env": "^7.15.8",
     "@babel/runtime": "^7.15.4",
     "babel-loader": "^8.2.3",
+    "cross-env": "^7.0.3",
     "documentation": "^13.2.5",
     "eslint": "^8.0.1",
     "jsdoc": "^3.6.7",
