@@ -24,7 +24,8 @@ export interface PackagingMetadataObject {
   orientation: string,
   flow: string,
   viewport: string,
-  spread: string
+  spread: string,
+  direction: string,
 }
 
 export interface PackagingSpineItem {
