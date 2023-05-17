@@ -127,13 +127,15 @@ class Packaging {
 					type = item.getAttribute("media-type") || "",
 					overlay = item.getAttribute("media-overlay") || "",
 					properties = item.getAttribute("properties") || "";
+					fallback = item.getAttribute("fallback") || "";
 
 			manifest[id] = {
 				"href" : href,
 				// "url" : href,
 				"type" : type,
 				"overlay" : overlay,
-				"properties" : properties.length ? properties.split(" ") : []
+				"properties" : properties.length ? properties.split(" ") : [],
+				"fallback" : fallback,
 			};
 
 		});

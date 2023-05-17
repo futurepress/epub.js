@@ -37,7 +37,8 @@ export interface PackagingSpineItem {
 export interface PackagingManifestItem {
   href: string,
   type: string,
-  properties: Array<string>
+  properties: Array<string>,
+  fallback: string
 }
 
 export interface PackagingManifestObject {
