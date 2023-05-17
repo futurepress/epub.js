@@ -60,7 +60,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var full = _full || new defer();
 
 		this.q.enqueue(() => {
-			return this.check();
+			return this.check.bind(this);
 		}).then((result) => {
 			if (result) {
 				this.fill(full);
