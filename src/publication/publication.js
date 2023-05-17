@@ -161,7 +161,7 @@ class Publication {
 			}
 			item.url = resolve(this.url, item.url  || item.href);
 			// TEMP hack for handling EpubCFI
-			const id = encodeURIComponent(filename(item.url).split(".")[0]);
+			const id = "id_" + encodeURIComponent(item.url).replaceAll("%", "--");
 			item.id = id;
 			// Index 2 for Sections
 			item.cfiBase = item.cfiBase || `2/${index * 2}[${id}]`
@@ -219,7 +219,7 @@ class Publication {
 			}
 			item.url = this.resolve(item.url || item.href);
 			// TEMP hack for handling EpubCFI
-			const id = encodeURIComponent(filename(item.url).split(".")[0]);
+			const id = "id_" + encodeURIComponent(item.url).replaceAll("%", "--");
 			item.id = id;
 			// Index 4 for Resources
 			item.cfiBase = item.cfiBase || `4/${index * 2}[${id}]`
