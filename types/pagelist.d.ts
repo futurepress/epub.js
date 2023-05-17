@@ -10,13 +10,15 @@ export default class Pagelist {
 
   parse(xml: XMLDocument): Array<PageListItem>;
 
-  pageFromCfi(cfi: string): number;
+  pageFromCfi(cfi: string): string;
 
-  cfiFromPage(pg: string | number): string;
+  cfiFromPage(pg: string): string;
 
-  pageFromPercentage(percent: number): number;
+  pageFromPercentage(percent: number): string;
 
-  percentageFromPage(pg: number): number;
+  percentageFromPage(pg: string): number;
+
+  hrefFromPage(pg: string): string;
 
   destroy(): void;
 
