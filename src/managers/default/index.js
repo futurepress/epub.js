@@ -350,10 +350,9 @@ class DefaultViewManager {
 				distX = this.container.scrollWidth - this.layout.delta;
 			}
 
-			distY = Math.floor(offset.top / this.layout.delta) * this.layout.delta;
-
-			if (distY + this.layout.delta > this.container.scrollHeight) {
-				distY = this.container.scrollHeight - this.layout.delta;
+			distY = Math.floor(offset.top / this.layout.height) * this.layout.height;
+			if (distY + this.layout.height > this.container.scrollHeight) {
+				distY = this.container.scrollHeight - this.layout.height;
 			}
 		}
 		if(this.settings.direction === 'rtl'){
