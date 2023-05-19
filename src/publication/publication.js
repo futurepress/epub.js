@@ -552,7 +552,7 @@ class Publication {
 	}
 
 	/**
-	 * Generates the Publication Key using the identifer in the data or other string provided
+	 * Generates the Publication Key using the identifier in the data or other string provided
 	 * @param  {string} [identifier] to use instead of metadata identifier
 	 * @return {string} key
 	 */

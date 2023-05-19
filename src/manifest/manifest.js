@@ -40,6 +40,8 @@ class Manifest extends Publication {
 				case "locations":
 					this.locations = value;
 					break;
+				case "cover":
+					this.coverUrl = value;
 				default:
 					this.setMetadata(key, value);
 					break;
