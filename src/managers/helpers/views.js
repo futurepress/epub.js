@@ -77,9 +77,7 @@ class Views {
 	}
 
 	destroy(view) {
-		if(view.displayed){
-			view.destroy();
-		}
+		view.destroy();
 		
 		if(this.container){
 			 this.container.removeChild(view.element);
