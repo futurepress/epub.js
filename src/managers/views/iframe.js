@@ -6,10 +6,6 @@ import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
 class IframeView {
-	/**
-	 * One section only have one View,
-	 * we can put them into the map to destroy the old one.
-	 */
   static ViewMap = new Map();
 	constructor(section, options) {
     const oldView = IframeView.ViewMap.get(section.href);
@@ -851,13 +847,8 @@ class IframeView {
 			this._height = null;
 		}
 
-		/**
-		 * Make sure the promise doesn't get stuck in pending,
-		 * This avoids queue blocking.
-		 */
-    if (this.loading) {
-      this.loading.reject('cancel');
-    }
+		this.loading && this.loading.reject('cancel');
+    
 
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";

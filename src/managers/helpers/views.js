@@ -77,7 +77,6 @@ class Views {
 	}
 
 	destroy(view) {
-		// Just destroy it.
 		view.destroy();
 		
 		if(this.container){
