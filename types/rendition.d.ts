@@ -75,8 +75,8 @@ export default class Rendition {
 
     clear(): void;
 
-    currentLocation(): DisplayedLocation;
-    currentLocation(): Promise<DisplayedLocation>;
+    currentLocation(): Location;
+    currentLocation(): Promise<Location>;
 
     destroy(): void;
 
