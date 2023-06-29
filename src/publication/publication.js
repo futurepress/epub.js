@@ -45,6 +45,7 @@ class Publication {
 			this.requestOptions = requestOptions;
 		}
 
+		this.ids = [];
 
 		if (data) {
 			this.opened = this.open(data);
@@ -161,7 +162,14 @@ class Publication {
 			}
 			item.url = resolve(this.url, item.url  || item.href);
 			// TEMP hack for handling EpubCFI
-			const id = "id_" + encodeURIComponent(item.url).replaceAll("%", "--");
+			let id = encodeURIComponent(filename(item.url).split(".")[0]);
+			let tempId = id;
+			let repeats = 1;
+			while (this.ids.includes(tempId)) {
+				tempId = `${id}_${repeats++}`;
+			}
+			id = tempId;
+			this.ids.push(id);
 			item.id = id;
 			// Index 2 for Sections
 			item.cfiBase = item.cfiBase || `2/${index * 2}[${id}]`
@@ -219,7 +227,14 @@ class Publication {
 			}
 			item.url = this.resolve(item.url || item.href);
 			// TEMP hack for handling EpubCFI
-			const id = "id_" + encodeURIComponent(item.url).replaceAll("%", "--");
+			let id = encodeURIComponent(filename(item.url).split(".")[0]);
+			let tempId = id;
+			let repeats = 1;
+			while (this.ids.includes(tempId)) {
+				tempId = `${id}_${repeats++}`;
+			}
+			id = tempId;
+			this.ids.push(id);
 			item.id = id;
 			// Index 4 for Resources
 			item.cfiBase = item.cfiBase || `4/${index * 2}[${id}]`
@@ -326,7 +341,7 @@ class Publication {
 		for (const item of items) {
 			let loc;
 			if (typeof item === "string") {
-				loc = new Locator({ url: item, cfi: item});				
+				loc = new Locator({ url: item, cfi: item});
 			} else {
 				const { url, cfi } = item;
 				loc = new Locator({ url: url || cfi, cfi: cfi || url });
