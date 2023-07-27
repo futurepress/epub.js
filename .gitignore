@@ -9,3 +9,4 @@ lib
 dist
 documentation/html
 types/*.js
+epubjs-*.tgz
