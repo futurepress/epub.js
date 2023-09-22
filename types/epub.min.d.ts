@@ -1,0 +1,1 @@
+declare module '@makiwin/epubjs/dist/epub.min.js';

@@ -36,6 +36,7 @@
     "babel-loader": "^8.2.3",
     "documentation": "^13.2.5",
     "eslint": "^8.0.1",
+    "file-loader": "^6.2.0",
     "jsdoc": "^3.6.7",
     "karma": "^5.0.9",
     "karma-chrome-launcher": "^3.1.0",
