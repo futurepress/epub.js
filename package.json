@@ -1,11 +1,11 @@
 {
-  "name": "epubjs",
-  "version": "0.3.93",
+  "name": "@makiwin/epubjs",
+  "version": "0.3.94",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
   "types": "types/index.d.ts",
-  "repository": "https://github.com/futurepress/epub.js",
+  "repository": "https://github.com/makiwin/epub.js",
   "directories": {
     "test": "test"
   },
@@ -24,7 +24,7 @@
     "watch": "babel --watch -d lib/ src/",
     "prepare": "npm run compile && npm run build && npm run minify && npm run legacy && npm run productionLegacy"
   },
-  "author": "fchasen@gmail.com",
+  "author": "fchasen@gmail.com, massimiliano.vinciprova@gmail.com",
   "license": "BSD-2-Clause",
   "devDependencies": {
     "@babel/cli": "^7.15.7",
@@ -36,6 +36,7 @@
     "babel-loader": "^8.2.3",
     "documentation": "^13.2.5",
     "eslint": "^8.0.1",
+    "file-loader": "^6.2.0",
     "jsdoc": "^3.6.7",
     "karma": "^5.0.9",
     "karma-chrome-launcher": "^3.1.0",
