@@ -3,7 +3,7 @@ import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlo
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
-import { Pane, Highlight, Underline } from "marks-pane";
+import { Pane, Highlight, Underline } from "../../libs/marks/marks";
 
 class IframeView {
 	constructor(section, options) {
@@ -603,32 +603,39 @@ class IframeView {
 		return this.elementBounds;
 	}
 
-	highlight(cfiRange, data={}, cb, cb2, className = "epubjs-hl", styles = {}) {
+	highlight(cfiRange, data={}, cb, className = "epubjs-hl", styles = {}, cbOptions = {}) {
 		if (!this.contents) {
 			return;
 		}
+
+		// ensuring backward compatibility 
+		const onClickCallback = cb || cbOptions.onClick;
+
+		const onMouseOverCallback = cbOptions.onMouseOver;
+		const onMouseOutCallback = cbOptions.onMouseOut;
+
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		let range = this.contents.range(cfiRange);
 
-		const onMount = (container) => {
-			container.style.pointerEvents = "all";
-		};
+		// const onMount = (container) => {
+		// 	container.style.pointerEvents = "all";
+		// };
 
-		const onEject = (container) => {
-			// container.style.pointerEvents = "none";
-		};
+		// const onEject = (container) => {
+		// 	container.style.pointerEvents = "none";
+		// };
 
 		const emitOnClick = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
 
-		const emitOnMouseOver = (el) => {
-			this.emit(EVENTS.VIEWS.MARK_HOVERED, cfiRange, data);
-			onMount(el);
+		const emitOnMouseOver = () => {
+			this.emit(EVENTS.VIEWS.MARK_MOUSEOVER, cfiRange, data);
+			
 		};
 
-		const emitOnMouseOut = (el) => {
-			onEject(el);
+		const emitOnMouseOut = () => {
+			this.emit(EVENTS.VIEWS.MARK_MOUSEOUT, cfiRange, data);
 		};
 
 		data["epubcfi"] = cfiRange;
@@ -640,20 +647,48 @@ class IframeView {
 		let m = new Highlight(range, className, data, attributes);
 		let h = this.pane.addMark(m);
 
-		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitOnClick, cb, cb2] };
+		const getListeners = () => {
+			let listeners = [
+				emitOnClick, 
+				emitOnMouseOver, 
+				emitOnMouseOut];
+			
+			if(onClickCallback) {
+				listeners.push(onClickCallback);
+			}
+
+			if(onMouseOverCallback) {
+				listeners.push(onMouseOverCallback);
+			}
+
+			if(onMouseOutCallback) {
+				listeners.push(onMouseOutCallback);
+			}
+
+			return listeners;
+		};
+
+		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": getListeners() };
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitOnClick);
 		h.element.addEventListener("touchstart", emitOnClick);
-		h.element.addEventListener("mouseover", emitOnMouseOver(this.pane.element));
-		h.element.addEventListener("mouseout", emitOnMouseOut(this.pane.element));
+		h.element.addEventListener("mouseover", emitOnMouseOver);
+		h.element.addEventListener("mouseout", emitOnMouseOut);
 
-		if (cb) {
-			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
-			h.element.addEventListener("mouseover", cb2);
-			h.element.addEventListener("mouseout", ()=>{console.log('mouse is out');});
+		if (onClickCallback) {
+			h.element.addEventListener("click", onClickCallback);
+			h.element.addEventListener("touchstart", onClickCallback);
 		}
+
+		if(onMouseOverCallback) {
+			h.element.addEventListener("mouseover", onMouseOverCallback);
+		}
+
+		if(onMouseOutCallback) {
+			h.element.addEventListener("mouseout", onMouseOutCallback);
+		}
+
 		return h;
 	}
 
