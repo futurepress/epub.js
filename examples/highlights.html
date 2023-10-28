@@ -112,6 +112,18 @@
       // console.log(location);
     });
 
+    rendition.on("markMouseover", () => {
+      console.log('mouseover from rendition');
+    });
+
+    rendition.on("markMouseout", () => {
+      console.log('mouseout from rendition');
+    });
+
+    rendition.on("markClicked", () => {
+      console.log('clicked from rendition');
+    });
+  
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
       rendition.annotations.highlight(

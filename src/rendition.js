@@ -419,6 +419,10 @@ class Rendition {
 
 		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
 
+		view.on(EVENTS.VIEWS.MARK_MOUSEOVER, (cfiRange, data) => this.triggerMarkMouseOverEvent(cfiRange, data, view.contents));
+
+		view.on(EVENTS.VIEWS.MARK_MOUSEOUT, (cfiRange, data) => this.triggerMarkMouseOutEvent(cfiRange, data, view.contents));
+
 		this.hooks.render.trigger(view, this)
 			.then(() => {
 				if (view.contents) {
@@ -904,7 +908,7 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.SELECTED, cfirange, contents);
-	}
+}
 
 	/**
 	 * Emit a markClicked event with the cfiRange and data from a mark
@@ -921,6 +925,14 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
+	}
+
+	triggerMarkMouseOverEvent(cfiRange, data, contents){
+		this.emit(EVENTS.RENDITION.MARK_MOUSEOVER, cfiRange, data, contents);
+	}
+
+	triggerMarkMouseOutEvent(cfiRange, data, contents){
+		this.emit(EVENTS.RENDITION.MARK_MOUSEOUT, cfiRange, data, contents);
 	}
 
 	/**

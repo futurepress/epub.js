@@ -51,6 +51,8 @@ export const EVENTS = {
     LOCATION_CHANGED : "locationChanged",
     RELOCATED : "relocated",
     MARK_CLICKED : "markClicked",
+    MARK_MOUSEOUT: "markMouseout",
+    MARK_MOUSEOVER: "markMouseover",
     SELECTED : "selected",
     LAYOUT: "layout"
   },
