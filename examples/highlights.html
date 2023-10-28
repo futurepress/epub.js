@@ -112,16 +112,16 @@
       // console.log(location);
     });
 
-    rendition.on("markMouseover", () => {
-      console.log('mouseover from rendition');
+    rendition.on("markMouseover", (cfiRange) => {
+      console.log('mouseover from rendition',cfiRange);
     });
 
-    rendition.on("markMouseout", () => {
-      console.log('mouseout from rendition');
+    rendition.on("markMouseout", (cfiRange) => {
+      console.log('mouseout from rendition', cfiRange);
     });
 
-    rendition.on("markClicked", () => {
-      console.log('clicked from rendition');
+    rendition.on("markClicked", (cfiRange) => {
+      console.log('clicked from rendition', cfiRange);
     });
   
     // Apply a class to selected text
@@ -134,13 +134,13 @@
       {},
       {
         onClick : (e) => {
-          console.log("highlight-click", e.target);
+          // console.log("highlight-click", e.target);
         },
         onMouseOver : (e) => {
-          console.log("highlight-mouseover", e.target);
+          // console.log("highlight-mouseover", e.target);
         },
         onMouseOut : (e) => {
-          console.log("highlight-mouseout", e.target);
+          // console.log("highlight-mouseout", e.target);
         }
       }
       );
