@@ -603,15 +603,32 @@ class IframeView {
 		return this.elementBounds;
 	}
 
-	highlight(cfiRange, data={}, cb, className = "epubjs-hl", styles = {}) {
+	highlight(cfiRange, data={}, cb, cb2, className = "epubjs-hl", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		let range = this.contents.range(cfiRange);
 
-		let emitter = () => {
+		const onMount = (container) => {
+			container.style.pointerEvents = "all";
+		};
+
+		const onEject = (container) => {
+			// container.style.pointerEvents = "none";
+		};
+
+		const emitOnClick = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
+		};
+
+		const emitOnMouseOver = (el) => {
+			this.emit(EVENTS.VIEWS.MARK_HOVERED, cfiRange, data);
+			onMount(el);
+		};
+
+		const emitOnMouseOut = (el) => {
+			onEject(el);
 		};
 
 		data["epubcfi"] = cfiRange;
@@ -623,15 +640,19 @@ class IframeView {
 		let m = new Highlight(range, className, data, attributes);
 		let h = this.pane.addMark(m);
 
-		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
+		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitOnClick, cb, cb2] };
 
 		h.element.setAttribute("ref", className);
-		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		h.element.addEventListener("click", emitOnClick);
+		h.element.addEventListener("touchstart", emitOnClick);
+		h.element.addEventListener("mouseover", emitOnMouseOver(this.pane.element));
+		h.element.addEventListener("mouseout", emitOnMouseOut(this.pane.element));
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
 			h.element.addEventListener("touchstart", cb);
+			h.element.addEventListener("mouseover", cb2);
+			h.element.addEventListener("mouseout", ()=>{console.log('mouse is out');});
 		}
 		return h;
 	}
