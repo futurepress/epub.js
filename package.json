@@ -1,6 +1,6 @@
 {
-  "name": "epubjs",
-  "version": "0.3.93",
+  "name": "@victorsoares96/epubjs",
+  "version": "0.3.94",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",
@@ -8,6 +8,10 @@
   "repository": "https://github.com/futurepress/epub.js",
   "directories": {
     "test": "test"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
     "test": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
@@ -62,7 +66,7 @@
     "jszip": "^3.7.1",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "marks-pane": "^1.0.9",
+    "@victorsoares96/marks-pane": "^1.0.11",
     "path-webpack": "0.0.3"
   }
 }
