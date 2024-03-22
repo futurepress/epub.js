@@ -1,11 +1,12 @@
 import {qs, qsa, querySelectorByType, filterChildren, getParentByTagName} from "./utils/core";
+import Path from "./utils/path";
 
 /**
  * Navigation Parser
  * @param {document} xml navigation html / xhtml / ncx
  */
 class Navigation {
-	constructor(xml) {
+	constructor(xml, navPath = "") {
 		this.toc = [];
 		this.tocByHref = {};
 		this.tocById = {};
@@ -14,6 +15,11 @@ class Navigation {
 		this.landmarksByType = {};
 
 		this.length = 0;
+
+		if (navPath) {
+			this.tocPath = new Path(navPath);
+		}
+		
 		if (xml) {
 			this.parse(xml);
 		}
@@ -198,7 +204,8 @@ class Navigation {
 			return;
 		}
 
-		let src = content.getAttribute("href") || "";
+		const href = content.getAttribute("href") || "";
+		let src = this.tocPath.join(href);
 		
 		if (!id) {
 			id = src;
@@ -317,7 +324,7 @@ class Navigation {
 				parentNode = item.parentNode,
 				parent;
 
-		if(parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(':').slice(-1)[0] === "navPoint")) {
+		if(parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(":").slice(-1)[0] === "navPoint")) {
 			parent = parentNode.getAttribute("id");
 		}
 

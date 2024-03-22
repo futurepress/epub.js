@@ -502,9 +502,9 @@ class Book {
 					this.opening.resolve(this);
 				});
 			})
-			.catch((err) => {
-				console.error(err);
-			});
+				.catch((err) => {
+					console.error(err);
+				});
 		} else {
 			// Resolve book opened promise
 			this.loaded.displayOptions.then(() => {
@@ -547,7 +547,7 @@ class Book {
 
 		return this.load(navPath, "xml")
 			.then((xml) => {
-				this.navigation = new Navigation(xml);
+				this.navigation = new Navigation(xml, navPath);
 				this.pageList = new PageList(xml);
 				return this.navigation;
 			});
