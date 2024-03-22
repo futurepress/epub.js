@@ -3,7 +3,7 @@ import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlo
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
-import { Pane, Highlight, Underline } from "marks-pane";
+import { Pane, Highlight, Underline } from "@victorsoares96/marks-pane";
 
 class IframeView {
 	constructor(section, options) {
@@ -562,7 +562,7 @@ class IframeView {
 		return {
 			top: this.element.offsetTop,
 			left: this.element.offsetLeft
-		}
+		};
 	}
 
 	width() {
@@ -764,7 +764,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
-				};
+				}
 			});
 			delete this.highlights[cfiRange];
 		}
@@ -779,7 +779,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
-				};
+				}
 			});
 			delete this.underlines[cfiRange];
 		}
@@ -794,7 +794,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
-				};
+				}
 			});
 			delete this.marks[cfiRange];
 		}
