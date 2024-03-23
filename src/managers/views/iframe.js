@@ -627,11 +627,11 @@ class IframeView {
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		// h.element.addEventListener("touchstart", emitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
+			// h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
@@ -659,16 +659,16 @@ class IframeView {
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		// h.element.addEventListener("touchstart", emitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
+			// h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
 
-	mark(cfiRange, data={}, cb) {
+	mark(cfiRange, data={}, cb, className = "epubjs-mk", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
@@ -698,7 +698,8 @@ class IframeView {
 		}
 
 		let mark = this.document.createElement("a");
-		mark.setAttribute("ref", "epubjs-mk");
+		mark.setAttribute("ref", className);
+		mark.style = styles;
 		mark.style.position = "absolute";
 
 		mark.dataset["epubcfi"] = cfiRange;
@@ -711,11 +712,11 @@ class IframeView {
 
 		if (cb) {
 			mark.addEventListener("click", cb);
-			mark.addEventListener("touchstart", cb);
+			// mark.addEventListener("touchstart", cb);
 		}
 
 		mark.addEventListener("click", emitter);
-		mark.addEventListener("touchstart", emitter);
+		// mark.addEventListener("touchstart", emitter);
 
 		this.placeMark(mark, range);
 
