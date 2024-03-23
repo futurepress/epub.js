@@ -668,7 +668,7 @@ class IframeView {
 		return h;
 	}
 
-	mark(cfiRange, data={}, cb) {
+	mark(cfiRange, data={}, cb, className = "epubjs-mk", styles = {}) {
 		if (!this.contents) {
 			return;
 		}
@@ -698,7 +698,8 @@ class IframeView {
 		}
 
 		let mark = this.document.createElement("a");
-		mark.setAttribute("ref", "epubjs-mk");
+		mark.setAttribute("ref", className);
+		mark.style = styles;
 		mark.style.position = "absolute";
 
 		mark.dataset["epubcfi"] = cfiRange;

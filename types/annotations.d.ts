@@ -12,7 +12,7 @@ export default class Annotations {
 
 	underline(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
 
-	mark(cfiRange: string, data?: object, cb?: Function): void;
+	mark(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
 
   each(): Array<Annotation>
 

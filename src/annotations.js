@@ -254,7 +254,7 @@ class Annotation {
 		} else if (type === "underline") {
 			result = view.underline(cfiRange, data, cb, className, styles);
 		} else if (type === "mark") {
-			result = view.mark(cfiRange, data, cb);
+			result = view.mark(cfiRange, data, cb, className, styles);
 		}
 
 		this.mark = result;
@@ -298,4 +298,4 @@ class Annotation {
 EventEmitter(Annotation.prototype);
 
 
-export default Annotations
+export default Annotations;
