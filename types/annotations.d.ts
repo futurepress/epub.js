@@ -36,7 +36,7 @@ declare class Annotation {
 		styles?: object
 	});
 
-  update(data: object): void;
+  update(data?: object, styles?: object): void;
 
   attach(view: View): any;
 
