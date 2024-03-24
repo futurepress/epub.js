@@ -237,8 +237,19 @@ class Annotation {
 	 * Update stored data
 	 * @param {object} data
 	 */
-	update (data) {
-		this.data = data;
+	update (data = {}, styles = {}) {
+		if (this.data) this.data = data;
+		if (this.styles) {
+			this.mark.attributes = {
+				...this.mark.attributes,
+				...styles,
+			};
+
+			this.mark.styles = {
+				...this.mark.styles,
+				...styles,
+			};
+		}
 	}
 
 	/**
