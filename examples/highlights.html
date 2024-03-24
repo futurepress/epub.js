@@ -115,11 +115,10 @@
 
     // Apply a class to selected text
     rendition.on("selected", function(cfiRange, contents) {
-      rendition.annotations.highlight(cfiRange, {}, (e) => {
+      const annotation = rendition.annotations.highlight(cfiRange, { john: 'doe' }, (e) => {
         console.log("highlight clicked", e.target);
       });
       contents.window.getSelection().removeAllRanges();
-
     });
 
     this.rendition.themes.default({
@@ -134,12 +133,18 @@
     // Illustration of how to get text from a saved cfiRange
     var highlights = document.getElementById('highlights');
 
+    const redrawAnnotations = () =>
+    rendition.views().forEach(view => view.pane ? view.pane.render() : null)
+
+    rendition.on('rendered', redrawAnnotations);
+
     rendition.on("selected", function(cfiRange) {
 
       book.getRange(cfiRange).then(function (range) {
         var text;
         var li = document.createElement('li');
         var a = document.createElement('a');
+        var update = document.createElement('a');
         var remove = document.createElement('a');
         var textNode;
 
@@ -160,8 +165,21 @@
             return false;
           };
 
+          update.textContent = "update to red color";
+          update.href = "#" + cfiRange;
+          update.onclick = function () {
+            const annotations = Object.values(rendition.annotations._annotations);
+            annotations.forEach(annotation => {
+              annotation.update({}, { 'fill': 'red', 'fill-opacity': 0.5 });
+            });
+
+            rendition.views().forEach(view => view.pane ? view.pane.render() : null);
+            return false;
+          };
+
           li.appendChild(a);
           li.appendChild(textNode);
+          li.appendChild(update);
           li.appendChild(remove);
           highlights.appendChild(li);
         }
