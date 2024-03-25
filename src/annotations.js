@@ -242,28 +242,42 @@ class Annotation {
 		if (!this.styles) this.styles = {};
 
 		if (styles?.stroke) {
-			this.mark.attributes.stroke = styles.stroke;
+			if (this.mark?.attributes?.stroke) {
+				this.mark.attributes.stroke = styles.stroke;
+			}
+
 			this.styles.stroke = styles.stroke;
 		}
 		
 		if (styles?.["stroke-opacity"]) {
-			this.mark.attributes["stroke-opacity"] = styles["stroke-opacity"];
+			if (this.mark?.attributes?.["stroke-opacity"]) {
+				this.mark.attributes["stroke-opacity"] = styles["stroke-opacity"];
+			}
+			
 			this.styles["stroke-opacity"] = styles["stroke-opacity"];
 		}
 
 		if (styles?.["stroke-width"]) {
-			this.mark.attributes["stroke-width"] = styles["stroke-width"];
+			if (this.mark?.attributes?.["stroke-width"]) {
+				this.mark.attributes["stroke-width"] = styles["stroke-width"];
+			}
+
 			this.styles["stroke-width"] = styles["stroke-width"];
 		}
 
 		if (styles?.fill) {
-			this.mark.attributes.fill = styles.fill;
-			this.mark.attributes.background = "red";
+			if (this.mark?.attributes?.fill) {
+				this.mark.attributes.fill = styles.fill;
+			}
+
 			this.styles.fill = styles.fill;
 		}
 
 		if (styles?.["fill-opacity"]) {
-			this.mark.attributes["fill-opacity"] = styles["fill-opacity"];
+			if (this.mark?.attributes?.["fill-opacity"]) {
+				this.mark.attributes["fill-opacity"] = styles["fill-opacity"];
+			}
+			
 			this.styles["fill-opacity"] = styles["fill-opacity"];
 		}
 	}
