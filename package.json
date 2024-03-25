@@ -1,6 +1,6 @@
 {
   "name": "@victorsoares96/epubjs",
-  "version": "0.3.97",
+  "version": "0.3.98",
   "description": "Parse and Render Epubs",
   "main": "lib/index.js",
   "module": "src/index.js",

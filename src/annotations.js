@@ -47,6 +47,18 @@ class Annotations {
 
 		this._annotations[hash] = annotation;
 
+		if (type === "highlight") {
+			this.highlights.push(annotation);
+		}
+
+		if (type === "underline") {
+			this.underlines.push(annotation);
+		}
+
+		if (type === "mark") {
+			this.marks.push(annotation);
+		}
+
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			this._annotationsBySectionIndex[sectionIndex].push(hash);
 		} else {
@@ -146,7 +158,9 @@ class Annotations {
 	 * iterate over annotations in the store
 	 */
 	each () {
-		return this._annotations.forEach.apply(this._annotations, arguments);
+		const annotations = [...this.highlights, ...this.underlines, ...this.marks];
+
+		return annotations;
 	}
 
 	/**
