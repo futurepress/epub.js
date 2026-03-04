@@ -429,7 +429,7 @@ Find Locations for a Book
 **Parameters**
 
 -   `spine` **[Spine](#spine)** 
--   `request` **[request](https://developer.mozilla.org/en-US/Add-ons/SDK/High-Level_APIs/request)** 
+-   `request` **[request](https://web.archive.org/web/20201025030103/https://developer.mozilla.org/en-US/Add-ons/SDK/High-Level_APIs/request)** 
 -   `pause` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)**  (optional, default `100`)
 
 ### generate
