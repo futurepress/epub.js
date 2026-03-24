@@ -49,6 +49,29 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.scrollLeft = 0;
 	}
 
+	getScrollPosition() {
+		let dir = this.settings.direction === "rtl" && this.settings.rtlScrollType === "default" ? -1 : 1;
+
+		if(!this.settings.fullsize) {
+			return {
+				top: this.container.scrollTop,
+				left: this.container.scrollLeft
+			};
+		}
+
+		return {
+			top: window.scrollY * dir,
+			left: window.scrollX * dir
+		};
+	}
+
+	syncScrollPosition() {
+		let {top, left} = this.getScrollPosition();
+		this.scrollTop = top;
+		this.scrollLeft = left;
+		return {top, left};
+	}
+
 	display(section, target){
 		return DefaultViewManager.prototype.display.call(this, section, target)
 			.then(function () {
@@ -212,17 +235,27 @@ class ContinuousViewManager extends DefaultViewManager {
 						});
 					promises.push(displayed);
 				} else {
-					view.show();
+					// Avoid forcing iframe redraw on every scroll tick.
+					// IframeView.show() toggles translateZ for Safari repaint; repeated calls can flicker.
+					if (
+						(view.element && view.element.style.visibility !== "visible") ||
+						(view.iframe && view.iframe.style.visibility !== "visible")
+					) {
+						view.show();
+					}
 				}
 				visible.push(view);
 			} else {
-				this.q.enqueue(view.destroy.bind(view));
-				// console.log("hidden " + view.index, view.displayed);
+				// Keep offscreen views hidden during active scroll to avoid
+				// frequent iframe teardown / rebuild flicker around section edges.
+				if (
+					view.displayed &&
+					(view.element && view.element.style.visibility !== "hidden")
+				) {
+					view.hide();
+				}
 
-				clearTimeout(this.trimTimeout);
-				this.trimTimeout = setTimeout(function(){
-					this.q.enqueue(this.trim.bind(this));
-				}.bind(this), 250);
+				this.scheduleTrim(350);
 			}
 
 		}
@@ -237,6 +270,18 @@ class ContinuousViewManager extends DefaultViewManager {
 			return updating.promise;
 		}
 
+	}
+
+	scheduleTrim(delay = 250) {
+		clearTimeout(this.trimTimeout);
+		this.trimTimeout = setTimeout(function(){
+			// Avoid trimming while momentum scroll is still active.
+			if ((this.scrollDeltaVert || 0) > 2 || (this.scrollDeltaHorz || 0) > 2) {
+				this.scheduleTrim(120);
+				return;
+			}
+			this.q.enqueue(this.trim.bind(this));
+		}.bind(this), delay);
 	}
 
 	check(_offsetLeft, _offsetTop){
@@ -256,7 +301,8 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		var bounds = this._bounds; // bounds saved this until resize
 
-		let offset = horizontal ? this.scrollLeft : this.scrollTop;
+		let {top, left} = this.syncScrollPosition();
+		let offset = horizontal ? left : top;
 		let visibleLength = horizontal ? Math.floor(bounds.width) : bounds.height;
 		let contentLength = horizontal ? this.container.scrollWidth : this.container.scrollHeight;
 		let writingMode = (this.writingMode && this.writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
@@ -416,20 +462,18 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		this.tick = requestAnimationFrame;
 
-		let dir = this.settings.direction === "rtl" && this.settings.rtlScrollType === "default" ? -1 : 1;
-
 		this.scrollDeltaVert = 0;
 		this.scrollDeltaHorz = 0;
 
 		if(!this.settings.fullsize) {
 			scroller = this.container;
-			this.scrollTop = this.container.scrollTop;
-			this.scrollLeft = this.container.scrollLeft;
 		} else {
 			scroller = window;
-			this.scrollTop = window.scrollY * dir;
-			this.scrollLeft = window.scrollX * dir;
 		}
+
+		let {top, left} = this.syncScrollPosition();
+		this.prevScrollTop = top;
+		this.prevScrollLeft = left;
 
 		this._onScroll = this.onScroll.bind(this);
 		scroller.addEventListener("scroll", this._onScroll);
@@ -454,20 +498,7 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	onScroll(){
-		let scrollTop;
-		let scrollLeft;
-		let dir = this.settings.direction === "rtl" && this.settings.rtlScrollType === "default" ? -1 : 1;
-
-		if(!this.settings.fullsize) {
-			scrollTop = this.container.scrollTop;
-			scrollLeft = this.container.scrollLeft;
-		} else {
-			scrollTop = window.scrollY * dir;
-			scrollLeft = window.scrollX * dir;
-		}
-
-		this.scrollTop = scrollTop;
-		this.scrollLeft = scrollLeft;
+		let {top: scrollTop, left: scrollLeft} = this.syncScrollPosition();
 
 		if(!this.ignore) {
 
@@ -496,10 +527,12 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	scrolled() {
-
-		this.q.enqueue(function() {
+		let scrolledTask = this.q.enqueue(function() {
 			return this.check();
 		}.bind(this));
+
+		this.scrolledRequestId = (this.scrolledRequestId || 0) + 1;
+		let requestId = this.scrolledRequestId;
 
 		this.emit(EVENTS.MANAGERS.SCROLL, {
 			top: this.scrollTop,
@@ -508,16 +541,24 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		clearTimeout(this.afterScrolled);
 		this.afterScrolled = setTimeout(function () {
+			Promise.resolve(scrolledTask)
+				.catch(function () {})
+				.then(function() {
+					// Skip stale timers when newer scroll events are already queued.
+					if (requestId !== this.scrolledRequestId) {
+						return;
+					}
 
-			// Don't report scroll if we are about the snap
-			if (this.snapper && this.snapper.supportsTouch && this.snapper.needsSnap()) {
-				return;
-			}
+					// Don't report scroll if we are about the snap
+					if (this.snapper && this.snapper.supportsTouch && this.snapper.needsSnap()) {
+						return;
+					}
 
-			this.emit(EVENTS.MANAGERS.SCROLLED, {
-				top: this.scrollTop,
-				left: this.scrollLeft
-			});
+					this.emit(EVENTS.MANAGERS.SCROLLED, {
+						top: this.scrollTop,
+						left: this.scrollLeft
+					});
+				}.bind(this));
 
 		}.bind(this), this.settings.afterScrolledTimeout);
 	}
@@ -580,6 +621,8 @@ class ContinuousViewManager extends DefaultViewManager {
 	}
 
 	destroy(){
+		clearTimeout(this.trimTimeout);
+		clearTimeout(this.scrollTimeout);
 		super.destroy();
 
 		if (this.snapper) {
