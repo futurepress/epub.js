@@ -2,7 +2,7 @@ import {defer, isXml, parse} from "./utils/core";
 import httpRequest from "./utils/request";
 import mime from "./utils/mime";
 import Path from "./utils/path";
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import localforage from "localforage";
 
 /**
@@ -12,9 +12,10 @@ import localforage from "localforage";
  * @param {function} [requester]
  * @param {function} [resolver]
  */
-class Store {
+class Store extends EventEmitter {
 
 	constructor(name, requester, resolver) {
+		super();
 		this.urlCache = {};
 
 		this.storage = undefined;
@@ -379,6 +380,6 @@ class Store {
 	}
 }
 
-EventEmitter(Store.prototype);
+Object.assign(Store.prototype, EventEmitter.prototype);
 
 export default Store;

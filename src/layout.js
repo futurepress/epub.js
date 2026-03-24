@@ -1,6 +1,6 @@
 import { extend } from "./utils/core";
 import { EVENTS } from "./utils/constants";
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 
 /**
  * Figures out the CSS values to apply for a layout
@@ -11,8 +11,9 @@ import EventEmitter from "event-emitter";
  * @param {number} [settings.minSpreadWidth=800]
  * @param {boolean} [settings.evenSpreads=false]
  */
-class Layout {
+class Layout extends EventEmitter {
 	constructor(settings) {
+		super();
 		this.settings = settings;
 		this.name = settings.layout || "reflowable";
 		this._spread = (settings.spread === "none") ? false : true;
@@ -255,6 +256,6 @@ class Layout {
 	}
 }
 
-EventEmitter(Layout.prototype);
+Object.assign(Layout.prototype, EventEmitter.prototype);
 
 export default Layout;

@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import {isNumber, prefixed, borders, defaults} from "./utils/core";
 import EpubCFI from "./epubcfi";
 import Mapping from "./mapping";
@@ -21,8 +21,9 @@ const TEXT_NODE = 3;
 	* @param {string} cfiBase Section component of CFIs
 	* @param {number} sectionIndex Index in Spine of Conntent's Section
 	*/
-class Contents {
+class Contents extends EventEmitter {
 	constructor(doc, content, cfiBase, sectionIndex) {
+		super();
 		// Blank Cfi for Parsing
 		this.epubcfi = new EpubCFI();
 
@@ -1259,6 +1260,6 @@ class Contents {
 	}
 }
 
-EventEmitter(Contents.prototype);
+Object.assign(Contents.prototype, EventEmitter.prototype);
 
 export default Contents;

@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
 
@@ -212,7 +212,7 @@ class Annotations {
  * @param {object} styles CSS styles to assign to annotation
  * @returns {Annotation} annotation
  */
-class Annotation {
+class Annotation extends EventEmitter {
 
 	constructor ({
 		type,
@@ -223,6 +223,7 @@ class Annotation {
 		className,
 		styles
 	}) {
+		super();
 		this.type = type;
 		this.cfiRange = cfiRange;
 		this.data = data;
@@ -295,7 +296,7 @@ class Annotation {
 
 }
 
-EventEmitter(Annotation.prototype);
+Object.assign(Annotation.prototype, EventEmitter.prototype);
 
 
 export default Annotations

@@ -1,12 +1,13 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import {extend, borders, uuid, isNumber, bounds, defer, createBlobUrl, revokeBlobUrl} from "../../utils/core";
 import EpubCFI from "../../epubcfi";
 import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
-class IframeView {
+class IframeView extends EventEmitter {
 	constructor(section, options) {
+		super();
 		this.settings = extend({
 			ignoreClass : "",
 			axis: undefined, //options.layout && options.layout.props.flow === "scrolled" ? "vertical" : "horizontal",
@@ -846,6 +847,6 @@ class IframeView {
 	}
 }
 
-EventEmitter(IframeView.prototype);
+Object.assign(IframeView.prototype, EventEmitter.prototype);
 
 export default IframeView;

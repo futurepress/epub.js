@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import {extend, defer, windowBounds, isNumber} from "../../utils/core";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
@@ -7,8 +7,9 @@ import Stage from "../helpers/stage";
 import Views from "../helpers/views";
 import { EVENTS } from "../../utils/constants";
 
-class DefaultViewManager {
+class DefaultViewManager extends EventEmitter {
 	constructor(options) {
+		super();
 
 		this.name = "default";
 		this.optsSettings = options.settings;
@@ -1077,6 +1078,6 @@ class DefaultViewManager {
 }
 
 //-- Enable binding events to Manager
-EventEmitter(DefaultViewManager.prototype);
+Object.assign(DefaultViewManager.prototype, EventEmitter.prototype);
 
 export default DefaultViewManager;

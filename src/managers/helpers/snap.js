@@ -1,6 +1,6 @@
 import {extend, defer, requestAnimationFrame, prefixed} from "../../utils/core";
 import { EVENTS, DOM_EVENTS } from "../../utils/constants";
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 
 // easing equations from https://github.com/danro/easing-js/blob/master/easing.js
 const PI_D2 = (Math.PI / 2);
@@ -22,8 +22,9 @@ const EASING_EQUATIONS = {
   	}
 };
 
-class Snap {
+class Snap extends EventEmitter {
 	constructor(manager, options) {
+		super();
 
 		this.settings = extend({
 			duration: 80,
@@ -333,6 +334,6 @@ class Snap {
 	}
 }
 
-EventEmitter(Snap.prototype);
+Object.assign(Snap.prototype, EventEmitter.prototype);
 
 export default Snap;

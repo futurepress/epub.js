@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import { extend, defer, isFloat } from "./utils/core";
 import Hook from "./utils/hook";
 import EpubCFI from "./epubcfi";
@@ -40,8 +40,9 @@ import ContinuousViewManager from "./managers/continuous/index";
  * @param {boolean} [options.allowScriptedContent=false] enable running scripts in content
  * @param {boolean} [options.allowPopups=false] enable opening popup in content
  */
-class Rendition {
+class Rendition extends EventEmitter {
 	constructor(book, options) {
+		super();
 
 		this.settings = extend(this.settings || {}, {
 			width: null,
@@ -1064,6 +1065,6 @@ class Rendition {
 }
 
 //-- Enable binding events to Renderer
-EventEmitter(Rendition.prototype);
+Object.assign(Rendition.prototype, EventEmitter.prototype);
 
 export default Rendition;

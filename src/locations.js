@@ -2,7 +2,7 @@ import {qs, sprint, locationOf, defer} from "./utils/core";
 import Queue from "./utils/queue";
 import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 
 /**
  * Find Locations for a Book
@@ -10,8 +10,9 @@ import EventEmitter from "event-emitter";
  * @param {request} request
  * @param {number} [pause=100]
  */
-class Locations {
+class Locations extends EventEmitter {
 	constructor(spine, request, pause) {
+		super();
 		this.spine = spine;
 		this.request = request;
 		this.pause = pause || 100;
@@ -496,6 +497,6 @@ class Locations {
 	}
 }
 
-EventEmitter(Locations.prototype);
+Object.assign(Locations.prototype, EventEmitter.prototype);
 
 export default Locations;

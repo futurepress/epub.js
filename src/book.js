@@ -1,4 +1,4 @@
-import EventEmitter from "event-emitter";
+import { EventEmitter } from "events";
 import {extend, defer} from "./utils/core";
 import Url from "./utils/url";
 import Path from "./utils/path";
@@ -47,8 +47,9 @@ const INPUT_TYPE = {
  * @example new Book("/path/to/book.epub", {})
  * @example new Book({ replacements: "blobUrl" })
  */
-class Book {
+class Book extends EventEmitter {
 	constructor(url, options) {
+		super();
 		// Allow passing just options to the Book
 		if (typeof(options) === "undefined" &&
 			  typeof(url) !== "string" &&
@@ -763,6 +764,6 @@ class Book {
 }
 
 //-- Enable binding events to book
-EventEmitter(Book.prototype);
+Object.assign(Book.prototype, EventEmitter.prototype);
 
 export default Book;
