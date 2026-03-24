@@ -88,7 +88,8 @@ class Navigation {
 		}
 
 		if(target.indexOf("#") === 0) {
-			index = this.tocById[target.substring(1)];
+			target = target.substring(1);
+			index = this.tocById[target];
 		} else if(target in this.tocByHref){
 			index = this.tocByHref[target];
 		}
