@@ -117,9 +117,11 @@ class DefaultViewManager {
 	addEventListeners(){
 		var scroller;
 
-		window.addEventListener("unload", function(e){
+		this._onUnload = function(e){
 			this.destroy();
-		}.bind(this));
+		}.bind(this);
+
+		window.addEventListener("unload", this._onUnload);
 
 		if(!this.settings.fullsize) {
 			scroller = this.container;
@@ -142,6 +144,9 @@ class DefaultViewManager {
 
 		scroller.removeEventListener("scroll", this._onScroll);
 		this._onScroll = undefined;
+
+		window.removeEventListener("unload", this._onUnload);
+    	this._onUnload = undefined;
 	}
 
 	destroy(){
