@@ -128,6 +128,13 @@ export function replaceLinks(contents, fn) {
 export function substitute(content, urls, replacements) {
 	urls.forEach(function(url, i){
 		if (url && replacements[i]) {
+			// when (content.opf > manifest > item > href) is a encodeURI, but the content's source is not
+			try {
+				let decodeUri = window.decodeURIComponent(url);
+				content = content.replace(new RegExp(decodeUri, "g"), replacements[i]);
+			} catch (err) {
+				throw err
+			}
 			// Account for special characters in the file name.
 			// See https://stackoverflow.com/a/6318729.
 			url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
