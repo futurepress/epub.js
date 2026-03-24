@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,9 +51,9 @@
       cursor: pointer;
       margin-left: 0;
     }
-
   </style>
 </head>
+
 <body>
   <div id="frame">
     <div id="viewer" class="spreads"></div>
@@ -77,21 +78,21 @@
     var displayed = rendition.display(6);
 
     // Navigation loaded
-    book.loaded.navigation.then(function(toc){
+    book.loaded.navigation.then(function (toc) {
       // console.log(toc);
     });
 
     var next = document.getElementById("next");
-    next.addEventListener("click", function(){
+    next.addEventListener("click", function () {
       rendition.next();
     }, false);
 
     var prev = document.getElementById("prev");
-    prev.addEventListener("click", function(){
+    prev.addEventListener("click", function () {
       rendition.prev();
     }, false);
 
-    var keyListener = function(e){
+    var keyListener = function (e) {
 
       // Left Key
       if ((e.keyCode || e.which) == 37) {
@@ -108,13 +109,13 @@
     rendition.on("keyup", keyListener);
     document.addEventListener("keyup", keyListener, false);
 
-    rendition.on("relocated", function(location){
+    rendition.on("relocated", function (location) {
       // console.log(location);
     });
 
 
     // Apply a class to selected text
-    rendition.on("selected", function(cfiRange, contents) {
+    rendition.on("selected", function (cfiRange, contents) {
       rendition.annotations.highlight(cfiRange, {}, (e) => {
         console.log("highlight clicked", e.target);
       });
@@ -126,7 +127,7 @@
       '::selection': {
         'background': 'rgba(255,255,0, 0.3)'
       },
-      '.epubjs-hl' : {
+      '.epubjs-hl': {
         'fill': 'yellow', 'fill-opacity': '0.3', 'mix-blend-mode': 'multiply'
       }
     });
@@ -134,10 +135,11 @@
     // Illustration of how to get text from a saved cfiRange
     var highlights = document.getElementById('highlights');
 
-    rendition.on("selected", function(cfiRange) {
+    rendition.on("selected", function (cfiRange) {
 
       book.getRange(cfiRange).then(function (range) {
         var text;
+        var div = document.createElement("div");
         var li = document.createElement('li');
         var a = document.createElement('a');
         var remove = document.createElement('a');
@@ -156,13 +158,16 @@
           remove.textContent = "remove";
           remove.href = "#" + cfiRange;
           remove.onclick = function () {
-            rendition.annotations.remove(cfiRange);
+            rendition.annotations.remove(cfiRange, "highlight");
+            li.removeChild(div);
             return false;
           };
 
-          li.appendChild(a);
-          li.appendChild(textNode);
-          li.appendChild(remove);
+          div.appendChild(a);
+          div.appendChild(textNode);
+          div.appendChild(remove);
+
+          li.appendChild(div);
           highlights.appendChild(li);
         }
 
@@ -173,4 +178,5 @@
   </script>
 
 </body>
+
 </html>
