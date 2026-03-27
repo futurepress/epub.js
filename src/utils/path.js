@@ -59,6 +59,17 @@ class Path {
 	}
 
 	/**
+	 * Join a paths
+	 *
+	 * https://nodejs.org/api/path.html#pathjoinpaths
+	 * @param	{string} what
+	 * @returns {string} joined path
+	 */
+	join (what) {
+		return path.join(this.directory, what);
+	}
+
+	/**
 	 * Resolve a path against the directory of the Path
 	 *
 	 * https://nodejs.org/api/path.html#path_path_resolve_paths

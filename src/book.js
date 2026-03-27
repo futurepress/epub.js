@@ -547,7 +547,7 @@ class Book {
 
 		return this.load(navPath, "xml")
 			.then((xml) => {
-				this.navigation = new Navigation(xml);
+				this.navigation = new Navigation(xml, navPath);
 				this.pageList = new PageList(xml);
 				return this.navigation;
 			});
