@@ -666,14 +666,7 @@ class Contents {
 			let id = target.substring(target.indexOf("#")+1);
 			let el = this.document.getElementById(id);
 			if(el) {
-				if (isWebkit) {
-					// Webkit reports incorrect bounding rects in Columns
-					let newRange = new Range();
-					newRange.selectNode(el);
-					position = newRange.getBoundingClientRect();
-				} else {
-					position = el.getBoundingClientRect();
-				}
+				position = el.getBoundingClientRect();
 			}
 		}
 
