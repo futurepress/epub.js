@@ -476,8 +476,11 @@ class Rendition {
 			height: size.height
 		}, epubcfi);
 
-		if (this.location && this.location.start) {
-			this.display(epubcfi || this.location.start.cfi);
+		if (epubcfi) {
+			this.display(epubcfi)
+		}
+		else if (this.location && this.location.start) {
+			this.display(this.location.start.cfi);
 		}
 
 	}
