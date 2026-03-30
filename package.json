@@ -6,6 +6,13 @@
   "module": "src/index.js",
   "types": "types/index.d.ts",
   "repository": "https://github.com/futurepress/epub.js",
+  "files": [
+    "dist",
+    "lib",
+    "types",
+    "license",
+    "README.md"
+  ],
   "directories": {
     "test": "test"
   },
