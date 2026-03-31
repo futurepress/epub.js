@@ -32,12 +32,12 @@ body {
   padding: 0;
   position: relative;
   margin: 10px auto;
-  background: white url('ajax-loader.gif') center center no-repeat;
+  /* background: white url('ajax-loader.gif') center center no-repeat; */
   top: calc(50vh - 400px);
 }
 
 #viewer.spreads .epub-view > iframe {
-    background: white;
+    /* background: white; */
 }
 
 #viewer.scrolled {
@@ -253,6 +253,7 @@ body {
 
 svg {
   display: block;
+  z-index: -1;
 }
 
 .close-x {
