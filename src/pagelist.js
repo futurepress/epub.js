@@ -15,6 +15,7 @@ class PageList {
 	constructor(xml) {
 		this.pages = [];
 		this.locations = [];
+		this.hrefMap = {};
 		this.epubcfi = new EpubCFI();
 
 		this.firstPage = 0;
@@ -106,7 +107,7 @@ class PageList {
 		var content = qs(item, "content");
 
 		var href = content.getAttribute("src");
-		var page = parseInt(pageText, 10);
+		var page = pageText;
 
 		return {
 			"href": href,
@@ -124,7 +125,7 @@ class PageList {
 		var content = qs(item, "a"),
 				href = content.getAttribute("href") || "",
 				text = content.textContent || "",
-				page = parseInt(text),
+				page = text,
 				isCfi = href.indexOf("epubcfi"),
 				split,
 				packageUrl,
@@ -156,19 +157,20 @@ class PageList {
 	process(pageList){
 		pageList.forEach(function(item){
 			this.pages.push(item.page);
+			this.hrefMap[item.page] = item.href;
 			if (item.cfi) {
 				this.locations.push(item.cfi);
 			}
 		}, this);
-		this.firstPage = parseInt(this.pages[0]);
-		this.lastPage = parseInt(this.pages[this.pages.length-1]);
+		this.firstPage = this.pages[0];
+		this.lastPage = this.pages[this.pages.length-1];
 		this.totalPages = this.lastPage - this.firstPage;
 	}
 
 	/**
 	 * Get a PageList result from a EpubCFI
 	 * @param  {string} cfi EpubCFI String
-	 * @return {number} page
+	 * @return {string} page
 	 */
 	pageFromCfi(cfi){
 		var pg = -1;
@@ -205,15 +207,11 @@ class PageList {
 
 	/**
 	 * Get an EpubCFI from a Page List Item
-	 * @param  {string | number} pg
+	 * @param  {string} pg
 	 * @return {string} cfi
 	 */
 	cfiFromPage(pg){
 		var cfi = -1;
-		// check that pg is an int
-		if(typeof pg != "number"){
-			pg = parseInt(pg);
-		}
 
 		// check if the cfi is in the page list
 		// Pages could be unsorted.
@@ -228,7 +226,7 @@ class PageList {
 	/**
 	 * Get a Page from Book percentage
 	 * @param  {number} percent
-	 * @return {number} page
+	 * @return {string} page
 	 */
 	pageFromPercentage(percent){
 		var pg = Math.round(this.totalPages * percent);
@@ -237,7 +235,7 @@ class PageList {
 
 	/**
 	 * Returns a value between 0 - 1 corresponding to the location of a page
-	 * @param  {number} pg the page
+	 * @param  {string} pg the page
 	 * @return {number} percentage
 	 */
 	percentageFromPage(pg){
@@ -254,6 +252,15 @@ class PageList {
 		var pg = this.pageFromCfi(cfi);
 		var percentage = this.percentageFromPage(pg);
 		return percentage;
+	}
+
+	/**
+	 * Returns the href corresponding to a page
+	 * @param  {string} pg the page
+	 * @return {string} href
+	 */
+	hrefFromPage(pg){
+		return this.hrefMap[pg];
 	}
 
 	/**
