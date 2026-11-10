@@ -488,6 +488,12 @@ export function parse(markup, mime, forceXMLDom) {
 		markup = markup.slice(1);
 	}
 
+	// Chromium's Rust XML parser rejects a root name followed directly by the
+	// internal subset ("<!DOCTYPE html[]>"), which is well-formed XML.
+	// Insert the optional whitespace so those documents still parse. Only the
+	// prolog DOCTYPE is touched: a literal one in CDATA or a comment stays as is.
+	markup = markup.replace(/^(\s*(?:<\?(?:(?!\?>)[\s\S])*\?>\s*|<!--(?:(?!-->)[\s\S])*-->\s*)*<!DOCTYPE\s+[^\s[>]+)\[/, "$1 [");
+
 	doc = new Parser().parseFromString(markup, mime);
 
 	return doc;
