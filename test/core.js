@@ -1,6 +1,7 @@
 import assert from 'assert';
 import Url from '../src/utils/url';
 import Path from '../src/utils/path';
+import { parse } from '../src/utils/core';
 
 describe('Core', function() {
 
@@ -193,6 +194,27 @@ describe('Core', function() {
 
 		});
 
+
+	});
+
+	describe('parse', function () {
+
+		var body = '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>t</title></head><body><p>ok</p></body></html>';
+
+		it("should parse a doctype whose root name runs into the internal subset", function() {
+			var doc = parse('<?xml version="1.0"?>\n<!DOCTYPE html[]>\n' + body, "application/xhtml+xml");
+
+			assert.equal( doc.getElementsByTagName("parsererror").length, 0 );
+			assert.equal( doc.doctype.name, "html" );
+			assert.equal( doc.getElementsByTagName("p")[0].textContent, "ok" );
+		});
+
+		it("should keep entities declared in an unspaced internal subset", function() {
+			var doc = parse('<?xml version="1.0"?>\n<!DOCTYPE html[<!ENTITY x "ok">]>\n' + body.replace("ok", "&x;"), "application/xhtml+xml");
+
+			assert.equal( doc.getElementsByTagName("parsererror").length, 0 );
+			assert.equal( doc.getElementsByTagName("p")[0].textContent, "ok" );
+		});
 
 	});
 
