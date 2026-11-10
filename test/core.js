@@ -216,6 +216,20 @@ describe('Core', function() {
 			assert.equal( doc.getElementsByTagName("p")[0].textContent, "ok" );
 		});
 
+		it("should repair the doctype after a comment that mentions one", function() {
+			var doc = parse('<?xml version="1.0"?>\n<!-- <!DOCTYPE x[]> -->\n<!DOCTYPE html[]>\n' + body, "application/xhtml+xml");
+
+			assert.equal( doc.getElementsByTagName("parsererror").length, 0 );
+			assert.equal( doc.firstChild.data, " <!DOCTYPE x[]> " );
+		});
+
+		it("should leave a doctype inside CDATA as written", function() {
+			var doc = parse('<?xml version="1.0"?>\n<!DOCTYPE html>\n' + body.replace("ok", "<![CDATA[<!DOCTYPE x[]>]]>"), "application/xhtml+xml");
+
+			assert.equal( doc.getElementsByTagName("parsererror").length, 0 );
+			assert.equal( doc.getElementsByTagName("p")[0].textContent, "<!DOCTYPE x[]>" );
+		});
+
 	});
 
 });
