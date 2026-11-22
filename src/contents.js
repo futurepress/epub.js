@@ -156,7 +156,7 @@ class Contents {
 
 		// get the width of the text content
 		rect = range.getBoundingClientRect();
-		width = rect.width;
+		width = (this.window.getComputedStyle(content).direction === "rtl") ? rect.width : rect.right;
 
 		if (border && border.width) {
 			width += border.width;
